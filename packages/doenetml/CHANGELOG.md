@@ -1,5 +1,292 @@
 # @doenet/doenetml
 
+## 0.7.24
+
+### Patch Changes
+
+- 78516e9: Editor: suggest, describe, and insert only text that is actually a reference.
+
+    Autocomplete opened on every `.`, including one ending a sentence. It now opens only when the period continues an unfinished reference path — `$P.`, `$P.coords.`, `$rep[$i].`, `$(P.` — and a list that is already open closes as soon as the cursor leaves the name it is a list of names for, so typing `$P.(`, `$P."`, `$P. `, a second `.`, the `[` and `]` of an index, or anything but a name after a bare `$`, no longer leaves a stale list — or, once the reference is behind the cursor, the whole element menu — on screen.
+
+    Three places also offered the forms `$(P).coords` and `$P.(coords)`, which read as a reference followed by literal text: a macro ends at the `)` of `$(P)`, and the grammar has no parenthesized property form. Member completions, the help panel, and the annotation skeleton snippet now all use the form that works.
+
+    Completing a member into a path that needs the richer `$(…)` identifier syntax — because of a hyphen, say — rewrites the macro instead of parenthesizing one segment: accepting `my-p` after `$base.my` now gives `$(base.my-p)`, and accepting `p1` after `$s.sub-sec.` gives `$(s.sub-sec.p1)`. The help panel names paths the same way, the annotation skeleton writes `$(my-seg.endpoints[1].x)`, and completing a hyphenated name that takes an index inserts `$(my-rep[])` rather than `$(my-rep)[]`, whose macro ends before the index.
+
+- 182de88: Fix illegible link and text contrast in description panels, especially in dark mode. The panel is the info button/popover (inline) or expandable `<details>` (block) attached to an image, video, graph, or input, so the fix reaches all of them; the link color change reaches every `<ref>` link as well.
+
+    The attribution links generated from `licenseCodes` (and from `authorName`/`imageName`) were plain anchors with no color of their own, so they fell through to the browser's `#0000EE` — 1.2:1 against the dark panel, and worse once visited. `<ref>` links used `--mainBlue`, which is identical in both themes and reached only 1.6:1. Links now use a new `--linkText` custom property that differs per theme.
+
+    The panel also painted surfaces of its own (`--revealButtonSurface` for `<details>`, a hardcoded `hsl(204 4% 16%)` for the popover) rather than the canvas. Style-definition contrast is checked statically against the canvas, so authored text colors could clear that check and still be unreadable inside the description. Both surfaces now use `--canvas`/`--canvasText`, which makes the existing guarantee hold there. Since neither panel has a fill to set it apart, both are outlined with a new `--panelBorder` custom property that meets WCAG's 3:1 non-text contrast against the canvas, replacing the popover's hardcoded near-canvas border (and its arrow's matching stroke), which was all but invisible in either theme.
+
+- e973402: Editor: remove the small gap between the diagnostics/help panel's scrollbar and the editor's trailing edge.
+
+    The inline padding that insets the panel text was applied to the panel's non-scrolling wrapper, so it pushed the scrolling element — and with it the scrollbar — in from the editor's edge. The padding now lives on the panel content instead, leaving the scrollbar flush against the resizer while the text keeps the same inset.
+
+- 7c62983: Editor: make the selection unmistakable, and give the two hints that were competing with it channels of their own.
+
+    The editor paints three things around text — the selection, the other occurrences of the selected text, and the tag pair under the cursor — and off the shelf all three were fills of nearly the same strength on the dark canvas: the selection at 1.32:1 against the canvas, the tag pair at 1.51:1, the occurrences at 4.51:1. The loudest was the one that mattered least, and authors reported the selection as effectively invisible and as getting lost against the tag-pair highlight.
+
+    The selection is now 3.48:1 against the dark canvas — 3.27:1 on the line holding the cursor, where the active-line tint is painted over it, so it clears WCAG's 3:1 for non-text contrast either way — and 1.96:1 against the white one, up from 1.28:1. What was holding it down is that the fill is painted _behind_ syntax-colored text that has to stay readable on top of it, which capped how far it could move before the dimmest token fell below WCAG AA. Selected text now gets a single high-contrast color of its own, the way a native selection in any other input on the page does (white on dark at 5.39:1, near-black on light at 9.64:1), so the palette no longer sets the ceiling. Light mode also stops using the neutral gray the gutter is painted in, so the selection no longer reads as editor chrome.
+
+    Occurrences of the selected text used to be marked in CodeMirror's stock `#99ff7780` green, which shouted over the selection it was echoing and, on the dark canvas, dropped every syntax token to between 1.35:1 and 3.5:1 — under AA. They are now a quiet blue drawn from the selection color, at 1.18:1 light and 1.47:1 dark, with every token clearing AA on top. The dark comment gray is a shade lighter (`#8b949e` → `#9ba4ad`) so that tint can register at all and still keep comments readable on it; comments stay plainly quieter than body content.
+
+    The tag pair the cursor sits in is now outlined rather than filled, in a channel neither fill can be mistaken for, with the outline clearing 3:1 against the canvas in both modes.
+
+    Ctrl+D (select-next-occurrence) used to blank out every occurrence mark on the first press — `highlightSelectionMatches` returns nothing at all once the selection holds more than one range, so the guidance disappeared exactly when a multi-cursor edit was relying on it. It is replaced by an equivalent that keeps marking whatever copies have not been taken yet, so each press visibly moves one occurrence from the hint color into the selection. Selections of a single character, or of nothing but whitespace, no longer mark anything.
+
+    Also fixes the editor canvas in dark mode outside `EditorViewer`: `@uiw/react-codemirror` appended a theme of its own after ours whose only rule painted the editor white, leaving a dark-mode editor sitting on white anywhere the app's own belt-and-suspenders CSS override did not reach.
+
+- a97239f: `<slopeField>` and `<vectorField>` take their function as a child rather than a `function` attribute, and gain a `variables` attribute.
+
+    The `function` attribute is gone. A field's function is now written inside the component, either as a bare expression — `<vectorField>(y, -x)</vectorField>` — or as a `<function>` child, which may be a reference to one declared elsewhere. The two ways of saying the same thing were doing the same work: the bare expression was already being turned into a `<function>`, and the attribute created one too, so an author had to pick between forms that could not differ.
+
+    The new `variables` attribute names the inputs of a bare expression, in order, and defaults to `x y`. `<slopeField variables="s t">s - t</slopeField>` reads that equation in the letters its author wrote it in, rather than requiring an explicit `<function variables="s t">` for the sake of two names. It is the same `variables` a `<function>` takes, and it is moved onto the wrapping `<function>` rather than read, so the names may themselves be references: `<vectorField variables="$v1 $v2">(r, -q)</vectorField>`, beside a pair of `<mathInput>`s named `v1` and `v2`, lets a student say which axis `q` names and which `r` does, and the field is redrawn as they type. It has no bearing on a `<function>` child, which names its own variables and is used exactly as written; writing both warns, rather than letting one of them silently do nothing, as does writing `variables` on a field with no expression inside it at all.
+
+    A field also no longer takes a `<label>`. It covers the whole visible region, so there is nowhere for a label to sit, and none was ever drawn; one written on a field is now reported as the invalid child it is rather than accepted and ignored. The `labelIsName`, `applyStyleToLabel` and `maskLabel` attributes go with it, having nothing left to name, style or mask. `<pegboard>` is in the same position and loses its label too.
+
+    A field whose function takes a single input now respects that function's `domain`. Such a function was being called with the lattice's `y` as a second argument, which is not a second input but a flag that suppresses the domain check, so marks were drawn right across the interval the function's author had excluded — everywhere except along `y = 0`.
+
+- bb2b146: Graph: stop axis tick spacing from flickering between two values while a point is dragged.
+
+    The number of minor ticks was chosen from the major-tick interval, but JSXGraph derives that interval from the number of minor ticks — it keeps a minimum pixel gap between minor ticks, so a larger minor count pushes the interval up. At some board scales the two never agree, and because the choice was remade on every render, the axis kept alternating between the two answers for as long as renders kept arriving. `<graph aspectRatio="2" ymin="-6" ymax="6" size="large">` was one such scale: dragging a point flipped the y axis between ticks every 2 and ticks every 1.
+
+    The minor-tick count is now chosen by evaluating the candidates rather than iterating toward a fixed point that may not exist, so it settles; and it is recomputed only when something it depends on — the region the board shows, the canvas it is drawn in, or the axes themselves — actually changes, rather than on every render.
+
+- 0754686: Line a list item's number up with a labeled `<choiceInput>` however it is wrapped, and stop a hidden first child from taking the lead.
+
+    A labeled block `<choiceInput>` leading an `<ol>`/`<ul>` list item drew the item's number beside the first choice instead of beside the question label, because the label was rendered in a `<legend>` and a browser aligns a list marker with the content _after_ a legend. #1668 fixed that only where the core could tell the input it was leading a list item, which left the bug in place for wrappers that pass no such signal on — `<li><p>`, `<li><span>` and `<li><em>` all still drew the number a line low. The label now renders in an equivalent `<div>` wherever it appears, so nesting the input in anything at all keeps the number on the label's row. Its accessible name is unchanged (`aria-labelledby` names the fieldset either way) and so is its position on the line.
+
+    A list item — an `<li>`, or a `<problem>`/`<task>`/`<part>` rendered as one — lines its number up with its first child, and suppresses that child's top margin. A child hidden with `hide` counted as that first child even though nothing of it renders, so the child behind it kept its top margin and lost its claim on the number. In `<li><p hide/><answer><choiceInput/></answer></li>` that put the marker beside the first choice instead of beside the question label. The first child that actually renders is now the one used, so hidden content can sit at the front of a list item without disturbing it.
+
+    This holds at every level the number's alignment is passed down. Hiding a composite counts: a `<repeat hide>` or `<conditionalContent hide>` at the front of an item is skipped along with the replacements it stands in for. And every component that hands the alignment on now applies the same test to its own children:
+
+    - A wrapper that leads the item — a `<div>`, `<blockQuote>`, `<stack>`, or `<sideBySide>` panel — so `<li><div><p hide/><answer><choiceInput/></answer></div></li>` lines up the same way the unwrapped item does. A wrapper also stops leading with a child that draws nothing anywhere, such as an `<animateFromSequence>`.
+    - A `<sideBySide>` leading the item, which took its top-or-baseline alignment from its first panel whether or not that panel was shown. `<li><sideBySide><p hide/><graph/></sideBySide></li>` was laid out as though it led with a paragraph; it now top-aligns, exactly as it does with the hidden panel deleted.
+    - An `<answer>` leading the item, which pointed at its first block `<choiceInput>` even when that input was hidden. The item now falls back to its usual alignment instead of lining the number up against an input nobody can see.
+
+    A `<cascadeMessage>` no longer takes the lead either. It is hidden whenever the step around it is revealed, so a `<problem>` that opened with one gave its number, and the top-margin suppression, to a message the reader cannot see.
+
+    Only a child's own `hide` counts, though. Hiding a _container_ does not re-pick the lead of anything inside it: a hidden `<ol>`, a hidden section, and a `<cascade>` step held back until earlier ones are done all hide their contents while leaving each item leading with exactly the child it would lead with if shown.
+
+    An `<li>` leading with a box that offers no first line of text — a `<graph>`, `<image>`, `<video>`, `<figure>` or `<tabular>` — had its number drawn at the bottom of that box rather than beside its top. That was tracked separately as [#1673](https://github.com/Doenet/DoenetML/issues/1673), and the entry for it in this same release draws the number beside the top of such a lead instead. Two things this entry named as left over are deliberately still left over there: an item leading with a `<matrixInput>` keeps its number on the row its label sits on, which is where it belongs; and a `<p>` alone in a table cell keeps its own top margin, so an item leading with a `<tabular>` built that way now has its number on the item's first row with the cell's text a row below it.
+
+- c9dd764: Fix `<ol>`/`<ul>` list markers misaligning with a labeled `<choiceInput>` first child.
+
+    An `<ol><li>` whose first child was a labeled `<choiceInput>` (on its own or inside an `<answer>`) drew its "1." beside the first choice instead of beside the question label. The label was rendered in a `<legend>`, which a browser treats specially inside a list item: it aligns the item's marker with the content _after_ the legend. A block `<choiceInput>` now renders its label in an equivalent `<div>` instead — same accessible name, same position on the line — so the marker stays on the label's row wherever the input is nested (see the accompanying entry, which finishes this off for wrappers such as `<li><p>` that pass no list-item signal along).
+
+    A list item's first child also gets the spacing a section's first child has always had: its top margin is suppressed. That is invisible in most lists, where the margin already collapsed into the 16px spacing around it. Where it shows is a list that mixes item shapes — an item of plain text followed by an item starting with a block (`<p>`, `<pre>`, `<blockQuote>`, `<graph>`, `<image>`, `<video>`, `<spreadsheet>`, `<tabular>`) no longer leaves a blank line between the two, matching the spacing two plain-text items already had. Likewise, a `<sideBySide>` leading a list item now top-aligns its panels the way it does inside a `<problem>`/`<task>` rather than stretching them.
+
+- 968a347: Draw a list item's number beside the top of a leading `<graph>`, `<image>`, `<video>`, `<figure>` or `<tabular>` instead of at its bottom.
+
+    An `<ol>`/`<ul>` list item leading with one of these had its number drawn after all of the item's content — for a graph, at the _bottom_ of the graph, some 250px below where a reader looks for it. The browser draws a list item's number on the item's first line of text, and the box these components render offers none of its own, so the browser fell back to putting the number last. Such an item now gets an empty first line at the top of its content for the number to sit on, taking no space of its own; the number lands exactly where the number of an item beginning with ordinary text lands. A container around the block lines up the same way: a `<graph>` inside a `<div>`, a `<sideBySide>` panel, a `<blockQuote>`, a `<stack>`, a `<pre>` or a `<figure>` is placed as one written directly in the item. A `<table>` is the exception, and for the ordinary case wants to be: it draws a name of its own — _Table 1_ — as the item's first line, and that name is the line the number belongs on. So a `<table suppressTableNameInTitle>` around one of these blocks, which leaves no such line, still has its number drawn at the bottom.
+
+    A leading `<spreadsheet>` had the same missing first line show up the other way round: rather than putting the number last, the browser reserved a blank line at the top of the item to hold it. The number was in the right place, but the spreadsheet started a line below it. That line is gone too — the spreadsheet starts beside its number, and the item is a line shorter.
+
+    Only items whose leading content has no first line of its own are affected, so an item that begins with text keeps the browser's own placement. That distinction is the point: a `<matrixInput>` puts its label on the matrix's last row and an item leading with inline math has a taller first line than a plain one, and in both the number belongs on that line rather than at the top of the item.
+
+    A `<figure>` leading a list item also passes the item's top-margin suppression on to the content it holds, as the other container components do, so the number and the figure's content start on the same row. A `<caption>` is skipped when a container looks for the content the number lines up with, since it is drawn below that content whatever its position among the children.
+
+    These items now line up exactly as the corresponding `<problem>`/`<task>`/`<part>` list items do, which draw their own numbers instead of asking the browser for one. For a leading `<figure>` that agreement is new on both sides: a `<problem>`, `<task>` or `<part>` beginning with a figure now draws its own number beside the top of the figure's content and suppresses the figure's top margin as well, where before it put the number on a baseline the figure had no text on.
+
+    Closes #1673.
+
+- d21fbc5: Fix `<odeSystem>` failing with "numeric is not defined" in the browser.
+
+    Any document containing an `<odeSystem>` rendered as that error banner instead of a document, and any graph of a solution drew no curve. The solver, `dopri`, comes from numeric.js, bundled inside math-expressions. numeric builds most of its helpers at load time with the `Function` constructor, and the generated bodies reference a bare `numeric` — resolvable only if numeric has registered itself on the global object. It did that solely through Node's `global`, which neither a browser main thread nor a web worker has, so every generated helper threw the first time it was called, and `dopri` reaches them immediately. The worker's evaluation and the main-thread renderer's curve sampling both went through that path, so both failed.
+
+    Fixed upstream in math-expressions 2.0.0-alpha95, which registers numeric itself; this bumps to it.
+
+- e6064be: Fix a `<pegboard>` removed from a document coming back, and stop it taking a `<label>` it cannot draw.
+
+    A pegboard listens for the graph's bounding box changing so that it can re-tile as the graph is panned or zoomed. That listener was never removed. The board outlives a pegboard taken out of the document — one inside a `<conditionalContent>` that switches off, say — so the next pan or zoom found no pegs and built a fresh set. Those pegs belonged to no component, so nothing could ever remove them; only reloading cleared them. The listener is now registered once, when the pegboard arrives, and removed when it goes.
+
+    A `<pegboard>` also no longer takes a `<label>`. It fills the whole visible region, so there is nowhere for a label to sit, and none was ever drawn — one written on a pegboard was read and then dropped. It is now reported as the invalid child it is.
+
+- 6c812b5: Add message catalogs for twelve African and Berber languages: Northern Sotho, Swati, Venda, Tsonga, Kikuyu, Bemba, Luo, Sango, Fula, Kabyle, Standard Moroccan Tamazight and Tachelhit.
+
+    `documentLocale` and `<document lang>` work for all twelve with nothing configured, and each reaches `<document lang>`'s autocomplete. Northern Sotho, Swati, Venda and Tsonga complete South Africa's spoken official languages, which now all have catalogs. Fula is an ISO 639-3 macrolanguage, so Maasina, Adamawa, Nigerian and the other Fulfulde codes reach its Pulaar catalog too. Tifinagh is new to the roster with Tamazight and Tachelhit and needed nothing from `direction.ts`, since it runs left to right; Kabyle is in Latin letters, because that is what CLDR fills a bare `kab` in as, and a reader arriving under `ff-Adlm`, `kab-Tfng` or `shi-Latn` reaches the catalog and gets the script it is written in.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. All twelve leave the two chemistry tables to English, and unlike recent batches they split no ways at all: every one is the school-system case, across a row of education ministries that teach secondary science in English, Afrikaans, Portuguese, French or Arabic. Afrikaans, in the same South African classrooms, supplies the whole table — which is a fact about the medium of instruction rather than about either language.
+
+- 1c07eb6: Seed unreviewed message catalogs for four more African languages: Mende
+  (`men`), Umbundu (`umb`), Kimbundu (`kmb`) and Zarma (`dje`). A document
+  declaring one of these languages now renders its style descriptions, section
+  headings, boolean words, answer buttons, editor chrome and diagnostics in it
+  instead of falling back to English. The chemistry element tables are
+  deliberately left out of all four and still fall back to English.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Correcting one needs no permission.
+
+    Zarma is a member of the Songhay macrolanguage, so readers arriving under
+    `ddn`, `hmb`, `khq`, `ses`, `tda` or `twq` now reach it as well. A bare `son`
+    is deliberately still served English: CLDR has no opinion about which Songhay
+    variety it means, so choosing one would be a guess rather than a published
+    fact.
+
+    Umbundu and Kimbundu are the first catalogs in the roster centred on Angola,
+    and Mende the third for a language of Sierra Leone.
+
+- c39e46d: Add message catalogs for Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese, Minangkabau, Acehnese, Madurese, Tetum, Tongan, Fijian, Tahitian, Chamorro and Tok Pisin.
+
+    Each covers all four namespaces — the viewer chrome, the editor and language-server surfaces, the prose the core computes into a document, and the warnings and errors. `documentLocale="ilo"` and `<document lang="to">` work with nothing configured, and all fifteen reach `<document lang>`'s autocomplete.
+
+    The batch takes the roster across the Philippines, the Indonesian archipelago, Timor-Leste, Polynesia, Micronesia and Papua New Guinea, and it brings the first Bikol macrolanguage fold: `bcl`, `bto`, `cts` and the other members reach the Central Bikol catalog rather than falling to English.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. Nothing falls back silently: a key a translation is missing renders in English, which is what makes seeding safe.
+
+- 3a3acd3: Add a message catalog for Klingon, the roster's first constructed language.
+
+    `documentLocale="tlh"` and `<document lang="tlh">` work with nothing configured, and Klingon reaches `<document lang>`'s autocomplete. `tlh` is a registered IANA primary subtag, so it negotiates like any other individual language; `tlh-Piqd` reaches the Latin catalog, since Unicode does not encode pIqaD.
+
+    This is an **unreviewed machine-generated seed**, and every file says so in its header. It is also the first catalog that is partial for a lexical rather than a curricular reason: Klingon's lexicon is closed — every word in it is one Marc Okrand has published — so words such as _parabola_, _attribute_ and _variant_ simply do not exist. It translates 160 of the 562 keys, using Okrand's published geometry vocabulary where it exists («gho» circle, «mey'» polygon, «chav» function) and leaving the rest to English rather than inventing roots, which is what makes seeding safe here as everywhere else.
+
+    Markers and regions now build their one-colour description through the same message a stroke does. Every catalog writes that branch as the identity, so no language's output changes.
+
+- a8be1de: Seed unreviewed message catalogs for twelve more languages, all written in
+  Cyrillic and all spoken in the Russian Federation: Bashkir (`ba`), Chuvash
+  (`cv`), Yakut (`sah`), Tuvan (`tyv`), Buryat (`bua`), Kalmyk (`xal`), Udmurt
+  (`udm`), Komi (`kv`), Erzya (`myv`), Mari (`chm`), Ossetian (`os`) and Chechen
+  (`ce`). A document declaring one of these languages now renders its style
+  descriptions, section headings, boolean words, answer buttons, editor chrome
+  and diagnostics in it instead of falling back to English. The chemistry element
+  tables are deliberately left out of all twelve and still fall back to English.
+
+    Three of the twelve are ISO 639-3 macrolanguages, so a reader arriving under a
+    member code now reaches the catalog rather than English: Mongolia and China
+    Buriat (`bxm`, `bxu`) reach Buryat, Komi-Permyak (`koi`) reaches Komi, and Hill
+    Mari (`mrj`) reaches Mari. Each of those catalogs is written in one standard —
+    Russia Buriat, Komi-Zyrian, Meadow Mari — and says so in its own header.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Five carry an additional confidence caveat —
+    `locales/cv`, `locales/tyv`, `locales/udm`, `locales/xal` and `locales/ce` —
+    and two of those are worth naming: `locales/xal` (Kalmyk) is the least certain
+    of the twelve, and `locales/ce` (Chechen) is the one catalog that agrees words
+    with a noun class and is honest that it could verify the class markers but not
+    the class of every noun it needed. Correcting any of this needs no permission.
+
+- 9f2a2e1: Add message catalogs for twelve South Asian languages: Sanskrit, Maithili, Bhojpuri, Konkani, Dogri, Bodo, Manipuri, Santali, Kashmiri, Dhivehi, Tibetan and Dzongkha.
+
+    `documentLocale` and `<document lang>` work for all twelve with nothing configured, and each reaches `<document lang>`'s autocomplete. Konkani and Dogri are ISO 639-3 macrolanguages, so Maharashtrian Konkani (`knn`) and Kangri (`xnr`) reach their catalogs too. Three scripts are new to the roster — Ol Chiki for Santali, Thaana for Dhivehi and Tibetan for both Tibetan and Dzongkha — and Kashmiri and Dhivehi bring the right-to-left catalogs to ten, needing nothing from `direction.ts`. Manipuri is written in Bengali letters rather than Meetei Mayek, because that is what CLDR fills a bare `mni` in as; its header says so and says a `mni-Mtei` catalog beside it is owed.
+
+    These are **unreviewed machine-generated seeds**, and every file says so in its header. All twelve leave the two chemistry tables to English, for five different reasons the headers set out: seven are the school-system case, Bodo and Sanskrit have no settled list of all 118 to seed from, Santali has neither the schooling that reaches the table nor a list behind it, Dhivehi has both halves at once, and Tibetan alone has the names but no single convention to reproduce — while Dzongkha, in the same script, is partial for the opposite reason. Kashmiri's header additionally records that its adjectives should agree for gender and that this seed does not attempt it.
+
+- 570cd8d: Seed unreviewed message catalogs for ten more languages: Baoulé (`bci`), Bini
+  (`bin`), Bulu (`bum`), Jola-Fonyi (`dyo`), Efik (`efi`), Ewondo (`ewo`),
+  Kpelle (`kpe`), Loma (`lom`), Susu (`sus`) and Urhobo (`urh`). A document
+  declaring one of these languages now renders its style descriptions, section
+  headings, boolean words, answer buttons, editor chrome and diagnostics in it
+  instead of falling back to English. The chemistry element tables are
+  deliberately left out of all ten and still fall back to English.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Several of the ten — Ewondo, Bulu, Bini,
+    Urhobo, Jola-Fonyi, Susu, Kpelle and Loma — carry an additional honest
+    confidence caveat in their headers: low online lexical coverage for these
+    languages means heavier reliance on English or French loanwords, and Loma in
+    particular is the least digitized language seeded so far. Correcting any of
+    this needs no permission.
+
+- c3d8556: Seed unreviewed message catalogs for six more West and Central African
+  languages: Kongo (`kg`), Fon (`fon`), Nigerian Pidgin (`pcm`), Krio (`kri`),
+  Kabiyè (`kbp`) and Temne (`tem`). A document declaring one of these languages
+  now renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in it instead of falling back to English.
+  The chemistry element tables are deliberately left out of all six and still fall
+  back to English.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Correcting one needs no permission.
+
+    Kongo is a macrolanguage, so a reader arriving under `kwy`, `ldi`, `kng` or
+    `kon` now reaches it as well. Kituba (`ktu`, `mkw`) is deliberately _not_ folded
+    onto Kongo: it is a creole of Kikongo rather than a variety of it, and a Kituba
+    reader would be served a different language.
+
+    Kabiyè has no CLDR language name, so it takes a `LOCALE_NAME_FALLBACKS` entry
+    and appears as "Kabiyè (Kabɩyɛ)" in `<document lang>`'s autocomplete and context
+    help rather than as the bare code "kbp".
+
+- 90a33ae: Add message catalogs for eleven West and Central African languages: Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula, Mandinka, Ga, Tiv and Kanuri.
+
+    `documentLocale` and `<document lang>` work for all eleven with nothing configured, and each reaches `<document lang>`'s autocomplete. Kanuri is an ISO 639-3 macrolanguage, so the Manga, Bilma and Tumari codes reach its Central Kanuri catalog too; `man`, the Manding macrolanguage, is the first this repository has catalogs for three _members_ of rather than for itself, and it reaches Mandinka because CLDR's likely-subtags resolves a bare `man` to the Gambia. Rundi's directory is named `rn` and needs no alias, since `Intl.getCanonicalLocales` already rewrites `run` to it. A Manga Kanuri reader arriving under `kby-Arab` reaches the catalog and gets Latin, which is the same debt `ha-Arab` and `ff-Adlm` already carry.
+
+    Locales that CLDR has no name for are now labelled with a name instead of with their own code in `<document lang>`'s autocomplete and context help. That covers `dag`, `ktu` and `mnk` from this batch — now "Dagbani (Dagbanli)", "Kituba (Kikongo ya leta)" and "Mandinka (Mandinkakaŋo)" — and also fixes `nah`, added in an earlier batch, which had the same gap and now reads "Nahuatl (Nāhuatl)".
+
+- 3c33536: Add `<slopeField>` and `<vectorField>` graphical components for drawing direction fields on a `<graph>`.
+
+    `<slopeField>y - x</slopeField>` draws the slope field of a differential equation as tick marks on a lattice; `<vectorField>(y, -x)</vectorField>` draws a two-output function as arrows, either scaled by magnitude or normalized to show direction alone. Both take their function inside the component, either as a bare expression or as a `<function>` child, which may be a reference to one declared elsewhere and may take one input or two. A bare expression is read as a function of both `x` and `y`; a `<function>` child keeps whatever variables its own author named. Given a function with the wrong number of outputs for the component, a field draws nothing and warns, naming the sibling component that does want it. The lattice they are sampled on is set by `dx`, `dy`, `xoffset` and `yoffset`, which mirror `<pegboard>`'s attributes of the same names, along with `markLength` (measured in pixels) and `maxMarks`. A slope mark is centered on its lattice point, sampling the tangent line through it, while a vector field's arrow has its tail on the lattice point so it shows the vector at that point.
+
+    Authors previously built these by nesting `<repeatForSequence>` to emit one `<lineSegment>` per lattice point, which does not scale: the reactive core has to evaluate several math expressions per mark and JSXGraph creates an SVG element for each one. A field of a few hundred marks built that way takes about 16 seconds to appear; `<slopeField>` draws a field of comparable density in about 1 second, using a constant number of SVG nodes instead of one per mark, because the whole field is a single curve whose coordinate arrays carry NaN pen-ups between marks.
+
+    Two things follow from doing the geometry in the renderer that the hand-built version could not do. The field re-tiles from the live bounding box as the graph is panned or zoomed, rather than being pinned to a hard-coded range; and marks are sized in pixels, so they stay the same length and show the true visual angle even when the axes are not equally scaled — the hand-built version was only correct under `identicalAxisScales`. `maxMarks` bounds the work by coarsening the lattice when zoomed out, rather than leaving the mark count unbounded.
+
+- bd38f21: Viewer: make the virtual keyboard usable on phones and tablets.
+
+    On a touch device the Doenet keyboard and the device's own on-screen keyboard
+    were competing for the same screen. Tapping a math input raised the system
+    keyboard, which on iOS covered the Doenet keyboard tray outright; on Android,
+    dismissing it was futile, because pressing a Doenet key blurred the input and
+    the refocus that followed summoned the system keyboard again.
+
+    A math input on a touch device now sets `inputmode="none"` from the outset —
+    not merely once the tray is open, which would be too late to stop the system
+    keyboard appearing at the first input the reader taps — so the device leaves
+    its own keyboard down. Focus, the caret, selection, and any physical keyboard
+    still work as before. The tray also declines focus when it is pressed, so the
+    input no longer blurs and is no longer refocused on every key. Tabbing into
+    the tray does not end the edit either — the keys still go to the input that
+    was left, and what was typed is committed once focus leaves the tray for
+    somewhere other than that input. Closing the tray hands the device's keyboard
+    back; the choice is remembered, so the tray stays shut, and the system
+    keyboard keeps coming up, as the reader moves between math inputs until they
+    ask for the Doenet keyboard again. When the
+    system keyboard is the one in use, it no longer capitalizes or autocorrects
+    what is typed into a math input.
+
+    The tray now follows focus on touch devices: it opens when a math input takes
+    focus and gets out of the way when focus moves to something else, such as a
+    text input, whose editing wants the device's own keyboard. Several viewers can
+    share a page; the tray stays open while any of them has a math input focused.
+    On a desktop the tray remains under manual control, exactly as before.
+
+    Which input the keyboard types into is now recorded explicitly rather than
+    inferred from a 100 ms window between a blur and a tray press. Besides being
+    deterministic, that decouples typing from `document.activeElement`, which is
+    the prerequisite for operating the keyboard from the keyboard (#747). The
+    record is also taken correctly for a math input focused the instant it
+    appears, which used to leave the virtual keyboard typing nowhere until the
+    reader left that input and came back to it.
+
+    Note for embedders of `@doenet/doenetml-iframe`, where the wrapper hosts the
+    tray and the iframe holds the viewer, and the two can come from different
+    releases — a `doenetmlVersion` or `standaloneUrl` naming a particular release,
+    a document declaring an `xmlns` version that the wrapper's version
+    autodetection pins to, or simply a wrapper installed before the viewer it
+    loads from the CDN. A viewer from this release **can** be driven by a tray
+    from before it: the old tray announces itself by the `accessed` message it
+    sends as it takes focus, and its keys are then delivered to the math input the
+    same press blurred a moment earlier, with the caret given back afterwards —
+    including when the press carried no key, such as opening the tray while
+    already editing an input. Only that input, and only that moment: a press made
+    after the reader has left a math input of their own accord types nowhere and
+    moves no caret, as before. Under such a tray the Doenet keyboard is the only
+    one on offer on a touch device: the tray does not follow focus, so the reader
+    opens it themselves as they always did with it, and closing it does not hand
+    the device's own keyboard back, because that tray has no way to report that
+    they asked for it. This is the pairing that arises the moment a new viewer is
+    published under an already-deployed wrapper, so it is the one worth keeping
+    working — without it, a phone reader would meet a math input that raises no
+    keyboard at all and a Doenet keyboard that types nothing.
+
+    The opposite pairing cannot be rescued from the viewer's side: a viewer from
+    before this release typed only in response to a blur that this tray no longer
+    causes. An embedder pinning a viewer older than this release should pin the
+    wrapper with it. Physical keyboards are unaffected either way.
+
+    Closes #1692.
+
 ## 0.7.23
 
 ### Patch Changes
