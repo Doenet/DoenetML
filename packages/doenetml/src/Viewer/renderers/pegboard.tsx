@@ -23,7 +23,7 @@ interface PegboardSVs extends UnlabeledGraphicalSVs {
 }
 
 /**
- * The pegs a bounding box has room for, as
+ * The lattice indices of the pegs to draw, as
  * `[minXind, maxXind, minYind, maxYind]`.
  */
 type PegIndexRange = [number, number, number, number];
@@ -137,9 +137,14 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
     }
 
     /**
-     * The indices of the outermost pegs that fit inside the board's current
-     * bounding box. The range it returns is only worth drawing if
-     * `latticeIsDrawable` accepts it.
+     * The indices of the outermost pegs to draw for the board's current
+     * bounding box. Each edge's fractional lattice index is rounded to the
+     * nearest peg and then stepped one further in, which keeps the outermost
+     * peg at least half a spacing clear of the border: a peg that fits inside
+     * the box but lands nearer than that goes undrawn.
+     *
+     * The range it returns is only worth drawing if `latticeIsDrawable`
+     * accepts it.
      */
     function pegIndexRange(theBoard: JXGBoard): PegIndexRange {
         let [xMin, yMax, xMax, yMin] = theBoard.getBoundingBox();

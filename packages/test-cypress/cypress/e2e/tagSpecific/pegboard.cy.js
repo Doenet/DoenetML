@@ -102,7 +102,9 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
     <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
     `);
 
-        // A 9x9 lattice: the pegs strictly inside a bounding box of -5 to 5.
+        // A 9x9 lattice: the unit-spaced pegs from -4 to 4. Those at ±5 fall
+        // on the border of the bounding box, and a pegboard keeps its
+        // outermost peg at least half a spacing inside it.
         expectPegs(81, "pegs on first render");
 
         cy.get("#show").click();
@@ -182,9 +184,11 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
     `);
 
         // Columns at x = 2 i + 0.25 for i in -2..1, rows at y = j/2 - 0.125
-        // for j in -9..9: the pegs strictly inside a bounding box of -5 to 5.
-        // Every spacing and offset here is a binary fraction, so the peg
-        // coordinates are exact and can be compared as such.
+        // for j in -9..9: the pegs at least half a spacing inside a bounding
+        // box of -5 to 5. (i = 2 and j = 10 land inside the box, but nearer
+        // its border than that, so they go undrawn.) Every spacing and offset
+        // here is a binary fraction, so the peg coordinates are exact and can
+        // be compared as such.
         expectPegs(4 * 19, "pegs on first render");
         expectPegCorners(
             { xMin: -3.75, xMax: 2.25, yMin: -4.625, yMax: 4.375 },
