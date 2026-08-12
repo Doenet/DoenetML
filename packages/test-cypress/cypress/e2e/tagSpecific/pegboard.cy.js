@@ -1,21 +1,23 @@
 /**
- * How many pegs are drawn across every JSXGraph board on the page.
+ * The pegs drawn across every JSXGraph board on the page.
  *
- * Counting them is the only way to see a pegboard at all: a peg is a bare
- * JSXGraph point with no DoenetML component behind it, so it has no name to
- * query and no state variable to read. It is told apart from any other point
- * on the board by the color the renderer gives it.
+ * Reaching into the board is the only way to see a pegboard at all: a peg is a
+ * bare JSXGraph point with no DoenetML component behind it, so it has no name
+ * to query and no state variable to read. It is told apart from any other
+ * point on the board by the color the renderer gives it.
  */
 function pegsOn(win) {
-    let total = 0;
+    let pegs = [];
     for (const board of Object.values(win.JXG?.boards ?? {})) {
-        total += Object.values(board.objects ?? {}).filter(
-            (obj) =>
-                obj?.elType === "point" &&
-                obj?.visProp?.fillcolor === "darkgray",
-        ).length;
+        pegs = pegs.concat(
+            Object.values(board.objects ?? {}).filter(
+                (obj) =>
+                    obj?.elType === "point" &&
+                    obj?.visProp?.fillcolor === "darkgray",
+            ),
+        );
     }
-    return total;
+    return pegs;
 }
 
 /**
@@ -24,7 +26,30 @@ function pegsOn(win) {
  */
 function expectPegs(count, label) {
     cy.window().should((win) => {
-        expect(pegsOn(win), label).to.eq(count);
+        expect(pegsOn(win).length, label).to.eq(count);
+    });
+}
+
+/**
+ * Assert the corners of the rectangle the pegs span. A count sees only how
+ * many pegs the bounding box has room for; it takes their coordinates to see
+ * the spacing and offsets they were laid out at.
+ */
+function expectPegCorners(corners, label) {
+    cy.window().should((win) => {
+        const pegs = pegsOn(win);
+        const xs = pegs.map((peg) => peg.X());
+        const ys = pegs.map((peg) => peg.Y());
+
+        expect(
+            {
+                xMin: Math.min(...xs),
+                xMax: Math.max(...xs),
+                yMin: Math.min(...ys),
+                yMax: Math.max(...ys),
+            },
+            label,
+        ).to.deep.eq(corners);
     });
 }
 
@@ -141,5 +166,39 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
             force: true,
         });
         expectPegs(117, "pegs after the graph widens");
+    });
+
+    it("lays its pegs out at the spacing and offsets it was given", () => {
+        // The tests above count pegs, which the indices alone decide. This one
+        // watches where they land, on both paths that place a peg: the lattice
+        // built from nothing on first render, and the one grown a column at a
+        // time as the graph widens.
+        loadDoenetML(`
+    <text name="a">a</text>
+    <graph name="g" xmin="-5" xmax="5" ymin="-5" ymax="5">
+      <pegboard dx="2" dy="0.5" xoffset="0.25" yoffset="-0.125" />
+    </graph>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
+    `);
+
+        // Columns at x = 2 i + 0.25 for i in -2..1, rows at y = j/2 - 0.125
+        // for j in -9..9: the pegs strictly inside a bounding box of -5 to 5.
+        // Every spacing and offset here is a binary fraction, so the peg
+        // coordinates are exact and can be compared as such.
+        expectPegs(4 * 19, "pegs on first render");
+        expectPegCorners(
+            { xMin: -3.75, xMax: 2.25, yMin: -4.625, yMax: 4.375 },
+            "corners on first render",
+        );
+
+        // x now reaches 9, so i runs to 3 — two more columns, same rows.
+        cy.get("#xmaxInput textarea").type("{end}{backspace}9{enter}", {
+            force: true,
+        });
+        expectPegs(6 * 19, "pegs after the graph widens");
+        expectPegCorners(
+            { xMin: -3.75, xMax: 6.25, yMin: -4.625, yMax: 4.375 },
+            "corners after the graph widens",
+        );
     });
 });

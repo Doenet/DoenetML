@@ -8,10 +8,14 @@ import me from "math-expressions";
 import type { round as RoundType } from "mathjs";
 const { round } = me.math as { round: RoundType };
 import { JXGBoard, JXGPoint } from "./jsxgraph-distrib/types";
+import type { UnlabeledGraphicalSVs } from "./utils/graphicalSVs";
 
-interface PegboardSVs {
-    hidden: boolean;
-    layer: number;
+/**
+ * A pegboard sets `static includeLabels = false`, so it receives none of the
+ * label state variables most graphical components carry — only the universal
+ * ones, plus the lattice it describes.
+ */
+interface PegboardSVs extends UnlabeledGraphicalSVs {
     dx: number;
     dy: number;
     xoffset: number;
@@ -25,9 +29,9 @@ interface PegboardSVs {
 type PegIndexRange = [number, number, number, number];
 
 /**
- * Whether an index range has any pegs in it. A spacing of zero divides the
- * bounding box by nothing, so the indices come back infinite or NaN rather
- * than bounding a lattice that could be drawn.
+ * Whether an index range describes a lattice that can be drawn. The indices
+ * come from dividing the bounding box by the spacing, so a spacing of zero
+ * leaves them infinite or NaN, naming no pegs at all.
  */
 function latticeIsDrawable(...range: PegIndexRange) {
     return range.every(Number.isFinite);
@@ -115,11 +119,27 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
         };
     }, []);
 
+    /** Where the peg at lattice index `(xind, yind)` sits on the graph. */
+    function pegCoords(xind: number, yind: number): [number, number] {
+        return [
+            xind * dx.current + xoffset.current,
+            yind * dy.current + yoffset.current,
+        ];
+    }
+
+    /** Draw the peg at lattice index `(xind, yind)`. */
+    function createPeg(xind: number, yind: number) {
+        return board!.create(
+            "point",
+            pegCoords(xind, yind),
+            jsxPointAttributes.current,
+        ) as JXGPoint;
+    }
+
     /**
      * The indices of the outermost pegs that fit inside the board's current
-     * bounding box. The peg at index `(i, j)` sits at
-     * `(i * dx + xoffset, j * dy + yoffset)`, so a range is only worth
-     * drawing if `latticeIsDrawable` accepts it.
+     * bounding box. The range it returns is only worth drawing if
+     * `latticeIsDrawable` accepts it.
      */
     function pegIndexRange(theBoard: JXGBoard): PegIndexRange {
         let [xMin, yMax, xMax, yMin] = theBoard.getBoundingBox();
@@ -151,16 +171,9 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
             let pegs: JXGPoint[][] = [];
 
             for (let yind = minYind; yind <= maxYind; yind++) {
-                let y = yind * dy.current + yoffset.current;
                 let row: JXGPoint[] = [];
                 for (let xind = minXind; xind <= maxXind; xind++) {
-                    row.push(
-                        board.create(
-                            "point",
-                            [xind * dx.current + xoffset.current, y],
-                            jsxPointAttributes.current,
-                        ) as JXGPoint,
-                    );
+                    row.push(createPeg(xind, yind));
                 }
                 pegs.push(row);
             }
@@ -204,12 +217,12 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
         for (let i = 0; i < Math.min(numRows, prevNrows); i++) {
             let row = pegboardJXG.current[i];
-            let y = (i + minYind) * dy.current + yoffset.current;
 
             for (let j = 0; j < Math.min(numColumns, prevNcols); j++) {
-                let x = (j + minXind) * dx.current + xoffset.current;
-
-                row[j].coords.setCoordinates(JXG.COORDS_BY_USER, [x, y]);
+                row[j].coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    pegCoords(j + minXind, i + minYind),
+                );
 
                 row[j].needsUpdate = true;
                 row[j].update();
@@ -223,14 +236,7 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
                 }
             } else if (prevNcols < numColumns) {
                 for (let j = prevNcols; j < numColumns; j++) {
-                    let x = (j + minXind) * dx.current + xoffset.current;
-                    row.push(
-                        board!.create(
-                            "point",
-                            [x, y],
-                            jsxPointAttributes.current,
-                        ) as JXGPoint,
-                    );
+                    row.push(createPeg(j + minXind, i + minYind));
                 }
             }
         }
@@ -250,16 +256,8 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
         } else if (prevNrows < numRows) {
             for (let i = prevNrows; i < numRows; i++) {
                 let row: JXGPoint[] = [];
-                let y = (i + minYind) * dy.current + yoffset.current;
                 for (let j = 0; j < numColumns; j++) {
-                    let x = (j + minXind) * dx.current + xoffset.current;
-                    row.push(
-                        board!.create(
-                            "point",
-                            [x, y],
-                            jsxPointAttributes.current,
-                        ) as JXGPoint,
-                    );
+                    row.push(createPeg(j + minXind, i + minYind));
                 }
                 pegboardJXG.current.push(row);
             }
