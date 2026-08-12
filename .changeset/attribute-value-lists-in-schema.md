@@ -23,7 +23,9 @@ author had no way to discover or check what to write.
   `\tag`, which no other mode's delimiters can hold — so the mode is now fixed
   by the component. The attribute is dropped during DAST normalization with a
   deprecation warning, so existing documents keep working and render as before
-  rather than failing on an unknown attribute.
+  rather than failing on an unknown attribute. (Since the mode is no longer an
+  attribute, `$theOdeSystem.renderMode` is no longer available as a public
+  reference.)
 - `marker` is split per tag, since the two sets do not cross. `<ul>` declares
   `disc`, `circle`, and `square` and enforces them: they are the complete set,
   so they now match case-insensitively and an unusable value is reported
