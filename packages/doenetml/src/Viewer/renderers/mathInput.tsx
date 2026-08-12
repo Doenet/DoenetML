@@ -30,7 +30,10 @@ import * as Ariakit from "@ariakit/react";
 import { MathJax } from "better-react-mathjax";
 
 import "./mathInput.css";
-import { FocusedMathInputContext } from "../../doenetml";
+import {
+    FocusedMathInputContext,
+    LastEditedMathInputContext,
+} from "../../doenetml";
 import { useAppSelector } from "../../state";
 import { keyboardSlice } from "../../state/slices/keyboard";
 import {
@@ -444,6 +447,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         keyboardSlice.selectors.systemKeyboardRequested,
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
+    const lastEditedMathInput = useContext(LastEditedMathInputContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
     // `EditableMathField`'s `handlers.enter` callback can hold stale captures.
     // Keep the latest MathField instance in a ref for enter handling.
@@ -596,6 +600,24 @@ export default function MathInput(props: UseDoenetRendererProps) {
     }, [callAction]);
 
     React.useEffect(() => {
+        // An `accessed` message means the tray driving us predates the tray
+        // declining focus (see `KeyCommand`). Such a tray lives in the
+        // embedding page and takes focus when pressed, so this input has
+        // already been blurred and has given up its claim, and the key on its
+        // way over `postMessage` would land nowhere. Take the claim back.
+        //
+        // The old tray sends this from the pointer press that causes the blur,
+        // so it always arrives between the blur and the key. Current trays
+        // never send it, which is what confines this to the old ones.
+        if (
+            mathField &&
+            focusedMathInput.current === null &&
+            lastEditedMathInput.current === mathField.el() &&
+            virtualKeyboardEvents.some((event) => event.type === "accessed")
+        ) {
+            focusedMathInput.current = mathField.el();
+        }
+
         if (!mathField || focusedMathInput.current !== mathField.el()) {
             // These keys belong to a different input. `focusedMathInput` is
             // the record of which input the virtual keyboard is typing into;
@@ -603,6 +625,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
             // the tray, so that the keyboard can be operated from the keyboard.
             return;
         }
+        let typedSomething = false;
         for (const event of virtualKeyboardEvents) {
             if (event.type === "keystroke" && event.command === "Enter") {
                 // The "Enter" key was pressed
@@ -627,15 +650,19 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     break;
                 case "cmd":
                     mathField.cmd(event.command);
+                    typedSomething = true;
                     break;
                 case "write":
                     mathField.write(event.command);
+                    typedSomething = true;
                     break;
                 case "keystroke":
                     mathField.keystroke(event.command);
+                    typedSomething = true;
                     break;
                 case "type":
                     mathField.typedText(event.command);
+                    typedSomething = true;
                     break;
                 default:
                     console.warn(
@@ -645,11 +672,26 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     break;
             }
         }
-        // Deliberately no `mathField.focus()` here. The tray declines focus, so
-        // this input still has it; and when the reader has instead tabbed into
-        // the tray, pulling focus back would make the keyboard impossible to
-        // operate by keyboard. Refocusing on every key is also what re-summoned
-        // Android's system keyboard over the tray (issue #1692).
+        // Normally no refocusing: the tray declines focus, so this input still
+        // has it, and when the reader has instead tabbed into the tray, pulling
+        // focus back would make the keyboard impossible to operate by keyboard.
+        // Refocusing on every key is also what re-summoned Android's system
+        // keyboard over the tray (issue #1692).
+        //
+        // The exception is a tray old enough to have taken focus when it was
+        // pressed: the reader is left with no caret, so put it back, as that
+        // tray's contemporaries did after every key. Recognized by this input
+        // having lost focus to nothing in particular — a reader who moved into
+        // a tray in this document did so deliberately and keeps focus there.
+        const activeElement =
+            textareaRef.current?.ownerDocument.activeElement ?? null;
+        if (
+            typedSomething &&
+            activeElement !== textareaRef.current &&
+            !isInVirtualKeyboardTray(activeElement)
+        ) {
+            mathField.focus();
+        }
     }, [virtualKeyboardEvents]);
 
     function onFocusChanged(focused: boolean) {
@@ -672,6 +714,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // taking it from `mathField` dropped the claim, and the keyboard then
         // typed nowhere until the reader left the input and came back.
         focusedMathInput.current = e.currentTarget;
+        lastEditedMathInput.current = e.currentTarget;
         onFocusChanged(true);
     };
 
@@ -679,6 +722,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
      * Finishes a blur that has taken focus away from this input for good: stop
      * claiming the virtual keyboard's keys, commit the value, and drop the
      * focused styling. `nextFocused` is where focus has gone, if anywhere.
+     *
      */
     function endEditing(nextFocused: EventTarget | null) {
         stopWatchingTrayHandoff.current?.();

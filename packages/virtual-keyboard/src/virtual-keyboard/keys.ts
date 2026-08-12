@@ -13,16 +13,20 @@
  *   tray also opens and closes by itself as focus moves between inputs, and
  *   that is not a statement about which keyboard they would rather have.
  *
- * - `"accessed"` — no longer sent. It drove a blur/refocus timing heuristic
- *   that the tray no longer needs now that it declines focus outright. The
- *   type stays so that a current viewer ignores what an older tray sends
- *   rather than warning about it. That does not make the pairing type,
- *   though, and no pairing across this change does: an older viewer typed
- *   only in response to the blur a tray press used to cause, and a current
- *   viewer reads the blur an older tray still causes — null `relatedTarget`,
- *   because it crosses the iframe boundary — as the reader leaving the input
- *   for good. Embedders should keep the wrapper and the viewer on the same
- *   release; the changelog entry for this change says why.
+ * - `"accessed"` — no longer sent by this tray, which declines focus and so
+ *   has no blur to explain. It is still *accepted*, and is the one thing that
+ *   identifies a tray from before that change: only those send it, and they
+ *   send it from the pointer press that blurs the input, so it arrives
+ *   between that blur and the key it precedes. A math input takes its claim
+ *   on the keyboard back when it sees one, and puts the caret back after
+ *   typing, which is what lets a current viewer be driven by an older tray —
+ *   the pairing doenet.org has whenever it serves a newly published viewer
+ *   under its installed wrapper.
+ *
+ *   The reverse pairing, an older viewer under this tray, cannot be rescued
+ *   from this side: that viewer typed only in response to a blur this tray no
+ *   longer causes. Embedders pinning a viewer older than this release should
+ *   pin the wrapper with it.
  */
 export type KeyCommand = {
     type:

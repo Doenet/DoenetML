@@ -77,6 +77,20 @@ export const FocusedMathInputContext = React.createContext<
 >({ current: null });
 
 /**
+ * The math input the reader edited most recently, which — unlike
+ * `FocusedMathInputContext` — is not cleared when that input is blurred.
+ *
+ * Only used to accommodate a keyboard tray published before it learned to
+ * decline focus: pressing one of its keys blurs the input before the key
+ * arrives, so by the time it does there is no focused input to receive it.
+ * See the `accessed` message in `KeyCommand`, which is what identifies such a
+ * tray, and the handling of it in the math input renderer.
+ */
+export const LastEditedMathInputContext = React.createContext<
+    React.RefObject<HTMLElement | null>
+>({ current: null });
+
+/**
  * this is a hack for react-mathqill
  * error: global is not defined
  */
@@ -754,6 +768,7 @@ function WrapWithKeyboard({
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
+    const lastEditedMathInput = useRef<HTMLElement | null>(null);
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
@@ -805,9 +820,11 @@ function WrapWithKeyboard({
 
     return (
         <FocusedMathInputContext.Provider value={focusedMathInput}>
-            {children}
-            <div className="before-keyboard" />
-            {keyboard}
+            <LastEditedMathInputContext.Provider value={lastEditedMathInput}>
+                {children}
+                <div className="before-keyboard" />
+                {keyboard}
+            </LastEditedMathInputContext.Provider>
         </FocusedMathInputContext.Provider>
     );
 }

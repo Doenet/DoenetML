@@ -43,17 +43,21 @@ record is also taken correctly for a math input focused the instant it
 appears, which used to leave the virtual keyboard typing nowhere until the
 reader left that input and came back to it.
 
-Note for embedders of `@doenet/doenetml-iframe` whose viewer comes from a
-different release than the wrapper: the wrapper hosts the tray while the
-iframe holds the viewer, and the two must now come from the same side of this
-change. That is a `doenetmlVersion` or `standaloneUrl` naming a particular
-release — and also a document declaring an `xmlns` version, which the
-wrapper's default version autodetection pins to. Mixing them either way leaves
-the virtual keyboard unable to type; physical keyboards are unaffected. A
-viewer from before this release typed only in response to the blur a tray
-press used to cause, which the tray no longer causes; and a viewer from this
-release, under a wrapper from before it, reads that blur as the reader leaving
-the input for good. Keeping the wrapper and the viewer on the same release
-avoids both.
+Note for embedders of `@doenet/doenetml-iframe`, where the wrapper hosts the
+tray and the iframe holds the viewer, and the two can come from different
+releases — a `doenetmlVersion` or `standaloneUrl` naming a particular release,
+a document declaring an `xmlns` version that the wrapper's version
+autodetection pins to, or simply a wrapper installed before the viewer it
+loads from the CDN. A viewer from this release **can** be driven by a tray
+from before it: the old tray announces itself by the `accessed` message it
+sends as it takes focus, and the viewer takes its claim on the keyboard back
+when it sees one, then restores the caret after typing. This is the pairing
+that arises the moment a new viewer is published under an already-deployed
+wrapper, so it is the one worth keeping working.
+
+The opposite pairing cannot be rescued from the viewer's side: a viewer from
+before this release typed only in response to a blur that this tray no longer
+causes. An embedder pinning a viewer older than this release should pin the
+wrapper with it. Physical keyboards are unaffected either way.
 
 Closes #1692.
