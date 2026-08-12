@@ -4,11 +4,20 @@
     height: 100%;
 }
 
+/*
+ * Wraps rather than running off the side. These controls are wider than a
+ * phone laid end to end, and a row that cannot wrap makes the whole document
+ * wider than the viewport — at which point Chrome's device toolbar scales the
+ * page down to fit and every mobile check is done against a shrunken render,
+ * with the viewer apparently occupying two thirds of the width and a band of
+ * empty space below it. The viewer itself fits a phone; only this bar did not.
+ */
 .dev-toolbar {
     flex: 0 0 auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 8px 12px;
     padding: 8px 12px;
     border-bottom: 1px solid #ccc;
     background: #f5f5f5;
