@@ -29,6 +29,23 @@ function expectPegs(count, label) {
 }
 
 /**
+ * Wait until the page's one board reports the given x-max, i.e. until the
+ * bounding box change under test has reached JSXGraph and its listeners have
+ * run. Asserting that pegs *stay* gone needs this gate: on its own that
+ * assertion is free to pass before the graph has moved at all.
+ */
+function expectBoardXmax(xmax) {
+    cy.window().should((win) => {
+        const boards = Object.values(win.JXG?.boards ?? {});
+        expect(boards.length, "boards on the page").to.eq(1);
+        expect(boards[0].getBoundingBox()[2], "board x-max").to.be.closeTo(
+            xmax,
+            1e-6,
+        );
+    });
+}
+
+/**
  * Load `doenetML` and wait for it to render. Each document below opens with
  * the same `<text name="a">a</text>`, which is what there is to wait on.
  */
@@ -70,6 +87,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
         cy.get("#xmaxInput textarea").type("{end}{backspace}9{enter}", {
             force: true,
         });
+        expectBoardXmax(9);
         expectPegs(0, "pegs after the bounding box changes");
     });
 

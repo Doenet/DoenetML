@@ -18,6 +18,21 @@ interface PegboardSVs {
     yoffset: number;
 }
 
+/**
+ * The pegs a bounding box has room for, as
+ * `[minXind, maxXind, minYind, maxYind]`.
+ */
+type PegIndexRange = [number, number, number, number];
+
+/**
+ * Whether an index range has any pegs in it. A spacing of zero divides the
+ * bounding box by nothing, so the indices come back infinite or NaN rather
+ * than bounding a lattice that could be drawn.
+ */
+function latticeIsDrawable(...range: PegIndexRange) {
+    return range.every(Number.isFinite);
+}
+
 export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
     let { SVs } = useDoenetRenderer<PegboardSVs>(props);
 
@@ -28,7 +43,7 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
     let pegboardJXG = useRef<JXGPoint[][] | null>(null);
 
-    let previousBounds = useRef<[number, number, number, number] | null>(null);
+    let previousBounds = useRef<PegIndexRange | null>(null);
 
     let dx = useRef<number>(SVs.dx);
     let dy = useRef<number>(SVs.dy);
@@ -64,9 +79,11 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
         /**
          * Re-tile as the graph is panned or zoomed, but only when that has
-         * moved the lattice: the peg positions themselves depend on state
-         * variables the bounding box knows nothing about, so it is the render
-         * below, not this, that redraws an unmoved lattice at a new spacing.
+         * changed which pegs the bounding box has room for: a pan shorter
+         * than one spacing leaves the lattice already on screen exactly
+         * right. A change to the spacing or the offsets moves the pegs
+         * without the bounding box moving at all, and so is the business of
+         * the render below rather than of this listener.
          */
         function followBoundingBox() {
             let [minXind, maxXind, minYind, maxYind] =
@@ -100,15 +117,11 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
     /**
      * The indices of the outermost pegs that fit inside the board's current
-     * bounding box, as `[minXind, maxXind, minYind, maxYind]`. The peg at
-     * index `(i, j)` sits at `(i * dx + xoffset, j * dy + yoffset)`.
-     *
-     * The indices come back non-finite when a spacing is zero, which is how
-     * callers tell that there is no lattice to draw.
+     * bounding box. The peg at index `(i, j)` sits at
+     * `(i * dx + xoffset, j * dy + yoffset)`, so a range is only worth
+     * drawing if `latticeIsDrawable` accepts it.
      */
-    function pegIndexRange(
-        theBoard: JXGBoard,
-    ): [number, number, number, number] {
+    function pegIndexRange(theBoard: JXGBoard): PegIndexRange {
         let [xMin, yMax, xMax, yMin] = theBoard.getBoundingBox();
 
         let xind1 = (xMin - xoffset.current) / dx.current;
@@ -134,12 +147,7 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
 
         previousBounds.current = [minXind, maxXind, minYind, maxYind];
 
-        if (
-            Number.isFinite(minXind) &&
-            Number.isFinite(maxXind) &&
-            Number.isFinite(minYind) &&
-            Number.isFinite(maxYind)
-        ) {
+        if (latticeIsDrawable(minXind, maxXind, minYind, maxYind)) {
             let pegs: JXGPoint[][] = [];
 
             for (let yind = minYind; yind <= maxYind; yind++) {
@@ -183,12 +191,7 @@ export default React.memo(function Pegboard(props: UseDoenetRendererProps) {
             return createPegboardJXG();
         }
 
-        if (
-            !Number.isFinite(minXind) ||
-            !Number.isFinite(maxXind) ||
-            !Number.isFinite(minYind) ||
-            !Number.isFinite(maxYind)
-        ) {
+        if (!latticeIsDrawable(minXind, maxXind, minYind, maxYind)) {
             return deletePegboardJXG();
         }
 
