@@ -25,10 +25,16 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
     });
 
     /**
-     * Load `doenetML` in the viewer under `theme`, wait for the theme
-     * attribute and for the embedded CodeMirror to render.
+     * Load a document whose only content is a `<codeEditor>` holding
+     * `content`, under `theme`, then wait for the theme attribute and for the
+     * embedded CodeMirror to render.
+     *
+     * @param {string} content Markup to place inside the `<codeEditor>`.
+     * @param {"dark"|"light"} theme Theme to render the document in.
+     * @param {string} [extraAttributes] Extra attributes for the `<codeEditor>`.
      */
-    function loadCodeEditor(doenetML, theme) {
+    function loadCodeEditor(content, theme, extraAttributes = "") {
+        const doenetML = `<codeEditor name="ce" showResults ${extraAttributes}>\n${content}\n</codeEditor>`;
         cy.window().then((win) => {
             win.postMessage({ doenetML, darkMode: theme }, "*");
         });
@@ -87,10 +93,7 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
 
     for (const { name, content } of syntaxCases) {
         it(`dark mode: ${name}`, () => {
-            loadCodeEditor(
-                `<codeEditor name="ce" showResults>\n${content}\n</codeEditor>`,
-                "dark",
-            );
+            loadCodeEditor(content, "dark");
             expectNoColorContrastViolations(".doenet-viewer .editor-panel");
         });
     }
@@ -98,29 +101,19 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
     it("light mode: mixed markup exercising the whole palette", () => {
         // Guards against a fix that trades one theme's contrast for the
         // other's.
-        const { content } = syntaxCases[syntaxCases.length - 1];
-        loadCodeEditor(
-            `<codeEditor name="ce" showResults>\n${content}\n</codeEditor>`,
-            "light",
-        );
+        loadCodeEditor(syntaxCases.at(-1).content, "light");
         expectNoColorContrastViolations(".doenet-viewer .editor-panel");
     });
 
     it("dark mode: read-only codeEditor", () => {
         // Read-only mode swaps in `readOnlyColorTheme`, a separate palette
         // from the editable one.
-        loadCodeEditor(
-            `<codeEditor name="ce" readOnly showResults>\n<p>read-only $x</p>\n</codeEditor>`,
-            "dark",
-        );
+        loadCodeEditor(`<p>read-only $x</p>`, "dark", "readOnly");
         expectNoColorContrastViolations(".doenet-viewer .editor-panel");
     });
 
     it("dark mode: codeEditor chrome (footer tabs and viewer controls)", () => {
-        loadCodeEditor(
-            `<codeEditor name="ce" showResults>\n<p>some text</p>\n</codeEditor>`,
-            "dark",
-        );
+        loadCodeEditor(`<p>some text</p>`, "dark");
         cy.get(".doenet-viewer .editor-footer").should("exist");
         expectNoColorContrastViolations([
             ".doenet-viewer .editor-footer",
@@ -133,10 +126,7 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
         // renderer stops inheriting the document theme, the canvas stays
         // white and every case above fails at once with a less obvious
         // message than this one.
-        loadCodeEditor(
-            `<codeEditor name="ce" showResults>\n<p>text</p>\n</codeEditor>`,
-            "dark",
-        );
+        loadCodeEditor(`<p>text</p>`, "dark");
         // CodeMirror's generated class names carry no theme information, so
         // check the canvas color the dark theme actually paints (`#121212`,
         // from `canvasBackground()` in the codemirror package).
