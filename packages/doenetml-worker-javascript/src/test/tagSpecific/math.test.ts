@@ -13518,4 +13518,31 @@ describe("Math tag tests @group3", async () => {
             ),
         ).eq("7\\cdot10^{-12}x^{2}");
     });
+
+    it("renderMode is matched case-insensitively and falls back when unrecognized", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m1" renderMode="Display">x</math>
+    <math name="m2" renderMode=" INLINE ">x</math>
+    <math name="m3" renderMode="bananas">x</math>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                .renderMode,
+        ).eq("display");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                .renderMode,
+        ).eq("inline");
+        // An unrecognized mode falls back to the default rather than reaching
+        // the renderer, which would have quietly treated it as inline.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                .renderMode,
+        ).eq("inline");
+    });
 });
