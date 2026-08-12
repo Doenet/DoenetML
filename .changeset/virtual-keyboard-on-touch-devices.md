@@ -19,10 +19,13 @@ not merely once the tray is open, which would be too late to stop the system
 keyboard appearing at the first input the reader taps — so the device leaves
 its own keyboard down. Focus, the caret, selection, and any physical keyboard
 still work as before. The tray also declines focus when it is pressed, so the
-input no longer blurs and is no longer refocused on every key. Closing the
-tray hands the device's keyboard back; the choice is remembered, so the tray
-stays shut, and the system keyboard keeps coming up, as the reader moves
-between math inputs until they ask for the Doenet keyboard again. When the
+input no longer blurs and is no longer refocused on every key. Tabbing into
+the tray does not end the edit either — the keys still go to the input that
+was left, and what was typed is committed once focus leaves the tray for
+somewhere other than that input. Closing the tray hands the device's keyboard
+back; the choice is remembered, so the tray stays shut, and the system
+keyboard keeps coming up, as the reader moves between math inputs until they
+ask for the Doenet keyboard again. When the
 system keyboard is the one in use, it no longer capitalizes or autocorrects
 what is typed into a math input.
 
@@ -35,7 +38,10 @@ On a desktop the tray remains under manual control, exactly as before.
 Which input the keyboard types into is now recorded explicitly rather than
 inferred from a 100 ms window between a blur and a tray press. Besides being
 deterministic, that decouples typing from `document.activeElement`, which is
-the prerequisite for operating the keyboard from the keyboard (#747).
+the prerequisite for operating the keyboard from the keyboard (#747). The
+record is also taken correctly for a math input focused the instant it
+appears, which used to leave the virtual keyboard typing nowhere until the
+reader left that input and came back to it.
 
 Note for embedders of `@doenet/doenetml-iframe` whose viewer comes from a
 different release than the wrapper: the wrapper hosts the tray while the

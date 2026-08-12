@@ -660,10 +660,18 @@ export default function MathInput(props: UseDoenetRendererProps) {
         });
     }
 
-    const handleFocus = (e: React.FocusEvent) => {
-        if (mathField) {
-            focusedMathInput.current = mathField.el();
-        }
+    const handleFocus: FocusEventHandler<HTMLElement> = (e) => {
+        // Claim the virtual keyboard's keys for this input.
+        //
+        // `e.currentTarget` rather than `mathField.el()`, even though they are
+        // the same element — MathQuill is built on it, and hands it back from
+        // `el()`. The two are not available at the same time, though: MathQuill
+        // creates the textarea while initializing, so a reader can focus it
+        // before React has committed the `mathField` state that initializing
+        // produced. Reading the element off the event closes that window;
+        // taking it from `mathField` dropped the claim, and the keyboard then
+        // typed nowhere until the reader left the input and came back.
+        focusedMathInput.current = e.currentTarget;
         onFocusChanged(true);
     };
 

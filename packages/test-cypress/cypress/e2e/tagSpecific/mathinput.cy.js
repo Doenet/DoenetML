@@ -1021,16 +1021,24 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.log("Still uncommitted: the reader is operating the keyboard");
         cy.get("#a2").should("contain.text", "＿");
 
+        // `a` is still the input the keys go to, even though it no longer holds
+        // `document.activeElement` — which is the whole point of recording the
+        // focused input explicitly.
+        cy.get("#virtual-keyboard-tray .key-2").click({ force: true });
+        cy.get("#a .mq-editable-field").should("contain.text", "12");
+        cy.focused().should("match", "#virtual-keyboard-tray .key-1");
+        cy.get("#a2").should("contain.text", "＿");
+
         // Focus leaves the tray for a different input and never returns to `a`,
         // so nothing else will ever commit what was typed into it.
         cy.get("#b textarea").focus();
-        cy.get("#a2").should("contain.text", "1");
+        cy.get("#a2").should("contain.text", "12");
 
         cy.window().then(async (win) => {
             const stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables[await win.resolvePath1("a")].stateValues.value,
-            ).eq(1);
+            ).eq(12);
         });
     });
 
