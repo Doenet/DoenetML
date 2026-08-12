@@ -1,4 +1,5 @@
 export * from "./keyboard";
+export * from "./keyboard-tray";
 export * from "./managed-keyboard";
 export * from "./unique-keyboard-tray";
 export * from "./recoil-virtual-keyboard";

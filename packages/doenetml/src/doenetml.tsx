@@ -77,6 +77,39 @@ export const FocusedMathInputContext = React.createContext<
 >({ current: null });
 
 /**
+ * Everything a math input needs in order to be driven by a keyboard tray
+ * published before it learned to decline focus.
+ *
+ * Such a tray takes focus when it is pressed, so the input is blurred and has
+ * given up the claim `FocusedMathInputContext` records before the key gets
+ * here — and is left without a caret whether or not the press carried a key.
+ * See the `accessed` message in `KeyCommand`, which is what identifies such a
+ * tray, and the handling of it in the math input renderer.
+ */
+export type LegacyKeyboardTrayState = {
+    /**
+     * Whether a tray of that vintage has announced itself, by sending an
+     * `accessed` message. Sticky: only those trays ever send it, and the tray
+     * a page is under does not change. Nothing below applies until it is set,
+     * which is what keeps all of this out of current pairings.
+     */
+    announced: boolean;
+    /**
+     * The math input that most recently gave up its claim on the keyboard, and
+     * when — recorded only when the blur left nothing else in this document
+     * focused, which is the shape of the blur such a tray causes. Both halves
+     * are needed to tell that blur from the reader leaving the input of their
+     * own accord.
+     */
+    release: { input: HTMLElement; releasedAt: number } | null;
+};
+
+/** Per-viewer {@link LegacyKeyboardTrayState}, shared by its math inputs. */
+export const LegacyKeyboardTrayContext = React.createContext<
+    React.RefObject<LegacyKeyboardTrayState>
+>({ current: { announced: false, release: null } });
+
+/**
  * this is a hack for react-mathqill
  * error: global is not defined
  */
@@ -754,6 +787,10 @@ function WrapWithKeyboard({
 }>) {
     const dispatch = useAppDispatch();
     const focusedMathInput = useRef<HTMLElement | null>(null);
+    const legacyKeyboardTray = useRef<LegacyKeyboardTrayState>({
+        announced: false,
+        release: null,
+    });
     const keyboard = addVirtualKeyboard ? (
         <VirtualKeyboard
             externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
@@ -767,16 +804,49 @@ function WrapWithKeyboard({
             translate={translate}
             direction={direction}
             onClick={(keyCommands) => {
-                dispatch(keyboardSlice.actions.setKeyboardInput(keyCommands));
+                // `keyboardChoice` is a preference, not a key press. It is
+                // routed to the store instead of to the focused input, so that
+                // every math input can decide whether to keep the device's own
+                // on-screen keyboard down. See `KeyCommand`.
+                const lastChoice = keyCommands
+                    .filter((command) => command.type === "keyboardChoice")
+                    .pop();
+                if (lastChoice) {
+                    dispatch(
+                        keyboardSlice.actions.setSystemKeyboardRequested(
+                            lastChoice.command === "system",
+                        ),
+                    );
+                }
+
+                // A fresh array every press, and deliberately so: a math input
+                // notices a new batch of keys by the identity of the array in
+                // the store, and the keys of a given tray button are one
+                // constant array reused on every press of it. Storing that
+                // constant would leave the state unchanged, and pressing the
+                // same key twice in a row would type one character. The
+                // bookkeeping events the tray used to send alongside every
+                // press kept the identity moving on their own; nothing does
+                // now, so the dispatch has to.
+                const keyPresses = keyCommands.filter(
+                    (command) => command.type !== "keyboardChoice",
+                );
+                if (keyPresses.length > 0) {
+                    dispatch(
+                        keyboardSlice.actions.setKeyboardInput(keyPresses),
+                    );
+                }
             }}
         />
     ) : null;
 
     return (
         <FocusedMathInputContext.Provider value={focusedMathInput}>
-            {children}
-            <div className="before-keyboard" />
-            {keyboard}
+            <LegacyKeyboardTrayContext.Provider value={legacyKeyboardTray}>
+                {children}
+                <div className="before-keyboard" />
+                {keyboard}
+            </LegacyKeyboardTrayContext.Provider>
         </FocusedMathInputContext.Provider>
     );
 }
