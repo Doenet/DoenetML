@@ -14,10 +14,11 @@ import { expectNoColorContrastViolations } from "../../support/colorContrast";
  *
  * Each case loads a document containing a `<codeEditor>` whose contents
  * exercise a particular corner of the highlight palette (see
- * `packages/codemirror/src/extensions/syntax-highlighting.ts`), then scans the
- * embedded editor in both dark and light mode.
+ * `packages/codemirror/src/extensions/syntax-highlighting.ts`) and scans the
+ * embedded editor in dark mode; one case repeats in light mode so a fix
+ * cannot trade one theme's contrast for the other's.
  */
-describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
+describe("codeEditor dark-mode accessibility", { tags: ["@group5"] }, () => {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");
@@ -34,7 +35,7 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
      * @param {string} [extraAttributes] Extra attributes for the `<codeEditor>`.
      */
     function loadCodeEditor(content, theme, extraAttributes = "") {
-        const doenetML = `<codeEditor name="ce" showResults ${extraAttributes}>\n${content}\n</codeEditor>`;
+        const doenetML = `<codeEditor showResults ${extraAttributes}>\n${content}\n</codeEditor>`;
         cy.window().then((win) => {
             win.postMessage({ doenetML, darkMode: theme }, "*");
         });
@@ -43,6 +44,13 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
         // Let CodeMirror finish its first highlight pass.
         cy.wait(200);
     }
+
+    // Exercises the whole palette at once; reused for the light-mode case.
+    const mixedMarkup = `<!-- everything at once -->
+<graph name="g" size="small">
+  <point name="P">(3, 4)</point>
+</graph>
+<p>P is at $P.coords &amp; nothing else.</p>`;
 
     /**
      * Each case names a slice of the syntax-highlight palette and the
@@ -83,11 +91,7 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
         },
         {
             name: "mixed markup exercising the whole palette",
-            content: `<!-- everything at once -->
-<graph name="g" size="small">
-  <point name="P">(3, 4)</point>
-</graph>
-<p>P is at $P.coords &amp; nothing else.</p>`,
+            content: mixedMarkup,
         },
     ];
 
@@ -101,7 +105,7 @@ describe("codeEditor accessibility checks", { tags: ["@group5"] }, () => {
     it("light mode: mixed markup exercising the whole palette", () => {
         // Guards against a fix that trades one theme's contrast for the
         // other's.
-        loadCodeEditor(syntaxCases.at(-1).content, "light");
+        loadCodeEditor(mixedMarkup, "light");
         expectNoColorContrastViolations(".doenet-viewer .editor-panel");
     });
 
