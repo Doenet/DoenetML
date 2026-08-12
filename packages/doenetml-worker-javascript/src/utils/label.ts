@@ -21,7 +21,6 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
     onlyStringOrMacros = false,
     customWrappingFunction,
     wrapSingleIfNotWrappingComponentType = false,
-    createWrappingComponentAttributes,
 }: {
     wrappingComponentType: string;
     createAttributeOfType: string;
@@ -32,19 +31,6 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
         stateIdInfo?: { prefix: string; num: number },
     ) => { newChildren: (SerializedComponent | string)[]; nComponents: number };
     wrapSingleIfNotWrappingComponentType?: boolean;
-    /**
-     * Attributes to put on the component that wraps the children, for the
-     * `createAttributeOfType` case. Receives the running component counter so
-     * that any attribute components it builds get fresh indices, and returns
-     * the counter it left off at.
-     */
-    createWrappingComponentAttributes?: (
-        nComponents: number,
-        stateIdInfo?: { prefix: string; num: number },
-    ) => {
-        attributes: Record<string, SerializedAttribute>;
-        nComponents: number;
-    };
 }) {
     return function ({
         matchedChildren,
@@ -146,16 +132,6 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
         }
 
         if (createAttributeOfType) {
-            let wrappingAttributes: Record<string, SerializedAttribute> = {};
-            if (createWrappingComponentAttributes) {
-                const attributeResult = createWrappingComponentAttributes(
-                    nComponents,
-                    stateIdInfo,
-                );
-                wrappingAttributes = attributeResult.attributes;
-                nComponents = attributeResult.nComponents;
-            }
-
             return {
                 success: true as const,
                 newAttributes: {
@@ -170,7 +146,7 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
                                 ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
                                 : undefined,
                             children: childrenToWrap,
-                            attributes: wrappingAttributes,
+                            attributes: {},
                             state: {},
                             doenetAttributes: {},
                         },
