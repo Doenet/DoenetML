@@ -133,15 +133,17 @@ function useDebounced<T>(value: T, delayMs: number): T {
 }
 
 /**
- * A toolbar label with a short stand-in for when the bar is narrow. Only one of
- * the two is ever displayed (see `main.css`); the control carries the full name
- * as its `aria-label`, so what is announced does not change with the width.
+ * A toolbar label, with an optional short stand-in for when the bar is narrow.
+ * At most one of the two is displayed (see `main.css`); omit `short` for a
+ * control that reads well unlabelled, and the label disappears entirely on a
+ * narrow bar. The control carries the full name as its `aria-label` either
+ * way, so what is announced does not change with the width.
  */
-function DevLabel({ full, short }: { full: string; short: string }) {
+function DevLabel({ full, short }: { full: string; short?: string }) {
     return (
         <>
             <span className="dev-label-full">{full}: </span>
-            <span className="dev-label-short">{short}</span>
+            {short ? <span className="dev-label-short">{short}</span> : null}
         </>
     );
 }
@@ -190,7 +192,7 @@ function App() {
         <div className="dev-app">
             <div className="dev-toolbar">
                 <label className="dev-control">
-                    <DevLabel full="Theme" short="" />
+                    <DevLabel full="Theme" />
                     <select
                         aria-label="Theme"
                         value={darkMode}

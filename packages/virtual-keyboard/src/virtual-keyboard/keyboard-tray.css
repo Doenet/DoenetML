@@ -62,8 +62,22 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     border-top: 1px solid var(--kb-tray-border-top);
     @apply fixed bottom-0 w-full pb-2 px-2 overflow-visible;
     @apply transition-transform ease-in-out duration-300 translate-y-[100%];
-    min-height: var(--keyboard-tray-height);
-    max-height: calc(100vh - 1.5rem);
+    /*
+     * The tray may never be so tall that it carries its own tab off the top of
+     * the screen: the tab hangs exactly `--keyboard-tab-height` above the
+     * tray's top edge, so that much has to stay clear. Both bounds are held to
+     * it — the floor as well as the ceiling, because a `min-height` outranks a
+     * `max-height` and would otherwise reinstate the overshoot on a viewport
+     * shorter than the floor. Written against the variable rather than
+     * repeating its value: widening the tab for a fingertip is exactly the
+     * change that a literal here would have missed.
+     */
+    --keyboard-tray-max-height: calc(100vh - var(--keyboard-tab-height));
+    min-height: min(
+        var(--keyboard-tray-height),
+        var(--keyboard-tray-max-height)
+    );
+    max-height: var(--keyboard-tray-max-height);
     z-index: 10000;
     background-color: var(--kb-tray-bg);
 

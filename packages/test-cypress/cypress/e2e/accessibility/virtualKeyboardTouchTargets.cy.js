@@ -21,6 +21,21 @@ const MIN_TOUCH_TARGET_PX = 44;
 /** What the tab that opens a closed tray measures when a mouse is driving. */
 const DESKTOP_TAB_HEIGHT_PX = 24;
 
+/**
+ * How wide the keyboard is allowed to spread, `max-w-2xl` (42rem) with a mouse
+ * and 48rem with a fingertip. The default viewport is wider than both, so the
+ * keyboard reaches its ceiling either way and these are what it measures. The
+ * extra room is what makes a tablet's keys grow rather than sit small in the
+ * middle of an empty row.
+ */
+const KEYBOARD_MAX_WIDTH_PX = { fine: 672, coarse: 768 };
+
+/**
+ * A phone held sideways — short enough that the tray runs into the ceiling on
+ * its own height, which is the only place that ceiling is observable.
+ */
+const SHORT_VIEWPORT = { width: 568, height: 320 };
+
 function emulateTouchDevice(enabled) {
     return cy
         .wrap(
@@ -129,6 +144,51 @@ describe("Virtual keyboard touch target sizes", { tags: ["@group5"] }, () => {
                 "tray content height fits the viewport",
             ).to.be.at.most(Cypress.config("viewportHeight"));
         });
+
+        // Where there is room, the keyboard spreads further than it does for
+        // a mouse, which is what makes a tablet's keys wider rather than
+        // leaving them small in the middle of an empty row.
+        cy.get("#virtual-keyboard-tray .virtual-keyboard").should(($kb) => {
+            expect(
+                Math.round($kb[0].getBoundingClientRect().width),
+                "keyboard width",
+            ).to.equal(KEYBOARD_MAX_WIDTH_PX.coarse);
+        });
+    });
+
+    it("keeps the open/close tab on screen when the tray fills a short viewport", () => {
+        // The tab hangs its own height above the tray, so the tray's
+        // `max-height` has to leave that much clear. A short viewport is the
+        // only place the ceiling is reached, and widening the tab for a
+        // fingertip without widening the gap clipped it off the top.
+        cy.viewport(SHORT_VIEWPORT.width, SHORT_VIEWPORT.height);
+        emulateTouchDevice(true);
+        loadWithMathInput();
+
+        cy.window().should((win) => {
+            expect(
+                win.matchMedia("(pointer: coarse)").matches,
+                "browser reports a coarse primary pointer",
+            ).to.equal(true);
+        });
+
+        cy.get(".open-keyboard-button").click();
+
+        cy.get("#virtual-keyboard-tray.open").should(($tray) => {
+            // The tray slides up over 300ms, and while it is still below the
+            // fold the tab is trivially on screen — so wait for the tray to
+            // reach the bottom edge before believing anything about the tab.
+            expect(
+                Math.round($tray[0].getBoundingClientRect().bottom),
+                "tray settled against the bottom of the screen",
+            ).to.equal(SHORT_VIEWPORT.height);
+
+            const tab = $tray[0].querySelector(".open-keyboard-button");
+            expect(
+                Math.round(tab.getBoundingClientRect().top),
+                "open/close tab top edge",
+            ).to.be.at.least(0);
+        });
     });
 
     it("leaves the sizes alone when a mouse is driving", () => {
@@ -151,6 +211,16 @@ describe("Virtual keyboard touch target sizes", { tags: ["@group5"] }, () => {
                 Math.round($tab[0].getBoundingClientRect().height),
                 "open-keyboard tab height",
             ).to.equal(DESKTOP_TAB_HEIGHT_PX);
+        });
+
+        cy.get(".open-keyboard-button").click();
+        cy.get("#virtual-keyboard-tray.open").should("exist");
+
+        cy.get("#virtual-keyboard-tray .virtual-keyboard").should(($kb) => {
+            expect(
+                Math.round($kb[0].getBoundingClientRect().width),
+                "keyboard width",
+            ).to.equal(KEYBOARD_MAX_WIDTH_PX.fine);
         });
     });
 });

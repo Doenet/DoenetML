@@ -108,6 +108,12 @@
  * the row into an overflow or a wrap that helps no one. Raising the ceiling on
  * how wide a key may grow is what helps the other end — a tablet, where the
  * row had room to spare and the keys stayed small in the middle of it.
+ *
+ * Each rule sits after the one it raises, since the two have equal specificity
+ * and source order is all that separates them. Shift, backspace and space are
+ * the exception: their `max-width: none` is set on `.virtual-keyboard .key-*`,
+ * two classes, which already outranks the one-class-one-type `button` selector
+ * below, so they stay unbounded here without being named again.
  */
 @media (pointer: coarse) {
     .virtual-keyboard {
@@ -116,11 +122,6 @@
         button {
             min-height: 2.75rem;
             @apply max-w-[4.5em];
-        }
-        .key-shift,
-        .key-backspace,
-        .key-space {
-            @apply max-w-none;
         }
     }
     .virtual-keyboard.numeric .key-backspace {
