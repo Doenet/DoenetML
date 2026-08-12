@@ -4,11 +4,20 @@
     height: 100%;
 }
 
+/*
+ * Wraps rather than running off the side. These controls are wider than a
+ * phone laid end to end, and a row that cannot wrap makes the whole document
+ * wider than the viewport — at which point Chrome's device toolbar scales the
+ * page down to fit and every mobile check is done against a shrunken render,
+ * with the viewer apparently occupying two thirds of the width and a band of
+ * empty space below it. The viewer itself fits a phone; only this bar did not.
+ */
 .dev-toolbar {
     flex: 0 0 auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 8px 12px;
     padding: 8px 12px;
     border-bottom: 1px solid #ccc;
     background: #f5f5f5;
@@ -17,6 +26,10 @@
 .dev-toolbar-status {
     margin-left: auto;
     color: #666;
+}
+
+.dev-label-short {
+    display: none;
 }
 
 .dev-control {
@@ -41,4 +54,42 @@
 .dev-viewer {
     flex: 1 1 auto;
     overflow: hidden;
+}
+
+/*
+ * On a phone the bar is checking the app, not competing with it for the
+ * screen: the labels shorten, the note about local storage goes (the Reset
+ * button's tooltip says the same thing), and the locale fields keep just
+ * enough room for a tag like `en-XB`. Full-width this bar wrapped onto four
+ * rows and took a fifth of an iPhone SE; it now fits on one.
+ *
+ * `40rem` matches Tailwind's `sm` breakpoint, which is where the viewer
+ * beneath already changes its own spacing.
+ */
+@media (max-width: 40rem) {
+    .dev-toolbar {
+        gap: 6px 8px;
+        padding: 6px 8px;
+    }
+
+    .dev-label-full {
+        display: none;
+    }
+
+    .dev-label-short {
+        display: inline;
+    }
+
+    .dev-toolbar-status {
+        display: none;
+    }
+
+    /*
+     * Enough for a tag (`en-XB` is the longest the datalist offers) but not
+     * for the `(document)` placeholder, which truncates. That hint is the
+     * price of the single row; the field's `title` still explains it.
+     */
+    .dev-locale-input {
+        width: 4em;
+    }
 }

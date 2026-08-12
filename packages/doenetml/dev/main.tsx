@@ -132,6 +132,26 @@ function useDebounced<T>(value: T, delayMs: number): T {
     return debounced;
 }
 
+/**
+ * A toolbar label, with an optional short stand-in for when the bar is narrow.
+ * At most one of the two is displayed (see `main.css`); omit `short` for a
+ * control that reads well unlabelled, and the label disappears entirely on a
+ * narrow bar. The control carries the full name as its `aria-label` either
+ * way, so what is announced does not change with the width.
+ *
+ * Pass the wording only: the colon belongs here, so the two forms cannot end up
+ * punctuated differently, and the space before the control is `.dev-control`'s
+ * `gap` rather than a literal one written at the call site.
+ */
+function DevLabel({ full, short }: { full: string; short?: string }) {
+    return (
+        <>
+            <span className="dev-label-full">{full}:</span>
+            {short ? <span className="dev-label-short">{short}:</span> : null}
+        </>
+    );
+}
+
 function App() {
     const [initialSource] = React.useState(getInitialSource);
     const [resetKey, setResetKey] = React.useState(0);
@@ -176,16 +196,21 @@ function App() {
         <div className="dev-app">
             <div className="dev-toolbar">
                 <label className="dev-control">
-                    Theme:{" "}
-                    <select value={darkMode} onChange={handleThemeChange}>
+                    <DevLabel full="Theme" />
+                    <select
+                        aria-label="Theme"
+                        value={darkMode}
+                        onChange={handleThemeChange}
+                    >
                         <option value="light">Light</option>
                         <option value="dark">Dark</option>
                         <option value="system">System</option>
                     </select>
                 </label>
                 <label className="dev-control">
-                    Document locale:{" "}
+                    <DevLabel full="Document locale" short="Doc" />
                     <input
+                        aria-label="Document locale"
                         className="dev-locale-input"
                         list="dev-locale-options"
                         value={documentLocale}
@@ -200,8 +225,9 @@ function App() {
                     />
                 </label>
                 <label className="dev-control">
-                    UI locale:{" "}
+                    <DevLabel full="UI locale" short="UI" />
                     <input
+                        aria-label="UI locale"
                         className="dev-locale-input"
                         list="dev-locale-options"
                         value={uiLocale}

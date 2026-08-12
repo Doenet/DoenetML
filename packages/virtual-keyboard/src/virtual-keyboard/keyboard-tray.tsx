@@ -98,6 +98,26 @@ export function KeyboardTray({
     const openLabel = t("keyboard-open", undefined, "Open Keyboard");
     const closeLabel = t("keyboard-close", undefined, "Close Keyboard");
 
+    const containerRef = React.useRef<HTMLDivElement>(null);
+
+    /*
+     * Open onto the top of the keyboard. The container below is a scroll port
+     * on a screen with no room for the whole keyboard (see
+     * `keyboard-tray.css`), and a closed tray keeps whatever scroll position
+     * it was left at — so without this, a reader who had scrolled down to the
+     * number pad would find the tray reopening onto the middle of it, with the
+     * layout tabs, which are the first thing in the port, out of sight above.
+     *
+     * Before the paint, so the reset is never seen: the tray is still below
+     * the fold at this point, since the slide-in transition has yet to run a
+     * frame.
+     */
+    React.useLayoutEffect(() => {
+        if (open && containerRef.current) {
+            containerRef.current.scrollTop = 0;
+        }
+    }, [open]);
+
     return createPortal(
         <div
             id={VIRTUAL_KEYBOARD_TRAY_ID}
@@ -128,7 +148,7 @@ export function KeyboardTray({
             >
                 <KeyboardIcon />
             </button>
-            <div className="keyboard-container">
+            <div className="keyboard-container" ref={containerRef}>
                 <button
                     className="close-keyboard-button"
                     onClick={() => onOpenChange(false)}
