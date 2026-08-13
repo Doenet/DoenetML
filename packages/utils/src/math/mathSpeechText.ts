@@ -28,8 +28,8 @@
  * typesets, for three reasons: math reaches the page through many call sites
  * (`<m>`, every math-bearing input, choice options, buttons, the virtual
  * keyboard); the speech string is attached *asynchronously*, some time after the
- * typeset that created the element resolves; and the explorer rewrites the label
- * as a reader walks into a subexpression, which this then follows.
+ * typeset that created the element resolves; and the explorer swaps in a freshly
+ * labelled element as a reader walks into a subexpression, which this follows.
  */
 
 /** Marks the span this module adds, so a rescan can find and update it. */
@@ -59,17 +59,16 @@ const VISUALLY_HIDDEN_STYLE = [
  *
  * Safe to call repeatedly, and self-limiting: moving the string out of
  * `aria-label` is what takes an expression out of the selector below, so a
- * rescan triggered by this function's own DOM writes finds nothing to do. The
- * explorer putting a fresh label on an element is what brings it back.
+ * rescan triggered by this function's own DOM writes finds nothing to do. A
+ * freshly labelled element from the explorer is what brings one back.
  */
-export function exposeMathSpeechAsText(root: ParentNode): void {
+function exposeMathSpeechAsText(root: ParentNode): void {
     for (const speech of root.querySelectorAll("mjx-speech[aria-label]")) {
         const label = speech.getAttribute("aria-label")?.trim();
         if (!label) {
-            // MathJax creates `<mjx-speech>` during the typeset and fills in
-            // its label once the speech engine has run, so an empty label just
-            // means "not ready yet". Leave the attribute in place: the change
-            // that fills it in is what schedules the next pass.
+            // An empty label carries no speech string to expose. Leave the
+            // element as MathJax made it; should a labelled one arrive later,
+            // the mutation that brings it schedules the pass that handles it.
             continue;
         }
 
@@ -124,10 +123,14 @@ export function startExposingMathSpeechAsText(): void {
     observer = new MutationObserver(() => scheduleScan(root));
     observer.observe(root, {
         subtree: true,
+        // MathJax labels an `<mjx-speech>` before putting it in the page, and
+        // replaces the whole element to change what it says, so appending it —
+        // asynchronously, after the typeset that produced the expression — is
+        // what this mostly sees.
         childList: true,
-        // MathJax attaches the speech string by setting this attribute, well
-        // after the typeset that created the element. Filtering to it keeps the
-        // observer off the far busier attribute traffic of a dragged graph.
+        // Watched as well, so a label written onto an element already in the
+        // page is not missed. Filtering to the one attribute keeps the observer
+        // off the far busier attribute traffic of a dragged graph.
         attributes: true,
         attributeFilter: ["aria-label"],
     });

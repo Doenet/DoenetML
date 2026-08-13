@@ -106,9 +106,9 @@ export interface LoadMathJaxOptions {
      * `true`; see `mathSpeechText.ts`.
      *
      * This applies to every expression in the realm, including math a host page
-     * typeset itself — the rewrite adds an accessible text node and hides a
-     * node holding the identical words, so a host inherits the same fix rather
-     * than a changed page. Code that would rather keep MathJax's own output
+     * typeset itself — the words are the ones MathJax already generated, moved
+     * from a label into hidden text, so a host inherits the same fix rather
+     * than a rewritten page. Code that would rather keep MathJax's own output
      * untouched can set this to `false`; like every other option here, only the
      * first caller's value takes effect (see {@link loadMathJax}).
      */

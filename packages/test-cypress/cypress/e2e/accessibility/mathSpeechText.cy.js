@@ -67,6 +67,16 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
         // source of the element's name.
         cy.get("#sin mjx-speech").should("not.have.attr", "aria-label");
         cy.get("#sin mjx-speech").should("not.have.attr", "role");
+        // The role descriptions went with that role, so they describe a role
+        // the element no longer has.
+        cy.get("#sin mjx-speech").should(
+            "not.have.attr",
+            "aria-roledescription",
+        );
+        cy.get("#sin mjx-speech").should(
+            "not.have.attr",
+            "aria-brailleroledescription",
+        );
         // `<mjx-speech>` is what MathJax focuses to explore an expression, so it
         // must stay visible to assistive technology rather than being hidden.
         cy.get("#sin mjx-speech").should("not.have.attr", "aria-hidden");
