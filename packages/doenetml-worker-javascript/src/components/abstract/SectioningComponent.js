@@ -554,7 +554,13 @@ export class SectioningComponent extends BlockComponent {
         };
 
         /**
-         * Whether this section has a `<cascadeMessage>` child of its own.
+         * Whether this section would show a `<cascadeMessage>` of its own if the
+         * `<cascade>` holding it back gave it the turn — which, for every section
+         * but a `<cascade>`, is simply whether it has one: a held-back section
+         * whose turn it is shows all of its message children. `Cascade.js`
+         * overrides this, because a cascade shows one message of its own at most
+         * and only in a gap between its steps, and so can have message children
+         * and still have nothing to say.
          *
          * A `<cascade>` reads this off each of its steps to decide which single
          * message to show: a step's own message is more specific than one of the
@@ -568,7 +574,7 @@ export class SectioningComponent extends BlockComponent {
          * only counts, so it can ask for the `cascadeMessages` child group
          * directly instead of filtering all of the children.
          */
-        stateVariableDefinitions.hasCascadeMessageChild = {
+        stateVariableDefinitions.hasCascadeMessageToShow = {
             returnDependencies: () => ({
                 cascadeMessageChildren: {
                     dependencyType: "child",
@@ -578,7 +584,7 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        hasCascadeMessageChild:
+                        hasCascadeMessageToShow:
                             dependencyValues.cascadeMessageChildren.length > 0,
                     },
                 };
