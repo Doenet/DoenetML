@@ -170,8 +170,33 @@ export default class Cascade extends SectioningComponent {
             },
         };
 
+        /**
+         * A cascade shows one continuation message at a time, chosen here.
+         *
+         * There are two places an author can put one. A `<cascadeMessage>` child
+         * of the cascade itself stands between two steps, and the cascade shows
+         * the next such message after the last shown step — one trailing message
+         * therefore serves every gap. A `<cascadeMessage>` nested inside a step
+         * belongs to that step alone, and a step's own message is the more
+         * specific of the two, so when the next step has one it wins and every
+         * message of the cascade's own is hidden for as long as it shows.
+         *
+         * `sectionToShowCascadeMessage` names the step whose nested messages are
+         * shown (`null` for none); each section compares it against itself in
+         * `showCascadeMessage`. Only the *next* step is ever named, so a step
+         * further down the cascade shows nothing but its number and title, the
+         * same as a step with no message at all.
+         *
+         * Note that a nested message is the only kind that survives `asList`
+         * (`<problems>` and friends): `childIndicesToRender` there renders only a
+         * section's sectioning children, so a message child of the cascade is
+         * dropped before it can be shown.
+         */
         stateVariableDefinitions.childrenToHide = {
-            additionalStateVariablesDefined: ["childrenToHideChildren"],
+            additionalStateVariablesDefined: [
+                "childrenToHideChildren",
+                "sectionToShowCascadeMessage",
+            ],
             returnDependencies: () => ({
                 hideFutureSections: {
                     dependencyType: "stateVariable",
@@ -184,6 +209,8 @@ export default class Cascade extends SectioningComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
+                    variableNames: ["hasCascadeMessageChild"],
+                    variablesOptional: true,
                 },
                 childrenWithCascadeMessages: {
                     dependencyType: "child",
@@ -212,6 +239,7 @@ export default class Cascade extends SectioningComponent {
                         setValue: {
                             childrenToHide: allContinuationComponentIndices,
                             childrenToHideChildren: [],
+                            sectionToShowCascadeMessage: null,
                         },
                     };
                 }
@@ -241,7 +269,23 @@ export default class Cascade extends SectioningComponent {
                     }
                 }
 
-                if (
+                // The next step is the first one held back. It shows its own
+                // messages if it has any, and then the cascade's own messages
+                // all stay hidden.
+                const nextStep =
+                    dependencyValues.children[
+                        dependencyValues.numCompleted + 1
+                    ];
+                const sectionToShowCascadeMessage =
+                    nextStep &&
+                    childrenToHideChildren.includes(nextStep.componentIdx) &&
+                    nextStep.stateValues?.hasCascadeMessageChild
+                        ? nextStep.componentIdx
+                        : null;
+
+                if (sectionToShowCascadeMessage !== null) {
+                    childrenToHide.push(...allContinuationComponentIndices);
+                } else if (
                     dependencyValues.numCompleted <=
                     dependencyValues.children.length - 2
                 ) {
@@ -288,6 +332,7 @@ export default class Cascade extends SectioningComponent {
                     setValue: {
                         childrenToHide,
                         childrenToHideChildren,
+                        sectionToShowCascadeMessage,
                     },
                 };
             },

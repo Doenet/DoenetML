@@ -1074,8 +1074,11 @@ describe("Cascade tag tests @group4", async () => {
                 numCompleted < 2,
             );
 
+            // The cascade shows one message at a time, so section 3's shows
+            // only while section 3 is the next step — not while section 2 is
+            // still held back with a message of its own.
             expect(stateVariables[section3cmIdx].stateValues.hidden).eq(
-                numCompleted >= 2,
+                numCompleted !== 1,
             );
         }
 
@@ -1157,6 +1160,101 @@ describe("Cascade tag tests @group4", async () => {
         await runMathAnswerSequence({
             core,
             steps: answerSequence,
+            assertState: check_values,
+        });
+    });
+
+    // A cascade shows one continuation message at a time. When the next step
+    // has a message of its own, that more specific message wins and the
+    // cascade's own messages stay hidden; when it does not, the cascade's next
+    // message takes over.
+    it("a step's own continuation message wins over the cascade's", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <problem name="prob1"><p name="p">What is 1+1? <answer name="ans">2</answer></p></problem>
+
+  <problem name="prob2">
+    <cascadeMessage name="cm">Finish problem 1 to proceed.</cascadeMessage>
+    <p name="p">What is 3+4? <answer name="ans">7</answer></p>
+  </problem>
+
+  <cascadeMessage name="outer">Keep going...</cascadeMessage>
+
+  <problem name="prob3"><p name="p">What is 3-4? <answer name="ans">-1</answer></p></problem>
+</cascade>
+  `,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const prob2cmIdx = await resolvePathToNodeIdx("prob2.cm");
+        const prob2pIdx = await resolvePathToNodeIdx("prob2.p");
+        const outerIdx = await resolvePathToNodeIdx("outer");
+        const prob3pIdx = await resolvePathToNodeIdx("prob3.p");
+
+        async function check_values(numCompleted: number) {
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[wIdx].stateValues.numCompleted).eq(
+                numCompleted,
+            );
+            expect(stateVariables[prob2pIdx].stateValues.hidden).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[prob3pIdx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
+
+            // Problem 2's own message while problem 2 is next...
+            expect(stateVariables[prob2cmIdx].stateValues.hidden).eq(
+                numCompleted !== 0,
+            );
+            // ...and the cascade's message once problem 3, which has none of
+            // its own, is next. Never both at once.
+            expect(stateVariables[outerIdx].stateValues.hidden).eq(
+                numCompleted !== 1,
+            );
+        }
+
+        const stateVariables = await getStateVariables(core);
+        const answer1Idx = await resolvePathToNodeIdx("prob1.p.ans");
+        const mathInput1Idx = getMathInputIdx(stateVariables, answer1Idx);
+        const answer2Idx = await resolvePathToNodeIdx("prob2.p.ans");
+        const mathInput2Idx = getMathInputIdx(stateVariables, answer2Idx);
+        const answer3Idx = await resolvePathToNodeIdx("prob3.p.ans");
+        const mathInput3Idx = getMathInputIdx(stateVariables, answer3Idx);
+
+        await check_values(0);
+
+        await runMathAnswerSequence({
+            core,
+            steps: [
+                {
+                    latex: "2",
+                    mathInputIdx: mathInput1Idx,
+                    answerIdx: answer1Idx,
+                    expected: 1,
+                },
+                {
+                    latex: "7",
+                    mathInputIdx: mathInput2Idx,
+                    answerIdx: answer2Idx,
+                    expected: 2,
+                },
+                {
+                    latex: "-1",
+                    mathInputIdx: mathInput3Idx,
+                    answerIdx: answer3Idx,
+                    expected: 3,
+                },
+                // Going back to an incorrect answer hands the message back.
+                {
+                    latex: "3",
+                    mathInputIdx: mathInput1Idx,
+                    answerIdx: answer1Idx,
+                    expected: 0,
+                },
+            ],
             assertState: check_values,
         });
     });
