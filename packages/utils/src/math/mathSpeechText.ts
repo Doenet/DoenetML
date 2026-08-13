@@ -17,12 +17,13 @@
  * This module rewrites each expression into the shape screen readers read
  * reliably: the same speech string, moved out of the label and into a visually
  * hidden span *inside* `<mjx-speech>`, with the label and the `img` role
- * dropped. Nothing visual changes and no information is lost. `<mjx-speech>`
- * then takes its accessible name from that text, which matters because it is
- * also the element MathJax focuses when a reader opens the expression explorer:
- * hiding it, or leaving it named but empty, would break exploring an expression
- * to fix reading it. Its braille label stays where it is and keeps applying,
- * since the element still has a name.
+ * dropped. Nothing visual changes. Stripped of its role, `<mjx-speech>` is an
+ * ordinary generic container, which is the point: a generic container is not
+ * named and not a leaf, so a reader meets the words themselves, as text in
+ * document order, instead of a graphic whose name it may skip. The element
+ * stays visible to assistive technology, because MathJax focuses it when a
+ * reader opens the expression explorer, and hiding a focusable element would
+ * trade exploring an expression for reading one.
  *
  * The rewrite runs from a `MutationObserver` rather than from each place Doenet
  * typesets, for three reasons: math reaches the page through many call sites
@@ -32,8 +33,11 @@
  * labelled element as a reader walks into a subexpression, which this follows.
  */
 
-/** Marks the span this module adds, so a rescan can find and update it. */
+/** Marks the span this module adds, so a later pass can find and update it. */
 const SPEECH_TEXT_ATTR = "data-doenet-math-speech";
+
+/** Matches an expression whose speech string is still only a label. */
+const LABELLED_SPEECH_SELECTOR = "mjx-speech[aria-label]";
 
 /**
  * Keeps the added text out of sight without hiding it from assistive
@@ -54,21 +58,27 @@ const VISUALLY_HIDDEN_STYLE = [
 ].join(";");
 
 /**
- * Rewrites every MathJax expression under `root` whose speech string has been
- * attached but not yet turned into text.
+ * Rewrites every MathJax expression at or under `node` whose speech string has
+ * been attached but not yet turned into text. `node` itself is considered, so
+ * this can be handed the `<mjx-speech>` that a mutation record reports.
  *
  * Safe to call repeatedly, and self-limiting: moving the string out of
- * `aria-label` is what takes an expression out of the selector below, so a
- * rescan triggered by this function's own DOM writes finds nothing to do. A
- * freshly labelled element from the explorer is what brings one back.
+ * `aria-label` is what takes an expression out of
+ * {@link LABELLED_SPEECH_SELECTOR}, so revisiting a rewritten one finds nothing
+ * to do. A freshly labelled element from the explorer is what brings one back.
  */
-function exposeMathSpeechAsText(root: ParentNode): void {
-    for (const speech of root.querySelectorAll("mjx-speech[aria-label]")) {
+function exposeMathSpeechAsText(node: Element): void {
+    const labelled = [...node.querySelectorAll(LABELLED_SPEECH_SELECTOR)];
+    if (node.matches(LABELLED_SPEECH_SELECTOR)) {
+        labelled.unshift(node);
+    }
+
+    for (const speech of labelled) {
         const label = speech.getAttribute("aria-label")?.trim();
         if (!label) {
             // An empty label carries no speech string to expose. Leave the
             // element as MathJax made it; should a labelled one arrive later,
-            // the mutation that brings it schedules the pass that handles it.
+            // the mutation that brings it drives the pass that handles it.
             continue;
         }
 
@@ -81,9 +91,12 @@ function exposeMathSpeechAsText(root: ParentNode): void {
         }
         text.textContent = label;
 
-        // With the name now coming from the text, the `img` role would suppress
-        // it, and the role description that went with it describes a role that
-        // is no longer there.
+        // The words are now content, which the `img` role would hide again by
+        // making the element a leaf named by its label. The role descriptions
+        // went with that role, so they describe one the element no longer has.
+        // `aria-braillelabel` is left as MathJax wrote it: it is the only
+        // braille rendering of the formula on the page, and dropping it could
+        // only lose information.
         speech.removeAttribute("aria-label");
         speech.removeAttribute("role");
         speech.removeAttribute("aria-roledescription");
@@ -92,12 +105,39 @@ function exposeMathSpeechAsText(root: ParentNode): void {
 }
 
 /**
+ * Rewrites what a batch of mutations actually touched, rather than rescanning
+ * the page: the work is then proportional to a page's churn instead of to its
+ * size, which matters because this observes the whole document and a dragged
+ * graph re-renders continuously.
+ *
+ * A rewrite's own writes come back as a later batch — an appended span, its
+ * text, a removed `aria-label` — and none of them match, so the cycle settles
+ * rather than feeding itself.
+ */
+function handleMutations(records: MutationRecord[]): void {
+    for (const record of records) {
+        if (record.type === "attributes") {
+            // A label written onto an element already in the page.
+            exposeMathSpeechAsText(record.target as Element);
+            continue;
+        }
+        // MathJax labels an `<mjx-speech>` before putting it in the page, and
+        // replaces the whole element to change what it says, so an added node —
+        // the speech element itself, or a container holding it — is what this
+        // mostly sees.
+        for (const added of record.addedNodes) {
+            if (added.nodeType === Node.ELEMENT_NODE) {
+                exposeMathSpeechAsText(added as Element);
+            }
+        }
+    }
+}
+
+/**
  * The installed observer, held both as the "already started" flag and as a
  * reference keeping it alive for the life of the page.
  */
 let observer: MutationObserver | null = null;
-/** Set between scheduling a pass and running it, so bursts collapse into one. */
-let scanScheduled = false;
 
 /**
  * Starts exposing MathJax speech as text across the page, and keeps doing it as
@@ -120,35 +160,13 @@ export function startExposingMathSpeechAsText(): void {
 
     exposeMathSpeechAsText(root);
 
-    observer = new MutationObserver(() => scheduleScan(root));
+    observer = new MutationObserver(handleMutations);
     observer.observe(root, {
         subtree: true,
-        // MathJax labels an `<mjx-speech>` before putting it in the page, and
-        // replaces the whole element to change what it says, so appending it —
-        // asynchronously, after the typeset that produced the expression — is
-        // what this mostly sees.
         childList: true,
-        // Watched as well, so a label written onto an element already in the
-        // page is not missed. Filtering to the one attribute keeps the observer
-        // off the far busier attribute traffic of a dragged graph.
         attributes: true,
+        // Filtering to the one attribute keeps the observer off the far busier
+        // attribute traffic of a dragged graph.
         attributeFilter: ["aria-label"],
     });
-}
-
-/**
- * Coalesces a typeset's worth of mutations into a single pass, run from a task
- * of its own so that the writes it makes are delivered to the observer as an
- * ordinary later batch. That batch finds every expression already up to date
- * and writes nothing, so the cycle settles rather than feeding itself.
- */
-function scheduleScan(root: ParentNode) {
-    if (scanScheduled) {
-        return;
-    }
-    scanScheduled = true;
-    setTimeout(() => {
-        scanScheduled = false;
-        exposeMathSpeechAsText(root);
-    }, 0);
 }

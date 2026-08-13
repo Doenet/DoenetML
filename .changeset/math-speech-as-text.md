@@ -26,12 +26,13 @@ line or two down.
 
 The same speech string is now real text: it moves out of the label and into a
 visually hidden span inside `<mjx-speech>`, and the label and the `img` role
-that would suppress the text as a name are dropped. Nothing looks different, and
-nothing is lost — the braille label stays where it is and still applies, since
-the element still has a name, and the element stays visible to assistive
-technology because it is also the one MathJax focuses when a reader opens the
-expression explorer. Walking into a subexpression rewrites the label, and the
-text follows it.
+that would keep that text from being read are dropped. Nothing looks different.
+Stripped of its role the element is an ordinary generic container, so a reader
+meets the words themselves, as text in document order, rather than a graphic
+whose name it may skip; and it stays visible to assistive technology, because it
+is also the one MathJax focuses when a reader opens the expression explorer. Its
+braille label is left exactly as MathJax wrote it. Walking into a subexpression
+rewrites the label, and the text follows it.
 
 This covers every formula in the page, not only `<m>`: math also reaches a
 reader through every math-bearing input, choice options, buttons and the virtual

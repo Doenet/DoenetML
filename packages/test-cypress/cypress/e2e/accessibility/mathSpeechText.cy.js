@@ -114,9 +114,29 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
 
         speechTextOf("#sin");
 
-        // The label stays on `<mjx-speech>`, which still has an accessible name
-        // — taken from the text now nested inside it — for it to apply to.
+        // Only the attributes that describe the removed `img` role are dropped.
+        // The braille label is the one braille rendering of the formula on the
+        // page, so it is left exactly as MathJax wrote it.
         cy.get("#sin mjx-speech").should("have.attr", "aria-braillelabel");
+    });
+
+    it("exposes math that reaches the page other than through `<m>`", () => {
+        // The rewrite is driven by an observer over the whole document, not by
+        // the `<m>` renderer, so it has to cover every call site that typesets:
+        // a math-bearing input's label and a choice option here stand in for the
+        // rest (buttons, the virtual keyboard, graph labels).
+        postDoenetML({
+            settleSelector: "#ci",
+            doenetML: `
+<mathInput name="mi"><label><m>x^2</m></label></mathInput>
+<choiceInput name="ci">
+  <choice><m>\\sqrt{2}</m></choice>
+  <choice>Neither</choice>
+</choiceInput>`,
+        });
+
+        speechTextOf("#mi").should("contain.text", "squared");
+        speechTextOf("#ci").should("contain.text", "square root");
     });
 
     it("updates the text when the formula changes", () => {
