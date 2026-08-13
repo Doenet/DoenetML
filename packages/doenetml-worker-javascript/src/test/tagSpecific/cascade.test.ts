@@ -12,6 +12,8 @@ vi.mock("hyperformula");
 
 describe("Cascade tag tests @group4", async () => {
     type CascadeCompletionTuple = readonly [number, number, number];
+    /** Whether each of three `<cascadeMessage>`s is shown, in document order. */
+    type CascadeMessageShownTuple = readonly [boolean, boolean, boolean];
 
     async function getStateVariables(core: any) {
         return core.returnAllStateVariables(false, true);
@@ -1257,6 +1259,193 @@ describe("Cascade tag tests @group4", async () => {
             ],
             assertState: check_values,
         });
+    });
+
+    // A `<cascade>` nested inside another is a step like any other, so it too
+    // speaks only when it is the next step: while it is further down, its own
+    // `<cascadeMessage>` children stay hidden along with everything else it has.
+    // Each cascade then shows at most one message of its own, which is what "one
+    // message at a time" means once cascades nest.
+    it("a nested cascade's own message waits until its turn", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <cascade name="c1">
+    <problem name="prob1"><p>What is 1+1? <answer name="ans">2</answer></p></problem>
+    <cascadeMessage name="msg">Finish the first part of step 1.</cascadeMessage>
+    <problem name="prob2"><p>What is 1-1? <answer name="ans">0</answer></p></problem>
+  </cascade>
+  <cascade name="c2">
+    <problem name="prob1"><p>What is 3+4? <answer name="ans">7</answer></p></problem>
+    <cascadeMessage name="msg">Finish the first part of step 2.</cascadeMessage>
+    <problem name="prob2"><p>What is 3-4? <answer name="ans">-1</answer></p></problem>
+  </cascade>
+  <cascade name="c3">
+    <problem name="prob1"><p>What is 5+6? <answer name="ans">11</answer></p></problem>
+    <cascadeMessage name="msg">Finish the first part of step 3.</cascadeMessage>
+    <problem name="prob2"><p>What is 5-6? <answer name="ans">-1</answer></p></problem>
+  </cascade>
+</cascade>`,
+        });
+
+        const msgIndices = await Promise.all(
+            ["c1", "c2", "c3"].map((name) =>
+                resolvePathToNodeIdx(`${name}.msg`),
+            ),
+        );
+
+        async function check_messages(shown: CascadeMessageShownTuple) {
+            const stateVariables = await getStateVariables(core);
+            for (const [ind, msgIdx] of msgIndices.entries()) {
+                expect(
+                    stateVariables[msgIdx].stateValues.hidden,
+                    `message of nested cascade ${ind + 1}`,
+                ).eq(!shown[ind]);
+            }
+        }
+
+        const stateVariables = await getStateVariables(core);
+        const [c1ans1, c1ans2, c2ans1, c2ans2, c3ans1] = await Promise.all(
+            ["c1.prob1", "c1.prob2", "c2.prob1", "c2.prob2", "c3.prob1"].map(
+                (name) => resolvePathToNodeIdx(`${name}.ans`),
+            ),
+        );
+
+        // Cascade 1 is showing and stands in for the step it holds back itself;
+        // cascade 2 is the next step, so it is nominated and speaks for itself;
+        // cascade 3 is further down and says nothing at all.
+        await check_messages([true, true, false]);
+
+        await runMathAnswerSequence({
+            core,
+            steps: [
+                // Cascade 1's last step is showing now, so it has no gap left to
+                // stand in for. Cascade 3 is still not next.
+                {
+                    latex: "2",
+                    mathInputIdx: getMathInputIdx(stateVariables, c1ans1),
+                    answerIdx: c1ans1,
+                    expected: [false, true, false] as const,
+                },
+                // Cascade 1 is complete, so cascade 2 is no longer held back and
+                // speaks for its own gap instead of for itself, and cascade 3 —
+                // now the next step — gets its turn.
+                {
+                    latex: "0",
+                    mathInputIdx: getMathInputIdx(stateVariables, c1ans2),
+                    answerIdx: c1ans2,
+                    expected: [false, true, true] as const,
+                },
+                {
+                    latex: "7",
+                    mathInputIdx: getMathInputIdx(stateVariables, c2ans1),
+                    answerIdx: c2ans1,
+                    expected: [false, false, true] as const,
+                },
+                {
+                    latex: "-1",
+                    mathInputIdx: getMathInputIdx(stateVariables, c2ans2),
+                    answerIdx: c2ans2,
+                    expected: [false, false, true] as const,
+                },
+                // And cascade 3's last step showing leaves nobody with anything
+                // to say.
+                {
+                    latex: "11",
+                    mathInputIdx: getMathInputIdx(stateVariables, c3ans1),
+                    answerIdx: c3ans1,
+                    expected: [false, false, false] as const,
+                },
+            ],
+            assertState: check_messages,
+        });
+    });
+
+    // `hideFutureSections` hides a held-back step outright rather than replacing
+    // its body with a message, so no step is nominated and no nested message is
+    // shown. The cascade's own message still stands in for the hidden steps —
+    // there is otherwise nothing at all between the reader and the end of the
+    // cascade.
+    it("hideFutureSections leaves a step's own message hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w" hideFutureSections>
+  <problem name="prob1"><p>What is 1+1? <answer name="ans">2</answer></p></problem>
+  <cascadeMessage name="outer">Keep going...</cascadeMessage>
+  <problem name="prob2">
+    <cascadeMessage name="msg">Finish problem 1 to proceed.</cascadeMessage>
+    <p name="p">What is 3+4? <answer name="ans">7</answer></p>
+  </problem>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const prob2Idx = await resolvePathToNodeIdx("prob2");
+        const msgIdx = await resolvePathToNodeIdx("prob2.msg");
+        const outerIdx = await resolvePathToNodeIdx("outer");
+        const ansIdx = await resolvePathToNodeIdx("prob1.ans");
+
+        let stateVariables = await getStateVariables(core);
+
+        // Problem 2 is hidden whole, so it is not nominated and its message
+        // stays hidden with it; the cascade's own message shows in its place.
+        expect(stateVariables[prob2Idx].stateValues.hidden).eq(true);
+        expect(stateVariables[wIdx].stateValues.sectionToShowCascadeMessage).eq(
+            null,
+        );
+        expect(stateVariables[msgIdx].stateValues.hidden).eq(true);
+        expect(stateVariables[outerIdx].stateValues.hidden).eq(false);
+
+        await submitMathAnswer({
+            core,
+            latex: "2",
+            mathInputIdx: getMathInputIdx(stateVariables, ansIdx),
+            answerIdx: ansIdx,
+        });
+
+        stateVariables = await getStateVariables(core);
+
+        // Revealed, problem 2 hides its own message as any shown section does,
+        // and the cascade's message has no gap left to stand in for.
+        expect(stateVariables[prob2Idx].stateValues.hidden).eq(false);
+        expect(stateVariables[msgIdx].stateValues.hidden).eq(true);
+        expect(stateVariables[outerIdx].stateValues.hidden).eq(true);
+    });
+
+    // `revealAll` holds nothing back, so there is nothing for any message to
+    // stand in for: both placements are hidden from the start.
+    it("revealAll hides every continuation message", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w" revealAll>
+  <problem name="prob1"><p>What is 1+1? <answer name="ans">2</answer></p></problem>
+  <cascadeMessage name="outer">Keep going...</cascadeMessage>
+  <problem name="prob2">
+    <cascadeMessage name="msg">Finish problem 1 to proceed.</cascadeMessage>
+    <p name="p">What is 3+4? <answer name="ans">7</answer></p>
+  </problem>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const prob2Idx = await resolvePathToNodeIdx("prob2");
+        const prob2pIdx = await resolvePathToNodeIdx("prob2.p");
+
+        const stateVariables = await getStateVariables(core);
+
+        expect(stateVariables[prob2Idx].stateValues.hideChildren).eq(false);
+        expect(stateVariables[prob2pIdx].stateValues.hidden).eq(false);
+        expect(stateVariables[wIdx].stateValues.sectionToShowCascadeMessage).eq(
+            null,
+        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("prob2.msg")].stateValues
+                .hidden,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("outer")].stateValues
+                .hidden,
+        ).eq(true);
     });
 
     it("one continuation message inside cascade", async () => {

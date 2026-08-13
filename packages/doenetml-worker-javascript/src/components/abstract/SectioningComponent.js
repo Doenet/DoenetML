@@ -824,9 +824,7 @@ export class SectioningComponent extends BlockComponent {
                     } else if (
                         dependencyValues.hideChildren &&
                         typeof child === "object" &&
-                        child.componentIdx !==
-                            dependencyValues.titleChildName &&
-                        child.componentType !== "cascadeMessage"
+                        child.componentIdx !== dependencyValues.titleChildName
                     ) {
                         childrenToHide.push(child.componentIdx);
                     }

@@ -22,3 +22,8 @@ of the two, so when the next section has one, it is shown and the `<cascade>`'s
 own `<cascadeMessage>` children stay hidden for as long as it is. A cascade's
 own message continues to serve every gap that the next section does not cover
 itself.
+
+A `<cascade>` nested inside another waits its turn the same way: its own
+`<cascadeMessage>` children used to be shown while it was still several steps
+away, so a cascade of cascades spoke from every level at once. Each cascade now
+shows at most one message, and only once it is the next step.

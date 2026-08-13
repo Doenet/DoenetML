@@ -227,6 +227,10 @@ export default class Cascade extends SectioningComponent {
                     dependencyType: "stateVariable",
                     variableName: "hideChildren",
                 },
+                showCascadeMessage: {
+                    dependencyType: "stateVariable",
+                    variableName: "showCascadeMessage",
+                },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const allContinuationComponentIndices =
@@ -291,10 +295,19 @@ export default class Cascade extends SectioningComponent {
                 // once the next step is showing a message of its own, and none
                 // once the last child is showing, since then no child is held
                 // back for a message to stand in for.
+                //
+                // A cascade that is itself a step of an enclosing cascade has a
+                // third way to have none: `hideChildren` says the enclosing
+                // cascade is holding it back, and then it speaks only while it
+                // is the step that cascade nominates. A cascade further down the
+                // enclosing cascade shows nothing at all, its own messages
+                // included, exactly as a plain step further down does.
                 let continuationToShow = null;
 
                 if (
                     sectionToShowCascadeMessage === null &&
+                    (!dependencyValues.hideChildren ||
+                        dependencyValues.showCascadeMessage) &&
                     dependencyValues.numCompleted <=
                         dependencyValues.children.length - 2
                 ) {
