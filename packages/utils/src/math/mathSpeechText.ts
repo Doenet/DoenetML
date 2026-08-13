@@ -92,11 +92,9 @@ function rewriteSpeechElement(speech: Element): void {
     // The words are now content, which the `img` role would hide again by
     // making the element a leaf named by its label. The role descriptions went
     // with that role, so they describe one the element no longer has.
-    // `aria-braillelabel` is left as MathJax wrote it: ARIA exposes it only
+    // `aria-braillelabel` stays as MathJax wrote it: ARIA exposes it only
     // alongside an accessible name, so on a nameless element it is inert and a
-    // braille display renders the text added above instead. Stripping an
-    // attribute that is already doing nothing would gain nothing, and it comes
-    // back into play if MathJax ever names the element again.
+    // braille display renders the text added above instead.
     speech.removeAttribute("aria-label");
     speech.removeAttribute("role");
     speech.removeAttribute("aria-roledescription");
@@ -110,7 +108,7 @@ function rewriteSpeechElement(speech: Element): void {
  * container: it is often the added node a mutation record reports, with no
  * subtree to search.
  */
-function exposeMathSpeechAsText(node: Element): void {
+function rewriteSpeechTree(node: Element): void {
     rewriteSpeechElement(node);
     for (const speech of node.querySelectorAll(LABELLED_SPEECH_SELECTOR)) {
         rewriteSpeechElement(speech);
@@ -141,7 +139,7 @@ function handleMutations(records: MutationRecord[]): void {
         // mostly sees.
         for (const added of record.addedNodes) {
             if (added.nodeType === Node.ELEMENT_NODE) {
-                exposeMathSpeechAsText(added as Element);
+                rewriteSpeechTree(added as Element);
             }
         }
     }
@@ -172,7 +170,7 @@ export function startExposingMathSpeechAsText(): void {
         return;
     }
 
-    exposeMathSpeechAsText(root);
+    rewriteSpeechTree(root);
 
     observer = new MutationObserver(handleMutations);
     observer.observe(root, {

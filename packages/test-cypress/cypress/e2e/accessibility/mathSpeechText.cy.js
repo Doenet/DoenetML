@@ -13,9 +13,10 @@
  * `mathSpeechText.ts` therefore rewrites every expression so the speech string
  * is real text inside `<mjx-speech>` instead of a label on it, which is what
  * these tests assert: text present, the label and `img` role gone so the words
- * are not announced twice, the braille label still in place, the rewrite
- * settling rather than feeding the observer that drives it, and every formula
- * on the page reachable in document order.
+ * are read as content exactly once, the braille label still in place, the text
+ * clipped rather than hidden, the rewrite settling rather than feeding the
+ * observer that drives it, and every formula on the page reachable in document
+ * order.
  */
 describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
     beforeEach(() => {
@@ -68,9 +69,9 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
 
         speechTextOf("#sin").should("contain.text", "sine theta equals");
 
-        // The words must reach a reader exactly once, so the label they came
-        // from is gone — along with the role that would suppress the text as a
-        // source of the element's name.
+        // The words must reach a reader exactly once: the label they came from
+        // is gone, and so is the `img` role, which would make the element a
+        // leaf named by that label and its text ignored.
         cy.get("#sin mjx-speech").should("not.have.attr", "aria-label");
         cy.get("#sin mjx-speech").should("not.have.attr", "role");
         // The role descriptions went with that role, so they describe a role
@@ -83,6 +84,10 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
             "not.have.attr",
             "aria-brailleroledescription",
         );
+        // Only those go. The braille label is MathJax's own rendering of the
+        // formula and is inert without an accessible name, so it is left
+        // exactly as MathJax wrote it.
+        cy.get("#sin mjx-speech").should("have.attr", "aria-braillelabel");
         // `<mjx-speech>` is what MathJax focuses to explore an expression, so it
         // must stay visible to assistive technology rather than being hidden.
         cy.get("#sin mjx-speech").should("not.have.attr", "aria-hidden");
@@ -151,20 +156,6 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
                 expect(records).to.have.length(0);
             });
         });
-    });
-
-    it("keeps the braille label", () => {
-        postDoenetML({
-            settleSelector: "#sin",
-            doenetML: SINE_DOC,
-        });
-
-        speechTextOf("#sin");
-
-        // Only the attributes that describe the removed `img` role are dropped.
-        // The braille label is MathJax's own rendering of the formula and costs
-        // nothing to keep, so it is left exactly as MathJax wrote it.
-        cy.get("#sin mjx-speech").should("have.attr", "aria-braillelabel");
     });
 
     it("exposes math that reaches the page other than through `<m>`", () => {
