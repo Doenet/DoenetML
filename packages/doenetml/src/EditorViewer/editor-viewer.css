@@ -41,17 +41,25 @@
  * tab (showViewer={false} or viewerLocation in {"start","top"} with the
  * keyboard enabled), push the last footer element inward so the icons stay
  * clickable. The reservation must match the keyboard tab's inline-end
- * footprint (`w-12` + `me-4` = 3rem + 1rem) defined in
- * `packages/virtual-keyboard/src/virtual-keyboard/keyboard-tray.css`. Keep
- * this value in sync if that footprint changes. Very narrow viewports may
- * still let the tab and the icons collide; that's accepted.
+ * footprint (`--keyboard-tab-width` + `me-4`) defined in
+ * `packages/virtual-keyboard/src/virtual-keyboard/keyboard-tray.css`, which
+ * widens the tab on touch devices to give it a target a fingertip can hit.
+ * Keep both values in sync if that footprint changes. Very narrow viewports
+ * may still let the tab and the icons collide; that's accepted.
  *
  * Logical, and it has to stay paired with the tab's own `end-0`: the tab is
  * portaled to `document.body`, so nothing but this axis agreement keeps the
  * space and the thing it is reserved for on the same side of the screen.
  */
 .editor-panel .editor-footer.reserve-keyboard-button-space {
+    /* 3rem tab + 1rem margin */
     --keyboard-tab-reserve-width: 4rem;
+}
+@media (pointer: coarse) {
+    .editor-panel .editor-footer.reserve-keyboard-button-space {
+        /* 4rem tab + 1rem margin */
+        --keyboard-tab-reserve-width: 5rem;
+    }
 }
 .editor-panel .editor-footer.reserve-keyboard-button-space .footer-menu-button {
     margin-inline-end: var(--keyboard-tab-reserve-width);

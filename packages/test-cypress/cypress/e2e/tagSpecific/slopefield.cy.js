@@ -133,17 +133,17 @@ describe("SlopeField and VectorField Tag Tests", { tags: ["@group2"] }, () => {
         });
     });
 
-    it("draws a field from an expression written into the function attribute", () => {
-        // The attribute form has to be read as a function of x and y just as
-        // the child form is. Read as a function of x alone, the y here would be
-        // a free symbol, every lattice point would be NaN, and the graph would
-        // come up blank — which is why this is checked end to end.
+    it("draws a field from an expression in the variables the field names", () => {
+        // The names reach the wrapping <function> because the parser's sugar
+        // moves the attribute onto it. If they did not arrive, `u` and `v`
+        // would be free symbols, every lattice point would be NaN, and the
+        // graph would come up blank — which is why this is checked end to end.
         cy.window().then((win) => {
             win.postMessage(
                 {
                     doenetML: `
     <graph name="g" xmin="-3" xmax="3" ymin="-3" ymax="3">
-        <vectorField name="vf" function="(y, -x)" normalize />
+        <vectorField name="vf" variables="u v" normalize>(v, -u)</vectorField>
     </graph>
     `,
                 },

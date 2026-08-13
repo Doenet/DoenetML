@@ -1,12 +1,72 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { updateBooleanInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("List tag tests @group4", async () => {
+    it("marker reaches the renderer on both kinds of list", async () => {
+        // `<ul>` overrides the `marker` attribute to swap in its own value
+        // list, so check that the override kept the rest of the declaration
+        // — the state variable and the renderer flag — intact on both classes.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ol name="o" marker="a"><li>x</li></ol>
+<ul name="u" marker="square"><li>y</li></ul>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("o")].stateValues.marker,
+        ).eq("a");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("o")].stateValues
+                .numbered,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("u")].stateValues.marker,
+        ).eq("square");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("u")].stateValues
+                .numbered,
+        ).eq(false);
+    });
+
+    it("ul enforces its marker values, ol does not", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<ul name="u1" marker="SQUARE"><li>a</li></ul>
+<ul name="u2" marker="lower-greek"><li>b</li></ul>
+<ol name="o1" marker="a)"><li>c</li></ol>`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // `<ul>`'s three markers are the complete set, so they are enforced:
+        // matched case-insensitively, and an unusable value is reported and
+        // reverts to the level-based default rather than failing silently.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("u1")].stateValues.marker,
+        ).eq("square");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("u2")].stateValues.marker,
+        ).eq(null);
+
+        const infos = getDiagnosticsByType(core).infos;
+        expect(infos.length).eq(1);
+        expect(infos[0].message).contain("lower-greek");
+
+        // `<ol>` only suggests its markers, so a decorated form is left alone
+        // for the renderer to match on its first character.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("o1")].stateValues.marker,
+        ).eq("a)");
+    });
+
     it("li publishes its first visible child for list-item alignment", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

@@ -8,6 +8,47 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 
+/**
+ * The individual statistics `statisticsToDisplay` can name, in the order they
+ * are displayed.
+ *
+ * This single list drives both the attribute's `validValues` and the
+ * `statisticsToDisplay` state variable's selection, so the set an author may
+ * write and the set that can be displayed cannot drift apart.
+ */
+const STATISTIC_VALUES = [
+    { value: "mean", description: "The arithmetic mean." },
+    { value: "stdev", description: "The standard deviation." },
+    { value: "variance", description: "The variance." },
+    { value: "stderr", description: "The standard error." },
+    {
+        value: "count",
+        description: "The number of non-missing values.",
+    },
+    { value: "minimum", description: "The smallest value." },
+    { value: "quartile1", description: "The first quartile." },
+    { value: "median", description: "The median." },
+    { value: "quartile3", description: "The third quartile." },
+    { value: "maximum", description: "The largest value." },
+    {
+        value: "range",
+        description: "The maximum minus the minimum.",
+    },
+    { value: "sum", description: "The sum of the values." },
+];
+
+/** The subset of `STATISTIC_VALUES` that `statisticsToDisplay="default"` selects. */
+const DEFAULT_STATISTICS = [
+    "mean",
+    "stdev",
+    "count",
+    "minimum",
+    "quartile1",
+    "median",
+    "quartile3",
+    "maximum",
+];
+
 export default class SummaryStatistics extends BlockComponent {
     constructor(args) {
         super(args);
@@ -46,6 +87,24 @@ export default class SummaryStatistics extends BlockComponent {
             createComponentOfType: "textList",
             createStateVariable: "statisticsToDisplayPrelim",
             defaultValue: ["default"],
+            toLowerCase: true,
+            // `default` and `all` are selections over the statistics rather
+            // than statistics of their own, so they are listed here rather
+            // than in `STATISTIC_VALUES`.
+            //
+            // The component sets `excludeFromSchema`, so these values do not
+            // yet reach autocomplete or the reference docs; what they buy
+            // today is the runtime validation — an unrecognized statistic is
+            // dropped with an info diagnostic instead of being ignored in
+            // silence.
+            validValues: [
+                {
+                    value: "default",
+                    description: `The default selection: ${DEFAULT_STATISTICS.join(", ")}.`,
+                },
+                { value: "all", description: "Every statistic listed here." },
+                ...STATISTIC_VALUES,
+            ],
             description:
                 'Which summary statistics to display (or "default" / "all").',
         };
@@ -86,39 +145,16 @@ export default class SummaryStatistics extends BlockComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let options = [
-                    "mean",
-                    "stdev",
-                    "variance",
-                    "stderr",
-                    "count",
-                    "minimum",
-                    "quartile1",
-                    "median",
-                    "quartile3",
-                    "maximum",
-                    "range",
-                    "sum",
-                ];
+                const options = STATISTIC_VALUES.map((entry) => entry.value);
 
                 let statisticsToDisplay = [];
 
-                let desiredStats =
-                    dependencyValues.statisticsToDisplayPrelim.map((x) =>
-                        x.toLowerCase(),
-                    );
+                // Already lower-cased and filtered to `validValues` by the
+                // attribute machinery.
+                let desiredStats = dependencyValues.statisticsToDisplayPrelim;
 
                 if (desiredStats.includes("default")) {
-                    statisticsToDisplay = [
-                        "mean",
-                        "stdev",
-                        "count",
-                        "minimum",
-                        "quartile1",
-                        "median",
-                        "quartile3",
-                        "maximum",
-                    ];
+                    statisticsToDisplay = [...DEFAULT_STATISTICS];
                 } else if (desiredStats.includes("all")) {
                     statisticsToDisplay = [...options];
                 } else {

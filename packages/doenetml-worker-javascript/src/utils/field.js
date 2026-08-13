@@ -7,34 +7,43 @@
  */
 
 import { codedDiagnostic } from "./diagnostics";
-import { returnWrapNonLabelsDescriptionsSugarFunction } from "./label";
 
 /**
- * The `function` attribute both field components take.
+ * The child group both field components take their function from.
  *
- * The `<function>` it creates is always given `variables="x y"`, which is what
- * the sugar does for a bare expression child. Without it, an attribute holding
- * a literal expression — `<vectorField function="(y, -x)" />`, the form the
- * editor's completions offer — would create a `<function>` that takes only `x`,
- * leaving `y` a free symbol: the field would be NaN at every lattice point and
- * draw nothing at all, while reporting that it has a function. Naming both
- * variables is harmless for an expression in `x` alone, since the extra input
- * is simply ignored.
+ * The function is written inside the component either as a bare expression,
+ * which `fieldFunctionSugar` (`@doenet/parser`) wraps in a `<function>` before
+ * the worker sees it, or as a `<function>` child spelled out. Both arrive here.
  *
- * A function supplied by reference is unaffected: the created component holds
- * the referenced one as a *child* and passes inputs through to it positionally,
- * so `<function name="F" variables="u v">(v, -u)</function>` keeps the variable
- * names its own author chose.
- *
- * @param {string} description description of the attribute, which says
- *   something different for each component.
+ * A fresh object each call, since the groups a component returns become its own.
  */
-export function returnFieldFunctionAttribute({ description }) {
+export function returnFieldFunctionChildGroup() {
     return {
-        function: {
-            createComponentOfType: "function",
-            attributesForCreatedComponent: { variables: "x y" },
-            description,
+        group: "functions",
+        componentTypes: ["function"],
+    };
+}
+
+/**
+ * The `variables` attribute both field components take.
+ *
+ * The attribute is declared here so that it is in the schema and the
+ * documentation, but nothing in the worker reads it: `fieldFunctionSugar`
+ * (`@doenet/parser`) moves it onto the `<function>` it wraps a bare expression
+ * in, before the worker sees either. It is the same `_variableNameList` a
+ * `<function>` takes, and it is moved rather than read, so the names may be
+ * references — `variables="$v1 $v2"` naming two `<mathInput>`s renames the
+ * field's inputs as the student types.
+ *
+ * It survives on the field only when there is an explicit `<function>` child,
+ * which names its own inputs and so leaves nothing for it to say.
+ */
+export function returnFieldVariablesAttribute() {
+    return {
+        variables: {
+            createComponentOfType: "_variableNameList",
+            description:
+                'Names of the variables a bare expression is read as a function of. Defaults to "x y". Ignored when the function is given as a <function> child, which names its own variables.',
         },
     };
 }
@@ -109,105 +118,17 @@ export function returnFieldLatticeAttributes({
 }
 
 /**
- * Sugar that turns a bare expression child into the `function` attribute, so
- * that `<slopeField>y - x</slopeField>` means the same as
- * `<slopeField function="$f" />` for `<function variables="x y">y - x</function>`.
- *
- * The wrapped function is given `variables="x y"`, for the reason spelled out
- * on {@link returnFieldFunctionAttribute}: without it a bare `y - x` would be
- * read as a function of `x` alone and evaluate to NaN everywhere. The sugar has
- * to name them itself rather than inherit the attribute's
- * `attributesForCreatedComponent`, since it builds the attribute's component
- * directly instead of going through the usual attribute conversion.
- *
- * Sugar recurses into attribute components, so from here `<function>`'s own
- * sugar wraps the expression in `<math>` and the variable list splits its
- * string into variable names. Any `<label>` child is left where it is, which is
- * what the shared wrapping helper is for.
- *
- * When the author supplied both a child and a `function` attribute, the
- * attribute this builds is assigned over theirs, so the child wins; that is
- * warned about rather than left for the author to discover from a field drawn
- * off the wrong function.
- */
-export function returnFieldFunctionSugarInstruction() {
-    const wrapChildren = returnWrapNonLabelsDescriptionsSugarFunction({
-        wrappingComponentType: "function",
-        createAttributeOfType: "function",
-        createWrappingComponentAttributes(nComponents, stateIdInfo) {
-            return {
-                attributes: {
-                    variables: {
-                        type: "component",
-                        name: "variables",
-                        component: {
-                            type: "serialized",
-                            componentType: "_variableNameList",
-                            componentIdx: nComponents++,
-                            stateId: stateIdInfo
-                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                : undefined,
-                            children: ["x y"],
-                            attributes: {},
-                            doenetAttributes: {},
-                            state: {},
-                        },
-                    },
-                },
-                nComponents,
-            };
-        },
-    });
-
-    return {
-        replacementFunction(args) {
-            // Whitespace alone is not an expression. Wrapping it in a
-            // <function> would produce one that is NaN everywhere, i.e. a field
-            // that draws nothing while claiming to have a function; leaving the
-            // sugar unapplied reports honestly that there is no function.
-            // (`every` is also true of no children at all.)
-            if (
-                args.matchedChildren.every(
-                    (child) => typeof child === "string" && child.trim() === "",
-                )
-            ) {
-                return { success: false };
-            }
-
-            const results = wrapChildren(args);
-
-            // The attribute the sugar builds is assigned over any the author
-            // wrote, so children silently win. Say so, rather than dropping
-            // half of what was written without comment.
-            if (
-                results.success &&
-                args.componentAttributeNames?.includes("function")
-            ) {
-                results.diagnostics = [
-                    ...(results.diagnostics ?? []),
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0123",
-                    }),
-                ];
-            }
-
-            return results;
-        },
-    };
-}
-
-/**
- * The state variables both field components derive from their `function`
- * attribute.
+ * The state variables both field components derive from their `<function>`
+ * child.
  *
  * The renderer redraws the field on every pan and zoom without going back to
  * the worker, so what it needs is not a closure but `fDefinitions`, which it
  * rehydrates with `createFunctionFromDefinition`. The worker therefore never
  * asks the function for `numericalfs`, which it would only have to build and
- * throw away. The definitions always describe a function of two inputs, since
- * `returnFieldFunctionAttribute` names both variables on the `<function>` it
- * creates; the renderer can call them as `f(x, y)` without checking an arity.
+ * throw away. How many inputs those definitions describe is the author's
+ * choice — two for a bare expression, which the sugar wraps in a `<function>`
+ * naming both variables, one for a `<function>` of a single variable — and the
+ * renderer reads `numInputs` from the definition to call each correctly.
  *
  * The number of outputs, by contrast, is what a mark is drawn from and so is
  * not negotiable. A function with the wrong number is almost always meant for
@@ -234,18 +155,21 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                 { variableName: "fDefinitions", forRenderer: true },
             ],
             returnDependencies: () => ({
-                functionAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "function",
+                functionChildren: {
+                    dependencyType: "child",
+                    childGroups: ["functions"],
                     variableNames: ["numOutputs", "fDefinitions"],
                 },
             }),
             definition({ dependencyValues }) {
-                const attr = dependencyValues.functionAttr;
+                // A second <function> child is not a second field; the first
+                // one is the field's function.
+                const functionChild =
+                    dependencyValues.functionChildren[0] ?? null;
 
                 if (
-                    attr === null ||
-                    attr.stateValues.numOutputs !== numOutputs
+                    functionChild === null ||
+                    functionChild.stateValues.numOutputs !== numOutputs
                 ) {
                     const sendDiagnostics = [];
 
@@ -255,8 +179,8 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                     // field whose function is present but has the wrong number
                     // of outputs looks finished and silently draws nothing, so
                     // that one is worth saying out loud.
-                    if (attr !== null) {
-                        const found = attr.stateValues.numOutputs;
+                    if (functionChild !== null) {
+                        const found = functionChild.stateValues.numOutputs;
                         sendDiagnostics.push(
                             codedDiagnostic({
                                 type: "warning",
@@ -272,7 +196,7 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                                             ? alternativeComponentType
                                             : "none",
                                 },
-                                position: attr.position || undefined,
+                                position: functionChild.position || undefined,
                             }),
                         );
                     }
@@ -295,7 +219,7 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                 return {
                     setValue: {
                         haveFunction: true,
-                        fDefinitions: attr.stateValues.fDefinitions,
+                        fDefinitions: functionChild.stateValues.fDefinitions,
                     },
                 };
             },

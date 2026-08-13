@@ -329,6 +329,12 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
             "anchor",
             "positionFromAnchor",
         ]),
+        // `align` was the only mode an ODE system could ever be rendered in:
+        // its LaTeX carries `&` alignment markers and its own `\tag`/`\notag`
+        // (equation numbering is controlled by `number`), none of which are
+        // legal in the delimiters the other modes of the math renderer supply.
+        // The mode is now fixed by the component, so the attribute is dropped.
+        odeSystem: ignoredAttributes("odeSystem", ["renderMode"]),
     },
     attributeValueRenames: {
         // The label sits beside the input in DOM order, which mirrors with the

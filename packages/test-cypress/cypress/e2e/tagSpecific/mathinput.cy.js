@@ -954,6 +954,94 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#fv").should("have.text", "focused: false");
     });
 
+    it("virtual keyboard types into the focused math input without taking focus from it", () => {
+        // The tray used to blur the input on every press and the input used to
+        // refocus itself afterwards; it now declines focus instead (#1692).
+        // Two things had been riding on that blur-and-refocus: which input the
+        // keys go to, and — because the bookkeeping events the tray sent
+        // alongside every press are gone with it — the fresh array identity by
+        // which a math input notices a new batch of keys. Pressing the same
+        // key twice is what catches a regression in the second.
+        postDoenetML(`
+    <p>a: <mathInput name="a" /></p>
+    <p>a2: <math extend="$a" name="a2" /></p>
+    `);
+
+        cy.get("#a textarea").focus();
+
+        cy.get(".open-keyboard-button").click();
+        cy.get("#virtual-keyboard-tray.open").should("exist");
+        cy.log("Reaching for the tray leaves the input focused");
+        cy.focused().should("match", "#a textarea");
+
+        cy.get("#virtual-keyboard-tray .key-1").click({ force: true });
+        cy.get("#virtual-keyboard-tray .key-1").click({ force: true });
+        cy.get("#a .mq-editable-field").should("contain.text", "11");
+        cy.focused().should("match", "#a textarea");
+
+        // Enter on the virtual keyboard commits, as it does on a physical one.
+        cy.get("#virtual-keyboard-tray .key-enter").click({ force: true });
+        cy.get("#a2").should("contain.text", "11");
+
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("a")].stateValues.value,
+            ).eq(11);
+        });
+    });
+
+    it("commits the value when focus goes on from the tray to somewhere else", () => {
+        // Focus moving into the tray is not the reader leaving the input, so
+        // the input holds on to it. But the tray is not part of the input's
+        // DOM, so focus leaving the tray again raises no further event on the
+        // input: something has to watch the tray, or the value the reader
+        // typed would never be committed.
+        //
+        // Only deliberate keyboard navigation puts focus in the tray — a key
+        // press is declined — so that is what this drives.
+        postDoenetML(`
+    <p>a: <mathInput name="a" /></p>
+    <p>a2: <math extend="$a" name="a2" /></p>
+    <p>b: <mathInput name="b" /></p>
+    `);
+
+        cy.get("#a2").should("contain.text", "＿");
+        cy.get("#a textarea").type("1", { force: true });
+        cy.get("#a .mq-editable-field").should("contain.text", "1");
+        cy.log("Not committed while the input is being edited");
+        cy.get("#a2").should("contain.text", "＿");
+
+        cy.get(".open-keyboard-button").click();
+        cy.get("#virtual-keyboard-tray.open").should("exist");
+
+        cy.log("Move focus into the tray, as a keyboard-only reader does");
+        cy.get("#virtual-keyboard-tray .key-1").focus();
+        cy.focused().should("match", "#virtual-keyboard-tray .key-1");
+        cy.log("Still uncommitted: the reader is operating the keyboard");
+        cy.get("#a2").should("contain.text", "＿");
+
+        // `a` is still the input the keys go to, even though it no longer holds
+        // `document.activeElement` — which is the whole point of recording the
+        // focused input explicitly.
+        cy.get("#virtual-keyboard-tray .key-2").click({ force: true });
+        cy.get("#a .mq-editable-field").should("contain.text", "12");
+        cy.focused().should("match", "#virtual-keyboard-tray .key-1");
+        cy.get("#a2").should("contain.text", "＿");
+
+        // Focus leaves the tray for a different input and never returns to `a`,
+        // so nothing else will ever commit what was typed into it.
+        cy.get("#b textarea").focus();
+        cy.get("#a2").should("contain.text", "12");
+
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("a")].stateValues.value,
+            ).eq(12);
+        });
+    });
+
     it("mathInput in a graph renders at its anchor, is editable, and binds its value", () => {
         postDoenetMLWithMathJaxPrimed(`
     <graph name="g">

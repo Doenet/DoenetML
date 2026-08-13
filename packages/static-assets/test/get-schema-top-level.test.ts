@@ -95,8 +95,51 @@ describe("generated schema top-level elements", () => {
         if (!gridAttribute) {
             throw new Error("Expected graph.grid attribute");
         }
+        // `grid` declares `suggestedValues`, so it carries the named spacings
+        // in `autocompleteValues` while `values` stays absent — the attribute
+        // also takes two numbers, so nothing is enforced. What must not appear
+        // either way is a `false` alias: `grid` sets `valueForTrue` and no
+        // `valueForFalse`, and only a two-sided pair contributes aliases.
         expect(gridAttribute.values).toBeUndefined();
-        expect(gridAttribute.autocompleteValues).toBeUndefined();
+        expect(
+            gridAttribute.autocompleteValues?.map((entry) => entry.value),
+        ).toEqual(["none", "medium", "dense", "1 1", "2 2"]);
+        // The flag that keeps author-facing surfaces honest: the help panel
+        // says "Suggested values" and autocomplete stays free-text.
+        expect(gridAttribute.suggestedValuesOnly).toBe(true);
+    });
+
+    it("ol and ul offer their own marker values, and only ul enforces them", () => {
+        const schema = getSchema();
+        const elementsByName = Object.fromEntries(
+            schema.elements.map((element) => [element.name, element]),
+        );
+
+        const markerOf = (elementName: string) => {
+            const attribute = elementsByName[elementName]?.attributes.find(
+                (attribute) => attribute.name === "marker",
+            );
+            if (!attribute) {
+                throw new Error(`Expected ${elementName}.marker attribute`);
+            }
+            return attribute;
+        };
+
+        // `<ul>` overrides `<ol>`'s declaration, so the two must not leak into
+        // each other: a bullet style does nothing on a numbered list and vice
+        // versa.
+        const olMarker = markerOf("ol");
+        expect(
+            olMarker.autocompleteValues?.map((entry) => entry.value),
+        ).toEqual(["1", "a", "A", "i", "I"]);
+        // Suggestions only: the renderer matches on the first character, so
+        // decorated forms like `1.` are legitimate and must not be flagged.
+        expect(olMarker.values).toBeUndefined();
+        expect(olMarker.suggestedValuesOnly).toBe(true);
+
+        const ulMarker = markerOf("ul");
+        expect(ulMarker.values).toEqual(["disc", "circle", "square"]);
+        expect(ulMarker.suggestedValuesOnly).toBeUndefined();
     });
 
     describe("aliased elements carry children for context-aware LSP validation (#1174)", () => {

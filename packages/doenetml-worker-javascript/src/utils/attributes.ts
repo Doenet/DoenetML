@@ -9,8 +9,9 @@ export type AttributesObject = Record<string, AttributeDefinition<unknown>>;
  * Preprocess an attributes object created by componentClass.createAttributesObject().
  *
  * When `toLowerCase` is `true`, `defaultValue`, each `validValues[].value`,
- * `valueForTrue`, and `valueForFalse` are lower-cased. Descriptions are
- * left untouched.
+ * `valueForTrue`, and `valueForFalse` are lower-cased. An array
+ * `defaultValue` — what a list-valued attribute declares — is lower-cased
+ * item-wise and stays an array. Descriptions are left untouched.
  *
  * @param attributesObject - The result of componentClass.createAttributesObject()
  * @returns The preprocessed attributes object
@@ -54,9 +55,19 @@ export function preprocessAttributesObject<T extends AttributesObject>(
                 attrSpec.defaultValue !== undefined &&
                 attrSpec.defaultValue !== null
             ) {
-                attrSpec.defaultValue = String(
-                    attrSpec.defaultValue,
-                ).toLowerCase();
+                // A list-valued attribute (e.g. `createComponentOfType:
+                // "textList"`) has an array default, and `validValues`
+                // constrains each item, so lower-case item-wise. Stringifying
+                // the array instead would replace the default with a comma-
+                // joined string, which every consumer expecting a list would
+                // then have to cope with.
+                attrSpec.defaultValue = Array.isArray(attrSpec.defaultValue)
+                    ? attrSpec.defaultValue.map((entry) =>
+                          typeof entry === "string"
+                              ? entry.toLowerCase()
+                              : entry,
+                      )
+                    : String(attrSpec.defaultValue).toLowerCase();
             }
 
             if (Array.isArray(attrSpec.validValues)) {

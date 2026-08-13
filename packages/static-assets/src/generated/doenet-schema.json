@@ -573,9 +573,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -793,7 +807,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -11231,9 +11245,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -11471,7 +11499,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -12096,9 +12124,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -12336,7 +12378,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -12961,9 +13003,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -13193,7 +13249,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -13818,9 +13874,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -14050,7 +14120,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -14675,9 +14745,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -14907,7 +14991,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -15532,9 +15616,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -15758,7 +15856,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -16376,9 +16474,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "createVectors",
@@ -16586,7 +16698,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -17191,9 +17303,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -17411,7 +17537,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -18022,9 +18148,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -18242,7 +18382,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -18853,9 +18993,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -19073,7 +19227,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -19684,9 +19838,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -19904,7 +20072,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -20515,9 +20683,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -20755,7 +20937,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -21380,9 +21562,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -21620,7 +21816,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -22245,9 +22441,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -22495,7 +22705,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -23127,9 +23337,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -23377,7 +23601,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -24009,9 +24233,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -24249,7 +24487,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -24874,9 +25112,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -25114,7 +25366,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -25739,9 +25991,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -25979,7 +26245,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -26604,9 +26870,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -26844,7 +27124,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -27469,9 +27749,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -27709,7 +28003,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -28334,9 +28628,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -28574,7 +28882,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -29199,9 +29507,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -29466,7 +29788,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -51976,8 +52298,31 @@
                 },
                 {
                     "name": "marker",
-                    "description": "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
+                    "description": "Marker style for the list items: `1`, `a`, `A`, `i`, or `I`. The value is matched on its first character, so a decorated form such as `1.` or `a)` selects the same style. Defaults to a style chosen by the list's nesting level.",
                     "defaultValue": null,
+                    "autocompleteValues": [
+                        {
+                            "value": "1",
+                            "description": "Arabic numerals: 1, 2, 3, …"
+                        },
+                        {
+                            "value": "a",
+                            "description": "Lowercase letters: a, b, c, …"
+                        },
+                        {
+                            "value": "A",
+                            "description": "Uppercase letters: A, B, C, …"
+                        },
+                        {
+                            "value": "i",
+                            "description": "Lowercase roman numerals: i, ii, iii, …"
+                        },
+                        {
+                            "value": "I",
+                            "description": "Uppercase roman numerals: I, II, III, …"
+                        }
+                    ],
+                    "suggestedValuesOnly": true,
                     "type": "text"
                 },
                 {
@@ -52307,9 +52652,28 @@
                 },
                 {
                     "name": "marker",
-                    "description": "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
+                    "description": "Marker style for the list items: `disc`, `circle`, or `square`. Defaults to a style chosen by the list's nesting level.",
                     "defaultValue": null,
-                    "type": "text"
+                    "values": [
+                        "disc",
+                        "circle",
+                        "square"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "disc",
+                            "description": "A filled circle."
+                        },
+                        {
+                            "value": "circle",
+                            "description": "A hollow circle."
+                        },
+                        {
+                            "value": "square",
+                            "description": "A filled square."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "aggregateScores",
@@ -53244,12 +53608,6 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "renderMode",
-                    "description": "How to format the rendered system of equations (e.g. \"align\").",
-                    "defaultValue": "align",
-                    "type": "text"
-                },
-                {
                     "name": "chunkSize",
                     "description": "Step-size chunk used when numerically integrating the system.",
                     "defaultValue": 10,
@@ -53332,13 +53690,6 @@
                     "type": "math",
                     "isArray": false,
                     "description": "The value of the independent variable at which the initial conditions are specified.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "renderMode",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "How to format the rendered system of equations (e.g. \"align\").",
                     "fromAttribute": true
                 },
                 {
@@ -57748,9 +58099,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -57968,7 +58333,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -68084,9 +68449,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -68304,7 +68683,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -71043,9 +71422,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -71253,7 +71646,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -87765,6 +88158,29 @@
                 {
                     "name": "grid",
                     "description": "Grid line spacing on the graph: none, medium, dense, or two positive numbers giving the x and y spacing, such as grid=\"1 0.5\".",
+                    "autocompleteValues": [
+                        {
+                            "value": "none",
+                            "description": "Draw no grid lines."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "Draw grid lines at the major tick marks. Used when `grid` is given with no value."
+                        },
+                        {
+                            "value": "dense",
+                            "description": "Draw grid lines at the major and minor tick marks."
+                        },
+                        {
+                            "value": "1 1",
+                            "description": "Draw grid lines every 1 unit in x and every 1 unit in y. Any two positive numbers can be given this way."
+                        },
+                        {
+                            "value": "2 2",
+                            "description": "Draw grid lines every 2 units in x and every 2 units in y."
+                        }
+                    ],
+                    "suggestedValuesOnly": true,
                     "type": "text"
                 },
                 {
@@ -90523,9 +90939,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -90733,7 +91163,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -95781,13 +96211,8 @@
         },
         {
             "name": "pegboard",
-            "children": [
-                "xLabel",
-                "yLabel",
-                "conditionalContent",
-                "label"
-            ],
-            "childBuckets": "1120",
+            "children": [],
+            "childBuckets": "",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -95865,37 +96290,6 @@
                     "type": "reference"
                 },
                 {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "maskLabel",
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
                     "name": "layer",
                     "description": "Z-order layer index used to stack graphical components (higher values render on top).",
                     "defaultValue": 0,
@@ -95946,28 +96340,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
                     "fromAttribute": true
                 },
                 {
@@ -96034,13 +96406,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
                 }
             ],
             "top": true,
@@ -100016,9 +100381,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -100266,7 +100645,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -102355,9 +102734,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -102610,7 +103003,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -112221,9 +112614,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -112470,7 +112877,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -114452,10 +114859,12 @@
         {
             "name": "slopeField",
             "children": [
-                "xLabel",
-                "yLabel",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
                 "conditionalContent",
-                "label",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114483,9 +114892,6 @@
                 "gcd",
                 "lcm",
                 "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -114510,8 +114916,6 @@
                 "choice",
                 "number",
                 "integer",
-                "function",
-                "piecewiseFunction",
                 "interval",
                 "sequence",
                 "cell",
@@ -114535,7 +114939,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120122221111111111111111111111222222222122220222212222201221222122222122221212222",
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -114613,37 +115017,6 @@
                     "type": "reference"
                 },
                 {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "maskLabel",
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
                     "name": "layer",
                     "description": "Z-order layer index used to stack graphical components (higher values render on top).",
                     "defaultValue": 0,
@@ -114679,9 +115052,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "function",
-                    "description": "The function giving the slope y' at each point, as an expression such as y-x or a reference to a <function>. May take one input, f(x), or two, f(x,y).",
-                    "type": "function"
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "dx",
@@ -114740,28 +115113,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
                     "fromAttribute": true
                 },
                 {
@@ -114844,13 +115195,6 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
-                },
-                {
                     "name": "styleDescription",
                     "type": "text",
                     "isArray": false,
@@ -114873,10 +115217,12 @@
         {
             "name": "vectorField",
             "children": [
-                "xLabel",
-                "yLabel",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
                 "conditionalContent",
-                "label",
                 "rightHandSide",
                 "m",
                 "me",
@@ -114904,9 +115250,6 @@
                 "gcd",
                 "lcm",
                 "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -114931,8 +115274,6 @@
                 "choice",
                 "number",
                 "integer",
-                "function",
-                "piecewiseFunction",
                 "interval",
                 "sequence",
                 "cell",
@@ -114956,7 +115297,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120122221111111111111111111111222222222122220222212222201221222122222122221212222",
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -115034,37 +115375,6 @@
                     "type": "reference"
                 },
                 {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "maskLabel",
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
                     "name": "layer",
                     "description": "Z-order layer index used to stack graphical components (higher values render on top).",
                     "defaultValue": 0,
@@ -115100,9 +115410,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "function",
-                    "description": "A function with two outputs giving the vector at each point, as an expression such as (y, -x) or a reference to a <function>. May take one input or two.",
-                    "type": "function"
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "_variableNameList"
                 },
                 {
                     "name": "dx",
@@ -115174,28 +115484,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "layer",
                     "type": "integer",
                     "isArray": false,
@@ -115280,13 +115568,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
                 },
                 {
                     "name": "styleDescription",
@@ -118204,9 +118485,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -118442,7 +118737,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {

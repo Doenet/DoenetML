@@ -170,8 +170,40 @@ export default class Cascade extends SectioningComponent {
             },
         };
 
+        /**
+         * A cascade shows one continuation message at a time, chosen here.
+         *
+         * There are two places an author can put one. A `<cascadeMessage>` child
+         * of the cascade itself stands between two steps, and the cascade shows
+         * the next such message after the last shown step — one trailing message
+         * therefore serves every gap. A `<cascadeMessage>` nested inside a step
+         * belongs to that step alone, and a step's own message is the more
+         * specific of the two, so when the next step has one it wins and every
+         * message of the cascade's own is hidden for as long as it shows.
+         *
+         * `sectionToShowCascadeMessage` names the step whose nested messages are
+         * shown (`null` for none); each section compares it against itself in
+         * `showCascadeMessage`. Only the *next* step is ever named, so a step
+         * further down the cascade shows nothing but its number and title, the
+         * same as a step with no message at all. A nested `<cascade>` is a step
+         * like any other, and one that has a message to show is nominated like
+         * any other — it then chooses that message here in its own right, which
+         * is the single message shown. What "has one" means is
+         * `hasCascadeMessageToShow`, which the override below answers for a
+         * cascade by asking this very question of itself: nominating a step that
+         * would then show nothing would leave the gap silent, having suppressed
+         * the cascade's own message on its behalf.
+         *
+         * Note that a nested message is the only kind that survives `asList`
+         * (`<problems>` and friends): `childIndicesToRender` there renders only a
+         * section's sectioning children, so a message child of the cascade is
+         * dropped before it can be shown.
+         */
         stateVariableDefinitions.childrenToHide = {
-            additionalStateVariablesDefined: ["childrenToHideChildren"],
+            additionalStateVariablesDefined: [
+                "childrenToHideChildren",
+                "sectionToShowCascadeMessage",
+            ],
             returnDependencies: () => ({
                 hideFutureSections: {
                     dependencyType: "stateVariable",
@@ -184,6 +216,8 @@ export default class Cascade extends SectioningComponent {
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
+                    variableNames: ["hasCascadeMessageToShow"],
+                    variablesOptional: true,
                 },
                 childrenWithCascadeMessages: {
                     dependencyType: "child",
@@ -196,6 +230,10 @@ export default class Cascade extends SectioningComponent {
                 hideChildren: {
                     dependencyType: "stateVariable",
                     variableName: "hideChildren",
+                },
+                showCascadeMessage: {
+                    dependencyType: "stateVariable",
+                    variableName: "showCascadeMessage",
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
@@ -212,6 +250,7 @@ export default class Cascade extends SectioningComponent {
                         setValue: {
                             childrenToHide: allContinuationComponentIndices,
                             childrenToHideChildren: [],
+                            sectionToShowCascadeMessage: null,
                         },
                     };
                 }
@@ -241,53 +280,94 @@ export default class Cascade extends SectioningComponent {
                     }
                 }
 
-                if (
-                    dependencyValues.numCompleted <=
-                    dependencyValues.children.length - 2
-                ) {
-                    // We have at least one child that is hidden due to previous child not completed.
-                    // Look for the next `<cascadeMessage>` after the last shown child,
-                    // and display that child if found.
+                // The next step is the first one held back. It speaks for the
+                // gap if it has a message of its own to show, and then the
+                // cascade's own messages all stay hidden.
+                const nextStep =
+                    dependencyValues.children[
+                        dependencyValues.numCompleted + 1
+                    ];
+                const sectionToShowCascadeMessage =
+                    nextStep &&
+                    childrenToHideChildren.includes(nextStep.componentIdx) &&
+                    nextStep.stateValues?.hasCascadeMessageToShow
+                        ? nextStep.componentIdx
+                        : null;
 
-                    const lastShownChild =
-                        dependencyValues.children[dependencyValues.numCompleted]
-                            .componentIdx;
-                    const lastShownChildIdx =
-                        dependencyValues.childrenWithCascadeMessages.findIndex(
-                            (child) => child.componentIdx === lastShownChild,
-                        );
+                // Otherwise the cascade speaks for the gap with one message of
+                // its own, if it has one there.
+                //
+                // A cascade that is itself a step of an enclosing cascade has a
+                // further reason to stay quiet: `hideChildren` says the enclosing
+                // cascade is holding it back, and then it speaks only while it is
+                // the step that cascade nominates. A cascade further down the
+                // enclosing cascade shows nothing at all, its own messages
+                // included, exactly as a plain step further down does.
+                const continuationToShow =
+                    sectionToShowCascadeMessage === null &&
+                    (!dependencyValues.hideChildren ||
+                        dependencyValues.showCascadeMessage)
+                        ? nextOwnCascadeMessage(dependencyValues)
+                        : null;
 
-                    const nextContinuation =
-                        dependencyValues.childrenWithCascadeMessages
-                            .slice(lastShownChildIdx + 1)
-                            .find(
-                                (child) =>
-                                    child.componentType === "cascadeMessage",
-                            );
-
-                    if (nextContinuation) {
-                        // We found a `<cascadeMessage>` child after the last shown child,
-                        // so don't hide that one.
-                        childrenToHide.push(
-                            ...allContinuationComponentIndices.filter(
-                                (cIdx) =>
-                                    cIdx !== nextContinuation.componentIdx,
-                            ),
-                        );
-                    } else {
-                        // No `<cascadeMessage>` child was found after last shown child,
-                        // so hide all continuation messages.
-                        childrenToHide.push(...allContinuationComponentIndices);
-                    }
-                } else {
-                    // if last child is showing, then hide all continuation messages
-                    childrenToHide.push(...allContinuationComponentIndices);
-                }
+                // Hide every message of the cascade's own but that one. (With
+                // none to show, `null` matches no child and all are hidden.)
+                childrenToHide.push(
+                    ...allContinuationComponentIndices.filter(
+                        (cIdx) => cIdx !== continuationToShow,
+                    ),
+                );
 
                 return {
                     setValue: {
                         childrenToHide,
                         childrenToHideChildren,
+                        sectionToShowCascadeMessage,
+                    },
+                };
+            },
+        };
+
+        /**
+         * A cascade has a message to show when it has one of its *own* between
+         * the steps it is showing and the steps it is holding back — the same
+         * message `childrenToHide` picks above, asked here without reference to
+         * whether this cascade has been nominated.
+         *
+         * That independence is the point, and it is why this cannot simply
+         * count message children the way an ordinary section does: the enclosing
+         * cascade reads this to decide whether to nominate this one, so anything
+         * it asked about visibility would close a cycle. Counting is also not the
+         * same question. A message this cascade would never show — its only one
+         * placed ahead of its first step, or none in the gap it has reached, or
+         * `revealAll` leaving it no gap at all — must not win the nomination, or
+         * the enclosing cascade suppresses its own message on behalf of a step
+         * that then says nothing.
+         */
+        stateVariableDefinitions.hasCascadeMessageToShow = {
+            returnDependencies: () => ({
+                numCompleted: {
+                    dependencyType: "stateVariable",
+                    variableName: "numCompleted",
+                },
+                children: {
+                    dependencyType: "child",
+                    childGroups: ["anything"],
+                },
+                childrenWithCascadeMessages: {
+                    dependencyType: "child",
+                    childGroups: ["anything", "cascadeMessages"],
+                },
+                revealAll: {
+                    dependencyType: "stateVariable",
+                    variableName: "revealAll",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        hasCascadeMessageToShow:
+                            nextOwnCascadeMessage(dependencyValues) !== null,
                     },
                 };
             },
@@ -295,4 +375,44 @@ export default class Cascade extends SectioningComponent {
 
         return stateVariableDefinitions;
     }
+}
+
+/**
+ * The one `<cascadeMessage>` child of a cascade's own that stands in for the
+ * steps it is holding back: the next one after the last shown step, or `null`
+ * if there is none there.
+ *
+ * There is none when the last step is showing, since then no step is held back
+ * for a message to stand in for, and none when `revealAll` holds nothing back
+ * at all. Which messages a cascade has and where its steps end are all this
+ * asks about, so it says nothing about whether the message is *shown*: the
+ * caller adds the reasons a cascade stays quiet even with one here.
+ *
+ * @param {object} dependencyValues - dependency values holding `numCompleted`,
+ *   `revealAll`, the `children` of the `anything` group (the steps), and
+ *   `childrenWithCascadeMessages` (those steps with the messages interleaved in
+ *   document order).
+ * @returns {number | null} the component index of the message, or `null`.
+ */
+function nextOwnCascadeMessage(dependencyValues) {
+    if (
+        dependencyValues.revealAll ||
+        dependencyValues.numCompleted > dependencyValues.children.length - 2
+    ) {
+        return null;
+    }
+
+    const lastShownStep =
+        dependencyValues.children[dependencyValues.numCompleted].componentIdx;
+    const lastShownStepIdx =
+        dependencyValues.childrenWithCascadeMessages.findIndex(
+            (child) => child.componentIdx === lastShownStep,
+        );
+
+    return (
+        dependencyValues.childrenWithCascadeMessages
+            .slice(lastShownStepIdx + 1)
+            .find((child) => child.componentType === "cascadeMessage")
+            ?.componentIdx ?? null
+    );
 }

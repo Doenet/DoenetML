@@ -2,6 +2,7 @@ export * from "./ast/logging";
 export * from "./diagnostics/types";
 export * from "./diagnostics/coded";
 export * from "./keyboard/keyboardShortcuts";
+export * from "./keyboard/pointerType";
 export * from "./media/cid";
 export * from "./media/retrieveTextFile";
 export * from "./copy/deepFunctions";

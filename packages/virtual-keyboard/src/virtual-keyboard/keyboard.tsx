@@ -124,9 +124,9 @@ function Key({
         <button
             className={`key key-${keyInfo.name} ${keyInfo.isMath ? "math" : ""}`}
             onClick={(e) => {
-                // Prevent the click event on the keyboard itself from triggering
-                // so that its "accessed" event doesn't cancel the propagation
-                // of the key click event.
+                // The key's own commands are the whole of what the press
+                // means: don't let it read as a click on the tray around it,
+                // or on the page behind that.
                 e.stopPropagation();
                 onClick(keyInfo.commands);
             }}
