@@ -89,7 +89,9 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
         }
 
         styledChildren.push(
-            <span
+            // A `<div>`, not a `<span>`: a panel's children are always block
+            // components, and phrasing content may not hold them.
+            <div
                 style={{
                     ...(listItemInlineAlignment && {
                         display: "flex",
@@ -102,7 +104,7 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
                 key={child.key}
             >
                 {child}
-            </span>,
+            </div>,
         );
     }
 

@@ -27,6 +27,10 @@
  * and virtual-keyboard tray in the realm shares a single MathJax, regardless of
  * how many (possibly separately-bundled) copies of this module are loaded.
  *
+ * Once an engine is in hand, this module also starts exposing MathJax's speech
+ * strings as text — see `mathSpeechText.ts` for why, and
+ * {@link LoadMathJaxOptions.exposeSpeechAsText} for the opt-out.
+ *
  * ## Supported MathJax versions
  *
  * Doenet renders with MathJax 4 and pins {@link DEFAULT_MATHJAX_SRC} for the
@@ -36,6 +40,8 @@
  * host engine in the 3.x–4.x range works; MathJax 2 (which exposes `Hub`
  * instead) is not supported for reuse.
  */
+
+import { startExposingMathSpeechAsText } from "./mathSpeechText";
 
 /**
  * The MathJax script Doenet injects when no MathJax is present on the page.
@@ -94,6 +100,18 @@ export interface LoadMathJaxOptions {
      * `useExistingMathJax`). Defaults to 30000.
      */
     timeoutMs?: number;
+    /**
+     * Whether to expose MathJax's speech strings to assistive technology as
+     * text rather than as the labelled graphic MathJax emits. Defaults to
+     * `true`; see `mathSpeechText.ts`.
+     *
+     * This applies to every expression in the realm, including math a host page
+     * typeset itself — the rewrite adds an accessible text node and hides a
+     * node holding the identical words, so a host inherits the same fix rather
+     * than a changed page. A host that wants to keep MathJax's own output
+     * untouched can set this to `false`.
+     */
+    exposeSpeechAsText?: boolean;
 }
 
 /**
@@ -289,7 +307,12 @@ export function loadMathJax(
         return cached;
     }
 
-    const promise = createMathJaxPromise(options);
+    const promise = createMathJaxPromise(options).then((engine) => {
+        if (options.exposeSpeechAsText !== false) {
+            startExposingMathSpeechAsText();
+        }
+        return engine;
+    });
     (window as unknown as Record<string, unknown>)[GLOBAL_PROMISE_KEY] =
         promise;
     // A rejected attempt must not poison the page: drop the memo so a later

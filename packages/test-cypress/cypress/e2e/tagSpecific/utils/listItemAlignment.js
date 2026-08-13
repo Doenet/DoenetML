@@ -34,8 +34,8 @@ export function verifySideBySideColumnTopAlignment({
         );
     });
 
-    cy.get(`#${escapedSideBySideId} > span`).should(($spans) => {
-        $spans.each((_, el) => {
+    cy.get(`#${escapedSideBySideId} > div`).should(($panels) => {
+        $panels.each((_, el) => {
             const win = el.ownerDocument.defaultView;
             const style = win.getComputedStyle(el);
             expect(style.getPropertyValue("display")).to.equal("flex");
@@ -45,7 +45,7 @@ export function verifySideBySideColumnTopAlignment({
         });
 
         if (expectedAlignment === "flex-start") {
-            const tops = [...$spans].map(
+            const tops = [...$panels].map(
                 (el) => el.getBoundingClientRect().top,
             );
             // Allow small browser/font variance while preventing staircase drift.
