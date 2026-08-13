@@ -563,15 +563,25 @@ export class SectioningComponent extends BlockComponent {
          * nothing about visibility — the cascade's answer is what *determines*
          * this section's message visibility, so reading `hideChildren` or
          * `childrenToHide` here would close a cycle.
+         *
+         * Unlike the section variables that work in child *positions*, this one
+         * only counts, so it can ask for the `cascadeMessages` child group
+         * directly instead of filtering all of the children.
          */
         stateVariableDefinitions.hasCascadeMessageChild = {
-            returnDependencies: returnSectionChildDependencies,
+            returnDependencies: () => ({
+                cascadeMessageChildren: {
+                    dependencyType: "child",
+                    childGroups: ["cascadeMessages"],
+                },
+            }),
             definition({ dependencyValues }) {
-                const hasCascadeMessageChild = nonConfigurationChildEntries(
-                    dependencyValues,
-                ).some(([, child]) => child.componentType === "cascadeMessage");
-
-                return { setValue: { hasCascadeMessageChild } };
+                return {
+                    setValue: {
+                        hasCascadeMessageChild:
+                            dependencyValues.cascadeMessageChildren.length > 0,
+                    },
+                };
             },
         };
 
@@ -806,10 +816,9 @@ export class SectioningComponent extends BlockComponent {
                         // held back is necessary but not sufficient — only the
                         // one step the cascade nominates shows its message, so
                         // that a cascade shows one message at a time.
-                        if (
-                            !dependencyValues.showCascadeMessage &&
-                            typeof child === "object"
-                        ) {
+                        // (No `typeof child === "object"` test needed: a string
+                        // child has no `componentType`.)
+                        if (!dependencyValues.showCascadeMessage) {
                             childrenToHide.push(child.componentIdx);
                         }
                     } else if (

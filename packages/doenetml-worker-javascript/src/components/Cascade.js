@@ -185,7 +185,10 @@ export default class Cascade extends SectioningComponent {
          * shown (`null` for none); each section compares it against itself in
          * `showCascadeMessage`. Only the *next* step is ever named, so a step
          * further down the cascade shows nothing but its number and title, the
-         * same as a step with no message at all.
+         * same as a step with no message at all. A nested `<cascade>` is a step
+         * like any other, and one with message children of its own is nominated
+         * like any other — it then chooses among them here in its own right,
+         * which is the single message shown.
          *
          * Note that a nested message is the only kind that survives `asList`
          * (`<problems>` and friends): `childIndicesToRender` there renders only a
