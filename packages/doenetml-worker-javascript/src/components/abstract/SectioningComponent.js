@@ -631,27 +631,25 @@ export class SectioningComponent extends BlockComponent {
          * margin of, or `null` if there is none. A child that draws nothing must
          * never be picked: doing so strands the child that does draw first, which
          * then keeps its top margin and never reports the alignment the number is
-         * placed by. Three ways a child fails to be drawn, all checked here:
+         * placed by. Two ways a child fails to be drawn, both checked here:
          *
          *   - Its kind renders nothing, or it hid *itself* with `hide` —
          *     `childRendersSomething()`.
-         *   - This section hides it: `childrenToHide`. That is normally the whole
-         *     content at once, already covered by the `hideChildren` test, but
-         *     `<cascadeMessage>` inverts the rule and is hidden precisely when the
-         *     rest is shown, so without this test a leading `<cascadeMessage>`
-         *     would lead an item it is invisible in.
-         *   - `hideChildren` is set, which suppresses the delegation entirely: it
-         *     comes only from an enclosing `<cascade>` holding a step back.
+         *   - This section hides it: `childrenToHide`. In a section an enclosing
+         *     `<cascade>` is holding back, that is every component child but the
+         *     title and the `<cascadeMessage>`; in every other section it is the
+         *     `<cascadeMessage>` alone, whose rule is inverted — it is hidden
+         *     precisely when the rest is shown. Without this test a leading
+         *     `<cascadeMessage>` would lead an item it is invisible in.
          *
-         * That last test is too broad, and #1680 tracks it: a held-back step does
-         * show one child — its `<cascadeMessage>`, the child whose inverted rule
-         * makes the `childrenToHide` test above necessary — so the step draws a
-         * message it delegates nothing to, and the message keeps the top margin
-         * that puts it a line below the item's number. Dropping the test would fix
-         * it, since `childrenToHide` holds every other child of a held-back step;
-         * it is left alone here because it is a different defect from #1673 in a
-         * different layout path, and the number a reader sees once the step is
-         * revealed — which is what the tests above pin — is already right.
+         * So a held-back step is not empty, and the message it shows is its lead:
+         * asking `hideChildren` as well called such a step empty and left the
+         * message leading nothing, keeping the top margin that put it a line below
+         * the item's number (#1680). A held-back step that really shows nothing
+         * still lands on `null` without asking it: `childrenToHide` holds its
+         * component children and `childIndicesToRender` drops its strings — and
+         * both of those are computed from `hideChildren`, so this one follows a
+         * `<cascade>` holding a step back or letting it go all the same.
          *
          * A child hidden from *above* — this section, or a container around it —
          * is a deliberate non-case: nothing in it is on screen to realign, and
@@ -665,10 +663,10 @@ export class SectioningComponent extends BlockComponent {
          * directly, `firstChildListItemAlignment` through the second of those — so
          * the gate changes no output. What it saves is every section that is not a
          * bare untitled list item — a `<document>`, a `<section>`, a `<problem>`
-         * outside a `<problems>`, a titled or boxed one inside it — asking each of
-         * its children for a visibility variable it would never read. Measured over
-         * 120 such sections, six `hide` toggles cost 471 ms without the gate and
-         * 316 ms with it, against 328 ms on `main`.
+         * outside a `<problems>`, a titled, boxed or collapsible one inside it —
+         * asking each of its children for a visibility variable it would never
+         * read. Measured over 120 such sections, six `hide` toggles cost 471 ms
+         * without the gate and 316 ms with it, against 328 ms on `main`.
          *
          * Being its own state variable rather than a second output of
          * `childIndicesToRender` is what makes that gate possible —
@@ -697,10 +695,6 @@ export class SectioningComponent extends BlockComponent {
                         dependencyType: "stateVariable",
                         variableName: "childIndicesToRender",
                     },
-                    hideChildren: {
-                        dependencyType: "stateVariable",
-                        variableName: "hideChildren",
-                    },
                     childrenToHide: {
                         dependencyType: "stateVariable",
                         variableName: "childrenToHide",
@@ -713,10 +707,7 @@ export class SectioningComponent extends BlockComponent {
                 // No `childIndicesToRender` means the gate above returned no
                 // dependencies at all: this section delegates nothing, so it has
                 // no lead.
-                if (
-                    dependencyValues.childIndicesToRender &&
-                    !dependencyValues.hideChildren
-                ) {
+                if (dependencyValues.childIndicesToRender) {
                     for (const ind of dependencyValues.childIndicesToRender) {
                         const child = dependencyValues.allChildren[ind];
                         if (

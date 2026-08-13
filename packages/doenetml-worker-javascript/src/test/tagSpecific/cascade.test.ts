@@ -1823,8 +1823,11 @@ describe("Cascade tag tests @group4", async () => {
         );
 
         // The step the cascade has not reached hides all of its children, so it
-        // delegates to nobody at all — `hideChildren`, not any child's own
-        // `hide`, is what suppresses the delegation.
+        // delegates to nobody at all — the container's hiding, not any child's
+        // own `hide`, is what leaves it without a lead. This step has no
+        // `<cascadeMessage>`, so `childrenToHide` really does hold every
+        // component child it has; the step that does show one is
+        // "gives a held-back step's lead to the cascadeMessage it shows", below.
         expect(stateVariables[prob2Idx].stateValues.hideChildren).eq(true);
         expect(stateVariables[prob2Idx].stateValues.firstVisibleChild).eq(null);
         expect(stateVariables[lead2Idx].stateValues.hidden).eq(true);
@@ -1903,6 +1906,82 @@ describe("Cascade tag tests @group4", async () => {
         );
         expect(stateVariables[msgIdx].stateValues.renderInlineForListItem).eq(
             false,
+        );
+    });
+
+    // The mirror of the test above, and the one #1680 was about: while the step
+    // is held back, its `<cascadeMessage>` is the one child on the screen, so it
+    // is the child the item's number lines up with. Treating "held back" as
+    // "nothing to delegate to" left the message leading nothing — the item fell
+    // out of the numbering grid entirely and the message kept the top margin
+    // that put it a line below its own number.
+    //
+    // Both halves of the transition are asserted, because the lead has to follow
+    // the cascade in both directions and `firstVisibleChild` does not ask
+    // `hideChildren` itself: it learns of the change through `childrenToHide`,
+    // which the message enters as the step is revealed.
+    it("gives a held-back step's lead to the cascadeMessage it shows", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="probs">
+  <cascade name="cascade">
+    <problem name="prob1">
+      <p name="lead1">What is 1+1? <answer name="ans1">2</answer></p>
+    </problem>
+    <problem name="prob2">
+      <cascadeMessage name="msg">Answer the previous question to continue</cascadeMessage>
+      <p name="lead2">What is 2+2? <answer name="ans2">4</answer></p>
+    </problem>
+  </cascade>
+</problems>`,
+        });
+
+        const prob2Idx = await resolvePathToNodeIdx("prob2");
+        const msgIdx = await resolvePathToNodeIdx("msg");
+        const lead2Idx = await resolvePathToNodeIdx("lead2");
+        const ans1Idx = await resolvePathToNodeIdx("ans1");
+
+        let stateVariables = await getStateVariables(core);
+        let prob2 = stateVariables[prob2Idx].stateValues;
+
+        // The setup: the step is held back, so its content is hidden and its
+        // message — alone among its children — is not.
+        expect(prob2.hideChildren).eq(true);
+        expect(prob2.childrenToHide).eqls([lead2Idx]);
+        expect(stateVariables[msgIdx].stateValues.hidden).eq(false);
+        expect(stateVariables[lead2Idx].stateValues.hidden).eq(true);
+
+        // So the message leads: the item numbers itself with the grid layout, and
+        // the message's top margin is suppressed, which is what puts the message
+        // and the number on one row rather than two.
+        expect(prob2.firstVisibleChild.componentIdx).eq(msgIdx);
+        expect(prob2.useListItemGridLayout).eq(true);
+        expect(prob2.firstChildListItemAlignment).eq("baseline");
+        expect(stateVariables[msgIdx].stateValues.renderInlineForListItem).eq(
+            true,
+        );
+
+        await submitMathAnswer({
+            core,
+            latex: "2",
+            mathInputIdx: getMathInputIdx(stateVariables, ans1Idx),
+            answerIdx: ans1Idx,
+        });
+
+        stateVariables = await getStateVariables(core);
+        prob2 = stateVariables[prob2Idx].stateValues;
+
+        // Revealed, the rule inverts with the message's visibility: the message
+        // is now the hidden child and the content leads.
+        expect(prob2.hideChildren).eq(false);
+        expect(prob2.childrenToHide).eqls([msgIdx]);
+        expect(prob2.firstVisibleChild.componentIdx).eq(lead2Idx);
+        expect(prob2.useListItemGridLayout).eq(true);
+        expect(stateVariables[msgIdx].stateValues.renderInlineForListItem).eq(
+            false,
+        );
+        expect(stateVariables[lead2Idx].stateValues.renderInlineForListItem).eq(
+            true,
         );
     });
 });
