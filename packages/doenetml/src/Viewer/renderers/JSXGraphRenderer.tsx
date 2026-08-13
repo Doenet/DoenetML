@@ -64,8 +64,8 @@ export default function JSXGraphRenderer({
             JXG.Options.grid.gridX = SVs.grid[0];
             JXG.Options.grid.gridY = SVs.grid[1];
         } else if (SVs.grid === "medium" || SVs.grid === "dense") {
-            JXG.Options.grid.gridX = null;
-            JXG.Options.grid.gridY = null;
+            JXG.Options.grid.gridX = undefined;
+            JXG.Options.grid.gridY = undefined;
         }
 
         const newBoard: JXGBoard = (window as any).JXG.JSXGraph.initBoard(id, {
