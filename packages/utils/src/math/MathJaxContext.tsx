@@ -34,6 +34,7 @@ export function MathJaxContext({
     src,
     useExistingMathJax,
     timeoutMs,
+    exposeSpeechAsText,
     version = 4,
     children,
 }: MathJaxContextProps) {
@@ -43,12 +44,20 @@ export function MathJaxContext({
             src,
             useExistingMathJax,
             timeoutMs,
+            exposeSpeechAsText,
         });
         // `loadMathJax` resolves the live engine. `better-react-mathjax` keys
         // its subscriber type on a literal version discriminant, which our
         // `3 | 4` prop does not narrow to, so build the value untyped and cast.
         return { version, promise } as unknown as MathJaxSubscriberProps;
-    }, [config, src, useExistingMathJax, timeoutMs, version]);
+    }, [
+        config,
+        src,
+        useExistingMathJax,
+        timeoutMs,
+        exposeSpeechAsText,
+        version,
+    ]);
 
     return (
         <MathJaxBaseContext.Provider value={value}>

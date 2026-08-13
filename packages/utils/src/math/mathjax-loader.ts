@@ -27,6 +27,10 @@
  * and virtual-keyboard tray in the realm shares a single MathJax, regardless of
  * how many (possibly separately-bundled) copies of this module are loaded.
  *
+ * Once an engine is in hand, this module also starts exposing MathJax's speech
+ * strings as text — see `mathSpeechText.ts` for why, and
+ * {@link LoadMathJaxOptions.exposeSpeechAsText} for the opt-out.
+ *
  * ## Supported MathJax versions
  *
  * Doenet renders with MathJax 4 and pins {@link DEFAULT_MATHJAX_SRC} for the
@@ -36,6 +40,8 @@
  * host engine in the 3.x–4.x range works; MathJax 2 (which exposes `Hub`
  * instead) is not supported for reuse.
  */
+
+import { startExposingMathSpeechAsText } from "./mathSpeechText";
 
 /**
  * The MathJax script Doenet injects when no MathJax is present on the page.
@@ -94,6 +100,19 @@ export interface LoadMathJaxOptions {
      * `useExistingMathJax`). Defaults to 30000.
      */
     timeoutMs?: number;
+    /**
+     * Whether to expose MathJax's speech strings to assistive technology as
+     * text rather than as the labelled graphic MathJax emits. Defaults to
+     * `true`; see `mathSpeechText.ts`.
+     *
+     * This applies to every expression in the realm, including math a host page
+     * typeset itself — the words are the ones MathJax already generated, moved
+     * from a label into hidden text, so a host inherits the same fix rather
+     * than a rewritten page. Code that would rather keep MathJax's own output
+     * untouched can set this to `false`; like every other option here, only the
+     * first caller's value takes effect (see {@link loadMathJax}).
+     */
+    exposeSpeechAsText?: boolean;
 }
 
 /**
@@ -268,6 +287,25 @@ function createMathJaxPromise(
 }
 
 /**
+ * Resolves MathJax and, unless the caller opted out, starts exposing its speech
+ * strings as text. Kicking that off once an engine is in hand rather than up
+ * front keeps a page with no MathJax free of an observer it has no use for.
+ *
+ * `createMathJaxPromise` runs synchronously, before the first `await`, so a
+ * caller that inspects the DOM as soon as {@link loadMathJax} returns already
+ * sees any script it decided to inject.
+ */
+async function createEngineAndExposeSpeech(
+    options: LoadMathJaxOptions,
+): Promise<MathJaxEngine> {
+    const engine = await createMathJaxPromise(options);
+    if (options.exposeSpeechAsText !== false) {
+        startExposingMathSpeechAsText();
+    }
+    return engine;
+}
+
+/**
  * Loads MathJax, coexisting with any MathJax the host page provides, and
  * returns a promise for the live engine. The promise is memoized on `window`,
  * so repeated calls (from multiple viewers/editors/keyboard trays) share a
@@ -289,7 +327,7 @@ export function loadMathJax(
         return cached;
     }
 
-    const promise = createMathJaxPromise(options);
+    const promise = createEngineAndExposeSpeech(options);
     (window as unknown as Record<string, unknown>)[GLOBAL_PROMISE_KEY] =
         promise;
     // A rejected attempt must not poison the page: drop the memo so a later
