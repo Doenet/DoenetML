@@ -701,12 +701,12 @@ export class SectioningComponent extends BlockComponent {
          *
          *   - Its kind renders nothing, or it hid *itself* with `hide` —
          *     `childRendersSomething()`.
-         *   - This section hides it: `childrenToHide`. In the one step an
-         *     enclosing `<cascade>` is holding back and showing the message of,
-         *     that is every component child but the title and the
-         *     `<cascadeMessage>`; in every other section it is the
-         *     `<cascadeMessage>` alone, whose rule is inverted — it is hidden
-         *     except while its step is the next one. Without this test a leading
+         *   - This section hides it: `childrenToHide`. In a step an enclosing
+         *     `<cascade>` is holding back, that is every component child but the
+         *     title — and but the `<cascadeMessage>` as well in the one step the
+         *     cascade nominates, since the message's rule is inverted: it is
+         *     shown precisely while its step is the nominated one, and hidden in
+         *     every other section, held back or not. Without this test a leading
          *     `<cascadeMessage>` would lead an item it is invisible in.
          *
          * So the step showing a message is not empty, and that message is its

@@ -189,8 +189,8 @@ export default class Cascade extends SectioningComponent {
          * like any other, and one that has a message to show is nominated like
          * any other — it then chooses that message here in its own right, which
          * is the single message shown. What "has one" means is
-         * `hasCascadeMessageToShow`, which a cascade answers by asking the very
-         * question below (see the override further down): nominating a step that
+         * `hasCascadeMessageToShow`, which the override below answers for a
+         * cascade by asking this very question of itself: nominating a step that
          * would then show nothing would leave the gap silent, having suppressed
          * the cascade's own message on its behalf.
          *
