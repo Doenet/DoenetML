@@ -13,7 +13,8 @@
  * `mathSpeechText.ts` therefore rewrites every expression so the speech string
  * is real text inside `<mjx-speech>` instead of a label on it, which is what
  * these tests assert: text present, the label and `img` role gone so the words
- * are not announced twice, the braille label still in place, and every formula
+ * are not announced twice, the braille label still in place, the rewrite
+ * settling rather than feeding the observer that drives it, and every formula
  * on the page reachable in document order.
  */
 describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
@@ -47,6 +48,11 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
      * The speech string arrives asynchronously, well after the typeset that
      * created the element, so every assertion waits on the exposed text rather
      * than on the container.
+     *
+     * The viewer typesets on an off-screen buffer and swaps the rendered nodes
+     * into place, so every case below also covers an expression *moved* into
+     * the page rather than built there — whichever side of that swap the speech
+     * string happens to land on.
      */
     function speechTextOf(selector) {
         return cy
@@ -102,7 +108,48 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
             // which would take the text back out of the accessibility tree.
             expect(style.getPropertyValue("display")).to.not.equal("none");
             expect(style.getPropertyValue("visibility")).to.equal("visible");
-            expect(el.getBoundingClientRect().width).to.be.lessThan(2);
+            // Laid out, but a sliver: no box at all would mean an ancestor
+            // hides it — `<mjx-speech>` is MathJax's, and its styling is what
+            // this rewrite hangs the text on.
+            const { width } = el.getBoundingClientRect();
+            expect(width).to.be.greaterThan(0);
+            expect(width).to.be.lessThan(2);
+        });
+    });
+
+    it("settles once an expression is rewritten", () => {
+        postDoenetML({
+            settleSelector: "#sin",
+            doenetML: SINE_DOC,
+        });
+
+        speechTextOf("#sin");
+
+        // The rewrite's own writes reach the observer as a further batch — the
+        // appended span, its text, the removed `aria-label` — and none of them
+        // is a still-labelled expression. Watching the element the rewrite
+        // writes to is what would catch it feeding itself.
+        cy.get("#sin mjx-speech").then(($speech) => {
+            const el = $speech[0];
+            const win = el.ownerDocument.defaultView;
+            const records = [];
+            const probe = new win.MutationObserver((batch) => {
+                records.push(...batch);
+            });
+            probe.observe(el, {
+                subtree: true,
+                childList: true,
+                attributes: true,
+                characterData: true,
+            });
+            cy.wait(600).then(() => {
+                probe.disconnect();
+                // The watched element is still the live one, so the quiet above
+                // is the page having settled rather than the probe having been
+                // detached from it.
+                expect(el.ownerDocument.contains(el)).to.equal(true);
+                expect(records).to.have.length(0);
+            });
         });
     });
 
@@ -115,8 +162,8 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
         speechTextOf("#sin");
 
         // Only the attributes that describe the removed `img` role are dropped.
-        // The braille label is the one braille rendering of the formula on the
-        // page, so it is left exactly as MathJax wrote it.
+        // The braille label is MathJax's own rendering of the formula and costs
+        // nothing to keep, so it is left exactly as MathJax wrote it.
         cy.get("#sin mjx-speech").should("have.attr", "aria-braillelabel");
     });
 

@@ -58,49 +58,62 @@ const VISUALLY_HIDDEN_STYLE = [
 ].join(";");
 
 /**
- * Rewrites every MathJax expression at or under `node` whose speech string has
- * been attached but not yet turned into text. `node` itself is considered, so
- * this can be handed the `<mjx-speech>` that a mutation record reports.
+ * Moves one expression's speech string out of the `aria-label` on its
+ * `<mjx-speech>` and into a visually hidden span inside it. Any other element —
+ * one with no label, or any of the many that carry a label of their own — is
+ * left untouched, so this can be handed whatever element a mutation reports.
  *
  * Safe to call repeatedly, and self-limiting: moving the string out of
  * `aria-label` is what takes an expression out of
  * {@link LABELLED_SPEECH_SELECTOR}, so revisiting a rewritten one finds nothing
  * to do. A freshly labelled element from the explorer is what brings one back.
  */
-function exposeMathSpeechAsText(node: Element): void {
-    const labelled = [...node.querySelectorAll(LABELLED_SPEECH_SELECTOR)];
-    if (node.matches(LABELLED_SPEECH_SELECTOR)) {
-        labelled.unshift(node);
+function rewriteSpeechElement(speech: Element): void {
+    if (!speech.matches(LABELLED_SPEECH_SELECTOR)) {
+        return;
+    }
+    const label = speech.getAttribute("aria-label")?.trim();
+    if (!label) {
+        // An empty label carries no speech string to expose. Leave the element
+        // as MathJax made it; should a labelled one arrive later, the mutation
+        // that brings it drives the pass that handles it.
+        return;
     }
 
-    for (const speech of labelled) {
-        const label = speech.getAttribute("aria-label")?.trim();
-        if (!label) {
-            // An empty label carries no speech string to expose. Leave the
-            // element as MathJax made it; should a labelled one arrive later,
-            // the mutation that brings it drives the pass that handles it.
-            continue;
-        }
+    let text = speech.querySelector(`[${SPEECH_TEXT_ATTR}]`);
+    if (!text) {
+        text = speech.ownerDocument.createElement("span");
+        text.setAttribute(SPEECH_TEXT_ATTR, "true");
+        text.setAttribute("style", VISUALLY_HIDDEN_STYLE);
+        speech.append(text);
+    }
+    text.textContent = label;
 
-        let text = speech.querySelector(`[${SPEECH_TEXT_ATTR}]`);
-        if (!text) {
-            text = speech.ownerDocument.createElement("span");
-            text.setAttribute(SPEECH_TEXT_ATTR, "true");
-            text.setAttribute("style", VISUALLY_HIDDEN_STYLE);
-            speech.append(text);
-        }
-        text.textContent = label;
+    // The words are now content, which the `img` role would hide again by
+    // making the element a leaf named by its label. The role descriptions went
+    // with that role, so they describe one the element no longer has.
+    // `aria-braillelabel` is left as MathJax wrote it: ARIA exposes it only
+    // alongside an accessible name, so on a nameless element it is inert and a
+    // braille display renders the text added above instead. Stripping an
+    // attribute that is already doing nothing would gain nothing, and it comes
+    // back into play if MathJax ever names the element again.
+    speech.removeAttribute("aria-label");
+    speech.removeAttribute("role");
+    speech.removeAttribute("aria-roledescription");
+    speech.removeAttribute("aria-brailleroledescription");
+}
 
-        // The words are now content, which the `img` role would hide again by
-        // making the element a leaf named by its label. The role descriptions
-        // went with that role, so they describe one the element no longer has.
-        // `aria-braillelabel` is left as MathJax wrote it: it is the only
-        // braille rendering of the formula on the page, and dropping it could
-        // only lose information.
-        speech.removeAttribute("aria-label");
-        speech.removeAttribute("role");
-        speech.removeAttribute("aria-roledescription");
-        speech.removeAttribute("aria-brailleroledescription");
+/**
+ * Rewrites every MathJax expression at or under `node` whose speech string has
+ * been attached but not yet turned into text. `node` itself is considered,
+ * because MathJax appends the `<mjx-speech>` straight to the expression's
+ * container: it is often the added node a mutation record reports, with no
+ * subtree to search.
+ */
+function exposeMathSpeechAsText(node: Element): void {
+    rewriteSpeechElement(node);
+    for (const speech of node.querySelectorAll(LABELLED_SPEECH_SELECTOR)) {
+        rewriteSpeechElement(speech);
     }
 }
 
@@ -117,8 +130,9 @@ function exposeMathSpeechAsText(node: Element): void {
 function handleMutations(records: MutationRecord[]): void {
     for (const record of records) {
         if (record.type === "attributes") {
-            // A label written onto an element already in the page.
-            exposeMathSpeechAsText(record.target as Element);
+            // A label written onto an element already in the page. Only that
+            // one element gained a label, so there is no subtree to walk.
+            rewriteSpeechElement(record.target as Element);
             continue;
         }
         // MathJax labels an `<mjx-speech>` before putting it in the page, and
