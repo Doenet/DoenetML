@@ -6,9 +6,10 @@
  * element.
  */
 export interface LabelLikeJXG {
-    visProp: Record<string, any>;
+    visProp: any;
     needsUpdate: boolean;
-    update: (...args: any[]) => any;
+    update: Function;
+    fullUpdate?: Function;
 }
 
 /**
