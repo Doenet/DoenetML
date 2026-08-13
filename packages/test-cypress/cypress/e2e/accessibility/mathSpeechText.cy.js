@@ -23,6 +23,18 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
         cy.injectAxe();
     });
 
+    /** A single formula, for the cases that only need one to look at. */
+    const SINE_DOC = `<p name="sin"><m>\\sin(\\theta) = \\dfrac{2}{5}</m></p>`;
+
+    /** Matches the spans `mathSpeechText.ts` adds. */
+    const SPEECH_TEXT = "[data-doenet-math-speech]";
+
+    /**
+     * Generous enough to cover loading MathJax from the CDN on a cold cache.
+     * Each assertion resolves as soon as the text lands.
+     */
+    const SPEECH_TIMEOUT = { timeout: 15000 };
+
     function postDoenetML({ doenetML, settleSelector }) {
         cy.get("#testRunner_toggleControls").should("exist");
         cy.window().then((win) => {
@@ -34,20 +46,18 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
     /**
      * The speech string arrives asynchronously, well after the typeset that
      * created the element, so every assertion waits on the exposed text rather
-     * than on the container. A generous timeout covers loading MathJax from the
-     * CDN on a cold cache; the assertion itself resolves as soon as the text
-     * lands.
+     * than on the container.
      */
     function speechTextOf(selector) {
         return cy
-            .get(`${selector} [data-doenet-math-speech]`, { timeout: 15000 })
+            .get(`${selector} ${SPEECH_TEXT}`, SPEECH_TIMEOUT)
             .should("not.have.text", "");
     }
 
     it("exposes a formula's speech string as text, not only as an aria-label", () => {
         postDoenetML({
             settleSelector: "#sin",
-            doenetML: `<p name="sin"><m>\\sin(\\theta) = \\dfrac{2}{5}</m></p>`,
+            doenetML: SINE_DOC,
         });
 
         speechTextOf("#sin").should("contain.text", "sine theta equals");
@@ -70,7 +80,7 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
     it("keeps the added text out of sight", () => {
         postDoenetML({
             settleSelector: "#sin",
-            doenetML: `<p name="sin"><m>\\sin(\\theta) = \\dfrac{2}{5}</m></p>`,
+            doenetML: SINE_DOC,
         });
 
         speechTextOf("#sin").should(($text) => {
@@ -89,7 +99,7 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
     it("keeps the braille label", () => {
         postDoenetML({
             settleSelector: "#sin",
-            doenetML: `<p name="sin"><m>\\sin(\\theta) = \\dfrac{2}{5}</m></p>`,
+            doenetML: SINE_DOC,
         });
 
         speechTextOf("#sin");
@@ -144,7 +154,7 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
             "cotangent",
         ];
 
-        cy.get(".doenet-viewer [data-doenet-math-speech]", { timeout: 15000 })
+        cy.get(`.doenet-viewer ${SPEECH_TEXT}`, SPEECH_TIMEOUT)
             .should("have.length", expected.length)
             .should(($texts) => {
                 // `cy.get` returns elements in document order, so this asserts

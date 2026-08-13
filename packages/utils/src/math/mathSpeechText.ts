@@ -61,12 +61,8 @@ const VISUALLY_HIDDEN_STYLE = [
  * `aria-label` is what takes an expression out of the selector below, so a
  * rescan triggered by this function's own DOM writes finds nothing to do. The
  * explorer putting a fresh label on an element is what brings it back.
- *
- * Returns the number of expressions it changed, which is what tests assert on.
  */
-export function exposeMathSpeechAsText(root: ParentNode): number {
-    let changed = 0;
-
+export function exposeMathSpeechAsText(root: ParentNode): void {
     for (const speech of root.querySelectorAll("mjx-speech[aria-label]")) {
         const label = speech.getAttribute("aria-label")?.trim();
         if (!label) {
@@ -93,23 +89,23 @@ export function exposeMathSpeechAsText(root: ParentNode): number {
         speech.removeAttribute("role");
         speech.removeAttribute("aria-roledescription");
         speech.removeAttribute("aria-brailleroledescription");
-
-        changed += 1;
     }
-
-    return changed;
 }
 
-/** Set once {@link startExposingMathSpeechAsText} has installed the observer. */
+/**
+ * The installed observer, held both as the "already started" flag and as a
+ * reference keeping it alive for the life of the page.
+ */
 let observer: MutationObserver | null = null;
 /** Set between scheduling a pass and running it, so bursts collapse into one. */
 let scanScheduled = false;
 
 /**
  * Starts exposing MathJax speech as text across the page, and keeps doing it as
- * math is typeset, retypeset, and as speech strings arrive. Idempotent: the
- * observer is installed at most once per realm, matching the single MathJax
- * that `loadMathJax` guarantees.
+ * math is typeset, retypeset, and as speech strings arrive. Calling it again is
+ * a no-op, so at most one observer runs per copy of this module — and in
+ * practice one per realm, since the only caller is `loadMathJax`, whose single
+ * memoized promise per realm means only the first copy loaded gets that far.
  *
  * Does nothing outside a browser, which is what keeps it inert under the
  * loader's Node-environment unit tests.
@@ -125,7 +121,7 @@ export function startExposingMathSpeechAsText(): void {
 
     exposeMathSpeechAsText(root);
 
-    observer = new MutationObserver(scheduleScan);
+    observer = new MutationObserver(() => scheduleScan(root));
     observer.observe(root, {
         subtree: true,
         childList: true,
@@ -143,26 +139,13 @@ export function startExposingMathSpeechAsText(): void {
  * ordinary later batch. That batch finds every expression already up to date
  * and writes nothing, so the cycle settles rather than feeding itself.
  */
-function scheduleScan() {
+function scheduleScan(root: ParentNode) {
     if (scanScheduled) {
         return;
     }
     scanScheduled = true;
     setTimeout(() => {
         scanScheduled = false;
-        const root = document.body ?? document.documentElement;
-        if (root) {
-            exposeMathSpeechAsText(root);
-        }
+        exposeMathSpeechAsText(root);
     }, 0);
-}
-
-/**
- * Tears down the observer and forgets that a pass was scheduled. Exists for
- * tests, which need each case to start from a clean realm.
- */
-export function stopExposingMathSpeechAsText(): void {
-    observer?.disconnect();
-    observer = null;
-    scanScheduled = false;
 }

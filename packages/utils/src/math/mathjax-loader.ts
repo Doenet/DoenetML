@@ -108,8 +108,9 @@ export interface LoadMathJaxOptions {
      * This applies to every expression in the realm, including math a host page
      * typeset itself — the rewrite adds an accessible text node and hides a
      * node holding the identical words, so a host inherits the same fix rather
-     * than a changed page. A host that wants to keep MathJax's own output
-     * untouched can set this to `false`.
+     * than a changed page. Code that would rather keep MathJax's own output
+     * untouched can set this to `false`; like every other option here, only the
+     * first caller's value takes effect (see {@link loadMathJax}).
      */
     exposeSpeechAsText?: boolean;
 }
@@ -286,6 +287,25 @@ function createMathJaxPromise(
 }
 
 /**
+ * Resolves MathJax and, unless the caller opted out, starts exposing its speech
+ * strings as text. Kicking that off once an engine is in hand rather than up
+ * front keeps a page with no MathJax free of an observer it has no use for.
+ *
+ * `createMathJaxPromise` runs synchronously, before the first `await`, so a
+ * caller that inspects the DOM as soon as {@link loadMathJax} returns already
+ * sees any script it decided to inject.
+ */
+async function createEngineAndExposeSpeech(
+    options: LoadMathJaxOptions,
+): Promise<MathJaxEngine> {
+    const engine = await createMathJaxPromise(options);
+    if (options.exposeSpeechAsText !== false) {
+        startExposingMathSpeechAsText();
+    }
+    return engine;
+}
+
+/**
  * Loads MathJax, coexisting with any MathJax the host page provides, and
  * returns a promise for the live engine. The promise is memoized on `window`,
  * so repeated calls (from multiple viewers/editors/keyboard trays) share a
@@ -307,12 +327,7 @@ export function loadMathJax(
         return cached;
     }
 
-    const promise = createMathJaxPromise(options).then((engine) => {
-        if (options.exposeSpeechAsText !== false) {
-            startExposingMathSpeechAsText();
-        }
-        return engine;
-    });
+    const promise = createEngineAndExposeSpeech(options);
     (window as unknown as Record<string, unknown>)[GLOBAL_PROMISE_KEY] =
         promise;
     // A rejected attempt must not poison the page: drop the memo so a later
