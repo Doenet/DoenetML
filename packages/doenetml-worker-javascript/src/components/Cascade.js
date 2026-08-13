@@ -283,16 +283,18 @@ export default class Cascade extends SectioningComponent {
                         ? nextStep.componentIdx
                         : null;
 
-                if (sectionToShowCascadeMessage !== null) {
-                    childrenToHide.push(...allContinuationComponentIndices);
-                } else if (
-                    dependencyValues.numCompleted <=
-                    dependencyValues.children.length - 2
-                ) {
-                    // We have at least one child that is hidden due to previous child not completed.
-                    // Look for the next `<cascadeMessage>` after the last shown child,
-                    // and display that child if found.
+                // The one message of the cascade's own to show, if any: the next
+                // `<cascadeMessage>` after the last shown child. There is none
+                // once the next step is showing a message of its own, and none
+                // once the last child is showing, since then no child is held
+                // back for a message to stand in for.
+                let continuationToShow = null;
 
+                if (
+                    sectionToShowCascadeMessage === null &&
+                    dependencyValues.numCompleted <=
+                        dependencyValues.children.length - 2
+                ) {
                     const lastShownChild =
                         dependencyValues.children[dependencyValues.numCompleted]
                             .componentIdx;
@@ -301,32 +303,22 @@ export default class Cascade extends SectioningComponent {
                             (child) => child.componentIdx === lastShownChild,
                         );
 
-                    const nextContinuation =
+                    continuationToShow =
                         dependencyValues.childrenWithCascadeMessages
                             .slice(lastShownChildIdx + 1)
                             .find(
                                 (child) =>
                                     child.componentType === "cascadeMessage",
-                            );
-
-                    if (nextContinuation) {
-                        // We found a `<cascadeMessage>` child after the last shown child,
-                        // so don't hide that one.
-                        childrenToHide.push(
-                            ...allContinuationComponentIndices.filter(
-                                (cIdx) =>
-                                    cIdx !== nextContinuation.componentIdx,
-                            ),
-                        );
-                    } else {
-                        // No `<cascadeMessage>` child was found after last shown child,
-                        // so hide all continuation messages.
-                        childrenToHide.push(...allContinuationComponentIndices);
-                    }
-                } else {
-                    // if last child is showing, then hide all continuation messages
-                    childrenToHide.push(...allContinuationComponentIndices);
+                            )?.componentIdx ?? null;
                 }
+
+                // Hide every message of the cascade's own but that one. (With
+                // none to show, `null` matches no child and all are hidden.)
+                childrenToHide.push(
+                    ...allContinuationComponentIndices.filter(
+                        (cIdx) => cIdx !== continuationToShow,
+                    ),
+                );
 
                 return {
                     setValue: {

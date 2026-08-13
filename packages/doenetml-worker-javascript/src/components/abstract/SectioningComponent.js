@@ -565,17 +565,11 @@ export class SectioningComponent extends BlockComponent {
          * `childrenToHide` here would close a cycle.
          */
         stateVariableDefinitions.hasCascadeMessageChild = {
-            returnDependencies: () => ({
-                ...returnSectionChildDependencies(),
-            }),
+            returnDependencies: returnSectionChildDependencies,
             definition({ dependencyValues }) {
                 const hasCascadeMessageChild = nonConfigurationChildEntries(
                     dependencyValues,
-                ).some(
-                    ([, child]) =>
-                        typeof child === "object" &&
-                        child.componentType === "cascadeMessage",
-                );
+                ).some(([, child]) => child.componentType === "cascadeMessage");
 
                 return { setValue: { hasCascadeMessageChild } };
             },
