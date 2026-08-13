@@ -17,6 +17,10 @@
  * clipped rather than hidden, the rewrite settling rather than feeding the
  * observer that drives it, and every formula on the page reachable in document
  * order.
+ *
+ * The words sit in a shadow root on that span, so they stay out of the page's
+ * own text — which is why the cases below read `shadowRoot`, and why one of
+ * them asserts that an expression still reads as its formula.
  */
 describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
     beforeEach(() => {
@@ -46,19 +50,36 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
     }
 
     /**
-     * The speech string arrives asynchronously, well after the typeset that
-     * created the element, so every assertion waits on the exposed text rather
-     * than on the container.
+     * The speech string as a reader meets it. It lives in a shadow root, which
+     * is why this reads `shadowRoot` rather than the host's text: a shadow tree
+     * reaches the accessibility tree but not `textContent`, which is what keeps
+     * these words out of the page's text and out of a copied selection.
+     */
+    function shadowTextOf(el) {
+        return el.shadowRoot?.textContent ?? "";
+    }
+
+    /**
+     * The span holding one expression's speech, once that speech has landed.
+     * The string arrives asynchronously, well after the typeset that created
+     * the element, so every case waits on the text rather than on the container.
      *
      * The viewer typesets on an off-screen buffer and swaps the rendered nodes
      * into place, so every case below also covers an expression *moved* into
      * the page rather than built there — whichever side of that swap the speech
      * string happens to land on.
      */
-    function speechTextOf(selector) {
+    function speechSpanOf(selector) {
         return cy
             .get(`${selector} ${SPEECH_TEXT}`, SPEECH_TIMEOUT)
-            .should("not.have.text", "");
+            .should(($el) => {
+                expect(shadowTextOf($el[0])).to.not.equal("");
+            });
+    }
+
+    /** The words themselves, for the cases that assert on what is said. */
+    function speechTextOf(selector) {
+        return speechSpanOf(selector).then(($el) => shadowTextOf($el[0]));
     }
 
     it("exposes a formula's speech string as text, not only as an aria-label", () => {
@@ -67,7 +88,7 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
             doenetML: SINE_DOC,
         });
 
-        speechTextOf("#sin").should("contain.text", "sine theta equals");
+        speechTextOf("#sin").should("contain", "sine theta equals");
 
         // The words must reach a reader exactly once: the label they came from
         // is gone, and so is the `img` role, which would make the element a
@@ -104,8 +125,8 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
             doenetML: SINE_DOC,
         });
 
-        speechTextOf("#sin").should(($text) => {
-            const el = $text[0];
+        speechSpanOf("#sin").should(($span) => {
+            const el = $span[0];
             const style = el.ownerDocument.defaultView.getComputedStyle(el);
             expect(style.getPropertyValue("position")).to.equal("absolute");
             expect(style.getPropertyValue("overflow")).to.equal("hidden");
@@ -122,13 +143,33 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
         });
     });
 
+    it("keeps the speech out of the page's own text", () => {
+        postDoenetML({
+            settleSelector: "#sin",
+            doenetML: SINE_DOC,
+        });
+
+        speechSpanOf("#sin");
+
+        // Reading an expression must still give the formula, not a sentence
+        // describing it. Anything that reads rendered text depends on this: a
+        // reader copying a paragraph, and every test in the suite that asserts
+        // on what a piece of math renders as.
+        cy.get("#sin").should(($el) => {
+            expect($el.text()).to.not.contain("sine theta equals");
+            // The glyphs MathJax laid out are still there, so the emptiness
+            // above is the speech being excluded rather than the math missing.
+            expect($el.text()).to.contain("sin");
+        });
+    });
+
     it("settles once an expression is rewritten", () => {
         postDoenetML({
             settleSelector: "#sin",
             doenetML: SINE_DOC,
         });
 
-        speechTextOf("#sin");
+        speechSpanOf("#sin");
 
         // The rewrite's own writes reach the observer as a further batch — the
         // appended span, its text, the removed `aria-label` — and none of them
@@ -173,8 +214,8 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
 </choiceInput>`,
         });
 
-        speechTextOf("#mi").should("contain.text", "squared");
-        speechTextOf("#ci").should("contain.text", "square root");
+        speechTextOf("#mi").should("contain", "squared");
+        speechTextOf("#ci").should("contain", "square root");
     });
 
     it("updates the text when the formula changes", () => {
@@ -185,11 +226,11 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
 <p><m name="m">$mi</m></p>`,
         });
 
-        speechTextOf("#m").should("contain.text", "x");
+        speechTextOf("#m").should("contain", "x");
 
         cy.get("#mi textarea").type("^2{enter}", { force: true });
 
-        speechTextOf("#m").should("contain.text", "squared");
+        speechTextOf("#m").should("contain", "squared");
     });
 
     it("reaches every formula of a sideBySide of stacks, in document order", () => {
@@ -227,7 +268,7 @@ describe("Math speech text accessibility checks", { tags: ["@group5"] }, () => {
             .should(($texts) => {
                 // `cy.get` returns elements in document order, so this asserts
                 // the reading order a screen reader walks, not just presence.
-                const spoken = [...$texts].map((el) => el.textContent);
+                const spoken = [...$texts].map(shadowTextOf);
                 expected.forEach((word, i) => {
                     expect(spoken[i]).to.contain(word);
                 });

@@ -34,6 +34,11 @@ is also the one MathJax focuses when a reader opens the expression explorer. Its
 braille label is left exactly as MathJax wrote it. Walking into a subexpression
 rewrites the label, and the text follows it.
 
+The words sit in a shadow root on that span, so they reach a reader without
+joining the page's own text: copying a paragraph pastes the formula rather than
+a sentence describing it, and an expression still reads as its formula to
+anything that reads rendered text.
+
 This covers every formula in the page, not only `<m>`: math also reaches a
 reader through every math-bearing input, choice options, buttons and the virtual
 keyboard, and its speech string is attached a little after the typeset that

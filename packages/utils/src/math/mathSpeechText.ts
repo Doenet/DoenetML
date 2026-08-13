@@ -25,6 +25,14 @@
  * reader opens the expression explorer, and hiding a focusable element would
  * trade exploring an expression for reading one.
  *
+ * The words live in a shadow root on that span rather than directly in it, so
+ * that they reach a reader without joining the page's text. A browser flattens
+ * a shadow tree into the accessibility tree — the added text is a `StaticText`
+ * node either way — but leaves it out of `textContent` and out of a selection,
+ * so copying a paragraph does not paste "sine theta equals two fifths" beside
+ * the formula, and anything reading the rendered text of an expression still
+ * reads the formula rather than a sentence describing it.
+ *
  * The rewrite runs from a `MutationObserver` rather than from each place Doenet
  * typesets, for three reasons: math reaches the page through many call sites
  * (`<m>`, every math-bearing input, choice options, buttons, the virtual
@@ -87,7 +95,11 @@ function rewriteSpeechElement(speech: Element): void {
         text.setAttribute("style", VISUALLY_HIDDEN_STYLE);
         speech.append(text);
     }
-    text.textContent = label;
+    // The words go in the shadow tree, which the host's clipping still hides and
+    // the page's text still excludes. `attachShadow` throws on a second call, so
+    // reuse the root a previous pass opened.
+    const shadow = text.shadowRoot ?? text.attachShadow({ mode: "open" });
+    shadow.textContent = label;
 
     // The words are now content, which the `img` role would hide again by
     // making the element a leaf named by its label. The role descriptions went
