@@ -780,7 +780,9 @@ export default class Video extends BlockComponent {
      * changed should keep playing into the new source, which is what the
      * renderer's teardown relies on.
      *
-     * No `doNotSave` here, unlike the sibling video actions. `setTime` saves
+     * No `doNotSave` here. `recordVideoReady` is the only sibling that sets
+     * it (its `duration` is a property of the file, not of the session), and
+     * this reset must not follow it: `setTime` saves
      * the position it records, so the reset has to be saved as well or the old
      * video's position is restored on the next load and the renderer seeks the
      * new video to it -- exactly the bug this action exists to prevent.

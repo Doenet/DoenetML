@@ -12,7 +12,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
-import { evaluateToNumber } from "../utils/math";
+import { evaluateToNumber, toNumberOrNaN } from "../utils/math";
 
 export default class Curve extends GraphicalComponent {
     constructor(args) {
@@ -731,14 +731,13 @@ export default class Curve extends GraphicalComponent {
                 // (see their definitions); this covers the remaining source,
                 // a `<function>` child whose declared domain endpoint does not
                 // evaluate.
-                const bound = (v) => (typeof v === "number" ? v : NaN);
                 // closed interval [parMin, parMax]
                 let interval = me.fromAst([
                     "interval",
                     [
                         "tuple",
-                        bound(dependencyValues.parMin),
-                        bound(dependencyValues.parMax),
+                        toNumberOrNaN(dependencyValues.parMin),
+                        toNumberOrNaN(dependencyValues.parMax),
                     ],
                     ["tuple", true, true],
                 ]);

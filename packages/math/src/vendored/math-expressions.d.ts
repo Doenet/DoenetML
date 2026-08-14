@@ -324,7 +324,9 @@ export interface Expression {
     expand_relations(): Expression;
 
     /**
-     * Substitute variables with expressions
+     * Substitute variables with expressions, **simultaneously** — no
+     * replacement is open to the other bindings. Each binding is coerced
+     * first, so a string value is parsed.
      * @param substitutions Object mapping variable names to expressions
      */
     substitute(substitutions: {
@@ -332,10 +334,9 @@ export interface Expression {
     }): Expression;
 
     /**
-     * Substitute variables with expressions, **simultaneously** — no
-     * replacement is open to the other bindings. `substitute` applies them one
-     * at a time (which DoenetML's code-expansion relies on); this is what
-     * evaluating a multi-variable function at given arguments needs.
+     * Substitute variables with expressions, simultaneously. Identical to
+     * `substitute` except that it does not coerce its values, so every one
+     * must already be an `Expression` or a tree.
      * @param substitutions Object mapping variable names to expressions
      */
     substitute_all(substitutions: {

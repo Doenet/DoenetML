@@ -162,8 +162,10 @@ describe("Video tag tests @group1", async () => {
     });
 
     // The renderer reports a source change by calling this action (it is the
-    // thing that observes `youtube`/`source` changing); `video.cy.js` covers
-    // that wiring end to end. This covers what the action itself guarantees.
+    // thing that observes `youtube`/`source` changing). This covers what the
+    // action itself guarantees; the renderer-side dispatch has no test —
+    // `video.cy.js` never mentions it — so deleting that dispatch would still
+    // leave the suite green.
     it("recordVideoSourceChanged drops playback state of the previous video", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

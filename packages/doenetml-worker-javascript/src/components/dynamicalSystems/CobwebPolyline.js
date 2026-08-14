@@ -5,6 +5,7 @@ import {
 } from "../../utils/numberDisplay";
 import Polyline from "../Polyline";
 import me from "math-expressions";
+import { toNumberOrNaN } from "../../utils/math";
 
 export default class CobwebPolyline extends Polyline {
     static componentType = "cobwebPolyline";
@@ -654,12 +655,11 @@ export default class CobwebPolyline extends Polyline {
                         // `f` at such a point, yields `null` — which `fromAst`
                         // rejects and which would abort the whole update. A
                         // vertex we cannot place is NaN, not a hard error.
-                        const coord = (v) => (typeof v === "number" ? v : NaN);
                         vertices[pointInd + ",0"] = me.fromAst(
-                            coord(attractPoint[0]),
+                            toNumberOrNaN(attractPoint[0]),
                         );
                         vertices[pointInd + ",1"] = me.fromAst(
-                            coord(attractPoint[1]),
+                            toNumberOrNaN(attractPoint[1]),
                         );
                         prelimCorrectVertices[pointInd + ",0"] = true;
                     } else {

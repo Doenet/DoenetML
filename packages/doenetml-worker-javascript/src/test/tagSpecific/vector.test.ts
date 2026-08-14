@@ -473,7 +473,8 @@ describe("Vector Tag Tests @group4", function () {
     // deliberately leaving alone. A hole does not survive `me.fromAst` on an
     // engine that serializes the tree, and the throw aborted the whole update:
     // no error surfaced, and neither the point, the head, nor the displacement
-    // moved. See VECTOR_UPDATE_DROP.md.
+    // moved. The hole is now marked explicitly — see `UNSPECIFIED_COMPONENT`
+    // and `markUnspecifiedComponents` in `utils/math.ts`.
     it("dragging a point that extends the head of a displacement-defined vector", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

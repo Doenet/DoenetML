@@ -5688,9 +5688,10 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a2isumSimp")]
                     .stateValues.latex,
             ),
-            // Simplified, so the sum is in canonical order; the written order
-            // is preserved in `a2isum` above, which this pair exists to
-            // contrast.
+            // Simplified, so the sum is in canonical order — which for this
+            // pair is also the written order, so it reads identically to
+            // `a2isum` above. The pair still pins that simplifying does not
+            // *reorder* an angle-bracket vector against a tuple.
         ).eq("\\langlep,q\\rangle+(e,f)");
         expect(
             cleanLatex(

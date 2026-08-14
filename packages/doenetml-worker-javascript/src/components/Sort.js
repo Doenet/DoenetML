@@ -3,19 +3,7 @@ import { postProcessCopy } from "../utils/copy";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
-
-/**
- * Whether `evaluate_to_constant()` gave us something we can sort numerically.
- *
- * It returns `null`, not `NaN`, for anything it cannot evaluate — a free
- * variable, a hole, an unevaluable head. `Number.isNaN(null)` is `false`, so
- * testing for `NaN` alone let a list of plain symbols claim to be all-numeric
- * and then sort by `null - null`, which is `0` for every pair: the list came
- * back in its original order instead of alphabetised.
- */
-function isSortableNumber(value) {
-    return typeof value === "number" && !Number.isNaN(value);
-}
+import { isNumericConstant } from "../utils/math";
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
@@ -339,7 +327,7 @@ export default class Sort extends CompositeComponent {
                     ) {
                         let numericalValue =
                             component.stateValues.value.evaluate_to_constant();
-                        if (!isSortableNumber(numericalValue)) {
+                        if (!isNumericConstant(numericalValue)) {
                             allAreNumeric = false;
                         }
                         allValues.push({
@@ -361,7 +349,7 @@ export default class Sort extends CompositeComponent {
                         let textValue = "";
                         if (compValue) {
                             numericalValue = compValue.evaluate_to_constant();
-                            if (!isSortableNumber(numericalValue)) {
+                            if (!isNumericConstant(numericalValue)) {
                                 allAreNumeric = false;
                             }
                             textValue = compValue.toString();
@@ -396,7 +384,7 @@ export default class Sort extends CompositeComponent {
                         }
                         if (compValue) {
                             numericalValue = compValue.evaluate_to_constant();
-                            if (!isSortableNumber(numericalValue)) {
+                            if (!isNumericConstant(numericalValue)) {
                                 allAreNumeric = false;
                             }
                             textValue = compValue.toString();

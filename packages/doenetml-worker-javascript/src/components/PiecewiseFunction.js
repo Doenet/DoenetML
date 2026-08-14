@@ -14,7 +14,7 @@ import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
 } from "../utils/extrema";
-import { roundForDisplay } from "../utils/math";
+import { isNumericConstant, roundForDisplay } from "../utils/math";
 import {
     contentTranslator,
     returnContentLocaleDependencies,
@@ -148,14 +148,13 @@ export default class PiecewiseFunction extends Function {
                         // `[a,a]` or `(s,t)` — and `Number.isNaN(null)` is
                         // `false`, so testing for NaN alone read those pieces
                         // as *numeric* with an unusable domain and dropped them
-                        // from the rendered `\begin{cases}` entirely. Same trap
-                        // `Sort.js` documents. ±Infinity is a legitimate
-                        // numeric endpoint and must not be caught here.
-                        const isNonNumeric = (v) =>
-                            typeof v !== "number" || Number.isNaN(v);
+                        // from the rendered `\begin{cases}` entirely, which is
+                        // why this asks `isNumericConstant` rather than
+                        // `Number.isNaN`. ±Infinity is a legitimate numeric
+                        // endpoint and passes.
                         childrenWithNonNumericDomains.push(
-                            isNonNumeric(intervalMin) ||
-                                isNonNumeric(intervalMax),
+                            !isNumericConstant(intervalMin) ||
+                                !isNumericConstant(intervalMax),
                         );
 
                         if (

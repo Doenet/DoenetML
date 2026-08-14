@@ -787,11 +787,11 @@ export function returnSymbolicFunctionFromFormula({
                 // Simultaneously: an argument may mention another variable's
                 // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
                 // left-to-right pass would substitute into its own output and
-                // answer `sin(-11π)`. `substitute` is simultaneous too now
-                // (math-expressions #84 restored the legacy contract); this
-                // stays as the spelling that says so at the call site, and
-                // these arguments are already `Expression`s, which is the one
-                // thing the two still differ about.
+                // answer `sin(-11π)`. `substitute` is simultaneous too since
+                // math-expressions #84 restored the legacy contract, and these
+                // arguments are already `Expression`s, so the two are the same
+                // call here; `substitute_all` is kept as the spelling that
+                // states the requirement at the call site.
                 .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,
@@ -1036,11 +1036,11 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 // Simultaneously: an argument may mention another variable's
                 // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
                 // left-to-right pass would substitute into its own output and
-                // answer `sin(-11π)`. `substitute` is simultaneous too now
-                // (math-expressions #84 restored the legacy contract); this
-                // stays as the spelling that says so at the call site, and
-                // these arguments are already `Expression`s, which is the one
-                // thing the two still differ about.
+                // answer `sin(-11π)`. `substitute` is simultaneous too since
+                // math-expressions #84 restored the legacy contract, and these
+                // arguments are already `Expression`s, so the two are the same
+                // call here; `substitute_all` is kept as the spelling that
+                // states the requirement at the call site.
                 .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,
@@ -1081,6 +1081,12 @@ function asExpression(value: any): any {
 function evaluateChildToNumber(child: any, argsForInputs: any): number {
     const childF = child.fReevaluate;
 
+    // `inputNumericFs` is the discriminator, not a second array: a numeric
+    // producer sets it to the *same* functions as `inputMathFs` (they return
+    // numbers), and the two symbolic producers in `Function.js` leave it
+    // undefined because theirs return `Expression`s, which the compiled
+    // evaluator below cannot take. Testing for it is what keeps this route
+    // from depending on the call graph never handing us one of those.
     if (childF.numeric && child.inputNumericFs) {
         try {
             const value = childF.numeric(

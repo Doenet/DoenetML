@@ -2,15 +2,17 @@ import { describe, expect, it } from "vitest";
 import { createTestCore } from "./utils/test-core";
 import fs from "node:fs";
 
-// Memory benchmark for MEMORY_REDUCTION_LOG.md.
+// Memory benchmark for the memory-reduction workstream
+// (https://github.com/Doenet/DoenetML/issues/1441).
 // Creates a core with the Venn-diagram profiling document and reports
 // heap usage. Run with:
 //   MEMBENCH_RESULT=/tmp/membench.json NODE_OPTIONS=--expose-gc \
 //       npx vitest run src/test/memory-bench.test.ts
 // Set MEMBENCH_HEAP_SNAPSHOT=<path> to also write a V8 heap snapshot
-// for offline analysis.
+// for offline analysis. The second case below reads the matching
+// MEMBENCH_REPEAT_* variables.
 //
-// It only runs when one of those variables is set. This file carries no
+// It only runs when one of those four variables is set. This file carries no
 // `@groupN` tag, so it would otherwise land in the `test:group4` catch-all
 // (`-t '^(?!.*@(?:group1|group2|group3))'`) and spend minutes measuring
 // something no assertion depends on.
@@ -20,11 +22,14 @@ const doenetML = fs.readFileSync(
     "utf8",
 );
 
-// A copy/shadow-heavy document matching the `repeat-S` scenario of the
-// @doenet/memory-benchmark harness (the document-scaling metric of
+// A copy/shadow-heavy document in the spirit of the @doenet/memory-benchmark
+// harness's `repeat-S` scenario (the document-scaling metric of
 // https://github.com/Doenet/DoenetML/issues/1441). Every iteration's
 // components are reference shadows, so this exercises the shadow-definition
-// path rather than the class-definition path.
+// path rather than the class-definition path. The document is *not* the
+// harness's — it uses different expressions and a `<point>` where that one
+// uses a second `<number>` — so the heap figures here are comparable across
+// runs of this file, not against `measure.mjs`.
 const repeatDoenetML = `
 <repeatForSequence from="1" to="150" valueName="i" name="rep">
   <p>Point <number extend="$i" name="n" />:
@@ -36,7 +41,10 @@ const repeatDoenetML = `
 `;
 
 const MEMBENCH_ENABLED = Boolean(
-    process.env.MEMBENCH_RESULT || process.env.MEMBENCH_HEAP_SNAPSHOT,
+    process.env.MEMBENCH_RESULT ||
+    process.env.MEMBENCH_HEAP_SNAPSHOT ||
+    process.env.MEMBENCH_REPEAT_RESULT ||
+    process.env.MEMBENCH_REPEAT_HEAP_SNAPSHOT,
 );
 
 describe.runIf(MEMBENCH_ENABLED)("memory benchmark", () => {

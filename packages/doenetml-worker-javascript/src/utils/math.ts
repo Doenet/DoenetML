@@ -312,7 +312,19 @@ export function isNumericConstant(value: unknown): value is number {
 export function evaluateToNumber(expr: {
     evaluate_to_constant: () => unknown;
 }): number {
-    const value = expr.evaluate_to_constant();
+    return toNumberOrNaN(expr.evaluate_to_constant());
+}
+
+/**
+ * Anything that is not a plain number reported as `NaN`.
+ *
+ * The other half of {@link isNumericConstant}: that one asks the question, this
+ * one answers it with a value a numeric state variable can hold. `null` — what
+ * `evaluate_to_constant()` returns for an expression it cannot evaluate — is
+ * the case that matters, because `Number.isNaN(null)` is `false` and `null`
+ * coerces to `0`, so passing it on reads a blank input as zero.
+ */
+export function toNumberOrNaN(value: unknown): number {
     return typeof value === "number" ? value : NaN;
 }
 

@@ -475,8 +475,9 @@ describe("Angle tag tests @group4", async () => {
             // (The old expectation of a full turn came from evaluating the
             // sine numerically: it gave -2.4e-16, putting the point a hair
             // *below* the axis, which with `chooseReflexAngle="allowed"` reads
-            // as just under 2pi. Turning by 2pi + 0.00001 gives 0.00001 below,
-            // so 0 is the consistent value here.)
+            // as just under 2pi. `sin(2pi + 0.00001)` is positive, so that
+            // input puts the point 0.00001 *above* the axis and reads as
+            // 0.00001; 0 is the consistent value at exactly 2pi.)
             { latex: "2\\pi", number: 0 },
             { latex: "2\\pi+0.00001", number: 0.00001 },
         ];

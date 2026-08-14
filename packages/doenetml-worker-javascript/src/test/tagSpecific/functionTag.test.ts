@@ -3083,11 +3083,15 @@ describe("Function tag tests @group4", async () => {
         let minimumLocations = [-2.29152990292159];
 
         // Issue #940 — the spurious minimum at 4.999999948194912, an artifact
-        // of bracketing next to the double pole at x = 5 — is gone. Extrema are
-        // now seeded from `critical_points`, which solves f' = 0 exactly rather
-        // than refining a sign change, and its answer for this function is
-        // -11.66601734921, -2.29152990292, 3.18454272065, 9.77300453148 —
-        // the four Sage values above and nothing near 5.
+        // of bracketing next to the double pole at x = 5 — is gone. What
+        // removes it is the batch sampler: `evaluate_many` reports a
+        // non-finite derivative sample as `NaN` where `.f()` reported
+        // `±Infinity`, and the sign-change test `dleft * dright <= 0` is
+        // `false` for `NaN`, so the cell straddling the pole no longer
+        // brackets one (see `utils/extrema.js`). Seeding from
+        // `critical_points` is what keeps the four real extrema exact:
+        // -11.66601734921, -2.29152990292, 3.18454272065, 9.77300453148,
+        // the Sage values below and nothing near 5.
         let minima = minimumLocations.map((x) => [x, f(x)]);
         let maximumLocations = [
             -11.6660173492088, 3.18454272065031, 9.77300453148004,
