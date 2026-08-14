@@ -190,19 +190,23 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   repoints that one file — with no call-site churn at all. The consequence to remember is that
 >   bundler rules (`external`, `dedupe`) must name the specifier `math-expressions`.
 >
-> - **⚠️ The seam is not publishable, and this is Stage 1's one release blocker.** `packages/math`
->   is `"private": true` and is never published, while `packages/doenetml` (and its siblings)
->   externalize the bare specifier `math-expressions`. Inside the workspace that is correct — a
->   `file:` dependency resolves and `@doenet/standalone` bundles exactly one copy. In a *published*
->   tarball it is not: the shipped `@doenet/doenetml` carries a bare `math-expressions` import with
->   nothing declaring it, so an npm consumer either fails to resolve it or, if they happen to have
->   the real npm `math-expressions@2.x` in their tree, silently resolves it to the *legacy JS
->   engine* — a different engine behind the same specifier, which is worse than a build error.
->   The `peerDependencies` half is handled (`packages/doenetml/vite.config.ts` deliberately keeps
->   `math-expressions` out of the published `peerDependencies`, because a `file:` range means
->   nothing to a consumer), but the unresolved import is not. Settling it — publish the seam under
->   a real name, or stop externalizing it and let `packages/doenetml` bundle its own copy — has to
->   happen before this branch ships. Nothing else in Stage 1 is blocking.
+> - **⚠️ The submodule seam is a deliberate temporary bridge; the decided exit is npm.**
+>   `packages/math` is `"private": true` and is never published, while `packages/doenetml` (and its
+>   siblings) externalize the bare specifier `math-expressions`. Inside the workspace that is
+>   correct — a `file:` dependency resolves and `@doenet/standalone` bundles exactly one copy. In a
+>   *published* tarball it is not: the shipped `@doenet/doenetml` carries a bare `math-expressions`
+>   import with nothing declaring it, so an npm consumer either fails to resolve it or, if they
+>   happen to have the real npm `math-expressions@2.x` in their tree, silently resolves it to the
+>   *legacy JS engine* — a different engine behind the same specifier, which is worse than a build
+>   error. The `peerDependencies` half is already handled (`packages/doenetml/vite.config.ts`
+>   deliberately keeps `math-expressions` out of the published `peerDependencies`, because a
+>   `file:` range means nothing to a consumer).
+>
+>   **The resolution is not to publish `@doenet/math` and not to bundle the seam.**
+>   [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84) merges, the upstream
+>   repo publishes **`math-expressions@3.x`** to npm, and DoenetML depends on it from npm instead
+>   of from the submodule. Step 6 below is the checklist for that swap, measured against this tree.
+>   Until then this branch is not shippable, and nothing else in Stage 1 is blocking.
 >
 > - **`engine-rust.ts` is a straight re-export.** Upstream absorbed every gap fill we had written —
 >   `Expression#f()`, the context-level operation family, the `NaN`/`±Infinity` replacer, and the
@@ -229,9 +233,11 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   delimiter from real content — `(, )` in prose is not a tuple.
 >
 > - **Sizes**, measured at the current pin with `npm run build -w packages/math`: the `web`-target
->   WASM is **1.68 MiB** (before `wasm-opt`, unavailable here), which inlines as 2.24 MiB of base64
->   into a **2.40 MiB** `dist/engine-rust.js` — **782 kB gzipped**, against roughly 1.1 MB for the
->   JavaScript library it replaces. Bundle size is not the obstacle §5-R7 feared, *provided* every
+>   WASM is **1.68 MiB** (1,765,121 B, before `wasm-opt`, unavailable here), which inlines as
+>   2.24 MiB of base64 into a **2.40 MiB** `dist/engine-rust.js` (2,523,337 B) — **788 kB gzipped**,
+>   against roughly 1 MiB for the JavaScript library it replaces (a figure measured before the
+>   legacy package was removed from the tree, and not re-measurable here).
+>   Bundle size is not the obstacle §5-R7 feared, *provided* every
 >   library externalizes the seam; three separate bundles were carrying private copies before they
 >   did, which is what `packages/standalone/scripts/check-bundle-size.mjs` now guards.
 >
@@ -350,8 +356,58 @@ comparisons (compare parsed trees or use `equals`) over rewriting expected strin
 stops being coupled to one formatter. Flip the default only when memory is flat and the
 divergence ledger is empty or accepted; keep the flag one release, then delete it.
 
+### Step 6 — Retire the submodule for the npm `math-expressions@3.x` dependency
+
+This is the decided end state for Stage 1, and the checklist below is measured against this tree so
+the swap can be costed rather than guessed at.
+
+**What does *not* change — this is what the alias design bought.** No call site moves: the 147
+files still say `import me from "math-expressions"`, and every bundler rule already names that bare
+specifier, so all seven survive untouched — `external` in `packages/doenetml`,
+`packages/doenetml-prototype`, `packages/doenetml-worker-javascript`,
+`packages/doenetml-worker-rust`, `packages/utils` and `packages/virtual-keyboard`, and `dedupe` in
+`packages/doenetml-worker`. `packages/standalone/scripts/check-bundle-size.mjs`'s two-binaries rule
+is unaffected for the same reason.
+
+**The one question that decides how much else changes: which wasm the published package ships.**
+`packages/math` exists to hand the compat layer a `--target web` wasm-bindgen module through
+upstream's `setWasmModule`, because compat's own fallback (`lib/_wasm.ts`) loads a *nodejs*-target
+build through `createRequire` and there is no browser path without an injection. At the current pin
+the tarball `npm pack` would produce for `math-expressions@3.0.0-alpha1` carries
+`vendor/wasm/math_expressions_wasm_bg.wasm` — the **nodejs** target — and
+`math-expressions-rs-wasm` (which compat imports `compileRustExpr` and `TreeToMathjs` from at run
+time) publishes `dist` and `src-js` with no wasm at all. So:
+
+- **If upstream also publishes the `--target web` artifact**, `packages/math` keeps its job but
+  stops compiling anything: `scripts/build-wasm.mjs` collapses from "shell out to the submodule's
+  `build-wasm.sh web pkg`" to "read the `.wasm` out of `node_modules` and base64 it", and the
+  toolchain requirement disappears with it.
+- **If it does not**, the submodule can still go — the compat *sources* come from npm — but
+  DoenetML keeps cargo, `wasm32-unknown-unknown` and `wasm-bindgen-cli` in order to produce the
+  web build itself, which is most of the cost the swap is meant to remove. **Settle this upstream
+  before scheduling the swap.**
+
+**The mechanical part**, assuming the web artifact is published:
+
+| What | Where | Change |
+| --- | --- | --- |
+| Consumer manifests | `packages/{doenetml,doenetml-prototype,doenetml-to-pretext,doenetml-worker-javascript,doenetml-worker-rust,test-cypress,utils}/package.json` | 7 × `"math-expressions": "file:../math"` → `"^3.x"`, *if* `packages/math` is retired; if it survives as the wasm-injecting seam they stay as they are and only `packages/math/package.json` gains the npm dependency. |
+| Published peers | `packages/doenetml/vite.config.ts` | Delete `PUBLISHED_PEER_DEPS`' `dep !== "math-expressions"` filter, so `math-expressions` becomes a real `peerDependencies` entry in the published tarball. **This is the line that actually unblocks publishing.** |
+| Source aliases | `packages/math/vite.config.ts` | The four aliases (`math-expressions-js-compat`, `math-expressions-js-compat/lib/*`, `math-expressions-rs-wasm`, `math-expressions-wasm-glue`) all resolve into the submodule; three become plain node resolution and the glue alias points at `node_modules`. |
+| Build inputs | `packages/math/package.json` | Nine wireit `files` globs under `../../vendor/math-expressions/` — seven in `build:wasm`, two in `build` — become `node_modules` paths, or `build:wasm` disappears entirely. |
+| CI | `.github/workflows/{ci,publish,gh-pages-docs}.yml` | 13 × `submodules: recursive` and 11 × `uses: ./.github/actions/setup-math-wasm` become removable, and `.github/actions/setup-math-wasm/` can be deleted. |
+| Devcontainer | `.devcontainer/devcontainer.json`, `.devcontainer/features/wasm-toolchain/` | The `wasm-toolchain` feature and its `devcontainer.json` entry can be deleted. |
+| Submodule | `.gitmodules`, `vendor/math-expressions`, `.prettierignore` | Delete the submodule entry and the checkout, and drop the `vendor/math-expressions` line from `.prettierignore` (it exists only because the submodule is a second git repo with its own prettier config). |
+
+**Upstream still owes three things before `math-expressions@3.x` is installable at all**; they are
+tracked in [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84)'s description
+rather than here, but they gate this step: `math-expressions-rs-wasm` is depended on as `"*"` and
+is not on npm; there is no `prepack`, so the git-ignored `dist/` that `main`/`exports` point at
+only exists if someone remembers to build first; and `exports["."]` declares no `types`.
+
 **Stage 1 exit criteria:** all suites green on `rust`, flat memory over a long session, no
-main-thread init regression, bundle delta accepted.
+main-thread init regression, bundle delta accepted, and `@doenet/doenetml` publishable against
+`math-expressions@3.x` from npm.
 
 ---
 

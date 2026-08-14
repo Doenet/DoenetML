@@ -14,7 +14,17 @@
         "is the exception right now: its observation dropped when the math seam",
         "was externalized out of the libraries it bundles, and lowering a ceiling",
         "is a separate decision from raising one — it should be taken against a",
-        "CI build rather than a developer's, where `wasm-opt` may be absent."
+        "CI build.",
+        "",
+        "Measure on CI, not locally, because the math core's size is not",
+        "reproducible across machines. The submodule's `build-wasm.sh` runs an",
+        "optional `wasm-opt -Oz` pass, worth ~10-15%, and skips it when binaryen",
+        "is absent. Neither `.github/actions/setup-math-wasm` nor the",
+        "devcontainer's `wasm-toolchain` feature installs binaryen, and the",
+        "GitHub runner image does not carry it — so CI reliably builds the",
+        "*larger*, unoptimized core, and a developer who happens to have",
+        "`wasm-opt` on their PATH will observe a smaller bundle than the one that",
+        "actually ships."
     ],
     "files": {
         "dist/doenet-standalone.js": {

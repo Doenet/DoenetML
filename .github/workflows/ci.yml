@@ -336,6 +336,11 @@ jobs:
               with:
                   # @doenet/math compiles its WASM core from this submodule at
                   # build time; checkout skips submodules by default.
+                  #
+                  # No `setup-math-wasm` step here, unlike every other job that
+                  # builds: the build runs *inside* the devcontainer, whose
+                  # image already carries the Rust toolchain through the
+                  # `wasm-toolchain` feature in `.devcontainer/`.
                   submodules: recursive
 
             - name: Install devcontainer CLI
@@ -371,6 +376,10 @@ jobs:
               with:
                   # @doenet/math compiles its WASM core from this submodule at
                   # build time; checkout skips submodules by default.
+                  #
+                  # No `setup-math-wasm` step here: the build runs inside the
+                  # devcontainer, whose image carries the Rust toolchain through
+                  # the `wasm-toolchain` feature in `.devcontainer/`.
                   submodules: recursive
 
             - name: Download build artifacts

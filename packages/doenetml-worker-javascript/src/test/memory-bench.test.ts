@@ -47,95 +47,98 @@ const MEMBENCH_ENABLED = Boolean(
     process.env.MEMBENCH_REPEAT_HEAP_SNAPSHOT,
 );
 
+/** Building a core for either of these documents takes minutes, not seconds. */
+const BENCH_TIMEOUT_MS = 240000;
+
 describe.runIf(MEMBENCH_ENABLED)("memory benchmark", () => {
-    it("loads the Venn diagram document and reports heap", async () => {
-        const gc = (globalThis as any).gc;
-        if (gc) {
-            gc();
-        }
-        const before = process.memoryUsage().heapUsed;
+    it(
+        "loads the Venn diagram document and reports heap",
+        () =>
+            measure({
+                doenetML,
+                resultVar: "MEMBENCH_RESULT",
+                snapshotVar: "MEMBENCH_HEAP_SNAPSHOT",
+            }),
+        BENCH_TIMEOUT_MS,
+    );
 
-        const { core } = await createTestCore({ doenetML });
-
-        if (gc) {
-            gc();
-            gc();
-        }
-        const after = process.memoryUsage().heapUsed;
-
-        // count components and state variables for context
-        const components = (core as any).core._components;
-        let numComponents = 0;
-        let numStateVariables = 0;
-        for (const idx in components) {
-            const comp = components[idx];
-            if (!comp?.state) {
-                continue;
-            }
-            numComponents++;
-            numStateVariables += Object.keys(comp.state).length;
-        }
-
-        const result = JSON.stringify({
-            heapUsedMB: ((after - before) / 1048576).toFixed(1),
-            gcAvailable: Boolean(gc),
-            numComponents,
-            numStateVariables,
-        });
-        if (process.env.MEMBENCH_RESULT) {
-            fs.writeFileSync(process.env.MEMBENCH_RESULT, result);
-        }
-
-        expect(numComponents).toBeGreaterThan(100);
-
-        if (process.env.MEMBENCH_HEAP_SNAPSHOT) {
-            const v8 = await import("node:v8");
-            v8.writeHeapSnapshot(process.env.MEMBENCH_HEAP_SNAPSHOT);
-        }
-    }, 240000);
-
-    it("loads a repeat/shadow-heavy document and reports heap", async () => {
-        const gc = (globalThis as any).gc;
-        if (gc) {
-            gc();
-        }
-        const before = process.memoryUsage().heapUsed;
-
-        const { core } = await createTestCore({ doenetML: repeatDoenetML });
-
-        if (gc) {
-            gc();
-            gc();
-        }
-        const after = process.memoryUsage().heapUsed;
-
-        const components = (core as any).core._components;
-        let numComponents = 0;
-        let numStateVariables = 0;
-        for (const idx in components) {
-            const comp = components[idx];
-            if (!comp?.state) {
-                continue;
-            }
-            numComponents++;
-            numStateVariables += Object.keys(comp.state).length;
-        }
-
-        const result = JSON.stringify({
-            heapUsedMB: ((after - before) / 1048576).toFixed(1),
-            gcAvailable: Boolean(gc),
-            numComponents,
-            numStateVariables,
-        });
-        if (process.env.MEMBENCH_REPEAT_RESULT) {
-            fs.writeFileSync(process.env.MEMBENCH_REPEAT_RESULT, result);
-        }
-
-        expect(numComponents).toBeGreaterThan(100);
-
-        if (process.env.MEMBENCH_REPEAT_HEAP_SNAPSHOT) {
-            const v8 = await import("node:v8");
-            v8.writeHeapSnapshot(process.env.MEMBENCH_REPEAT_HEAP_SNAPSHOT);
-        }
-    }, 240000);
+    it(
+        "loads a repeat/shadow-heavy document and reports heap",
+        () =>
+            measure({
+                doenetML: repeatDoenetML,
+                resultVar: "MEMBENCH_REPEAT_RESULT",
+                snapshotVar: "MEMBENCH_REPEAT_HEAP_SNAPSHOT",
+            }),
+        BENCH_TIMEOUT_MS,
+    );
 });
+
+/**
+ * Build a core for `doenetML` and report what it cost.
+ *
+ * The two cases differ only in the document and in which pair of environment
+ * variables names their output, so the measurement itself lives here once.
+ *
+ * `gc()` is only present under `--expose-gc`; without it the heap delta still
+ * means something, just noisily, so the calls are conditional rather than
+ * required. It runs twice after building the core because V8's first collection
+ * can leave objects that only the second one reaches.
+ *
+ * The `expect` is deliberately weak. This is an instrument: its output is the
+ * JSON it writes, and the assertion exists only so a document that silently
+ * stopped building cannot be reported as a very small heap.
+ */
+async function measure({
+    doenetML,
+    resultVar,
+    snapshotVar,
+}: {
+    doenetML: string;
+    resultVar: string;
+    snapshotVar: string;
+}) {
+    const gc = (globalThis as any).gc;
+    gc?.();
+    const before = process.memoryUsage().heapUsed;
+
+    const { core } = await createTestCore({ doenetML });
+
+    gc?.();
+    gc?.();
+    const after = process.memoryUsage().heapUsed;
+
+    // Component and state-variable counts, for context on the heap figure.
+    const components = (core as any).core._components;
+    let numComponents = 0;
+    let numStateVariables = 0;
+    for (const idx in components) {
+        const comp = components[idx];
+        if (!comp?.state) {
+            continue;
+        }
+        numComponents++;
+        numStateVariables += Object.keys(comp.state).length;
+    }
+
+    const resultPath = process.env[resultVar];
+    if (resultPath) {
+        fs.writeFileSync(
+            resultPath,
+            JSON.stringify({
+                heapUsedMB: ((after - before) / 1048576).toFixed(1),
+                gcAvailable: Boolean(gc),
+                numComponents,
+                numStateVariables,
+            }),
+        );
+    }
+
+    expect(numComponents).toBeGreaterThan(100);
+
+    const snapshotPath = process.env[snapshotVar];
+    if (snapshotPath) {
+        const v8 = await import("node:v8");
+        v8.writeHeapSnapshot(snapshotPath);
+    }
+}

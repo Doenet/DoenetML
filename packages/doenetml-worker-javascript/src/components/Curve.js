@@ -562,9 +562,16 @@ export default class Curve extends GraphicalComponent {
                     }
                     if (domain !== null) {
                         domain = domain[0];
-                        parMax = me
-                            .fromAst(domain.tree[1][2])
-                            .evaluate_to_constant();
+                        // Same `null` hazard as the `parMaxAttr` branch above,
+                        // and here it is not the downstream consumers that see
+                        // it first: `Math.min(null, x)` below is `Math.min(0, x)`,
+                        // so a `<function>` with a symbolic domain endpoint would
+                        // report a *finite, wrong* `parMax` rather than declining.
+                        // `undefined` is left alone — it means "no domain", which
+                        // the branches below are written around.
+                        parMax = evaluateToNumber(
+                            me.fromAst(domain.tree[1][2]),
+                        );
                     }
                     let graphMin, graphMax;
                     if (dependencyValues.flipFunction) {
@@ -677,9 +684,11 @@ export default class Curve extends GraphicalComponent {
                     }
                     if (domain !== null) {
                         domain = domain[0];
-                        parMin = me
-                            .fromAst(domain.tree[1][1])
-                            .evaluate_to_constant();
+                        // See `parMax`: `Math.max(null, x)` below is
+                        // `Math.max(0, x)`, not "no bound".
+                        parMin = evaluateToNumber(
+                            me.fromAst(domain.tree[1][1]),
+                        );
                     }
                     let graphMin, graphMax;
                     if (dependencyValues.flipFunction) {

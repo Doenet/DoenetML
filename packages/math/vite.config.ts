@@ -82,7 +82,13 @@ export default defineConfig({
         // JS-in-TS and is an implementation detail of this package; consumers
         // are typed by `src/types.ts`, and the submodule modules we import are
         // declared in `src/vendor-shims.d.ts` rather than walked.
-        dts({ include: ["src"] }),
+        //
+        // `src/generated/` is excluded on top of that. It is build output, no
+        // emitted declaration refers to it, and declaring it is expensive out of
+        // all proportion: `wasm-bytes.ts` is the ~2.2 MiB base64 payload, so its
+        // `.d.ts` was a second copy of the whole blob — 2.35 MB, a third of
+        // `dist/`, shipped inside `files: ["/dist"]`.
+        dts({ include: ["src"], exclude: ["src/generated/**"] }),
     ],
     resolve: {
         alias: [

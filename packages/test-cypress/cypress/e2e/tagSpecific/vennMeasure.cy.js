@@ -1,6 +1,9 @@
-// Measurement spec for MEMORY_REDUCTION_LOG.md: loads the Venn diagram
-// profiling document, activates all regions, and records the number of
-// JSXGraph elements and the JS heap size into `venn-measure-result.json`.
+// Measurement spec for the memory-reduction workstream
+// (https://github.com/Doenet/DoenetML/issues/1441), the browser-side companion
+// to `doenetml-worker-javascript/src/test/memory-bench.test.ts`: loads the same
+// Venn diagram profiling document (`src/test/memory-bench-doc.xml`), activates
+// all regions, and records the number of JSXGraph elements and the JS heap size
+// into `venn-measure-result.json`.
 //
 // Skipped by default. It asserts nothing about the product -- it is an
 // instrument, and running it in CI would spend a minute of `@group1` producing

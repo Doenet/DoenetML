@@ -69,7 +69,11 @@ writeFileSync(
     OUT_FILE,
     HEADER +
         `// ${wasm.byteLength} bytes of wasm, base64-encoded.\n` +
-        `export const WASM_BASE64 =\n    "${wasm.toString("base64")}";\n` +
+        // The `: string` annotation is load-bearing. Without it TypeScript
+        // infers a string-literal type holding all ~2.2 million base64
+        // characters, and materializes it on every type-check and in every
+        // editor session that touches this package.
+        `export const WASM_BASE64: string =\n    "${wasm.toString("base64")}";\n` +
         `export const WASM_BYTE_LENGTH = ${wasm.byteLength};\n`,
 );
 

@@ -15,16 +15,17 @@
  */
 
 declare module "math-expressions-js-compat" {
-    import type { Context, Tree } from "./vendored/math-expressions";
+    import type { Context } from "./vendored/math-expressions";
     import type { WasmModule } from "math-expressions-rs-wasm";
 
-    /** The compat `Expression` class. Structurally the legacy `Expression`. */
-    export const Expression: {
-        new (handle: unknown, context?: unknown): unknown;
-        prototype: Record<string, unknown>;
-    };
-
-    export function isTree(value: unknown): value is Tree;
+    /**
+     * Declared as upstream declares it — a plain `boolean`, not a type
+     * predicate. The narrowing to `Tree` is introduced deliberately, in one
+     * place, by `./engine-rust.ts`; asserting it here instead would make this
+     * file *stronger* than the module it is describing, which is exactly the
+     * drift these declarations exist to catch.
+     */
+    export function isTree(value: unknown): boolean;
 
     /**
      * Supply the WASM module the compat layer runs on. Must be called before

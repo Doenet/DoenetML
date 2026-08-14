@@ -24,14 +24,17 @@ const BUDGETS = [
  * One emitted script. `blobs` is the count of inlined wasm copies it holds,
  * `catalogs` the locales whose served catalog turned up inside it.
  */
-function script(size, blobs = 0, catalogs = [], mathCores = 0) {
+function script(size, blobs = 0, catalogs = [], mathCores = 0, otherBlobs = 0) {
     return {
         size,
         wasmUris: blobs,
-        // `bigBlobs` is the total across both inlined binaries; the DoenetML
-        // core contributes `blobs`, the math core `mathCores`.
-        bigBlobs: blobs + mathCores,
+        // The three buckets `countInlinedBinaries` sorts a big blob into, and
+        // their total. Built the way it builds them, so a test cannot describe
+        // a script the scanner could never emit.
+        doenetCores: blobs,
         mathCores,
+        otherBlobs,
+        bigBlobs: blobs + mathCores + otherBlobs,
         inlinedCatalogs: catalogs,
     };
 }
@@ -73,7 +76,9 @@ describe("findProblems", () => {
         const scripts = healthyBuild();
         scripts.set(STANDALONE, script(500, 1));
         expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("should carry no inlined binary"),
+            expect.stringContaining(
+                "should carry no copy of the Rust document core",
+            ),
         ]);
     });
 
@@ -94,7 +99,9 @@ describe("findProblems", () => {
                 expect.stringContaining(
                     "should carry the Rust core exactly once",
                 ),
-                expect.stringContaining("should carry no inlined binary"),
+                expect.stringContaining(
+                    "should carry no copy of the Rust document core",
+                ),
             ]),
         );
     });
@@ -137,17 +144,32 @@ describe("findProblems", () => {
         }
     });
 
-    // Unlike every other case here, the two counts disagree — which is the
-    // only way to tell the `wasmUris || bigBlobs` check from an `&&`.
-    it("rejects a large inlined blob that is not wasm", () => {
+    // An inline that is neither core — a data-URI font, an image, a bundled
+    // worker. It is banned in every script, including the one that legitimately
+    // carries a core, so both halves are checked.
+    it("rejects a large inlined blob that is neither core", () => {
         const scripts = healthyBuild();
-        scripts.set(STANDALONE, {
-            ...script(500),
-            wasmUris: 0,
-            bigBlobs: 1,
-        });
+        scripts.set(STANDALONE, script(500, 0, [], 0, 1));
         expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("should carry no inlined binary"),
+            expect.stringContaining("neither"),
+        ]);
+    });
+
+    it("rejects an unexplained blob even beside a legitimate core", () => {
+        const scripts = healthyBuild();
+        scripts.set(WASM_CORE_SCRIPT, script(900, 1, [], 1, 1));
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining("neither"),
+        ]);
+    });
+
+    // The DoenetML core's URI and its payload move together, so a script
+    // holding one without the other means the scan itself has drifted.
+    it("rejects a wasm URI with no payload behind it", () => {
+        const scripts = healthyBuild();
+        scripts.set(STANDALONE, { ...script(500), wasmUris: 1 });
+        expect(problemsFor(scripts)).toEqual([
+            expect.stringContaining("should carry no copy of the Rust"),
         ]);
     });
 
@@ -409,56 +431,92 @@ describe("servedCatalogProblems", () => {
 });
 
 describe("countInlinedBinaries", () => {
+    /** Not wasm: no magic number, so this is the "unexplained" bucket. */
     const blob = "a".repeat(1_000_000);
+    /** A bare wasm payload: base64 of `\0asm…`, as `wasm-bytes.ts` emits it. */
+    const wasmBlob = "AGFzbQ" + "a".repeat(1_000_000);
 
     it("attributes a data-URI payload to the DoenetML core", () => {
         const text = `x="data:application/wasm;base64,${blob}"`;
         expect(countInlinedBinaries(text)).toEqual({
             wasmUriBlobs: 1,
-            bareBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 0,
         });
     });
 
-    it("attributes a bare base64 constant to the math core", () => {
-        expect(countInlinedBinaries(`const WASM_BASE64="${blob}"`)).toEqual({
+    it("attributes a bare wasm constant to the math core", () => {
+        expect(countInlinedBinaries(`const WASM_BASE64="${wasmBlob}"`)).toEqual(
+            {
+                wasmUriBlobs: 0,
+                bareWasmBlobs: 1,
+                otherBlobs: 0,
+            },
+        );
+    });
+
+    // The regression this classification exists for. Sorting "no data-URI
+    // prefix" straight into the math core made every inlined font, image and
+    // bundled worker look like the one blob that is legal everywhere, so the
+    // unexplained-inline check could never fire.
+    it("does not mistake a large non-wasm blob for the math core", () => {
+        expect(countInlinedBinaries(`const FONT="${blob}"`)).toEqual({
             wasmUriBlobs: 0,
-            bareBlobs: 1,
+            bareWasmBlobs: 0,
+            otherBlobs: 1,
         });
     });
 
-    it("separates the two when both are present", () => {
-        const text = `a="data:application/wasm;base64,${blob}",b="${blob}"`;
+    it("separates all three when they are present together", () => {
+        const text =
+            `a="data:application/wasm;base64,${blob}",` +
+            `b="${wasmBlob}",c="${blob}"`;
         expect(countInlinedBinaries(text)).toEqual({
             wasmUriBlobs: 1,
-            bareBlobs: 1,
+            bareWasmBlobs: 1,
+            otherBlobs: 1,
+        });
+    });
+
+    // The magic only identifies a payload that starts the run. A data URI puts
+    // it after the prefix, which the first branch already claims.
+    it("does not read the magic out of the middle of a run", () => {
+        expect(countInlinedBinaries(`x="aa${wasmBlob}"`)).toEqual({
+            wasmUriBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 1,
         });
     });
 
     it("ignores runs below the threshold", () => {
         expect(countInlinedBinaries("a".repeat(999_999))).toEqual({
             wasmUriBlobs: 0,
-            bareBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 0,
         });
     });
 
     it("counts a run that reaches the threshold at end of input", () => {
         expect(countInlinedBinaries("a".repeat(1_000_000))).toEqual({
             wasmUriBlobs: 0,
-            bareBlobs: 1,
+            bareWasmBlobs: 0,
+            otherBlobs: 1,
         });
     });
 
     it("counts each run separately, since a quote breaks the run", () => {
-        expect(countInlinedBinaries(`"${blob}","${blob}"`)).toEqual({
+        expect(countInlinedBinaries(`"${wasmBlob}","${wasmBlob}"`)).toEqual({
             wasmUriBlobs: 0,
-            bareBlobs: 2,
+            bareWasmBlobs: 2,
+            otherBlobs: 0,
         });
     });
 
     it("does not treat non-base64 characters as part of a run", () => {
         expect(countInlinedBinaries("-".repeat(2_000_000))).toEqual({
             wasmUriBlobs: 0,
-            bareBlobs: 0,
+            bareWasmBlobs: 0,
+            otherBlobs: 0,
         });
     });
 });
@@ -490,7 +548,9 @@ describe("the math core's placement", () => {
         const scripts = healthyBuild();
         scripts.set(STANDALONE, script(500, 1, [], 1));
         expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("should carry no inlined binary"),
+            expect.stringContaining(
+                "should carry no copy of the Rust document core",
+            ),
         ]);
     });
 });

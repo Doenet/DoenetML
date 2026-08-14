@@ -29,9 +29,13 @@ const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
 // range is meaningless to an npm consumer. Externalizing it is still right for
 // the workspace — `@doenet/standalone` builds against this `dist/` and resolves
 // the seam once — but it means the *published* tarball carries an unresolved
-// `math-expressions` import. Publishing this package therefore has to wait for
-// the seam to be a real published package; see
-// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`.
+// `math-expressions` import.
+//
+// This filter is therefore temporary, and deleting it is what unblocks
+// publishing: once math-expressions#84 merges and upstream publishes
+// `math-expressions@3.x` to npm, the specifier names a real package and belongs
+// in `peerDependencies` like `react`. See Step 6 of
+// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` for the rest of that swap.
 const PUBLISHED_PEER_DEPS = EXTERNAL_DEPS.filter(
     (dep) => dep !== "math-expressions",
 );

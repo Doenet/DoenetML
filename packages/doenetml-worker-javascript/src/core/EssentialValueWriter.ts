@@ -1500,17 +1500,14 @@ function spreadMathOverArrayKeys(
     const desiredValuesForArray: Record<string, any> = {};
     for (let [ind, arrayKey] of arrayKeys.entries()) {
         // `getComponent` yields `undefined` when the expression has no such
-        // component — it is shorter than the array, or is not a vector at all —
-        // and we leave the slot unset so the inverse definition keeps the
-        // current value for that key.
+        // component — it is shorter than the array, is not a container at all,
+        // or is not an expression at all — and we leave the slot unset so the
+        // inverse definition keeps the current value for that key.
         //
-        // This used to be a try/catch around `value.get_component(ind)`, relying
-        // on the legacy library throwing. The Rust engine does not throw: an
-        // out-of-range index yields `undefined`, and a *scalar* receiver yields
-        // a real component (every operator node has components there). Catching
-        // was therefore both dead and wrong — a scalar would have written a
-        // wrong value into the slot instead of skipping it. `getComponent`
-        // restores the legacy contract on either engine.
+        // This used to be a try/catch around `value.get_component(ind)`, reading
+        // the throw as "no component". `me` still throws for both of those
+        // cases, so the seam's `getComponent` is that try/catch, written once
+        // and expressed as a value instead of as control flow.
         //
         // An `UNSPECIFIED_COMPONENT` marker is skipped for the same reason: it
         // is a component the producing inverse definition deliberately left

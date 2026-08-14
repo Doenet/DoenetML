@@ -27,7 +27,17 @@
     },
     "wireit": {
         "test": {
-            "command": "vitest run",
+            "//": [
+                "`vitest`, not `vitest run`, because the root aggregate script",
+                "`test:all-no-worker-js` invokes every workspace as",
+                "`npm run test -w <pkg> -- run` and wireit forwards that `run`",
+                "straight to the command. Spelling run mode here made it",
+                "`vitest run run`, where the second `run` is a *filename filter*",
+                "that matches no spec — `No test files found, exiting with code",
+                "1`, and the whole Test Main job red. Every sibling package",
+                "spells its test script the same bare way for the same reason."
+            ],
+            "command": "vitest",
             "files": [
                 "test/**/*.ts",
                 "vitest.config.ts"

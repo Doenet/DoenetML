@@ -1,83 +1,58 @@
 /**
- * Engine-agnostic component access.
+ * Component access, as a test rather than as an exception.
  *
- * `get_component` means slightly different things in the two engines, and the
- * difference is the dangerous kind — silent rather than loud:
+ * `me`'s own `Expression#get_component` is a *throwing* accessor. It rejects a
+ * receiver whose tree head is not a container — list, tuple, vector, altvector
+ * or array — and rejects an index with no operand behind it. DoenetML's one
+ * caller wants the opposite shape: `EssentialValueWriter.ts` is deciding
+ * whether an inverse definition should write a slot at all, and "this
+ * expression has no such component" is an ordinary answer there rather than an
+ * error. So this is a thin adapter that spells that answer `undefined`.
  *
- * | receiver | legacy JS | Rust/WASM (PR #84) |
- * | --- | --- | --- |
- * | `["tuple",1,2]`, index 0 | `1` | `1` |
- * | `["tuple",1,2]`, index 5 | **throws** | `undefined` |
- * | `["+","x",1]`, index 0 | **throws** | `"x"` |
- * | `"x"`, index 0 | **throws** | `undefined` |
+ * That contract used to be *restated* here — an explicit container set plus a
+ * range check — because the Rust engine had briefly relaxed it: an out-of-range
+ * index answered `undefined`, and *any* operator node answered a component, so
+ * a scalar receiver quietly produced a value where the legacy library threw and
+ * the caller would have written that value into the slot. math-expressions
+ * PR #84 restored the legacy behavior (`get_component` in
+ * `lib/math-expressions.ts`, against the same container set), so the
+ * restatement is gone. Keeping it bought a second copy of the container set to
+ * hold in sync, and three extra reads of `expr.tree` — each of which crosses
+ * the WASM boundary and re-parses the whole tree — on a path that runs once per
+ * array key of every inverse write.
  *
- * The Rust engine is a strict superset: every operator node has components,
- * associative operators are flattened first, and out-of-range yields `undefined`
- * instead of throwing. That is a better primitive. But DoenetML has call sites
- * written against the legacy contract that use the throw as a *type test* — the
- * clearest being `EssentialValueWriter.ts`, which relies on it to decide whether
- * an inverse definition should write a slot at all. Under the new contract a
- * scalar receiver returns a real component, so that code would write a wrong
- * value rather than skipping the slot.
- *
- * `getComponent` below restores the legacy contract on top of either engine:
- * sequence receivers only, `undefined` for anything else. It never throws, so
- * callers test the result instead of catching — which is what the call sites
- * actually meant. Where a caller genuinely wants the richer Rust behavior
- * (matrix paths, function heads), it should call `.get_component(path)` directly
- * and say so.
+ * The two guards below are the part upstream does *not* cover.
  */
-import type { Expression, Tree } from "./types";
-
-/** Operators the legacy `get_component` accepted: "list, tuple, vector, or array". */
-const SEQUENCE_OPERATORS = new Set([
-    "tuple",
-    "vector",
-    "altvector",
-    "list",
-    "array",
-]);
+import type { Expression } from "./types";
 
 /**
- * The first element of an expression's tree, when that tree is an operator node.
- * `undefined` for leaves (numbers, symbols, booleans).
- */
-function operatorOf(expr: Expression): string | undefined {
-    const tree = expr.tree as Tree;
-    return Array.isArray(tree) && typeof tree[0] === "string"
-        ? tree[0]
-        : undefined;
-}
-
-/**
- * Component `index` of a sequence-valued expression, or `undefined` when the
- * receiver is not a sequence or the index is out of range.
+ * Component `index` of a container-valued expression, or `undefined` when the
+ * receiver is not a container, is not an expression at all, or has no operand
+ * at `index`.
  *
- * Identical on both engines. Never throws.
+ * Never throws.
  */
 export function getComponent(
     expr: Expression | undefined | null,
     index: number,
 ): Expression | undefined {
-    if (!expr || typeof (expr as Expression).tree === "undefined") {
+    // The caller passes whatever the inverse definition produced, which may be
+    // a plain number, string or array rather than an `Expression`. Probing the
+    // method is deliberate: the obvious `expr.tree === undefined` test would
+    // materialize the whole tree across the WASM boundary just to type-check.
+    if (typeof expr?.get_component !== "function") {
         return undefined;
     }
-    const operator = operatorOf(expr);
-    if (operator === undefined || !SEQUENCE_OPERATORS.has(operator)) {
-        return undefined;
-    }
-    // `tree.length - 1` operands follow the operator.
-    const numComponents = (expr.tree as unknown[]).length - 1;
-    if (!Number.isInteger(index) || index < 0 || index >= numComponents) {
+    // `me` converts the index with `Uint32Array.from`, which turns a
+    // non-integer into `0` rather than into a miss — so `NaN` would read
+    // component 0 and `1.5` would read component 1.
+    if (!Number.isInteger(index) || index < 0) {
         return undefined;
     }
     try {
-        const component = expr.get_component(index);
-        return component ?? undefined;
+        return expr.get_component(index) ?? undefined;
     } catch {
-        // The legacy engine throws for cases the guards above should already
-        // have excluded; treat any residual disagreement as "no component"
-        // rather than letting engine choice change control flow.
+        // Not a container, or no operand at `index`.
         return undefined;
     }
 }
