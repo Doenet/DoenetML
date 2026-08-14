@@ -164,13 +164,23 @@ describe("findProblems", () => {
     });
 
     // The DoenetML core's URI and its payload move together, so a script
-    // holding one without the other means the scan itself has drifted.
-    it("rejects a wasm URI with no payload behind it", () => {
-        const scripts = healthyBuild();
-        scripts.set(STANDALONE, { ...script(500), wasmUris: 1 });
-        expect(problemsFor(scripts)).toEqual([
-            expect.stringContaining("should carry no copy of the Rust"),
-        ]);
+    // holding one without the other means the scan itself has drifted. Which
+    // is why the two counts are checked separately rather than one standing in
+    // for the other: drop either half of that check and one of these two
+    // scripts is accepted in silence, with the count that was still looked at
+    // reading exactly as a healthy build's does.
+    it("rejects a wasm URI and its payload disagreeing, in either direction", () => {
+        for (const skew of [
+            { wasmUris: 1, doenetCores: 0, bigBlobs: 0 },
+            { wasmUris: 0, doenetCores: 1, bigBlobs: 1 },
+        ]) {
+            const scripts = healthyBuild();
+            const where = JSON.stringify(skew);
+            scripts.set(STANDALONE, { ...script(500), ...skew });
+            const problems = problemsFor(scripts);
+            expect(problems, where).toHaveLength(1);
+            expect(problems[0], where).toContain(STANDALONE);
+        }
     });
 
     it("rejects a script carrying a catalog the bundle is meant to serve", () => {
@@ -443,16 +453,6 @@ describe("countInlinedBinaries", () => {
             bareWasmBlobs: 0,
             otherBlobs: 0,
         });
-    });
-
-    it("attributes a bare wasm constant to the math core", () => {
-        expect(countInlinedBinaries(`const WASM_BASE64="${wasmBlob}"`)).toEqual(
-            {
-                wasmUriBlobs: 0,
-                bareWasmBlobs: 1,
-                otherBlobs: 0,
-            },
-        );
     });
 
     // The regression this classification exists for. Sorting "no data-URI

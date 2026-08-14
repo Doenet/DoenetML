@@ -2144,6 +2144,12 @@ describe("Math operator tests @group2", async () => {
       <clampNumber name="clampNumber13" lowervalue="10" uppervalue="40">-12$a</clampNumber>
       <clampNumber name="clampNumber14" lowervalue="10" uppervalue="40">3$a</clampNumber>
 
+      <!-- Bounding an unbounded value at the bound is what a clamp is for, so
+           an infinite input must reach the clamp rather than be rejected
+           alongside the symbolic inputs above, which have no value at all. -->
+      <clampNumber name="clampNumber15" lowervalue="10" uppervalue="40">Infinity</clampNumber>
+      <clampNumber name="clampNumber16" lowervalue="10" uppervalue="40">-Infinity</clampNumber>
+
       <clampNumber extend="$clampNumber1" name="clampNumber1b" />
       <clampNumber extend="$clampNumber5" name="clampNumber5b" />
       <clampNumber extend="$clampNumber9" name="clampNumber9b" />
@@ -2210,6 +2216,14 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("clampNumber14")]
                 .stateValues.value.tree,
         ).eq(12);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("clampNumber15")]
+                .stateValues.value.tree,
+        ).eq(40);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("clampNumber16")]
+                .stateValues.value.tree,
+        ).eq(10);
         expect(
             stateVariables[await resolvePathToNodeIdx("clampNumber1b")]
                 .stateValues.value.tree,
@@ -2993,6 +3007,12 @@ describe("Math operator tests @group2", async () => {
 
       <round name="round12" numDecimals="-6"><math>exp(20) pi</math></round>
 
+      <!-- An exact rational has to be floated before it can be rounded, and
+           max_digits: Infinity is the only setting that does that. Without it
+           these two answer 1/3 and 2/7, unrounded. -->
+      <round name="round13" numDecimals="3">1/3</round>
+      <round name="round14" numDigits="4">2/7</round>
+
       <round extend="$round1" name="round1b" />
       <round extend="$round5" name="round5b" />
       <round extend="$round11" name="round11b" />
@@ -3050,6 +3070,14 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("round12")].stateValues
                 .value.tree,
         ).eq(1524000000);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round13")].stateValues
+                .value.tree,
+        ).eq(0.333);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("round14")].stateValues
+                .value.tree,
+        ).eq(0.2857);
         expect(
             stateVariables[await resolvePathToNodeIdx("round1b")].stateValues
                 .value.tree,

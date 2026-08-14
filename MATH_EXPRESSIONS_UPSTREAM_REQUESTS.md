@@ -11,46 +11,77 @@ than hidden behind a widened type or a local patch in `packages/math/src/engine-
 
 ### Odd roots of a negative number
 
-**`x^(1/n)` and `nthroot(x, n)` take different branches for a negative `x`, so grading tells the
-same number apart from itself.** Measured at pin `c4ae2e4`, and against `math-expressions@2` from
-npm for the legacy column:
+**`x^(1/n)` is evaluated on the principal complex branch while `nthroot`/`cbrt` and the
+perfect-power fold read it on the real one — so the branch depends on whether the radicand happens
+to be a perfect power, and grading tells the same number apart from itself.** Re-measured at the
+tenth review pass against pin `1f543c5`, and against `math-expressions@2.0.0-alpha93` from npm for
+the legacy column:
 
 | `equals(a, b)` | legacy 2.x | Rust engine |
 | --- | --- | --- |
 | `(-8)^(1/3)` = `-2` | true | true |
 | `cbrt(-8)` = `-2` | true | true |
 | `(-2)^(1/3)` = `cbrt(-2)` | **true** | **false** |
-| `cbrt(-2)` = `-cbrt(2)` | **false** | **true** |
 | `(-2)^(1/5)` = `nthroot(-2,5)` | **true** | **false** |
+| `(-8)^(1/3)` = `(-2)^(1/3)·4^(1/3)` | **true** | **false** |
+| `cbrt(-2)` = `-cbrt(2)` | **false** | **true** |
 
-Both engines are internally inconsistent here, in mirror images of each other. Both *display* the
-real branch — `simplify(cbrt(-2))` is `-cbrt(2)` in each — and both evaluate numerically on the
-principal complex branch. Legacy's `equals` never applied that rewrite before comparing, so it
-disagreed with its own `simplify`; this engine does apply it, so `cbrt` is self-consistent, but the
-`^` spelling is not rewritten (`fold_numeric_radical` bails unless the base is a perfect power) and
-so stays on the principal branch. Hence the swap: this engine fixed `cbrt(-2) = -cbrt(2)` and broke
-`(-2)^(1/3) = cbrt(-2)`.
+Numerically, on this engine:
 
-`(-8)^(1/3)` itself is *not* affected and is not a divergence: it folds to the exact `-2` on both
-engines. That is what makes this easy to spot-check wrongly — the perfect-power case, which is the
-one anybody tries first, is the one that works.
+```
+(-8)^(1/3)  -> -2                  (-2)^(1/3) -> 0.6300 + 1.0911i
+(-27)^(1/3) -> -3                  (-8)^(1/5) -> 1.2262 + 0.8909i
+(-32)^(1/5) -> -2
+```
 
-End to end through `<answer>`, measured: an expected `\sqrt[3]{-2}` scores a typed `(-2)^{1/3}` at
-0, and an expected `\sqrt[3]{-8}` scores a typed `(-8)^{1/3}` at 1.
+**This is a regression from legacy, not a symmetric convention difference**, and the earlier
+description of it as "both engines inconsistent in mirror images" understated it in one direction
+and overstated the symmetry. Driven end to end through `<answer>` on both trees — `origin/main` at
+the merge base with `math-expressions@2.0.0-alpha93`, against this branch — four cases that scored
+**1** on legacy now score **0**:
 
-Closing it means picking one branch for `(negative)^(1/odd)` and using it in the numeric evaluator
-as well as in `simplify` — `CBRT`/`NTHROOT`'s `eval1`/`eval2` in `special_functions/powers.rs` are
-`powf`/`powc`, i.e. principal, which is mathjs parity and is what the `is_real(i^2)` fix was
-careful to preserve. It is a convention decision with a blast radius across every numeric path
-(plotting, `f()`, extrema, the `equals` sampler), not a local repair, which is why it is recorded
-here rather than fixed in a review pass.
+| expected | typed | legacy | here |
+| --- | --- | ---: | ---: |
+| `cbrt(-2)` | `(-2)^{1/3}` | 1 | **0** |
+| `(-2)^(1/3)` | `\sqrt[3]{-2}` | 1 | **0** |
+| `nthroot(-2,3)` | `(-2)^{1/3}` | 1 | **0** |
+| `(-2)^(1/3)` | `-1.2599210498948732` | 1 | **0** |
+
+Two cases *improve* and must not be given back: `cbrt(-2) = -cbrt(2)` and
+`cbrt(-2) = -1.2599210498948732` are both **true** here and were **false** on legacy. Legacy was
+non-transitive — `(-2)^(1/3) = cbrt(-2)` and `(-2)^(1/3) = -1.2599…` were both true while
+`cbrt(-2) = -1.2599…` was false — because its *simplifier* read `cbrt` on the real branch and its
+*numeric evaluator* read it on the principal one. This engine fixed `cbrt` and left `^` split, so
+the inconsistency moved rather than closing.
+
+`(-8)^(1/3)` itself is *not* affected: it folds to the exact `-2` on both engines. That is what
+makes this easy to spot-check wrongly — the perfect-power case, which is the one anybody tries
+first, is the one that works.
+
+Closing it means reading `Pow(negative real, 1/odd)` on the **real** branch, which is what the
+perfect-power fold, `cbrt`, `nthroot` and `simplify`'s radical cluster already do. That restores
+the four regressed cases and keeps the two improvements. The alternative — making the perfect-power
+fold complex-principal instead — would break `(-8)^(1/3) = -2`, which both engines grade 1 and
+which authors rely on, so it is not a real option. It is recorded here rather than fixed in a
+review pass because it moves a branch every numeric path shares (plotting, `f()`, extrema, the
+`equals` sampler) and has mathjs-parity consequences that want a maintainer's decision, not a
+reviewer's.
 
 The same split has a second symptom on the public assumptions API: `is_real(cbrt(-8))` and
 `is_real((-8)^(1/3))` both answer `false`, and `is_real(2 + cbrt(-8))` answers `false` although the
 engine's own `simplify` folds that expression to `0`. `Facts::of_constant` classifies by
-`eval_complex`, which is the principal branch. DoenetML calls none of these predicates directly,
-and the one `simplify` rule that consults realness treats a `false` as a reason to decline, so this
-costs a rewrite rather than producing a wrong one.
+`eval_complex`, which is the principal branch. **This one is incompleteness, not a wrong answer, and
+that is now checked rather than assumed.** DoenetML calls none of these predicates directly —
+grepping `is_real|is_positive|is_negative|is_nonzero|is_integer` across `packages/*/src` returns no
+hit outside `packages/math/src/generated/` and the vendored `.d.ts`. Inside the crate, every
+realness consumer outside `src/assumptions/` was checked for polarity: the five `is_real` sites in
+`normalize/simplify.rs`, the `is_nonnegative`/`is_nonpositive` pair beside them, the three in
+`grade/linear.rs`, and the ones in `matrix/elimination.rs`, `matrix/linalg.rs` and
+`equality/discrete_infinite.rs`. All but one require `Some(true)` and so merely decline; the one
+that keys on `Some(false)` — the odd-root sign extraction at `normalize/simplify.rs:1502` — uses it
+to *decline* the rewrite, which is sound on either branch. In practice the cost is near zero
+because normalization runs first: `simplify(cbrt(-2))` is `-cbrt(2)`, and `is_real(-cbrt(2))` is
+**true**, so the stale answer belongs to a spelling the simplifier has already replaced.
 
 ### The two earlier items
 
@@ -160,8 +191,11 @@ These are behavioral differences, not defects, and the decision belongs to Doene
 - **Text output no longer pads container delimiters** — `(0, 0)` where the legacy printer wrote
   `( 0, 0 )`. `toLatex` is unchanged (`\left( 1, 2 \right)` keeps its spacing); only the text
   renderer moved. Test expectations were updated to match.
-- **ODE float-precision assertions.** Some tests compare two *independent* integrations with an
-  exact `.eq()`. They now differ in the last couple of bits. Those assertions want `closeTo`.
+*(An "ODE float-precision assertions" entry stood here — tests comparing two independent
+integrations with an exact `.eq()` were said to differ in the last couple of bits. It no longer
+reproduces and is retired rather than restated: `src/test/dynamicalsystem/` is 5 files / 16 tests,
+all passing at the current pin, and the only change this diff makes to that directory is container
+delimiters in `cobwebpolyline.test.ts`. No assertion was loosened to get there.)*
 
 ## Adding an entry
 

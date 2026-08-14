@@ -57,6 +57,11 @@ method — a ready-made way to diff the WASM surface against our needs (§2).
 
 ### Known gaps (`WHATS_LEFT.md`, `JS_RUST_DIFF.md`)
 
+> **As of the pinned revision, two of these are closed.** PR #84 ports MathML parsing
+> (`lib/converters/mml-to-ast.ts`, exported as `converters.MmlToAst`) and the polynomial/Groebner
+> subtree (`math-expressions-rs/src/polynomials/`, including `compat/`). The rest of this
+> paragraph is the audit's state and is left as the record of what the plan was written against.
+
 MathML parsing (`mmlToAst`), derivative step narration, polynomial/Groebner, `equalsViaSyntax`
 *with tolerance*, and richly-structured `get_assumptions` are unported. GLSL/Guppy/MathML-output
 and `mathjsToAst` are marked "not needed for Doenet" — verify against our source rather than

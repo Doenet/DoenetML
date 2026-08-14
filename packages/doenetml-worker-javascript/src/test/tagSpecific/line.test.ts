@@ -11,7 +11,8 @@ import {
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { evaluateToNumber } from "../../utils/math";
+import { evaluateToNumber, UNSPECIFIED_COMPONENT } from "../../utils/math";
+import DirectionComponent from "../../components/abstract/DirectionComponent";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -6324,5 +6325,99 @@ describe("Line tag tests @group3", async () => {
         expect(l1Latex).match(/10\^{-12}|10\^{21}/);
         expect(l2Latex).contain("0.000000000007");
         expect(l2Latex).contain("2000000000000000000000");
+    });
+
+    // `_directionComponent` is the adapter every `direction` attribute — i.e.
+    // `parallelTo` and `perpendicularTo` — is read through, and its inverse
+    // definition scales the desired unit direction back up by the magnitude of
+    // the direction it was given. `evaluate_to_constant()` reports a component
+    // of a *symbolic* direction as `null`, and `null * null` is `0`, so that
+    // magnitude came out `0` and multiplied every desired component away: the
+    // direction became the zero vector and the line lost its second point.
+    // `NaN` is what the fallback below the sum tests for, so the components are
+    // mapped to it explicitly and the fallback magnitude of 1 applies.
+    it("moving a line with a symbolic parallelTo sets a unit direction, not zero", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m">(a,b)</math>
+    <graph>
+      <line name="l" through="(1,2)" parallelTo="$m" />
+    </graph>
+    <point name="p2" extend="$l.points[2]" />
+    `,
+        });
+
+        // A symbolic direction gives no second point to start with.
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
+        ).eqls(["tuple", "a", "b"]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("l")
+            ].stateValues.points[1].map((v) => v.tree),
+        ).eqls(["＿", "＿"]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("p2"),
+            x: 4,
+            y: 6,
+            core,
+        });
+
+        // The displacement from (1,2) to (4,6) is (3,4), so the direction is
+        // the unit vector (0.6, 0.8) — magnitude 1, not 0.
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
+        ).eqls(["vector", 0.6, 0.8]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("l")
+            ].stateValues.points.map((p) => p.map((v) => v.tree)),
+        ).eqls([
+            [1, 2],
+            [4, 6],
+        ]);
+    });
+
+    // The other half of the same fix. `_directionComponent`'s inverse builds a
+    // vector AST component by component and hands it to `fromAst`, so an
+    // instruction that sets only *some* components leaves holes, which
+    // `JSON.stringify` turns into `null` and `fromAst` rejects outright,
+    // aborting the whole update. Nothing in the DoenetML surface reaches this
+    // today — `Line` is the only component with `_directionComponent`
+    // attributes and both its `parallelTo` and `perpendicularTo` instructions
+    // set the full array (instrumenting the inverse over this file records 171
+    // invocations, every one of them complete) — so the definition is exercised
+    // directly here rather than through a document that cannot express it.
+    it("a partially specified direction is marked, not left as a hole", async () => {
+        const stateVariableDefinitions = (
+            DirectionComponent as any
+        ).returnStateVariableDefinitions();
+
+        const { instructions } =
+            stateVariableDefinitions.direction.inverseArrayDefinitionByKey({
+                // Only the first of the two components is set.
+                desiredStateVariableValues: {
+                    direction: { "0": me.fromAst(1) },
+                },
+                globalDependencyValues: {
+                    unnormalizedDirection: me.fromAst(["vector", 3, 4]),
+                },
+                arraySize: [2],
+            });
+
+        expect(instructions.length).eq(1);
+        expect(instructions[0].setDependency).eq("unnormalizedDirection");
+        // Scaled by the magnitude 5 of (3,4); the unset component survives as
+        // the marker `preprocessMathInverseDefinition` fills back in.
+        expect(instructions[0].desiredValue.tree).eqls([
+            "vector",
+            5,
+            UNSPECIFIED_COMPONENT,
+        ]);
     });
 });

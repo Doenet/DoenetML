@@ -23,16 +23,40 @@
  *
  * The two guards below are the part upstream does *not* cover.
  *
- * **Why 25 other call sites still say `get_component` directly, and should.**
- * They are not an unconverted backlog. Every one of them tests the receiver's
- * tree head against `vectorOperators` immediately above the call, so the
- * container half of the throw cannot fire; and the four in
- * `@doenet/utils`'s `function.ts` wrap the call in a `try`/`catch` that returns
- * a *meaningful* fallback for an out-of-range component (`() => NaN`, or a
- * blank-valued function). Routing those through this adapter would replace a
- * fallback with `undefined` and move the failure one line later. The shape
- * here is wanted only where "no such component" is an ordinary answer that the
- * caller then acts on, which so far is `EssentialValueWriter.ts` alone.
+ * **Why the other call sites still say `get_component` directly, and should.**
+ * They are not an unconverted backlog. Counted at the tenth review pass:
+ *
+ *   - **36 in `packages/doenetml/src`**, every one of them an `anchor`
+ *     coordinate read inside a `try`/`catch`, with `Number.isFinite` or
+ *     `?? NaN` on the result. The `catch` is the point: a non-container anchor
+ *     falls back to `[NaN, NaN]` and hides the label, which is a better answer
+ *     than `undefined`.
+ *   - **4 in `@doenet/utils`'s `function.ts`**, which wrap the call in a
+ *     `try`/`catch` that returns a *meaningful* fallback for an out-of-range
+ *     component (`() => NaN`, or a blank-valued function). Routing those
+ *     through this adapter would replace a fallback with `undefined` and move
+ *     the failure one line later.
+ *   - **22 in `packages/doenetml-worker-javascript/src`**, which reach the same
+ *     end by three different routes: a shape test at the call (against
+ *     `vectorOperators` in `Point.js`, `FunctionOperators.js` and `Vector.js`'s
+ *     displacement branch; against `tree[0] === "list"` in `MathList.js` and
+ *     `NumberList.js`; against `["vector","tuple"]` in `Polyline.js`), a
+ *     `try`/`catch` around the read (`Parabola.js`), or a boolean settled
+ *     earlier in the definition (`haveVector` in the two
+ *     `DiscreteSimulationResult*` files).
+ *
+ * Six of that last group take none of those routes: the `headShadow` /
+ * `tailShadow` / `endpointShadow` / `throughShadow` / `directionShadow` reads
+ * in `Vector.js`, `Ray.js`, `LineSegment.js` and `DirectionComponent.js`. They
+ * rest on a shadowed point-valued state variable always being a container,
+ * which is true of every route found so far but is an invariant nothing states
+ * or checks. Noted rather than converted, because `undefined` is not obviously
+ * the right answer there either — see the follow-up note in the PR
+ * description.
+ *
+ * The shape here is wanted only where "no such component" is an ordinary
+ * answer that the caller then acts on, which so far is
+ * `EssentialValueWriter.ts` alone.
  */
 import type { Expression } from "./types";
 

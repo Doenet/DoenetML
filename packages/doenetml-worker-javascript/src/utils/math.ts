@@ -1072,10 +1072,17 @@ export function removeFunctionsMathExpressionClass(value: any) {
  * Deliberately *not* `＿` (U+FF3F), which already means a blank the student
  * typed and must keep flowing through untouched.
  *
- * It is an ordinary identifier, so a document with `splitSymbols="false"` and a
- * variable literally named `unspecifiedComponent` would have that component
- * read as unset. Accepted rather than reached for a private-use character,
- * because the marker never leaves the inverse-definition round trip.
+ * The name is prefixed with **U+E000**, the first Private Use Area code point,
+ * so it cannot collide with anything a document can write: a `<math>` with
+ * `splitSymbols="false"` and a variable literally named `unspecifiedComponent`
+ * keeps its own meaning. Nothing renders the prefix, and the marker never
+ * leaves the inverse-definition round trip in any case — but the collision is
+ * cheap to rule out and expensive to debug.
+ *
+ * Note that the prefix is **invisible in most editors and in `git diff`**: the
+ * literal below reads as a bare identifier unless you look at the bytes
+ * (`ee 80 80`). Compare against this constant, never against the string
+ * `"unspecifiedComponent"` typed out again.
  */
 export const UNSPECIFIED_COMPONENT = "unspecifiedComponent";
 

@@ -24,7 +24,15 @@
 # Bypass, like any pre-commit hook, with `git commit --no-verify`.
 #
 # Kept to POSIX-ish bash 3.2 features -- no `declare -A`, no `mapfile` -- so it
-# runs on the bash macOS ships.
+# runs on the bash macOS ships. Two traps that version brings, both of which
+# bit this script and are guarded for below:
+#
+#   1. Expanding an empty array -- `"${arr[@]}"` -- under `set -u` is a fatal
+#      "unbound variable" before bash 4.4, so every array expansion here sits
+#      behind an element-count test rather than relying on it yielding nothing.
+#   2. `mktemp` with no template is a usage error on BSD/macOS, where the
+#      synopsis is `mktemp ... template` or `mktemp ... -t prefix`. The
+#      explicit template below is accepted by both implementations.
 
 set -uo pipefail
 
@@ -94,6 +102,10 @@ if [ ${#fully_staged[@]} -gt 0 ]; then
 fi
 
 # --- Careful path: rewrite the staged blob only, leaving the working tree be.
+# The count test is not cosmetic: on bash 3.2 the expansion below is fatal when
+# nothing is partially staged, which is the ordinary case.
+[ ${#partially_staged[@]} -eq 0 ] && exit 0
+
 for file in "${partially_staged[@]}"; do
     # "<mode> <sha> <stage>\t<path>"; more than one line means an unmerged
     # path, which has no single staged blob to format.
@@ -108,8 +120,11 @@ for file in "${partially_staged[@]}"; do
     *) continue ;;
     esac
 
-    staged_blob=$(mktemp) || fail "could not create a temporary file."
-    formatted=$(mktemp) || fail "could not create a temporary file."
+    tmp_template="${TMPDIR:-/tmp}/doenet-format-staged.XXXXXX"
+    staged_blob=$(mktemp "$tmp_template") ||
+        fail "could not create a temporary file."
+    formatted=$(mktemp "$tmp_template") ||
+        fail "could not create a temporary file."
 
     git cat-file blob "$sha" >"$staged_blob" ||
         fail "could not read the staged contents of $file."

@@ -76,11 +76,33 @@ describe(`math engine (${engineName})`, () => {
 
     // `getComponent` is a `try/catch` around `me`'s throwing accessor, and
     // `EssentialValueWriter` uses the `undefined` to decide whether to write an
-    // array slot at all. Each case below is one way the throw is reached, so
-    // these fail loudly if the engine ever relaxes the contract again — a
-    // relaxation that would otherwise show up only as wrong values written into
-    // inverse definitions.
+    // array slot at all.
+    //
+    // What these pin is the *engine's* half of that arrangement, not the
+    // adapter's own logic. `components.ts` deleted its restated container set
+    // and range check once math-expressions#84 put the legacy throw back, so
+    // the `undefined` for an out-of-range index, for a non-container operator
+    // and for a scalar receiver is now the engine's throw and nothing else. An
+    // engine that relaxed either rule again would hand a value back through
+    // `getComponent`, and the only symptom would be that value written into an
+    // inverse definition. None of these can fail on the commit that removed
+    // those guards — the code it replaced answered `undefined` for all of them
+    // too; they fail when the contract they depend on moves.
+    //
+    // They see `../dist/index.js` alone, so a change under `packages/math/src`
+    // is invisible here until `npm run build -w packages/math` has run.
     describe("getComponent", () => {
+        it("is backed by an accessor that throws rather than answering", () => {
+            // The contract the guard removal rests on, driven directly: every
+            // `undefined` below reaches `getComponent`'s `catch` only because
+            // `me` refuses the call in the first place.
+            const tuple = me.fromText("(1,2)");
+            expect(tuple.get_component(1)?.tree).toBe(2);
+            expect(() => tuple.get_component(5)).toThrow(); // out of range
+            expect(() => me.fromText("x*y").get_component(0)).toThrow(); // not a container
+            expect(() => me.fromText("x").get_component(0)).toThrow(); // scalar
+        });
+
         it("reads a component of a container", () => {
             expect(getComponent(me.fromText("(1,2)"), 0)?.tree).toBe(1);
             expect(getComponent(me.fromText("(1,2)"), 1)?.tree).toBe(2);
