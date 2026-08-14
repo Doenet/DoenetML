@@ -12,7 +12,7 @@ import {
 } from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { markUnspecifiedComponents } from "../utils/math";
+import { evaluateToNumber, markUnspecifiedComponents } from "../utils/math";
 
 export default class Ray extends GraphicalComponent {
     constructor(args) {
@@ -1454,10 +1454,14 @@ export default class Ray extends GraphicalComponent {
                 }
 
                 let endpoint = dependencyValues.endpoint;
+                // `evaluateToNumber`, not a bare `evaluate_to_constant()`:
+                // this array is `forRenderer`, and the engine reports a
+                // still-symbolic coordinate as `null`, which is `0` to the
+                // arithmetic on the other side — an undefined endpoint would be
+                // drawn at the origin rather than not drawn.
                 let numericalEndpoint = [];
                 for (let ind = 0; ind < dependencyValues.numDimensions; ind++) {
-                    let val = endpoint[ind].evaluate_to_constant();
-                    numericalEndpoint.push(val);
+                    numericalEndpoint.push(evaluateToNumber(endpoint[ind]));
                 }
 
                 return { setValue: { numericalEndpoint } };
@@ -1485,10 +1489,10 @@ export default class Ray extends GraphicalComponent {
                 }
 
                 let through = dependencyValues.through;
+                // See `numericalEndpoint` above.
                 let numericalThroughpoint = [];
                 for (let ind = 0; ind < dependencyValues.numDimensions; ind++) {
-                    let val = through[ind].evaluate_to_constant();
-                    numericalThroughpoint.push(val);
+                    numericalThroughpoint.push(evaluateToNumber(through[ind]));
                 }
 
                 return { setValue: { numericalThroughpoint } };

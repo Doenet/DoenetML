@@ -3950,4 +3950,20 @@ describe("Ray Tag Tests @group1", function () {
         await test_items("light");
         await test_items("dark");
     });
+
+    it("a symbolic endpoint leaves the numerical endpoint NaN, not null", async () => {
+        // `numericalEndpoint` and `numericalThroughpoint` are `forRenderer`,
+        // and `Number(null)` is `0`, so an endpoint with no numeric value would
+        // be drawn at the origin rather than not drawn.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph><ray name="r" endpoint="(q,b)" through="(3,4)" /></graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const ray = stateVariables[await resolvePathToNodeIdx("r")];
+        expect(ray.stateValues.numericalEndpoint).eqls([NaN, NaN]);
+        expect(ray.stateValues.numericalThroughpoint).eqls([3, 4]);
+    });
 });

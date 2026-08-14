@@ -13573,4 +13573,24 @@ describe("Math tag tests @group3", async () => {
                 .renderMode,
         ).eq("inline");
     });
+
+    it("a math with no numeric value reports number as NaN, not null", async () => {
+        // `.number` is public and its own description promises "NaN if not a
+        // number". The engine reports an expression it cannot evaluate as
+        // `null`, which coerces to `0` in every consumer that does arithmetic.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <math name="m1">x+y</math>
+  <math name="m2">3+4</math>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.number,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.number,
+        ).eq(7);
+    });
 });

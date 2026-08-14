@@ -31,8 +31,9 @@ but the engine is a different implementation and some results differ:
   a `<line>` through an undefined point, a `<rectangle>` or `<regularPolygon>` on symbolic
   vertices, a `<circle>` with a symbolic radius, a `<curve>` whose `<bezierControls>` are symbolic,
   a `<function>` with a symbolic domain endpoint, a `<polygon>` or `<polyline>` with a symbolic
-  vertex, a `<vector>` with a symbolic head or tail, an `<angle>` through a symbolic point, a
-  `<cell>` whose content is not a number — the result is `NaN`, so an undefined point is
+  vertex, a `<vector>` with a symbolic head or tail, a `<ray>` with a symbolic endpoint, an
+  `<angle>` through a symbolic point, a `<math>` or `<cell>` whose content is not a number — the
+  result is `NaN`, so an undefined point is
   not drawn at the origin, a
   rectangle on symbolic corners does not report a width of exactly zero, a polygon on symbolic
   corners does not report a centroid pulled towards the origin, and an unclampable value

@@ -27,6 +27,7 @@ import {
     mergeListsIfNeeded,
     superSubscriptsToUnicode,
     unicodeToSuperSubscripts,
+    plainComplex,
     preprocessMathInverseDefinition,
 } from "../utils/math";
 import { createInputStringFromChildren } from "../utils/parseMath";
@@ -762,7 +763,17 @@ export default class MathComponent extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let number = dependencyValues.value.evaluate_to_constant();
+                // `plainComplex` because a math.js `Complex` does not survive
+                // the structured clone to the main thread with its prototype,
+                // and `?? NaN` because `evaluate_to_constant()` reports an
+                // expression it cannot evaluate — `x+y` — as `null`, which
+                // `plainComplex` passes straight through and which coerces to
+                // `0`. This variable's own description promises NaN for
+                // anything that is not a number.
+                let number =
+                    plainComplex(
+                        dependencyValues.value.evaluate_to_constant(),
+                    ) ?? NaN;
                 return { setValue: { number } };
             },
             inverseDefinition: function ({ desiredStateVariableValues }) {
