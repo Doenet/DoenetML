@@ -67,6 +67,46 @@ review pass because it moves a branch every numeric path shares (plotting, `f()`
 `equals` sampler) and has mathjs-parity consequences that want a maintainer's decision, not a
 reviewer's.
 
+### The recipe, so the follow-up does not start from scratch
+
+An exploratory attempt was made during the tenth review pass and is **not** in either PR. It was
+**never run against `cargo test --workspace`, the JS compat suite, or DoenetML**, so nothing below
+is a validated change — but it flipped every target row the right way in direct crate probes, and
+it found one thing that would otherwise cost the follow-up a day. Three sites, in order of how
+surprising they are:
+
+1. **`src/normalize/simplify.rs`, `rule_radical`'s `Expr::Pow` arm — the load-bearing one.**
+   Pull the sign out at simplify time: `(-2)^(1/3) → -2^(1/3)`, beside the `fold_numeric_radical`
+   that already handles the perfect-power case. **Fixing the evaluator alone does not work**, which
+   is the finding: `evaluate_to_constant` runs `simplify_core` and then tries `certified_constant`
+   *before* it ever reaches `eval_complex`, so the certified-digits tape keeps answering
+   `(-2)^(1/3)` on the principal branch no matter what the evaluator does. Teaching the tape would
+   mean a new `Op` threaded through `tape.rs`'s arity, four `pipeline.rs` sites, `float_bounds.rs`
+   (real and complex) and `quad.rs`. Pulling the sign out first makes the base positive, and the
+   tape then needs no change at all. It is also where the rewrite belongs: `simplify_root` already
+   does exactly this pull for the `cbrt`/`nthroot` spellings, and the cluster's own header comment
+   already claims `(-8)^(1/3) → -2` as the real branch — it just never fired when the radicand was
+   not a perfect power.
+2. **`src/eval_numeric/complex.rs`, `eval_complex_inner`'s `Expr::Pow` arm.** A real-branch case
+   between the integer-exponent branch and the `powc` fallback, gated on `base.im == 0.0 &&
+   base.re < 0.0` with an `Expr::Num(Number::Rat(p, q, _))` exponent whose `q` is odd; the result is
+   `±(-base.re).powf(p/q)`, signed by the parity of `p`. `Number::Rat`'s lowest-terms invariant is
+   what makes "odd `q`" a property of the *value*, so `(-8)^(2/6)` lands with `(-8)^(1/3)` while
+   `(-8)^0.3333` — which is `3333/10000` — correctly does not.
+3. **`src/special_functions/powers.rs`, `CBRT::eval1` and `NTHROOT::eval2`.** These are `powf`/
+   `powc`, i.e. principal, and this ledger used to leave it there. The refinement: they are
+   principal *in code* but masked by `simplify_root` for constant arguments, which is why
+   `cbrt(-2)` measures `-1.2599…` end to end. They still decide *sampling* — `equals` on a
+   non-constant argument, where `x` takes negative sample values — so leaving them principal while
+   `x^(1/n)` went real would reopen the same split one level down.
+
+`Facts::of_constant` and the real-base branch stay untouched, and a complex base still routes
+through `powi`, so the `i`, `i^3`, `(1+i)^2`, `2i`, `i·10^(-300)`, `1 + i·10^(-300)` not-real pins
+are unaffected by construction. Rows that must *not* move, and did not in the probe: `sqrt(-4)` and
+`(-4)^(1/2)` stay `2i`; `nthroot(-8,4)` stays principal; `(-8)^0.3333` stays
+`1.0001 + 1.7318i`; `(-8)^(2/3)` stays `4`; and `x^(1/3) = cbrt(x)`, `x^(1/3) = nthroot(x,3)`,
+`x^(1/2) = sqrt(x)` stay true.
+
 The same split has a second symptom on the public assumptions API: `is_real(cbrt(-8))` and
 `is_real((-8)^(1/3))` both answer `false`, and `is_real(2 + cbrt(-8))` answers `false` although the
 engine's own `simplify` folds that expression to `0`. `Facts::of_constant` classifies by
