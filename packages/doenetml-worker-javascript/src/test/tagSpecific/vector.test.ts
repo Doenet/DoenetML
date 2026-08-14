@@ -6640,4 +6640,24 @@ describe("Vector Tag Tests @group4", function () {
         });
         await check_both([7, 8], [10, 12], [3, 4]);
     });
+
+    it("a symbolic head leaves numericalEndpoints NaN, not null", async () => {
+        // `numericalEndpoints` is `forRenderer`, and `Number(null)` is `0`, so
+        // a head with no numeric value would be drawn at the origin rather
+        // than not drawn.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph><vector name="v" head="(q,b)" /></graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const endpoints =
+            stateVariables[await resolvePathToNodeIdx("v")].stateValues
+                .numericalEndpoints;
+        expect(endpoints).eqls([
+            [0, 0],
+            [NaN, NaN],
+        ]);
+    });
 });

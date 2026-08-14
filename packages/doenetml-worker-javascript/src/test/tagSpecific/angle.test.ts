@@ -1578,4 +1578,24 @@ describe("Angle tag tests @group4", async () => {
         expect(a1Latex).match(/10\^{-12}|10\^\{-12\}/);
         expect(a2Latex).eq("0.000000000007");
     });
+
+    it("a symbolic through point leaves the derived point NaN", async () => {
+        // With two points given, the third is placed at the default right
+        // angle from them. A symbolic coordinate has no numeric value, and the
+        // engine reports that as `null`: subtracted as `0` it made
+        // `Math.atan2(0, 0)` answer `0`, so the derived point landed on the
+        // unit circle at a real position instead of nowhere.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <angle name="a" through="(q,b) (0,0)" />
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const points =
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.points;
+        expect(points[0].map((v) => v.tree)).eqls(["q", "b"]);
+        expect(points[1].map((v) => v.tree)).eqls([0, 0]);
+        expect(points[2].map((v) => v.tree)).eqls([NaN, NaN]);
+    });
 });

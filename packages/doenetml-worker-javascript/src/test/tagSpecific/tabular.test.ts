@@ -153,4 +153,26 @@ describe("Tabular tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
         ).eq("end");
     });
+
+    it("a cell that is not a number reports NaN, not null", async () => {
+        // `<cell>.number` is public and typed `number`, which has one spelling
+        // for "not a number". The engine reports an expression it cannot
+        // evaluate as `null`, which is `0` to every arithmetic consumer and
+        // passes `Number.isNaN`.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <table><tabular>
+    <row><cell name="c1">q</cell><cell name="c2">7</cell></row>
+  </tabular></table>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.number,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.number,
+        ).eq(7);
+    });
 });

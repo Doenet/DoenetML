@@ -10,6 +10,7 @@ import {
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
+import { evaluateToNumber } from "../utils/math";
 
 export default class Polyline extends GraphicalComponent {
     constructor(args) {
@@ -2582,14 +2583,24 @@ export default class Polyline extends GraphicalComponent {
     }
 }
 
+/**
+ * The mean of `vertices`, as a `[x, y]` pair of plain numbers.
+ *
+ * `NaN` in either coordinate if any vertex is not numeric. That has to be
+ * spelled out: `evaluate_to_constant()` reports a still-symbolic coordinate as
+ * `null`, and `null` is `0` to `+=`, so a polygon with one symbolic vertex
+ * came out with a centroid pulled towards the origin — a plausible-looking
+ * number where the legacy engine gave NaN. It is the centroid the rotation,
+ * dilation and reflection actions all measure from.
+ */
 function calculateNumericalCentroid(vertices) {
     let x = 0,
         y = 0;
     let numVertices = vertices.length;
 
     for (let i = 0; i < numVertices; i++) {
-        x += vertices[i][0].evaluate_to_constant();
-        y += vertices[i][1].evaluate_to_constant();
+        x += evaluateToNumber(vertices[i][0]);
+        y += evaluateToNumber(vertices[i][1]);
     }
 
     x /= numVertices;

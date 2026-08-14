@@ -1,6 +1,10 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { roundForDisplay, isNumericConstant } from "../utils/math";
+import {
+    roundForDisplay,
+    isNumericConstant,
+    evaluateToNumber,
+} from "../utils/math";
 import {
     buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
@@ -316,14 +320,25 @@ export default class Angle extends GraphicalComponent {
                             },
                         });
 
-                        let a1 =
-                            line1.stateValues.points[0][0].evaluate_to_constant();
-                        let a2 =
-                            line1.stateValues.points[0][1].evaluate_to_constant();
-                        let b1 =
-                            line1.stateValues.points[1][0].evaluate_to_constant();
-                        let b2 =
-                            line1.stateValues.points[1][1].evaluate_to_constant();
+                        // Read through `evaluateToNumber`: a line through
+                        // symbolic points has no numeric coordinates, and the
+                        // engine reports those as `null`, which is `0` to `-`.
+                        // `Math.atan2(0, 0)` is `0`, so the angle came out
+                        // along the positive x-axis and every point below was
+                        // a real number placed on it. NaN is what "no angle"
+                        // has to look like here.
+                        let a1 = evaluateToNumber(
+                            line1.stateValues.points[0][0],
+                        );
+                        let a2 = evaluateToNumber(
+                            line1.stateValues.points[0][1],
+                        );
+                        let b1 = evaluateToNumber(
+                            line1.stateValues.points[1][0],
+                        );
+                        let b2 = evaluateToNumber(
+                            line1.stateValues.points[1][1],
+                        );
 
                         let angleOfLine = Math.atan2(b2 - a2, b1 - a1);
 
@@ -394,27 +409,30 @@ export default class Angle extends GraphicalComponent {
 
                         let point2 = lineIntersection;
 
-                        let a1 =
-                            line1.stateValues.points[0][0].evaluate_to_constant();
-                        let a2 =
-                            line1.stateValues.points[0][1].evaluate_to_constant();
-                        let b1 =
-                            line1.stateValues.points[1][0].evaluate_to_constant();
-                        let b2 =
-                            line1.stateValues.points[1][1].evaluate_to_constant();
+                        // See the note in the one-line case: a symbolic
+                        // coordinate is `null`, which would read as `0` in the
+                        // offsets below rather than as "no point".
+                        let a1 = evaluateToNumber(
+                            line1.stateValues.points[0][0],
+                        );
+                        let a2 = evaluateToNumber(
+                            line1.stateValues.points[0][1],
+                        );
+                        let b1 = evaluateToNumber(
+                            line1.stateValues.points[1][0],
+                        );
+                        let b2 = evaluateToNumber(
+                            line1.stateValues.points[1][1],
+                        );
                         let point1 = [
                             me.fromAst(point2[0].tree + b1 - a1),
                             me.fromAst(point2[1].tree + b2 - a2),
                         ];
 
-                        a1 =
-                            line2.stateValues.points[0][0].evaluate_to_constant();
-                        a2 =
-                            line2.stateValues.points[0][1].evaluate_to_constant();
-                        b1 =
-                            line2.stateValues.points[1][0].evaluate_to_constant();
-                        b2 =
-                            line2.stateValues.points[1][1].evaluate_to_constant();
+                        a1 = evaluateToNumber(line2.stateValues.points[0][0]);
+                        a2 = evaluateToNumber(line2.stateValues.points[0][1]);
+                        b1 = evaluateToNumber(line2.stateValues.points[1][0]);
+                        b2 = evaluateToNumber(line2.stateValues.points[1][1]);
                         let point3 = [
                             me.fromAst(point2[0].tree + b1 - a1),
                             me.fromAst(point2[1].tree + b2 - a2),
@@ -512,10 +530,15 @@ export default class Angle extends GraphicalComponent {
                         radians = Math.PI / 2;
                     }
 
-                    let a1 = points["0,0"].evaluate_to_constant();
-                    let a2 = points["0,1"].evaluate_to_constant();
-                    let b1 = points["1,0"].evaluate_to_constant();
-                    let b2 = points["1,1"].evaluate_to_constant();
+                    // `<angle through="(a,b) (0,0)" />`: the prescribed points
+                    // are symbolic, so `evaluate_to_constant()` answers `null`
+                    // for each. Left as `null` they subtract as `0`, and
+                    // `Math.atan2(0, 0)` is `0` — the third point came out at a
+                    // real position on the unit circle instead of nowhere.
+                    let a1 = evaluateToNumber(points["0,0"]);
+                    let a2 = evaluateToNumber(points["0,1"]);
+                    let b1 = evaluateToNumber(points["1,0"]);
+                    let b2 = evaluateToNumber(points["1,1"]);
 
                     let angleFromTwoPoints = Math.atan2(a2 - b2, a1 - b1);
                     let desiredAngle = angleFromTwoPoints + radians;

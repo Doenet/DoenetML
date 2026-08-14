@@ -30,9 +30,12 @@ but the engine is a different implementation and some results differ:
   symbolic child, `<clampNumber>` of a free variable, a `<curve>` whose `parMin` does not evaluate,
   a `<line>` through an undefined point, a `<rectangle>` or `<regularPolygon>` on symbolic
   vertices, a `<circle>` with a symbolic radius, a `<curve>` whose `<bezierControls>` are symbolic,
-  a `<function>` with a symbolic domain endpoint — the result is `NaN`, so an undefined point is
+  a `<function>` with a symbolic domain endpoint, a `<polygon>` or `<polyline>` with a symbolic
+  vertex, a `<vector>` with a symbolic head or tail, an `<angle>` through a symbolic point, a
+  `<cell>` whose content is not a number — the result is `NaN`, so an undefined point is
   not drawn at the origin, a
-  rectangle on symbolic corners does not report a width of exactly zero, and an unclampable value
+  rectangle on symbolic corners does not report a width of exactly zero, a polygon on symbolic
+  corners does not report a centroid pulled towards the origin, and an unclampable value
   does not report as the lower bound. `±Infinity` is still a value and still clamps.
 - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal

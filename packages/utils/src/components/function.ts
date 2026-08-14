@@ -163,40 +163,9 @@ export function returnNumericalFunctionFromFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: number, overrideDomain = false): number {
             if (overrideDomain) {
@@ -238,36 +207,9 @@ export function returnNumericalFunctionFromFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -345,40 +287,9 @@ export function returnNumericalFunctionFromReevaluatedFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain !== null) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-            }
-        }
-
-        // If the domain extends to +/- infinity, then consider the domain closed
-        // so that we can evaluate the function at +/- infinity
-        if (minx === -Infinity) {
-            openMin = false;
-        }
-        if (maxx === Infinity) {
-            openMax = false;
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: number, overrideDomain = false): number {
             if (overrideDomain) {
@@ -435,36 +346,9 @@ export function returnNumericalFunctionFromReevaluatedFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -602,40 +486,9 @@ export function returnSymbolicFunctionFromFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain !== null) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: any, overrideDomain = false): any {
             if (!overrideDomain) {
@@ -688,36 +541,9 @@ export function returnSymbolicFunctionFromFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -829,40 +655,9 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain !== null) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-
-                // If the domain extends to +/- infinity, then consider the domain closed
-                // so that we can evaluate the function at +/- infinity
-                if (minx === -Infinity) {
-                    openMin = false;
-                }
-                if (maxx === Infinity) {
-                    openMax = false;
-                }
-            }
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: any, overrideDomain = false): any {
             if (!overrideDomain) {
@@ -931,36 +726,9 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -1323,43 +1091,13 @@ export function returnInterpolatedFunction({
         return () => NaN;
     }
 
-    let minx = -Infinity,
-        maxx = Infinity;
-    let openMin = false,
-        openMax = false;
-    if (domain !== null) {
-        // Function domains are represented as one interval per input variable.
-        // Interpolated functions here are single-input, so domain[0] is the
-        // x-domain interval, not the first piece of a union domain.
-        let domain0 = domain[0];
-        if (domain0 !== undefined) {
-            minx = me
-                .fromAst(domain0.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !domain0.tree[2][1];
-            }
-            maxx = me
-                .fromAst(domain0.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !domain0.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
-        }
-    }
+    // Function domains are represented as one interval per input variable.
+    // Interpolated functions here are single-input, so `domain[0]` — which is
+    // what `find_effective_domain` reads — is the x-domain interval, not the
+    // first piece of a union domain.
+    let { minx, maxx, openMin, openMax } = find_effective_domain({
+        domain,
+    });
 
     let x0 = xs[0],
         xL = xs[xs.length - 1];

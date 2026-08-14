@@ -34,6 +34,23 @@
 // The trailing `declare const MathExpression: Context; export default …` was
 // dropped: it declared a *runtime value* that no longer exists. `Context` is
 // exported as a type and `engine-rust.ts` supplies the value.
+//
+// HOW MUCH GOES AWAY, MEASURED
+//
+// Everything below this header, and it is all of it: `diff` of the 1,152
+// declaration lines here against upstream's `types/math-expressions.d.ts` at
+// the current pin reports no differences at all — same 114 `Expression`
+// members, same 138 `Context` members, nothing here that is not there. The
+// three ODE types hand-rolled in `src/types.ts` are upstream's too, so Step 6
+// replaces this file *and* them with one re-export. Nothing in this directory
+// is DoenetML-specific, which is why it can go in one move rather than being
+// unpicked.
+//
+// What keeps it here until then is that `exports` targets may not escape a
+// package root, so `dist/` cannot name the submodule without a
+// `../../../vendor/…` relative import — which would resolve today only because
+// the submodule is always checked out, and would then have to be undone at
+// Step 6 anyway. A snapshot with a known end date is the smaller debt.
 
 /**
  * Abstract syntax tree representation of mathematical expressions.

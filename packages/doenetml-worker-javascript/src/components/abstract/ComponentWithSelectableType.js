@@ -3,7 +3,7 @@ import me from "math-expressions";
 import { convertValueToMathExpression } from "@doenet/utils";
 import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";
-import { textToAst } from "../../utils/math";
+import { evaluateToNumber, textToAst } from "../../utils/math";
 import { codedDiagnostic } from "../../utils/diagnostics";
 
 export class ComponentWithSelectableType extends BaseComponent {
@@ -623,9 +623,13 @@ function convertValueToType(value, type) {
         value = value[0];
     }
     if (type === "number") {
+        // Both branches have to spell "not a number" the same way, and for a
+        // `number`-typed value that spelling is `NaN`. The sibling
+        // `Number(value)` already gives NaN for anything unconvertible, while
+        // the engine reports an expression it cannot evaluate as `null` —
+        // which is `0` to arithmetic and passes `Number.isNaN`.
         if (value instanceof me.class) {
-            let num = value.evaluate_to_constant();
-            return num;
+            return evaluateToNumber(value);
         }
         return Number(value);
     } else if (type === "math") {

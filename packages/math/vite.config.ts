@@ -88,7 +88,20 @@ export default defineConfig({
         // all proportion: `wasm-bytes.ts` is the ~2.2 MiB base64 payload, so its
         // `.d.ts` was a second copy of the whole blob — 2.35 MB, a third of
         // `dist/`, shipped inside `files: ["/dist"]`.
-        dts({ include: ["src"], exclude: ["src/generated/**"] }),
+        //
+        // `copyDtsFiles` is what makes the vendored declarations reach
+        // consumers at all. The plugin *generates* a `.d.ts` per `.ts` source
+        // but does not copy hand-written ones, so `dist/types.d.ts` shipped a
+        // `from "./vendored/math-expressions"` that resolved to nothing —
+        // silently, because `skipLibCheck` swallows the `TS2307`. Every file
+        // that writes `import me from "math-expressions"` was therefore typed
+        // `any`, which is the one thing this package's type surface exists to
+        // prevent.
+        dts({
+            include: ["src"],
+            exclude: ["src/generated/**"],
+            copyDtsFiles: true,
+        }),
     ],
     resolve: {
         alias: [

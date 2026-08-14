@@ -33,8 +33,15 @@ including `atan2`), the matrix/vector helpers (`perform_matrix_multiplications`,
 
 Nothing in DoenetML calls any of them today — re-verified by grepping every one of the 48 across
 `packages/*/src` and `packages/*/test`, whose only hits are `Math.atan2` and commented-out code — so
-nothing is broken. But TypeScript currently accepts `expr.sin()` and it fails at runtime. Reproduce
-with:
+nothing is broken. But TypeScript accepts `expr.sin()` and it fails at runtime.
+
+That second sentence has only just become true, and for a reason worth recording. Until this pass
+the declarations reached no consumer at all: `vite-plugin-dts` generates a `.d.ts` per `.ts` source
+but does not copy hand-written ones, so `packages/math/dist/types.d.ts` shipped a
+`from "./vendored/math-expressions"` that resolved to nothing, `skipLibCheck` swallowed the
+`TS2307`, and every `import me from "math-expressions"` was typed `any`. TypeScript accepted
+`expr.sin()` because it accepted *everything*. `copyDtsFiles` fixes that, which is what puts the
+width of this surface back in play. Reproduce with:
 
 ```bash
 npm run build -w packages/math

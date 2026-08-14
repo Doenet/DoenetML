@@ -420,6 +420,13 @@ what 147 call sites type-check against today, and the two are currently the same
 one documented difference (ours drops the default export, since `engine-rust.ts` supplies that
 value).
 
+How much of `packages/math`'s type surface that retires is now measured rather than guessed: the
+1,152 declaration lines are byte-identical to upstream's, and `src/types.ts`'s three hand-rolled
+ODE types (`OdeState`, `OdeSolution`, `Dopri`) are upstream's as well — so the deletion is the whole
+directory plus those three declarations, replaced by one re-export, with nothing DoenetML-specific
+to unpick. It cannot be done *before* this step because an `exports` target may not escape its
+package root: `dist/` has no way to name the submodule that would survive the move to npm.
+
 **Stage 1 exit criteria:** all suites green on `rust`, flat memory over a long session, no
 main-thread init regression, bundle delta accepted, and `@doenet/doenetml` publishable against
 `math-expressions@3.x` from npm.

@@ -59,7 +59,17 @@ The same declarations are now `math-expressions@3.x`'s own published `types`
 entry, so this copy goes away when the submodule does — see Step 6 of the
 migration plan. The two differ in one documented way: ours drops the trailing
 `declare const MathExpression: Context; export default …`, because here
-`engine-rust.ts` supplies that value.
+`engine-rust.ts` supplies that value. The 1,152 declaration lines themselves are
+byte-identical — `diff`ed at the current pin — so Step 6 deletes the directory
+in one move rather than reconciling anything.
+
+A hand-written `.d.ts` under `src/` only reaches consumers because
+`vite.config.ts` passes `copyDtsFiles` to `vite-plugin-dts`: the plugin
+*generates* declarations for `.ts` sources but does not copy `.d.ts` ones, so
+without it `dist/types.d.ts` re-exports from a path that is not in `dist/`.
+That failure is silent — consumers set `skipLibCheck`, so the unresolved import
+becomes `any` rather than an error, and the whole type surface disappears
+without anything going red.
 
 To A/B against the old engine now, check out a commit from before the switch.
 

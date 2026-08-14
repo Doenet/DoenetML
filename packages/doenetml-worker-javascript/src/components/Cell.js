@@ -1,6 +1,10 @@
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
-import { preprocessMathInverseDefinition, textToAst } from "../utils/math";
+import {
+    evaluateToNumber,
+    preprocessMathInverseDefinition,
+    textToAst,
+} from "../utils/math";
 import { textFromChildren } from "../utils/text";
 import {
     BORDER_VALUES,
@@ -486,7 +490,12 @@ export default class Cell extends BaseComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let number = dependencyValues.math.evaluate_to_constant();
+                // A cell holding text the parser cannot evaluate has no
+                // numeric value, and the engine says so with `null`. This is a
+                // public state variable of type `number`, which has exactly one
+                // spelling for that, and it is `NaN` — `null` would be read as
+                // `0` by every consumer that does arithmetic on it.
+                let number = evaluateToNumber(dependencyValues.math);
                 return { setValue: { number } };
             },
             inverseDefinition({ desiredStateVariableValues }) {

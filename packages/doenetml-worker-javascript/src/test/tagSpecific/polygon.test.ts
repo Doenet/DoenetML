@@ -7559,4 +7559,24 @@ describe("Polygon tag tests @group2", async () => {
         await test_items("light");
         await test_items("dark");
     });
+
+    it("a symbolic vertex makes the centroid NaN, not a number", async () => {
+        // `calculateNumericalCentroid` sums `evaluate_to_constant()` over the
+        // vertices, and the engine reports a still-symbolic coordinate as
+        // `null`, which is `0` to `+=`. Without the fix the centroid of
+        // `(q,b) (1,1) (4,0)` is the mean of the two numeric vertices and the
+        // origin — a plausible number where there is no centroid at all. It is
+        // what the rotate, dilate and reflect actions measure from.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph><polygon name="p" vertices="(q,b) (1,1) (4,0)" /></graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const centroid =
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .numericalCentroidUnconstrained;
+        expect(centroid).eqls([NaN, NaN]);
+    });
 });

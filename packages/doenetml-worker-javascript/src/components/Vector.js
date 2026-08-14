@@ -4,7 +4,11 @@ import {
     breakEmbeddedStringByCommas,
     returnBreakStringsSugarFunction,
 } from "./commonsugar/breakstrings";
-import { roundForDisplay, markUnspecifiedComponents } from "../utils/math";
+import {
+    roundForDisplay,
+    markUnspecifiedComponents,
+    evaluateToNumber,
+} from "../utils/math";
 import {
     convertValueToMathExpression,
     returnGraphicalStyleDescriptionDefinitions,
@@ -2252,24 +2256,28 @@ export default class Vector extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
+                // `evaluate_to_constant()` reports a coordinate with no numeric
+                // value — a symbolic head or tail — as `null`, and this array
+                // goes straight to the renderer, where `Number(null)` is `0`:
+                // an undefined endpoint would be drawn at the origin rather
+                // than not drawn at all. Map it to `NaN`, as `Point.js`'s
+                // `numericalXs` and `LineSegment.js`'s own `numericalEndpoints`
+                // already do.
                 let numericalHead, numericalTail;
                 if (dependencyValues.numDimensions === 1) {
-                    numericalHead =
-                        dependencyValues.head[0].evaluate_to_constant();
-                    numericalTail =
-                        dependencyValues.tail[0].evaluate_to_constant();
+                    numericalHead = evaluateToNumber(dependencyValues.head[0]);
+                    numericalTail = evaluateToNumber(dependencyValues.tail[0]);
                 } else {
                     numericalHead = [];
                     numericalTail = [];
 
                     for (let i = 0; i < dependencyValues.numDimensions; i++) {
-                        let head =
-                            dependencyValues.head[i].evaluate_to_constant();
-                        numericalHead.push(head);
-
-                        let tail =
-                            dependencyValues.tail[i].evaluate_to_constant();
-                        numericalTail.push(tail);
+                        numericalHead.push(
+                            evaluateToNumber(dependencyValues.head[i]),
+                        );
+                        numericalTail.push(
+                            evaluateToNumber(dependencyValues.tail[i]),
+                        );
                     }
                 }
 
