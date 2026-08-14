@@ -49,14 +49,22 @@ export default defineConfig(({ mode }) => {
             setupFiles: ["@vitest/web-worker"],
             // Every test here boots a DoenetML core in a worker and waits for a
             // document to settle; the whole file takes ~50 s for ~50 tests, so
-            // each one is about 800 ms against vitest's 5 s default. That is
-            // six times' headroom on a shared CI runner, and it ran out —
-            // `<extractMathOperator>` timed out at exactly 5,002 ms in
-            // https://github.com/Doenet/DoenetML/actions/runs/31812092145 while
-            // its neighbours took 660 ms, and passed on the runs either side.
-            // Every sibling package that drives the core already sets a
-            // generous timeout (`doenetml-worker*` 180 s, `doenetml-print`
-            // 300 s, `@doenet/math` 60 s); this one was left on the default.
+            // each one is about 800 ms against vitest's 5 s default. Every
+            // sibling package that drives the core already sets a generous
+            // timeout (`doenetml-worker*` 180 s, `doenetml-print` 300 s,
+            // `@doenet/math` 60 s); this one was left on the default.
+            //
+            // Raising it was *not* what fixed the flake this comment used to
+            // blame on runner load. The last test in `pretext-export.test.ts`
+            // timed out at 5,002 ms in
+            // https://github.com/Doenet/DoenetML/actions/runs/31812092145 and
+            // then again, after the raise, at 60,031 ms in
+            // https://github.com/Doenet/DoenetML/actions/runs/31821055854 —
+            // both times on the same test, which takes 684 ms locally. A number
+            // that moves with the limit is not a slow test. The cause is the
+            // WebDriver session wedging, and it is handled where it happens, in
+            // `test/utils/run-through-core.ts`. This stays generous so a real
+            // slow document is not misreported as one.
             testTimeout: 60000,
         },
     };
