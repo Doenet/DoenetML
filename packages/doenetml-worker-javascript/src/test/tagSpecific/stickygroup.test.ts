@@ -1923,4 +1923,47 @@ describe("StickyGroup tag tests @group3", async () => {
         expect(ls2[1][0]).closeTo(1 + dx, 1e-12);
         expect(ls2[1][1]).closeTo(6 + dy, 1e-12);
     });
+    it("a symbolic vertex does not abort the drag", async () => {
+        // Regression test. A vertex that cannot be evaluated to a number is
+        // reduced to `NaN` before the numerical constraint machinery sees it.
+        // `evaluate_to_constant()` answers `null` there, and `me.fromAst(null)`
+        // throws, so this drag used to be discarded whole: the moved vertex
+        // stayed at its old position instead of snapping to the sticky
+        // neighbour.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <stickyGroup name="sg">
+      <polygon name="pg1" vertices="(a,b) (1,1) (4,0)" />
+      <polygon name="pg2" vertices="(-5,-5) (-5,-4) (-4,-5)" />
+    </stickyGroup>
+  </graph>
+  `,
+        });
+
+        // drop vertex 1 just off pg2's (-5,-4) vertex, so the sticky
+        // constraint has something to attract it to
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("pg1"),
+            pointCoords: { 1: [-5.01, -4.01] },
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const vertices =
+            stateVariables[await resolvePathToNodeIdx("pg1")].stateValues
+                .vertices;
+
+        // the moved vertex snapped to its sticky neighbour
+        expect(vertices[1][0].evaluate_to_constant()).eq(-5);
+        expect(vertices[1][1].evaluate_to_constant()).eq(-4);
+
+        // the unevaluable vertex is NaN, not `null` and not the origin
+        expect(vertices[0][0].evaluate_to_constant()).eqls(NaN);
+        expect(vertices[0][1].evaluate_to_constant()).eqls(NaN);
+
+        // the vertex that was not touched is unchanged
+        expect(vertices[2][0].evaluate_to_constant()).eq(4);
+        expect(vertices[2][1].evaluate_to_constant()).eq(0);
+    });
 });

@@ -234,6 +234,28 @@ describe("buildSlopeFieldData", () => {
         expect(numMarks).toBe(0);
         expect(dataX).toHaveLength(0);
     });
+
+    it("returns nothing for a lattice that is not a lattice", () => {
+        // `dx`, `dy` and the offsets are `number` state variables, and a
+        // symbolic one — `dx="$q"`, or a `<mathInput>` left blank — arrives as
+        // NaN. NaN must draw *nothing*: a lattice spacing that silently read as
+        // zero or as the default would put marks somewhere the author did not
+        // ask for and give no sign that anything was wrong.
+        for (const badGrid of [
+            { ...grid, dx: NaN },
+            { ...grid, dy: NaN },
+            { ...grid, xoffset: NaN },
+            { ...grid, yoffset: NaN },
+        ]) {
+            const { numMarks, dataX } = buildSlopeFieldData({
+                f: () => 1,
+                ...opts,
+                grid: badGrid,
+            });
+            expect(numMarks).toBe(0);
+            expect(dataX).toHaveLength(0);
+        }
+    });
 });
 
 describe("buildVectorFieldData", () => {

@@ -1,5 +1,23 @@
-import { convertValueToMathExpression } from "@doenet/utils";
+import { convertValueToMathExpression, toNumberOrNaN } from "@doenet/utils";
 import me from "math-expressions";
+
+/**
+ * Reduce a list of vertices held as math expressions to plain numbers, so the
+ * numerical constraint functions can work on them.
+ *
+ * A vertex component that cannot be evaluated — `(a,b)` — must become `NaN`
+ * and not `null`. `evaluate_to_constant()` answers `null` there, and `null` is
+ * `0` to every arithmetic operator, so the constraint machinery would place
+ * such a vertex at the origin: it would attract to whatever is near `(0,0)`
+ * and translate the rest of a rigid shape to match. Worse, the unconstrained
+ * value is handed back through `me.fromAst`, which *throws* on `null` and so
+ * takes the whole drag with it, leaving the shape where it was.
+ */
+function numericalizeVertices(vertices) {
+    return vertices.map((vertex) =>
+        vertex.map((v) => toNumberOrNaN(v.evaluate_to_constant())),
+    );
+}
 
 export function applyConstraintFromComponentConstraints(
     variables,
@@ -596,8 +614,8 @@ export function returnVertexConstraintFunction(constraintFunction) {
         },
         ...args
     ) {
-        let numericalUnconstrainedVertices = unconstrainedVertices.map(
-            (vertex) => vertex.map((v) => v.evaluate_to_constant()),
+        let numericalUnconstrainedVertices = numericalizeVertices(
+            unconstrainedVertices,
         );
 
         let onlyMoveVertexInd = enforceRigid ? null : vertexIndMoved;
@@ -780,8 +798,8 @@ export function returnVertexConstraintFunctionFromEdges(constraintFunction) {
         },
         ...args
     ) {
-        let numericalUnconstrainedVertices = unconstrainedVertices.map(
-            (vertex) => vertex.map((v) => v.evaluate_to_constant()),
+        let numericalUnconstrainedVertices = numericalizeVertices(
+            unconstrainedVertices,
         );
 
         // calculate the edges and apply the constraint function

@@ -303,10 +303,20 @@ export default class MathOperator extends MathComponent {
                                 );
                                 inputToChildIndex.push(childInd);
                             } else {
-                                // math
+                                // math — `NaN` for anything unevaluable, the
+                                // same coercion the forward definition above
+                                // applies and for the same reason. No
+                                // `inverseNumericOperator` reads `inputs`
+                                // today (`<min>` and `<max>`, the only two,
+                                // decide from `canBeModified` alone), so this
+                                // is what the contract says rather than a
+                                // defect repaired; a `null` here would be a
+                                // zero to the first one that did read it.
                                 let value =
                                     child.stateValues.value.evaluate_to_constant();
-                                inputs.push(value);
+                                inputs.push(
+                                    isNumericConstant(value) ? value : NaN,
+                                );
                                 canBeModified.push(
                                     child.stateValues.canBeModified,
                                 );
@@ -314,6 +324,9 @@ export default class MathOperator extends MathComponent {
                             }
                         }
                         let results = dependencyValues.inverseNumericOperator({
+                            // `null` here is caught by the `Number.isFinite`
+                            // test in both implementations, which falls back
+                            // to `desiredMathValue`.
                             desiredValue:
                                 desiredStateVariableValues.unnormalizedValue.evaluate_to_constant(),
                             inputs,

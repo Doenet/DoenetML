@@ -7,7 +7,52 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — two items
+## Open — three items
+
+### Odd roots of a negative number
+
+**`x^(1/n)` and `nthroot(x, n)` take different branches for a negative `x`, so grading tells the
+same number apart from itself.** Measured at pin `c4ae2e4`, and against `math-expressions@2` from
+npm for the legacy column:
+
+| `equals(a, b)` | legacy 2.x | Rust engine |
+| --- | --- | --- |
+| `(-8)^(1/3)` = `-2` | true | true |
+| `cbrt(-8)` = `-2` | true | true |
+| `(-2)^(1/3)` = `cbrt(-2)` | **true** | **false** |
+| `cbrt(-2)` = `-cbrt(2)` | **false** | **true** |
+| `(-2)^(1/5)` = `nthroot(-2,5)` | **true** | **false** |
+
+Both engines are internally inconsistent here, in mirror images of each other. Both *display* the
+real branch — `simplify(cbrt(-2))` is `-cbrt(2)` in each — and both evaluate numerically on the
+principal complex branch. Legacy's `equals` never applied that rewrite before comparing, so it
+disagreed with its own `simplify`; this engine does apply it, so `cbrt` is self-consistent, but the
+`^` spelling is not rewritten (`fold_numeric_radical` bails unless the base is a perfect power) and
+so stays on the principal branch. Hence the swap: this engine fixed `cbrt(-2) = -cbrt(2)` and broke
+`(-2)^(1/3) = cbrt(-2)`.
+
+`(-8)^(1/3)` itself is *not* affected and is not a divergence: it folds to the exact `-2` on both
+engines. That is what makes this easy to spot-check wrongly — the perfect-power case, which is the
+one anybody tries first, is the one that works.
+
+End to end through `<answer>`, measured: an expected `\sqrt[3]{-2}` scores a typed `(-2)^{1/3}` at
+0, and an expected `\sqrt[3]{-8}` scores a typed `(-8)^{1/3}` at 1.
+
+Closing it means picking one branch for `(negative)^(1/odd)` and using it in the numeric evaluator
+as well as in `simplify` — `CBRT`/`NTHROOT`'s `eval1`/`eval2` in `special_functions/powers.rs` are
+`powf`/`powc`, i.e. principal, which is mathjs parity and is what the `is_real(i^2)` fix was
+careful to preserve. It is a convention decision with a blast radius across every numeric path
+(plotting, `f()`, extrema, the `equals` sampler), not a local repair, which is why it is recorded
+here rather than fixed in a review pass.
+
+The same split has a second symptom on the public assumptions API: `is_real(cbrt(-8))` and
+`is_real((-8)^(1/3))` both answer `false`, and `is_real(2 + cbrt(-8))` answers `false` although the
+engine's own `simplify` folds that expression to `0`. `Facts::of_constant` classifies by
+`eval_complex`, which is the principal branch. DoenetML calls none of these predicates directly,
+and the one `simplify` rule that consults realness treats a `false` as a reason to decline, so this
+costs a rewrite rather than producing a wrong one.
+
+### The two earlier items
 
 **`substitute_component` accepts a receiver that is not a container, and answers.** Legacy validated
 the head at each level of the path and the index range, throwing `expected list, tuple, vector, or

@@ -10,6 +10,7 @@ import {
     returnSymbolicFunctionFromFormula,
     returnSymbolicFunctionFromReevaluatedFormula,
     returnTextStyleDescriptionDefinitions,
+    toNumberOrNaN,
     vectorOperators,
 } from "@doenet/utils";
 import {
@@ -1833,7 +1834,18 @@ export default class Function extends InlineComponent {
                     for (let arrayKey of arrayKeys) {
                         if (arrayKey === "0") {
                             symbolicfs[arrayKey] = function (x) {
+                                // Same guard, and for the same reason, as the
+                                // interpolated branch above: a shadowed
+                                // *numerical* function has no symbolic form, so
+                                // a symbolic input has no value here.
+                                // `evaluate_to_constant` reports that as
+                                // `null`, which is `0` to arithmetic, so
+                                // `$$f(x)` with `x` unbound would answer `f(0)`
+                                // — a plausible constant rather than a blank.
                                 let input = x.evaluate_to_constant();
+                                if (typeof input !== "number") {
+                                    return me.fromAst(NaN);
+                                }
                                 return me.fromAst(
                                     globalDependencyValues.numericalfShadow(
                                         input,
@@ -2264,10 +2276,16 @@ export default class Function extends InlineComponent {
                     for (let arrayKey of arrayKeys) {
                         if (arrayKey === "0") {
                             numericalfs[arrayKey] = function (x) {
+                                // A `numericalf` must answer a number, and
+                                // every other branch of this definition answers
+                                // `NaN` when it has nothing. `null` — what the
+                                // engine reports for a shadowed symbolic
+                                // function that did not reduce to a constant —
+                                // is `0` to whatever plots or integrates it.
                                 let val = globalDependencyValues
                                     .symbolicfShadow(me.fromAst(x))
                                     .evaluate_to_constant();
-                                return val;
+                                return toNumberOrNaN(val);
                             };
                         } else {
                             numericalfs[arrayKey] = () => NaN;

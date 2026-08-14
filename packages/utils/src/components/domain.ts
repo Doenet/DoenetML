@@ -104,9 +104,19 @@ export function find_effective_domains_piecewise_children({
 }): any[] {
     let domainUnused;
 
-    if (domain) {
-        let domainMin = me.fromAst(domain[0].tree[1][1]).evaluate_to_constant();
-        let domainMax = me.fromAst(domain[0].tree[1][2]).evaluate_to_constant();
+    // As in `find_effective_domain`, the array may be present but say nothing:
+    // a `<function>`'s `domain` is an array state variable of one interval per
+    // input, and a child that reports no domain at all leaves every entry
+    // empty. The array is still truthy, so `domain[0]` has to be tested in its
+    // own right — a piecewise function whose pieces have symbolic domains
+    // reports `domain: null`, and the `<function>` wrapping it (which is what a
+    // field's sugar builds around `$g`) turned that into `[undefined,
+    // undefined]` and threw here, taking the whole document down.
+    const domain1 = domain?.[0];
+
+    if (domain1) {
+        let domainMin = me.fromAst(domain1.tree[1][1]).evaluate_to_constant();
+        let domainMax = me.fromAst(domain1.tree[1][2]).evaluate_to_constant();
 
         // `isNumericConstant`, not `Number.isNaN`: the engine reports an
         // endpoint it cannot evaluate — a symbolic one — as `null`, where the
@@ -117,7 +127,7 @@ export function find_effective_domains_piecewise_children({
         if (!isNumericConstant(domainMin) || !isNumericConstant(domainMax)) {
             domainUnused = RealLine();
         } else {
-            domainUnused = buildSubsetFromMathExpression(domain[0]);
+            domainUnused = buildSubsetFromMathExpression(domain1);
         }
     } else {
         domainUnused = RealLine();

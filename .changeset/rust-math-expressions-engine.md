@@ -37,7 +37,15 @@ but the engine is a different implementation and some results differ:
   not drawn at the origin, a
   rectangle on symbolic corners does not report a width of exactly zero, a polygon on symbolic
   corners does not report a centroid pulled towards the origin, and an unclampable value
-  does not report as the lower bound. `±Infinity` is still a value and still clamps.
+  does not report as the lower bound. `±Infinity` is still a value and still clamps. A shape in a
+  `<stickyGroup>` with such a vertex can still be dragged: the constraint machinery reduces the
+  vertex to `NaN` rather than dropping the whole drag.
+- **Equality testing of odd roots is more consistent, and differs from before in both directions.**
+  `\sqrt[3]{-2}` and `-\sqrt[3]{2}` are now recognized as the same number — the old engine graded
+  them different, although it displayed the first as the second. In exchange, `\sqrt[3]{-2}` and
+  `(-2)^{1/3}` are now graded *different*, because the engine reads a fractional power of a
+  negative number as its principal complex value while it reads a root as the real one. Perfect
+  powers are unaffected: `(-8)^{1/3}`, `\sqrt[3]{-8}` and `-2` all still compare equal.
 - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
   with more than about seventeen significant digits now goes through a double on the way in, so its
