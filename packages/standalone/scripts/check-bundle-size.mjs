@@ -461,7 +461,7 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
 function mathCorePlacementProblem(relative, count) {
     return (
         `${relative} carries ${count} copies of the @doenet/math core; one is expected.\n` +
-        `    Each copy is ~2.2 MiB of inlined base64 and a separate WASM instantiation\n` +
+        `    Each copy is ~2.3 MiB of inlined base64 and a separate WASM instantiation\n` +
         `    at runtime. It means the seam resolved as more than one module instance —\n` +
         `    usually a package that bundles \`math-expressions\` into its own dist instead\n` +
         `    of externalizing it, which then rides into every bundle embedding it.`
@@ -575,7 +575,7 @@ export function findProblems(budgets, scripts) {
         }
         // The math core: allowed anywhere math is used, but never twice in one
         // script. Two copies means it was resolved as two module instances —
-        // which is how ~2.2 MiB of duplicated base64 rode into these bundles
+        // which is how ~2.3 MiB of duplicated base64 rode into these bundles
         // through `virtual-keyboard` and `doenetml-worker-rust` before both
         // externalized it.
         if ((emitted.mathCores ?? 0) > 1) {

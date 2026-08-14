@@ -213,8 +213,8 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   delimiter from real content — `(, )` in prose is not a tuple.
 >
 > - **Sizes**, measured at the current pin with `npm run build -w packages/math`: the `web`-target
->   WASM is **1.65 MiB** (before `wasm-opt`, unavailable here), which inlines as 2.20 MiB of base64
->   into a **2.36 MiB** `dist/engine-rust.js` — **772 kB gzipped**, against roughly 1.1 MB for the
+>   WASM is **1.68 MiB** (before `wasm-opt`, unavailable here), which inlines as 2.24 MiB of base64
+>   into a **2.40 MiB** `dist/engine-rust.js` — **782 kB gzipped**, against roughly 1.1 MB for the
 >   JavaScript library it replaces. Bundle size is not the obstacle §5-R7 feared, *provided* every
 >   library externalizes the seam; three separate bundles were carrying private copies before they
 >   did, which is what `packages/standalone/scripts/check-bundle-size.mjs` now guards.

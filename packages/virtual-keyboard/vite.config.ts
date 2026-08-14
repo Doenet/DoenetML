@@ -24,7 +24,7 @@ export default defineConfig({
                 "@fortawesome/react-fontawesome",
                 "better-react-mathjax",
                 // Resolves to the `@doenet/math` seam, which inlines the Rust
-                // core as ~2.2 MiB of base64. Bundling it here baked a private
+                // core as ~2.3 MiB of base64. Bundling it here baked a private
                 // copy into this dist, which then rode into every bundle that
                 // embeds this package — the second of the two copies the
                 // standalone bundle was carrying. The application bundle

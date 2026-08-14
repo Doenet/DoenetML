@@ -16,7 +16,7 @@ import {
 // These are the dependencies that will not be bundled into the library.
 //
 // `math-expressions` resolves to `@doenet/math`, which inlines the Rust core as
-// ~2.2 MiB of base64. Bundling it here put a private copy in this library *and*
+// ~2.3 MiB of base64. Bundling it here put a private copy in this library *and*
 // in every sibling library, so `doenet-standalone.js` ended up carrying three
 // copies of the same bytes. Externalized, the application bundle resolves it
 // once. See `makeIsExternalDep` for why a bare specifier list is not enough.

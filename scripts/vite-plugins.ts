@@ -247,7 +247,7 @@ const MATH_SEAM_DIST = path.resolve(
  * A plain string array is not enough. Vite rewrites the `file:`-linked
  * `math-expressions` specifier to an absolute path *before* rollup's
  * string-array `external` check runs, so listing the bare specifier alone
- * silently bundles it anyway — which is how ~2.2 MiB of inlined base64 WASM
+ * silently bundles it anyway — which is how ~2.3 MiB of inlined base64 WASM
  * kept landing in these libraries after they were supposedly externalized.
  * Matching the resolved path as well as the specifier is what actually works.
  *

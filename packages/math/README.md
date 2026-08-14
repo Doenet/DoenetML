@@ -60,8 +60,8 @@ To A/B against the old engine now, check out a commit from before the switch.
 ## WASM initialization
 
 The Rust engine's WASM is **inlined** into `dist/engine-rust.js` as base64 — at
-the pinned submodule revision, 1.65 MiB of WASM becoming 2.20 MiB of base64 in a
-2.36 MiB chunk (772 kB gzipped) — the same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
+the pinned submodule revision, 1.68 MiB of WASM becoming 2.24 MiB of base64 in a
+2.40 MiB chunk (782 kB gzipped) — the same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
 `lib_doenetml_worker_bg.wasm`. It instantiates from bytes, so it needs no
 `fetch` — which matters because `fetch` is blocked for blob/data URLs in the VS
 Code web-worker extension host (issue #1375).
