@@ -40,16 +40,17 @@ but the engine is a different implementation and some results differ:
   does not report as the lower bound. `±Infinity` is still a value and still clamps. A shape in a
   `<stickyGroup>` with such a vertex can still be dragged: the constraint machinery reduces the
   vertex to `NaN` rather than dropping the whole drag.
-- **Equality testing of odd roots differs from before in both directions, and one of them will
-  cost credit.** `\sqrt[3]{-2}` and `-\sqrt[3]{2}` are now recognized as the same number — the old
-  engine graded them different, although it displayed the first as the second. In exchange,
-  `\sqrt[3]{-2}` and `(-2)^{1/3}` are now graded *different*, because the engine reads a fractional
-  power of a negative number as its principal complex value while it reads a root as the real one.
-  So an `<answer>` expecting `\sqrt[3]{-2}` marks a typed `(-2)^{1/3}` **wrong** where it used to
-  mark it right, and the same for `\sqrt[3]{-2}` typed against an expected `(-2)^{1/3}`, and for a
-  decimal typed against an expected `(-2)^{1/3}`. Perfect powers are unaffected: `(-8)^{1/3}`,
-  `\sqrt[3]{-8}` and `-2` all still compare equal, which is what makes this easy to spot-check
-  wrongly. If an item of yours accepts a fractional power of a negative number, check it.
+- **Odd roots of negative numbers now grade consistently, in every spelling.** `\sqrt[3]{-2}`,
+  `-\sqrt[3]{2}`, `(-2)^{1/3}` and the decimal `-1.2599…` are all read as the same number — the
+  real cube root of −2. The old engine's grading was non-transitive here: it accepted
+  `(-2)^{1/3}` for `\sqrt[3]{-2}` but rejected `-\sqrt[3]{2}` and the decimal for `\sqrt[3]{-2}`,
+  because its simplifier read a cube root on the real branch while its numeric evaluator read it
+  as the principal complex value. Everything the old engine accepted is still accepted, and the
+  spellings it wrongly rejected now earn credit. Even roots are unchanged (`\sqrt{-4}` is still
+  the imaginary `2i`), as is a fractional power whose denominator is even — `(-8)^{0.3333}` is
+  `3333/10000`, not a cube root. A related plotting change: a `<function>` written as a
+  fractional power with an odd denominator, such as `x^{1/3}`, now draws for negative inputs,
+  matching its `\sqrt[3]{x}` spelling instead of leaving a gap.
 - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
   with more than about seventeen significant digits now goes through a double on the way in, so its
