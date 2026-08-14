@@ -7,10 +7,7 @@ import * as fs from "node:fs/promises";
 import { visualizer } from "rollup-plugin-visualizer";
 import { version } from "./package.json";
 import { createRequire } from "module";
-import {
-    makeIsExternalDep,
-    suppressLogPlugin,
-} from "../../scripts/vite-plugins";
+import { suppressLogPlugin } from "../../scripts/vite-plugins";
 const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
@@ -19,9 +16,8 @@ const require = createRequire(import.meta.url);
 // ~2.3 MiB of base64. Bundling it here put a private copy in this library *and*
 // in every sibling library, so `doenet-standalone.js` ended up carrying three
 // copies of the same bytes. Externalized, the application bundle resolves it
-// once. See `makeIsExternalDep` for why a bare specifier list is not enough.
+// once.
 const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
-const isExternalDep = makeIsExternalDep(EXTERNAL_DEPS);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -83,7 +79,7 @@ export default defineConfig({
             cssFileName: "style",
         },
         rollupOptions: {
-            external: isExternalDep,
+            external: EXTERNAL_DEPS,
             output: {
                 globals: Object.fromEntries(
                     EXTERNAL_DEPS.map((dep) => [dep, dep]),

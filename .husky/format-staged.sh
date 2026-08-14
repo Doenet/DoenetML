@@ -22,12 +22,18 @@
 # paying Node startup per file.
 #
 # Bypass, like any pre-commit hook, with `git commit --no-verify`.
+#
+# Kept to POSIX-ish bash 3.2 features -- no `declare -A`, no `mapfile` -- so it
+# runs on the bash macOS ships.
 
 set -uo pipefail
 
-# Extensions Prettier owns here. Keep in sync with `prettier:check` in CI.
-# `.prettierignore` is applied by Prettier itself on both paths below,
-# including for `--stdin-filepath`.
+# Extensions this hook formats. Deliberately narrower than CI, which runs
+# `npx prettier . --check` over every extension Prettier recognizes: this is the
+# subset that dominates a commit, and per-file Node startup is the cost being
+# managed. A staged `.md`/`.yml` therefore passes the hook and can still fail
+# `prettier:check`. `.prettierignore` is applied by Prettier itself on both
+# paths below, including for `--stdin-filepath`.
 EXTENSION_RE='\.(js|jsx|ts|tsx|css|json)$'
 
 repo_root=$(git rev-parse --show-toplevel) || exit 1
@@ -51,20 +57,18 @@ done < <(git diff --cached --name-only -z --diff-filter=ACMR "$against")
 
 [ ${#staged[@]} -eq 0 ] && exit 0
 
-# Paths that also differ between the index and the working tree. A staged path
-# in this set is partially staged, and is the case lint-staged mishandles.
-declare -A has_unstaged=()
-while IFS= read -r -d '' file; do
-    has_unstaged["$file"]=1
-done < <(git diff --name-only -z)
-
+# A staged path that *also* differs between the index and the working tree is
+# partially staged, and is the case lint-staged mishandles. Asked per path
+# rather than by building a set, because an associative array needs bash 4 and
+# a NUL-safe set membership test in bash 3.2 is worse than one `git diff` per
+# staged file -- which costs milliseconds against the Prettier run below.
 fully_staged=()
 partially_staged=()
 for file in "${staged[@]}"; do
-    if [ -n "${has_unstaged["$file"]:-}" ]; then
-        partially_staged+=("$file")
-    else
+    if git diff --quiet -- "$file"; then
         fully_staged+=("$file")
+    else
+        partially_staged+=("$file")
     fi
 done
 
@@ -93,10 +97,11 @@ fi
 for file in "${partially_staged[@]}"; do
     # "<mode> <sha> <stage>\t<path>"; more than one line means an unmerged
     # path, which has no single staged blob to format.
-    mapfile -t entries < <(git ls-files --stage -- "$file")
-    [ ${#entries[@]} -eq 1 ] || continue
+    entries=$(git ls-files --stage -- "$file")
+    [ -n "$entries" ] || continue
+    [ "$(printf '%s\n' "$entries" | wc -l)" -eq 1 ] || continue
 
-    read -r mode sha _ <<<"${entries[0]}"
+    read -r mode sha _ <<<"$entries"
     # Only regular files. Skip symlinks (120000) and submodules (160000).
     case "$mode" in
     100644 | 100755) ;;

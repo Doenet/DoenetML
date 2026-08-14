@@ -12,6 +12,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
+import { evaluateToNumber } from "../utils/math";
 
 export default class Curve extends GraphicalComponent {
     constructor(args) {
@@ -541,8 +542,15 @@ export default class Curve extends GraphicalComponent {
                         parMax *= 2;
                     }
                 } else if (dependencyValues.parMaxAttr !== null) {
-                    parMax =
-                        dependencyValues.parMaxAttr.stateValues.value.evaluate_to_constant();
+                    // `evaluate_to_constant()` reports a non-numeric bound
+                    // (`parMax="a"`) as `null`, and `null` coerces to `0` in
+                    // every arithmetic consumer of `parMax` — including
+                    // `getNearestPointFunctionCurve`, which would anchor its
+                    // search at the origin rather than decline. `NaN` is the
+                    // one spelling of "not a number" those consumers test for.
+                    parMax = evaluateToNumber(
+                        dependencyValues.parMaxAttr.stateValues.value,
+                    );
                 } else if (dependencyValues.curveType === "function") {
                     let domain = null;
                     if (dependencyValues.functionChild.length === 1) {
@@ -654,8 +662,10 @@ export default class Curve extends GraphicalComponent {
                         parMin = -(dependencyValues.numThroughPoints - 1);
                     }
                 } else if (dependencyValues.parMinAttr !== null) {
-                    parMin =
-                        dependencyValues.parMinAttr.stateValues.value.evaluate_to_constant();
+                    // See `parMax`: `null` here would coerce to `0` downstream.
+                    parMin = evaluateToNumber(
+                        dependencyValues.parMinAttr.stateValues.value,
+                    );
                 } else if (dependencyValues.curveType === "function") {
                     let domain = null;
                     if (dependencyValues.functionChild.length === 1) {
@@ -711,12 +721,16 @@ export default class Curve extends GraphicalComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                // A non-numeric bound (`parMin="a"`) leaves the endpoint as
-                // `null`, which `fromAst` rejects outright — taking down the
-                // whole document instead of producing a curve the renderer can
+                // `fromAst` rejects `null` outright, taking down the whole
+                // document instead of producing a curve the renderer can
                 // decline to draw. NaN is a value the tree can hold, and every
                 // consumer already tests the domain for finiteness, so this
                 // degrades to "no finite domain" and the renderer warns.
+                //
+                // The `parMin`/`parMax` attribute path is already `NaN` here
+                // (see their definitions); this covers the remaining source,
+                // a `<function>` child whose declared domain endpoint does not
+                // evaluate.
                 const bound = (v) => (typeof v === "number" ? v : NaN);
                 // closed interval [parMin, parMax]
                 let interval = me.fromAst([

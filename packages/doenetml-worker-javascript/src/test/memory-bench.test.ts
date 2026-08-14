@@ -9,6 +9,11 @@ import fs from "node:fs";
 //       npx vitest run src/test/memory-bench.test.ts
 // Set MEMBENCH_HEAP_SNAPSHOT=<path> to also write a V8 heap snapshot
 // for offline analysis.
+//
+// It only runs when one of those variables is set. This file carries no
+// `@groupN` tag, so it would otherwise land in the `test:group4` catch-all
+// (`-t '^(?!.*@(?:group1|group2|group3))'`) and spend minutes measuring
+// something no assertion depends on.
 
 const doenetML = fs.readFileSync(
     new URL("./memory-bench-doc.xml", import.meta.url),
@@ -30,7 +35,11 @@ const repeatDoenetML = `
 </repeatForSequence>
 `;
 
-describe("memory benchmark", () => {
+const MEMBENCH_ENABLED = Boolean(
+    process.env.MEMBENCH_RESULT || process.env.MEMBENCH_HEAP_SNAPSHOT,
+);
+
+describe.runIf(MEMBENCH_ENABLED)("memory benchmark", () => {
     it("loads the Venn diagram document and reports heap", async () => {
         const gc = (globalThis as any).gc;
         if (gc) {

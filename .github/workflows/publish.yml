@@ -48,6 +48,10 @@ jobs:
               uses: actions/checkout@v6
               with:
                   ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+                  # @doenet/math compiles its WASM core from this submodule at
+                  # build time; checkout skips submodules by default.
+                  submodules: recursive
+            - uses: ./.github/actions/setup-math-wasm
 
             - name: Determine checked out commit SHA
               id: checked-sha
@@ -133,6 +137,10 @@ jobs:
               uses: actions/checkout@v6
               with:
                   ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+                  # The extension bundles `doenetml-worker`, which builds
+                  # @doenet/math's WASM core from this submodule.
+                  submodules: recursive
+            - uses: ./.github/actions/setup-math-wasm
 
             - name: Determine checked out commit SHA
               id: checked-sha
@@ -235,6 +243,10 @@ jobs:
               with:
                   ref: ${{ github.event_name == 'release' && github.event.release.tag_name || (inputs.tag != '' && inputs.tag || github.ref) }}
                   fetch-depth: 0
+                  # @doenet/math compiles its WASM core from this submodule at
+                  # build time; checkout skips submodules by default.
+                  submodules: recursive
+            - uses: ./.github/actions/setup-math-wasm
 
             - name: Determine checked out commit SHA
               id: checked-sha

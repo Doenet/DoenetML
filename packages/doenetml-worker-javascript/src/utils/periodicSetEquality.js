@@ -278,9 +278,11 @@ function contained_in(tree, i_set, match_partial) {
         // correct answer into a zero, because a student who asks for ten offset
         // boxes and fills four of them leaves six blanks in this list.
         //
-        // (The `offset0`/`period0` guards above are different and do return
-        // `false`: those describe the piece being tested, and a piece we cannot
-        // place is not contained in anything.)
+        // (The `offset0` guard above is different and does return `false`:
+        // it describes the piece being tested, and a piece we cannot place is
+        // not contained in anything. `period0` has no guard of its own — it is
+        // a raw subtree, never evaluated here — but it is divided into
+        // `offset0`, so a `period0` that cannot be placed shows up there.)
         if (typeof period !== "number" || Number.isNaN(period)) continue;
         if (typeof offset !== "number" || Number.isNaN(offset)) continue;
 

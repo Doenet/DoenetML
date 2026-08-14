@@ -24,9 +24,10 @@ import { mathExpressionFromSubsetValue } from "@doenet/utils";
  *
  * `critical_points` is three-valued, but the caller currently treats two of the
  * three alike: an empty array means "provably none" and `null` means undecided
- * (a derivative that is not rational in the variable, one carrying a free
- * parameter, a constant function), and both simply leave bracketing to do the
- * work.
+ * (a derivative that is not rational in the variable, a constant function), and
+ * both simply leave bracketing to do the work. A free parameter is *not* one of
+ * those cases — `(x^2+a)` reports `[0]` — which is why the loop below rejects
+ * points that will not `evaluate_to_constant`.
  */
 function exactCriticalPointsOf(plainFormula, varString) {
     let points;
@@ -59,6 +60,16 @@ function exactCriticalPointsOf(plainFormula, varString) {
  * marshalling the variable name, not by the arithmetic — about 1.2µs against
  * 6ns of real work. Returns `null` if the expression cannot be sampled that
  * way, leaving the caller on its per-point path.
+ *
+ * **Not exactly equivalent to the per-point path at a pole.** `evaluate_many`
+ * reports a non-finite sample as `NaN` where `.f()` reports `±Infinity`: for
+ * `d/dx log|x|` = `1/x` at `x = 0`, the batch gives `NaN` and the per-point
+ * call gives `Infinity`. The sign-change test downstream is
+ * `dleft * dright <= 0`, which is `false` for `NaN` and `true` for `-Infinity`,
+ * so whether a spurious extremum is reported *at a pole* depends on which path
+ * ran. Reporting nothing at a pole is the better answer of the two, so this is
+ * left as is rather than normalized — but it is a behavioral difference, not
+ * only a speed-up.
  */
 function sampleGrid(expr, varString, xs) {
     if (!expr) {

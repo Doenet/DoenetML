@@ -574,10 +574,10 @@ export function findProblems(budgets, scripts) {
             problems.push(blobPlacementProblem(relative, emitted, expected));
         }
         // The math core: allowed anywhere math is used, but never twice in one
-        // script. Two copies means it was resolved as two module instances —
-        // which is how ~2.3 MiB of duplicated base64 rode into these bundles
-        // through `virtual-keyboard` and `doenetml-worker-rust` before both
-        // externalized it.
+        // script. Two copies means it was resolved as two module instances,
+        // each contributing its own ~2.3 MiB of inlined base64 — the failure
+        // this check exists to catch, and the reason the libraries that feed
+        // these bundles externalize the seam rather than bundling it.
         if ((emitted.mathCores ?? 0) > 1) {
             problems.push(
                 mathCorePlacementProblem(relative, emitted.mathCores),

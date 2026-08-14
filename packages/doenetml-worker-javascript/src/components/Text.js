@@ -11,11 +11,7 @@ import {
     returnTextPieceStateVariableDefinitions,
     textFromChildren,
 } from "../utils/text";
-import {
-    textToMathFactory,
-    latexToMathFactory,
-    evaluateToNumber,
-} from "../utils/math";
+import { textToMathFactory, latexToMathFactory } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 
@@ -344,7 +340,13 @@ export default class Text extends InlineComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        number: evaluateToNumber(dependencyValues.math),
+                        // `?? NaN` rather than `evaluateToNumber`: `null`
+                        // ("could not evaluate") must not flow on, because it
+                        // coerces to `0`, but a *complex* result has to survive
+                        // — `<number><text>3+4i</text></number>` reads this
+                        // through `Number.js`, which keeps complex values.
+                        number:
+                            dependencyValues.math.evaluate_to_constant() ?? NaN,
                     },
                 };
             },

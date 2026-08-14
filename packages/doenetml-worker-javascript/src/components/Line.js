@@ -2558,6 +2558,10 @@ function calculatePointsFromCoeffs({
             // of one line disagree: `5x-2y=3` and `2y-5x=-3` produced opposite
             // rays.
             //
+            // Numeric coefficients only. The symbolic branch below cannot test
+            // a sign, so two spellings of a line with symbolic coefficients
+            // still disagree about direction.
+            //
             // The coefficients themselves are left alone -- they are a public
             // property and stay in the form the author's equation gives.
             //

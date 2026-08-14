@@ -276,8 +276,9 @@ export function findFiniteNumericalValue(value: any) {
  * Whether `evaluate_to_constant()` produced a number we can actually compute
  * with.
  *
- * It reports `null` — not `NaN` — for everything it cannot evaluate: a free
- * variable, a blank `＿`, an unevaluable head. `Number.isNaN(null)` is `false`
+ * It reports `null` — not `NaN` — for most of what it cannot evaluate: a free
+ * variable, a blank `＿`, an unevaluable head. (Not all of it: a stray scaling
+ * unit such as `2$` answers `NaN`.) `Number.isNaN(null)` is `false`
  * and `null` coerces to `0` in arithmetic and comparisons, so testing only for
  * `NaN` lets an unevaluable expression pass as numeric and then silently behave
  * like zero. `＿ < 1` became `null < 1`, which is `true`, and a blank answer
@@ -1025,6 +1026,11 @@ export function removeFunctionsMathExpressionClass(value: any) {
  *
  * Deliberately *not* `＿` (U+FF3F), which already means a blank the student
  * typed and must keep flowing through untouched.
+ *
+ * It is an ordinary identifier, so a document with `splitSymbols="false"` and a
+ * variable literally named `unspecifiedComponent` would have that component
+ * read as unset. Accepted rather than reached for a private-use character,
+ * because the marker never leaves the inverse-definition round trip.
  */
 export const UNSPECIFIED_COMPONENT = "unspecifiedComponent";
 
@@ -1066,7 +1072,9 @@ export function isUnspecifiedComponentValue(expression: any) {
  * Replace the unset slots of a vector AST being built component-by-component
  * with `UNSPECIFIED_COMPONENT`, so it can be handed to `me.fromAst`.
  *
- * Operates on operands only — index 0 is the operator.
+ * Operates on operands only — index 0 is the operator. **Mutates `tree` in
+ * place** and returns it, so the caller must own the array; every call site
+ * does, having just built it.
  */
 export function markUnspecifiedComponents(tree: any[]) {
     for (let ind = 1; ind < tree.length; ind++) {

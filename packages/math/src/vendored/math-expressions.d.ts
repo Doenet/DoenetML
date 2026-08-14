@@ -1,4 +1,4 @@
-// Vendored from `math-expressions@2.0.0-alpha94` (`build/index.d.ts`), verbatim
+// Vendored from `math-expressions@2.0.0-alpha95` (`build/index.d.ts`), verbatim
 // apart from this header and the removal of its default export (see below).
 //
 // Upstream: https://github.com/Doenet/math-expressions

@@ -21,13 +21,38 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "test": "vitest",
+        "test": "wireit",
         "build:wasm": "wireit",
         "build": "wireit"
     },
     "wireit": {
+        "test": {
+            "command": "vitest run",
+            "files": [
+                "test/**/*.ts",
+                "vitest.config.ts"
+            ],
+            "output": [],
+            "dependencies": [
+                "build"
+            ]
+        },
         "build:wasm": {
-            "command": "node scripts/build-wasm.mjs"
+            "command": "node scripts/build-wasm.mjs",
+            "files": [
+                "scripts/build-wasm.mjs",
+                "../../vendor/math-expressions/Cargo.toml",
+                "../../vendor/math-expressions/Cargo.lock",
+                "../../vendor/math-expressions/packages/math-expressions-rs/Cargo.toml",
+                "../../vendor/math-expressions/packages/math-expressions-rs/src/**",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/Cargo.toml",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/build-wasm.sh",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-rust/**"
+            ],
+            "output": [
+                "src/generated/**"
+            ],
+            "clean": false
         },
         "build": {
             "command": "vite build",
@@ -36,7 +61,8 @@
                 "vite.config.ts",
                 "tsconfig.json",
                 "../../vendor/math-expressions/packages/math-expressions-js-compat/lib/**/*.ts",
-                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-js/**/*.ts"
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-js/**/*.ts",
+                "src/generated/**"
             ],
             "output": [
                 "dist/**/*.js",

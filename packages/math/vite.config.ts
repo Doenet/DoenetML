@@ -8,6 +8,8 @@ const SUBMODULE = fileURLToPath(
 );
 const JS_COMPAT = resolve(SUBMODULE, "packages/math-expressions-js-compat");
 const RS_WASM = resolve(SUBMODULE, "packages/math-expressions-rs-wasm");
+// Written by scripts/build-wasm.mjs; git-ignored.
+const GENERATED = fileURLToPath(new URL("src/generated/", import.meta.url));
 
 /**
  * Drop the wasm-bindgen glue's *default* WASM path.
@@ -24,8 +26,8 @@ const RS_WASM = resolve(SUBMODULE, "packages/math-expressions-rs-wasm");
  * actually use, and once here, which nothing ever reads: `wasm-loader.ts`
  * always passes explicit bytes, so `module_or_path` is never undefined.
  *
- * That dead copy cost 1.76 MiB in this bundle and again in every bundle that
- * embeds it. Replacing the expression with a throw keeps the branch honest —
+ * That dead copy cost ~2.24 MiB — the 1.68 MiB core, base64-encoded — in this
+ * bundle and again in every bundle that embeds it. Replacing the expression with a throw keeps the branch honest —
  * if a future caller does reach it, it fails with a clear message instead of
  * silently fetching a URL that will not resolve in a worker.
  */
@@ -37,7 +39,7 @@ function dropDefaultWasmPath(): Plugin {
         name: "doenet:drop-default-wasm-path",
         enforce: "pre",
         transform(code, id) {
-            if (!id.startsWith(RS_WASM) || !code.includes(NEEDLE)) {
+            if (!id.startsWith(GENERATED) || !code.includes(NEEDLE)) {
                 return null;
             }
             hits++;
@@ -52,10 +54,15 @@ function dropDefaultWasmPath(): Plugin {
                 map: null,
             };
         },
-        buildEnd() {
+        buildEnd(error) {
+            // Rollup calls `buildEnd(error)` on failure too, and reporting
+            // "the glue changed shape" would then bury the real error — which
+            // is very likely why nothing was transformed. Only claim a miss
+            // when the build otherwise succeeded.
+            //
             // A silent no-op here would put the duplicate straight back, so
-            // fail the build rather than regress by 1.76 MiB unnoticed.
-            if (hits === 0) {
+            // fail the build rather than regress by ~2.24 MiB unnoticed.
+            if (!error && hits === 0) {
                 this.error(
                     "doenet:drop-default-wasm-path matched nothing — the " +
                         "wasm-bindgen glue changed shape. Re-check the default " +
@@ -91,11 +98,11 @@ export default defineConfig({
                 find: /^math-expressions-rs-wasm$/,
                 replacement: resolve(RS_WASM, "src-js/index.ts"),
             },
-            // The generated wasm-bindgen glue for the `web` target. Built by
-            // scripts/build-wasm.mjs; git-ignored.
+            // The generated wasm-bindgen glue for the `web` target, copied
+            // into this package by scripts/build-wasm.mjs.
             {
                 find: /^math-expressions-wasm-glue$/,
-                replacement: resolve(RS_WASM, "pkg/math_expressions_wasm.js"),
+                replacement: resolve(GENERATED, "math_expressions_wasm.js"),
             },
         ],
     },

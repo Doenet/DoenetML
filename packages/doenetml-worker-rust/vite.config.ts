@@ -33,10 +33,11 @@ export default defineConfig({
         },
         rollupOptions: {
             // `math-expressions` resolves to the `@doenet/math` seam, which
-            // inlines the Rust core as ~2.3 MiB of base64. Bundled here it was
-            // baked into this dist and rode into every bundle embedding this
-            // package — one of the two copies `doenetml-worker` was carrying.
-            // Externalized, the consuming bundle resolves it once.
+            // inlines the Rust core as ~2.3 MiB of base64.
+            // `lib-js-wasm-binding` really does import it, so bundling here
+            // would bake a private copy into this dist and into every bundle
+            // that embeds this package. Externalized, the consuming bundle
+            // resolves it once.
             external: ["math-expressions"],
         },
     },

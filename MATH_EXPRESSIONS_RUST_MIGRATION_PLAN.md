@@ -1,7 +1,9 @@
 # Migrating DoenetML to the Rust/WASM `math-expressions` — a two-stage plan
 
-Target: <https://github.com/Doenet/math-expressions/> (main, audited 2026-07-30), including the
-improvements in **PR #82 "Rust improvements"**, which is expected to merge shortly.
+Target: <https://github.com/Doenet/math-expressions/> (main, audited 2026-07-30). What is actually
+pinned is the `doenet` branch of `siefkenj/math-expressions`
+([PR #84](https://github.com/Doenet/math-expressions/pull/84)), the upstream half of this work;
+the audit predates it and named PR #82 as the then-pending improvement.
 
 - **Stage 1** — swap the npm dependency for the v3 drop-in (`math-expressions-js-compat`,
   published as `math-expressions`), with its WASM **inlined** the way `CoreWorker.ts` inlines
@@ -73,10 +75,10 @@ statements in all):
 
 | Package | Files | Realm |
 | --- | ---: | --- |
-| `doenetml-worker-javascript` | 119 | Web Worker (+ vitest) |
-| `doenetml` | 17 | Main thread (renderers) |
-| `utils` | 11 | Both |
-| `test-cypress`, `lsp-tools`, `static-assets`, `doenetml-to-pretext`, `doenetml-print`, `doenetml-prototype`, `i18n` | 1–3 each | Mixed / node |
+| `doenetml-worker-javascript` | 115 | Web Worker (+ vitest) |
+| `doenetml` | 15 | Main thread (renderers) |
+| `utils` | 9 | Both |
+| `test-cypress`, `doenetml-prototype`, `doenetml-worker-rust`, `doenetml-to-pretext` | 1–3 each | Mixed / node |
 
 Source (non-test) call counts:
 
@@ -288,6 +290,10 @@ Keep the existing `external: ["math-expressions"]` in
 so the bundle carries exactly one copy, and inline the wasm exactly once, in `doenetml-worker`,
 next to the existing blob.
 
+> **As built:** the wasm is inlined in `packages/math` itself, not in `doenetml-worker`, so every
+> consumer gets the same single artifact. `doenetml-worker` *dedupes* the seam rather than
+> externalizing it, because it is fetched by URL and has to stay self-contained.
+
 ### Step 3 — Node-only pilot
 
 Compat's node path is supported *today*, so migrate node-resident consumers behind the seam
@@ -316,6 +322,11 @@ on every `serializedComponentsReviver` round-trip. Options, cheapest first:
 Independent of all three: the append-only `Sym` interner leaks regardless and is upstream-only.
 
 ### Step 5 — Rollout
+
+> **Not as built:** there is no `mathEngine` flag and no two-engine CI run. The branch switched
+> permanently — the legacy library is not a dependency any more, so the only way to A/B is to check
+> out a commit from before the switch. The triage discipline below still applies; the mechanism does
+> not.
 
 `mathEngine: "js" | "rust"` flag through the worker, default `js`. Run the 164-file vitest suite
 and all five Cypress groups under both engines in CI; triage each divergence as *Rust bug*

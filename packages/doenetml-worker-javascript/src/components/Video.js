@@ -779,6 +779,11 @@ export default class Video extends BlockComponent {
      * `state` is left alone too: a video that was playing when the source
      * changed should keep playing into the new source, which is what the
      * renderer's teardown relies on.
+     *
+     * No `doNotSave` here, unlike the sibling video actions. `setTime` saves
+     * the position it records, so the reset has to be saved as well or the old
+     * video's position is restored on the next load and the renderer seeks the
+     * new video to it -- exactly the bug this action exists to prevent.
      */
     async recordVideoSourceChanged({
         actionId,
@@ -804,7 +809,6 @@ export default class Video extends BlockComponent {
             sourceInformation,
             skipRendererUpdate,
             overrideReadOnly: true,
-            doNotSave: true, // video actions don't count as changing doc state
         });
     }
 

@@ -24,6 +24,8 @@ but the engine is a different implementation and some results differ:
 - **Inverse trigonometric notation parses correctly.** `sin^(-1)(1)` is read as the inverse
   function; the old engine read it as `(1/sin)(1)`.
 
-The engine's WASM is inlined into the bundle, so no extra network request is made, but the download
-grows by roughly 750 kB gzipped. Building DoenetML from source now requires a Rust toolchain with
-the `wasm32-unknown-unknown` target and a matching `wasm-bindgen-cli`.
+The engine's WASM is inlined into the bundle rather than fetched, so no extra network request is
+made, but the bundle carries it: the engine is 2.40 MiB uncompressed and 782 kB gzipped, against
+roughly 1.1 MB uncompressed for the JavaScript library it replaces. Building DoenetML from source
+now requires a Rust toolchain with the `wasm32-unknown-unknown` target and a matching
+`wasm-bindgen-cli`.

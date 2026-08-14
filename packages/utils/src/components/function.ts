@@ -563,13 +563,17 @@ export function returnPiecewiseNumericalFunctionFromChildren({
 }
 
 /**
- * Is this what `evaluate_to_constant()` returns for an input with an actual
- * numeric position on the line? `null` (no value), `NaN`, and a complex
- * `{re, im}` are all "no" — and each of them, left to JavaScript's relational
- * operators, would silently answer a domain question instead: `null >= -3` is
- * `true`.
+ * Is this what `evaluate_to_constant()` returns for an input that has a place
+ * on the number line? `null` (no value), `NaN`, and a complex `{re, im}` are
+ * all "no" — and each of them, left to JavaScript's relational operators, would
+ * silently answer a domain question instead: `null >= -3` is `true`.
+ *
+ * `±Infinity` is a "yes": it is not finite, but it *is* ordered, which is all a
+ * domain check needs. (This is the same predicate as
+ * `doenetml-worker-javascript`'s `isNumericConstant`, duplicated because the
+ * dependency runs the other way — that package imports this one.)
  */
-function isFiniteNumber(v: unknown): v is number {
+function isNumericConstant(v: unknown): v is number {
     return typeof v === "number" && !Number.isNaN(v);
 }
 
@@ -658,7 +662,7 @@ export function returnSymbolicFunctionFromFormula({
                 // so a bare `Number.isNaN` check let a symbolic input be judged
                 // against the interval as if it were the origin.
                 if (
-                    isFiniteNumber(xNum) &&
+                    isNumericConstant(xNum) &&
                     (!(xNum >= minx) ||
                         !(xNum <= maxx) ||
                         (openMin && xNum === minx) ||
@@ -755,7 +759,7 @@ export function returnSymbolicFunctionFromFormula({
                 // See the note in the single-input case: "not a number" is how
                 // a symbolic input arrives, and it must switch off the domain
                 // check for the whole call rather than be compared as `0`.
-                if (!isFiniteNumber(xNum)) {
+                if (!isNumericConstant(xNum)) {
                     allNumeric = false;
                 } else {
                     let [minx, maxx] = domainIntervals[i];
@@ -881,7 +885,7 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 // so a bare `Number.isNaN` check let a symbolic input be judged
                 // against the interval as if it were the origin.
                 if (
-                    isFiniteNumber(xNum) &&
+                    isNumericConstant(xNum) &&
                     (!(xNum >= minx) ||
                         !(xNum <= maxx) ||
                         (openMin && xNum === minx) ||
@@ -986,7 +990,7 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 // See the note in the single-input case: "not a number" is how
                 // a symbolic input arrives, and it must switch off the domain
                 // check for the whole call rather than be compared as `0`.
-                if (!isFiniteNumber(xNum)) {
+                if (!isNumericConstant(xNum)) {
                     allNumeric = false;
                 } else {
                     let [minx, maxx] = domainIntervals[i];
@@ -1078,8 +1082,12 @@ function evaluateChildToNumber(child: any, argsForInputs: any): number {
                 return value;
             }
         } catch (e) {
-            // A vector input or an unbound symbol makes the compiled numeric
-            // evaluator throw. Both are cases the expression route handles.
+            // Fall through to the expression route below. It is not a *better*
+            // route for the two throws you would expect here — a vector input
+            // throws earlier, when `.f()` is constructed, and an unbound symbol
+            // throws again below, from the same argument functions — so this
+            // catch only buys resilience against an unforeseen throw out of the
+            // compiled evaluator.
         }
     }
 

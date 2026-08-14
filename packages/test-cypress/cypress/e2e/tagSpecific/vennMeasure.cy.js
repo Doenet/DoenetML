@@ -1,7 +1,13 @@
-// Temporary measurement spec for MEMORY_REDUCTION_LOG.md: loads the Venn
-// diagram profiling document, activates all regions, and records the number
-// of JSXGraph elements and the JS heap size.
-describe("venn measure", { tags: ["@group1"] }, function () {
+// Measurement spec for MEMORY_REDUCTION_LOG.md: loads the Venn diagram
+// profiling document, activates all regions, and records the number of
+// JSXGraph elements and the JS heap size into `venn-measure-result.json`.
+//
+// Skipped by default. It asserts nothing about the product -- it is an
+// instrument, and running it in CI would spend a minute of `@group1` producing
+// a number nobody reads and writing a file into the working tree. Unskip it to
+// take a measurement. The `@group1` tag is kept so `test:mistagged` (which runs
+// everything carrying no group tag) does not pick it up.
+describe.skip("venn measure", { tags: ["@group1"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

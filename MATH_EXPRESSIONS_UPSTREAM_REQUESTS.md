@@ -7,10 +7,36 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Nothing is open
+## Open — one item
 
-Every request previously filed here has landed upstream. Re-verified against the current pin by
-probing the built package directly:
+**The vendored type surface is wider than the engine.** 48 of the 114 members
+`packages/math/src/vendored/math-expressions.d.ts` declares on `Expression` are `undefined` at
+runtime on the Rust engine: the elementwise numeric methods (`abs`, `exp`, `log`, `log10`, `sqrt`,
+`sign`, `re`/`im`/`conj`, `factorial`, `gamma`, `erf`, and the whole trig/hyperbolic family
+including `atan2`), the matrix/vector helpers (`perform_matrix_multiplications`,
+`perform_vector_scalar_multiplications`, …), and a handful of one-offs (`clean`,
+`common_denominator`, `substitute_abs`, `log_subscript_to_two_arg_log`,
+`normalize_angle_linesegment_arg_order`, `equalsViaFiniteField`, `toGuppy`, `operators`).
+
+Nothing in DoenetML calls any of them today, so nothing is broken — but TypeScript currently accepts
+`expr.sin()` and it fails at runtime. Reproduce with:
+
+```bash
+npm run build -w packages/math
+node --input-type=module -e '
+import me from "./packages/math/dist/index.js";
+console.log(me.fromText("x+1").sin);   // undefined
+'
+```
+
+Either port them, or narrow the vendored declarations to what the engine implements. Narrowing is
+the safer half and does not need upstream — but it should be one edit, made deliberately, rather
+than a member quietly disappearing each time the snapshot is refreshed.
+
+## Nothing else is open
+
+Every *behavioral* request previously filed here has landed upstream. Re-verified against the
+current pin by probing the built package directly:
 
 ```bash
 npm run build -w packages/math

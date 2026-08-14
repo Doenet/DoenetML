@@ -15,7 +15,13 @@
  * `wasm-bindgen-cli` matching the submodule's pinned `wasm-bindgen`).
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+    copyFileSync,
+    existsSync,
+    mkdirSync,
+    readFileSync,
+    writeFileSync,
+} from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -48,6 +54,17 @@ execFileSync("bash", [resolve(RS_WASM, "build-wasm.sh"), "web", "pkg"], {
 
 const wasm = readFileSync(resolve(PKG_OUT, "math_expressions_wasm_bg.wasm"));
 mkdirSync(GENERATED, { recursive: true });
+
+// Copy the wasm-bindgen glue in rather than aliasing straight into the
+// submodule's `pkg/`. wireit refuses to track an output outside the package, so
+// leaving it there made this script — and therefore every downstream build in
+// the repo — uncacheable. The glue is self-contained (no relative imports), so
+// a copy is all it takes. `vite.config.ts` aliases `math-expressions-wasm-glue`
+// here.
+for (const name of ["math_expressions_wasm.js", "math_expressions_wasm.d.ts"]) {
+    copyFileSync(resolve(PKG_OUT, name), resolve(GENERATED, name));
+}
+
 writeFileSync(
     OUT_FILE,
     HEADER +

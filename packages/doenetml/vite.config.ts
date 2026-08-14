@@ -8,7 +8,6 @@ import dts from "vite-plugin-dts";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
 import {
-    makeIsExternalDep,
     prefigureDynamicImportIgnorePlugin,
     suppressLogPlugin,
 } from "../../scripts/vite-plugins";
@@ -19,9 +18,23 @@ import {
 // ~2.3 MiB of base64. Bundling it here put a private copy in this library *and*
 // in every sibling library, so `doenet-standalone.js` ended up carrying three
 // copies of the same bytes. Externalized, the application bundle resolves it
-// once. See `makeIsExternalDep` for why a bare specifier list is not enough.
+// once.
 const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
-const isExternalDep = makeIsExternalDep(EXTERNAL_DEPS);
+
+// The subset of `EXTERNAL_DEPS` that becomes a `peerDependencies` entry in the
+// published `dist/package.json`.
+//
+// `math-expressions` is deliberately absent. It resolves to the workspace-only
+// `@doenet/math` through `"math-expressions": "file:../math"`, and a `file:`
+// range is meaningless to an npm consumer. Externalizing it is still right for
+// the workspace — `@doenet/standalone` builds against this `dist/` and resolves
+// the seam once — but it means the *published* tarball carries an unresolved
+// `math-expressions` import. Publishing this package therefore has to wait for
+// the seam to be a real published package; see
+// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`.
+const PUBLISHED_PEER_DEPS = EXTERNAL_DEPS.filter(
+    (dep) => dep !== "math-expressions",
+);
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -48,7 +61,7 @@ export default defineConfig(({ mode }) => {
                         src: "package.json",
                         dest: "./",
                         transform: createPackageJsonTransformer({
-                            externalDeps: EXTERNAL_DEPS,
+                            externalDeps: PUBLISHED_PEER_DEPS,
                         }),
                     },
                     // Ship the README in the published package (`dist/` is
@@ -81,7 +94,7 @@ export default defineConfig(({ mode }) => {
             rollupOptions: devBuild
                 ? undefined
                 : {
-                      external: isExternalDep,
+                      external: EXTERNAL_DEPS,
                       output: {
                           globals: Object.fromEntries(
                               EXTERNAL_DEPS.map((dep) => [dep, dep]),
