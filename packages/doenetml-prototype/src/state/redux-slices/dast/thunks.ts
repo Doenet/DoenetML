@@ -23,6 +23,13 @@ export const dastThunks = {
             // compile. Started here so it overlaps the parse and the worker
             // boot, awaited below so no renderer can run ahead of it.
             const mathWasmReady = initMathWasm();
+            // Registering a handler now, rather than relying on the `await` below,
+            // because the promise is held across several `await`s that can each throw.
+            // If one does, nothing ever awaits this one and the runtime reports an
+            // unhandled rejection that buries the real error. This does not swallow it:
+            // `.catch` returns a *new* promise, and the `await` below still sees the
+            // original reject. (AGENTS.md: no fire-and-forget promises.)
+            mathWasmReady.catch(() => {});
 
             // We parse the source string to get the DAST tree.
             // This will get sent to the webworker

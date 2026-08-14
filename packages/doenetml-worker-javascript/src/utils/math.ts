@@ -525,6 +525,57 @@ export function normalizeLatexString(
     return latexString;
 }
 
+/**
+ * A complex value as a plain `{re, im}` object.
+ *
+ * `evaluate_to_constant()` hands back a math.js `Complex`, which is right for
+ * callers doing math.js arithmetic with it — but a value on its way into a
+ * *state variable* is about to be structured-cloned to the main thread, where
+ * the prototype does not survive. Storing the class instance promised methods
+ * that only exist on one side of that boundary.
+ *
+ * Anything that is not a complex — a number, `null`, `NaN` — passes through, so
+ * this is safe to wrap around a raw `evaluate_to_constant()` result. Apply it
+ * at every boundary where such a result becomes a state variable; the two that
+ * were missed were `<text>`'s `.number` and `<number>`'s text-child branch,
+ * both `public`, and the second the only branch of its own definition without
+ * it.
+ */
+export function plainComplex(value: any) {
+    if (
+        value &&
+        typeof value === "object" &&
+        typeof value.re === "number" &&
+        typeof value.im === "number"
+    ) {
+        return { re: value.re, im: value.im };
+    }
+    return value;
+}
+
+/** The long-underscore character an unfilled `<mathInput>` slot holds. */
+export const BLANK = "\uFF3F";
+
+/**
+ * Does this tree hold an unfilled slot anywhere?
+ *
+ * Walks the tree rather than asking `variables()`. The legacy library listed
+ * the blank among an expression's variables; the Rust engine does not — it is a
+ * node of its own kind — so `variables().includes(BLANK)` is a guard that
+ * cannot fire, and reads as "no blanks here" for every expression there is.
+ * That is a silent failure in both places this is used: a pattern match stops
+ * rejecting incomplete input, and an extremum search proceeds to differentiate
+ * a formula with a hole in it.
+ */
+export function treeContainsBlank(tree: unknown): boolean {
+    if (Array.isArray(tree)) {
+        // From index 1: index 0 is the operator name, and an operator spelled
+        // with the blank character is not a blank.
+        return tree.slice(1).some(treeContainsBlank);
+    }
+    return tree === BLANK;
+}
+
 export function isValidVariable(expression: {
     tree: any;
     [key: string]: unknown;
@@ -640,9 +691,13 @@ export function numberToMathExpression(
 }
 
 /**
- * Flatten a `list` nested directly inside another container: `(a, (b, c))`
- * written as `["tuple", "a", ["list", "b", "c"]]` becomes
- * `["tuple", "a", "b", "c"]`.
+ * Flatten a `list` nested directly inside another container:
+ * `["tuple", "a", ["list", "b", "c"]]` becomes `["tuple", "a", "b", "c"]`.
+ *
+ * Only a nested `list` is flattened, which is why the source of one matters:
+ * the parser does not produce it — `(a, (b, c))` reads as a tuple inside a
+ * tuple and is left alone — so the `list` arrives from code substitution, where
+ * a `<math>` whose value is a list is spliced into a container.
  *
  * Returns the *same* tree object when there is nothing to flatten, so callers
  * can tell a no-op apart from a real change. That matters because the only way

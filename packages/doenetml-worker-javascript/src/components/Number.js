@@ -21,19 +21,24 @@ import {
     textToMathFactory,
     mathStateVariableFromNumberStateVariable,
     numberToMathExpression,
+    plainComplex,
     roundForDisplay,
 } from "../utils/math";
 
 /**
- * The numeric value of an expression carrying a currency marker — `2$` is `2`,
- * `$-5` is `-4`.
+ * The numeric value of an expression carrying a currency marker — `2$` is `2`.
  *
  * A well-formed `["unit", …]` node (`$5`, `25%`, `60 deg`) needs none of this:
  * `evaluate_to_constant()` already answers `5`, `0.25` and `π/3`. What it
  * cannot do is a *stray* `$`, which parses as a free factor — `2$` is
- * `["*", 2, "$"]` — so that `$5` never compares equal to a bare `5`. Asking
- * `<number>` for a value is exactly the place where that marker should be
- * dropped, so it is substituted with 1 here and nowhere else.
+ * `["*", 2, "$"]`, and a free factor makes the whole expression unevaluable.
+ * Asking `<number>` for a value is exactly the place where that marker should
+ * be dropped, so it is substituted with 1 here and nowhere else.
+ *
+ * The substitution is global, so a `$` that is not a factor is silently given
+ * the value 1 too: `$-5` parses as `["+", "$", -5]` and answers **-4**. That is
+ * a wrong number rather than a refusal, and it is the known cost of doing this
+ * with `substitute` instead of matching the marker where it sits.
  *
  * A free factor makes `evaluate_to_constant()` answer `NaN`, not `null`, which
  * is why the callers try this on both. Returns `null` when the expression has
@@ -49,27 +54,6 @@ function valueIgnoringUnits(expr) {
     } catch (e) {
         return null;
     }
-}
-
-/**
- * A complex value as a plain `{re, im}` object.
- *
- * `evaluate_to_constant()` hands back a math.js `Complex`, which is right for
- * callers doing math.js arithmetic with it — but this one is about to become a
- * *state variable*, and a state variable is structured-cloned to the main
- * thread, where the prototype does not survive. Storing the class instance
- * promised methods that only exist on one side of that boundary.
- */
-function plainComplex(value) {
-    if (
-        value &&
-        typeof value === "object" &&
-        typeof value.re === "number" &&
-        typeof value.im === "number"
-    ) {
-        return { re: value.re, im: value.im };
-    }
-    return value;
 }
 
 export default class NumberComponent extends InlineComponent {
@@ -671,7 +655,11 @@ export default class NumberComponent extends InlineComponent {
                         if (Number.isNaN(number)) {
                             number = dependencyValues.valueOnNaN;
                         }
-                        return { setValue: { value: number } };
+                        // `plainComplex` here too: `<text>`'s `.number` can be
+                        // a math.js `Complex` (`<number><text>3+4i</text></number>`),
+                        // and this was the one branch of this definition that
+                        // let the class instance reach the state variable.
+                        return { setValue: { value: plainComplex(number) } };
                     }
                 } else {
                     if (dependencyValues.parsedExpression === null) {

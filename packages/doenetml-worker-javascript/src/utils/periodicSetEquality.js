@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { isNumericConstant } from "./math";
 const { mod, min, fraction, number: mathNumber } = me.math;
 
 export default function periodicSetEquality(
@@ -247,7 +248,7 @@ function contained_in(tree, i_set, match_partial) {
     // `continue`: `offset0` describes the piece being *tested*, and a piece we
     // cannot place on the number line is not contained in anything. See the
     // comment on those guards for why they must differ.
-    if (typeof offset0 !== "number" || Number.isNaN(offset0)) return false;
+    if (!isNumericConstant(offset0)) return false;
 
     var tuples = i_set.slice(1);
 
@@ -283,8 +284,8 @@ function contained_in(tree, i_set, match_partial) {
         // not contained in anything. `period0` has no guard of its own — it is
         // a raw subtree, never evaluated here — but it is divided into
         // `offset0`, so a `period0` that cannot be placed shows up there.)
-        if (typeof period !== "number" || Number.isNaN(period)) continue;
-        if (typeof offset !== "number" || Number.isNaN(offset)) continue;
+        if (!isNumericConstant(period)) continue;
+        if (!isNumericConstant(offset)) continue;
 
         let frac = fraction(period);
         let p = mathNumber(frac.n);

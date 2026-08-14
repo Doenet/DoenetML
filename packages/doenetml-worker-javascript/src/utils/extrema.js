@@ -4,6 +4,7 @@ import {
     find_effective_domains_piecewise_children,
 } from "@doenet/utils";
 import { mathExpressionFromSubsetValue } from "@doenet/utils";
+import { treeContainsBlank } from "./math";
 
 /**
  * Every root of `formula`'s derivative, exactly, or `null` when the engine
@@ -25,9 +26,15 @@ import { mathExpressionFromSubsetValue } from "@doenet/utils";
  * `critical_points` is three-valued, but the caller currently treats two of the
  * three alike: an empty array means "provably none" and `null` means undecided
  * (a derivative that is not rational in the variable, a constant function), and
- * both simply leave bracketing to do the work. A free parameter is *not* one of
- * those cases — `(x^2+a)` reports `[0]` — which is why the loop below rejects
- * points that will not `evaluate_to_constant`.
+ * both simply leave bracketing to do the work.
+ *
+ * The `evaluate_to_constant` test in the loop below is a guard, not a response
+ * to an observed case: at the current pin a free parameter in a coefficient
+ * makes the whole call undecided (`x^2-a*x` → `null`) rather than producing a
+ * symbolic point, and the one free-parameter shape that does return points
+ * returns evaluable ones (`x^2+a` → `[0]`). Keep the guard — the caller needs a
+ * number and nothing promises these are — but do not read it as documenting a
+ * behaviour.
  */
 function exactCriticalPointsOf(plainFormula, varString) {
     let points;
@@ -609,7 +616,11 @@ export function find_local_global_minima({
         // it the numerical way".
         let exactCriticalPoints = null;
 
-        if (formula.variables().includes("\uFF3F")) {
+        // A hole in the formula, not a variable: the engine does not list the
+        // blank in `variables()` the way the legacy library did, so the test
+        // this replaces could not fire and an unfilled input was differentiated
+        // as though it were complete.
+        if (treeContainsBlank(formula.tree)) {
             haveDerivative = false;
             derivative = () => NaN;
         } else {

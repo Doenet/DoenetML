@@ -1410,6 +1410,60 @@ describe("Line tag tests @group3", async () => {
         expect(evaluateToNumber(vertical.slope)).eq(Infinity);
     });
 
+    it("orients a line the same way however its equation is spelled", async () => {
+        // `calculatePointsFromCoeffs` builds two points on the line from its
+        // coefficients, and `(-b, a)` reverses when the whole equation is
+        // negated -- so `5x-2y=3` and `2y-5x=-3`, the same line, produced
+        // opposite rays. That is visible in the public `points` property and in
+        // what `<angle betweenLines>` draws, so the sign is canonicalized.
+        //
+        // The coefficients themselves are deliberately *not* canonicalized:
+        // they stay in the form the author's equation gives, which is what the
+        // first two assertions of each pair pin.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <line name="a" equation="5x-2y=3" />
+    <line name="b" equation="2y-5x=-3" />
+    <line name="c" equation="-5x+2y=-3" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const pointsOf = async (name: string) => {
+            const sv =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return {
+                coeffs: [
+                    sv.coeffvar1.evaluate_to_constant(),
+                    sv.coeffvar2.evaluate_to_constant(),
+                    sv.coeff0.evaluate_to_constant(),
+                ],
+                points: sv.points.map((p: any) =>
+                    p.map((c: any) => c.evaluate_to_constant()),
+                ),
+            };
+        };
+
+        const a = await pointsOf("a");
+        const b = await pointsOf("b");
+        const c = await pointsOf("c");
+
+        // Left-hand side minus right-hand side, as written, for every spelling.
+        expect(a.coeffs).eqls([5, -2, -3]);
+        expect(b.coeffs).eqls([-5, 2, 3]);
+        expect(c.coeffs).eqls([-5, 2, 3]);
+
+        // Same line, same direction, whichever way it was written.
+        const direction = ({ points }: { points: number[][] }) => [
+            points[1][0] - points[0][0],
+            points[1][1] - points[0][1],
+        ];
+        for (const other of [b, c]) {
+            expect(direction(other)[0]).closeTo(direction(a)[0], 1e-12);
+            expect(direction(other)[1]).closeTo(direction(a)[1], 1e-12);
+        }
+    });
+
     it("line from equation, strings and macros", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({
             lineProperties: `equation="$m - $n y = 3"`,

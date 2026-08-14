@@ -1,27 +1,8 @@
 import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { isValidVariable } from "../utils/math";
+import { isValidVariable, treeContainsBlank, BLANK } from "../utils/math";
 import me from "math-expressions";
-
-const BLANK = "\uff3f";
-
-/**
- * Does this tree have an unfilled slot in it anywhere?
- *
- * Walks the tree rather than asking `variables()`, because a blank is not a
- * variable and the engine does not list it as one — it is a node of its own.
- * Reading it out of `variables()` (which the JS library did include it in)
- * silently answered "no blanks here" for every expression, so
- * `matchExpressionWithBlanks="false"` — the default — stopped rejecting
- * anything and `3x+` matched a pattern for a completed sum.
- */
-function treeContainsBlank(tree) {
-    if (Array.isArray(tree)) {
-        return tree.slice(1).some(treeContainsBlank);
-    }
-    return tree === BLANK;
-}
 
 /**
  * A string key for `tree` when `tree` names a variable, and `undefined` when it
@@ -413,10 +394,13 @@ export default class MatchesPattern extends BooleanComponent {
                 }
 
                 // The kind each parameter is allowed to bind. These used to be
-                // JS predicates, which the engine could not carry across the
-                // wasm boundary and silently dropped — every parameter then
-                // matched anything, so `requireNumericMatches` did nothing.
-                // "number" and "variable" are the same two tests, declared.
+                // JS predicates; the engine rejects one outright now
+                // ("Arbitrary per-parameter conditions are deprecated … declare
+                // a kind instead"), so passing one is a throw rather than the
+                // silent drop it was when this was written. "number" and
+                // "variable" are the same two tests, declared. Note the
+                // declared "variable" is the narrower test: the predicate it
+                // replaces was `typeof m === "string"`, which accepted `pi`.
                 let kind = "any";
                 if (dependencyValues.requireNumericMatches) {
                     kind = "number";

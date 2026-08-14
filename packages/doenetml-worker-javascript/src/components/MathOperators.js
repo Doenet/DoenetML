@@ -167,9 +167,11 @@ function clamp({ value, lowerValue, upperValue }) {
         numericValue = numericValue.evaluate_to_constant();
     }
     // `evaluate_to_constant()` returns `null` for anything it cannot evaluate —
-    // a free variable, a blank. `Math.min(40, null)` is `0`, so without this a
-    // symbolic input clamps to the *lower bound* and reads as a real answer.
-    // There is nothing to clamp, so the result is not a number.
+    // a free variable, a blank. `null` coerces to `0`, so without this the
+    // clamp runs on zero: `Math.max(lower, Math.min(upper, null))` is the lower
+    // bound when that is positive and **0** when it is negative, either way a
+    // real-looking answer for an input that has none. There is nothing to
+    // clamp, so the result is not a number.
     //
     // `±Infinity` is *not* in that class and must reach the clamp: bounding an
     // unbounded value at the bound is exactly what a clamp is for, which is why

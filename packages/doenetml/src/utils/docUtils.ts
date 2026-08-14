@@ -267,6 +267,13 @@ export async function initializeCoreWorker({
     // the work below, and awaited before we return so that no renderer can
     // exist before the engine is ready.
     const mathWasmReady = initMathWasm();
+    // Registering a handler now, rather than relying on the `await` below,
+    // because the promise is held across several `await`s that can each throw.
+    // If one does, nothing ever awaits this one and the runtime reports an
+    // unhandled rejection that buries the real error. This does not swallow it:
+    // `.catch` returns a *new* promise, and the `await` below still sees the
+    // original reject. (AGENTS.md: no fire-and-forget promises.)
+    mathWasmReady.catch(() => {});
 
     let dast = lezerToDast(doenetML);
 
