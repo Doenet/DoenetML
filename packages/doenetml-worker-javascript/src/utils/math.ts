@@ -315,33 +315,6 @@ export function evaluateToNumber(expr: {
     return typeof value === "number" ? value : NaN;
 }
 
-/**
- * A numeric AST leaf, with the engine's tagged non-finite forms decoded.
- *
- * `.tree` hands back `{"$":"Inf"}` / `{"$":"-Inf"}` / `{"$":"NaN"}` rather than
- * the JS scalars, deliberately — one tagged wire format in both directions, so
- * that `fromAst(x).tree` is a fixpoint and `{"$":"None"}`, which has no JS
- * scalar at all, can travel the same road. Consumers that compare a leaf
- * against `-Infinity` or run `typeof x === "number"` therefore silently stop
- * matching. Read leaves through here instead; it accepts both spellings, so it
- * keeps working whichever way that contract settles.
- *
- * Returns the value unchanged when it is not a tagged form.
- */
-export function numericLeaf(value: unknown): unknown {
-    if (value && typeof value === "object" && "$" in (value as object)) {
-        switch ((value as { $: string }).$) {
-            case "Inf":
-                return Infinity;
-            case "-Inf":
-                return -Infinity;
-            case "NaN":
-                return NaN;
-        }
-    }
-    return value;
-}
-
 export function returnNVariables(n: number, variablesSpecified: any[]) {
     // console.log(`return N variables`, n, variablesSpecified)
 
@@ -665,7 +638,7 @@ export function numberToMathExpression(
  * the nearest f64. Skipping the rebuild in the common case keeps the value
  * exact.
  */
-export function mergeListsWithOtherContainers(tree: any) {
+function mergeListsWithOtherContainers(tree: any) {
     if (!Array.isArray(tree)) {
         return tree;
     }
@@ -675,15 +648,17 @@ export function mergeListsWithOtherContainers(tree: any) {
     let changed = false;
 
     if ([...vectorOperators, "list", "set"].includes(operator)) {
-        const flattened = operands.reduce(
-            (a: any[], c: any) =>
-                Array.isArray(c) && c[0] === "list"
-                    ? [...a, ...c.slice(1)]
-                    : [...a, c],
-            [],
-        );
-        if (flattened.length !== operands.length) {
-            operands = flattened;
+        // Test for a nested list directly, not by comparing lengths before and
+        // after: a one-element nested list splices in one operand for one
+        // operand, so `["tuple", "a", ["list", "b"]]` flattens without changing
+        // the length and a length comparison would report "nothing happened".
+        const isNestedList = (c: any) => Array.isArray(c) && c[0] === "list";
+        if (operands.some(isNestedList)) {
+            operands = operands.reduce(
+                (a: any[], c: any) =>
+                    isNestedList(c) ? [...a, ...c.slice(1)] : [...a, c],
+                [],
+            );
             changed = true;
         }
     }

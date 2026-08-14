@@ -1,6 +1,6 @@
 /**
- * The types DoenetML imports alongside `me` — the shape ~147 call sites are
- * written against.
+ * The types DoenetML imports alongside `me` — the shape the 147 files that
+ * import `math-expressions` are written against.
  *
  * They are vendored in `./vendored/math-expressions.d.ts` rather than pulled
  * from the legacy package, which is no longer a dependency. They arrived with
@@ -33,9 +33,9 @@ export interface OdeSolution {
 
 /**
  * The Dormand-Prince integrator, as `ODESystem.js` calls it. `f(x, y)` returns
- * the derivative. Both engines provide one — legacy via numeric.js under
- * `me.math`, the Rust engine via its own `solve_ode` — and neither supports
- * numeric.js's `event` argument, so it is absent here.
+ * the derivative. The legacy library reached numeric.js's copy through
+ * `me.math.dopri`; this engine supplies its own `solve_ode`-backed equivalent.
+ * Neither supports numeric.js's `event` argument, so it is absent here.
  */
 export type Dopri = (
     x0: number,

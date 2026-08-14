@@ -9,7 +9,7 @@ export default defineConfig({
         // `math-expressions` (the `@doenet/math` seam) arrives here through
         // several dependencies, each of which externalizes it. Without dedupe
         // they resolve to distinct module instances and this bundle ends up
-        // with two copies of the engine — ~3.5 MiB of duplicated inlined WASM,
+        // with two copies of the engine — ~4.4 MiB of duplicated inlined WASM,
         // and two separate WASM instantiations at runtime.
         //
         // The seam is deliberately NOT externalized here: this bundle is

@@ -6,7 +6,6 @@ import {
     WASM_CORE_SCRIPT,
     catalogsInScript,
     collectCatalogProbes,
-    countBigBlobs,
     countInlinedBinaries,
     findProblems,
     loadBudgets,
@@ -48,26 +47,6 @@ function healthyBuild() {
 function problemsFor(scripts, budgets = BUDGETS) {
     return findProblems(budgets, scripts).problems;
 }
-
-describe("countBigBlobs", () => {
-    it("ignores base64 runs below the threshold", () => {
-        expect(countBigBlobs("a".repeat(999_999))).toBe(0);
-    });
-
-    it("counts a run that reaches the threshold, including at end of input", () => {
-        expect(countBigBlobs("a".repeat(1_000_000))).toBe(1);
-        expect(countBigBlobs(`"${"a".repeat(1_000_000)}"`)).toBe(1);
-    });
-
-    it("counts each run separately, since a quote breaks the run", () => {
-        const blob = "a".repeat(1_000_000);
-        expect(countBigBlobs(`"${blob}","${blob}"`)).toBe(2);
-    });
-
-    it("does not treat non-base64 characters as part of a run", () => {
-        expect(countBigBlobs("-".repeat(2_000_000))).toBe(0);
-    });
-});
 
 describe("findProblems", () => {
     it("accepts a healthy build", () => {
@@ -457,6 +436,27 @@ describe("countInlinedBinaries", () => {
 
     it("ignores runs below the threshold", () => {
         expect(countInlinedBinaries("a".repeat(999_999))).toEqual({
+            wasmUriBlobs: 0,
+            bareBlobs: 0,
+        });
+    });
+
+    it("counts a run that reaches the threshold at end of input", () => {
+        expect(countInlinedBinaries("a".repeat(1_000_000))).toEqual({
+            wasmUriBlobs: 0,
+            bareBlobs: 1,
+        });
+    });
+
+    it("counts each run separately, since a quote breaks the run", () => {
+        expect(countInlinedBinaries(`"${blob}","${blob}"`)).toEqual({
+            wasmUriBlobs: 0,
+            bareBlobs: 2,
+        });
+    });
+
+    it("does not treat non-base64 characters as part of a run", () => {
+        expect(countInlinedBinaries("-".repeat(2_000_000))).toEqual({
             wasmUriBlobs: 0,
             bareBlobs: 0,
         });

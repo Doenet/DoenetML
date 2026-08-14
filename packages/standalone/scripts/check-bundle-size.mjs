@@ -114,42 +114,12 @@ const WASM_URI = /data:application\/wasm;base64/g;
 /** Emitted JavaScript, in any extension a bundler might choose. */
 const SCRIPT_EXTENSION = /\.[cm]?js$/;
 
-/**
- * Count maximal base64 runs of at least {@link BIG_BLOB_MIN} characters.
- *
- * Scanned by hand rather than with `/[A-Za-z0-9+/]{1000000,}/`, which throws
- * `RangeError: Maximum call stack size exceeded` on a string this size — the
- * bundles are ~15 MB and the engine backtracks itself to death. A single pass
- * costs nothing and cannot blow up.
- */
-export function countBigBlobs(text) {
-    let count = 0;
-    let run = 0;
-    for (let i = 0; i < text.length; i++) {
-        const c = text.charCodeAt(i);
-        const isBase64 =
-            (c >= 48 && c <= 57) || // 0-9
-            (c >= 65 && c <= 90) || // A-Z
-            (c >= 97 && c <= 122) || // a-z
-            c === 43 || // +
-            c === 47; // /
-        if (isBase64) {
-            run++;
-        } else {
-            if (run >= BIG_BLOB_MIN) {
-                count++;
-            }
-            run = 0;
-        }
-    }
-    return run >= BIG_BLOB_MIN ? count + 1 : count;
-}
-
 /** The marker that precedes the DoenetML core's payload. */
 const WASM_URI_PREFIX = "data:application/wasm;base64,";
 
 /**
- * Split the big base64 runs into the two inlined binaries this repository has.
+ * Count maximal base64 runs of at least {@link BIG_BLOB_MIN} characters, split
+ * by which of the two inlined binaries this repository has produced them.
  *
  *  - **DoenetML's Rust core** arrives as a `data:application/wasm;base64,…`
  *    URI, so its payload is preceded by {@link WASM_URI_PREFIX}. It belongs to
@@ -161,6 +131,13 @@ const WASM_URI_PREFIX = "data:application/wasm;base64,";
  *
  * They are told apart by what precedes the run rather than by the variable
  * name holding it, which minification renames.
+ *
+ * Scanned by hand rather than with `/[A-Za-z0-9+/]{1000000,}/`, which throws
+ * `RangeError: Maximum call stack size exceeded` on a string this size — the
+ * bundles are ~15 MB and the engine backtracks itself to death. A single pass
+ * costs nothing and cannot blow up.
+ *
+ * @returns `{wasmUriBlobs, bareBlobs}`; their sum is every big blob in `text`.
  */
 export function countInlinedBinaries(text) {
     let wasmUriBlobs = 0;
@@ -180,11 +157,11 @@ export function countInlinedBinaries(text) {
     for (let i = 0; i < text.length; i++) {
         const c = text.charCodeAt(i);
         const isBase64 =
-            (c >= 48 && c <= 57) ||
-            (c >= 65 && c <= 90) ||
-            (c >= 97 && c <= 122) ||
-            c === 43 ||
-            c === 47;
+            (c >= 48 && c <= 57) || // 0-9
+            (c >= 65 && c <= 90) || // A-Z
+            (c >= 97 && c <= 122) || // a-z
+            c === 43 || // +
+            c === 47; // /
         if (isBase64) {
             run++;
         } else {
@@ -422,7 +399,7 @@ function collectEmittedScripts(probes) {
         scripts.set(relative, {
             size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
-            bigBlobs: countBigBlobs(contents),
+            bigBlobs: binaries.wasmUriBlobs + binaries.bareBlobs,
             // The math core, counted apart from the DoenetML core so each can
             // be held to its own rule.
             mathCores: binaries.bareBlobs,
@@ -484,7 +461,7 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
 function mathCorePlacementProblem(relative, count) {
     return (
         `${relative} carries ${count} copies of the @doenet/math core; one is expected.\n` +
-        `    Each copy is ~1.8 MiB of inlined base64 and a separate WASM instantiation\n` +
+        `    Each copy is ~2.2 MiB of inlined base64 and a separate WASM instantiation\n` +
         `    at runtime. It means the seam resolved as more than one module instance —\n` +
         `    usually a package that bundles \`math-expressions\` into its own dist instead\n` +
         `    of externalizing it, which then rides into every bundle embedding it.`
@@ -598,7 +575,7 @@ export function findProblems(budgets, scripts) {
         }
         // The math core: allowed anywhere math is used, but never twice in one
         // script. Two copies means it was resolved as two module instances —
-        // which is how ~1.8 MiB of duplicated base64 rode into these bundles
+        // which is how ~2.2 MiB of duplicated base64 rode into these bundles
         // through `virtual-keyboard` and `doenetml-worker-rust` before both
         // externalized it.
         if ((emitted.mathCores ?? 0) > 1) {

@@ -33,7 +33,7 @@ export default defineConfig({
         },
         rollupOptions: {
             // `math-expressions` resolves to the `@doenet/math` seam, which
-            // inlines the Rust core as ~1.8 MiB of base64. Bundled here it was
+            // inlines the Rust core as ~2.2 MiB of base64. Bundled here it was
             // baked into this dist and rode into every bundle embedding this
             // package — one of the two copies `doenetml-worker` was carrying.
             // Externalized, the consuming bundle resolves it once.

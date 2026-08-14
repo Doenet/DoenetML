@@ -226,3 +226,45 @@ export function copyLocaleCatalogsPlugin(): PluginOption {
         },
     };
 }
+
+/**
+ * The resolved location of the `@doenet/math` seam's build output.
+ *
+ * Consumers import the seam as `math-expressions` — every consuming
+ * `package.json` declares `"math-expressions": "file:../math"`, so the legacy
+ * specifier resolves to `packages/math` (see `packages/math/README.md`).
+ */
+const MATH_SEAM_SPECIFIER = "math-expressions";
+const MATH_SEAM_DIST = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../packages/math/dist",
+);
+
+/**
+ * Build rollup's `external` predicate for a library that must not bundle the
+ * math seam.
+ *
+ * A plain string array is not enough. Vite rewrites the `file:`-linked
+ * `math-expressions` specifier to an absolute path *before* rollup's
+ * string-array `external` check runs, so listing the bare specifier alone
+ * silently bundles it anyway — which is how ~2.2 MiB of inlined base64 WASM
+ * kept landing in these libraries after they were supposedly externalized.
+ * Matching the resolved path as well as the specifier is what actually works.
+ *
+ * Deliberately NOT used in `packages/doenetml-worker`: that bundle is fetched
+ * on its own by URL and has to stay self-contained, so it dedupes the seam to
+ * exactly one copy instead of externalizing it (see the note in
+ * `packages/doenetml-worker/vite.config.ts`).
+ *
+ * @param deps Bare specifiers to externalize. Include
+ *   `MATH_SEAM_SPECIFIER` among them if the seam should be external.
+ */
+export function makeIsExternalDep(deps: string[]): (id: string) => boolean {
+    const externalizesSeam = deps.includes(MATH_SEAM_SPECIFIER);
+    return function isExternalDep(id: string): boolean {
+        if (deps.includes(id)) {
+            return true;
+        }
+        return externalizesSeam && id.startsWith(MATH_SEAM_DIST);
+    };
+}

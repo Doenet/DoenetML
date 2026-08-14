@@ -1,14 +1,15 @@
 /**
- * Smoke test for whichever engine this package was built against.
+ * Smoke test for the built engine.
  *
  * It exercises the surface DoenetML actually leans on — `fromAst`/`.tree` (the
  * two hottest calls by a wide margin), the reviver round-trip that every state
- * serialization goes through, `.f()` (which the compat layer does not provide
- * and `engine-rust.ts` wires up), and a handful of symbolic operations — rather
- * than testing math-expressions itself, which upstream already does.
+ * serialization goes through, `.f()`, and a handful of symbolic operations —
+ * rather than testing math-expressions itself, which upstream already does.
  *
- * Run against both engines:
- *   npm run build -w packages/math && npm run test -w packages/math
+ * It imports `../dist/`, not `../src/`, so it also covers the build: the WASM
+ * really was inlined, the bytes decode, and instantiation succeeds under node.
+ * Build first:
+ *
  *   npm run build -w packages/math && npm run test -w packages/math
  */
 import { describe, expect, it } from "vitest";

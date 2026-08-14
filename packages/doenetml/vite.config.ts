@@ -2,13 +2,13 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 import dts from "vite-plugin-dts";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
 import {
+    makeIsExternalDep,
     prefigureDynamicImportIgnorePlugin,
     suppressLogPlugin,
 } from "../../scripts/vite-plugins";
@@ -16,32 +16,12 @@ import {
 // These are the dependencies that will not be bundled into the library.
 //
 // `math-expressions` resolves to `@doenet/math`, which inlines the Rust core as
-// ~1.8 MiB of base64. Bundling it here put a private copy in this library *and*
-// in every sibling library, so `doenet-standalone.js` ended up carrying three —
-// 5.3 MiB of the same bytes. Externalized, the application bundle resolves it
-// once. Deliberately NOT done in `packages/doenetml-worker`: that bundle is
-// fetched on its own by URL and has to stay self-contained (see the
-// viteStaticCopy note in packages/standalone/vite.config.ts).
+// ~2.2 MiB of base64. Bundling it here put a private copy in this library *and*
+// in every sibling library, so `doenet-standalone.js` ended up carrying three
+// copies of the same bytes. Externalized, the application bundle resolves it
+// once. See `makeIsExternalDep` for why a bare specifier list is not enough.
 const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
-/**
- * `math-expressions` resolves to the `@doenet/math` workspace package through a
- * `file:` link. Vite rewrites that to an absolute path before rollup's
- * string-array `external` check runs, so listing the bare specifier alone
- * silently bundles it anyway — which is how ~1.8 MiB of inlined WASM kept
- * landing in this library after it was supposedly externalized. Match the
- * resolved path as well as the specifier.
- */
-const MATH_DIST = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../math/dist",
-);
-function isExternalDep(id: string): boolean {
-    return (
-        EXTERNAL_DEPS.includes(id) ||
-        id === "math-expressions" ||
-        id.startsWith(MATH_DIST)
-    );
-}
+const isExternalDep = makeIsExternalDep(EXTERNAL_DEPS);
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

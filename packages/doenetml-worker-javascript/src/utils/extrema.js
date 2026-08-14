@@ -10,17 +10,23 @@ import { mathExpressionFromSubsetValue } from "@doenet/utils";
  * cannot decide and the caller must fall back to bracketing.
  *
  * Bracketing finds a root by watching the derivative change sign across a grid
- * cell and then refining. That is where the classic failures live: two roots
- * inside one cell look like one, a root that touches zero without crossing is
- * invisible, and refinement leaves round-off that later shows up as a spurious
- * extremum. Where the derivative is a rational function none of it is
- * necessary — the roots are the roots of a polynomial and the engine returns
- * them exactly.
+ * cell and then refining, and the refinement leaves round-off that later shows
+ * up as a spurious extremum a hair off the true one. Where the derivative is a
+ * rational function that is avoidable — the roots are the roots of a
+ * polynomial and the engine returns them exactly — so the caller uses an exact
+ * root in place of the refined one whenever a bracketed cell contains one.
  *
- * `critical_points` is three-valued and the distinction matters here: an empty
- * array means "provably none", which is a *usable* answer, while `null` means
- * undecided (a derivative that is not rational in the variable, one carrying a
- * free parameter, a constant function). Only the last falls back.
+ * Note what this does *not* buy, because the exact roots are consulted only
+ * inside the sign-change test: a root that touches zero without crossing is
+ * still invisible, and a cell holding several roots still yields one. Widening
+ * the caller to use these roots on their own terms would fix both; it has not
+ * been done.
+ *
+ * `critical_points` is three-valued, but the caller currently treats two of the
+ * three alike: an empty array means "provably none" and `null` means undecided
+ * (a derivative that is not rational in the variable, one carrying a free
+ * parameter, a constant function), and both simply leave bracketing to do the
+ * work.
  */
 function exactCriticalPointsOf(plainFormula, varString) {
     let points;
@@ -588,8 +594,8 @@ export function find_local_global_minima({
         // sampled in one call rather than one call per point.
         let derivative_formula = null;
         // Every root of f', exactly, when the derivative is a rational
-        // function \u2014 see `exactCriticalPoints`. `null` means "undecided, do it
-        // the numerical way".
+        // function — see `exactCriticalPointsOf`. `null` means "undecided, do
+        // it the numerical way".
         let exactCriticalPoints = null;
 
         if (formula.variables().includes("\uFF3F")) {

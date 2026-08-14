@@ -68,7 +68,8 @@ shadow stack, *including on `Drop`*); `panic = "abort"` makes reachable panics f
 
 ### 2.1 The JS surface
 
-163 import sites, essentially all `import me from "math-expressions"`:
+147 files import the library, essentially all as `import me from "math-expressions"` (150 import
+statements in all):
 
 | Package | Files | Realm |
 | --- | ---: | --- |
@@ -96,9 +97,10 @@ and the `Expression`/`Tree` TypeScript types.
 Tests add **6,857 `.tree`** accesses, 328 `me.fromText`, 571 `evaluate_to_constant` across 164
 vitest files in `doenetml-worker-javascript` alone.
 
-**Dependency hygiene:** only [packages/utils/package.json:65](packages/utils/package.json#L65)
-declares `"math-expressions": "^2.0.0-alpha93"`; the other 12 packages rely on workspace
-hoisting. A latent bug — but it also means one pin currently controls the monorepo.
+**Dependency hygiene:** at the time of the audit only
+[packages/utils/package.json](packages/utils/package.json) declared `"math-expressions"`; the
+other 12 packages relied on workspace hoisting. Stage 1 fixed this — every consumer now declares
+`"math-expressions": "file:../math"` explicitly.
 
 **Serialization:** `Expression.toJSON()` emits `{objectType: "math-expression", tree}` and
 [parseStringify.ts:30](packages/utils/src/copy/parseStringify.ts#L30) composes `me.reviver` into
@@ -169,63 +171,63 @@ Note the Rust WASM is currently built `wasm-pack build … --target web --dev` �
 **Goal:** `import me from "math-expressions"` keeps working everywhere; only the implementation
 changes. Ship it, measure it, and let it soak while Stage 2 is built.
 
-> ### Implementation status — 2026-08-01
+> ### Implementation status
 >
-> **Stage 1 is complete and the branch has switched permanently.** The Rust engine is the default;
-> `DOENET_MATH_ENGINE=js` rebuilds against the legacy library and is kept only as a
-> differential-debugging tool (when a spec disagrees, the first question is always "does this pass
-> on the old one?").
+> **Stage 1 is done in outline and the branch has switched permanently.** The Rust engine is the
+> only engine — the legacy library is no longer a dependency, and there is no build-time switch
+> back to it. To A/B against the old engine, check out a commit from before the switch.
 >
-> - **Submodule** — `vendor/math-expressions` @ `cdc5343` (`siefkenj/math-expressions@doenet`).
->   Nothing in DoenetML patches the submodule, by design.
-> - **Suite** — 3469 tests, **2965 passed, 465 failed (85.5%)**, from 969 failures (70.9%) on the
->   previous pin. Attribution and the remaining divergences are in
->   [MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md](MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md).
+> - **Submodule** — `vendor/math-expressions` @ `siefkenj/math-expressions@doenet`, pinned by
+>   revision. Nothing in DoenetML patches the submodule, by design.
 >
->   | Step | Failures |
->   | --- | ---: |
->   | pin `8ccd98d` | 969 |
->   | pin `cdc5343`, nothing else changed | 577 |
->   | + test expectations updated for unpadded delimiters | 535 |
->   | + `fromAst(Expression)` unwrap restored | **465** |
+> - **The seam is an npm alias, not a codemod.** Step 1 below anticipated rewriting every import to
+>   a new module name. That is *not* what was done: each consuming `package.json` declares
+>   `"math-expressions": "file:../math"`, so the 147 files that already said
+>   `import me from "math-expressions"` were left untouched and now resolve to `packages/math`.
+>   Everything Step 1 wanted from the seam still holds — one file decides the engine, and Stage 2
+>   repoints that one file — with no call-site churn at all. The consequence to remember is that
+>   bundler rules (`external`, `dedupe`) must name the specifier `math-expressions`.
 >
->   Each step was verified test-by-test with `scripts/compare-test-runs.py`, not by totals. Both
->   DoenetML-side changes came in at **0 broken**.
->
-> - **`engine-rust.ts` is nearly a straight re-export.** Upstream absorbed every gap fill we had
->   written — the context-level operation family, `Expression#f()`, the `NaN`/`±Infinity` replacer
->   — and each was deleted here to verify the upstream fix actually covered our usage. That
->   deletion is what the seam is for; a local patch that cannot be removed is a fix that did not
->   land.
->
->   One fill remains, newly discovered: **`fromAst` must unwrap an `Expression`**. Legacy did;
->   compat does not, and the object reaches Rust as a bare JSON value rejected with the misleading
->   `unknown special None` (that `None` is the `Option`, not the `{"$":"None"}` special). We
->   assumed this was test sloppiness and checked — `PiecewiseFunction.js`,
->   `StateVariableEvaluator.ts` and `Dependency.ts` all depend on it. 95 hard errors; filed
->   upstream as §1, where `astReplacer` can do it for free.
+> - **`engine-rust.ts` is a straight re-export.** Upstream absorbed every gap fill we had written —
+>   `Expression#f()`, the context-level operation family, the `NaN`/`±Infinity` replacer, and the
+>   recursive `fromAst(Expression)` unwrap — and each was deleted here to verify the upstream fix
+>   actually covered our usage. That deletion is what the seam is for; a local patch that cannot be
+>   removed is a fix that did not land.
 >
 > - **WASM loading no longer needs a bundler rule.** Upstream's `setWasmModule` replaced the Vite
->   plugin that aliased compat's node-only `lib/_wasm.ts`. One ordering constraint, documented in
->   `wasm-loader.ts` and `engine-rust.ts`: compat's `Context` literal builds an assumptions handle
->   eagerly, so `setWasmModule` must be imported from `lib/_wasm` rather than the barrel, or the
->   injection loses the race to compat's node fallback.
+>   plugin that aliased compat's node-only `lib/_wasm.ts`. One ordering constraint remains, and it
+>   is documented in `wasm-loader.ts` and `engine-rust.ts`: the loader must be *evaluated* before
+>   anything parses, so `engine-rust.ts` imports it first for the side effect. Which module
+>   `setWasmModule` comes *from* no longer matters — compat's assumptions handle is a lazy getter
+>   now, so importing from the package root does not force the WASM to load during the barrel's own
+>   evaluation the way it once did.
 >
-> - **`dopri`** now crosses the seam under one name (`ODESystem.js`, `packages/utils`), replacing
->   `me.math.dopri`. `me.math` itself is otherwise complete on both engines.
+> - **`dopri`** now crosses the seam under one name (`ODESystem.js`,
+>   `packages/utils/src/components/function.ts`), replacing `me.math.dopri`. `me.math` is otherwise
+>   complete.
 >
-> - **Test expectations** — 316 string literals across 27 files, unpadding container delimiters
->   (`( 0, 0 )` → `(0, 0)`) via `scripts/unpad-container-delimiters.py`. Two traps worth recording:
->   `toLatex` is byte-identical on both engines (`\left( 1, 2 \right)` keeps its padding), so the
->   codemod skips any literal containing a backslash; and padding only counts as container padding
->   when it separates the delimiter from real content — `(, )` in prose is not a tuple.
+> - **Test expectations** — several hundred string literals across the vitest suite, unpadding
+>   container delimiters (`( 0, 0 )` → `(0, 0)`). Two traps worth recording: `toLatex` is unchanged
+>   (`\left( 1, 2 \right)` keeps its padding), so a whitespace sweep must skip any literal
+>   containing a backslash; and padding only counts as container padding when it separates the
+>   delimiter from real content — `(, )` in prose is not a tuple.
 >
-> - **Sizes** — the `web`-target WASM is **1.32 MB** (before `wasm-opt`, unavailable here);
->   `dist/engine-rust.js` is 3.78 MB raw / **1.21 MB gzipped** with the WASM inlined, against
->   1.1 MB for the JavaScript library it replaces. Bundle size is not the obstacle §5-R7 feared.
+> - **Sizes**, measured at the current pin with `npm run build -w packages/math`: the `web`-target
+>   WASM is **1.65 MiB** (before `wasm-opt`, unavailable here), which inlines as 2.20 MiB of base64
+>   into a **2.36 MiB** `dist/engine-rust.js` — **772 kB gzipped**, against roughly 1.1 MB for the
+>   JavaScript library it replaces. Bundle size is not the obstacle §5-R7 feared, *provided* every
+>   library externalizes the seam; three separate bundles were carrying private copies before they
+>   did, which is what `packages/standalone/scripts/check-bundle-size.mjs` now guards.
 >
-> - **Not yet done** — the Step 0 differential harness, the memory baseline (R8), Cypress runs, and
->   verification of `initSync` in a real browser Web Worker.
+> - **Not done, and this is the gap that matters** — the Step 0 differential harness and the memory
+>   baseline (R8) were never built, so R1 (semantic divergence in grading) is still unmitigated by
+>   anything but the vitest suite. Cypress has not been run against the new engine, and `initSync`
+>   has not been verified in a real browser Web Worker. The vitest suite does not pass; the failure
+>   inventory in this document has been removed rather than restated, because the numbers it
+>   carried were measured against an older submodule pin and several of the divergences they
+>   attributed to upstream no longer reproduce (see
+>   [MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md](MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md)). Re-measure
+>   before quoting a number.
 
 ### Step 0 — Evidence before code (~1–2 weeks, start now)
 
@@ -249,12 +251,15 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 ### Step 1 — The seam (~2 days, mechanical)
 
 Create one indirection module — `@doenet/math` (new package) or `@doenet/utils/math-engine` —
-re-exporting `me` (default), `isTree`, and the `Expression`/`Tree` types. Codemod all 163 imports
-to it, and declare the dependency properly in every consuming `package.json` (fixes §2.1's
-hoisting bug).
+re-exporting `me` (default), `isTree`, and the `Expression`/`Tree` types, and declare the
+dependency properly in every consuming `package.json` (fixes §2.1's hoisting bug).
+
+*As built, no imports were rewritten:* the dependency is declared as
+`"math-expressions": "file:../math"`, so the existing specifier resolves to the seam. See the
+implementation-status note above.
 
 Payoff: the engine becomes a one-line switch, a dual-engine A/B mode becomes possible, and —
-critically — **Stage 2 repoints this one file instead of touching 163 call sites**.
+critically — **Stage 2 repoints this one file instead of touching 147 files**.
 
 ### Step 2 — Web-target WASM + inlined, synchronous init
 
@@ -383,7 +388,7 @@ that evaluates JS source. Stage 2 deletes that layer outright.
    confirm `pad_to_decimals`/`pad_to_digits` have equivalents, or upstream them.
 6. **Re-export to JS through `lib-js-wasm-binding`.** Add `#[wasm_bindgen]` wrappers exposing the
    subset from §2.1's inventory, then **repoint the Stage 1 seam** from `math-expressions` to
-   `@doenet/doenetml-worker-rust`. Because Stage 1 already funnelled all 163 imports through one
+   `@doenet/doenetml-worker-rust`. Because Stage 1 already funnelled every import through one
    module, this is a single-file change plus a shim that maps the legacy `me.*` shape onto the
    re-exports. Keep `me.reviver`/`toJSON` semantics identical so
    `serializedComponentsReviver` and the Rust `to_reviver_string` path keep working.
@@ -446,7 +451,7 @@ sites tolerate async; measure (b) once the size work in step 7 is done.
 
 **Critical path note:** S1.0 and S1.1 are unblocked today and are worth doing even if Stage 1
 never ships, because Stage 2 needs both — the corpus is the only real defense against R1, and the
-seam is what makes S2.4 a one-file change instead of a 163-site refactor.
+seam is what makes S2.4 a one-file change instead of a 147-file refactor.
 
 **Do not let Stage 1 harden into the destination.** Its two structural costs — no handle freeing
 (R2) and the uncached `.tree` (R3) — are exactly what Stage 2 removes for free. If Stage 2 is

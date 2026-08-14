@@ -2,17 +2,28 @@
 
 The single seam through which DoenetML reaches a math-expressions engine.
 
-Every consumer imports from here instead of from `math-expressions` directly:
+**No call site changed.** The 147 files that already said
 
 ```ts
-import me, { isTree } from "@doenet/math";
-import type { Expression, Tree } from "@doenet/math";
+import me, { isTree } from "math-expressions";
+import type { Expression, Tree } from "math-expressions";
 
 const expr = me.fromAst(["+", "x", 1]);
 ```
 
-The call surface is unchanged — this package re-exports one of two engines, so
-swapping implementations is a one-module change rather than a 148-file refactor.
+still say exactly that. Each consuming `package.json` declares
+`"math-expressions": "file:../math"`, so the specifier resolves to this package
+instead of to the npm library — an alias, not a codemod. That is why swapping
+the implementation is a one-module change rather than a 147-file refactor, and
+why the bundler configuration that externalizes the seam
+(`packages/doenetml/vite.config.ts` and friends) matches the specifier
+`math-expressions` rather than `@doenet/math`.
+
+Npm workspace hoisting also makes `import … from "@doenet/math"` resolve, but
+nothing does that and nothing should: the externalization and dedupe rules are
+written against the `math-expressions` specifier, so a `@doenet/math` import
+would quietly be bundled a second time.
+
 See [MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md](../../MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md).
 
 ## The engine
@@ -40,7 +51,7 @@ in different packages depending on resolution.
 
 Its hand-written type definitions were the one thing still needed, and those are
 vendored verbatim in [`src/vendored/math-expressions.d.ts`](src/vendored/math-expressions.d.ts).
-They are the API contract ~147 call sites are written against; they arrived with
+They are the API contract those 147 files are written against; they arrived with
 that library but were never *about* it, since the Rust engine is a drop-in for
 exactly this shape.
 
@@ -48,8 +59,9 @@ To A/B against the old engine now, check out a commit from before the switch.
 
 ## WASM initialization
 
-The Rust engine's WASM is **inlined** into `dist/engine-rust.js` as base64, the
-same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
+The Rust engine's WASM is **inlined** into `dist/engine-rust.js` as base64 — at
+the pinned submodule revision, 1.65 MiB of WASM becoming 2.20 MiB of base64 in a
+2.36 MiB chunk (772 kB gzipped) — the same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
 `lib_doenetml_worker_bg.wasm`. It instantiates from bytes, so it needs no
 `fetch` — which matters because `fetch` is blocked for blob/data URLs in the VS
 Code web-worker extension host (issue #1375).
@@ -70,21 +82,28 @@ Using it on the main thread before initializing throws a message saying so,
 rather than failing deep inside wasm-bindgen.
 
 The WASM reaches the compat layer through its `setWasmModule` injection point,
-which `wasm-loader.ts` calls at import time. That import must be evaluated
-*before* the `math-expressions-js-compat` barrel: the barrel's `Context` literal
-builds an assumptions handle eagerly, touching the WASM while its own module body
-runs. `engine-rust.ts` orders its imports accordingly, and `wasm-loader.ts`
-imports `setWasmModule` from `lib/_wasm` rather than the barrel for the same
-reason. Both places say so in a comment — this is the one ordering constraint in
-the package.
+which `wasm-loader.ts` calls at import time. `wasm-loader.ts` must therefore be
+*evaluated* before anything parses an expression, which is why `engine-rust.ts`
+imports it first, for the side effect alone, and says so in a comment. This is
+the one ordering constraint in the package.
+
+Which module `setWasmModule` is imported *from* used to matter too: compat's
+`Context` literal built its assumptions handle eagerly, so importing anything
+from the barrel ran that handle's `new wasm.Assumptions()` while the barrel's
+own body was still evaluating — before injection could happen — and the load
+silently lost the race to compat's node fallback. Upstream made the handle a
+lazy getter, so `wasm-loader.ts` now imports `setWasmModule` from the package
+root like any other export. Bringing the eager construction back upstream would
+reintroduce the hazard.
 
 ## What `engine-rust.ts` adds
 
 Nothing. It is a straight re-export.
 
-It used to carry three gap fills — `Expression#f()`, the context-level operation
-family (`me.simplify(expr)` alongside `expr.simplify()`), and a replacer that
-kept `fromAst` from losing `NaN`/`±Infinity` to `JSON.stringify`. All three
+It used to carry four gap fills — `Expression#f()`, the context-level operation
+family (`me.simplify(expr)` alongside `expr.simplify()`), a replacer that kept
+`fromAst` from losing `NaN`/`±Infinity` to `JSON.stringify`, and a recursive
+unwrap so `fromAst` accepted an `Expression` where a tree was expected. All four
 landed upstream and were deleted here in turn. Deleting them is how the seam
 earns its keep: a local patch that cannot be removed is an upstream fix that did
 not actually cover our usage.

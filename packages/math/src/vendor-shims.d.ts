@@ -1,5 +1,5 @@
 /**
- * Ambient declarations for the three modules this package pulls out of the
+ * Ambient declarations for the modules this package pulls out of the
  * `vendor/math-expressions` submodule at build time.
  *
  * We deliberately do *not* point tsconfig `paths` at the submodule's TypeScript
@@ -27,31 +27,16 @@ declare module "math-expressions-js-compat" {
     export function isTree(value: unknown): value is Tree;
 
     /**
-     * Re-exported by the barrel from `lib/_wasm` — see the declaration below
-     * for what it does. `./wasm-loader` imports it from here rather than from
-     * the leaf so that nothing has to reach past the package entry point.
+     * Supply the WASM module the compat layer runs on. Must be called before
+     * anything parses an expression, or compat falls back to its node-only
+     * vendored build. Re-exported by the barrel from `lib/_wasm`;
+     * `./wasm-loader` is the only caller and imports it from here rather than
+     * from the leaf, so nothing has to reach past the package entry point.
      */
     export function setWasmModule(mod: WasmModule): void;
 
     const context: Context;
     export default context;
-}
-
-declare module "math-expressions-js-compat/lib/mathjs" {
-    const math: unknown;
-    export default math;
-}
-
-declare module "math-expressions-js-compat/lib/_wasm" {
-    import type { WasmModule } from "math-expressions-rs-wasm";
-
-    /**
-     * Supply the WASM module the compat layer runs on. Must be called before
-     * the `math-expressions-js-compat` barrel is evaluated — see the note in
-     * `./wasm-loader` — otherwise compat falls back to its node-only vendored
-     * build. `./wasm-loader` is the only caller.
-     */
-    export function setWasmModule(mod: WasmModule): void;
 }
 
 declare module "math-expressions-rs-wasm" {
@@ -61,11 +46,6 @@ declare module "math-expressions-rs-wasm" {
         normalize_function_names(): RustExprLike;
         free?(): void;
         readonly __wbg_ptr?: number;
-    }
-
-    /** A compiled math.js evaluator. */
-    export interface EvalFunction {
-        evaluate(scope?: Record<string, unknown>): unknown;
     }
 
     /** The free functions the wasm module exports. */
@@ -83,12 +63,6 @@ declare module "math-expressions-rs-wasm" {
         from_ast(treeJson: string): RustExprLike;
         [key: string]: unknown;
     }
-
-    export function compileRustExpr(
-        math: unknown,
-        expr: RustExprLike,
-        options?: { normalize?: boolean },
-    ): EvalFunction;
 }
 
 declare module "math-expressions-wasm-glue" {

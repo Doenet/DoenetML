@@ -2,22 +2,22 @@
  * `@doenet/math` — the single seam through which DoenetML reaches a
  * math-expressions engine.
  *
- * Every consumer imports `me` from here rather than from `math-expressions`
- * directly, so swapping the JavaScript library for the Rust/WASM drop-in is a
- * one-module change instead of a 163-site refactor. Usage is unchanged:
+ * Consumers do not name this package. Each of them declares
+ * `"math-expressions": "file:../math"`, so their unchanged
  *
- *     import me from "@doenet/math";
+ *     import me from "math-expressions";
  *     const expr = me.fromAst(["+", "x", 1]);
  *
- * Which engine you get is decided when this package is built — see `./engine.ts`.
+ * resolves here instead of to the npm library — which is why swapping the
+ * JavaScript library for the Rust/WASM drop-in touched none of the 147 files
+ * that import it. What backs `me` is decided in `./engine.ts`.
  *
- * Realms that may run the WASM engine should call `initMathWasm()` once during
- * startup. Both engines export it (the JavaScript one as a no-op), so callers
- * never branch on the engine. In a Web Worker or under node the WASM engine has
- * already instantiated itself synchronously by the time this module finishes
- * loading and the call is redundant but harmless; on the browser main thread it
- * is required, because browsers refuse to compile a module that size
- * synchronously off-worker.
+ * Realms that run the engine on the browser main thread must `await
+ * initMathWasm()` once during startup, because browsers refuse to compile a
+ * module that size synchronously off-worker. In a Web Worker or under node the
+ * engine has already instantiated itself synchronously by the time this module
+ * finishes loading, so the call is redundant but harmless — callers can make it
+ * unconditionally rather than branching on the realm.
  */
 export {
     default,

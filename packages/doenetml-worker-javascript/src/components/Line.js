@@ -2526,12 +2526,6 @@ function calculatePointsFromCoeffs({
     let point1x, point1y, point2x, point2y;
     let points = {};
 
-    // Orientation for point generation (see the `else` branch below): the
-    // direction is `(-b, a)`, so `b < 0` already points +x, `b > 0` needs
-    // flipping, and a vertical line (`b === 0`) orients on `a` to point +y.
-    // Zero when undeterminable, which the caller reads as "leave it alone".
-    const s = b > 0 ? -1 : b < 0 ? 1 : a < 0 ? -1 : a > 0 ? 1 : 0;
-
     if (Number.isFinite(c) && Number.isFinite(a) && Number.isFinite(b)) {
         let denom = a * a + b * b;
         if (denom === 0) {
@@ -2566,7 +2560,12 @@ function calculatePointsFromCoeffs({
             //
             // The coefficients themselves are left alone -- they are a public
             // property and stay in the form the author's equation gives.
-            const sign = s === 0 ? 1 : s;
+            //
+            // The direction is `(-b, a)`, so `b < 0` already points +x and
+            // `b > 0` needs flipping; a vertical line (`b === 0`) orients on
+            // `a` to point +y. When neither settles it the line is degenerate
+            // and any sign will do, so default to `+1`.
+            const sign = b > 0 ? -1 : b < 0 ? 1 : a < 0 ? -1 : 1;
             const [ax, bx, cx] = [a * sign, b * sign, c * sign];
             point1x = (2 * bx - ax * cx) / denom;
             point1y = (-2 * ax - bx * cx) / denom;

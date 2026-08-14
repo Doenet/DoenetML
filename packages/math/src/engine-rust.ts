@@ -4,10 +4,12 @@
  * submodule.
  *
  * This module is now a straight re-export. It previously carried four gap
- * fills, all of which landed upstream and have been deleted in turn:
+ * fills, all of which landed upstream (math-expressions PR #84) and have been
+ * deleted here in turn:
  *
- *   - `Expression#f()` and the context-level operation family
- *     (`me.simplify(expr)` alongside `expr.simplify()`) — PR #84.
+ *   - `Expression#f()`, which compiles an expression to a numeric function.
+ *   - The context-level operation family — `me.simplify(expr)` alongside
+ *     `expr.simplify()`.
  *   - `fromAst` losing `NaN` and `±Infinity`, which `JSON.stringify` renders as
  *     the literal `null`. The compat layer now serializes through an
  *     `astReplacer` that spells all three as the `{"$":…}` specials Rust's
@@ -44,8 +46,9 @@ import type {
  * The Dormand-Prince integrator, re-exported as a named export. The legacy
  * library reached numeric.js's copy through `me.math.dopri`; this engine has no
  * `me.math` entry for it and supplies its own `solve_ode`-backed equivalent on
- * the context. Callers (`ODESystem.js`, `packages/utils`) import it from
- * `@doenet/math` rather than reaching into the context.
+ * the context. Callers (`ODESystem.js`, `packages/utils/src/components/function.ts`)
+ * write `import me, { dopri } from "math-expressions"` rather than reaching into
+ * the context, so the import survives whatever the seam resolves to.
  */
 export const dopri = (CompatContext as unknown as { dopri: Dopri }).dopri;
 

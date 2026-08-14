@@ -88,5 +88,11 @@ __pycache__
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 tmp/
-# .heapsnapshot and .heapprofile files are generated during profiling 
+# Heap snapshots/profiles written during memory profiling (.heapsnapshot,
+# .heapprofile, .heaptimeline).
 *.heap*
+
+# Vitest browser mode writes a screenshot here for every *failing* test
+# (browser.screenshotFailures, on by default). They are failure artifacts,
+# not intentional snapshots, and are trivially re-created by re-running.
+**/test/__screenshots__/
