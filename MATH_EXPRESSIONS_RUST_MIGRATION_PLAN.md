@@ -190,6 +190,20 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   repoints that one file — with no call-site churn at all. The consequence to remember is that
 >   bundler rules (`external`, `dedupe`) must name the specifier `math-expressions`.
 >
+> - **⚠️ The seam is not publishable, and this is Stage 1's one release blocker.** `packages/math`
+>   is `"private": true` and is never published, while `packages/doenetml` (and its siblings)
+>   externalize the bare specifier `math-expressions`. Inside the workspace that is correct — a
+>   `file:` dependency resolves and `@doenet/standalone` bundles exactly one copy. In a *published*
+>   tarball it is not: the shipped `@doenet/doenetml` carries a bare `math-expressions` import with
+>   nothing declaring it, so an npm consumer either fails to resolve it or, if they happen to have
+>   the real npm `math-expressions@2.x` in their tree, silently resolves it to the *legacy JS
+>   engine* — a different engine behind the same specifier, which is worse than a build error.
+>   The `peerDependencies` half is handled (`packages/doenetml/vite.config.ts` deliberately keeps
+>   `math-expressions` out of the published `peerDependencies`, because a `file:` range means
+>   nothing to a consumer), but the unresolved import is not. Settling it — publish the seam under
+>   a real name, or stop externalizing it and let `packages/doenetml` bundle its own copy — has to
+>   happen before this branch ships. Nothing else in Stage 1 is blocking.
+>
 > - **`engine-rust.ts` is a straight re-export.** Upstream absorbed every gap fill we had written —
 >   `Expression#f()`, the context-level operation family, the `NaN`/`±Infinity` replacer, and the
 >   recursive `fromAst(Expression)` unwrap — and each was deleted here to verify the upstream fix

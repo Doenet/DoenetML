@@ -1379,6 +1379,37 @@ describe("Line tag tests @group3", async () => {
         });
     });
 
+    it("line from an equation whose terms are all negative", async () => {
+        // `simplify` pulls a common minus sign out of an all-negative sum, so
+        // these equations reach the coefficient reader spelled `0 = -(5x+2y+3)`
+        // rather than as a flat sum. Reading them has to see through that: when
+        // it did not, all three coefficients came back blank and `slope` with
+        // them -- and the all-negative spelling is exactly what a vertical line
+        // built from two points produces.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <line name="oblique" equation="-5x-2y-3=0" />
+    <line name="vertical" equation="-5x-15=0" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const oblique =
+            stateVariables[await resolvePathToNodeIdx("oblique")].stateValues;
+        expect(oblique.coeffvar1.evaluate_to_constant()).eq(-5);
+        expect(oblique.coeffvar2.evaluate_to_constant()).eq(-2);
+        expect(oblique.coeff0.evaluate_to_constant()).eq(-3);
+        expect(oblique.slope.evaluate_to_constant()).closeTo(-2.5, 1e-12);
+
+        const vertical =
+            stateVariables[await resolvePathToNodeIdx("vertical")].stateValues;
+        expect(vertical.coeffvar1.evaluate_to_constant()).eq(-5);
+        expect(vertical.coeffvar2.evaluate_to_constant()).eq(0);
+        expect(vertical.coeff0.evaluate_to_constant()).eq(-15);
+        expect(evaluateToNumber(vertical.slope)).eq(Infinity);
+    });
+
     it("line from equation, strings and macros", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({
             lineProperties: `equation="$m - $n y = 3"`,

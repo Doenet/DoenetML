@@ -2353,32 +2353,25 @@ function calculateCoeffsFromEquation({ equation, variables }) {
         .expand()
         .simplify();
 
-    let terms = [];
-    if (Array.isArray(difference.tree) && difference.tree[0] === "+") {
-        terms = difference.tree.slice(1);
-    } else {
-        terms = [difference.tree];
+    const coeffs = getTermCoeffs(difference.tree);
+    if (!coeffs.success) {
+        return coeffs;
     }
 
-    let coeffvar1 = me.fromAst(0);
-    let coeffvar2 = me.fromAst(0);
-    let coeff0 = me.fromAst(0);
+    return {
+        success: true,
+        coeff0: coeffs.coeff0.simplify(),
+        coeffvar1: coeffs.coeffvar1.simplify(),
+        coeffvar2: coeffs.coeffvar2.simplify(),
+    };
 
-    for (let term of terms) {
-        let coeffs = getTermCoeffs(term);
-        if (!coeffs.success) {
-            return coeffs;
-        }
-        coeffvar1 = coeffvar1.add(coeffs.coeffvar1);
-        coeffvar2 = coeffvar2.add(coeffs.coeffvar2);
-        coeff0 = coeff0.add(coeffs.coeff0);
-    }
-    coeffvar1 = coeffvar1.simplify();
-    coeffvar2 = coeffvar2.simplify();
-    coeff0 = coeff0.simplify();
-
-    return { success: true, coeff0, coeffvar1, coeffvar2 };
-
+    /**
+     * Split one summand of `difference` into its contributions to the three
+     * coefficients, returning each as an `Expression`.
+     *
+     * Recursive: a summand can itself be a sum, because `simplify` does not
+     * guarantee a flat top-level sum.
+     */
     function getTermCoeffs(term) {
         let cv1 = 0,
             cv2 = 0,
@@ -2413,12 +2406,29 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                 cv2 = ["-", coeffs.coeffvar2.tree];
                 c0 = ["-", coeffs.coeff0.tree];
             } else if (operator === "+") {
-                return {
-                    success: false,
-                    sendDiagnostics: [
-                        invalidEquationFormatDiagnostic(var1String, var2String),
-                    ],
+                // A sum where a single term was expected. `simplify` pulls a
+                // common minus sign out of an all-negative sum, so a vertical
+                // line's `-5x-15 = 0` comes back spelled `0 = -(5x+15)` and the
+                // `-` branch above hands the sum straight here. Recursing keeps
+                // that from being reported as a non-linear equation -- which
+                // blanked all three coefficients, and with them `slope`, for
+                // every line whose equation happened to be all-negative.
+                let sum = {
+                    success: true,
+                    coeffvar1: me.fromAst(0),
+                    coeffvar2: me.fromAst(0),
+                    coeff0: me.fromAst(0),
                 };
+                for (const operand of operands) {
+                    const coeffs = getTermCoeffs(operand);
+                    if (!coeffs.success) {
+                        return coeffs;
+                    }
+                    sum.coeffvar1 = sum.coeffvar1.add(coeffs.coeffvar1);
+                    sum.coeffvar2 = sum.coeffvar2.add(coeffs.coeffvar2);
+                    sum.coeff0 = sum.coeff0.add(coeffs.coeff0);
+                }
+                return sum;
             } else if (operator === "*") {
                 let var1ind = -1,
                     var2ind = -1;
