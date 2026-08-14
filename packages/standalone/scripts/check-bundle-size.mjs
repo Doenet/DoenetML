@@ -16,11 +16,11 @@
  * in any script that uses math but never twice in one. {@link
  * countInlinedBinaries} tells them apart by content.
  *
- * Four checks, doing different jobs:
+ * Three kinds of check, doing different jobs:
  *
- *  - The placement checks need no threshold and never need adjusting. The
- *    document core is meant to sit in {@link WASM_CORE_SCRIPT} and nowhere
- *    else, the math core is meant to appear at most once per script, and a
+ *  - The placement checks — three rules now — need no threshold and never need
+ *    adjusting. The document core is meant to sit in {@link WASM_CORE_SCRIPT}
+ *    and nowhere else, the math core at most once per script, and a
  *    multi-megabyte inline that is neither belongs in no script at all — each
  *    is a bug rather than a judgement call. They scan *every* emitted script
  *    under `dist/`, not just the budgeted ones, so a copy that lands in a newly
@@ -41,8 +41,10 @@
  * Run via `npm run check:size -w packages/standalone`. Exits non-zero, and
  * prints every problem it found rather than just the first, when a bundle is
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
- * unusable, when the core is not inlined exactly once in the right script, or
- * when a served catalog is in the wrong place or missing.
+ * unusable, when the document core is not inlined exactly once in the right
+ * script, when the math core appears twice in one script, when a script holds a
+ * multi-megabyte inline that is neither, or when a served catalog is in the
+ * wrong place or missing.
  *
  * A third way the catalogs can fail to arrive — served, and nothing reading
  * them, because a bundle holds two copies of the module that decides what is
