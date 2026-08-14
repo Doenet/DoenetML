@@ -1,0 +1,7 @@
+{
+    "id": "chrome",
+    "version": "1.0.0",
+    "name": "Google Chrome",
+    "description": "Installs Google Chrome Stable and supporting dependencies for Cypress browser testing.",
+    "installsAfter": ["ghcr.io/devcontainers/features/common-utils"]
+}

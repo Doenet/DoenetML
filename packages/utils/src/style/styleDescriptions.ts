@@ -51,6 +51,8 @@ export type NounKey =
     | "vector"
     | "curve"
     | "function"
+    | "slope-field"
+    | "vector-field"
     | "parabola"
     | "polyline"
     | "polygon"
@@ -141,6 +143,8 @@ const NOUN_WORDS: Record<NounKey, (t: Translator) => string> = {
     vector: (t) => t("noun.vector", undefined, "vector"),
     curve: (t) => t("noun.curve", undefined, "curve"),
     function: (t) => t("noun.function", undefined, "function"),
+    "slope-field": (t) => t("noun.slope-field", undefined, "slope field"),
+    "vector-field": (t) => t("noun.vector-field", undefined, "vector field"),
     parabola: (t) => t("noun.parabola", undefined, "parabola"),
     polyline: (t) => t("noun.polyline", undefined, "polyline"),
     polygon: (t) => t("noun.polygon", undefined, "polygon"),

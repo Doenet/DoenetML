@@ -16,6 +16,10 @@ Use `<cascadeMessage>{:dn}` to give the learner a prompt — "Keep going",
 "Solve the previous step to continue", etc. — without revealing the content
 behind it.
 
+A [`<cascade>{:dn}`](cascade) shows one message at a time: the one belonging to
+the next entry, the entry that becomes visible as soon as the current one is
+completed. Entries further down show nothing until their turn comes.
+
 
 <AttrPropDisplay name='cascadeMessage'/>
 
@@ -86,10 +90,20 @@ correctly, the message disappears and Step 2 is revealed.
 ```
 
 
-A `<cascadeMessage>{:dn}` placed inside a still-hidden section serves as the
-prompt shown in place of that section's body. The cascade chooses the first
-`<cascadeMessage>{:dn}` that follows the last completed child, so authoring
-one per section lets each section carry its own prompt.
+A `<cascadeMessage>{:dn}` placed inside a hidden section serves as the prompt
+shown in place of that section's body, so authoring one per section lets each
+section carry its own prompt. Only the next section shows its prompt: while
+Part 1 is unanswered, Part 2 shows "Finish Part 1 before continuing" and Part 3
+shows only its title.
+
+Of the two placements — nested inside a section, or a child of the
+`<cascade>{:dn}` itself — a section's own message is the more specific, so when
+the next section has one it is shown and any `<cascadeMessage>{:dn}` child of
+the cascade itself stays hidden while it is. Nesting the message inside the section
+is also the only placement that survives a list layout — inside a
+[`<problems>{:dn}`](problems) or any other section with `asList`, only sectioning
+children are rendered, so a `<cascadeMessage>{:dn}` child of the cascade would
+never appear.
 
 
 

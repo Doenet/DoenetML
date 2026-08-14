@@ -2,6 +2,9 @@
     "name": "DoenetML Node & Rust DevContainer",
     // 2026-05-18: Playwright doesn't currently support Ubuntu 26.04. When it does, this can be updated.
     "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+    "remoteEnv": {
+        "DISPLAY": ""
+    },
     "features": {
         "ghcr.io/devcontainers/features/node:1": {
             "version": "lts"
@@ -11,7 +14,7 @@
         },
         // Install vim from apt using an existing community feature.
         "ghcr.io/devcontainers-extra/features/apt-packages:1": {
-            "packages": "vim"
+            "packages": "vim libgtk-3-0 xvfb"
         },
         // wasm32 target + a version-matched wasm-bindgen-cli. `npm run build`
         // compiles @doenet/math's WASM core from the vendor/math-expressions
@@ -19,10 +22,12 @@
         "./features/wasm-toolchain": {},
         // Install files needed for WebDriver tests (e.g. doenetml-to-prefigure tests)
         "./features/webdriver-libs": {},
-        // Avoid erronious connections to the host's debug environment.
+        // Avoid erroneous connections to the host's debug environment.
         "./features/shell-init-rc": {},
         // Install files needed for Python bundling
-        "./features/python": {}
+        "./features/python": {},
+        // Install files needed for Chrome for Cypress testing.
+        "./features/chrome": {}
     },
     "containerEnv": {
         "NODE_OPTIONS": " --max-old-space-size=6144 "

@@ -155,6 +155,8 @@ import Split from "./components/Split";
 import BestFitLine from "./components/BestFitLine";
 import RegionBetweenCurveXAxis from "./components/RegionBetweenCurveXAxis";
 import RegionBetweenCurves from "./components/RegionBetweenCurves";
+import SlopeField from "./components/SlopeField";
+import VectorField from "./components/VectorField";
 import RegionHalfPlane from "./components/RegionHalfPlane";
 import CodeEditor from "./components/CodeEditor";
 import HasSameFactoring from "./components/HasSameFactoring";
@@ -358,6 +360,8 @@ const componentTypeArray = [
     BestFitLine,
     RegionBetweenCurveXAxis,
     RegionBetweenCurves,
+    SlopeField,
+    VectorField,
     RegionHalfPlane,
     CodeEditor,
     HasSameFactoring,

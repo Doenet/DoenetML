@@ -1,4 +1,11 @@
 import { describe, expect, it } from "vitest";
+import {
+    parse,
+    type Entry,
+    type Message,
+    type Pattern,
+    type SelectExpression,
+} from "@fluent/syntax";
 
 import {
     SUPPORTED_LOCALES_FILE,
@@ -6,13 +13,16 @@ import {
     countDiagnosticConstructions,
     extractKeys,
     listLocales,
+    LOCALE_NAME_FALLBACKS,
     multilinePatterns,
     numberingSystemOverrides,
+    readCatalog,
     remainingLiteralDiagnostics,
     renderMessageKeysModule,
     renderSupportedLocalesModule,
 } from "../scripts/catalogUtils";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
+import { CATALOG_NAMESPACES } from "../src/namespaces";
 
 describe("extractKeys", () => {
     it("reads message ids, attributes, and both together", () => {
@@ -218,12 +228,41 @@ describe("renderSupportedLocalesModule", () => {
 
     it("names an unknown locale rather than throwing on it", async () => {
         // A locale directory can be added long before `Intl` (or this Node)
-        // knows the tag. Codegen must not be what stops it landing: an
-        // unrecognized tag degrades to `Intl`'s rendering of the tag itself,
-        // which is still a usable label.
+        // knows the tag, and before anyone has added a fallback name for it.
+        // Codegen must not be what stops it landing: such a tag degrades to
+        // the tag itself, which is usable and visibly a code rather than
+        // ICU's "zz (QQ)", which reads like a name and is not one.
         const rendered = await renderSupportedLocalesModule(["en", "zz-QQ"]);
         expect(rendered).toContain('locale: "zz-QQ"');
-        expect(rendered).toMatch(/label: "zz[^"]*"/);
+        expect(rendered).toContain('label: "zz-QQ"');
+    });
+
+    it("fills a name in for a locale CLDR has none for", async () => {
+        // ICU has no name for `dag` in either English or Dagbani, so without
+        // the table it would be labelled "dag" — which tells a reader choosing
+        // a `<document lang>` nothing. `LOCALE_NAME_FALLBACKS` supplies both.
+        const rendered = await renderSupportedLocalesModule(["en", "dag"]);
+        expect(rendered).toContain('label: "Dagbani (Dagbanli)"');
+    });
+
+    it("lets CLDR win over an entry for a locale CLDR knows", async () => {
+        // The table fills gaps and never overrides. Proved by planting an
+        // entry that would be visibly wrong if it were consulted, since the
+        // real table is meant to hold no entry for a locale ICU knows — that
+        // is the `holds no entry ICU no longer needs` test's job, and asserting
+        // against the real table here would prove nothing about overriding.
+        LOCALE_NAME_FALLBACKS.es = {
+            englishName: "NOT-SPANISH",
+            endonym: "NO-ES-ESPAÑOL",
+        };
+        try {
+            const rendered = await renderSupportedLocalesModule(["en", "es"]);
+            expect(rendered).toContain('label: "Spanish (español)"');
+            expect(rendered).not.toContain("NOT-SPANISH");
+            expect(rendered).not.toContain("NO-ES-ESPAÑOL");
+        } finally {
+            delete LOCALE_NAME_FALLBACKS.es;
+        }
     });
 
     it("emits Prettier-formatted output so lint:i18n and prettier agree", async () => {
@@ -240,6 +279,45 @@ describe("renderSupportedLocalesModule", () => {
                 parser: "typescript",
             }),
         ).toBe(true);
+    });
+});
+
+describe("LOCALE_NAME_FALLBACKS", () => {
+    /**
+     * The gap this table closes, held shut for the roster rather than for the
+     * handful of entries that close it today. A future batch adding a language
+     * CLDR has no data for fails here until someone supplies a name — which is
+     * the whole point, since the alternative is a `<document lang>` autocomplete
+     * that offers a reader "ktu" and expects them to know what it is.
+     */
+    it("leaves no locale labelled with its own code", () => {
+        const bare = SUPPORTED_LOCALES.filter(
+            (entry) => entry.label === entry.locale,
+        ).map((entry) => entry.locale);
+        expect(bare).toEqual([]);
+    });
+
+    /**
+     * The other half: an entry ICU has since learned a name for is dead weight
+     * that nothing would otherwise notice, because a fallback that never fires
+     * behaves exactly like a fallback that is correct. Failing here is the
+     * signal to delete the entry, not to reword it.
+     */
+    it("holds no entry ICU no longer needs", () => {
+        const unneeded = Object.keys(LOCALE_NAME_FALLBACKS).filter(
+            (locale) =>
+                new Intl.DisplayNames(["en"], { type: "language" }).of(
+                    locale,
+                ) !== locale,
+        );
+        expect(unneeded).toEqual([]);
+    });
+
+    /** An English name is what identifies a language; an endonym is a bonus. */
+    it("gives every entry a non-empty English name", () => {
+        for (const [locale, names] of Object.entries(LOCALE_NAME_FALLBACKS)) {
+            expect(names.englishName, locale).toBeTruthy();
+        }
     });
 });
 
@@ -335,5 +413,304 @@ describe("countDiagnosticConstructions", () => {
             `interface R { type: "error"; }\nconst r = { error_type: "warning" };`,
         );
         expect(counts.constructionCount).toBe(0);
+    });
+});
+
+/**
+ * Every `SelectExpression` an entry contains, at any nesting depth. A select
+ * can sit inside a variant of another select — which is how a catalog forks on
+ * `$role` and then on `$gender` — so this recurses rather than reading the top
+ * level of each pattern.
+ */
+function selectExpressions(entry: Entry): SelectExpression[] {
+    const found: SelectExpression[] = [];
+
+    const visitPattern = (pattern: Pattern | null) => {
+        for (const element of pattern?.elements ?? []) {
+            if (element.type !== "Placeable") {
+                continue;
+            }
+            const expression = element.expression;
+            if (expression.type === "SelectExpression") {
+                found.push(expression);
+                for (const variant of expression.variants) {
+                    visitPattern(variant.value);
+                }
+            }
+        }
+    };
+
+    if (entry.type === "Message" || entry.type === "Term") {
+        visitPattern(entry.value ?? null);
+        for (const attribute of entry.attributes) {
+            visitPattern(attribute.value);
+        }
+    }
+    return found;
+}
+
+describe("the noun-class reachability rule", () => {
+    /**
+     * `$gender` is a token set a catalog defines for itself: `noun-gender`
+     * maps each noun key to a token, and every concording word selects on the
+     * tokens that come back. A variant for a token `noun-gender` can never
+     * answer is therefore dead — it renders for no noun, and it reads as
+     * agreement the catalog does not actually have. `locales/zu`'s header
+     * states the rule («a `c6` branch would be a variant nothing can select»)
+     * and the README restates it for `$role`; this is what holds all the
+     * catalogs to it at once.
+     *
+     * The default variant is exempt: it is what an unlisted token falls to,
+     * which is the point of writing one.
+     *
+     * The rule is asserted for **noun-class** tokens (`c3`, `c5`, …) and not
+     * for the gender tokens of `locales/ru`, `locales/be` and `locales/sr`,
+     * which write a neuter no noun currently reaches. The difference is that a
+     * class token set is one a catalog invents for the core's own closed list
+     * of nouns, so a class with no noun in it is a claim about nothing,
+     * whereas Russian's three genders exist whatever this repository names —
+     * and the neuter is the form the file needs the moment a neuter noun is
+     * added.
+     */
+    it("writes no noun-class variant its own `noun-gender` cannot answer", () => {
+        const offenders: string[] = [];
+
+        for (const locale of listLocales()) {
+            const source = readCatalog(locale, "content");
+            if (source === null) {
+                continue;
+            }
+            const resource = parse(source, { withSpans: false });
+
+            const nounGender = resource.body.find(
+                (entry): entry is Message =>
+                    entry.type === "Message" && entry.id.name === "noun-gender",
+            );
+            if (!nounGender) {
+                continue;
+            }
+
+            const answered = new Set(
+                selectExpressions(nounGender).flatMap((select) =>
+                    select.variants.flatMap((variant) =>
+                        variant.value.elements.flatMap((element) =>
+                            element.type === "TextElement"
+                                ? [element.value.trim()]
+                                : [],
+                        ),
+                    ),
+                ),
+            );
+
+            for (const entry of resource.body) {
+                if (entry.type !== "Message" && entry.type !== "Term") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type !== "VariableReference" ||
+                        select.selector.id.name !== "gender"
+                    ) {
+                        continue;
+                    }
+                    for (const variant of select.variants) {
+                        const key =
+                            variant.key.type === "Identifier"
+                                ? variant.key.name
+                                : variant.key.value;
+                        if (
+                            variant.default ||
+                            !/^c\d+$/.test(key) ||
+                            answered.has(key)
+                        ) {
+                            continue;
+                        }
+                        offenders.push(`${locale}: [${key}]`);
+                    }
+                }
+            }
+        }
+
+        expect([...new Set(offenders)].sort()).toEqual([]);
+    });
+
+    /**
+     * The rule above catches a class branch nothing can select. This is its
+     * mirror image, and it is pinned rather than left to the header: Kituba is
+     * a Bantu-based creole whose describing words agree with nothing, so a
+     * `$gender` fork of *any* shape in `locales/ktu` would be a second spelling
+     * of a form the language does not have — the same argument
+     * `locales/sg`'s plural test makes about a `[one]` branch.
+     *
+     * Asserted for Kituba alone rather than for every catalog without a class
+     * table, because the claim is about *this* language: nineteen other Bantu
+     * catalogs in this repository do fork, and what makes Kituba's flatness
+     * worth holding still is that a later editor would reasonably expect it not
+     * to be.
+     */
+    it("has Kituba write no noun-class fork at all", () => {
+        const offenders: string[] = [];
+
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog("ktu", namespace) ?? "";
+            for (const entry of parse(source, { withSpans: false }).body) {
+                if (entry.type !== "Message" && entry.type !== "Term") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type === "VariableReference" &&
+                        select.selector.id.name === "gender"
+                    ) {
+                        const name =
+                            entry.type === "Message" ? entry.id.name : "term";
+                        offenders.push(`${namespace}: ${name}`);
+                    }
+                }
+            }
+        }
+
+        expect(offenders).toEqual([]);
+    });
+
+    /**
+     * The other half of the same claim, added when `locales/kg` arrived: what
+     * makes Kituba's flatness worth reading is that its *lexifier* is not flat.
+     * The two headers say so, and the assertion is what keeps the pair honest,
+     * since a header can drift and a `$gender` fork cannot.
+     *
+     * `color` is the message the two headers point a reader at, so it is the
+     * one pinned. Asserting on the count rather than on the exact variants
+     * leaves a speaker free to fix Kongo's four class rows — the whole file is
+     * an unreviewed seed — without failing here, while still catching the one
+     * change that would make the pair meaningless.
+     */
+    it("has Kongo fork `color` where its creole does not", () => {
+        const genderForks = (locale: string) => {
+            const source = readCatalog(locale, "content") ?? "";
+            const color = parse(source, { withSpans: false }).body.find(
+                (entry) =>
+                    entry.type === "Message" && entry.id.name === "color",
+            );
+            expect(color, `${locale} defines color`).toBeDefined();
+            return selectExpressions(color!).filter(
+                (select) =>
+                    select.selector.type === "VariableReference" &&
+                    select.selector.id.name === "gender",
+            ).length;
+        };
+
+        expect(genderForks("kg")).toBeGreaterThan(0);
+        expect(genderForks("ktu")).toBe(0);
+    });
+});
+
+describe("counted messages", () => {
+    const countArguments = new Set([
+        "count",
+        "attributesCount",
+        "valuesCount",
+        "parametersCount",
+        "intervals",
+        "inputs",
+        "outputs",
+    ]);
+
+    /** Each message in a catalog, mapped to the count arguments it selects on. */
+    const countSelectors = (source: string) => {
+        const found = new Map<string, Set<string>>();
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type !== "Message") {
+                continue;
+            }
+            const selectors = new Set(
+                selectExpressions(entry).flatMap((select) =>
+                    select.selector.type === "VariableReference" &&
+                    countArguments.has(select.selector.id.name)
+                        ? [select.selector.id.name]
+                        : [],
+                ),
+            );
+            if (selectors.size > 0) {
+                found.set(entry.id.name, selectors);
+            }
+        }
+        return found;
+    };
+
+    const forLocale = (locale: string) =>
+        CATALOG_NAMESPACES.map(
+            (namespace) =>
+                [
+                    namespace,
+                    countSelectors(readCatalog(locale, namespace) ?? ""),
+                ] as const,
+        );
+
+    /**
+     * `locales/shi` inflects a verb for the number of its subject —
+     * ⵢⵜⵜⵓⵣⴳⴰⵍ for one thing ignored against ⵜⵜⵓⵣⴳⴰⵍⵏ for several — and a noun
+     * counted behind ⵏ for the number of the count. So a count English forks
+     * on is a count it forks on too, and a message that renders one branch for
+     * every count states a plural verb about a single attribute.
+     *
+     * Asserted for Tachelhit alone rather than for every catalog, because the
+     * rule is a fact about *this* language, and the check is that the catalog
+     * agrees with itself.
+     */
+    it("has Tachelhit fork on every count English forks on", () => {
+        const tachelhit = new Map(forLocale("shi"));
+        for (const [namespace, english] of forLocale("en")) {
+            for (const [message, selectors] of english) {
+                expect(
+                    [...(tachelhit.get(namespace)?.get(message) ?? [])].sort(),
+                    `${namespace}: ${message}`,
+                ).toEqual([...selectors].sort());
+            }
+        }
+    });
+
+    /**
+     * The mirror image, and the reason the rule above is stated per language
+     * rather than for the roster: `Intl.PluralRules("sg")` reports the single
+     * category `other`, so a Sango `[one]` branch would be a second spelling
+     * of a form the language does not have.
+     *
+     * An exact-number key is a different thing and stays allowed: `[0]` is
+     * matched by value rather than by category, and it is how every catalog —
+     * Sango included — writes "no attempts remaining" as its own sentence.
+     */
+    it("has Sango write no plural-category branch", () => {
+        const categories = new Set(["one", "two", "few", "many"]);
+
+        for (const namespace of CATALOG_NAMESPACES) {
+            const offenders: string[] = [];
+            for (const entry of parse(readCatalog("sg", namespace) ?? "", {
+                withSpans: false,
+            }).body) {
+                if (entry.type !== "Message") {
+                    continue;
+                }
+                for (const select of selectExpressions(entry)) {
+                    if (
+                        select.selector.type !== "VariableReference" ||
+                        !countArguments.has(select.selector.id.name)
+                    ) {
+                        continue;
+                    }
+                    for (const variant of select.variants) {
+                        if (
+                            variant.key.type === "Identifier" &&
+                            categories.has(variant.key.name)
+                        ) {
+                            offenders.push(
+                                `${entry.id.name} [${variant.key.name}]`,
+                            );
+                        }
+                    }
+                }
+            }
+            expect(offenders, namespace).toEqual([]);
+        }
     });
 });

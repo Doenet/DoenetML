@@ -50,14 +50,75 @@ Tailwind base is purposely not included because we want all styles to be prefixe
 
     --keyboard-tray-height: 280px;
 
+    /*
+     * The tab that peeks above a closed tray. Its height and the distance it
+     * is raised by are the same measurement — it sits exactly its own height
+     * above the tray's top edge — so they are one value, not two that have to
+     * be kept equal.
+     */
+    --keyboard-tab-height: 1.5rem;
+    --keyboard-tab-width: 3rem;
+
     border-top: 1px solid var(--kb-tray-border-top);
     @apply fixed bottom-0 w-full pb-2 px-2 overflow-visible;
     @apply transition-transform ease-in-out duration-300 translate-y-[100%];
-    min-height: var(--keyboard-tray-height);
-    max-height: calc(100vh - 1.5rem);
+    /* A column, so `.keyboard-container` is bound by the height set below. */
+    @apply flex flex-col;
+    /*
+     * The tray may never be so tall that it carries its own tab off the top of
+     * the screen: the tab hangs exactly `--keyboard-tab-height` above the
+     * tray's top edge, so that much has to stay clear. Both bounds are held to
+     * it — the floor as well as the ceiling, because a `min-height` outranks a
+     * `max-height` and would otherwise reinstate the overshoot on a viewport
+     * shorter than the floor. Written against the variable rather than
+     * repeating its value: widening the tab for a fingertip is exactly the
+     * change that a literal here would have missed.
+     */
+    --keyboard-tray-max-height: calc(100vh - var(--keyboard-tab-height));
+    min-height: min(
+        var(--keyboard-tray-height),
+        var(--keyboard-tray-max-height)
+    );
+    max-height: var(--keyboard-tray-max-height);
     z-index: 10000;
     background-color: var(--kb-tray-bg);
 
+    /*
+     * The layout tabs and the keyboard under them, and the only part of the
+     * tray that scrolls. A viewport too short for the keyboard — a phone held
+     * sideways, or any short window — used to cut the bottom rows off, which
+     * on the numeric layout is the number pad; taller keys for a fingertip
+     * would have cut off more. `min-height: 0` is what lets it shrink: a flex
+     * item's automatic minimum is its own content, which would otherwise push
+     * the overflow straight back out to the tray.
+     *
+     * The layout tabs scroll with the keys rather than staying pinned, so a
+     * tray reopened at the position it was left at would be missing them.
+     * `keyboard-tray.tsx` scrolls this back to the top as the tray opens.
+     *
+     * A finger can pan it even though the tray cancels the default action of
+     * `pointerdown` across its whole subtree (see `keyboard-tray.tsx`): what
+     * suppresses a pan is `touch-action` or a cancelled `touchstart` /
+     * `touchmove`, and the tray does neither. Confirmed in Chromium with a
+     * real coarse pointer, and asserted in
+     * `cypress/e2e/accessibility/virtualKeyboardTouchTargets.cy.js`; iOS
+     * Safari has not been tried. `overscroll-behavior` keeps a pan that runs
+     * off the end of it from scrolling the document behind the tray.
+     */
+    .keyboard-container {
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    /*
+     * Outside `.keyboard-container`'s scroll for positioning purposes even
+     * though it is inside it in the markup: its containing block is the tray,
+     * so it neither scrolls away nor is clipped, and stays in the corner
+     * where it can be reached. That holds only while nothing between the two
+     * is positioned — give `.keyboard-container` a `position` and the button
+     * starts scrolling away with the keys.
+     */
     .close-keyboard-button {
         @apply absolute top-0 end-0 m-2 rounded;
         @apply hover:bg-slate-300 active:bg-slate-400;
@@ -65,21 +126,25 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     }
 
     /*
-     * Inline-end footprint of this button (w-12 + me-4 = 4rem) is mirrored
-     * by `--keyboard-tab-reserve-width` in
+     * Inline-end footprint of this button (`--keyboard-tab-width` + me-4) is
+     * mirrored by `--keyboard-tab-reserve-width` in
      * `packages/doenetml/src/EditorViewer/editor-viewer.css` so the editor
      * footer can shift its last element inward to clear it. Keep the two
-     * values in sync — and keep both on the *same* axis. `end-0` here pairs
-     * with `margin-inline-end` there; making one logical and leaving the
-     * other physical would send the tab and the space reserved for it to
-     * opposite edges under `rtl`, which is worse than either alone.
+     * values in sync — including the touch-device widening below — and keep
+     * both on the *same* axis. `end-0` here pairs with `margin-inline-end`
+     * there; making one logical and leaving the other physical would send the
+     * tab and the space reserved for it to opposite edges under `rtl`, which
+     * is worse than either alone.
      */
     .open-keyboard-button {
-        @apply absolute top-[-1.5rem] end-0 rounded-t me-4;
+        @apply absolute end-0 rounded-t me-4;
         @apply border-b-black border-b;
         @apply hover:bg-slate-300 active:bg-slate-400;
-        @apply w-12 h-[1.5rem] flex items-center justify-center;
+        @apply flex items-center justify-center;
         @apply bg-white border;
+        top: calc(-1 * var(--keyboard-tab-height));
+        width: var(--keyboard-tab-width);
+        height: var(--keyboard-tab-height);
     }
 
     .virtual-keyboard-tab-list {
@@ -87,6 +152,35 @@ Tailwind base is purposely not included because we want all styles to be prefixe
     }
     .virtual-keyboard {
         @apply mx-auto;
+    }
+}
+
+/*
+ * Touch devices: everything here is tapped with a fingertip rather than
+ * pointed at, so every control needs a target a fingertip can land on. 44px is
+ * the minimum in Apple's HIG and in WCAG 2.5.5. The tray shipped with a 48x24
+ * tab to open it, a 24x24 button to close it, and layout tabs measuring 30x25
+ * on a phone — issue #449.
+ *
+ * Keyed on the reader's primary pointer being coarse rather than on how wide
+ * the viewport is: a narrow window on a desktop is still driven by a mouse,
+ * and a tablet held in two hands is not, however much room it has. This is the
+ * same test the viewer uses to decide whether to suppress the device's own
+ * on-screen keyboard, so the two stay consistent about what a touch device is.
+ */
+@media (pointer: coarse) {
+    #virtual-keyboard-tray {
+        --keyboard-tab-height: 2.75rem;
+        --keyboard-tab-width: 4rem;
+
+        .open-keyboard-button {
+            /* The icon is drawn at 1em, so it grows with the tab. */
+            @apply text-xl;
+        }
+
+        .close-keyboard-button {
+            @apply w-11 h-11 m-1;
+        }
     }
 }
 

@@ -44,16 +44,6 @@ export default class ODESystem extends InlineComponent {
 
         Object.assign(attributes, returnNumberDisplayAttributes());
 
-        attributes.renderMode = {
-            createComponentOfType: "text",
-            createStateVariable: "renderMode",
-            defaultValue: "align",
-            public: true,
-            forRenderer: true,
-            description:
-                'How to format the rendered system of equations (e.g. "align").',
-        };
-
         attributes.chunkSize = {
             createComponentOfType: "number",
             createStateVariable: "chunkSize",
@@ -415,6 +405,17 @@ export default class ODESystem extends InlineComponent {
             targetVariableName: "initialCondition1",
             description:
                 "The initial value of the first dependent variable at the initial independent-variable value.",
+        };
+
+        // Fixed, not author-settable: the `latex` state variable below always
+        // builds an aligned environment, so this is the only mode that renders
+        // it correctly. There used to be a `renderMode` attribute, now
+        // deprecated and dropped during DAST normalization — see
+        // `attributeRemovals` in `parser/src/dast-normalize/deprecations.ts`.
+        stateVariableDefinitions.renderMode = {
+            forRenderer: true,
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { renderMode: "align" } }),
         };
 
         stateVariableDefinitions.equationTag = {

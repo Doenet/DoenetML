@@ -49,6 +49,37 @@ describe("Warning Tests @group4", async () => {
         ).eq(true);
     });
 
+    it("Deprecated odeSystem renderMode attribute", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<odeSystem name="ode" renderMode="display">
+    <rightHandSide>-x</rightHandSide>
+</odeSystem>
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        // The deprecation pass drops the attribute before the component sees
+        // it, so it is a warning rather than an "invalid attribute" error.
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `renderMode` on `<odeSystem>` is deprecated and ignored.",
+                ),
+            ),
+        ).eq(true);
+
+        // The system still renders as an aligned environment.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ode")].stateValues
+                .renderMode,
+        ).eq("align");
+    });
+
     it("Deprecated selectFromSequence sortResults attribute", async () => {
         const { core } = await createTestCore({
             doenetML: `

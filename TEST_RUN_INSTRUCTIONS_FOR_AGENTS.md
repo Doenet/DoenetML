@@ -21,6 +21,8 @@ Do not assume an existing preview server or an earlier build is still valid.
 
 If you skip the rebuild, you may be testing stale assets and get false pass/fail results.
 
+A root `npm run build` does **not** cover this: it does not build `@doenet/test-cypress`, and reports the package as skipped rather than as an error. Run `npm run build -w @doenet/test-cypress` explicitly (step 1 below), even if a root build just succeeded.
+
 ## Prefigure Unit Tests (Non-Interactive)
 
 Run targeted Vitest tests with `--run`:

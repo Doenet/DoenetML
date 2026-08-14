@@ -1,7 +1,41 @@
+/**
+ * A message sent from the virtual keyboard tray to whichever input is active.
+ *
+ * Most types are literal key presses. Two are not, and ride this channel
+ * because it is the only one that already spans the iframe boundary — the
+ * tray lives in the embedding page, the inputs live inside the iframe:
+ *
+ * - `"keyboardChoice"` — which keyboard the reader has asked for, with
+ *   `command` set to `"virtual"` (they opened the tray) or `"system"` (they
+ *   closed it). On a touch device the two keyboards compete for the same
+ *   screen, so a math input keeps the device's own on-screen keyboard down
+ *   until told the reader wants it. Sent only when the reader chooses: the
+ *   tray also opens and closes by itself as focus moves between inputs, and
+ *   that is not a statement about which keyboard they would rather have.
+ *
+ * - `"accessed"` — no longer sent by this tray, which declines focus and so
+ *   has no blur to explain. It is still *accepted*, and is the one thing that
+ *   identifies a tray from before that change: only those send it, so the
+ *   first one settles which tray the page is under. A key from such a tray is
+ *   then delivered to the math input its own press blurred a moment earlier,
+ *   and the caret is put back after typing, which is what lets a current
+ *   viewer be driven by an older tray — the pairing doenet.org has whenever it
+ *   serves a newly published viewer under its installed wrapper. "A moment
+ *   earlier" is part of it: a key that arrives long after the reader left an
+ *   input was not caused by that blur and types nowhere. The caret goes back
+ *   even when the press carried no key — the tray's open and close buttons,
+ *   the gap between two keys — since that press took it just the same, and a
+ *   reader who opens the tray while editing an input is still editing it.
+ *
+ *   The reverse pairing, an older viewer under this tray, cannot be rescued
+ *   from this side: that viewer typed only in response to a blur this tray no
+ *   longer causes. Embedders pinning a viewer older than this release should
+ *   pin the wrapper with it.
+ */
 export type KeyCommand = {
-    type: "keystroke" | "type" | "write" | "cmd" | "accessed";
+    type:
+        "keystroke" | "type" | "write" | "cmd" | "accessed" | "keyboardChoice";
     command: string;
-    timestamp?: number;
 };
 
 export type KeyDescription = {

@@ -32,11 +32,25 @@ export type NegotiateLocalesOptions = {
  * of its own and `locales/ak` is written in Asante Twi, so answering Fante
  * with it would be the substitution `nn` is kept out for.
  *
- * A member code of a macrolanguage is handled by {@link MACROLANGUAGE_MEMBERS}
- * instead: there are hundreds of them, and membership is a published fact rather
- * than a judgement made here.
+ * `man` is the ISO 639-3 macrolanguage over the Manding varieties, and it is
+ * the first one this repository has catalogs for *members* of rather than for
+ * the macrolanguage itself: `bm`, `dyu` and `mnk` are all members, so
+ * {@link MACROLANGUAGE_MEMBERS} — which folds a member onto the wider code —
+ * has nothing to fold `man` onto and cannot answer it. Which of the three a
+ * bare `man` should reach is CLDR's decision rather than one made here:
+ * `new Intl.Locale("man").maximize()` is `man-Latn-GM`, the Gambia, which is
+ * Mandinka's country. `emk` (Eastern Maninkakan) reaches the same place, since
+ * `Intl.getCanonicalLocales` folds it to `man` before this entry is consulted.
+ *
+ * A member code of a macrolanguage is otherwise handled by
+ * {@link MACROLANGUAGE_MEMBERS}: there are hundreds of them, and membership is a
+ * published fact rather than a judgement made here.
  */
-const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
+const LANGUAGE_ALIASES: Record<string, string> = {
+    no: "nb",
+    tw: "ak",
+    man: "mnk",
+};
 
 /**
  * Individual-language codes folded onto the wider code this repository names a
@@ -54,16 +68,29 @@ const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", tw: "ak" };
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Five of the
- * six keys — `qu`, `ay`, `gn`, `oj`, `bik` — are ISO 639-3 macrolanguages and
- * list their macrolanguage members; `nah` is an ISO 639-3 **collection** code
- * rather than a macrolanguage, so it lists the individual Nahuan languages ISO
- * 639-5 groups under it.
+ * member of `nb` or `ak`, and both are deliberately left to miss. Thirteen of
+ * the sixteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
+ * `kg`, `bua`, `kv`, `chm` — are ISO 639-3 macrolanguages and list their
+ * macrolanguage members; `nah` is an ISO 639-3 **collection** code rather than a
+ * macrolanguage, so it lists the individual Nahuan languages ISO 639-5 groups
+ * under it; and `mnk` and `dje` are neither, being *members* — of `man` and
+ * `son` respectively — that this repository happens to name catalogs after.
+ * Those two are the shape {@link LANGUAGE_ALIASES}'s `man` entry explains, and
+ * it is why the members listed under `mnk` exclude `bam` and `dyu`: those two
+ * have catalogs of their own, and folding them here would serve a Bambara
+ * reader Mandinka.
+ *
+ * The two member cases part company over their macrolanguage, and the reason
+ * is CLDR rather than a preference: `man` is aliased onto `mnk` because
+ * `Intl.Locale#maximize` gives it a region and so decides which member it
+ * means, while `son` is left to miss because it maximizes to nothing.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr` — so that each list reads as the whole of a group rather than as the
- * leftovers of one, and so that a change in ICU data cannot silently drop a code
- * out of coverage.
+ * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc`, `bxr`, `kpv`, `mhr` — so that each
+ * list reads as the whole of a group rather than as the leftovers of one, and
+ * so that a change in ICU data cannot silently drop a code out of coverage.
+ * `mnk`'s list carries `emk` for the same reason, though what ICU folds `emk`
+ * to is `man` rather than `mnk`.
  *
  * Serving a related variety is a real compromise, and each of these catalogs
  * says in its own header which written standard it is — Southern Quechua,
@@ -171,6 +198,95 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // must not be added: `fil` is a language of its own with a catalog of its
     // own, and folding it here would serve a Tagalog reader Bikol.
     bik: ["bcl", "bln", "bto", "cts", "fbl", "lbl", "rbl", "ubl"],
+    // Konkani. The catalog is Goan Konkani in Devanagari, the standard the Goa
+    // Konkani Akademi publishes in. These two are the whole of the
+    // macrolanguage; `gom` is the one `Intl.getCanonicalLocales` already folds.
+    kok: ["gom", "knn"],
+    // Dogri. The catalog is Dogri proper, which is `dgo` — the variety the
+    // Eighth Schedule names and the J&K academy publishes in. These two are the
+    // whole of the macrolanguage, and `xnr` (Kangri) is the member ICU leaves
+    // unresolvable; `dgo` is the one it already folds.
+    doi: ["dgo", "xnr"],
+    // Fula. The catalog is Pulaar, the western variety of Senegal and
+    // Mauritania, which is `fuc` — what CLDR fills a bare `ff` in as and the
+    // one member it already folds. These nine are the whole of the
+    // macrolanguage, so an Adamawa (`fub`) or Nigerian (`fuv`) Fulfulde reader
+    // reaches Pulaar rather than English.
+    ff: ["ffm", "fub", "fuc", "fue", "fuf", "fuh", "fui", "fuq", "fuv"],
+    // Kanuri. The catalog is Central Kanuri, which is `knc` — what CLDR fills a
+    // bare `kr` in as and the one member it already folds. These four are the
+    // whole of the macrolanguage. `kby` (Manga Kanuri) maximizes to `kby-Arab`,
+    // so a Manga reader most likely arrives in Ajami and is served Latin; that
+    // is `locales/ha`'s asymmetry, and the answer to it is a second catalog
+    // rather than a change here. `kbl` (Kanembu) is deliberately absent: ISO
+    // 639-3 gives it a code outside `kr`, so folding it would be the judgement
+    // this map avoids.
+    kr: ["bms", "kby", "knc", "krt"],
+    // Manding. `mnk` is a *member* rather than the macrolanguage — see
+    // {@link LANGUAGE_ALIASES}'s `man` entry — so this lists the sibling
+    // members, and deliberately omits `bam` and `dyu`, which `locales/bm` and
+    // `locales/dyu` answer for themselves. `emk` is listed for the reason the
+    // already-folded codes above are: `Intl.getCanonicalLocales` rewrites it to
+    // `man`, so it would reach Mandinka through the alias anyway, and naming it
+    // keeps the list the whole of a group rather than the leftovers of one.
+    mnk: ["emk", "mku", "mlq", "msc", "mwk"],
+    // Kongo. The catalog is written towards the Kikongo ya Bandundu standard.
+    // These three are the whole of the macrolanguage; `kng` is the one
+    // `Intl.getCanonicalLocales` already folds to `kg`, and it is listed for
+    // the reason the other already-folded codes above are.
+    //
+    // `ktu` (Kituba) is deliberately absent, and this is the one exclusion here
+    // that is not simply "it has a catalog of its own" — though it does, added
+    // in #1685. Kituba is a creole *of* Kikongo rather than a variety of it,
+    // ISO 639-3 gives it a code outside `kg`, and folding it would be the
+    // judgement this map avoids. `mkw` (Kituba of the Republic of the Congo) is
+    // absent for the same reason and is left to miss; answering it with `ktu`
+    // would be defensible and is not a membership fact, so it is not done here.
+    kg: ["kng", "kwy", "ldi"],
+    // Songhay. `dje` is a *member* rather than the macrolanguage — the shape
+    // {@link LANGUAGE_ALIASES}'s `man` entry explains — so this lists the
+    // sibling members. These six are the whole of `son` apart from Zarma
+    // itself, and ICU folds none of them, so every one of them reaches a
+    // catalog only because this list exists.
+    //
+    // `son` itself is deliberately *not* aliased onto `dje`, and that is the
+    // half worth reading. `man` earns its alias because CLDR decides for
+    // itself which member a bare macrolanguage tag means —
+    // `new Intl.Locale("man").maximize()` is `man-Latn-GM`, Mandinka's
+    // country. `son` maximizes to nothing at all: CLDR adds no region, so it
+    // has no opinion, and picking Zarma because it is the largest would be
+    // exactly the judgement these maps exist to avoid. `negotiate.test.ts`
+    // asserts the absent region rather than merely the absent entry, so a
+    // change in ICU data that gave `son` a region would fail there and invite
+    // someone to reconsider.
+    //
+    // `tda` (Tadaksahak) maximizes to `tda-Tfng-NE` — Tifinagh — so a reader
+    // most likely arriving in that script is served Latin. That is
+    // `locales/kr`'s asymmetry with `kby` in Ajami and `locales/ff`'s in
+    // Adlam — the two other debts CLDR's own maximization creates, rather
+    // than `locales/ha`'s, which CLDR does not: a bare `ha` maximizes to
+    // `ha-Latn-NG`. The answer to it is a second catalog rather than a change
+    // here.
+    dje: ["ddn", "hmb", "khq", "ses", "tda", "twq"],
+    // Buryat. The catalog is the Russia Buriat literary standard, which is what
+    // ICU already folds `bxr` onto; `bxm` (Mongolia) and `bxu` (China) are the
+    // members it does not, and they reach `locales/bua` only through this list.
+    // `bxu` maximizes to `bxu-Mong-CN` — the Mongolian script — so a China
+    // Buriat reader most likely arriving in that script is served Cyrillic.
+    // That is `locales/kr`'s asymmetry with `kby` and `locales/dje`'s with
+    // `tda`, and the answer to it is a second catalog rather than a change
+    // here.
+    bua: ["bxm", "bxr", "bxu"],
+    // Komi. The catalog is Komi-Zyrian, which is what ICU folds `kpv` onto;
+    // `koi` (Komi-Permyak) is the member it does not, and it is a written
+    // standard of its own, so serving it Zyrian is the compromise every entry
+    // in this map makes and `locales/kv`'s header records.
+    kv: ["koi", "kpv"],
+    // Mari. The catalog is Meadow Mari, which is what ICU folds `mhr` onto;
+    // `mrj` (Hill Mari) is the member it does not, and, like `koi` above, it is
+    // a written standard with an orthography of its own rather than a spelling
+    // of this one.
+    chm: ["mhr", "mrj"],
 };
 
 /** Flattened once at module load rather than searched per request. */
@@ -180,7 +296,19 @@ const MACROLANGUAGE_ALIASES: Record<string, string> = Object.fromEntries(
     ),
 );
 
-/** Rewrite a request's language subtag if it is one no catalog is named after. */
+/**
+ * Rewrite a request's language subtag if it is one no catalog is named after.
+ *
+ * {@link LANGUAGE_ALIASES} is consulted before {@link MACROLANGUAGE_MEMBERS},
+ * so a hand-written entry always wins over a membership one. The two share no
+ * key today; the order is what keeps a future collision decidable rather than
+ * accidental.
+ *
+ * The tag arrives as the caller wrote it — {@link negotiateLocales} is public
+ * and hosts pass `navigator.languages` straight in — so a code
+ * `Intl.getCanonicalLocales` would have folded may still reach these maps
+ * unfolded. That is why a member list names codes ICU already resolves.
+ */
 function applyLanguageAlias(tag: string): string {
     const [language, ...rest] = tag.split("-");
     const lowered = language.toLowerCase();

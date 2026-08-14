@@ -4,6 +4,7 @@ import {
     returnContentLocaleDependencies,
 } from "../utils/contentLocale";
 import { composeFigureName } from "../utils/containerWords";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Figure extends BlockComponent {
     constructor(args) {
@@ -62,6 +63,15 @@ export default class Figure extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A figure leading a list item hands the item's number the alignment of
+        // the content it holds — a graph or an image asks for the number beside
+        // the top of its box — and passes the item's top-margin suppression on to
+        // that content, so the number and the figure start on the same row.
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.figureEnumeration = {
             description: "Auto-generated number for this figure.",

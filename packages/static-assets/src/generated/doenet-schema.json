@@ -573,9 +573,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -793,7 +807,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -2271,6 +2285,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -2288,7 +2304,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -2815,6 +2831,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -2832,7 +2850,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -3359,6 +3377,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -3376,7 +3396,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4654,6 +4674,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -4671,7 +4693,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -11223,9 +11245,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -11463,7 +11499,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -12088,9 +12124,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -12328,7 +12378,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -12953,9 +13003,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -13185,7 +13249,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -13810,9 +13874,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -14042,7 +14120,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -14667,9 +14745,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -14899,7 +14991,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -15524,9 +15616,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -15750,7 +15856,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -16368,9 +16474,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "createVectors",
@@ -16578,7 +16698,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -17183,9 +17303,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -17403,7 +17537,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -18014,9 +18148,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -18234,7 +18382,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -18845,9 +18993,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -19065,7 +19227,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -19676,9 +19838,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -19896,7 +20072,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -20507,9 +20683,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -20747,7 +20937,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -21372,9 +21562,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -21612,7 +21816,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -22237,9 +22441,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -22487,7 +22705,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -23119,9 +23337,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -23369,7 +23601,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -24001,9 +24233,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -24241,7 +24487,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -24866,9 +25112,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -25106,7 +25366,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -25731,9 +25991,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -25971,7 +26245,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -26596,9 +26870,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -26836,7 +27124,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -27461,9 +27749,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -27701,7 +28003,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -28326,9 +28628,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -28566,7 +28882,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -29191,9 +29507,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -29458,7 +29788,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -37392,6 +37722,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -37409,7 +37741,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -38163,6 +38495,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -38180,7 +38514,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -38934,6 +39268,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -38951,7 +39287,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -39705,6 +40041,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -39722,7 +40060,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -40476,6 +40814,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -40493,7 +40833,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -41256,6 +41596,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -41273,7 +41615,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -42027,6 +42369,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -42044,7 +42388,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -42807,6 +43151,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -42824,7 +43170,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -43587,6 +43933,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -43604,7 +43952,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -44367,6 +44715,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -44384,7 +44734,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45147,6 +45497,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -45164,7 +45516,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45918,6 +46270,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -45935,7 +46289,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46689,6 +47043,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -46706,7 +47062,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -47460,6 +47816,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -47477,7 +47835,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -48231,6 +48589,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -48248,7 +48608,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49002,6 +49362,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -49019,7 +49381,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49773,6 +50135,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -49790,7 +50154,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_unnumberedSectioningComponent",
                 "_sectioningComponent",
@@ -50541,6 +50905,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -50558,7 +50924,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -51299,6 +51665,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -51316,7 +51684,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -51930,8 +52298,31 @@
                 },
                 {
                     "name": "marker",
-                    "description": "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
+                    "description": "Marker style for the list items: `1`, `a`, `A`, `i`, or `I`. The value is matched on its first character, so a decorated form such as `1.` or `a)` selects the same style. Defaults to a style chosen by the list's nesting level.",
                     "defaultValue": null,
+                    "autocompleteValues": [
+                        {
+                            "value": "1",
+                            "description": "Arabic numerals: 1, 2, 3, …"
+                        },
+                        {
+                            "value": "a",
+                            "description": "Lowercase letters: a, b, c, …"
+                        },
+                        {
+                            "value": "A",
+                            "description": "Uppercase letters: A, B, C, …"
+                        },
+                        {
+                            "value": "i",
+                            "description": "Lowercase roman numerals: i, ii, iii, …"
+                        },
+                        {
+                            "value": "I",
+                            "description": "Uppercase roman numerals: I, II, III, …"
+                        }
+                    ],
+                    "suggestedValuesOnly": true,
                     "type": "text"
                 },
                 {
@@ -52261,9 +52652,28 @@
                 },
                 {
                     "name": "marker",
-                    "description": "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
+                    "description": "Marker style for the list items: `disc`, `circle`, or `square`. Defaults to a style chosen by the list's nesting level.",
                     "defaultValue": null,
-                    "type": "text"
+                    "values": [
+                        "disc",
+                        "circle",
+                        "square"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "disc",
+                            "description": "A filled circle."
+                        },
+                        {
+                            "value": "circle",
+                            "description": "A hollow circle."
+                        },
+                        {
+                            "value": "square",
+                            "description": "A filled square."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "aggregateScores",
@@ -52715,6 +53125,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -52732,7 +53144,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -53196,12 +53608,6 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "renderMode",
-                    "description": "How to format the rendered system of equations (e.g. \"align\").",
-                    "defaultValue": "align",
-                    "type": "text"
-                },
-                {
                     "name": "chunkSize",
                     "description": "Step-size chunk used when numerically integrating the system.",
                     "defaultValue": 10,
@@ -53284,13 +53690,6 @@
                     "type": "math",
                     "isArray": false,
                     "description": "The value of the independent variable at which the initial conditions are specified.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "renderMode",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "How to format the rendered system of equations (e.g. \"align\").",
                     "fromAttribute": true
                 },
                 {
@@ -57700,9 +58099,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -57920,7 +58333,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -60255,6 +60668,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -60272,7 +60687,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -60623,6 +61038,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -60640,7 +61057,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -61167,6 +61584,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -61184,7 +61603,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -61711,6 +62130,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -61728,7 +62149,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -62079,6 +62500,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -62096,7 +62519,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -62471,6 +62894,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -62488,7 +62913,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -64826,6 +65251,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -64843,7 +65270,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -65004,20 +65431,40 @@
                             "description": "Azerbaijani (azərbaycan)"
                         },
                         {
+                            "value": "ba",
+                            "description": "Bashkir (башҡорт)"
+                        },
+                        {
                             "value": "ban",
                             "description": "Balinese"
+                        },
+                        {
+                            "value": "bci",
+                            "description": "Baoulé (bci)"
                         },
                         {
                             "value": "be",
                             "description": "Belarusian (беларуская)"
                         },
                         {
+                            "value": "bem",
+                            "description": "Bemba (Ichibemba)"
+                        },
+                        {
                             "value": "bg",
                             "description": "Bulgarian (български)"
                         },
                         {
+                            "value": "bho",
+                            "description": "Bhojpuri (भोजपुरी)"
+                        },
+                        {
                             "value": "bik",
                             "description": "Bikol"
+                        },
+                        {
+                            "value": "bin",
+                            "description": "Bini"
                         },
                         {
                             "value": "bm",
@@ -65028,16 +65475,36 @@
                             "description": "Bangla (বাংলা)"
                         },
                         {
+                            "value": "bo",
+                            "description": "Tibetan (བོད་སྐད་)"
+                        },
+                        {
                             "value": "br",
                             "description": "Breton (brezhoneg)"
+                        },
+                        {
+                            "value": "brx",
+                            "description": "Bodo (बर’)"
                         },
                         {
                             "value": "bs",
                             "description": "Bosnian (bosanski)"
                         },
                         {
+                            "value": "bua",
+                            "description": "Buriat (буряад)"
+                        },
+                        {
+                            "value": "bum",
+                            "description": "Bulu"
+                        },
+                        {
                             "value": "ca",
                             "description": "Catalan (català)"
+                        },
+                        {
+                            "value": "ce",
+                            "description": "Chechen (нохчийн)"
                         },
                         {
                             "value": "ceb",
@@ -65048,12 +65515,20 @@
                             "description": "Chamorro"
                         },
                         {
+                            "value": "chm",
+                            "description": "Mari"
+                        },
+                        {
                             "value": "co",
                             "description": "Corsican"
                         },
                         {
                             "value": "cs",
                             "description": "Czech (čeština)"
+                        },
+                        {
+                            "value": "cv",
+                            "description": "Chuvash (чӑваш чӗлхи)"
                         },
                         {
                             "value": "cy",
@@ -65064,12 +65539,44 @@
                             "description": "Danish (dansk)"
                         },
                         {
+                            "value": "dag",
+                            "description": "Dagbani (Dagbanli)"
+                        },
+                        {
                             "value": "de",
                             "description": "German (Deutsch)"
                         },
                         {
+                            "value": "dje",
+                            "description": "Zarma (Zarmaciine)"
+                        },
+                        {
+                            "value": "doi",
+                            "description": "Dogri (डोगरी)"
+                        },
+                        {
+                            "value": "dv",
+                            "description": "Divehi"
+                        },
+                        {
+                            "value": "dyo",
+                            "description": "Jola-Fonyi (joola)"
+                        },
+                        {
+                            "value": "dyu",
+                            "description": "Dyula"
+                        },
+                        {
+                            "value": "dz",
+                            "description": "Dzongkha (རྫོང་ཁ)"
+                        },
+                        {
                             "value": "ee",
                             "description": "Ewe (eʋegbe)"
+                        },
+                        {
+                            "value": "efi",
+                            "description": "Efik"
                         },
                         {
                             "value": "el",
@@ -65088,8 +65595,16 @@
                             "description": "Basque (euskara)"
                         },
                         {
+                            "value": "ewo",
+                            "description": "Ewondo (ewondo)"
+                        },
+                        {
                             "value": "fa",
                             "description": "Persian (فارسی)"
+                        },
+                        {
+                            "value": "ff",
+                            "description": "Fula (Pulaar)"
                         },
                         {
                             "value": "fi",
@@ -65108,6 +65623,10 @@
                             "description": "Faroese (føroyskt)"
                         },
                         {
+                            "value": "fon",
+                            "description": "Fon"
+                        },
+                        {
                             "value": "fr",
                             "description": "French (français)"
                         },
@@ -65118,6 +65637,10 @@
                         {
                             "value": "ga",
                             "description": "Irish (Gaeilge)"
+                        },
+                        {
+                            "value": "gaa",
+                            "description": "Ga (Gã)"
                         },
                         {
                             "value": "gd",
@@ -65208,6 +65731,22 @@
                             "description": "Georgian (ქართული)"
                         },
                         {
+                            "value": "kab",
+                            "description": "Kabyle (Taqbaylit)"
+                        },
+                        {
+                            "value": "kbp",
+                            "description": "Kabiyè (Kabɩyɛ)"
+                        },
+                        {
+                            "value": "kg",
+                            "description": "Kongo"
+                        },
+                        {
+                            "value": "ki",
+                            "description": "Kikuyu (Gikuyu)"
+                        },
+                        {
                             "value": "kk",
                             "description": "Kazakh (қазақ тілі)"
                         },
@@ -65216,12 +65755,44 @@
                             "description": "Khmer (ខ្មែរ)"
                         },
                         {
+                            "value": "kmb",
+                            "description": "Kimbundu"
+                        },
+                        {
                             "value": "kn",
                             "description": "Kannada (ಕನ್ನಡ)"
                         },
                         {
                             "value": "ko",
                             "description": "Korean (한국어)"
+                        },
+                        {
+                            "value": "kok",
+                            "description": "Konkani (कोंकणी)"
+                        },
+                        {
+                            "value": "kpe",
+                            "description": "Kpelle"
+                        },
+                        {
+                            "value": "kr",
+                            "description": "Kanuri"
+                        },
+                        {
+                            "value": "kri",
+                            "description": "Krio"
+                        },
+                        {
+                            "value": "ks",
+                            "description": "Kashmiri (کٲشُر)"
+                        },
+                        {
+                            "value": "ktu",
+                            "description": "Kituba (Kikongo ya leta)"
+                        },
+                        {
+                            "value": "kv",
+                            "description": "Komi"
                         },
                         {
                             "value": "ky",
@@ -65244,8 +65815,20 @@
                             "description": "Lao (ລາວ)"
                         },
                         {
+                            "value": "lom",
+                            "description": "Loma (lom)"
+                        },
+                        {
                             "value": "lt",
                             "description": "Lithuanian (lietuvių)"
+                        },
+                        {
+                            "value": "lua",
+                            "description": "Luba-Lulua"
+                        },
+                        {
+                            "value": "luo",
+                            "description": "Luo (Dholuo)"
                         },
                         {
                             "value": "lv",
@@ -65254,6 +65837,14 @@
                         {
                             "value": "mad",
                             "description": "Madurese"
+                        },
+                        {
+                            "value": "mai",
+                            "description": "Maithili (मैथिली)"
+                        },
+                        {
+                            "value": "men",
+                            "description": "Mende"
                         },
                         {
                             "value": "mg",
@@ -65280,6 +65871,18 @@
                             "description": "Mongolian (монгол)"
                         },
                         {
+                            "value": "mni",
+                            "description": "Manipuri (মৈতৈলোন্)"
+                        },
+                        {
+                            "value": "mnk",
+                            "description": "Mandinka (Mandinkakaŋo)"
+                        },
+                        {
+                            "value": "mos",
+                            "description": "Mossi"
+                        },
+                        {
                             "value": "mr",
                             "description": "Marathi (मराठी)"
                         },
@@ -65296,8 +65899,12 @@
                             "description": "Burmese (မြန်မာ)"
                         },
                         {
+                            "value": "myv",
+                            "description": "Erzya"
+                        },
+                        {
                             "value": "nah",
-                            "description": "nah"
+                            "description": "Nahuatl (Nāhuatl)"
                         },
                         {
                             "value": "nb",
@@ -65316,8 +65923,16 @@
                             "description": "Dutch (Nederlands)"
                         },
                         {
+                            "value": "nso",
+                            "description": "Northern Sotho (Sesotho sa Leboa)"
+                        },
+                        {
                             "value": "ny",
                             "description": "Nyanja"
+                        },
+                        {
+                            "value": "nyn",
+                            "description": "Nyankole (Runyankore)"
                         },
                         {
                             "value": "oc",
@@ -65336,12 +65951,20 @@
                             "description": "Odia (ଓଡ଼ିଆ)"
                         },
                         {
+                            "value": "os",
+                            "description": "Ossetic (ирон)"
+                        },
+                        {
                             "value": "pa",
                             "description": "Punjabi (ਪੰਜਾਬੀ)"
                         },
                         {
                             "value": "pam",
                             "description": "Pampanga"
+                        },
+                        {
+                            "value": "pcm",
+                            "description": "Nigerian Pidgin (Naijíriá Píjin)"
                         },
                         {
                             "value": "pl",
@@ -65368,6 +65991,10 @@
                             "description": "Romansh (rumantsch)"
                         },
                         {
+                            "value": "rn",
+                            "description": "Rundi (Ikirundi)"
+                        },
+                        {
                             "value": "ro",
                             "description": "Romanian (română)"
                         },
@@ -65378,6 +66005,18 @@
                         {
                             "value": "rw",
                             "description": "Kinyarwanda (Ikinyarwanda)"
+                        },
+                        {
+                            "value": "sa",
+                            "description": "Sanskrit (संस्कृत भाषा)"
+                        },
+                        {
+                            "value": "sah",
+                            "description": "Yakut (саха тыла)"
+                        },
+                        {
+                            "value": "sat",
+                            "description": "Santali (ᱥᱟᱱᱛᱟᱲᱤ)"
                         },
                         {
                             "value": "sc",
@@ -65394,6 +66033,14 @@
                         {
                             "value": "se",
                             "description": "Northern Sami (davvisámegiella)"
+                        },
+                        {
+                            "value": "sg",
+                            "description": "Sango (Sängö)"
+                        },
+                        {
+                            "value": "shi",
+                            "description": "Tachelhit (ⵜⴰⵛⵍⵃⵉⵜ)"
                         },
                         {
                             "value": "si",
@@ -65428,12 +66075,20 @@
                             "description": "Serbian (српски)"
                         },
                         {
+                            "value": "ss",
+                            "description": "Swati"
+                        },
+                        {
                             "value": "st",
                             "description": "Southern Sotho (Sesotho)"
                         },
                         {
                             "value": "su",
                             "description": "Sundanese (Basa Sunda)"
+                        },
+                        {
+                            "value": "sus",
+                            "description": "Susu"
                         },
                         {
                             "value": "sv",
@@ -65452,6 +66107,10 @@
                             "description": "Telugu (తెలుగు)"
                         },
                         {
+                            "value": "tem",
+                            "description": "Timne"
+                        },
+                        {
                             "value": "tet",
                             "description": "Tetum"
                         },
@@ -65466,6 +66125,10 @@
                         {
                             "value": "ti",
                             "description": "Tigrinya (ትግርኛ)"
+                        },
+                        {
+                            "value": "tiv",
+                            "description": "Tiv"
                         },
                         {
                             "value": "tk",
@@ -65492,12 +66155,24 @@
                             "description": "Turkish (Türkçe)"
                         },
                         {
+                            "value": "ts",
+                            "description": "Tsonga"
+                        },
+                        {
                             "value": "tt",
                             "description": "Tatar (татар)"
                         },
                         {
                             "value": "ty",
                             "description": "Tahitian"
+                        },
+                        {
+                            "value": "tyv",
+                            "description": "Tuvinian (Тыва)"
+                        },
+                        {
+                            "value": "udm",
+                            "description": "Udmurt"
                         },
                         {
                             "value": "ug",
@@ -65508,12 +66183,24 @@
                             "description": "Ukrainian (українська)"
                         },
                         {
+                            "value": "umb",
+                            "description": "Umbundu"
+                        },
+                        {
                             "value": "ur",
                             "description": "Urdu (اردو)"
                         },
                         {
+                            "value": "urh",
+                            "description": "Urhobo (urh)"
+                        },
+                        {
                             "value": "uz",
                             "description": "Uzbek (o‘zbek)"
+                        },
+                        {
+                            "value": "ve",
+                            "description": "Venda"
                         },
                         {
                             "value": "vi",
@@ -65528,6 +66215,10 @@
                             "description": "Wolof"
                         },
                         {
+                            "value": "xal",
+                            "description": "Kalmyk"
+                        },
+                        {
                             "value": "xh",
                             "description": "Xhosa (IsiXhosa)"
                         },
@@ -65538,6 +66229,10 @@
                         {
                             "value": "yo",
                             "description": "Yoruba (Èdè Yorùbá)"
+                        },
+                        {
+                            "value": "zgh",
+                            "description": "Standard Moroccan Tamazight (ⵜⴰⵎⴰⵣⵉⵖⵜ)"
                         },
                         {
                             "value": "zh-Hans",
@@ -67754,9 +68449,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -67974,7 +68683,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -69497,6 +70206,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -69514,7 +70225,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -70711,9 +71422,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -70921,7 +71646,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -85643,6 +86368,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -85660,7 +86387,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -86952,6 +87679,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -87010,7 +87739,7 @@
                 "graph",
                 "annotations"
             ],
-            "childBuckets": "020001111111111111111111111122211111022211111111111111122122212222121212212111111122200111222222222122022222012222211220212220010000000",
+            "childBuckets": "02000111111111111111111111112221111102221111111111111112212221222212121221211111111122200111222222222122022222012222211220212220010000000",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -87429,6 +88158,29 @@
                 {
                     "name": "grid",
                     "description": "Grid line spacing on the graph: none, medium, dense, or two positive numbers giving the x and y spacing, such as grid=\"1 0.5\".",
+                    "autocompleteValues": [
+                        {
+                            "value": "none",
+                            "description": "Draw no grid lines."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "Draw grid lines at the major tick marks. Used when `grid` is given with no value."
+                        },
+                        {
+                            "value": "dense",
+                            "description": "Draw grid lines at the major and minor tick marks."
+                        },
+                        {
+                            "value": "1 1",
+                            "description": "Draw grid lines every 1 unit in x and every 1 unit in y. Any two positive numbers can be given this way."
+                        },
+                        {
+                            "value": "2 2",
+                            "description": "Draw grid lines every 2 units in x and every 2 units in y."
+                        }
+                    ],
+                    "suggestedValuesOnly": true,
                     "type": "text"
                 },
                 {
@@ -90187,9 +90939,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -90397,7 +91163,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -90944,6 +91710,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -90961,7 +91729,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -92499,6 +93267,8 @@
                 "split",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -92511,7 +93281,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -94883,6 +95653,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -94900,7 +95672,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -95246,6 +96018,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -95263,7 +96037,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -95437,13 +96211,8 @@
         },
         {
             "name": "pegboard",
-            "children": [
-                "xLabel",
-                "yLabel",
-                "conditionalContent",
-                "label"
-            ],
-            "childBuckets": "1120",
+            "children": [],
+            "childBuckets": "",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -95521,37 +96290,6 @@
                     "type": "reference"
                 },
                 {
-                    "name": "labelIsName",
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "groupName": "labels",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "maskLabel",
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
                     "name": "layer",
                     "description": "Z-order layer index used to stack graphical components (higher values render on top).",
                     "defaultValue": 0,
@@ -95602,28 +96340,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "labelIsName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to use this component's name as its rendered label.",
-                    "fromAttribute": true,
-                    "groupName": "labels"
-                },
-                {
-                    "name": "applyStyleToLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to apply this component's selected style to its label.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maskLabel",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to give the label an opaque background so it stays legible when it overlaps an axis, grid line, or another object.",
                     "fromAttribute": true
                 },
                 {
@@ -95690,13 +96406,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "label",
-                    "type": "label",
-                    "isArray": false,
-                    "description": "The label rendered with this component.",
-                    "groupName": "labels"
                 }
             ],
             "top": true,
@@ -96431,6 +97140,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -96439,7 +97150,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222221111222221211111111111112222221222222222122221111121222",
+            "childBuckets": "22222222222222222222222222111122222121111111111111222222122222222212222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -96671,6 +97382,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -96679,7 +97392,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222221111222221211111111111112222221222222222122221111121222",
+            "childBuckets": "22222222222222222222222222111122222121111111111111222222122222222212222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -97237,6 +97950,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -97245,7 +97960,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222221111222221211111111111112222221222222222122221111121222",
+            "childBuckets": "22222222222222222222222222111122222121111111111111222222122222222212222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -97745,6 +98460,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -97763,7 +98480,7 @@
                 "vectorList",
                 "else"
             ],
-            "childBuckets": "101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
+            "childBuckets": "10111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -99012,6 +99729,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -99029,7 +99748,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -99662,9 +100381,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -99912,7 +100645,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -101467,6 +102200,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -101484,7 +102219,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -101999,9 +102734,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -102254,7 +103003,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -103842,6 +104591,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -103859,7 +104610,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -105180,6 +105931,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -105197,7 +105950,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -105545,6 +106298,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -105562,7 +106317,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -105912,6 +106667,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -105929,7 +106686,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -106864,6 +107621,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -106880,7 +107639,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -108026,6 +108785,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -108043,7 +108804,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -108381,6 +109142,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -108398,7 +109161,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -108728,6 +109491,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -108745,7 +109510,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0100111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "010011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -110465,6 +111230,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -110482,7 +111249,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -110869,6 +111636,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -110886,7 +111655,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -111845,9 +112614,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -112094,7 +112877,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -112705,6 +113488,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -112722,7 +113507,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -114072,6 +114857,739 @@
             "layoutCategory": "other"
         },
         {
+            "name": "slopeField",
+            "children": [
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
+                "conditionalContent",
+                "rightHandSide",
+                "m",
+                "me",
+                "men",
+                "mrow",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "extractMathOperator",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "matrixInput",
+                "fractionInput",
+                "text",
+                "textList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "point",
+                "coords",
+                "line",
+                "vector",
+                "angle",
+                "mathInput",
+                "choice",
+                "number",
+                "integer",
+                "interval",
+                "sequence",
+                "cell",
+                "selectFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "endpoint",
+                "subsetOfReals",
+                "bestFitLine",
+                "matrix",
+                "latex",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
+            "abstractAncestors": [
+                "_graphical",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "layer",
+                    "description": "Z-order layer index used to stack graphical components (higher values render on top).",
+                    "defaultValue": 0,
+                    "type": "integer"
+                },
+                {
+                    "name": "lineStyle",
+                    "description": "Stroke style for lines.",
+                    "values": [
+                        "solid",
+                        "dashed",
+                        "dotted"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "solid",
+                            "description": "Continuous, unbroken stroke."
+                        },
+                        {
+                            "value": "dashed",
+                            "description": "Stroke composed of evenly-spaced dashes."
+                        },
+                        {
+                            "value": "dotted",
+                            "description": "Stroke composed of evenly-spaced dots."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "lineWidth",
+                    "description": "Stroke width for lines, in pixels.",
+                    "type": "number"
+                },
+                {
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "_variableNameList"
+                },
+                {
+                    "name": "dx",
+                    "description": "Horizontal spacing between marks.",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "dy",
+                    "description": "Vertical spacing between marks.",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "xoffset",
+                    "description": "Horizontal offset of the lattice origin.",
+                    "defaultValue": 0,
+                    "type": "number"
+                },
+                {
+                    "name": "yoffset",
+                    "description": "Vertical offset of the lattice origin.",
+                    "defaultValue": 0,
+                    "type": "number"
+                },
+                {
+                    "name": "markLength",
+                    "description": "Length of each mark, in pixels. Marks keep this length whatever the axis scaling, so slopes are drawn at their true visual angle.",
+                    "defaultValue": 20,
+                    "type": "number"
+                },
+                {
+                    "name": "maxMarks",
+                    "description": "Upper bound on how many marks are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of marks.",
+                    "defaultValue": 2500,
+                    "type": "number"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "layer",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Z-order layer index used to stack graphical components (higher values render on top).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dx",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal spacing between marks.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dy",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical spacing between marks.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "xoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "yoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "markLength",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Length of each mark, in pixels. Marks keep this length whatever the axis scaling, so slopes are drawn at their true visual angle.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxMarks",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Upper bound on how many marks are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of marks.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "styleDescription",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A textual description of the slope field's style."
+                },
+                {
+                    "name": "styleDescriptionWithNoun",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Style description including the noun \"slope field\"."
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true,
+            "takesIndex": false,
+            "docsSlug": "slopeField",
+            "summary": "A slope field for a differential equation y' = f(x,y), drawn as tick marks on a lattice",
+            "layoutCategory": "other"
+        },
+        {
+            "name": "vectorField",
+            "children": [
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "function",
+                "piecewiseFunction",
+                "conditionalContent",
+                "rightHandSide",
+                "m",
+                "me",
+                "men",
+                "mrow",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "extractMathOperator",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "matrixInput",
+                "fractionInput",
+                "text",
+                "textList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "point",
+                "coords",
+                "line",
+                "vector",
+                "angle",
+                "mathInput",
+                "choice",
+                "number",
+                "integer",
+                "interval",
+                "sequence",
+                "cell",
+                "selectFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "endpoint",
+                "subsetOfReals",
+                "bestFitLine",
+                "matrix",
+                "latex",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "childBuckets": "1110121222211111111111111111111112222221222202222122222011222122222122221212222",
+            "abstractAncestors": [
+                "_graphical",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "layer",
+                    "description": "Z-order layer index used to stack graphical components (higher values render on top).",
+                    "defaultValue": 0,
+                    "type": "integer"
+                },
+                {
+                    "name": "lineStyle",
+                    "description": "Stroke style for lines.",
+                    "values": [
+                        "solid",
+                        "dashed",
+                        "dotted"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "solid",
+                            "description": "Continuous, unbroken stroke."
+                        },
+                        {
+                            "value": "dashed",
+                            "description": "Stroke composed of evenly-spaced dashes."
+                        },
+                        {
+                            "value": "dotted",
+                            "description": "Stroke composed of evenly-spaced dots."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "lineWidth",
+                    "description": "Stroke width for lines, in pixels.",
+                    "type": "number"
+                },
+                {
+                    "name": "variables",
+                    "description": "Names of the variables a bare expression is read as a function of. Defaults to \"x y\". Ignored when the function is given as a <function> child, which names its own variables.",
+                    "type": "_variableNameList"
+                },
+                {
+                    "name": "dx",
+                    "description": "Horizontal spacing between arrows.",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "dy",
+                    "description": "Vertical spacing between arrows.",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "xoffset",
+                    "description": "Horizontal offset of the lattice origin.",
+                    "defaultValue": 0,
+                    "type": "number"
+                },
+                {
+                    "name": "yoffset",
+                    "description": "Vertical offset of the lattice origin.",
+                    "defaultValue": 0,
+                    "type": "number"
+                },
+                {
+                    "name": "markLength",
+                    "description": "Length in pixels of the longest arrow, or of every arrow when normalize is set. Arrows keep this length whatever the axis scaling.",
+                    "defaultValue": 24,
+                    "type": "number"
+                },
+                {
+                    "name": "maxMarks",
+                    "description": "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
+                    "defaultValue": 2500,
+                    "type": "number"
+                },
+                {
+                    "name": "normalize",
+                    "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "layer",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Z-order layer index used to stack graphical components (higher values render on top).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dx",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal spacing between arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "dy",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical spacing between arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "xoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Horizontal offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "yoffset",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Vertical offset of the lattice origin.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "markLength",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Length in pixels of the longest arrow, or of every arrow when normalize is set. Arrows keep this length whatever the axis scaling.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxMarks",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Upper bound on how many arrows are drawn. Zooming out past this coarsens the lattice rather than drawing an unbounded number of arrows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "normalize",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Draw every arrow the same length, showing direction only rather than magnitude.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "styleDescription",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A textual description of the vector field's style."
+                },
+                {
+                    "name": "styleDescriptionWithNoun",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Style description including the noun \"vector field\"."
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true,
+            "takesIndex": false,
+            "docsSlug": "vectorField",
+            "summary": "A vector field drawn as arrows on a lattice, from a function with two outputs",
+            "layoutCategory": "other"
+        },
+        {
             "name": "regionHalfPlane",
             "children": [
                 "xLabel",
@@ -114550,6 +116068,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -114567,7 +116087,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -116965,9 +118485,23 @@
                 },
                 {
                     "name": "renderMode",
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "defaultValue": "inline",
-                    "type": "text"
+                    "values": [
+                        "inline",
+                        "display"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "inline",
+                            "description": "Render inline with the surrounding text."
+                        },
+                        {
+                            "value": "display",
+                            "description": "Render as a centered equation on its own line."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "unordered",
@@ -117203,7 +118737,7 @@
                     "name": "renderMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the math is rendered (e.g. \"inline\", \"display\").",
+                    "description": "How the math is rendered.",
                     "fromAttribute": true
                 },
                 {
@@ -118587,6 +120121,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -118604,7 +120140,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -118955,6 +120491,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -118972,7 +120510,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -119190,6 +120728,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "legend",
                 "matrix",
@@ -119198,7 +120738,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112022222222222222222222222222111122222121111111111111222222122222222122221111121222",
+            "childBuckets": "11202222222222222222222222222211112222212111111111111122222212222222212222111111121222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -120104,6 +121644,8 @@
                 "bestFitLine",
                 "regionBetweenCurveXAxis",
                 "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
                 "regionHalfPlane",
                 "codeEditor",
                 "hasSameFactoring",
@@ -120121,7 +121663,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",

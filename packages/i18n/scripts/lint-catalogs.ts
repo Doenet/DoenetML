@@ -111,6 +111,19 @@ const englishKeys = collectLocaleKeys(DEFAULT_LOCALE).map((entry) => entry.key);
 const englishKeySet = new Set(englishKeys);
 
 // 3: translations may lag English, but may not invent keys.
+//
+// Keys only — *arguments* are not checked, and a translation naming an
+// argument no call site passes (`{ $bogus }`) still lints clean and renders
+// the literal `{$bogus}` at runtime. The obvious guard, comparing each
+// message's `$name`s against the English message's, cannot be the one: English
+// states most of these messages flat while a translation selects on a class or
+// a gender the caller does pass, so `$gender`, `$role` and `$noun` are absent
+// from English in about 1500 places across the established catalogs and every
+// one of them is correct. The authority for which arguments exist is the call
+// site, not `locales/en`, and reading it would mean matching `t("key", {...})`
+// object literals — worth doing, but a change to `collectCallSites` rather
+// than a line here. See #1687, which confirmed its four new catalogs clean
+// against the argument names the other catalogs use for the same keys.
 for (const locale of locales) {
     if (locale === DEFAULT_LOCALE) {
         continue;

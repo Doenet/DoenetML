@@ -34,6 +34,7 @@ import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
+    listItemNumberAlignmentForLead,
 } from "../../utils/listItemChild";
 
 /**
@@ -552,6 +553,72 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        /**
+         * Whether this section would show a `<cascadeMessage>` of its own if the
+         * `<cascade>` holding it back gave it the turn — which, for every section
+         * but a `<cascade>`, is simply whether it has one: a held-back section
+         * whose turn it is shows all of its message children. `Cascade.js`
+         * overrides this, because a cascade shows one message of its own at most
+         * and only in a gap between its steps, and so can have message children
+         * and still have nothing to say.
+         *
+         * A `<cascade>` reads this off each of its steps to decide which single
+         * message to show: a step's own message is more specific than one of the
+         * cascade's, so a step that has one takes precedence (see
+         * `sectionToShowCascadeMessage` in `Cascade.js`). It deliberately asks
+         * nothing about visibility — the cascade's answer is what *determines*
+         * this section's message visibility, so reading `hideChildren` or
+         * `childrenToHide` here would close a cycle.
+         *
+         * Unlike the section variables that work in child *positions*, this one
+         * only counts, so it can ask for the `cascadeMessages` child group
+         * directly instead of filtering all of the children.
+         */
+        stateVariableDefinitions.hasCascadeMessageToShow = {
+            returnDependencies: () => ({
+                cascadeMessageChildren: {
+                    dependencyType: "child",
+                    childGroups: ["cascadeMessages"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        hasCascadeMessageToShow:
+                            dependencyValues.cascadeMessageChildren.length > 0,
+                    },
+                };
+            },
+        };
+
+        /**
+         * Whether this section is the one step of its `<cascade>` that is
+         * currently showing its `<cascadeMessage>` children.
+         *
+         * At most one message is shown per cascade, and the cascade picks which
+         * (`sectionToShowCascadeMessage` in `Cascade.js`). A section whose parent
+         * is not a cascade gets `undefined` from the dependency — `parent`
+         * dependencies are always optional — and so shows no message, which is
+         * what a `<cascadeMessage>` outside a cascade should do.
+         */
+        stateVariableDefinitions.showCascadeMessage = {
+            returnDependencies: () => ({
+                parentSectionToShowCascadeMessage: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "sectionToShowCascadeMessage",
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                return {
+                    setValue: {
+                        showCascadeMessage:
+                            dependencyValues.parentSectionToShowCascadeMessage ===
+                            componentIdx,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
                 titleChildren: {
@@ -630,18 +697,27 @@ export class SectioningComponent extends BlockComponent {
          * margin of, or `null` if there is none. A child that draws nothing must
          * never be picked: doing so strands the child that does draw first, which
          * then keeps its top margin and never reports the alignment the number is
-         * placed by. Three ways a child fails to be drawn, all checked here:
+         * placed by. Two ways a child fails to be drawn, both checked here:
          *
          *   - Its kind renders nothing, or it hid *itself* with `hide` —
          *     `childRendersSomething()`.
-         *   - This section hides it: `childrenToHide`. That is normally the whole
-         *     content at once, already covered by the `hideChildren` test, but
-         *     `<cascadeMessage>` inverts the rule and is hidden precisely when the
-         *     rest is shown, so without this test a leading `<cascadeMessage>`
-         *     would lead an item it is invisible in.
-         *   - `hideChildren` is set, which suppresses the delegation entirely: it
-         *     comes only from an enclosing `<cascade>` holding a step back, and
-         *     such a step shows no child at all.
+         *   - This section hides it: `childrenToHide`. In a step an enclosing
+         *     `<cascade>` is holding back, that is every component child but the
+         *     title — and but the `<cascadeMessage>` as well in the one step the
+         *     cascade nominates, since the message's rule is inverted: it is
+         *     shown precisely while its step is the nominated one, and hidden in
+         *     every other section, held back or not. Without this test a leading
+         *     `<cascadeMessage>` would lead an item it is invisible in.
+         *
+         * So the step showing a message is not empty, and that message is its
+         * lead: asking `hideChildren` as well called such a step empty and left
+         * the message leading nothing, keeping the top margin that put it a line
+         * below the item's number (#1680). A held-back step that really shows
+         * nothing — one with no message, or one further down the cascade than the
+         * next — still lands on `null` without asking it: `childrenToHide` holds
+         * its component children and `childIndicesToRender` drops its strings, so
+         * this one follows a `<cascade>` holding a step back, nominating it, or
+         * letting it go all the same.
          *
          * A child hidden from *above* — this section, or a container around it —
          * is a deliberate non-case: nothing in it is on screen to realign, and
@@ -655,10 +731,10 @@ export class SectioningComponent extends BlockComponent {
          * directly, `firstChildListItemAlignment` through the second of those — so
          * the gate changes no output. What it saves is every section that is not a
          * bare untitled list item — a `<document>`, a `<section>`, a `<problem>`
-         * outside a `<problems>`, a titled or boxed one inside it — asking each of
-         * its children for a visibility variable it would never read. Measured over
-         * 120 such sections, six `hide` toggles cost 471 ms without the gate and
-         * 316 ms with it, against 328 ms on `main`.
+         * outside a `<problems>`, a titled, boxed or collapsible one inside it —
+         * asking each of its children for a visibility variable it would never
+         * read. Measured over 120 such sections, six `hide` toggles cost 471 ms
+         * without the gate and 316 ms with it, against 328 ms on `main`.
          *
          * Being its own state variable rather than a second output of
          * `childIndicesToRender` is what makes that gate possible —
@@ -687,10 +763,6 @@ export class SectioningComponent extends BlockComponent {
                         dependencyType: "stateVariable",
                         variableName: "childIndicesToRender",
                     },
-                    hideChildren: {
-                        dependencyType: "stateVariable",
-                        variableName: "hideChildren",
-                    },
                     childrenToHide: {
                         dependencyType: "stateVariable",
                         variableName: "childrenToHide",
@@ -703,10 +775,7 @@ export class SectioningComponent extends BlockComponent {
                 // No `childIndicesToRender` means the gate above returned no
                 // dependencies at all: this section delegates nothing, so it has
                 // no lead.
-                if (
-                    dependencyValues.childIndicesToRender &&
-                    !dependencyValues.hideChildren
-                ) {
+                if (dependencyValues.childIndicesToRender) {
                     for (const ind of dependencyValues.childIndicesToRender) {
                         const child = dependencyValues.allChildren[ind];
                         if (
@@ -736,6 +805,10 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "hideChildren",
                 },
+                showCascadeMessage: {
+                    dependencyType: "stateVariable",
+                    variableName: "showCascadeMessage",
+                },
             }),
             definition({ dependencyValues }) {
                 const childrenToHide = [];
@@ -744,20 +817,20 @@ export class SectioningComponent extends BlockComponent {
                     dependencyValues,
                 )) {
                     if (child.componentType === "cascadeMessage") {
-                        // For <cascadeMessage>, the logic is inverted.
-                        // It is hidden when `hideChildren` is `false`!
-                        if (
-                            !dependencyValues.hideChildren &&
-                            typeof child === "object"
-                        ) {
+                        // For <cascadeMessage>, the logic is inverted: it is
+                        // shown while the rest of the section is hidden. Being
+                        // held back is necessary but not sufficient — only the
+                        // one step the cascade nominates shows its message, so
+                        // that a cascade shows one message at a time.
+                        // (No `typeof child === "object"` test needed: a string
+                        // child has no `componentType`.)
+                        if (!dependencyValues.showCascadeMessage) {
                             childrenToHide.push(child.componentIdx);
                         }
                     } else if (
                         dependencyValues.hideChildren &&
                         typeof child === "object" &&
-                        child.componentIdx !==
-                            dependencyValues.titleChildName &&
-                        child.componentType !== "cascadeMessage"
+                        child.componentIdx !== dependencyValues.titleChildName
                     ) {
                         childrenToHide.push(child.componentIdx);
                     }
@@ -915,23 +988,16 @@ export class SectioningComponent extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                // Baseline is a safe fallback if the first child does not expose
-                // an explicit list-item alignment signal.
-                let firstChildListItemAlignment = "none";
-
-                if (dependencyValues.firstVisibleChildAdjustedForListItem) {
-                    const alignmentFromFirstChild =
-                        dependencyValues.firstVisibleChildListItemInlineAlignment;
-
-                    if (
-                        alignmentFromFirstChild === "baseline" ||
-                        alignmentFromFirstChild === "flex-start"
-                    ) {
-                        firstChildListItemAlignment = alignmentFromFirstChild;
-                    } else {
-                        firstChildListItemAlignment = "baseline";
-                    }
-                }
+                // `"none"` when this section lines its number up with no child at
+                // all — it delegates nothing, or nothing of it renders. Otherwise
+                // the shared mapping, so that an `<li>` leading with the same
+                // component places its number the same way.
+                const firstChildListItemAlignment =
+                    dependencyValues.firstVisibleChildAdjustedForListItem
+                        ? listItemNumberAlignmentForLead(
+                              dependencyValues.firstVisibleChildListItemInlineAlignment,
+                          )
+                        : "none";
 
                 return { setValue: { firstChildListItemAlignment } };
             },

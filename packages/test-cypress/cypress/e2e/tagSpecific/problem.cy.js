@@ -1732,10 +1732,72 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyBeforeContent("problem1", '"1."');
 
         // The step still to come is the mirror image: the message shows and the
-        // content does not, and with every child hidden there is no lead.
+        // content does not, so the message is the child the item leads with —
+        // asserted in the test below.
         cy.get("#msg2").should("exist");
         cy.get("#lead2").should("not.exist");
         verifyBeforeContent("problem2", '"2."');
+    });
+
+    // The other half of that inversion, and what #1680 was: a held-back step
+    // shows exactly one child, its `<cascadeMessage>`, so that message is what
+    // its number lines up with. While the step was treated as showing nothing,
+    // the item delegated to nobody, fell out of the numbering grid, and the
+    // message kept its own top margin — which drew it a line *below* the number.
+    //
+    // Asserted as an outcome: the message has to start on the item's own first
+    // row, the row the number occupies. The layout that puts it there is pinned
+    // too, with the helper this file checks an ordinary untitled, unboxed item's
+    // numbering grid with, so the grid the item rejoined is held to the same
+    // standard as the grid it never left.
+    it("a held-back step's cascadeMessage shares the row with its number", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problems name="problems">
+            <cascade name="cascade">
+                <problem name="problem1">
+                    <p name="lead1">What is 1+1? <answer name="ans1">2</answer></p>
+                </problem>
+                <problem name="problem2">
+                    <cascadeMessage name="msg2">Answer the previous question to continue</cascadeMessage>
+                    <p name="lead2">What is 2+2? <answer name="ans2">4</answer></p>
+                </problem>
+            </cascade>
+        </problems>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#problem2").should("exist");
+        cy.get("#msg2").should("be.visible");
+        cy.get("#lead2").should("not.exist");
+
+        // The margin the item suppresses for whichever child leads it. Without
+        // the suppression the message is a margin below its own number.
+        cy.get("#msg2").should("have.css", "margin-top", "0px");
+
+        // And it really renders on the item's first row. Measured rather than
+        // taken from the margin, because the row is what a reader sees and more
+        // than one thing could push the message off it.
+        cy.get("#problem2").should(($item) => {
+            const item = $item[0];
+            const message = item.ownerDocument.getElementById("msg2");
+            const offset =
+                message.getBoundingClientRect().top -
+                item.getBoundingClientRect().top;
+            expect(
+                offset,
+                "the cascadeMessage starts on its item's first row",
+            ).to.be.closeTo(0, 2);
+        });
+
+        // It is the ordinary grid item now: number in the fixed first column,
+        // content in the second. This is the layout it had dropped out of.
+        verifyUntitledUnboxedListItemUsesGridLayout("problem2", 2);
     });
 
     // ---------------------------------------------------------------------

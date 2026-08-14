@@ -5,18 +5,31 @@ import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 /**
- * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur and Yiddish — the
- * seven #1614 existed to make renderable, plus the one the European regional
- * and minority batch added, and the whole of it as of today.
+ * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri and
+ * Dhivehi — the seven #1614 existed to make renderable, the one the European
+ * regional and minority batch added, the two the South Asian batch added, and
+ * the whole of it as of today.
  *
  * Written out rather than derived, so that the two tests below can hold it
  * from opposite sides: one says these tags are right-to-left whether or not a
  * catalog exists, the other says the roster contains exactly these and no
- * other right-to-left locale. Yiddish needed nothing from `direction.ts` —
- * `yi` and the retired `ji` were already listed there — so this line is the
- * only place seeding it had to be recorded.
+ * other right-to-left locale. None of the last three needed anything from
+ * `direction.ts` — `yi`, `ks` and `dv` were all listed there already, and
+ * Thaana was already in `RTL_SCRIPTS` — so this line is the only place seeding
+ * them had to be recorded.
  */
-const RTL_LANGUAGES = ["ar", "fa", "he", "ur", "ps", "sd", "ug", "yi"];
+const RTL_LANGUAGES = [
+    "ar",
+    "fa",
+    "he",
+    "ur",
+    "ps",
+    "sd",
+    "ug",
+    "yi",
+    "ks",
+    "dv",
+];
 
 describe("directionOf", () => {
     it("reports the right-to-left languages the roster ships catalogs for", () => {
