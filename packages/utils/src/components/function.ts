@@ -3,7 +3,9 @@ import type { mod as ModType } from "mathjs";
 const { mod } = me.math as { mod: ModType };
 import {
     convertValueToMathExpression,
+    isNumericConstant,
     normalizeMathExpression,
+    toNumberOrNaN,
     vectorOperators,
 } from "../math/mathexpressions";
 import { find_effective_domain } from "./domain";
@@ -560,21 +562,6 @@ export function returnPiecewiseNumericalFunctionFromChildren({
 
         return NaN;
     };
-}
-
-/**
- * Is this what `evaluate_to_constant()` returns for an input that has a place
- * on the number line? `null` (no value), `NaN`, and a complex `{re, im}` are
- * all "no" — and each of them, left to JavaScript's relational operators, would
- * silently answer a domain question instead: `null >= -3` is `true`.
- *
- * `±Infinity` is a "yes": it is not finite, but it *is* ordered, which is all a
- * domain check needs. (This is the same predicate as
- * `doenetml-worker-javascript`'s `isNumericConstant`, duplicated because the
- * dependency runs the other way — that package imports this one.)
- */
-function isNumericConstant(v: unknown): v is number {
-    return typeof v === "number" && !Number.isNaN(v);
 }
 
 export function returnSymbolicFunctionFromFormula({
@@ -1173,8 +1160,7 @@ export function returnSymbolicFunctionForEvaluate({
             if (input.length !== numInputs || counterparts.length !== 1) {
                 return undefined;
             }
-            const value = counterparts[0](...input);
-            return typeof value === "number" ? value : NaN;
+            return toNumberOrNaN(counterparts[0](...input));
         };
     }
 
@@ -1209,10 +1195,9 @@ export function returnNumericFunctionForEvaluate({
         // arithmetic operator downstream — so evaluating `$$f(x)` with `x`
         // still symbolic silently returned *f(0)* and passed it off as the
         // value of the call.
-        let numericInput = input.map((x: any) => {
-            const v = x.evaluate_to_constant();
-            return typeof v === "number" ? v : NaN;
-        });
+        let numericInput = input.map((x: any) =>
+            toNumberOrNaN(x.evaluate_to_constant()),
+        );
 
         // A numerical function fed a non-numeric input can hand back `null`
         // (or `undefined`), which `fromAst` rejects outright — a thrown error
@@ -1221,7 +1206,7 @@ export function returnNumericFunctionForEvaluate({
         // every downstream finiteness check already handles.
         let components = numericalfs
             .map((f) => f(...numericInput))
-            .map((c: any) => (typeof c === "number" ? c : NaN));
+            .map(toNumberOrNaN);
 
         let value;
         if (components.length === 1) {
@@ -1243,8 +1228,7 @@ export function returnNumericFunctionForEvaluate({
         if (input.length !== numInputs || numericalfs.length !== 1) {
             return undefined;
         }
-        const value = numericalfs[0](...input);
-        return typeof value === "number" ? value : NaN;
+        return toNumberOrNaN(numericalfs[0](...input));
     };
 
     return f;

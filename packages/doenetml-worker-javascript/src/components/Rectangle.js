@@ -1,5 +1,12 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
+// Every vertex read below goes through `evaluateToNumber`, never a bare
+// `evaluate_to_constant()`. The engine answers `null` — not `NaN` — for a
+// vertex that is still symbolic, and `null` is `0` to every arithmetic
+// operator, so `Math.abs(v0 - v2)` on `<rectangle vertices="(a,b) (c,d)" />`
+// reported a width of exactly 0 rather than NaN. The legacy engine returned
+// NaN there, so this is a boundary the switch moved.
+import { evaluateToNumber } from "../utils/math";
 import Polygon from "./Polygon";
 import me from "math-expressions";
 
@@ -537,8 +544,8 @@ export default class Rectangle extends Polygon {
             },
 
             definition({ dependencyValues }) {
-                let v0 = dependencyValues.vertex0.evaluate_to_constant();
-                let v2 = dependencyValues.vertex2.evaluate_to_constant();
+                let v0 = evaluateToNumber(dependencyValues.vertex0);
+                let v2 = evaluateToNumber(dependencyValues.vertex2);
                 let width = Math.abs(v0 - v2);
 
                 return { setValue: { width } };
@@ -548,8 +555,8 @@ export default class Rectangle extends Polygon {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                let v0 = dependencyValues.vertex0.evaluate_to_constant();
-                let v2 = dependencyValues.vertex2.evaluate_to_constant();
+                let v0 = evaluateToNumber(dependencyValues.vertex0);
+                let v2 = evaluateToNumber(dependencyValues.vertex2);
                 let center = (v2 + v0) / 2;
 
                 let widthSign = v2 - v0 < 0 ? -1 : 1;
@@ -601,8 +608,8 @@ export default class Rectangle extends Polygon {
             },
 
             definition({ dependencyValues }) {
-                let v0 = dependencyValues.vertex0.evaluate_to_constant();
-                let v2 = dependencyValues.vertex2.evaluate_to_constant();
+                let v0 = evaluateToNumber(dependencyValues.vertex0);
+                let v2 = evaluateToNumber(dependencyValues.vertex2);
 
                 let height = Math.abs(v0 - v2);
 
@@ -613,8 +620,8 @@ export default class Rectangle extends Polygon {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                let v0 = dependencyValues.vertex0.evaluate_to_constant();
-                let v2 = dependencyValues.vertex2.evaluate_to_constant();
+                let v0 = evaluateToNumber(dependencyValues.vertex0);
+                let v2 = evaluateToNumber(dependencyValues.vertex2);
                 let center = (v2 + v0) / 2;
 
                 let heightSign = v2 - v0 < 0 ? -1 : 1;
@@ -1251,9 +1258,9 @@ export default class Rectangle extends Polygon {
                 const sizeVarNames = ["specifiedWidth", "specifiedHeight"];
                 const pushSizeIfChanged = async (dim, arrayKey) => {
                     let sizeVarName = sizeVarNames[dim];
-                    let size = workspace.v2[dim]
-                        .subtract(workspace.v0[dim])
-                        .evaluate_to_constant();
+                    let size = evaluateToNumber(
+                        workspace.v2[dim].subtract(workspace.v0[dim]),
+                    );
 
                     if (size !== (await stateValues[sizeVarName])) {
                         instructions.push({

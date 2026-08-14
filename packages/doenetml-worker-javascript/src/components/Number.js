@@ -40,10 +40,13 @@ import {
  * a wrong number rather than a refusal, and it is the known cost of doing this
  * with `substitute` instead of matching the marker where it sits.
  *
- * A free factor makes `evaluate_to_constant()` answer `NaN`, not `null`, which
- * is why the callers try this on both. Returns `null` when the expression has
- * no numeric value for another reason (a free variable), leaving the caller's
- * own handling in charge.
+ * A free factor makes `evaluate_to_constant()` answer `null` — measured: `2$`,
+ * `-5$` and a bare `$` all give `null`, none of them `NaN`. So it is the
+ * callers' `number === null` test that actually reaches this function; the
+ * `Number.isNaN` half of that test is defensive, and no marker spelling has
+ * been found that takes it. Returns `null` when the expression has no numeric
+ * value for another reason (a free variable), leaving the caller's own handling
+ * in charge.
  */
 function valueIgnoringUnits(expr) {
     try {

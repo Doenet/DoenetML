@@ -1,6 +1,13 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+// Control components are read through `evaluateToNumber`. Each of these
+// readings is handed straight to `me.fromAst`, and the engine answers `null` —
+// not `NaN` — for a control vector that is still symbolic. `me.fromAst(null)`
+// throws ("unexpected value null"), which out of a state-variable definition
+// takes the update with it, and `-null` is `-0`. The legacy engine returned
+// NaN, which `fromAst` accepts, so this is a boundary the switch moved.
+import { evaluateToNumber } from "../utils/math";
 
 export default class BezierControls extends InlineComponent {
     static componentType = "bezierControls";
@@ -578,7 +585,7 @@ export default class BezierControls extends InlineComponent {
                                     ];
                                 if (value) {
                                     useEssential = false;
-                                    value = value.evaluate_to_constant();
+                                    value = evaluateToNumber(value);
                                     newControlValues[arrayKey] =
                                         me.fromAst(value);
                                 }
@@ -610,7 +617,7 @@ export default class BezierControls extends InlineComponent {
                                         ];
                                     if (value) {
                                         useEssential = false;
-                                        value = value.evaluate_to_constant();
+                                        value = evaluateToNumber(value);
                                         newControlValues[arrayKey] =
                                             me.fromAst(value);
                                     }
@@ -621,7 +628,7 @@ export default class BezierControls extends InlineComponent {
                                         ];
                                     if (value) {
                                         useEssential = false;
-                                        value = value.evaluate_to_constant();
+                                        value = evaluateToNumber(value);
                                         if (direction === "symmetric") {
                                             newControlValues[arrayKey] =
                                                 me.fromAst(-value);
@@ -711,9 +718,11 @@ export default class BezierControls extends InlineComponent {
                                 if (useEssential) {
                                     // make sure essential values are numeric
                                     let desiredValue = me.fromAst(
-                                        desiredStateVariableValues.controls[
-                                            arrayKey
-                                        ].evaluate_to_constant(),
+                                        evaluateToNumber(
+                                            desiredStateVariableValues.controls[
+                                                arrayKey
+                                            ],
+                                        ),
                                     );
                                     if (direction === "symmetric") {
                                         instructions.push({
@@ -774,7 +783,7 @@ export default class BezierControls extends InlineComponent {
                                 if (useEssential) {
                                     // make sure essential values are numeric
                                     desiredValue = me.fromAst(
-                                        desiredValue.evaluate_to_constant(),
+                                        evaluateToNumber(desiredValue),
                                     );
                                     if (direction === "symmetric") {
                                         instructions.push({

@@ -2,6 +2,7 @@ import me from "math-expressions";
 
 import { EmptySet, RealLine } from "../math/subset-of-reals";
 import { buildSubsetFromMathExpression } from "../math/subset-of-reals-operations";
+import { isNumericConstant } from "../math/mathexpressions";
 
 interface DomainResult {
     minx: number;
@@ -98,7 +99,13 @@ export function find_effective_domains_piecewise_children({
         let domainMin = me.fromAst(domain[0].tree[1][1]).evaluate_to_constant();
         let domainMax = me.fromAst(domain[0].tree[1][2]).evaluate_to_constant();
 
-        if (Number.isNaN(domainMin) || Number.isNaN(domainMax)) {
+        // `isNumericConstant`, not `Number.isNaN`: the engine reports an
+        // endpoint it cannot evaluate — a symbolic one — as `null`, where the
+        // legacy engine reported `NaN`. `Number.isNaN(null)` is `false`, so a
+        // symbolic endpoint stopped falling back to the real line and was
+        // handed to `buildSubsetFromMathExpression` instead. `±Infinity` still
+        // passes, as it did before: an unbounded domain is a real interval.
+        if (!isNumericConstant(domainMin) || !isNumericConstant(domainMax)) {
             domainUnused = RealLine();
         } else {
             domainUnused = buildSubsetFromMathExpression(domain[0]);

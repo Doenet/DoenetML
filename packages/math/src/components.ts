@@ -22,6 +22,17 @@
  * array key of every inverse write.
  *
  * The two guards below are the part upstream does *not* cover.
+ *
+ * **Why 25 other call sites still say `get_component` directly, and should.**
+ * They are not an unconverted backlog. Every one of them tests the receiver's
+ * tree head against `vectorOperators` immediately above the call, so the
+ * container half of the throw cannot fire; and the four in
+ * `@doenet/utils`'s `function.ts` wrap the call in a `try`/`catch` that returns
+ * a *meaningful* fallback for an out-of-range component (`() => NaN`, or a
+ * blank-valued function). Routing those through this adapter would replace a
+ * fallback with `undefined` and move the failure one line later. The shape
+ * here is wanted only where "no such component" is an ordinary answer that the
+ * caller then acts on, which so far is `EssentialValueWriter.ts` alone.
  */
 import type { Expression } from "./types";
 

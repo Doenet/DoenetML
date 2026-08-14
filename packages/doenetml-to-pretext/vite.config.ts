@@ -47,6 +47,17 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             setupFiles: ["@vitest/web-worker"],
+            // Every test here boots a DoenetML core in a worker and waits for a
+            // document to settle; the whole file takes ~50 s for ~50 tests, so
+            // each one is about 800 ms against vitest's 5 s default. That is
+            // six times' headroom on a shared CI runner, and it ran out —
+            // `<extractMathOperator>` timed out at exactly 5,002 ms in
+            // https://github.com/Doenet/DoenetML/actions/runs/31812092145 while
+            // its neighbours took 660 ms, and passed on the runs either side.
+            // Every sibling package that drives the core already sets a
+            // generous timeout (`doenetml-worker*` 180 s, `doenetml-print`
+            // 300 s, `@doenet/math` 60 s); this one was left on the default.
+            testTimeout: 60000,
         },
     };
 });

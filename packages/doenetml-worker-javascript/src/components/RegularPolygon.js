@@ -1,5 +1,13 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
+// Vertices and centers are read through `evaluateToNumber`, never a bare
+// `evaluate_to_constant()`. The engine answers `null` — not `NaN` — for a
+// coordinate that is still symbolic, and `null` is `0` to every arithmetic
+// operator here, so a polygon built from symbolic vertices silently came out
+// centered on the origin instead of reporting NaN. The legacy engine returned
+// NaN, so this is a boundary the switch moved. The two `?.` reads below are the
+// exception: `Number.isFinite` already rejects `null` there.
+import { evaluateToNumber } from "../utils/math";
 import Polygon from "./Polygon";
 import me from "math-expressions";
 
@@ -384,12 +392,10 @@ export default class RegularPolygon extends Polygon {
                     let varEnding = Number(arrayKey) + 1;
 
                     if (dependencyValuesByKey[arrayKey].centerAttr !== null) {
-                        specifiedCenter[arrayKey] =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].centerAttr.stateValues[
-                                "x" + varEnding
-                            ].evaluate_to_constant();
+                        specifiedCenter[arrayKey] = evaluateToNumber(
+                            dependencyValuesByKey[arrayKey].centerAttr
+                                .stateValues["x" + varEnding],
+                        );
                     }
                 }
 
@@ -921,7 +927,7 @@ export default class RegularPolygon extends Polygon {
 
                     let vertex =
                         dependencyValues.verticesAttr.stateValues.points[0].map(
-                            (x) => x.evaluate_to_constant(),
+                            (x) => evaluateToNumber(x),
                         );
 
                     unconstrainedDirectionWithRadius = [
@@ -965,7 +971,7 @@ export default class RegularPolygon extends Polygon {
 
                     let vertex =
                         dependencyValues.verticesAttr.stateValues.points[0].map(
-                            (x) => x.evaluate_to_constant(),
+                            (x) => evaluateToNumber(x),
                         );
 
                     center = [
@@ -978,11 +984,11 @@ export default class RegularPolygon extends Polygon {
 
                     let vertex1 =
                         dependencyValues.verticesAttr.stateValues.points[0].map(
-                            (x) => x.evaluate_to_constant(),
+                            (x) => evaluateToNumber(x),
                         );
                     let vertex2 =
                         dependencyValues.verticesAttr.stateValues.points[1].map(
-                            (x) => x.evaluate_to_constant(),
+                            (x) => evaluateToNumber(x),
                         );
 
                     let sideVector = [
@@ -1039,7 +1045,7 @@ export default class RegularPolygon extends Polygon {
                 }
                 if (!desiredCenter) {
                     desiredCenter = (await stateValues.center).map((x) =>
-                        x.evaluate_to_constant(),
+                        evaluateToNumber(x),
                     );
                 }
 
@@ -1051,10 +1057,10 @@ export default class RegularPolygon extends Polygon {
                 }
                 if (!desiredDirectionWithRadius) {
                     let center = (await stateValues.center).map((x) =>
-                        x.evaluate_to_constant(),
+                        evaluateToNumber(x),
                     );
                     let vertex1 = (await stateValues.vertices)[0].map((x) =>
-                        x.evaluate_to_constant(),
+                        evaluateToNumber(x),
                     );
                     desiredDirectionWithRadius = [
                         vertex1[0] - center[0],
@@ -1553,7 +1559,7 @@ export default class RegularPolygon extends Polygon {
                     // if change one vertex, then make sure that center stays the same
 
                     desiredCenter = (await stateValues.center).map((x) =>
-                        x.evaluate_to_constant(),
+                        evaluateToNumber(x),
                     );
                 } else {
                     // if change multiple vertices, then calculate center as average of all vertices
@@ -1569,8 +1575,8 @@ export default class RegularPolygon extends Polygon {
                         let v_x = workspace.allVertices[vertexInd + ",0"];
                         let v_y = workspace.allVertices[vertexInd + ",1"];
 
-                        center_x += v_x.evaluate_to_constant();
-                        center_y += v_y.evaluate_to_constant();
+                        center_x += evaluateToNumber(v_x);
+                        center_y += evaluateToNumber(v_y);
                     }
 
                     center_x /= numVertices;
@@ -1599,8 +1605,8 @@ export default class RegularPolygon extends Polygon {
                 }
 
                 let desiredVertex = [
-                    desiredVertex_x.evaluate_to_constant(),
-                    desiredVertex_y.evaluate_to_constant(),
+                    evaluateToNumber(desiredVertex_x),
+                    evaluateToNumber(desiredVertex_y),
                 ];
 
                 let centerToVertex = [
@@ -1692,8 +1698,8 @@ export default class RegularPolygon extends Polygon {
                 let centerComponents = [0, 0];
 
                 for (let vertex of globalDependencyValues.vertices) {
-                    centerComponents[0] += vertex[0].evaluate_to_constant();
-                    centerComponents[1] += vertex[1].evaluate_to_constant();
+                    centerComponents[0] += evaluateToNumber(vertex[0]);
+                    centerComponents[1] += evaluateToNumber(vertex[1]);
                 }
 
                 let numVertices = globalDependencyValues.vertices.length;
@@ -1713,7 +1719,7 @@ export default class RegularPolygon extends Polygon {
                 workspace,
             }) {
                 let previous_center = (await stateValues.center).map((v) =>
-                    v.evaluate_to_constant(),
+                    evaluateToNumber(v),
                 );
 
                 let desired_center_x =
@@ -1782,11 +1788,11 @@ export default class RegularPolygon extends Polygon {
             }),
             definition({ dependencyValues }) {
                 let center = dependencyValues.center.map((x) =>
-                    x.evaluate_to_constant(),
+                    evaluateToNumber(x),
                 );
 
                 let vertex1 = dependencyValues.vertex1.map((x) =>
-                    x.evaluate_to_constant(),
+                    evaluateToNumber(x),
                 );
 
                 let circumradius = Math.sqrt(
@@ -1801,11 +1807,11 @@ export default class RegularPolygon extends Polygon {
                 dependencyValues,
             }) {
                 let center = dependencyValues.center.map((x) =>
-                    x.evaluate_to_constant(),
+                    evaluateToNumber(x),
                 );
 
                 let vertex1 = dependencyValues.vertex1.map((x) =>
-                    x.evaluate_to_constant(),
+                    evaluateToNumber(x),
                 );
 
                 let directionWithRadius = [
@@ -2405,10 +2411,10 @@ export default class RegularPolygon extends Polygon {
                 let resultingVertices =
                     await this.stateValues.unconstrainedVertices;
                 let resultingVertex1 = resultingVertices[0].map((x) =>
-                    x.evaluate_to_constant(),
+                    evaluateToNumber(x),
                 );
                 let resultingVertex2 = resultingVertices[1].map((x) =>
-                    x.evaluate_to_constant(),
+                    evaluateToNumber(x),
                 );
 
                 let tol = 1e-6;

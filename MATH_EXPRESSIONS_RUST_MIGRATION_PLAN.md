@@ -234,7 +234,8 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >
 > - **Sizes**, measured at the current pin with `npm run build -w packages/math`: the `web`-target
 >   WASM is **1.68 MiB** (1,765,649 B, before `wasm-opt`, unavailable here), which inlines as
->   2.25 MiB of base64 into a **2.41 MiB** `dist/engine-rust.js` (2,524,240 B) — **790 kB gzipped**,
+>   2.25 MiB of base64 (2,354,200 characters) into a **2.41 MiB** `dist/engine-rust.js`
+>   (2,524,245 B) — **790 kB gzipped**,
 >   against roughly 1 MiB for the JavaScript library it replaces (a figure measured before the
 >   legacy package was removed from the tree, and not re-measurable here).
 >   Bundle size is not the obstacle §5-R7 feared, *provided* every
@@ -369,25 +370,29 @@ specifier, so all seven survive untouched — `external` in `packages/doenetml`,
 `packages/doenetml-worker`. `packages/standalone/scripts/check-bundle-size.mjs`'s two-binaries rule
 is unaffected for the same reason.
 
-**The one question that decides how much else changes: which wasm the published package ships.**
-`packages/math` exists to hand the compat layer a `--target web` wasm-bindgen module through
-upstream's `setWasmModule`, because compat's own fallback (`lib/_wasm.ts`) loads a *nodejs*-target
-build through `createRequire` and there is no browser path without an injection. At the current pin
-the tarball `npm pack` would produce for `math-expressions@3.0.0-alpha1` carries
-`vendor/wasm/math_expressions_wasm_bg.wasm` — the **nodejs** target — and
-`math-expressions-rs-wasm` (which compat imports `compileRustExpr` and `TreeToMathjs` from at run
-time) publishes `dist` and `src-js` with no wasm at all. So:
+**The question that used to decide how much else changes — which wasm the published package ships
+— is settled.** `packages/math` exists to hand the compat layer a `--target web` wasm-bindgen module
+through upstream's `setWasmModule`, because compat's own fallback (`lib/_wasm.ts`) loads a
+*nodejs*-target build through `createRequire` and there is no browser path without an injection. The
+tarball used to carry only the nodejs target, which would have retired the submodule while leaving
+the Rust toolchain behind — most of the cost the swap is meant to remove.
 
-- **If upstream also publishes the `--target web` artifact**, `packages/math` keeps its job but
-  stops compiling anything: `scripts/build-wasm.mjs` collapses from "shell out to the submodule's
-  `build-wasm.sh web pkg`" to "read the `.wasm` out of `node_modules` and base64 it", and the
-  toolchain requirement disappears with it.
-- **If it does not**, the submodule can still go — the compat *sources* come from npm — but
-  DoenetML keeps cargo, `wasm32-unknown-unknown` and `wasm-bindgen-cli` in order to produce the
-  web build itself, which is most of the cost the swap is meant to remove. **Settle this upstream
-  before scheduling the swap.**
+At the current pin it carries both. `vendor/wasm-web/` ships under a `./wasm-web/*` export, so:
 
-**The mechanical part**, assuming the web artifact is published:
+```js
+import * as glue from "math-expressions/wasm-web/math_expressions_wasm.js";
+const url = import.meta.resolve(
+    "math-expressions/wasm-web/math_expressions_wasm_bg.wasm",
+);
+```
+
+That is the whole of what `scripts/build-wasm.mjs` needs. It collapses from "shell out to the
+submodule's `build-wasm.sh web pkg`" to "read the `.wasm` out of `node_modules` and base64 it",
+`src/generated/math_expressions_wasm.js` is copied from `node_modules` rather than produced, and
+the toolchain requirement goes with it. Upstream's `scripts/consumer/web-path.mjs` is that path
+end-to-end as an executable check, and its `package publishability` CI job runs it.
+
+**The mechanical part:**
 
 | What | Where | Change |
 | --- | --- | --- |
@@ -399,11 +404,21 @@ time) publishes `dist` and `src-js` with no wasm at all. So:
 | Devcontainer | `.devcontainer/devcontainer.json`, `.devcontainer/features/wasm-toolchain/` | The `wasm-toolchain` feature and its `devcontainer.json` entry can be deleted. |
 | Submodule | `.gitmodules`, `vendor/math-expressions`, `.prettierignore` | Delete the submodule entry and the checkout, and drop the `vendor/math-expressions` line from `.prettierignore` (it exists only because the submodule is a second git repo with its own prettier config). |
 
-**Upstream still owes three things before `math-expressions@3.x` is installable at all**; they are
-tracked in [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84)'s description
-rather than here, but they gate this step: `math-expressions-rs-wasm` is depended on as `"*"` and
-is not on npm; there is no `prepack`, so the git-ignored `dist/` that `main`/`exports` point at
-only exists if someone remembers to build first; and `exports["."]` declares no `types`.
+**Upstream's side is done.** The three things that used to make `math-expressions@3.x`
+uninstallable are fixed in [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84)
+and each is now covered by its `package publishability` job, which packs the tarball, installs it
+into a throwaway project outside the workspace and runs it: `math-expressions-rs-wasm` is out of
+`dependencies` (it is inlined into `dist/`, and being on the registry was never required — being
+*named* in the manifest was what made `npm install` fail with a 404), `prepack` builds the
+git-ignored `dist/`, and `exports["."]` names a `types` entry. Nothing mechanical gates this step
+any more.
+
+One consequence for this side: the published package declares `types`, so
+`packages/math/src/vendored/math-expressions.d.ts` can be deleted at the same time and
+`src/types.ts` can re-export from the package instead. Keep the vendored copy until then — it is
+what 147 call sites type-check against today, and the two are currently the same declarations with
+one documented difference (ours drops the default export, since `engine-rust.ts` supplies that
+value).
 
 **Stage 1 exit criteria:** all suites green on `rust`, flat memory over a long session, no
 main-thread init regression, bundle delta accepted, and `@doenet/doenetml` publishable against

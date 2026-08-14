@@ -1,9 +1,19 @@
 import me from "math-expressions";
 import type { Tree } from "math-expressions";
 
-import { subsets, vectorOperators, roundForDisplay } from "@doenet/utils";
+import {
+    subsets,
+    vectorOperators,
+    roundForDisplay,
+    isNumericConstant,
+    toNumberOrNaN,
+} from "@doenet/utils";
 
-export { roundForDisplay };
+// `isNumericConstant`/`toNumberOrNaN` live in `@doenet/utils` because
+// `packages/utils` needs them too and imports cannot run that way: this package
+// depends on that one. They are re-exported here so the ~15 call sites in this
+// package keep reading from the module where the rest of this family lives.
+export { roundForDisplay, isNumericConstant, toNumberOrNaN };
 
 export var appliedFunctionSymbolsDefault = [
     "abs",
@@ -273,26 +283,6 @@ export function findFiniteNumericalValue(value: any) {
 }
 
 /**
- * Whether `evaluate_to_constant()` produced a number we can actually compute
- * with.
- *
- * It reports `null` — not `NaN` — for most of what it cannot evaluate: a free
- * variable, a blank `＿`, an unevaluable head. (Not all of it: a stray scaling
- * unit such as `2$` answers `NaN`.) `Number.isNaN(null)` is `false`
- * and `null` coerces to `0` in arithmetic and comparisons, so testing only for
- * `NaN` lets an unevaluable expression pass as numeric and then silently behave
- * like zero. `＿ < 1` became `null < 1`, which is `true`, and a blank answer
- * scored full credit.
- *
- * Use this anywhere the result feeds arithmetic, a comparison, or a sort.
- * `±Infinity` passes deliberately: it is a value, and ordering against it is
- * meaningful.
- */
-export function isNumericConstant(value: unknown): value is number {
-    return typeof value === "number" && !Number.isNaN(value);
-}
-
-/**
  * `expr.evaluate_to_constant()` as a plain number, with everything that is not
  * one reported as `NaN`.
  *
@@ -306,26 +296,14 @@ export function isNumericConstant(value: unknown): value is number {
  *
  * Use this at the boundary where an expression becomes a numeric state
  * variable. Code that needs to tell the two apart should call
- * `evaluate_to_constant()` directly. A complex result is also `NaN` here: it is
- * a value, but not one a real-valued state variable can hold.
+ * `evaluate_to_constant()` directly and test with {@link isNumericConstant}. A
+ * complex result is also `NaN` here: it is a value, but not one a real-valued
+ * state variable can hold.
  */
 export function evaluateToNumber(expr: {
     evaluate_to_constant: () => unknown;
 }): number {
     return toNumberOrNaN(expr.evaluate_to_constant());
-}
-
-/**
- * Anything that is not a plain number reported as `NaN`.
- *
- * The other half of {@link isNumericConstant}: that one asks the question, this
- * one answers it with a value a numeric state variable can hold. `null` — what
- * `evaluate_to_constant()` returns for an expression it cannot evaluate — is
- * the case that matters, because `Number.isNaN(null)` is `false` and `null`
- * coerces to `0`, so passing it on reads a blank input as zero.
- */
-export function toNumberOrNaN(value: unknown): number {
-    return typeof value === "number" ? value : NaN;
 }
 
 export function returnNVariables(n: number, variablesSpecified: any[]) {
