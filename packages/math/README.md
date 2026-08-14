@@ -55,6 +55,12 @@ They are the API contract those 147 files are written against; they arrived with
 that library but were never *about* it, since the Rust engine is a drop-in for
 exactly this shape.
 
+The same declarations are now `math-expressions@3.x`'s own published `types`
+entry, so this copy goes away when the submodule does — see Step 6 of the
+migration plan. The two differ in one documented way: ours drops the trailing
+`declare const MathExpression: Context; export default …`, because here
+`engine-rust.ts` supplies that value.
+
 To A/B against the old engine now, check out a commit from before the switch.
 
 ## WASM initialization
@@ -119,7 +125,7 @@ src/
   engine.ts          indirection point — what backs `me` in this build
   engine-rust.ts     compat over the Rust core
   wasm-loader.ts     inlined WASM, injected into compat via setWasmModule
-  components.ts      getComponent — the legacy sequence-only contract, on either engine
+  components.ts      getComponent — component access as a test rather than a throw
   types.ts           the types consumers import
   vendored/          math-expressions.d.ts — the API contract, vendored
   vendor-shims.d.ts  declared surface of the submodule modules we consume

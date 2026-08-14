@@ -21,6 +21,16 @@
 // Rust engine genuinely diverges from it, the divergence belongs in the ledger
 // (MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md), not in a widened type that hides it.
 //
+// WHEN THIS FILE GOES AWAY
+//
+// The same declarations are now the published `types` entry of
+// `math-expressions@3.x` (`types/math-expressions.d.ts` there), so this copy is
+// temporary: it is deleted, and `src/types.ts` re-exports from the package
+// instead, when the submodule is retired for the npm dependency. Step 6 of
+// MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md. Until then the two are the same
+// declarations with the one difference recorded just below, and a change to
+// either belongs in both.
+//
 // The trailing `declare const MathExpression: Context; export default …` was
 // dropped: it declared a *runtime value* that no longer exists. `Context` is
 // exported as a type and `engine-rust.ts` supplies the value.
