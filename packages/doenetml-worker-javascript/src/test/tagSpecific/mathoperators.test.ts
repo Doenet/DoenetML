@@ -3339,7 +3339,7 @@ describe("Math operator tests @group2", async () => {
       <floor name="floor2">$floor1/$ceil1</floor>
       <ceil name="ceil2">$ceil1/$floor1</ceil>
 
-      <p>Rounding is exact — a decimal literal is an exact rational, not an f64:
+      <p>Allow for slight roundoff error:
       <floor name="floor3">3.999999999999999</floor>
       <ceil name="ceil3">-6999.999999999999</ceil>
       </p>
@@ -3371,6 +3371,15 @@ describe("Math operator tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("ceil2")].stateValues
                 .value.tree,
         ).eq(1);
+        // 4 and -7000, not 3 and -6999: the `<floor>`/`<ceil>` *components*
+        // still nudge a value within relative 1e-15 of an integer onto it
+        // (`MathOperators.js`), a repair for the f64 the JS library used to
+        // hold every decimal in. The engine's own `simplify` no longer needs
+        // that repair — a decimal literal is an exact rational there — so
+        // `<math simplify>floor 3.999999999999999</math>` answers 3 (see the
+        // "floor and ceil as math expression" test below). The two therefore
+        // disagree on this input; which one is right is a product decision
+        // that has not been taken, so both are pinned as they behave.
         expect(
             stateVariables[await resolvePathToNodeIdx("floor3")].stateValues
                 .value.tree,
@@ -5361,7 +5370,8 @@ describe("Math operator tests @group2", async () => {
         ).eq(false);
         // The *Product forms collapse to a single value (`251`), and a single
         // observation has no sample variance: the n-1 denominator is zero, so
-        // the quantity is undefined rather than 0 (R gives NA, numpy nan). The
+        // the quantity is undefined rather than 0 (R's `var` gives NA; numpy's
+        // `var` needs `ddof=1` to agree, and gives nan there). The
         // engine declines to fold it rather than assert a spread of zero, so
         // the application stays as written and `isNumber` is false.
         expect(
@@ -6114,7 +6124,8 @@ describe("Math operator tests @group2", async () => {
         ).eq(false);
         // The *Product forms collapse to a single value (`1621`), and a single
         // observation has no sample variance: the n-1 denominator is zero, so
-        // the quantity is undefined rather than 0 (R gives NA, numpy nan). The
+        // the quantity is undefined rather than 0 (R's `var` gives NA; numpy's
+        // `var` needs `ddof=1` to agree, and gives nan there). The
         // engine declines to fold it rather than assert a spread of zero, so
         // the application stays as written and `isNumber` is false.
         expect(

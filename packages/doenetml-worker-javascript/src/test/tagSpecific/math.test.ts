@@ -6762,10 +6762,6 @@ describe("Math tag tests @group3", async () => {
                     .stateValues.latex,
             ),
         ).eq(
-            // Same eight products per entry as before, reordered: the sum now
-            // groups every `a…` term before every `b…` one (and `c…` before
-            // `d…`) instead of interleaving the two, following a `default_order`
-            // refinement. Multiset-identical to the previous expectation.
             "\\begin{bmatrix}aeikmo+afilmo+agikno+ahilno+bejkmo+bfjlmo+bgjkno+bhjlno&aeikmp+afilmp+agiknp+ahilnp+bejkmp+bfjlmp+bgjknp+bhjlnp\\\\ceikmo+cfilmo+cgikno+chilno+dejkmo+dfjlmo+dgjkno+dhjlno&ceikmp+cfilmp+cgiknp+chilnp+dejkmp+dfjlmp+dgjknp+dhjlnp\\end{bmatrix}",
         );
         expect(

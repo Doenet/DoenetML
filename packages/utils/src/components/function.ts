@@ -787,7 +787,11 @@ export function returnSymbolicFunctionFromFormula({
                 // Simultaneously: an argument may mention another variable's
                 // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
                 // left-to-right pass would substitute into its own output and
-                // answer `sin(-11π)`.
+                // answer `sin(-11π)`. `substitute` is simultaneous too now
+                // (math-expressions #84 restored the legacy contract); this
+                // stays as the spelling that says so at the call site, and
+                // these arguments are already `Expression`s, which is the one
+                // thing the two still differ about.
                 .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,
@@ -1032,7 +1036,11 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 // Simultaneously: an argument may mention another variable's
                 // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
                 // left-to-right pass would substitute into its own output and
-                // answer `sin(-11π)`.
+                // answer `sin(-11π)`. `substitute` is simultaneous too now
+                // (math-expressions #84 restored the legacy contract); this
+                // stays as the spelling that says so at the call site, and
+                // these arguments are already `Expression`s, which is the one
+                // thing the two still differ about.
                 .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,

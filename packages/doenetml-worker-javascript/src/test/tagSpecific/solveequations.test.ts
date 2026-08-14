@@ -266,11 +266,15 @@ describe("SolveEquations tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("equation"),
             core,
         });
-        // `-4.52365` is a display-rounding tie at 5 significant digits: the
-        // literal is stored as -4.52364999999999995 and rounds to -4.5236,
-        // while the root the solver finds is a hair above the tie and rounds
-        // to -4.5237. Both are correctly rounded; they are just not the same
-        // number, so the rendered text is given explicitly here.
+        // `-4.52365` sits on a display-rounding tie at 5 significant digits,
+        // and the two sides land on opposite sides of it. The literal written
+        // here is the f64 -4.5236499999999999488, just short of the tie, so
+        // the default `expectedText` above rounds it to -4.5236; the root the
+        // solver actually finds is far enough from zero to reach the tie and
+        // rounds away to -4.5237. Both are correctly rounded — they are simply
+        // not the same number, and the two agree to well within the 1e-5 the
+        // numeric assertions use. So the rendered text is given explicitly
+        // rather than derived.
         await check_solutions(
             core,
             resolvePathToNodeIdx,

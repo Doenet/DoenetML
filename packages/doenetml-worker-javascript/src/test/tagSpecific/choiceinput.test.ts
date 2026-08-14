@@ -1166,9 +1166,19 @@ describe("ChoiceInput tag tests @group4", async () => {
     `,
         });
 
-        // `∂f/∂x`, not `∂ f/∂ x`: the text printer emits a space after a
-        // differential symbol only where the following symbol is multi-character
-        // and would otherwise re-lex as one token (`∂ hello`, not `∂hello`).
+        // Two of these moved with the text printer, which no longer
+        // parenthesizes a quotient's operands when precedence does not require
+        // it: `(x²)/2` is now `x²/2` and `1/(e^x)` is now `1/e^x`. Both
+        // re-parse to the same expression.
+        //
+        // The `1/(e^x)` choice is *authored* as `<text>`, and a `<text>` choice
+        // is compared literally when selecting by typing (below), so its source
+        // had to move with the printer or choice 5 would no longer be
+        // selectable — that is the one source edit in this document.
+        //
+        // `∂f/∂x` is unchanged: the printer emits a space after a differential
+        // symbol only where the following symbol is multi-character and would
+        // otherwise re-lex as one token (`∂ hello`, not `∂hello`).
         let originalChoices = ["x²/2", "y", "∂f/∂x", "3", "1/e^x"];
 
         const stateVariables = await core.returnAllStateVariables(false, true);

@@ -25,7 +25,7 @@ but the engine is a different implementation and some results differ:
   function; the old engine read it as `(1/sin)(1)`.
 
 The engine's WASM is inlined into the bundle rather than fetched, so no extra network request is
-made, but the bundle carries it: the engine is 2.40 MiB uncompressed and 782 kB gzipped, against
-roughly 1.1 MB uncompressed for the JavaScript library it replaces. Building DoenetML from source
-now requires a Rust toolchain with the `wasm32-unknown-unknown` target and a matching
+made, but the bundle carries it: the engine is 2.40 MiB uncompressed and 783 kB gzipped, against
+1.04 MiB and 286 kB for the JavaScript library it replaces. Building DoenetML from source now
+requires a Rust toolchain with the `wasm32-unknown-unknown` target and a matching
 `wasm-bindgen-cli`.

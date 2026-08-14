@@ -6734,9 +6734,11 @@ describe("Point tag tests @group4", async () => {
         }
 
         // The engine folds a numeric radicand to its principal value, so the
-        // stored coordinate is `i` rather than the unevaluated `sqrt(-1)`.
-        // Compare against the canonical form rather than the raw parse.
-        let x1 = me.fromText("sqrt(-1)").simplify().tree;
+        // stored coordinate is `i` rather than the unevaluated `sqrt(-1)` the
+        // author typed. Spelled out rather than taken from
+        // `me.fromText("sqrt(-1)").simplify()`, which would put the engine on
+        // both sides of the comparison and pass for any answer it gave.
+        let x1 = "i";
         let y1 = 1;
         let x2 = 1;
         let y2 = x1;

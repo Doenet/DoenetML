@@ -7,7 +7,20 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — one item
+## Open — two items
+
+**`substitute_component` accepts a receiver that is not a container, and answers.** Legacy validated
+the head at each level of the path and the index range, throwing `expected list, tuple, vector, or
+array` / `component out of range`. The compat method validates nothing: `me.fromText("x*y")
+.substitute_component(0, 5)` returns `5·y` where legacy threw, and an out-of-range index returns
+`undefined` — breaking the "every method hands back an `Expression`" contract the rest of the port
+keeps, so the caller fails one line later with `Cannot read properties of undefined`. `Math.js`'s
+`substituteMathIntoExpression` walks a path built from the expression's own structure, so it should
+not hit either case, but it has no guard of its own. `get_component` has the same shape: its
+container check runs on the receiver only, and the rest of the path is delegated to a wasm entry
+point that indexes the operands of *any* operator — `me.fromText("(x*y, 3)").get_component([0,0])`
+answers `x` where legacy threw. (`@doenet/math`'s `getComponent` restores the legacy contract for
+the one DoenetML call site that used the throw as a type test; nothing covers the nested path.)
 
 **The vendored type surface is wider than the engine.** 48 of the 114 members
 `packages/math/src/vendored/math-expressions.d.ts` declares on `Expression` are `undefined` at
@@ -18,8 +31,10 @@ including `atan2`), the matrix/vector helpers (`perform_matrix_multiplications`,
 `common_denominator`, `substitute_abs`, `log_subscript_to_two_arg_log`,
 `normalize_angle_linesegment_arg_order`, `equalsViaFiniteField`, `toGuppy`, `operators`).
 
-Nothing in DoenetML calls any of them today, so nothing is broken — but TypeScript currently accepts
-`expr.sin()` and it fails at runtime. Reproduce with:
+Nothing in DoenetML calls any of them today — re-verified by grepping every one of the 48 across
+`packages/*/src` and `packages/*/test`, whose only hits are `Math.atan2` and commented-out code — so
+nothing is broken. But TypeScript currently accepts `expr.sin()` and it fails at runtime. Reproduce
+with:
 
 ```bash
 npm run build -w packages/math
@@ -33,9 +48,9 @@ Either port them, or narrow the vendored declarations to what the engine impleme
 the safer half and does not need upstream — but it should be one edit, made deliberately, rather
 than a member quietly disappearing each time the snapshot is refreshed.
 
-## Nothing else is open
+## Closed
 
-Every *behavioral* request previously filed here has landed upstream. Re-verified against the
+Every other *behavioral* request previously filed here has landed upstream. Re-verified against the
 current pin by probing the built package directly:
 
 ```bash
@@ -67,16 +82,29 @@ Concretely, all of the following once had entries here and no longer reproduce:
 | `.tree` handed back `{"$":"Inf"}` / `{"$":"NaN"}` | untagged to JS `Infinity` / `NaN` |
 | the Rust printer never used scientific notation | uses it |
 | `default_order` was a compat-layer no-op | backed by `normalize::default_order` |
+| `substitute` replaced bindings left-to-right, so one could capture the next | simultaneous, as legacy was |
+| `variables(true)` ignored its argument, reporting `x_1` as `x` | reports the subscripted name |
+| `f()` threw `Invalid ast` on any tree holding `±Infinity`/`NaN` | compiles and evaluates them |
 
 ## Not upstream's — ours to decide
 
 These are behavioral differences, not defects, and the decision belongs to DoenetML:
 
-- **Sparse arrays reaching `fromAst`.** `Point.js` builds `Array(n+1)` and fills only the
-  components being set; `JSON.stringify` turns the holes into `null`, which the engine correctly
-  rejects with `unexpected value null`. A hole means "no desired value for this component"; mapping
-  it to `{"$":"None"}` is a semantic choice, so it is deliberately left unfixed rather than guessed
-  at.
+- **Sparse arrays reaching `fromAst`** — *settled, not open.* `Point.js`, `Ray.js`, `Vector.js` and
+  `DirectionComponent.js` build a vector AST component-by-component and leave holes in it;
+  `JSON.stringify` turns those into `null`, which the engine correctly rejects with `unexpected
+  value null`. A hole means "no desired value for this component", and rather than ask the engine to
+  guess, DoenetML now says so explicitly: `markUnspecifiedComponents` writes the
+  `UNSPECIFIED_COMPONENT` marker into the empty slots, and `preprocessMathInverseDefinition` and
+  `EssentialValueWriter` read it back. See `packages/doenetml-worker-javascript/src/utils/math.ts`.
+- **`evaluate_to_constant` answers `null`, not `NaN`, for an expression it cannot evaluate.** Legacy
+  answered `NaN` unless asked for `null` with `{nan_for_non_numeric: false}`; the compat layer
+  always behaves as `false`, and does not read the option. Keeping the two apart is worth having —
+  `NaN` is a value an expression can genuinely evaluate *to* (`0/0`), and DoenetML's undefined-slope
+  grading depends on the difference — but `null` is the more dangerous one to leak into arithmetic,
+  because it coerces to `0` rather than propagating. DoenetML tests for it at every boundary through
+  `isNumericConstant`/`evaluateToNumber` (`src/utils/math.ts`); a new call site that forgets will
+  fail silently, not loudly.
 - **Text output no longer pads container delimiters** — `(0, 0)` where the legacy printer wrote
   `( 0, 0 )`. `toLatex` is unchanged (`\left( 1, 2 \right)` keeps its spacing); only the text
   renderer moved. Test expectations were updated to match.
