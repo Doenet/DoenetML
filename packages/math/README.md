@@ -74,7 +74,7 @@ Browsers refuse to compile a module this size synchronously on the **main
 thread**, so code there must initialize during startup:
 
 ```ts
-import { initMathWasm } from "@doenet/math";
+import { initMathWasm } from "math-expressions";
 await initMathWasm();
 ```
 
