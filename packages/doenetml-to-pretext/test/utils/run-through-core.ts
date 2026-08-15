@@ -29,14 +29,15 @@ const PAGE_BUDGET_MS = 5000;
  * three times on this branch, always in the last tests of the file.
  *
  * What was actually wrong was upstream of WebDriver: every conversion leaked
- * its core worker, so one page accumulated ~50 of them, ~140 MB apiece
- * (measured: +7.0 GB of Chrome across the file, climbing monotonically to the
- * last test). The renderer ran the runner out of memory and stopped servicing
- * BiDi — the run that prompted this note reported it as
- * `Command network.continueRequest ... timed out`. `DoenetMLToPretext.dispose`
- * fixes that, and with it the file holds steady: capped at 6 GB with
+ * its core worker, so one page accumulated ~50 of them. Measured across the
+ * file, Chrome grew by 7.0 GB and was still climbing at the last test; with
+ * the leak fixed the same measurement is 1.9 GB and plateaus. The renderer ran
+ * the runner out of memory and stopped servicing BiDi — the run that prompted
+ * this note reported it as `Command network.continueRequest ... timed out`.
+ * `DoenetMLToPretext.dispose` fixes that: capped at 6 GB with
  * `systemd-run -p MemoryMax=6G`, the leaking build never finished at all while
- * the fixed one passes in ~66 s.
+ * the fixed one passes in ~66 s. On CI the same file went from 166,595 ms with
+ * two failures to ~52,000 ms with none.
  *
  * This budget stays as the net underneath, because a session that has stopped
  * answering must not be waited on: it does not fail, it hangs, and a hang

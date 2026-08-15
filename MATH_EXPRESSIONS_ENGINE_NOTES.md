@@ -241,12 +241,15 @@ as `null` where the legacy one produced a number.
 while a worker was only the core bundle plus the core's own WASM. It stopped being survivable when
 the math engine moved into every worker realm as a second WASM module: `pretext-export.test.ts`
 runs ~50 conversions through one page, which measured at **+7.0 GB of Chrome across the file,
-~140 MB per test, climbing monotonically to the last test**. On a 16 GB runner the renderer stops
+~140 MB per test, still climbing at the last one** (the same measurement with the leak fixed is
++1.9 GB, and it plateaus). On a 16 GB runner the renderer stops
 servicing WebDriver near the end of the file and the round trips hang — reported as
 `Command network.continueRequest ... timed out`, and read for three review passes as a wedged
 WebDriver session, which was the symptom rather than the cause. `DoenetMLToPretext.dispose()`
 fixes it; `test/worker-lifetime.test.ts` pins it. Reproducible either way under
-`systemd-run -p MemoryMax=6G`: leaking, the file never finishes; fixed, it passes in ~66 s.
+`systemd-run -p MemoryMax=6G`: leaking, the file never finishes; fixed, it passes in ~66 s. On CI
+the file went from 166,595 ms with two failures to ~52,000 ms with none — the extra two minutes
+were the runner thrashing, not work.
 
 The lesson generalizes past PreTeXt — anything that boots a core worker per document now holds two
 WASM modules per realm, so a missing `terminate()` costs an order of magnitude more than it used
