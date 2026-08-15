@@ -81,8 +81,14 @@ one possible; now it turns the publish job red. The block clears itself when the
 there is no flag to remember to flip.
 
 Two limits of that guard, stated so nobody over-reads it. It is a **shape test on the range**, run
-at build time with no network: it catches `file:`/`link:`/`portal:`/`workspace:`/`catalog:`, and a
-missing range, but a registry-shaped range naming something nobody published — `^3.0.0` before
+at build time with no network. What it tests is npm's own classification — a range
+`npm-package-arg` resolves to a `directory` or a local `file` — rather than a list of spellings
+anyone thought of, which is the third form the test has taken: the thirteenth pass wrote the
+protocols (`file:`/`link:`/`portal:`/`workspace:`/`catalog:`/`git+file:`), the fifteenth found the
+bare path (`../math` installs the sibling directory exactly as `file:../math` does), and the
+sixteenth found `~/src/math-expressions` and a bare tarball path still passing. Mirroring the
+definition is what stops that sequence. It still catches a missing range too, but a
+registry-shaped range naming something nobody published — `^3.0.0` before
 `math-expressions@3.x` exists, or the `"*"` this repo uses for private workspace packages — reads
 as publishable. So the guard enforces the *edit*, and the release order still has to be followed
 for the edit to be honest. And it is not atomic: the root `publish` script fans out with
@@ -197,7 +203,7 @@ copies of the engine once the seam was externalized everywhere.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
   the primary risk of the engine switch and the ordinary suites are all that guard it. A green
   suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
-  turned up **seven** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  turned up **eight** wrong-answer-on-grading defects, and no pre-existing test named any of them.
   Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
   identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
   correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
@@ -219,13 +225,23 @@ copies of the engine once the seam was externalized everywhere.
   from asking what *else* the fifth and sixth implied, and is above: `equals` samples on a third
   path, where an unevaluable head becomes an opaque variable rather than a `NaN`, and `det` and
   `trace` compared unequal to their own values. Found at the fourteenth pass, established as a
-  regression against legacy and fixed at the fifteenth.
+  regression against legacy and fixed at the fifteenth. The eighth is the *same split on the same
+  path*, found at the sixteenth pass by asking which other applications the folding layer and the
+  sampler could disagree about: `f((a, b))`. Legacy's parser wrote one tree for `mod(7,3)` and
+  `mod((7,3))` — a head applied to a tuple — so the extra parentheses cost nothing and both
+  answered `1`. This parser keeps the spellings apart, and only the fold put them back together, so
+  `simplify(mod((7,3)))` was `1` while `equals(mod((7,3)), 1)` was `false` and
+  `evaluate_to_constant` was `None`. Both layers now go through one helper,
+  `normalize::spread_list_argument`, the way `det`/`trace` go through `matrix::scalar_reduction`.
 
-  Read the seven together and the pattern is not "the engine is wrong" but "the suites test one
-  path at a time". Four of the seven were invisible because a *different* path answered correctly:
+  Read the eight together and the pattern is not "the engine is wrong" but "the suites test one
+  path at a time". Four of the eight were invisible because a *different* path answered correctly:
   `nthroot` graded while it could not be plotted, `erf` plotted while it could not be graded, and
-  `det`/`trace` did both while they could not be compared. Two of the seven were codified as
-  deliberate in a test's own exemption list before anyone measured them.
+  `det`/`trace` did both while they could not be compared. Two of the eight were codified as
+  deliberate in a test's own exemption list before anyone measured them. And the last two are the
+  same shape reached twice, which is the argument for the shared-helper habit rather than for a
+  longer list of special cases: whenever *two* layers decide independently whether an application
+  has a value, they will eventually answer differently.
 
 ## Follow-up PRs, written up so they can be opened from here
 
@@ -274,23 +290,43 @@ copies of the engine once the seam was externalized everywhere.
    long tail: sites added since, and the guarded majority that should be converted for uniformity
    rather than because they are broken. Mechanical but large; belongs in its own PR with the count
    re-measured first, and with the 204/6 ratio as the expectation to calibrate against.
-4. **The extrema search still recomputes what it could carry down, and its "no round-off" claim is
-   only just pinned.** The spurious-minimum-beside-a-pole half of this item is fixed (see the
-   `<function>` extrema entry in the changeset): `exactCriticalPointsOf` returns the *complete*
-   real root set of `f'` when the derivative is rational, so a cell holding none of them holds no
-   extremum, and `utils/extrema.js` declines both estimators there rather than only the `fzero`
-   one. The fourteenth pass's write-up predicted that the `fminbr` branch would be harmless and
-   could keep running; it is in fact where the surviving spurious minimum came from, since
-   `result.tol` steps far enough either side of the point it converges on that a pole reads as a
-   strict minimum. `functionTag.test.ts` now pins the off-grid pole (`(x-5.1)^2`, at 5.1000006) and
-   its negation, and asserts the four exact locations to 1e-12 — closing the "no refinement
-   round-off" half, which the 1e-3 tolerance on the other assertions could not distinguish.
-   What is left in the file is cheap and mechanical: `exactCriticalPointsOf` and the derivative
-   construction are pure functions of `formula` and are recomputed on each of up to ~1000 cells ×
-   100 recursion levels, and should be passed down through `argsForRecursion`. Also unfixed by
-   design: a critical point that touches zero without crossing is still invisible, and a cell
-   holding several roots still yields one — nothing looks for a root except a bracketed sign
-   change. Driving the search from the exact roots instead of from the grid would fix both.
+4. **The extrema search's remaining gaps are the two the exact roots cannot close on their own.**
+   Three quarters of this item is now fixed and only the redesign is left. `exactCriticalPointsOf`
+   returns the *complete* real root set of `f'` when the derivative is rational, so
+   `utils/extrema.js` can decline both estimators where no extremum can be — see the `<function>`
+   extrema entry in the changeset.
+
+   Two corrections to earlier write-ups of this item, both from measurement:
+
+   - The fourteenth pass predicted the `fminbr` branch would be harmless and could keep running.
+     It is in fact where the surviving spurious minimum came from, since `result.tol` steps far
+     enough either side of the point it converges on that a pole reads as a strict minimum.
+   - The fifteenth pass declined a cell holding none of the roots and called that "independent of
+     where the grid falls". It is not, quite: a cell can hold a root **and** a pole, and then the
+     cell test is satisfied and `fminbr` still descends into the pole. `(x-5)^2/(x-5.1)^2` is the
+     shape — the only root of `f'` is 5, on the left edge of the cell that holds the pole at 5.1 —
+     and it reported a maximum of 3.01e10 at 5.100000576. The sixteenth pass asks the question of
+     the converged *point* instead: a reported minimum must be at one of the known roots, within
+     `fminbr`'s own convergence width. That is what is now grid-independent.
+
+   `functionTag.test.ts` pins the off-grid pole and its negation, asserts the four exact locations
+   to 1e-12 — closing the "no refinement round-off" half, which the 1e-3 tolerance on the other
+   assertions could not distinguish — and pins the root-and-pole-in-one-cell shape separately.
+
+   Also fixed: the derivative and the exact roots are computed once and carried down through the
+   recursion. An earlier draft of this item said they were recomputed "on each of up to ~1000 cells
+   × 100 recursion levels"; measured, the per-cell claim was wrong — the loop only *reads* the
+   finished list, and the work happens once per call. Per *recursion level* it was real, and
+   `critical_points` is the expensive call: for a degree-12 polynomial over the default domain it
+   is 98ms of the 131ms a hunt takes, and one extra level used to cost as much as the whole search
+   (392ms → 316ms measured over minima and maxima together, `-19%`; the shallow cases are inside
+   the noise).
+
+   **Left, by design and now the only thing left here:** a critical point that touches zero without
+   crossing is still invisible, and a cell holding several roots still yields one — nothing looks
+   for a root except a bracketed sign change. Driving the search from the exact roots instead of
+   from the grid would fix both, and it is a rewrite of the loop rather than a patch to it, so it
+   belongs in its own PR.
 5. **`flip_function_children` flips a child's formula but not its interpolated coefficients**
    (`utils/extrema.js`). The maximum hunt is the minimum hunt on a negated function, and for a
    piecewise function each child is negated separately. The interpolated branch writes
@@ -303,7 +339,7 @@ copies of the engine once the seam was externalized everywhere.
    and it involves no engine call at all. Recorded here because the fifteenth pass was in this
    function fixing the *formula* branch beside it and would otherwise have looked past it. The fix
    is one word (`coeffsFlip` → `coeffs`) plus a test with a through-points piece, and it belongs
-   with whatever PR takes the two extrema items in item 4 above.
+   with whatever PR takes the root-driven search left open in item 4 above.
 6. **`@doenet/static-assets`' generated `math-assets.json` is stale, and nothing checks it.**
    `packages/static-assets/src/generated/math-assets.json` is produced by
    `scripts/generate-math-assets.ts`, which runs under `build:assets` — *not* under `build:schema`,

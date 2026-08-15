@@ -19,8 +19,9 @@ import { treeContainsBlank } from "./math";
  *
  * The list is *complete* when it is not null, which is the stronger property
  * and the one that removes spurious extrema rather than merely sharpening real
- * ones: a cell holding none of these roots holds no extremum, so both
- * estimators are declined there (`cellHasNoExtremum` below).
+ * ones: a reported extremum has to be at one of these roots, so both estimators
+ * are declined anywhere else (`cellHasNoExtremum` and `convergedToAKnownRoot`
+ * below).
  *
  * Note what this does *not* buy: a root that touches zero without crossing is
  * still invisible, because nothing looks for a root except a bracketed sign
@@ -72,6 +73,62 @@ function exactCriticalPointsOf(plainFormula, varString) {
 }
 
 /**
+ * Everything the search needs to know about `formula`'s derivative, in one
+ * object so that it can be computed once and reused across the recursion in
+ * [`find_local_global_minima`] — which re-enters on a *sub-interval* of the same
+ * formula, where all of this is unchanged.
+ *
+ * - `haveDerivative` — false for a formula with a hole in it, and for one the
+ *   engine cannot compile. The search then has no derivative estimator at all.
+ * - `derivative` — f' at a point, `NaN` where it cannot be evaluated.
+ * - `derivative_formula` — the expression behind it, so the grid can be sampled
+ *   in one engine call rather than one call per point (`sampleGrid`). `null`
+ *   when there is none.
+ * - `exactCriticalPoints` — see [`exactCriticalPointsOf`].
+ */
+function derivativeInfoFor(formula, varString) {
+    // A hole in the formula, not a variable: the engine does not list the blank
+    // in `variables()` the way the legacy library did, so the test this
+    // replaces could not fire and an unfilled input was differentiated as
+    // though it were complete.
+    if (treeContainsBlank(formula.tree)) {
+        return {
+            haveDerivative: false,
+            derivative: () => NaN,
+            derivative_formula: null,
+            exactCriticalPoints: null,
+        };
+    }
+
+    let plainFormula = formula.subscripts_to_strings();
+    let derivative_formula = plainFormula.derivative(varString);
+    let derivative_f;
+    try {
+        derivative_f = derivative_formula.f();
+    } catch (e) {
+        return {
+            haveDerivative: false,
+            derivative: () => NaN,
+            derivative_formula: null,
+            exactCriticalPoints: null,
+        };
+    }
+
+    return {
+        haveDerivative: true,
+        derivative: (x) => {
+            try {
+                return derivative_f({ [varString]: x });
+            } catch (e) {
+                return NaN;
+            }
+        },
+        derivative_formula,
+        exactCriticalPoints: exactCriticalPointsOf(plainFormula, varString),
+    };
+}
+
+/**
  * Sample `expr` at every point of `xs` in a single engine call.
  *
  * Per-point evaluation is dominated by crossing the wasm boundary and
@@ -91,7 +148,7 @@ function exactCriticalPointsOf(plainFormula, varString) {
  *
  * It is not what makes poles safe, and it was mistaken for that once: it fires
  * only when a sample lands on the pole exactly. The general rejection is
- * `cellHasNoExtremum` below, which does not depend on where the grid falls.
+ * `convergedToAKnownRoot` below, which does not depend on where the grid falls.
  */
 function sampleGrid(expr, varString, xs) {
     if (!expr) {
@@ -122,6 +179,9 @@ export function find_local_global_minima({
     numIntervals = 1000,
     numRecursions = 0,
     numerics,
+    // Set only by this function's own recursion below, which re-enters with the
+    // same `formula` on a narrower `domain`. See `derivativeInfoFor`.
+    derivativeInfo,
 }) {
     if (isInterpolatedFunction) {
         let eps = numerics.eps;
@@ -620,53 +680,25 @@ export function find_local_global_minima({
 
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let derivative_f;
-        let haveDerivative = true;
-        let derivative;
-        // The expression behind `derivative`, kept so the grid below can be
-        // sampled in one call rather than one call per point.
-        let derivative_formula = null;
-        // Every root of f', exactly, when the derivative is a rational
-        // function — see `exactCriticalPointsOf`. `null` means "undecided, do
-        // it the numerical way".
-        let exactCriticalPoints = null;
-
-        // A hole in the formula, not a variable: the engine does not list the
-        // blank in `variables()` the way the legacy library did, so the test
-        // this replaces could not fire and an unfilled input was differentiated
-        // as though it were complete.
-        if (treeContainsBlank(formula.tree)) {
-            haveDerivative = false;
-            derivative = () => NaN;
-        } else {
-            let plainFormula = formula.subscripts_to_strings();
-            derivative_formula = plainFormula.derivative(varString);
-
-            try {
-                derivative_f = derivative_formula.f();
-            } catch (e) {
-                haveDerivative = false;
-                derivative_formula = null;
-                derivative = () => NaN;
-            }
-
-            if (haveDerivative) {
-                exactCriticalPoints = exactCriticalPointsOf(
-                    plainFormula,
-                    varString,
-                );
-            }
-        }
-
-        if (haveDerivative) {
-            derivative = function (x) {
-                try {
-                    return derivative_f({ [varString]: x });
-                } catch (e) {
-                    return NaN;
-                }
-            };
-        }
+        // Differentiating and root-finding are engine calls and they depend on
+        // nothing this function narrows — the recursion below re-enters with a
+        // smaller `domain` and the *same* `formula` and `variables`, so f', its
+        // compiled form and the complete root set are all identical at every
+        // level. Compute them once at the top and hand them down.
+        //
+        // Worth doing because `critical_points` is the expensive call and it
+        // scales with the degree of f': for a degree-12 polynomial over the
+        // default domain it is 98ms of the 131ms a minima-or-maxima hunt takes,
+        // so one extra level of recursion used to cost as much as the whole
+        // search. (Not a per-cell cost, despite where the lookup lives: the
+        // loop below only *reads* the finished list.)
+        derivativeInfo ??= derivativeInfoFor(formula, varString);
+        let {
+            haveDerivative,
+            derivative,
+            derivative_formula,
+            exactCriticalPoints,
+        } = derivativeInfo;
 
         // second argument is true to ignore domain
         let f = (x) => numericalf(x, true);
@@ -736,13 +768,14 @@ export function find_local_global_minima({
             // below a cell width, so it cannot reach into a neighbour either.
             let rootSlack =
                 1e-9 * Math.max(dx, Math.abs(xleft), Math.abs(xright));
-            let exact =
+            let cellRoots =
                 exactCriticalPoints === null
-                    ? undefined
-                    : exactCriticalPoints.find(
+                    ? []
+                    : exactCriticalPoints.filter(
                           (p) =>
                               p >= xleft - rootSlack && p <= xright + rootSlack,
                       );
+            let exact = cellRoots[0];
 
             // …and where they are known and none of them is here, this cell
             // holds no local extremum at all, and anything that looks like one
@@ -758,10 +791,12 @@ export function find_local_global_minima({
             // at a *pole* instead, f itself diverges there (the antiderivative
             // of `c/(x-a)^k` is unbounded at `a` for every k ≥ 1), so that
             // point is an infimum, not a minimum. Nothing is thrown away by
-            // declining, and both estimators below are declined together —
+            // declining, and both estimators below are declined —
             // refining into a pole is the classic spurious extremum beside one
             // (issue #940), and `fzero` and `fminbr` each reach it their own
-            // way.
+            // way. (`fminbr` is declined by the stronger point test below,
+            // which subsumes this one; this is the form the *derivative* branch
+            // needs, since it decides before it has a converged point.)
             //
             // Until this test existed, the only thing suppressing that
             // extremum was a grid coincidence: with a sample landing
@@ -769,7 +804,29 @@ export function find_local_global_minima({
             // cell is skipped a few lines above. Move the pole between two
             // samples and it came back.
             let cellHasNoExtremum =
-                exactCriticalPoints !== null && exact === undefined;
+                exactCriticalPoints !== null && cellRoots.length === 0;
+
+            /**
+             * Would a local minimum reported *at `x`* be one of the known
+             * roots? The cell test above is the same question asked of the
+             * whole cell, and it is not enough on its own: a cell can hold a
+             * root **and** a pole, and then `fminbr` still descends into the
+             * pole with the cell test satisfied. `(x-5)^2/(x-5.1)^2` is the
+             * shape — the root at 5 sits on the edge of the cell that holds the
+             * pole at 5.1 — and it kept reporting a maximum of 3e10 at
+             * `5.100000576002722`.
+             *
+             * `2 * result.tol` is `fminbr`'s own convergence width, the same
+             * figure this block already uses to decide whether it converged
+             * *to* an endpoint; `rootSlack` absorbs the rounding on the exact
+             * root, as above. So a genuine minimum is still accepted — the
+             * minimizer lands within its own tolerance of the root it
+             * converged to — while one that converged somewhere else entirely
+             * is refused.
+             */
+            let convergedToAKnownRoot = (x, tol) =>
+                exactCriticalPoints === null ||
+                cellRoots.some((p) => Math.abs(x - p) <= 2 * tol + rootSlack);
 
             if (haveDerivative && dleft * dright <= 0 && !cellHasNoExtremum) {
                 let x;
@@ -925,6 +982,7 @@ export function find_local_global_minima({
                                 numIntervals: 4,
                                 numRecursions: numRecursions + 1,
                                 numerics,
+                                derivativeInfo,
                             });
 
                             let newLocalMinima = recursionResult.localMinima;
@@ -988,15 +1046,15 @@ export function find_local_global_minima({
                             minimumAtPreviousRight = false;
 
                             // make sure it actually looks like a strict minimum
-                            // of f(x) — and that this cell can hold one at all
-                            // (see `cellHasNoExtremum` above; without that test
-                            // `fminbr` descends into a pole and the four
-                            // comparisons here all pass, because `result.tol`
-                            // steps far enough to either side of the point it
-                            // converged on that both neighbours read *less*
-                            // deep than it does).
+                            // of f(x) — and that it is at a point that can hold
+                            // one (see `convergedToAKnownRoot` above; without
+                            // that test `fminbr` descends into a pole and the
+                            // four comparisons here all pass, because
+                            // `result.tol` steps far enough to either side of
+                            // the point it converged on that both neighbours
+                            // read *less* deep than it does).
                             if (
-                                !cellHasNoExtremum &&
+                                convergedToAKnownRoot(x, result.tol) &&
                                 Number.isFinite(fx) &&
                                 fx < fright - mindf &&
                                 fx < fleft - mindf &&

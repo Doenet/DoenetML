@@ -3194,6 +3194,61 @@ describe("Function tag tests @group4", async () => {
         });
     });
 
+    it("extrema of rational function with a root and a pole in one grid cell", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f">
+      (x-5)^2/(x-5.1)^2
+    </function>
+    <function name="g">
+      -(x-5)^2/(x-5.1)^2
+    </function>
+    `,
+        });
+
+        // The pole test above asks whether *the cell* holds one of the exact
+        // roots of f'. That is not enough on its own, and this is the shape it
+        // misses: the only root of f' in [-100, 100] is 5, which sits on the
+        // left edge of the cell [5.0, 5.2] — and the pole at 5.1 is in the same
+        // cell. The cell test is satisfied there, so `fminbr` still descended
+        // into the pole and reported a maximum of 3.01e10 at 5.100000576002722.
+        //
+        // Asking the question of the converged *point* instead closes it: a
+        // reported minimum has to be at one of the known roots, within
+        // `fminbr`'s own convergence width. Which leaves the genuine double
+        // root at 5, exactly.
+        let f =
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
+                .numericalf.value;
+
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            minima: [[5, f(5)]],
+            maxima: [],
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinf: 0,
+            haveGlobalMin: true,
+            globalinfLocation: 5,
+        });
+
+        let fState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("f")
+        ].stateValues;
+        expect(fState.minima.length).eq(1);
+        expect(fState.minima[0][0]).closeTo(5, 1e-12);
+        expect(fState.maxima.length).eq(0);
+
+        // …and the mirror image, so the negated path is covered too.
+        let gState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("g")
+        ].stateValues;
+        expect(gState.maxima.length).eq(1);
+        expect(gState.maxima[0][0]).closeTo(5, 1e-12);
+        expect(gState.minima.length).eq(0);
+    });
+
     it("intervals of extrema are not counted", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

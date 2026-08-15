@@ -4,20 +4,59 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
 /**
- * Dependency ranges that mean "resolve this from somewhere on this machine"
- * rather than "resolve this from the registry". They are the right thing inside
- * the monorepo and meaningless to an npm consumer: `file:../math` names a
+ * Ranges npm's own `link:`/`portal:`/`workspace:`/`catalog:` peers write to mean
+ * "resolve this from this workspace". npm itself rejects them outright
+ * (`EUNSUPPORTEDPROTOCOL`), which makes them unpublishable for a second reason,
+ * but they are worth naming because they are what a pnpm/yarn-shaped edit to a
+ * manifest in this repo would leave behind. `git+file:` is a git spec whose
+ * remote is a path on this machine.
+ */
+const LOCAL_PROTOCOL_RANGE =
+    /^(?:file|link|portal|workspace|catalog|git\+file):/i;
+
+/**
+ * The paths npm accepts *without* a protocol, taken from `npm-package-arg`'s
+ * `isFileSpec` (its `isPosixFile`/`isWindowsFile` unioned, so the answer does
+ * not depend on which platform runs the build). `"math-expressions": "../math"`
+ * installs the sibling directory exactly as `file:../math` does.
+ *
+ * The awkward-looking alternatives are all load-bearing and none of them catches
+ * anything legitimate: `~[/]` is a home-relative path and is written as `~/` so
+ * that the tilde *range* `~1.2.3` is not caught; `[a-zA-Z]:` is a drive letter,
+ * which npm treats as a path on POSIX too, and no semver range or dist-tag is a
+ * single letter followed by a colon (`npm:` is three); `\\` is a Windows or UNC
+ * path.
+ */
+const LOCAL_PATH_RANGE = /^(?:[.\\/]|~[/]|[a-zA-Z]:)/;
+
+/**
+ * A tarball, which npm installs from disk when the range carries no protocol —
+ * `"math-expressions": "math.tgz"` is a local file. The protocol test is what
+ * keeps a perfectly resolvable `https://…/math.tgz` out of this: that one is
+ * `remote` to npm and a consumer can fetch it.
+ */
+const TARBALL_RANGE = /[.](?:tgz|tar\.gz|tar)$/i;
+const HAS_PROTOCOL = /^(?:git\+)?[a-z]+:/i;
+
+/**
+ * Does this dependency range mean "resolve this from somewhere on this machine"
+ * rather than "resolve this from the registry"? Such a range is the right thing
+ * inside the monorepo and meaningless to an npm consumer: `file:../math` names a
  * directory that does not exist once the tarball is unpacked.
  *
- * Two spellings, because npm has two. The protocol forms are the ones the
- * monorepo writes; the bare-path form is what npm accepts *without* a protocol
- * — `"math-expressions": "../math"` installs the sibling directory exactly as
- * `file:../math` does — and it slipped past a protocol-only list. Nothing
- * legitimate is caught by that second alternative: a semver range never begins
- * with `.` or `/` (`^1.2` and `~1.2` do not), and neither does a dist-tag.
+ * The three tests together are npm's own classification — a range `npm-package-arg`
+ * resolves to a `directory` or a local `file` — rather than a list of spellings
+ * anyone thought of. Two review passes added to such a list after finding it
+ * short (the bare path `../math`, then `~/src/math`), which is the argument for
+ * mirroring the definition instead.
  */
-const UNPUBLISHABLE_RANGE =
-    /^(?:(?:file|link|portal|workspace|catalog|git\+file):|[./])/;
+function isUnpublishableRange(range: string): boolean {
+    return (
+        LOCAL_PROTOCOL_RANGE.test(range) ||
+        LOCAL_PATH_RANGE.test(range) ||
+        (TARBALL_RANGE.test(range) && !HAS_PROTOCOL.test(range))
+    );
+}
 
 /**
  * Create a transformer that will modify the contents of a package.json file
@@ -107,7 +146,7 @@ export function createPackageJsonTransformer({
                 continue;
             }
             pkg.peerDependencies[dep] = range;
-            if (UNPUBLISHABLE_RANGE.test(range)) {
+            if (isUnpublishableRange(range)) {
                 unpublishable.push(
                     `${dep}: "${range}" is a local range that an npm consumer cannot resolve`,
                 );

@@ -61,7 +61,9 @@ but the engine is a different implementation and some results differ:
   long-standing spurious extremum: `(x+8)(x-8)/((x-2)(x+4)(x-5)^2)` reported a minimum at
   `4.999999948`, beside its double pole at `x = 5` (issue #940), and now reports only its four
   real extrema. Moving the pole off the sampling grid — `(x-5.1)^2` — used to bring the spurious
-  minimum back; it no longer does. Functions whose derivative is not rational (anything with a
+  minimum back; it no longer does, and neither does putting a genuine extremum and a pole in the
+  same sampling cell (`(x-5)^2/(x-5.1)^2` reported a maximum of 3e10 beside its pole and now
+  reports only the minimum at `5`). Functions whose derivative is not rational (anything with a
   `sin`, a `log`, an absolute value) are unchanged, and still search numerically.
 - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal

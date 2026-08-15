@@ -159,6 +159,15 @@ describe("createPackageJsonTransformer", () => {
         "../math",
         "./math",
         "/srv/math",
+        // …and a path is not only a slash-or-dot one. Each of these is a
+        // `directory` or a local `file` to `npm-package-arg`, so each installs
+        // from this machine. `~/…` in particular is the natural way to point at
+        // a checkout while debugging, and the spelling closest to one that is
+        // *not* local (`~3.0.0`, asserted publishable below).
+        "~/src/math-expressions",
+        "C:/math",
+        "math.tgz",
+        "vendor/math.tar.gz",
     ])("treats %s as unpublishable too", (range) => {
         const { pkg } = transform({ "math-expressions": range }, [
             "math-expressions",
@@ -166,15 +175,22 @@ describe("createPackageJsonTransformer", () => {
         expect(pkg.private).toBe(true);
     });
 
-    it.each(["^3.0.0", "~3.0.0", "3.x", "*", "latest", "npm:@scope/math@^3"])(
-        "still publishes with the registry range %s",
-        (range) => {
-            const { pkg } = transform({ "math-expressions": range }, [
-                "math-expressions",
-            ]);
-            expect(pkg.private).toBe(false);
-        },
-    );
+    it.each([
+        "^3.0.0",
+        "~3.0.0",
+        "3.x",
+        "*",
+        "latest",
+        "npm:@scope/math@^3",
+        // A tarball a consumer's installer really can fetch. The local-tarball
+        // test above must not swallow this one.
+        "https://example.com/math-3.0.0.tgz",
+    ])("still publishes with the registry range %s", (range) => {
+        const { pkg } = transform({ "math-expressions": range }, [
+            "math-expressions",
+        ]);
+        expect(pkg.private).toBe(false);
+    });
 
     it("becomes publishable again once the dep names a registry range", () => {
         const { pkg, warnings } = transform(
