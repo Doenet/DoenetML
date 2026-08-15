@@ -39,34 +39,33 @@ export function find_effective_domain({
     let openMin = true,
         openMax = true;
 
-    if (domain !== null) {
-        let domain1 = domain[0];
-        if (domain1 !== undefined) {
-            // `isNumericConstant`, not `Number.isFinite`: an endpoint that
-            // *evaluates to* ±∞ is a real endpoint and is kept as written,
-            // where one that cannot be evaluated at all — `null` from the
-            // engine, or NaN — falls back to the unbounded side. The two
-            // differ only for a literally infinite endpoint, and only in
-            // `truncateToFiniteDomain` mode, since the normalization below
-            // forces `openMin`/`openMax` false at ±∞ otherwise. This is also
-            // exactly the test the nine copies of this block in `function.ts`
-            // used before they were replaced by calls to this function.
-            minx = me
-                .fromAst(domain1.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (!isNumericConstant(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !domain1.tree[2][1];
-            }
-            maxx = me
-                .fromAst(domain1.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (!isNumericConstant(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !domain1.tree[2][2];
-            }
+    // `?.` rather than `domain !== null`, matching `find_domain_endpoints`
+    // below: the sole difference between them was that this one would have
+    // thrown on an explicit `undefined` where that one returns the unbounded
+    // default. No caller passes one today — every call site in `function.ts`
+    // defaults the parameter to `null` — but the asymmetry is a trap.
+    const domain1 = domain?.[0];
+    if (domain1 !== undefined) {
+        // `isNumericConstant`, not `Number.isFinite`: an endpoint that
+        // *evaluates to* ±∞ is a real endpoint and is kept as written,
+        // where one that cannot be evaluated at all — `null` from the
+        // engine, or NaN — falls back to the unbounded side. The two
+        // differ only for a literally infinite endpoint, and only in
+        // `truncateToFiniteDomain` mode, since the normalization below
+        // forces `openMin`/`openMax` false at ±∞ otherwise. This is also
+        // exactly the test the nine copies of this block in `function.ts`
+        // used before they were replaced by calls to this function.
+        minx = me.fromAst(domain1.tree[1][1]).evaluate_to_constant() as number;
+        if (!isNumericConstant(minx)) {
+            minx = -Infinity;
+        } else {
+            openMin = !domain1.tree[2][1];
+        }
+        maxx = me.fromAst(domain1.tree[1][2]).evaluate_to_constant() as number;
+        if (!isNumericConstant(maxx)) {
+            maxx = Infinity;
+        } else {
+            openMax = !domain1.tree[2][2];
         }
     }
 

@@ -48,9 +48,11 @@ describe(`math engine (${engineName})`, () => {
     });
 
     it("differentiates", () => {
-        expect(
-            me.fromText("x^2").derivative("x").evaluate_to_constant,
-        ).toBeTypeOf("function");
+        expect(me.fromText("x^2").derivative("x").simplify().tree).toEqual([
+            "*",
+            2,
+            "x",
+        ]);
         expect(
             me
                 .fromText("x^2")

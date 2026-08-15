@@ -108,22 +108,28 @@ const allSpellings = [
 ];
 
 /**
- * Spellings with no scalar kernel on the engine's own evaluator, listed so the
+ * Spellings with no *scalar* kernel on the engine's own evaluator, listed so the
  * second test below can still be exhaustive over everything else.
  *
- * `det` is a matrix reducer: the engine reduces it structurally, and neither
- * `det` of a real matrix nor the degenerate `det(3)` has a value that
- * `evaluate_to_constant` produces. That is deliberate upstream — see the
- * "deliberately NOT evaluable" list in the crate's `tests/functions_registry.rs`
- * — and it is not the silent-`NaN` shape this file guards, because a `det`
- * expression has no numeric answer on either path rather than disagreeing
- * between them.
+ * `det` is a matrix reducer, and the probe table above can only hand it a
+ * scalar. The engine has no scalar `det` kernel, so `evaluate_to_constant` of
+ * the degenerate `det(3)` is `NaN` while `f()` compiles it to math.js's `det`,
+ * which accepts a scalar and answers `3`. Applied to what an author would
+ * actually write — a matrix — both paths agree, which is what
+ * `matrix reducers` below pins; `trace` needs no exemption only because its
+ * kernel is the identity, so the degenerate scalar case happens to work.
  */
 const NO_SCALAR_KERNEL = new Set(["det"]);
 
 function parse(src: string) {
     return me.fromText(src, {
         appliedFunctionSymbols: appliedFunctionSymbolsDefault,
+    });
+}
+
+function parseLatex(src: string) {
+    return me.fromLatex(src, {
+        appliedFunctionSymbols: appliedFunctionSymbolsDefaultLatex,
     });
 }
 
@@ -147,4 +153,34 @@ describe("every applied function symbol evaluates numerically", () => {
             expect(value).closeTo(expected, 1e-12);
         },
     );
+});
+
+/**
+ * The two matrix reducers, probed on a matrix rather than on the scalar the
+ * table above can express. This is the form an author writes, and it is where
+ * `det`'s exemption from the scalar loop stops being an excuse to skip it.
+ *
+ * Both are reached through LaTeX because that is the only notation with matrix
+ * syntax; the head is the same one the text list carries.
+ */
+describe("matrix reducers evaluate on both numeric paths", () => {
+    const M = String.raw`\begin{pmatrix}${"x"}&2\\3&4\end{pmatrix}`;
+
+    it.each([
+        { name: "det", src: String.raw`\det${M}`, x: 1, expected: -2 },
+        { name: "det", src: String.raw`\det${M}`, x: 5, expected: 14 },
+        {
+            name: "trace",
+            src: String.raw`\operatorname{trace}${M}`,
+            x: 1,
+            expected: 5,
+        },
+    ])("$name at x=$x", ({ src, x, expected }) => {
+        const expr = parseLatex(src);
+        expect(expr.f()({ x })).closeTo(expected, 1e-12);
+        expect(expr.substitute({ x }).evaluate_to_constant() as number).closeTo(
+            expected,
+            1e-12,
+        );
+    });
 });

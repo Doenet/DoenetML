@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
  * the monorepo and meaningless to an npm consumer: `file:../math` names a
  * directory that does not exist once the tarball is unpacked.
  */
-const UNPUBLISHABLE_RANGE = /^(?:file|link|portal|workspace):/;
+const UNPUBLISHABLE_RANGE = /^(?:file|link|portal|workspace|catalog):/;
 
 /**
  * Create a transformer that will modify the contents of a package.json file
@@ -24,6 +24,15 @@ const UNPUBLISHABLE_RANGE = /^(?:file|link|portal|workspace):/;
  * by leaving `"private": true` in the emitted manifest. `npm publish` refuses a
  * private package, so a release that would otherwise ship an unresolvable
  * import fails loudly instead of shipping.
+ *
+ * The check is a *shape* test on the range, not a resolution: the build does no
+ * network I/O, so it cannot tell a registry-shaped range apart from one naming
+ * a version — or a package — that nobody ever published. `^3.0.0` for a
+ * `math-expressions@3.x` that is not on npm yet, or the `"*"` this repo uses for
+ * private workspace packages, both read as publishable here. It catches the
+ * range the monorepo actually writes when it means "resolve this from a sibling
+ * directory", which is the mistake that is easy to make and invisible until a
+ * consumer installs the tarball.
  *
  * @param externalDeps An array of dependencies that should be externalized.
  * @param targetDir The directory where the `package.json` file will be written. This is usually `./dist`, but it may be a different subdirectory. Any paths in the exports field of package.json are rewritten to be relative to this directory instead.
@@ -46,10 +55,18 @@ export function createPackageJsonTransformer({
      */
     return function transformPackageJson(contents: string, filePath: string) {
         const pkg = JSON.parse(contents);
+        // Resolution order matters, and it runs *lowest* precedence first.
+        // `dependencies` and `peerDependencies` are the ranges a consumer's
+        // installer would act on; `devDependencies` is only a fallback for a
+        // package that declares an externalized dependency nowhere else.
+        // Spreading `devDependencies` last would let one shadow the real range
+        // — adding a `"math-expressions": "^3.0.0"` devDependency to
+        // `packages/doenetml` would then clear the guard below while the
+        // published peer range was still `file:../math`.
         const allDeps = {
-            ...pkg.dependencies,
-            ...pkg.peerDependencies,
             ...pkg.devDependencies,
+            ...pkg.peerDependencies,
+            ...pkg.dependencies,
         };
         // Delete unneeded entries
         delete pkg.private;

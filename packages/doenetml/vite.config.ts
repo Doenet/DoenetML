@@ -32,10 +32,11 @@ const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
 // `createPackageJsonTransformer` detects that by itself and leaves
 // `"private": true` in the emitted `dist/package.json`, which `npm publish`
 // refuses — so merging this branch cannot silently release a broken
-// `@doenet/doenetml`. The block clears on its own once math-expressions#84 is
-// merged and `math-expressions@3.x` is on npm and this package depends on that
-// range instead of `file:../math`; the dep then behaves exactly like `react`.
-// See Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`.
+// `@doenet/doenetml`. Editing this package's `"math-expressions"` range to
+// `^3.x` is what clears the block, and the range is the only thing the build
+// can check: it reads the range's shape, not the registry, so it is on whoever
+// makes that edit to have published `math-expressions@3.x` first. See Step 6 of
+// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` for the rest of that checklist.
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

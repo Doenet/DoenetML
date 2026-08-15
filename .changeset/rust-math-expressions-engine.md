@@ -56,10 +56,12 @@ but the engine is a different implementation and some results differ:
 - **A `<function>`'s extrema are cleaner near a pole, and exact where the engine can be exact.**
   The critical points of a rational derivative are now taken from the engine directly rather than
   found by bracketing and refining, so the reported locations no longer carry refinement
-  round-off. A cell straddling a pole no longer brackets a sign change either, which removes a
+  round-off. A derivative sample that lands on a pole now reads as "no value" rather than as
+  `±Infinity`, so the cells beside it no longer bracket a sign change, which removes a
   long-standing spurious minimum: `(x+8)(x-8)/((x-2)(x+4)(x-5)^2)` reported a minimum at
   `4.999999948`, beside its double pole at `x = 5` (issue #940), and now reports only its four
-  real extrema.
+  real extrema. A pole that no sample lands on is unchanged, and can still report a minimum
+  next to it.
 - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
   with more than about seventeen significant digits now goes through a double on the way in, so its

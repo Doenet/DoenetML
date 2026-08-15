@@ -136,10 +136,20 @@ if (canInitSync() && WASM_BASE64) {
 const guarded = new Proxy(glue as unknown as WasmModule, {
     get(target, prop, receiver) {
         if (!initialized) {
+            // Two different failures reach here, and naming the wrong one
+            // sends the reader to the wrong place. Missing bytes means the
+            // package was built without `build:wasm`, and it happens in every
+            // realm — including the worker and node, where the main thread's
+            // `await` is not the answer.
             throw new Error(
-                "@doenet/math: the WASM core is not initialized yet. On the " +
-                    "browser main thread, `await initMathWasm()` during startup " +
-                    `before using math expressions (tried to access "${String(prop)}").`,
+                WASM_BASE64
+                    ? "@doenet/math: the WASM core is not initialized yet. On the " +
+                          "browser main thread, `await initMathWasm()` during startup " +
+                          `before using math expressions (tried to access "${String(prop)}").`
+                    : "@doenet/math: the WASM core was not inlined into this build. " +
+                          "Run `npm run build -w packages/math` (its `build:wasm` step " +
+                          "compiles the Rust core) and rebuild anything that bundles it " +
+                          `(tried to access "${String(prop)}").`,
             );
         }
         return Reflect.get(target, prop, receiver);

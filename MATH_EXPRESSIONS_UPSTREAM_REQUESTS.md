@@ -7,7 +7,37 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — two items
+## Open — three items
+
+**`equals` says a determinant differs from its own value.** `\det\begin{pmatrix}1&2\\3&4\end{pmatrix}`
+simplifies to `-2` and `evaluate_to_constant`s to `-2`, and so does `-2`; `equals` between them is
+`false`. `trace` behaves the same way (`5` versus `false`). This is the third numeric path in the
+engine, and it is the one grading depends on: `equals` samples through `eval_complex`, whose
+`head_evaluable` (`eval_numeric/complex.rs`) asks `special_functions::eval1` whether a head is
+evaluable. `det` and `trace` have no scalar kernel there, so `is_opaque_atom` classifies the whole
+application as an **opaque variable** and samples it as one — a fresh unknown that agrees with `-2`
+at no sample. The reduction that produces the right answer lives one layer away, in
+`normalize/fold_apply.rs`'s `det`/`trace` arm over `crate::matrix::{det, trace}`, which
+`evaluate_to_constant` reaches through `simplify` and the sampler never consults. The fix is to
+teach the sampler the same arm — fold `Apply(det|trace, [Matrix])` through `crate::matrix` and
+recurse — with `head_evaluable` and `free_symbols` following, so a symbolic entry is still a free
+variable rather than part of an opaque key. Reproduce with:
+
+```bash
+npm run build -w packages/math
+node --input-type=module -e '
+import me from "./packages/math/dist/index.js";
+const d = me.fromLatex(String.raw`\det\begin{pmatrix}1&2\\3&4\end{pmatrix}`);
+console.log(d.simplify().tree, d.evaluate_to_constant());  // -2 -2
+console.log(d.equals(me.fromText("-2")));                  // false
+'
+```
+
+No DoenetML test grades a determinant today and no upstream spec covers `det` equality, so nothing
+is red — this is the same shape as the six grading defects the review did find, and it was missed
+for the same reason. The two *other* numeric paths agree on the matrix form (`f()` and
+`evaluate_to_constant` both answer `-2`, and `14` for `x = 5` in `[[x,2],[3,4]]`), which is now
+pinned by `appliedFunctionSymbols.test.ts`'s "matrix reducers" block; only the sampler diverges.
 
 **`substitute_component` accepts a receiver that is not a container, and answers.** Legacy validated
 the head at each level of the path and the index range, throwing `expected list, tuple, vector, or

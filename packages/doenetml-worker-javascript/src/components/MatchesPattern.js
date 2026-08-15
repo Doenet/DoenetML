@@ -398,9 +398,16 @@ export default class MatchesPattern extends BooleanComponent {
                 // ("Arbitrary per-parameter conditions are deprecated … declare
                 // a kind instead"), so passing one is a throw rather than the
                 // silent drop it was when this was written. "number" and
-                // "variable" are the same two tests, declared. Note the
-                // declared "variable" is the narrower test: the predicate it
-                // replaces was `typeof m === "string"`, which accepted `pi`.
+                // "variable" are the same two tests, declared.
+                //
+                // The named constants are the boundary worth knowing, and the
+                // declared kinds put them where the predicates did: `pi`, `e`
+                // and `i` are all strings in the AST, so all three still bind
+                // under "variable", and `pi`/`e` bind under "number" because
+                // they evaluate to one. `i` is the single difference — it does
+                // not, so "number" rejects it where `!Number.isNaN(...)` over
+                // this engine's `evaluate_to_constant` would have taken it.
+                // Pinned in `matchespattern.test.ts`.
                 let kind = "any";
                 if (dependencyValues.requireNumericMatches) {
                     kind = "number";

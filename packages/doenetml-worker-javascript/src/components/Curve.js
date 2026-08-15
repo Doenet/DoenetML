@@ -736,10 +736,12 @@ export default class Curve extends GraphicalComponent {
                 // consumer already tests the domain for finiteness, so this
                 // degrades to "no finite domain" and the renderer warns.
                 //
-                // The `parMin`/`parMax` attribute path is already `NaN` here
-                // (see their definitions); this covers the remaining source,
-                // a `<function>` child whose declared domain endpoint does not
-                // evaluate.
+                // Defensive rather than load-bearing: every producer of
+                // `parMin`/`parMax` now yields a number — the attribute path
+                // and the `<function>`-child domain path both go through
+                // `evaluateToNumber`, and the rest assign literals — so
+                // nothing currently reaches this with a non-number. It stays
+                // because the cost of being wrong is the whole document.
                 // closed interval [parMin, parMax]
                 let interval = me.fromAst([
                     "interval",

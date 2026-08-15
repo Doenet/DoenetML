@@ -3087,11 +3087,21 @@ describe("Function tag tests @group4", async () => {
         // removes it is the batch sampler: `evaluate_many` reports a
         // non-finite derivative sample as `NaN` where `.f()` reported
         // `±Infinity`, and the sign-change test `dleft * dright <= 0` is
-        // `false` for `NaN`, so the cell straddling the pole no longer
-        // brackets one (see `utils/extrema.js`). Seeding from
-        // `critical_points` is what keeps the four real extrema exact:
-        // -11.66601734921, -2.29152990292, 3.18454272065, 9.77300453148,
-        // the Sage values below and nothing near 5.
+        // `false` for `NaN`, so neither cell touching that sample brackets one
+        // (see `utils/extrema.js`).
+        //
+        // Be precise about the scope, because it is narrower than it looks:
+        // this works because a sample lands *exactly on* the pole. The default
+        // domain is [-100, 100] over 1000 intervals, so `dx = 0.2` and
+        // `-100 + 525 * 0.2` is bit-exactly 5. Move the pole off the grid —
+        // `(x - 5.1)^2` — and both adjacent samples are finite and of opposite
+        // sign, `fzero` runs, and the spurious minimum comes back (measured:
+        // 5.100000624836199). The general fix is written up in
+        // `MATH_EXPRESSIONS_ENGINE_NOTES.md`; this test pins the on-grid case.
+        //
+        // Seeding from `critical_points` is what keeps the four real extrema
+        // exact: -11.66601734921, -2.29152990292, 3.18454272065,
+        // 9.77300453148, the Sage values below and nothing near 5.
         let minima = minimumLocations.map((x) => [x, f(x)]);
         let maximumLocations = [
             -11.6660173492088, 3.18454272065031, 9.77300453148004,

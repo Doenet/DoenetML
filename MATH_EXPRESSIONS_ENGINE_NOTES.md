@@ -80,6 +80,18 @@ so merging this branch early would otherwise *publish* the broken tarball rather
 one possible; now it turns the publish job red. The block clears itself when the range changes —
 there is no flag to remember to flip.
 
+Two limits of that guard, stated so nobody over-reads it. It is a **shape test on the range**, run
+at build time with no network: it catches `file:`/`link:`/`portal:`/`workspace:`/`catalog:`, and a
+missing range, but a registry-shaped range naming something nobody published — `^3.0.0` before
+`math-expressions@3.x` exists, or the `"*"` this repo uses for private workspace packages — reads
+as publishable. So the guard enforces the *edit*, and the release order still has to be followed
+for the edit to be honest. And it is not atomic: the root `publish` script fans out with
+`npm run publish -w …`, which continues past a workspace that exits non-zero, so a premature merge
+refuses `@doenet/doenetml` and still ships `@doenet/standalone`, `@doenet/doenetml-iframe` and
+`@doenet/v06-to-v07` at that dev version before the job goes red. Those three are individually
+correct — they bundle the seam — but the fixed group ends up version-skewed. A preflight over all
+four built manifests before any of them publishes would close that, and is a small follow-up.
+
 ## Building
 
 A Rust toolchain is required: the `wasm32-unknown-unknown` target and a `wasm-bindgen-cli`
@@ -127,8 +139,8 @@ copies of the engine once the seam was externalized everywhere.
   throwing `get_component`, restoring the legacy contract for call sites that use the throw as a
   type test. The raw `get_component(` sites elsewhere (measured: 36 in `packages/doenetml/src`,
   4 in `@doenet/utils`, 22 in `doenetml-worker-javascript`) are each guarded by a shape test, a
-  `try`/`catch`, or an earlier boolean — except the six shadow reads named in the follow-ups
-  below.
+  `try`/`catch`, or an earlier boolean — except the eight unguarded reads named in the follow-ups
+  below, five of which are shadow reads.
 
 ## Known risks and open product decisions
 
@@ -144,6 +156,15 @@ copies of the engine once the seam was externalized everywhere.
   both paths by
   `packages/doenetml-worker-javascript/src/test/math/appliedFunctionSymbols.test.ts`, whose first
   assertion fails if a spelling is added to `appliedFunctionSymbolsDefault` without a probe.
+
+  There is a **third** numeric path, and it is not swept: `equals` samples through the engine's
+  `eval_complex`, which classifies an application it cannot evaluate as an *opaque variable*
+  rather than as `NaN`. `det` and `trace` land there — `\det[[1,2],[3,4]]` simplifies and
+  `evaluate_to_constant`s to `-2`, and `equals` between it and `-2` is nonetheless `false`. That
+  is the seventh grading-reaching divergence the review found, it is the only one left open, and
+  it is filed with a diagnosis and a fix location in `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md`. The
+  two paths the test file *does* guard agree on the matrix form, which its "matrix reducers" block
+  pins.
 
   One disagreement survives deliberately. `f()` hands a `Pow` node to math.js, which takes the
   principal complex branch for a fractional exponent, while the engine's own evaluators take the
@@ -231,9 +252,51 @@ copies of the engine once the seam was externalized everywhere.
    long tail: sites added since, and the guarded majority that should be converted for uniformity
    rather than because they are broken. Mechanical but large; belongs in its own PR with the count
    re-measured first, and with the 204/6 ratio as the expectation to calibrate against.
-4. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
-   items) and `active-plans/PR84_REVIEW_KNOWN_ISSUES.md` in the math-expressions repo (the full
-   crate/compat ledger).
+4. **A pole that no sample lands on still gets a spurious minimum.** The `<function>` extrema fix
+   for issue #940 is narrower than it reads: `evaluate_many` reports a derivative sample *on* the
+   pole as `NaN`, and `dleft * dright <= 0` is false for `NaN`, so the two cells touching that
+   sample drop out. `(x-5)^2` in the denominator works because the default `[-100, 100]` over 1000
+   intervals puts a sample bit-exactly on 5. Move the pole to 5.1 and both neighbours are finite
+   and opposite in sign, `fzero` runs, and the minimum comes back at `5.100000624836199`
+   (measured). The information for the general fix is already computed and thrown away:
+   `exactCriticalPointsOf` (`utils/extrema.js`) returns the *complete* real root set of `f'` when
+   the derivative is rational, so at `:719-734` a bracketed sign change that matches no exact root
+   is provably a discontinuity and the derivative branch should be skipped rather than falling
+   through to `fzero` — with a tolerance on the cell-membership test, since the roots arrive as
+   floats. The `fminbr` branch still runs, so genuine minima in that cell are unaffected. The
+   file's own header comment already names the gap. Same PR should carry two cheaper items in that
+   file: `exactCriticalPointsOf` and the derivative construction are pure functions of `formula`
+   and are recomputed on each of up to ~1000 cells × 100 recursion levels (pass them down through
+   `argsForRecursion`), and the `1e-3` tolerance on the extrema-location assertions in
+   `functionTag.test.ts` cannot distinguish an exact root from a refined one, so the "no refinement
+   round-off" half of the claim is unpinned.
+5. **`@doenet/static-assets`' generated `math-assets.json` is stale, and nothing checks it.**
+   `packages/static-assets/src/generated/math-assets.json` is produced by
+   `scripts/generate-math-assets.ts`, which runs under `build:assets` — *not* under `build:schema`,
+   which is what the `schema-freshness` CI job verifies. So the copy in git has drifted: its
+   `appliedFunctionSymbolsDefault` is missing `cbrt` and `nthroot` (65 entries against the source's
+   67). Its one consumer is `packages/doenetml-worker-rust/lib-js-wasm-binding/src/math-utils.ts`,
+   which uses it as the parser's applied-function list, so in that realm `nthroot(x,3)` parses as a
+   product of letters rather than as a root. Pre-existing — identical on `upstream/main`, and the
+   engine switch neither caused it nor changed it — but it is adjacent to the twelfth pass's
+   `nthroot` work and it is one line of CI to prevent (extend `schema-freshness` to run
+   `build:assets`, or fold the generator into `build:schema`).
+6. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (three open
+   items, one of them a seventh grading-reaching divergence: `equals` reads a determinant as an
+   opaque variable, so `\det[[1,2],[3,4]]` and `-2` compare unequal) and
+   `active-plans/PR84_REVIEW_KNOWN_ISSUES.md` in the math-expressions repo (the full crate/compat
+   ledger).
+7. **Smaller, all measured during review, none blocking.** CI installs no `binaryen`, so
+   `build-wasm.sh`'s `wasm-opt -Oz` is skipped and every published bundle carries the unoptimized
+   core *twice* (standalone and the worker) — and a developer who happens to have `wasm-opt` on
+   `PATH` builds a materially smaller, different artifact than CI does, which
+   `check-bundle-size.mjs` cannot see. `packages/lsp/test/language-server.test.ts` boots an LSP
+   worker in each of six `it()`s and terminates none (node realm, torn down at end of file, so it
+   is a tidiness item rather than the OOM shape the PreTeXt and prototype suites had).
+   `Function.js` carries four hand-copied `inputMathFs` blocks — two symbolic, two numeric — and
+   the new `inputNumericFs` flag correctly went on the numeric pair only, which means correctness
+   now rests on telling four look-alike blocks apart; extracting
+   `symbolicInputFs`/`numericInputFs` would make the pairing structural.
 
 ## What is still riding along, and should not be
 

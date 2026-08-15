@@ -16,15 +16,27 @@
  * put an unresolvable import — or a silent fallback to the unrelated
  * `math-expressions@2.x` on npm — into every consumer's build.
  */
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createPackageJsonTransformer } from "../../../scripts/transform-package-json";
+
+const REPO_ROOT = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../..",
+);
 
 /**
  * A minimal source manifest. `name` must be a package the transformer can
  * resolve, because it locates the package root to rewrite relative paths;
  * `@doenet/standalone` is this package itself.
+ *
+ * `fields` may name any of `dependencies` / `peerDependencies` /
+ * `devDependencies`, because which field a range is declared in decides which
+ * one the transformer reads.
  */
-function sourceManifest(dependencies) {
+function sourceManifest(fields) {
     return JSON.stringify({
         name: "@doenet/standalone",
         version: "1.2.3",
@@ -33,17 +45,21 @@ function sourceManifest(dependencies) {
         exports: { ".": { import: "./dist/index.js" } },
         scripts: { build: "vite build" },
         wireit: {},
-        dependencies,
+        ...fields,
     });
 }
 
-/** Run the transformer as `viteStaticCopy` would and parse the result. */
-function transform(dependencies, externalDeps) {
+/**
+ * Run the transformer as `viteStaticCopy` would and parse the result.
+ * `fields` is the dependency-declaring part of the source manifest, so a test
+ * can put a range in `devDependencies` instead of `dependencies`.
+ */
+function transformFields(fields, externalDeps) {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
         const output = createPackageJsonTransformer({ externalDeps })(
-            sourceManifest(dependencies),
-            "/home/nykamp/src/DoenetML3/packages/standalone/package.json",
+            sourceManifest(fields),
+            path.join(REPO_ROOT, "packages/standalone/package.json"),
         );
         return {
             pkg: JSON.parse(output),
@@ -52,6 +68,11 @@ function transform(dependencies, externalDeps) {
     } finally {
         warn.mockRestore();
     }
+}
+
+/** The common case: everything declared as a plain `dependencies` entry. */
+function transform(dependencies, externalDeps) {
+    return transformFields({ dependencies }, externalDeps);
 }
 
 describe("createPackageJsonTransformer", () => {
@@ -97,7 +118,36 @@ describe("createPackageJsonTransformer", () => {
         expect(warnings.join("\n")).toMatch(/some-forgotten-dep/);
     });
 
-    it.each(["link:../math", "portal:../math", "workspace:*"])(
+    it("does not let a devDependency shadow the range that ships", () => {
+        // The guard reads one range per externalized dep, so the field it reads
+        // it from decides whether the guard fires at all. `devDependencies` is
+        // the lowest-precedence source: a `math-expressions` devDependency
+        // added for tests must not clear a block that `dependencies` still
+        // earns.
+        const { pkg, warnings } = transformFields(
+            {
+                dependencies: { "math-expressions": "file:../math" },
+                devDependencies: { "math-expressions": "^3.0.0" },
+            },
+            ["math-expressions"],
+        );
+
+        expect(pkg.private).toBe(true);
+        expect(pkg.peerDependencies["math-expressions"]).toBe("file:../math");
+        expect(warnings.join("\n")).toMatch(/math-expressions/);
+    });
+
+    it("falls back to devDependencies when nothing else declares the dep", () => {
+        const { pkg } = transformFields(
+            { devDependencies: { react: "^19.2.3" } },
+            ["react"],
+        );
+
+        expect(pkg.private).toBe(false);
+        expect(pkg.peerDependencies).toEqual({ react: "^19.2.3" });
+    });
+
+    it.each(["link:../math", "portal:../math", "workspace:*", "catalog:"])(
         "treats %s as unpublishable too",
         (range) => {
             const { pkg } = transform({ "math-expressions": range }, [
@@ -128,5 +178,55 @@ describe("createPackageJsonTransformer", () => {
         expect(pkg.dependencies).toBeUndefined();
         expect(pkg.name).toBe("@doenet/standalone");
         expect(pkg.version).toBe("1.2.3");
+    });
+});
+
+/**
+ * The tests above pin the transformer; these pin the one configuration that
+ * has to reach it. The guard is only load-bearing if `@doenet/doenetml` hands
+ * it the *whole* externalized list: this config used to pass a filtered copy
+ * with `math-expressions` removed, precisely because a `file:` range looked
+ * wrong in a published manifest, and with that filter in place the transformer
+ * sees nothing to complain about and the built package publishes.
+ *
+ * Read from source rather than from a build, so the assertion holds without
+ * building `@doenet/doenetml` first.
+ */
+describe("packages/doenetml externalizes the math seam and declares it", () => {
+    const configSource = readFileSync(
+        path.join(REPO_ROOT, "packages/doenetml/vite.config.ts"),
+        "utf8",
+    );
+    const manifest = JSON.parse(
+        readFileSync(
+            path.join(REPO_ROOT, "packages/doenetml/package.json"),
+            "utf8",
+        ),
+    );
+
+    /** The `EXTERNAL_DEPS = [...]` array literal, parsed. */
+    const externalDeps = JSON.parse(
+        configSource
+            .match(/const EXTERNAL_DEPS = (\[[^\]]*\])/)[1]
+            .replace(/,\s*\]$/, "]"),
+    );
+
+    it("externalizes math-expressions", () => {
+        expect(externalDeps).toContain("math-expressions");
+    });
+
+    it("passes the unfiltered list to the package.json transformer", () => {
+        expect(configSource).toMatch(
+            /createPackageJsonTransformer\(\{\s*externalDeps: EXTERNAL_DEPS,?\s*\}\)/,
+        );
+    });
+
+    it("declares a range for every externalized dep", () => {
+        const declared = {
+            ...manifest.devDependencies,
+            ...manifest.peerDependencies,
+            ...manifest.dependencies,
+        };
+        expect(externalDeps.filter((dep) => !declared[dep])).toEqual([]);
     });
 });

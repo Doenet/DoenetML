@@ -1132,6 +1132,48 @@ describe("MatchesPattern tag tests @group3", async () => {
         ).eq("a");
     });
 
+    it("requireNumericMatches and requireVariableMatches on named constants", async () => {
+        // `pi`, `e` and `i` are strings in the AST but constants to the
+        // engine, which is the boundary the declared match kinds sit on: all
+        // three are variables, and only the first two are numbers. See the
+        // comment on `kind` in `MatchesPattern.js`.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p>Expression: <mathInput name="expr" /></p>
+  <p><matchesPattern name="m" pattern="cx+c" parameters="c" requireNumericMatches>$expr</matchesPattern></p>
+  <p><matchesPattern name="mv" pattern="cx+c" parameters="c" requireVariableMatches>$expr</matchesPattern></p>
+  `,
+        });
+
+        for (const [value, isNumber, isVariable] of [
+            ["\\pi x+\\pi", true, true],
+            ["ex+e", true, true],
+            ["ix+i", false, true],
+            ["3x+3", true, false],
+            ["ax+a", false, true],
+        ] as [string, boolean, boolean][]) {
+            await updateMathInputValue({
+                latex: value,
+                componentIdx: await resolvePathToNodeIdx("expr"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .value,
+                `requireNumericMatches on ${value}`,
+            ).eq(isNumber);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("mv")].stateValues
+                    .value,
+                `requireVariableMatches on ${value}`,
+            ).eq(isVariable);
+        }
+    });
+
     it("parameters honor allowImplicitIdentities", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

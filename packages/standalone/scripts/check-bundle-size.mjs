@@ -170,19 +170,26 @@ export function countInlinedBinaries(text) {
     let bareWasmBlobs = 0;
     let otherBlobs = 0;
     let run = 0;
-    const finish = (end) => {
+    function finish(end) {
         if (run < BIG_BLOB_MIN) {
             return;
         }
         const start = end - run;
-        if (text.startsWith(WASM_URI_PREFIX, start - WASM_URI_PREFIX.length)) {
+        // The length test is not redundant: `startsWith` clamps a negative
+        // position to 0, so without it a blob beginning within the first
+        // `WASM_URI_PREFIX.length` characters of the file would be classified
+        // by whether the *file* starts with the prefix.
+        if (
+            start >= WASM_URI_PREFIX.length &&
+            text.startsWith(WASM_URI_PREFIX, start - WASM_URI_PREFIX.length)
+        ) {
             wasmUriBlobs++;
         } else if (text.startsWith(WASM_MAGIC_BASE64, start)) {
             bareWasmBlobs++;
         } else {
             otherBlobs++;
         }
-    };
+    }
     for (let i = 0; i < text.length; i++) {
         const c = text.charCodeAt(i);
         const isBase64 =

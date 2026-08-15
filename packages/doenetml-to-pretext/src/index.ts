@@ -189,17 +189,6 @@ export class DoenetMLToPretext {
 }
 
 /**
- * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
- */
-export async function createWrappedCoreWorker() {
-    const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-        type: "module",
-    });
-
-    return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
-}
-
-/**
  * Convert a DoenetML string into a static PreTeXt representation.
  */
 export async function doenetMLToPretext(
