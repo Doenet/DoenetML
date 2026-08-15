@@ -143,6 +143,19 @@ copies of the engine once the seam was externalized everywhere.
   `utils/extrema.js` had two such negations — `find_local_global_maxima`'s `formulaFlip` and
   `flip_function_children`'s per-piece one — and both are now `multiply(-1)`. Reach for
   `multiply`/`add`/`substitute`: they stay inside the engine.
+- **`evaluate_to_constant()` can return a math.js `Complex`, and the vendored
+  declaration said otherwise.** Legacy returned a plain number for a real value and a complex one
+  for a non-real value, and the engine keeps that contract — `fromText("i").evaluate_to_constant()`
+  is `{re: 0, im: 1}`, not `null`. `packages/math/src/vendored/math-expressions.d.ts` declared
+  `number | null`, which mattered only after the seventh pass made `copyDtsFiles` deliver these
+  declarations to consumers: from then on the narrow type type-checked code that cannot hold what it
+  is handed. Widened to `number | Complex | null` (the `Complex` type was already declared in that
+  file, and `evaluate()` beside it already uses it), which immediately found two: the identical
+  `numberFromSerializedAst` in `doenetml-to-pretext` and `doenetml-prototype` promised `number` and
+  returned `evaluate_to_constant() ?? NaN`, so a non-real value left a `{re, im}` object in a
+  declared `number` — and `graph-point.tsx` puts the result straight into a plotted coordinate.
+  Both now use `toNumberOrNaN`, which is the helper that exists for exactly this and catches both
+  the `null` and the `Complex` case.
 - **Sparse vector ASTs are marked, not guessed at**: `markUnspecifiedComponents` writes the
   `UNSPECIFIED_COMPONENT` marker into empty slots (`Point.js`, `Ray.js`, `Vector.js`,
   `DirectionComponent.js` leave holes; `JSON.stringify` would turn them into `null`, which the

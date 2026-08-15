@@ -639,11 +639,21 @@ export interface Expression {
     finite_field_evaluate(bindings: Bindings, modulus: number): number;
 
     /**
-     * Evaluate to a constant number if possible
+     * Evaluate to a constant if possible.
+     *
+     * `Complex` is not an oversight: legacy returned a plain number for a real
+     * value and a complex one for a non-real value, and the engine keeps that
+     * contract — `fromText("i").evaluate_to_constant()` is a math.js `Complex`,
+     * not `null`. Callers that need a number must narrow (`plainComplex` and
+     * `toNumberOrNaN` in DoenetML exist for it); callers that pass the result
+     * back into math.js want the `Complex` intact.
+     *
      * @param options Evaluation options
-     * @returns Constant value or null if expression contains variables
+     * @returns Constant value, or null if the expression contains variables
      */
-    evaluate_to_constant(options?: EvaluateToConstantOptions): number | null;
+    evaluate_to_constant(
+        options?: EvaluateToConstantOptions,
+    ): number | Complex | null;
 
     /**
      * Check if expression is analytic (has no discontinuities)
@@ -1147,7 +1157,7 @@ export interface Context {
     evaluate_to_constant(
         expr: Expression | Tree,
         options?: EvaluateToConstantOptions,
-    ): number | null;
+    ): number | Complex | null;
     isAnalytic(
         expr: Expression | Tree,
         options?: IsAnalyticOptions | string[],

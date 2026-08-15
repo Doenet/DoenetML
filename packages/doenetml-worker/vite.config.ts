@@ -7,10 +7,15 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 export default defineConfig({
     resolve: {
         // `math-expressions` (the `@doenet/math` seam) arrives here through
-        // several dependencies, each of which externalizes it. Without dedupe
-        // they resolve to distinct module instances and this bundle ends up
-        // with two copies of the engine — ~4.5 MiB of duplicated inlined WASM,
-        // and two separate WASM instantiations at runtime.
+        // several dependencies, each of which externalizes it. This entry is
+        // **defensive**, not a fix for an observed duplication: every one of
+        // those dependencies declares the identical `file:../math` range, so
+        // npm hoists a single `node_modules/math-expressions` symlink and vite
+        // resolves it to one realpath for all of them. What it guards is a
+        // future in which that stops being true — a differing range nests a
+        // second install, and this bundle picks up two copies of the engine
+        // (~4.5 MiB of duplicated inlined WASM, and two WASM instantiations at
+        // runtime) with nothing to make that visible but the bundle size.
         //
         // The seam is deliberately NOT externalized here: this bundle is
         // fetched on its own by URL and has to stay self-contained (see the
