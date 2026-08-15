@@ -29,6 +29,12 @@ const defaultFlags = {
 
 export class DoenetMLToPretext {
     _worker: Comlink.Remote<CoreWorker> | null = null;
+    /**
+     * The `Worker` behind {@link _worker}. Comlink's proxy does not expose the
+     * port it wraps, so the raw handle has to be kept for {@link dispose} to
+     * have anything to terminate.
+     */
+    _rawWorker: Worker | null = null;
 
     async _ensureWorker() {
         if (!this._worker) {
@@ -103,8 +109,33 @@ export class DoenetMLToPretext {
         const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
             type: "module",
         });
+        this._rawWorker = worker;
 
         return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
+    }
+
+    /**
+     * Shut the core worker down and release everything it holds.
+     *
+     * A core worker is not cheap: it holds the whole worker bundle plus two
+     * instantiated WASM modules (the DoenetML core and, since the math engine
+     * moved to Rust, `@doenet/math`), and nothing reclaims it while the realm
+     * is alive. Anything that creates a converter per document — a batch
+     * conversion, a test file — must call this, or every conversion leaves a
+     * live worker behind for the lifetime of the page.
+     *
+     * Safe to call more than once, and safe to call on a converter that never
+     * booted a worker. The instance is reusable afterwards: the next
+     * conversion boots a fresh worker.
+     */
+    dispose() {
+        // Terminate the worker rather than releasing the Comlink proxy:
+        // `releaseProxy` waits for the worker to acknowledge, which a wedged
+        // or already-dead worker never does. Terminating tears down the
+        // message port with the realm.
+        this._rawWorker?.terminate();
+        this._rawWorker = null;
+        this._worker = null;
     }
 
     async _runDastThroughWorker(
@@ -176,7 +207,14 @@ export async function doenetMLToPretext(
     options: { throwOnError?: boolean } & ConvertOptions = {},
 ): Promise<string> {
     const converter = new DoenetMLToPretext();
-    return await converter.convert(doenetML, options);
+    try {
+        return await converter.convert(doenetML, options);
+    } finally {
+        // This function owns the converter it just made, so it owns the
+        // worker's lifetime too. Without this, calling it once per document
+        // leaks one core worker per call — see {@link DoenetMLToPretext.dispose}.
+        converter.dispose();
+    }
 }
 
 /**

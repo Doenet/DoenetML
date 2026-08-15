@@ -25,14 +25,32 @@ const PAGE_BUDGET_MS = 5000;
  *
  * Anything past {@link PAGE_BUDGET_MS} is not the document taking its time —
  * the in-page watchdog would have answered by then. It is the WebDriver session
- * itself wedged, which is what took `DoenetML to PreTeXt Tests` down twice on
- * this branch, both times on the *last* test in `pretext-export.test.ts` after
- * ~50 core boots through one Chrome session. Raising vitest's `testTimeout`
- * from 5 s to 60 s only changed which number the failure was reported at. So
- * this budget is the one that matters, and blowing it means throwing the
+ * no longer answering at all, which is how `pretext-export.test.ts` failed
+ * three times on this branch, always in the last tests of the file.
+ *
+ * What was actually wrong was upstream of WebDriver: every conversion leaked
+ * its core worker, so one page accumulated ~50 of them, ~140 MB apiece
+ * (measured: +7.0 GB of Chrome across the file, climbing monotonically to the
+ * last test). The renderer ran the runner out of memory and stopped servicing
+ * BiDi — the run that prompted this note reported it as
+ * `Command network.continueRequest ... timed out`. `DoenetMLToPretext.dispose`
+ * fixes that, and with it the file holds steady: capped at 6 GB with
+ * `systemd-run -p MemoryMax=6G`, the leaking build never finished at all while
+ * the fixed one passes in ~66 s.
+ *
+ * This budget stays as the net underneath, because a session that has stopped
+ * answering must not be waited on: it does not fail, it hangs, and a hang
+ * spreads to every test after it. Blowing this budget means throwing the
  * session away rather than waiting on it.
  */
 const SESSION_BUDGET_MS = 20000;
+
+/**
+ * How long {@link RunThroughCore.close} waits for a polite `deleteSession`
+ * before walking away from it. Comfortably inside vitest's 10 s `afterAll`
+ * hook timeout, so a session that has stopped answering cannot fail the hook.
+ */
+const CLOSE_BUDGET_MS = 5000;
 
 /** Sentinel for "the round trip blew {@link SESSION_BUDGET_MS}". */
 const WEDGED = Symbol("webdriver session wedged");
@@ -118,11 +136,39 @@ export class RunThroughCore {
             ...(message as any).args.map((a: any) => a.value),
         ); // (message as any).text, "args:", (message as any).args);
     }
+    /**
+     * Give the session back, without ever waiting on it indefinitely.
+     *
+     * `deleteSession` is itself a WebDriver command, so on a session that has
+     * stopped answering it does not answer either: it neither resolves nor
+     * rejects. Awaiting it bare — which is what this used to do — turns one
+     * wedged round trip into a hang that outlives the test that caused it, so
+     * the *next* test times out too and `afterAll` times out after that. That
+     * is exactly the three-failure shape seen in
+     * https://github.com/Doenet/DoenetML/actions/runs/31852722677.
+     *
+     * So: drop the handle first, then give the teardown a bounded chance to be
+     * polite. Either way the caller gets control back and {@link ready} builds
+     * a fresh session.
+     */
     async close() {
-        if (this.browser) {
-            await this.browser.deleteSession();
-            this.browser = undefined;
-            this._initPromise();
+        const browser = this.browser;
+        if (!browser) {
+            return;
+        }
+        this.browser = undefined;
+        this._initPromise();
+
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+            await Promise.race([
+                browser.deleteSession().catch(() => {}),
+                new Promise<void>((resolve) => {
+                    timer = setTimeout(resolve, CLOSE_BUDGET_MS);
+                }),
+            ]);
+        } finally {
+            clearTimeout(timer);
         }
     }
 
@@ -170,11 +216,18 @@ export class RunThroughCore {
                             if (theJob.kind === "convertMultiple") {
                                 // @ts-ignore
                                 const converter = new DoenetMLToPretext();
-                                resolve(
-                                    await converter.convertMultiple(
-                                        theJob.sources,
-                                    ),
-                                );
+                                try {
+                                    resolve(
+                                        await converter.convertMultiple(
+                                            theJob.sources,
+                                        ),
+                                    );
+                                } finally {
+                                    // One core worker per converter, and this
+                                    // page outlives ~50 of them; see
+                                    // `DoenetMLToPretext.dispose`.
+                                    converter.dispose();
+                                }
                             } else {
                                 // @ts-ignore
                                 const dast = await doenetMLToPretext(
@@ -213,11 +266,10 @@ export class RunThroughCore {
             lastError = new Error(
                 `WebDriver did not answer within ${SESSION_BUDGET_MS} ms, though the page had only ${PAGE_BUDGET_MS} ms to work; discarding the session.`,
             );
-            // `deleteSession` on a wedged session can wedge too. Drop the
-            // handle either way so `ready()` builds a new one.
+            // `close()` drops the handle before it waits, and bounds the wait,
+            // so this both returns and leaves `ready()` able to build a new
+            // session.
             await this.close().catch(() => {});
-            this.browser = undefined;
-            this._initPromise();
         }
 
         throw lastError;

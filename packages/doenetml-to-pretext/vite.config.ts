@@ -61,10 +61,14 @@ export default defineConfig(({ mode }) => {
             // then again, after the raise, at 60,031 ms in
             // https://github.com/Doenet/DoenetML/actions/runs/31821055854 —
             // both times on the same test, which takes 684 ms locally. A number
-            // that moves with the limit is not a slow test. The cause is the
-            // WebDriver session wedging, and it is handled where it happens, in
-            // `test/utils/run-through-core.ts`. This stays generous so a real
-            // slow document is not misreported as one.
+            // that moves with the limit is not a slow test; it is a hang.
+            //
+            // The hang was the file leaking one core worker per conversion
+            // until the browser ran the runner out of memory; the fix is
+            // `DoenetMLToPretext.dispose`, see `test/utils/run-through-core.ts`
+            // for the measurements. This stays generous so a genuinely slow
+            // document is not misreported as a hang, and because a wedged
+            // session still costs the round-trip budget plus one retry.
             testTimeout: 60000,
         },
     };
