@@ -81,13 +81,27 @@ one possible; now it turns the publish job red. The block clears itself when the
 there is no flag to remember to flip.
 
 Two limits of that guard, stated so nobody over-reads it. It is a **shape test on the range**, run
-at build time with no network. What it tests is npm's own classification — a range
+at build time with no network. What it tests is npm's own classification — the ranges
 `npm-package-arg` resolves to a `directory` or a local `file` — rather than a list of spellings
-anyone thought of, which is the third form the test has taken: the thirteenth pass wrote the
+anyone thought of, which is the fourth form the test has taken: the thirteenth pass wrote the
 protocols (`file:`/`link:`/`portal:`/`workspace:`/`catalog:`/`git+file:`), the fifteenth found the
-bare path (`../math` installs the sibling directory exactly as `file:../math` does), and the
-sixteenth found `~/src/math-expressions` and a bare tarball path still passing. Mirroring the
-definition is what stops that sequence. It still catches a missing range too, but a
+bare path (`../math` installs the sibling directory exactly as `file:../math` does), the sixteenth
+found `~/src/math-expressions` and a bare tarball path still passing, and the seventeenth found
+that the *third* branch of `npa`'s classification had never been mirrored at all. Any protocol-less
+spec containing a separator is a path to npm — no leading dot, no `~/`, no drive letter and no
+`.tgz` needed — so `"math-expressions": "vendor/math-expressions/packages/…"`, the spelling this
+monorepo would actually write, read as publishable and shipped an unresolvable peer range. Measured
+against npm 11.12.1, which installs `sub/dir/pkg` as a symlink to that directory.
+
+The remaining divergences from `npa` are deliberate, and each is asserted: the guard is stricter on
+`link:`/`portal:`/`workspace:`/`catalog:` (npm *throws* `EUNSUPPORTEDPROTOCOL` on those rather than
+classifying them, so "not local" is not "publishable"), on `\\unc\path` (a `directory` to `npa`
+only when it runs on Windows — the platform union is the point), and on a one-slash `.tar.gz`
+(`vendor/math.tar.gz` is the GitHub shorthand for a repository named `math.tar.gz` to `npa`; anyone
+who writes it means a tarball). The one thing it cannot separate is a one-slash path from the
+`user/repo` shorthand, because nothing in the spelling distinguishes them — and npm resolves that
+case as a clone, so the guard agrees with npm rather than diverging. It still catches a missing
+range too, but a
 registry-shaped range naming something nobody published — `^3.0.0` before
 `math-expressions@3.x` exists, or the `"*"` this repo uses for private workspace packages — reads
 as publishable. So the guard enforces the *edit*, and the release order still has to be followed
@@ -216,7 +230,7 @@ copies of the engine once the seam was externalized everywhere.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
   the primary risk of the engine switch and the ordinary suites are all that guard it. A green
   suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
-  turned up **eight** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  turned up **nine** wrong-answer-on-grading defects, and no pre-existing test named any of them.
   Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
   identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
   correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
@@ -247,14 +261,30 @@ copies of the engine once the seam was externalized everywhere.
   `evaluate_to_constant` was `None`. Both layers now go through one helper,
   `normalize::spread_list_argument`, the way `det`/`trace` go through `matrix::scalar_reduction`.
 
-  Read the eight together and the pattern is not "the engine is wrong" but "the suites test one
-  path at a time". Four of the eight were invisible because a *different* path answered correctly:
-  `nthroot` graded while it could not be plotted, `erf` plotted while it could not be graded, and
-  `det`/`trace` did both while they could not be compared. Two of the eight were codified as
-  deliberate in a test's own exemption list before anyone measured them. And the last two are the
-  same shape reached twice, which is the argument for the shared-helper habit rather than for a
-  longer list of special cases: whenever *two* layers decide independently whether an application
-  has a value, they will eventually answer differently.
+  The ninth is not an engine defect at all but a DoenetML one, and it is the *other* recurring
+  shape: `evaluate_to_constant` answers `null` where legacy answered `NaN`, and `null` coerces to
+  `0`. `<isBetween lowerLimit="-1" upperLimit="1">x</isBetween>` reported a free variable as lying
+  inside the interval, because `null > -1 && null < 1` is `true` while `NaN > -1` is `false`. Its
+  two siblings in the same file guard with `Number.isFinite`; this one did not. Found at the
+  seventeenth pass, pinned in `booleanoperatorsonmath.test.ts`, and it is why follow-up 3 below is
+  a follow-up rather than closed — the population it names is where the rest of this class lives.
+
+  Read the nine together and the pattern is not "the engine is wrong" but "the suites test one
+  path at a time". **Three** of them were invisible because a *different* path answered
+  correctly: `erf` plotted while it could not be graded, `det`/`trace` simplified *and* plotted
+  while they could not be compared, and `f((a, b))` folded while it could not be compared. Two
+  were codified as deliberate in a test's own exemption list before anyone measured them. The
+  seventh and eighth are the same shape reached twice, which is the argument for the shared-helper
+  habit rather than for a longer list of special cases: whenever *two* layers decide independently
+  whether an application has a value, they will eventually answer differently. And the ninth says
+  the same thing about a *guard*: a helper that exists (`evaluateToNumber`) is worth nothing at the
+  one call site that does not use it.
+
+  `nthroot` is the mirror image of `erf` and is deliberately **not** among the eight: it could not
+  be plotted while grading it worked perfectly, so no answer was ever marked wrong. It belongs to
+  the same lesson about single-path testing and to none of the grading arithmetic — an earlier
+  wording counted it as one of the eight and split `det`/`trace` into two to reach "four", which is
+  the same error twice.
 
 ## Follow-up PRs, written up so they can be opened from here
 
@@ -383,6 +413,18 @@ copies of the engine once the seam was externalized everywhere.
    the new `inputNumericFs` flag correctly went on the numeric pair only, which means correctness
    now rests on telling four look-alike blocks apart; extracting
    `symbolicInputFs`/`numericInputFs` would make the pairing structural.
+9. **Nothing in CI runs `tsc`, so a type error in `packages/doenetml` is invisible.** The job named
+   `Lint Typescript Code` runs Prettier and a case-insensitive-filename check, and nothing else;
+   `packages/doenetml`'s build is `vite build`, whose `vite-plugin-dts` step *logs* every
+   diagnostic and still exits `0` (measured: 43 diagnostics logged, exit 0). That is how the
+   sixteenth pass's widening of `evaluate_to_constant` — correct, and the reason two real defects
+   were found — could leave 22 fresh `TS2322`s in `packages/doenetml` and one in
+   `doenetml-worker-rust` without turning anything red. The seventeenth pass fixed those 23, but
+   the *guard* is still missing, and adding it is not a one-liner: `npx tsc --noEmit` in
+   `packages/doenetml` reports **18** further errors that predate this branch (17 are JSXGraph
+   label/circle typings in the renderers, one is `RoundType` used as a type in `pegboard.tsx`).
+   The follow-up is those 18 plus a `typecheck` step per package, and it wants its own PR — the
+   fix for each is a typings question with no math in it.
 
 ## What is still riding along, and should not be
 

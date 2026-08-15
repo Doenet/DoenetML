@@ -167,6 +167,24 @@ describe("createPackageJsonTransformer", () => {
         "~/src/math-expressions",
         "C:/math",
         "math.tgz",
+        // A *bare* path — no leading dot, no `~/`, no drive letter, no `.tgz`.
+        // npm reaches these on the branch after `isFileSpec` and
+        // `hosted-git-info` have both declined: any protocol-less spec with a
+        // separator is a path. Verified against npm 11.12.1, which installs
+        // `sub/dir/pkg` as a symlink to that directory. This is the spelling
+        // the monorepo would actually write, since every real path in it starts
+        // `vendor/` or `packages/`.
+        "vendor/math-expressions/packages/math-expressions-js-compat",
+        "some/dir/math",
+        // One slash, but not a `user/repo` shape: a trailing slash, and a
+        // scoped-package-shaped spec, are both directories to npm.
+        "math/",
+        "@scope/pkg",
+        // Leading whitespace is not an escape — npm trims the spec first.
+        " ../math",
+        // Deliberately stricter than `npm-package-arg`, which reads this as the
+        // GitHub shorthand for a repository named `math.tar.gz`. Anyone who
+        // writes a `.tar.gz` range means a tarball on this machine.
         "vendor/math.tar.gz",
     ])("treats %s as unpublishable too", (range) => {
         const { pkg } = transform({ "math-expressions": range }, [
@@ -185,6 +203,23 @@ describe("createPackageJsonTransformer", () => {
         // A tarball a consumer's installer really can fetch. The local-tarball
         // test above must not swallow this one.
         "https://example.com/math-3.0.0.tgz",
+        // The one protocol-less spec with a slash that is *not* a path: npm
+        // clones it from GitHub, so the bare-path test above must not swallow
+        // it either. `#committish` and `#semver:` forms included, since those
+        // add the characters that make it look least like a shorthand.
+        "user/repo",
+        "user/repo#main",
+        "user/repo#semver:^3",
+        "github:user/repo",
+        // The acknowledged limit of the bare-path test, and it matches npm:
+        // a *one-slash* path is indistinguishable from that shorthand, so npm
+        // clones `github.com/packages/math` rather than installing a directory.
+        // It is not a realistic escape — npm resolves a local path relative to
+        // the *manifest*, so a path this repo would write from
+        // `packages/doenetml/` starts `../`, which is caught above.
+        "packages/math",
+        // A range with a space in it, which must not be mistaken for a path.
+        ">= 1.0.0 || ^2",
     ])("still publishes with the registry range %s", (range) => {
         const { pkg } = transform({ "math-expressions": range }, [
             "math-expressions",

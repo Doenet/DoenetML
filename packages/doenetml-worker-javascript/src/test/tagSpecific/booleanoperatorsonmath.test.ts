@@ -390,4 +390,63 @@ describe("Boolean Operator tag tests @group4", async () => {
         });
         await check_items(x, x1, x2, strict);
     });
+
+    /**
+     * A math that is not a constant at all — a free variable, or an expression
+     * that only *looks* like it cancels — must be outside every interval.
+     *
+     * `evaluate_to_constant` answers `null` for those, and `null` coerces to
+     * `0` in a `<`/`>` comparison, so `<isBetween>` reported a free variable as
+     * lying inside any interval containing zero. The legacy engine returned
+     * `NaN` here instead (its `nan_for_non_numeric` default), which fails both
+     * comparisons — so this read as correct until the engine switch, and
+     * `<isBetween>` feeds `<answer>` through `<when>`.
+     *
+     * The limits are asymmetric about zero so a wrong `0` cannot be right by
+     * accident, and `x-x` is included because it is a case where cancelling
+     * *would* give a number: `evaluate_to_constant` deliberately does not
+     * cancel first, so it is `null` rather than `0`.
+     */
+    it("isBetween is false for a math that is not a constant", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="x"/>
+    <isBetween name="ib" limits="-1 5">$x</isBetween>
+    <isBetween name="ibStrict" limits="-1 5" strict>$x</isBetween>
+    `,
+        });
+
+        async function check(expected: boolean) {
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ib")].stateValues
+                    .value,
+            ).eq(expected);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ibStrict")]
+                    .stateValues.value,
+            ).eq(expected);
+        }
+
+        // A number in the interval: the control, so a test that always
+        // answered `false` would fail here.
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("x"),
+            core,
+        });
+        await check(true);
+
+        for (const latex of ["y", "x-x", "y+1", "0y"]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("x"),
+                core,
+            });
+            await check(false);
+        }
+    });
 });

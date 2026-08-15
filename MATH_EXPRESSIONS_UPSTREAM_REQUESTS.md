@@ -116,15 +116,20 @@ the sampler was the half that was wrong. And that entry's example,
 argument into an argument list first, so a DoenetML tree could not reach it and only the text
 parser could.
 
-Related, and **open rather than closed**: the sweep accompanying the `det` fix concluded that
-`rootof`, the one remaining registry definition with no evaluation, was unreachable because
-`canonicalize` rewrites `Apply(rootof, …)` into the `Expr::RootOf` leaf. The rewrite is heavily
-conditional — it needs an already-expanded univariate polynomial — so
-`rootof((x-1)(x-2), 0)` stays an opaque application and compares unequal to `1` and to
-`rootof(x^2-3x+2, 0)`. It is narrower than the `det` defect (the residue is self-consistent, so
-nothing simplifies to a value it then denies) and `rootof` is in neither of DoenetML's
-applied-function lists, so it is filed in the crate's
-`active-plans/PR84_REVIEW_KNOWN_ISSUES.md` rather than fixed here.
+Related, and **fixed at the current pin** after being filed once: the sweep accompanying the `det`
+fix concluded that `rootof`, the one remaining registry definition with no evaluation, was
+unreachable because `canonicalize` rewrites `Apply(rootof, …)` into the `Expr::RootOf` leaf. The
+rewrite is conditional — `from_apply_args` has to be able to read the polynomial argument, and
+`expr_to_upoly` read only a *sum of monomials* — so a factored spelling stayed an opaque
+application and `rootof((x-1)(x-2), 0)` compared unequal to `1` and to `rootof(x^2-3x+2, 0)`, the
+same number. `expr_to_upoly` now multiplies and adds polynomials, capped on products only (a
+monomial sum grows no coefficients, so capping it would narrow `rootof(x^70 - x^69, 0)`, which the
+old reading accepted via the squarefree radical).
+
+Nothing here reaches DoenetML — `rootof` is in neither of DoenetML's applied-function lists, and
+the leaves `critical_points()` produces are canonical by construction — so this is recorded rather
+than requested. It was fixed upstream instead of left filed because it is a self-inconsistency in
+the engine's own new surface, which ships to npm as `math-expressions@3.x`.
 
 ### Odd roots of a negative number — fixed at the current pin
 

@@ -39,23 +39,74 @@ const TARBALL_RANGE = /[.](?:tgz|tar\.gz|tar)$/i;
 const HAS_PROTOCOL = /^(?:git\+)?[a-z]+:/i;
 
 /**
+ * `user/repo`, optionally with a `#committish` — the one protocol-less spec with
+ * a slash in it that is *not* a path. `hosted-git-info` reads it as a GitHub
+ * shorthand and npm clones it, so it must not be caught below.
+ *
+ * Exactly one slash, and none of `@ : # \` before it: `@scope/pkg`,
+ * `some/dir/pkg` and `math/` are all paths to npm, not repositories.
+ */
+const GITHUB_SHORTHAND_RANGE =
+    /^[^./\\@:#\s][^/\\@:#\s]*\/[^/\\@:#\s]+(?:#.+)?$/;
+
+/**
+ * A protocol-less range containing a separator is a path — the branch npm
+ * reaches *after* `isFileSpec` and `hosted-git-info` have both declined:
+ *
+ * ```js
+ * else if (spec && (hasSlashes.test(spec) || isFileType.test(spec))) { return fromFile(res, where) }
+ * ```
+ *
+ * No leading `.`, no `~/`, no drive letter and no `.tgz` is needed. It is why
+ * `"math-expressions": "vendor/math-expressions/packages/…"` — the most natural
+ * spelling in *this* repo, where every real path starts `vendor/` or `packages/`
+ * — installs as a local directory symlink, which was measured against npm
+ * 11.12.1 rather than reasoned about.
+ */
+const BARE_PATH_RANGE = /[/\\]/;
+
+/**
  * Does this dependency range mean "resolve this from somewhere on this machine"
  * rather than "resolve this from the registry"? Such a range is the right thing
  * inside the monorepo and meaningless to an npm consumer: `file:../math` names a
  * directory that does not exist once the tarball is unpacked.
  *
- * The three tests together are npm's own classification — a range `npm-package-arg`
+ * The tests mirror npm's own classification — the ranges `npm-package-arg`
  * resolves to a `directory` or a local `file` — rather than a list of spellings
- * anyone thought of. Two review passes added to such a list after finding it
- * short (the bare path `../math`, then `~/src/math`), which is the argument for
- * mirroring the definition instead.
+ * anyone thought of. Three review passes added to such a list after finding it
+ * short (`../math`, then `~/src/math`, then `vendor/math-expressions`), which is
+ * the argument for mirroring the definition instead. Reproducing it rather than
+ * calling `npa.resolve` keeps the build free of a dependency it needs for one
+ * predicate; a diff against the real `npm-package-arg@14` over ~60 spellings is
+ * what the test file below encodes.
+ *
+ * It is deliberately stricter than `npa` in three places, all of them ranges no
+ * consumer could install:
+ *
+ * - `link:`/`portal:`/`workspace:`/`catalog:` make `npa` *throw*
+ *   (`EUNSUPPORTEDPROTOCOL`) rather than classify, so "not local" is not the
+ *   same as "publishable" for them.
+ * - `\\unc\path` is a `directory` to `npa` only when it runs on Windows; the
+ *   platform union is the point.
+ * - A one-slash spec ending in `.tgz`/`.tar.gz`/`.tar` (`vendor/math.tar.gz`) is
+ *   a GitHub shorthand to `npa` — a repository literally named `math.tar.gz`.
+ *   Anyone who writes that means a tarball, so the tarball test runs first.
  */
 function isUnpublishableRange(range: string): boolean {
-    return (
-        LOCAL_PROTOCOL_RANGE.test(range) ||
-        LOCAL_PATH_RANGE.test(range) ||
-        (TARBALL_RANGE.test(range) && !HAS_PROTOCOL.test(range))
-    );
+    // npm trims the range before classifying it, so `" ../math"` is the same
+    // spec as `"../math"` and must not escape by a leading space.
+    range = range.trim();
+    if (LOCAL_PROTOCOL_RANGE.test(range) || LOCAL_PATH_RANGE.test(range)) {
+        return true;
+    }
+    if (HAS_PROTOCOL.test(range)) {
+        // A `remote` tarball or a git URL: resolvable from anywhere.
+        return false;
+    }
+    if (TARBALL_RANGE.test(range)) {
+        return true;
+    }
+    return BARE_PATH_RANGE.test(range) && !GITHUB_SHORTHAND_RANGE.test(range);
 }
 
 /**

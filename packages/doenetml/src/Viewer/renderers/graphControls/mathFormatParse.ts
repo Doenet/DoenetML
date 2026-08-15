@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { roundForDisplay } from "@doenet/utils";
+import { roundForDisplay, toNumberOrNaN } from "@doenet/utils";
 import type { GraphControlDisplaySettings } from "./model";
 
 /**
@@ -10,7 +10,13 @@ import type { GraphControlDisplaySettings } from "./model";
 export function parseSingleMathNumber(input: string): number | null {
     try {
         const expression = me.fromText(input);
-        const value = expression?.evaluate_to_constant?.();
+        // `toNumberOrNaN` is what turns the engine's two non-numeric
+        // answers into one: `null` for "not a constant", and a math.js
+        // `Complex` for a value that is a constant but not a real one
+        // (`evaluate_to_constant("i")` is `{re: 0, im: 1}`). Both must read as
+        // "invalid" here, and `Number.isFinite` already rejected both at
+        // runtime — it is the declared type that this makes honest.
+        const value = toNumberOrNaN(expression?.evaluate_to_constant?.());
         return Number.isFinite(value) ? value : null;
     } catch (_error) {
         return null;
@@ -38,12 +44,8 @@ export function parseOrderedPair(
             return null;
         }
 
-        const x = me.fromAst(tree[1])?.evaluate_to_constant?.();
-        const y = me.fromAst(tree[2])?.evaluate_to_constant?.();
-
-        if (x === null || y === null) {
-            return null;
-        }
+        const x = toNumberOrNaN(me.fromAst(tree[1])?.evaluate_to_constant?.());
+        const y = toNumberOrNaN(me.fromAst(tree[2])?.evaluate_to_constant?.());
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) {
             return null;

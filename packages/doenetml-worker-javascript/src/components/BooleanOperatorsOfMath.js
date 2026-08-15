@@ -1,4 +1,5 @@
 import BooleanBaseOperatorOfMath from "./abstract/BooleanBaseOperatorOfMath";
+import { evaluateToNumber } from "../utils/math";
 
 export class IsInteger extends BooleanBaseOperatorOfMath {
     static componentType = "isInteger";
@@ -149,7 +150,18 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
                                 );
                                 return null;
                             }
-                            let numericValue = values[0].evaluate_to_constant();
+                            // `evaluateToNumber`, not the raw call, and for the
+                            // reason its two siblings above already use
+                            // `Number.isFinite`: `evaluate_to_constant` answers
+                            // `null` for an expression that is not a constant,
+                            // and `null` *coerces to 0* in a comparison — so
+                            // `<isBetween lowerLimit="-1" upperLimit="1">x</isBetween>`
+                            // answered `true`, placing a free variable inside
+                            // the interval. `NaN` fails both comparisons, which
+                            // is what the legacy engine returned here (its
+                            // `nan_for_non_numeric` default) and why this read
+                            // as correct before the engine switch.
+                            let numericValue = evaluateToNumber(values[0]);
 
                             if (strict) {
                                 return (

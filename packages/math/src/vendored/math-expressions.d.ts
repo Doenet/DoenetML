@@ -37,14 +37,21 @@
 //
 // HOW MUCH GOES AWAY, MEASURED
 //
-// Everything below this header, and it is all of it: `diff` of the 1,152
-// declaration lines here against upstream's `types/math-expressions.d.ts` at
-// the current pin reports no differences at all — same 114 `Expression`
-// members, same 138 `Context` members, nothing here that is not there. The
-// three ODE types hand-rolled in `src/types.ts` are upstream's too, so Step 6
-// replaces this file *and* them with one re-export. Nothing in this directory
-// is DoenetML-specific, which is why it can go in one move rather than being
+// Everything below this header, and it is all of it: every *declaration* here
+// is byte-identical to upstream's `types/math-expressions.d.ts` at the current
+// pin — same 114 `Expression` members, same 138 `Context` members, nothing here
+// that is not there. Only two things differ, both accounted for above: the
+// trailing ODE block, which upstream carries and `src/types.ts` hand-rolls
+// here, and the prose of one doc comment (`evaluate_to_constant`, where this
+// copy names DoenetML's own narrowing helpers). Step 6 replaces this file *and*
+// those types with one re-export. Nothing in this directory is
+// DoenetML-specific, which is why it can go in one move rather than being
 // unpicked.
+//
+// The check that keeps this honest is a `diff` of the two files with comment
+// lines stripped; "a change to either belongs in both" is not automated, and
+// the sixteenth pass's widening of `evaluate_to_constant` reached only this
+// copy until the seventeenth carried it upstream.
 //
 // What keeps it here until then is that `exports` targets may not escape a
 // package root, so `dist/` cannot name the submodule without a

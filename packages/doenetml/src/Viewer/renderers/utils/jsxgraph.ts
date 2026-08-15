@@ -264,7 +264,11 @@ export function createYAxis({
     if (SVs.yTickScaleFactor !== null) {
         const yTickScaleFactor = me.fromAst(SVs.yTickScaleFactor);
         const scale = yTickScaleFactor.evaluate_to_constant();
-        if (scale !== null && scale > 0) {
+        // `typeof` rather than `!== null`: `evaluate_to_constant` also
+        // answers with a math.js `Complex` for a non-real constant, which is
+        // not `null` and not orderable. (`Complex > 0` was already `false` at
+        // runtime; this is the check saying so.)
+        if (typeof scale === "number" && scale > 0) {
             const scaleSymbol = yTickScaleFactor.toString();
             yaxisOptions.ticks.scale = scale;
             yaxisOptions.ticks.scaleSymbol = scaleSymbol;
@@ -355,7 +359,11 @@ export function createXAxis({
     if (SVs.xTickScaleFactor !== null) {
         const xTickScaleFactor = me.fromAst(SVs.xTickScaleFactor);
         const scale = xTickScaleFactor.evaluate_to_constant();
-        if (scale !== null && scale > 0) {
+        // `typeof` rather than `!== null`: `evaluate_to_constant` also
+        // answers with a math.js `Complex` for a non-real constant, which is
+        // not `null` and not orderable. (`Complex > 0` was already `false` at
+        // runtime; this is the check saying so.)
+        if (typeof scale === "number" && scale > 0) {
             const scaleSymbol = xTickScaleFactor.toString();
             xaxisOptions.ticks.scale = scale;
             xaxisOptions.ticks.scaleSymbol = scaleSymbol;
