@@ -7437,4 +7437,46 @@ describe("Function tag tests @group4", async () => {
         expect(f2Latex).contain("0.000000000007");
         expect(f2Latex).contain("2000000000000000000000");
     });
+
+    it("radical functions evaluate numerically, including at negative inputs", async () => {
+        // `numericalfs` is the plotting and extremum-finding path, and it is
+        // not the path a `<number>$$f(-8)</number>` takes — that one
+        // substitutes and evaluates symbolically, and answered correctly even
+        // while this one did not. `nthroot` reached the engine's compiled
+        // evaluator under a name math.js does not have, which is not a compile
+        // error: it threw on every sample, so a `<function>` written that way
+        // drew nothing at all, at any input. Fixed in the engine
+        // (`functionConversions` in `tree-to-mathjs.ts`); asserted here because
+        // this is the surface an author sees.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="fnth">nthroot(x,3)</function>
+  <function name="fcbrt">cbrt(x)</function>
+  <function name="fsqrt">nthroot(x,2)</function>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const numericalf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .numericalfs[0];
+
+        const fnth = await numericalf("fnth");
+        const fcbrt = await numericalf("fcbrt");
+        const fsqrt = await numericalf("fsqrt");
+
+        expect(fnth(8)).eq(2);
+        expect(fsqrt(9)).eq(3);
+        expect(fcbrt(8)).eq(2);
+
+        // Odd roots of negatives read on the real branch here too, so the
+        // curve continues through the origin instead of stopping at it.
+        expect(fnth(-8)).eq(-2);
+        expect(fcbrt(-8)).eq(-2);
+
+        // An even root of a negative has no real value: a gap in the plot,
+        // spelled `NaN`. Not `null` and not a complex object — a consumer that
+        // does arithmetic on the result would turn the first into 0.
+        expect(fsqrt(-9)).to.be.NaN;
+    });
 });

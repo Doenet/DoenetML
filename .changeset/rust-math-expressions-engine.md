@@ -48,9 +48,18 @@ but the engine is a different implementation and some results differ:
   as the principal complex value. Everything the old engine accepted is still accepted, and the
   spellings it wrongly rejected now earn credit. Even roots are unchanged (`\sqrt{-4}` is still
   the imaginary `2i`), as is a fractional power whose denominator is even — `(-8)^{0.3333}` is
-  `3333/10000`, not a cube root. A related plotting change: a `<function>` written as a
-  fractional power with an odd denominator, such as `x^{1/3}`, now draws for negative inputs,
-  matching its `\sqrt[3]{x}` spelling instead of leaving a gap.
+  `3333/10000`, not a cube root. A related plotting change: `<function>cbrt(x)</function>` and
+  `<function>nthroot(x,3)</function>` now draw for negative inputs instead of stopping at the
+  origin. Writing the same function as `x^(1/3)` still leaves that gap — the evaluator behind
+  plotting takes the principal complex branch for a fractional power, as it did before, so a
+  `<function>` and an `<answer>` can disagree about `x^(1/3)` at a negative input.
+- **A `<function>`'s extrema are cleaner near a pole, and exact where the engine can be exact.**
+  The critical points of a rational derivative are now taken from the engine directly rather than
+  found by bracketing and refining, so the reported locations no longer carry refinement
+  round-off. A cell straddling a pole no longer brackets a sign change either, which removes a
+  long-standing spurious minimum: `(x+8)(x-8)/((x-2)(x+4)(x-5)^2)` reported a minimum at
+  `4.999999948`, beside its double pole at `x = 5` (issue #940), and now reports only its four
+  real extrema.
 - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
   with more than about seventeen significant digits now goes through a double on the way in, so its

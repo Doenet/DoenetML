@@ -24,7 +24,11 @@ nothing does that and nothing should: the externalization and dedupe rules are
 written against the `math-expressions` specifier, so a `@doenet/math` import
 would quietly be bundled a second time.
 
-See [MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md](../../MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md).
+See [MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md](../../MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md) for
+the plan this package implements, and
+[MATH_EXPRESSIONS_ENGINE_NOTES.md](../../MATH_EXPRESSIONS_ENGINE_NOTES.md) for what the switch
+actually cost: the seam's exact shape, the behavior classes that changed, the known risks, and the
+follow-up work that was deliberately left out.
 
 ## The engine
 

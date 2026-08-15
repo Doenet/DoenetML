@@ -249,11 +249,16 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >
 > - **Not done, and this is the gap that matters** — the Step 0 differential harness and the memory
 >   baseline (R8) were never built, so R1 (semantic divergence in grading) is still unmitigated by
->   anything but the vitest suite. Cypress has not been run against the new engine, and `initSync`
->   has not been verified in a real browser Web Worker. The vitest suite does not pass; the failure
->   inventory in this document has been removed rather than restated, because the numbers it
->   carried were measured against an older submodule pin and several of the divergences they
->   attributed to upstream no longer reproduce (see
+>   anything but the ordinary suites. Those suites do now pass: vitest and Cypress are both green on
+>   the branch, and `initMathWasmSync` runs in a real browser Web Worker on every Cypress and
+>   PreTeXt-export run. That is weaker evidence than a divergence ledger, and the review measured
+>   how much weaker — see the "Known risks" section of
+>   [MATH_EXPRESSIONS_ENGINE_NOTES.md](MATH_EXPRESSIONS_ENGINE_NOTES.md), which lists five
+>   wrong-answer-on-grading defects no pre-existing test named.
+>
+>   The failure inventory this document used to carry has been removed rather than restated,
+>   because its numbers were measured against an older submodule pin and several of the divergences
+>   they attributed to upstream no longer reproduce (see
 >   [MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md](MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md)). Re-measure
 >   before quoting a number.
 

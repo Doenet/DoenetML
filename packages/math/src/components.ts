@@ -51,8 +51,9 @@
  * rest on a shadowed point-valued state variable always being a container,
  * which is true of every route found so far but is an invariant nothing states
  * or checks. Noted rather than converted, because `undefined` is not obviously
- * the right answer there either — see the follow-up note in the PR
- * description.
+ * the right answer there either — see follow-up 2 in
+ * `MATH_EXPRESSIONS_ENGINE_NOTES.md` ("Follow-up PRs, written up so they can be
+ * opened from here") at the repository root.
  *
  * The shape here is wanted only where "no such component" is an ordinary
  * answer that the caller then acts on, which so far is

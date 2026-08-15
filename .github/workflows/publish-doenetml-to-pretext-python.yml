@@ -90,6 +90,12 @@ jobs:
               with:
                   ref: ${{ github.event_name == 'release' && github.event.release.tag_name || github.ref }}
                   fetch-depth: 0
+                  # The wheel's JS assets come from `@doenet/doenetml-to-pretext`,
+                  # whose wireit graph reaches `../math:build` and compiles
+                  # @doenet/math's WASM core from this submodule; checkout skips
+                  # submodules by default.
+                  submodules: recursive
+            - uses: ./.github/actions/setup-math-wasm
 
             - name: Determine checked out commit SHA
               id: checked-sha

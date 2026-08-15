@@ -59,6 +59,22 @@
             ],
             "output": [
                 "dist/iframe-viewer/*"
+            ],
+            "//": [
+                "The iife entry imports nothing from `@doenet/doenetml`, but the",
+                "`dts()` plugin has no `include` of its own, so it type-checks",
+                "everything `tsconfig.json` includes — which reaches `src/index.tsx`",
+                "and through it `@doenet/doenetml`, `@doenet/utils` and the",
+                "`math-expressions` seam. `../doenetml:build` has `clean: true` and",
+                "transitively rebuilds `packages/math/dist`, so without this edge",
+                "wireit is free to run the two concurrently and this build resolves",
+                "against a dist that is mid-clean. That is the same race the note at",
+                "the top of this file describes; collapsing the chained `npm run`",
+                "into one graph was necessary but not sufficient, because siblings",
+                "in a `dependencies` list run in parallel."
+            ],
+            "dependencies": [
+                "../doenetml:build"
             ]
         },
         "build:iframe-editor": {
@@ -70,6 +86,10 @@
             ],
             "output": [
                 "dist/iframe-editor/*"
+            ],
+            "//": "Ordered against `../doenetml:build` for the reason given on build:iframe-viewer.",
+            "dependencies": [
+                "../doenetml:build"
             ]
         },
         "build:component": {

@@ -12,18 +12,32 @@ behavior changes are in `.changeset/rust-math-expressions-engine.md`.
 
 `@doenet/math` (`packages/math`) is the one module that decides what backs `me`.
 
-**No call site changed, and none was rewritten.** The 147 files that say
-`import me from "math-expressions"` still say exactly that; each consuming `package.json` declares
+**No call site changed, and none was rewritten.** The files that say
+`import me from "math-expressions"` still say exactly that. Counted over `packages/`, excluding
+`node_modules` and `dist`, anchored at the start of a line so comments and doc examples do not
+inflate it:
+
+| pattern | files |
+| --- | --- |
+| `^import me from "math-expressions";$` | 136 |
+| `^import me[ ,][^;]*from "math-expressions";$` (default binding in any form) | 142 |
+| `^import .*from "math-expressions";$` (anything from the specifier) | 147 |
+
+The counts are identical at the merge base. Each consuming `package.json` declares
 `"math-expressions": "file:../math"`, so the specifier resolves to the workspace package instead
 of the npm library. It is an alias, not a codemod. The practical consequence: every bundler rule —
 `external`, `dedupe` — must name the bare specifier `math-expressions`, because that is what the
 import graph contains (instrumented through a real `packages/doenetml` build, it is the only id
 rollup's `external` predicate is ever called with for the seam).
 
-Five packages externalize or dedupe it: `packages/doenetml`, `packages/doenetml-prototype`,
-`packages/virtual-keyboard` and `packages/doenetml-worker-rust` externalize;
-`packages/doenetml-worker` dedupes (it is fetched by URL, so it must stay self-contained — one
-copy is correct, two is a bug). `packages/standalone/scripts/check-bundle-size.mjs` classifies
+Seven bundler rules name it, and all seven must keep naming the bare specifier.
+`packages/doenetml`, `packages/doenetml-prototype`, `packages/virtual-keyboard`,
+`packages/doenetml-worker-rust`, `packages/doenetml-worker-javascript` and `packages/utils`
+externalize; `packages/doenetml-worker` dedupes (it is fetched by URL, so it must stay
+self-contained — one copy is correct, two is a bug). The first four are this diff's own work; the
+`doenetml-worker-javascript` and `utils` entries predate it and are listed because a sweep that
+misses them reintroduces a private copy.
+`packages/standalone/scripts/check-bundle-size.mjs` classifies
 inlined binaries by the wasm magic number and fails the build on a second math core.
 
 `packages/math/src/engine-rust.ts` is a straight re-export. It once carried four gap fills
@@ -112,9 +126,21 @@ copies of the engine once the seam was externalized everywhere.
   with the disagreement written down at the test; which is right is a product decision nobody has
   taken.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
-  the primary risk of the engine switch and the ordinary suites are all that guard it; the first
-  full CI run of the branch surfaced two wrong-answer grading bugs no existing test named. A green
-  suite is weaker evidence than a divergence ledger.
+  the primary risk of the engine switch and the ordinary suites are all that guard it. A green
+  suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
+  turned up **five** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
+  identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
+  correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
+  never spent, so `<answer symbolicEquality allowedErrorInNumbers>` accepted a reordered response
+  it is tested as refusing). The other three were found only by reading or by deliberately probing:
+  `default_order` was not a normal form, so `simplify="normalizeOrder"` could grade one answer two
+  ways depending on how the student wrote it; the odd-root sign extraction treated *unknown*
+  realness as permission, so `equals` answered `true` for a symbolic pair and `false` for its
+  `x = 1` instance; and odd roots of negatives split by whether the radicand was a perfect power,
+  which cost four `<answer>` cases that scored 1 against legacy — measured end to end on both trees
+  at the tenth pass, fixed upstream at the eleventh, and now pinned by
+  `answerValidation/oddRootsOfNegatives.test.ts` here.
 
 ## Follow-up PRs, written up so they can be opened from here
 
@@ -142,16 +168,92 @@ copies of the engine once the seam was externalized everywhere.
    `createComponentOfType: "point"`), so this is an unstated invariant, not a known bug. Closing
    it means proving the invariant and asserting it once, or deciding what a non-container shadow
    should mean.
-3. **Sweep the remaining raw null-coercions.** The `Number(x)`/arithmetic-on-possibly-null class
-   the helper family exists for measures **277 sites across 67 files** (tenth-pass count; it
-   shrinks as passes replace sites with `toNumberOrNaN`/`evaluateToNumber`). Each is a place a
-   `null` from the engine would silently become `0`. Mechanical but large; belongs in its own PR
-   with the count re-measured first.
+3. **Sweep the remaining raw null-coercions.** `evaluate_to_constant()` is called from **277 sites
+   across 67 files** in `packages/*/src` outside the test trees (`grep -rn "evaluate_to_constant("
+   packages/*/src`, dropping `/test/` and `*.test.*`; re-measured at the twelfth pass and unchanged
+   since the tenth, though it shrinks as passes replace sites with
+   `toNumberOrNaN`/`evaluateToNumber`). That is the *population*, not the defect count, and the
+   distinction is the whole reason this is a follow-up rather than an emergency: most sites hand
+   their result straight to `Number.isFinite`, which rejects `null` correctly. The eighth pass
+   isolated the **204** that had no immediately following
+   `Number.isFinite`/`isNumericConstant`/`null` test, read all 204, and reproduced against a real
+   core every one whose result reaches arithmetic or a `number`-typed state variable; **six** were
+   wrong (`<polygon>`'s centroid, `<vector>`'s `numericalEndpoints`, `<ray>`'s
+   `numericalEndpoint`, `<angle>`'s third point, `<math>`'s `.number`, `<cell>`'s `.number`), and
+   each was fixed with a regression test that fails without its fix. What is left is therefore the
+   long tail: sites added since, and the guarded majority that should be converted for uniformity
+   rather than because they are broken. Mechanical but large; belongs in its own PR with the count
+   re-measured first, and with the 204/6 ratio as the expectation to calibrate against.
 4. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
    items) and `active-plans/PR84_REVIEW_KNOWN_ISSUES.md` in the math-expressions repo (the full
    crate/compat ledger).
 
-## Pre-existing flake, pushed on by this diff
+## What is still riding along, and should not be
+
+Two rounds of scope-trimming have already landed (`packages/doenetml-print`'s test setup and
+`renderers/doenet/div.tsx` came out; the memory-reduction instruments and the piecewise-domain
+crash were flagged in the PR body). A twelfth-pass sweep of the whole diff, reading hunks rather
+than filenames, finds these still in and still unrelated. None is deleted here — they are another
+author's work — but each is self-contained enough to lift into its own PR, and together they are
+roughly 1,100 of the ~8,100 added lines.
+
+- **`<video>` playback state** — `renderers/video.tsx`, `components/Video.js`,
+  `tagSpecific/video.test.ts` (~152 lines). The one changed component file with no math, NaN or
+  `evaluate_to_constant` token in it; `time`/`duration` come from the YouTube IFrame API and never
+  reach the engine. The bug reproduces at the merge base, and the Cypress specs that find it are
+  gated off in CI (`CYPRESS_SKIP_YOUTUBE_TESTS`), so it was found by running that suite locally.
+  It currently ships its user-visible behavior change under a math-engine changeset.
+- **`.husky/format-staged.sh` + `.husky/pre-commit` + the `lint-staged` removal** (~157 lines).
+  Replaces `lint-staged` wholesale; the script never mentions the submodule, `packages/math` or
+  wasm. It arrived inside a merge commit whose whole message is `Merge remote-tracking branch
+  'upstream/main'`, so no rationale was recorded, and two later commits are pure repair of it
+  (it used `declare -A` and `mapfile`, which broke the pre-commit hook on macOS's bash 3.2).
+- **The memory-reduction instruments** — `test/memory-bench.test.ts` + `memory-bench-doc.xml`,
+  `cypress/e2e/tagSpecific/polygonBorders.cy.js`, `vennMeasure.cy.js` (~700 lines). The bench's
+  own header names a different workstream (issue #1441); `polygonBorders` covers a
+  `withLines: needBorders` optimization that landed on main in #1435 and touches no file this
+  branch changes, while costing real CI time in `@group1`; `vennMeasure` is `describe.skip` with
+  no assertions and reads across a package boundary with `cy.readFile("../…")`.
+- **The piecewise-domain crash** — `.changeset/piecewise-domain-without-intervals.md`,
+  `tagSpecific/slopeField.test.ts`, and the `domain?.[0]` guard in
+  `packages/utils/src/components/domain.ts`. A real fix with its own changeset and its own
+  reproducer, which the commit that added it says reproduces on `main`. The cleanest split of the
+  four, with one entanglement: the same `domain.ts` hunk also carries a
+  `Number.isNaN` → `isNumericConstant` conversion that *is* engine-caused.
+
+Two more items are scope-adjacent rather than unrelated, and are called out here because their
+size is misleading rather than because they should move: `utils/extrema.js`'s exact-critical-point
+and batch-sampling rewrite is an algorithm upgrade that the new engine's APIs *permitted* rather
+than forced (and it changes numerical output — see the changeset), and ~293 of
+`packages/utils/src/components/function.ts`'s 559 lines are a de-duplication of nine open-coded
+copies of `find_effective_domain`, done because the null/NaN change had to touch all nine anyway.
+
+One thing this sweep looked for and did **not** find: unmotivated behavior drift. The
+`periodicSetEquality.js` change from `return false` to `continue` reads like a new partial-credit
+policy, but it is parity work — restore `return false` and `periodicset.test.ts`'s pre-existing
+"partial credit with periodic set" test fails, because the new engine reports an unfilled offset
+as `null` where the legacy one produced a number.
+
+## Pre-existing defects, pushed over the edge by this diff
+
+`packages/doenetml-to-pretext` leaked one core worker per conversion: `doenetMLToPretext` makes a
+`DoenetMLToPretext`, which boots a worker, and nothing terminated it. Pre-existing, and survivable
+while a worker was only the core bundle plus the core's own WASM. It stopped being survivable when
+the math engine moved into every worker realm as a second WASM module: `pretext-export.test.ts`
+runs ~50 conversions through one page, which measured at **+7.0 GB of Chrome across the file,
+~140 MB per test, climbing monotonically to the last test**. On a 16 GB runner the renderer stops
+servicing WebDriver near the end of the file and the round trips hang — reported as
+`Command network.continueRequest ... timed out`, and read for three review passes as a wedged
+WebDriver session, which was the symptom rather than the cause. `DoenetMLToPretext.dispose()`
+fixes it; `test/worker-lifetime.test.ts` pins it. Reproducible either way under
+`systemd-run -p MemoryMax=6G`: leaking, the file never finishes; fixed, it passes in ~66 s.
+
+The lesson generalizes past PreTeXt — anything that boots a core worker per document now holds two
+WASM modules per realm, so a missing `terminate()` costs an order of magnitude more than it used
+to. To be precise about who was actually affected, since the fixing commit's message overstates
+it: the PreTeXt Python bridge runs one conversion per Deno process and exits, so it never
+accumulated. What accumulates is any host that converts more than one document in a single realm,
+which today is the test file and any long-lived page holding a converter.
 
 `DoenetEditor.srcDocRebuildReplay.cy` (doenetml-iframe Cypress) is a documented bimodal flake — a
 rebuilt iframe either runs the bundle promptly or hangs inside Chrome's module loader; two rounds

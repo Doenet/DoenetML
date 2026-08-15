@@ -84,7 +84,8 @@ controls, so it cannot pass vacuously).
 The related `is_real(cbrt(-8)) = false` incompleteness (`Facts::of_constant` classifies by
 `eval_complex`, which now answers the real branch for these) is resolved for the odd-root shapes by
 the same change; the broader "non-realness does not propagate through `+`/`*`/`^`" incompleteness
-is unchanged and remains deliberately declined — see the PR description.
+is unchanged and remains deliberately declined — see the "Non-realness does not propagate through
+`+`, `*` or `^`" entry in `vendor/math-expressions/active-plans/PR84_REVIEW_KNOWN_ISSUES.md`.
 
 ### Everything earlier
 
