@@ -1916,4 +1916,38 @@ describe("Piecewise Function Tag Tests @group2", async () => {
         expect(f2Latex).contain("0.000000000007");
         expect(f2Latex).contain("2000000000000000000000");
     });
+
+    it("a piece's maxima are as exact as its minima", async () => {
+        // The maximum hunt is the minimum hunt on a negated formula, and each
+        // piece of a piecewise function is negated separately. Rebuilding the
+        // negation from `.tree` sends every non-integer coefficient through an
+        // f64 — the engine holds `5.1` exactly, as `51/10` — and
+        // `critical_points` declines a formula with one inexact coefficient,
+        // so the piece's maxima fell back to bracketing while its minima kept
+        // the exact roots. Measured: `9.731226447456773` against the exact
+        // `9.731224303522758`, an error of 2e-6.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <piecewiseFunction name="f">
+      <function domain="(-20,20)">(x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)</function>
+    </piecewiseFunction>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let fState =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues;
+
+        // From `critical_points` on the piece's formula.
+        expect(fState.minima.map((p: number[]) => p[0])).toEqual([
+            -2.28205595296559,
+        ]);
+        let maximaLocations = [
+            -11.681167550861327, 3.2319992003041587, 9.731224303522758,
+        ];
+        expect(fState.maxima.length).eq(maximaLocations.length);
+        for (let [i, loc] of maximaLocations.entries()) {
+            expect(fState.maxima[i][0]).closeTo(loc, 1e-12);
+        }
+    });
 });

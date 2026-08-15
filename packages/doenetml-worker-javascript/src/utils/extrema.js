@@ -1414,10 +1414,13 @@ function flip_function_children(functionChildren) {
                     stateValues.functionChildrenInfoToCalculateExtrema,
                 );
         } else {
-            flippedStateValues.formula = stateValues.formula.context.fromAst([
-                "-",
-                stateValues.formula.tree,
-            ]);
+            // `multiply(-1)` rather than a rebuild from `.tree`, for the same
+            // reason as `formulaFlip` in `find_local_global_maxima` — the AST
+            // round trip turns the engine's exact `51/10` into an f64 and
+            // `critical_points` then declines the whole formula. Here it costs
+            // each *piece* of a piecewise function's maxima their exact
+            // locations and the pole rejection.
+            flippedStateValues.formula = stateValues.formula.multiply(-1);
         }
 
         flippedFunctionChildren.push({

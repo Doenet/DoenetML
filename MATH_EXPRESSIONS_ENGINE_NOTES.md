@@ -133,9 +133,10 @@ copies of the engine once the seam was externalized everywhere.
   the same to fifteen digits — but the exact-arithmetic entry points refuse it. `critical_points`
   returns `null` outright for a formula with one inexact coefficient, which is how negating a
   formula as `fromAst(["-", formula.tree])` cost every `<function>`'s *maxima* both their exact
-  locations and the pole rejection that needs the complete root set, while its minima kept both
-  (`find_local_global_maxima` in `utils/extrema.js`, now `formula.multiply(-1)`). Reach for
-  `multiply`/`add`/`substitute` — they stay inside the engine.
+  locations and the pole rejection that needs the complete root set, while its minima kept both.
+  `utils/extrema.js` had two such negations — `find_local_global_maxima`'s `formulaFlip` and
+  `flip_function_children`'s per-piece one — and both are now `multiply(-1)`. Reach for
+  `multiply`/`add`/`substitute`: they stay inside the engine.
 - **Sparse vector ASTs are marked, not guessed at**: `markUnspecifiedComponents` writes the
   `UNSPECIFIED_COMPONENT` marker into empty slots (`Point.js`, `Ray.js`, `Vector.js`,
   `DirectionComponent.js` leave holes; `JSON.stringify` would turn them into `null`, which the
@@ -166,14 +167,16 @@ copies of the engine once the seam was externalized everywhere.
   `packages/doenetml-worker-javascript/src/test/math/appliedFunctionSymbols.test.ts`, whose first
   assertion fails if a spelling is added to `appliedFunctionSymbolsDefault` without a probe.
 
-  There is a **third** numeric path, and it is not swept: `equals` samples through the engine's
-  `eval_complex`, which classifies an application it cannot evaluate as an *opaque variable*
-  rather than as `NaN`. `det` and `trace` land there — `\det[[1,2],[3,4]]` simplifies and
-  `evaluate_to_constant`s to `-2`, and `equals` between it and `-2` is nonetheless `false`. That
-  is the seventh grading-reaching divergence the review found, it is the only one left open, and
-  it is filed with a diagnosis and a fix location in `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md`. The
-  two paths the test file *does* guard agree on the matrix form, which its "matrix reducers" block
-  pins.
+  There is a **third** numeric path, and the sweep did not cover it: `equals` samples through the
+  engine's `eval_complex`, which classifies an application it cannot evaluate as an *opaque
+  variable* rather than as `NaN` — so its failure shape is an equality that answers `false`, not a
+  value that reads `NaN`. `det` and `trace` landed there: `\det[[1,2],[3,4]]` simplified to `-2`
+  and compared unequal to `-2`, and `evaluate_to_constant` answered nothing at all. That was the
+  seventh grading-reaching divergence, found at the fourteenth pass and fixed upstream at the
+  fifteenth (see the closed entry in `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md`). The "matrix
+  reducers" block in this test file now probes all three paths rather than the two it guarded, and
+  the `NO_SCALAR_KERNEL` list that excused `det` from the second — the place the omission was
+  codified on this side — is empty.
 
   One disagreement survives deliberately. `f()` hands a `Pow` node to math.js, which takes the
   principal complex branch for a fractional exponent, while the engine's own evaluators take the
@@ -194,7 +197,7 @@ copies of the engine once the seam was externalized everywhere.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
   the primary risk of the engine switch and the ordinary suites are all that guard it. A green
   suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
-  turned up **six** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  turned up **seven** wrong-answer-on-grading defects, and no pre-existing test named any of them.
   Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
   identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
   correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
@@ -212,7 +215,17 @@ copies of the engine once the seam was externalized everywhere.
   `<number>$$f(0.5)</number>`. It reaches grading because `equals` decides numeric constants
   through the same evaluators — measured on the unfixed engine,
   `equals(erf(0.5), 0.5204998778130465)` is `false`, so a correct student answer was marked wrong.
-  Fixed upstream and pinned in the crate's `tests/erf.rs` and the compat suite.
+  Fixed upstream and pinned in the crate's `tests/erf.rs` and the compat suite. The seventh came
+  from asking what *else* the fifth and sixth implied, and is above: `equals` samples on a third
+  path, where an unevaluable head becomes an opaque variable rather than a `NaN`, and `det` and
+  `trace` compared unequal to their own values. Found at the fourteenth pass, established as a
+  regression against legacy and fixed at the fifteenth.
+
+  Read the seven together and the pattern is not "the engine is wrong" but "the suites test one
+  path at a time". Four of the seven were invisible because a *different* path answered correctly:
+  `nthroot` graded while it could not be plotted, `erf` plotted while it could not be graded, and
+  `det`/`trace` did both while they could not be compared. Two of the seven were codified as
+  deliberate in a test's own exemption list before anyone measured them.
 
 ## Follow-up PRs, written up so they can be opened from here
 
@@ -278,7 +291,20 @@ copies of the engine once the seam was externalized everywhere.
    design: a critical point that touches zero without crossing is still invisible, and a cell
    holding several roots still yields one — nothing looks for a root except a bracketed sign
    change. Driving the search from the exact roots instead of from the grid would fix both.
-5. **`@doenet/static-assets`' generated `math-assets.json` is stale, and nothing checks it.**
+5. **`flip_function_children` flips a child's formula but not its interpolated coefficients**
+   (`utils/extrema.js`). The maximum hunt is the minimum hunt on a negated function, and for a
+   piecewise function each child is negated separately. The interpolated branch writes
+   `flippedStateValues.coeffsFlip`, but the consumer — `find_local_global_minima`, reached through
+   `find_minima_of_piecewise` — reads `coeffs`, which `{...stateValues}` has already copied
+   *unflipped*. So a `<piecewiseFunction>` with a through-points `<function>` piece has that
+   piece's `numericalf` negated and its cubic coefficients not, and its maxima are computed as the
+   minima of the un-negated spline. **Pre-existing and not engine-caused** — identical on
+   `upstream/main` (`extrema.js:1178` there), it predates the branch (`Global extrema (#2205)`),
+   and it involves no engine call at all. Recorded here because the fifteenth pass was in this
+   function fixing the *formula* branch beside it and would otherwise have looked past it. The fix
+   is one word (`coeffsFlip` → `coeffs`) plus a test with a through-points piece, and it belongs
+   with whatever PR takes the two extrema items in item 4 above.
+6. **`@doenet/static-assets`' generated `math-assets.json` is stale, and nothing checks it.**
    `packages/static-assets/src/generated/math-assets.json` is produced by
    `scripts/generate-math-assets.ts`, which runs under `build:assets` — *not* under `build:schema`,
    which is what the `schema-freshness` CI job verifies. So the copy in git has drifted: its
@@ -289,12 +315,12 @@ copies of the engine once the seam was externalized everywhere.
    engine switch neither caused it nor changed it — but it is adjacent to the twelfth pass's
    `nthroot` work and it is one line of CI to prevent (extend `schema-freshness` to run
    `build:assets`, or fold the generator into `build:schema`).
-6. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
+7. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
    items, neither reaching grading — the seventh grading-reaching divergence, `equals` reading a
    determinant as an opaque variable, was fixed at the fifteenth pass) and
    `active-plans/PR84_REVIEW_KNOWN_ISSUES.md` in the math-expressions repo (the full crate/compat
    ledger).
-7. **Smaller, all measured during review, none blocking.** CI installs no `binaryen`, so
+8. **Smaller, all measured during review, none blocking.** CI installs no `binaryen`, so
    `build-wasm.sh`'s `wasm-opt -Oz` is skipped and every published bundle carries the unoptimized
    core *twice* (standalone and the worker) — and a developer who happens to have `wasm-opt` on
    `PATH` builds a materially smaller, different artifact than CI does, which
