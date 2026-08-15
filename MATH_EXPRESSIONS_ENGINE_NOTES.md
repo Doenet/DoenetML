@@ -425,6 +425,18 @@ copies of the engine once the seam was externalized everywhere.
    label/circle typings in the renderers, one is `RoundType` used as a type in `pegboard.tsx`).
    The follow-up is those 18 plus a `typecheck` step per package, and it wants its own PR — the
    fix for each is a typings question with no math in it.
+10. **`numberFromSerializedAst` is copied into two packages, and should live in `@doenet/utils`.**
+    `packages/doenetml-to-pretext/src/utils/math/math-expression-utils.ts` and
+    `packages/doenetml-prototype/src/utils/math/math-expression-utils.ts` are byte-identical
+    (`diff` exits 0), and were identical in pre-switch DoenetML too — so the duplication predates
+    this branch, which is why it is a follow-up rather than part of it. The sixteenth pass had to
+    make the same one-line fix in both, which is the argument for moving it. The move is free:
+    `toNumberOrNaN` and `serializedComponentsReviver`, its only two imports, are already exported
+    from `@doenet/utils`, which already depends on `math-expressions`; neither consumer is in
+    `@doenet/utils`' dependency set, so there is no cycle; and both files already import from
+    `@doenet/utils`, so no call site gains an import. Two things to fix while there: **neither
+    package declares `@doenet/utils`** in its `dependencies` or in its wireit `build.dependencies`
+    — the build works only because `doenetml-worker:build` pulls `../utils:build` in first.
 
 ## What is still riding along, and should not be
 
