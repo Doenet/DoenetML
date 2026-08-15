@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { toNumberOrNaN } from "./math";
 
 export function directionFromSlope(slope) {
     if (slope === Infinity || slope === -Infinity) {
@@ -12,10 +13,21 @@ export function directionFromSlope(slope) {
     return [Math.cos(theta), Math.sin(theta)];
 }
 
+/**
+ * A coordinate as a number, `NaN` when it is not one.
+ *
+ * `evaluate_to_constant()` answers `null` for an expression that is not a
+ * constant, and `null` is `0` to arithmetic — so a blank or symbolic endpoint
+ * made `dx`/`dy` below zero and took the *identical endpoints* branch instead
+ * of the no-slope one. `NaN` is what the legacy engine returned here, and what
+ * every caller of this file's helpers is written against.
+ */
 function getNumericValue(mathOrNumber) {
-    return mathOrNumber instanceof me.class
-        ? mathOrNumber.evaluate_to_constant()
-        : Number(mathOrNumber);
+    return toNumberOrNaN(
+        mathOrNumber instanceof me.class
+            ? mathOrNumber.evaluate_to_constant()
+            : mathOrNumber,
+    );
 }
 
 export function getNumericEndpointPair(
@@ -30,7 +42,7 @@ export function getNumericEndpointPair(
             if (key in desiredUnconstrainedEndpoints) {
                 return getNumericValue(desiredUnconstrainedEndpoints[key]);
             }
-            return currentEndpoints[pointInd][dim].evaluate_to_constant();
+            return getNumericValue(currentEndpoints[pointInd][dim]);
         }),
     );
 }

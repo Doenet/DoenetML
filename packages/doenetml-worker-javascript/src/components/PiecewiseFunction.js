@@ -14,7 +14,11 @@ import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
 } from "../utils/extrema";
-import { isNumericConstant, roundForDisplay } from "../utils/math";
+import {
+    isNumericConstant,
+    roundForDisplay,
+    toNumberOrNaN,
+} from "../utils/math";
 import {
     contentTranslator,
     returnContentLocaleDependencies,
@@ -424,10 +428,17 @@ export default class PiecewiseFunction extends Function {
                     for (let arrayKey of arrayKeys) {
                         if (arrayKey === "0") {
                             numericalfs[arrayKey] = function (x) {
+                                // The same contract as `Function.js`' twin of
+                                // this branch: a `numericalf` must answer a
+                                // number, every other branch here answers
+                                // `NaN` when it has nothing, and `null` — what
+                                // the engine reports for a shadowed symbolic
+                                // function that did not reduce to a constant —
+                                // is `0` to whatever plots or integrates it.
                                 let val = globalDependencyValues
                                     .symbolicfShadow(me.fromAst(x))
                                     .evaluate_to_constant();
-                                return val;
+                                return toNumberOrNaN(val);
                             };
                         } else {
                             numericalfs[arrayKey] = () => NaN;

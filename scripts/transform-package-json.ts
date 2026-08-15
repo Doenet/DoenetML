@@ -45,6 +45,9 @@ const HAS_PROTOCOL = /^(?:git\+)?[a-z]+:/i;
  *
  * Exactly one slash, and none of `@ : # \` before it: `@scope/pkg`,
  * `some/dir/pkg` and `math/` are all paths to npm, not repositories.
+ *
+ * Whitespace anywhere disqualifies it, and this is the one test that must run
+ * against the *untrimmed* range — see [`isUnpublishableRange`].
  */
 const GITHUB_SHORTHAND_RANGE =
     /^[^./\\@:#\s][^/\\@:#\s]*\/[^/\\@:#\s]+(?:#.+)?$/;
@@ -66,6 +69,15 @@ const GITHUB_SHORTHAND_RANGE =
 const BARE_PATH_RANGE = /[/\\]/;
 
 /**
+ * `git@github.com:user/repo.git` — an scp-style git URL, which carries no
+ * `scheme:` for {@link HAS_PROTOCOL} to find but is a `git` spec to `npa` and
+ * clonable by any consumer. Without this it fell to the bare-path test (a
+ * slash, and the `@`/`:` keep it out of the GitHub shorthand) and would have
+ * blocked a release over a perfectly resolvable dependency.
+ */
+const SCP_GIT_RANGE = /^[A-Za-z0-9._-]+@[A-Za-z0-9._-]+:[^\s]+$/;
+
+/**
  * Does this dependency range mean "resolve this from somewhere on this machine"
  * rather than "resolve this from the registry"? Such a range is the right thing
  * inside the monorepo and meaningless to an npm consumer: `file:../math` names a
@@ -77,10 +89,10 @@ const BARE_PATH_RANGE = /[/\\]/;
  * short (`../math`, then `~/src/math`, then `vendor/math-expressions`), which is
  * the argument for mirroring the definition instead. Reproducing it rather than
  * calling `npa.resolve` keeps the build free of a dependency it needs for one
- * predicate; a diff against the real `npm-package-arg@14` over ~60 spellings is
- * what the test file below encodes.
+ * predicate; the test file below encodes the outcome of diffing it against the
+ * real `npm-package-arg@14`, over 173 spellings at the last sweep.
  *
- * It is deliberately stricter than `npa` in three places, all of them ranges no
+ * It is deliberately stricter than `npa` in four places, all of them ranges no
  * consumer could install:
  *
  * - `link:`/`portal:`/`workspace:`/`catalog:` make `npa` *throw*
@@ -91,22 +103,37 @@ const BARE_PATH_RANGE = /[/\\]/;
  * - A one-slash spec ending in `.tgz`/`.tar.gz`/`.tar` (`vendor/math.tar.gz`) is
  *   a GitHub shorthand to `npa` — a repository literally named `math.tar.gz`.
  *   Anyone who writes that means a tarball, so the tarball test runs first.
+ * - A range whose *prefix* tests only match after trimming (`" file:../math"`,
+ *   `" C:/math"`) is local here and an invalid tag name to `npa`, which throws
+ *   rather than classifying.
  */
 function isUnpublishableRange(range: string): boolean {
-    // npm trims the range before classifying it, so `" ../math"` is the same
-    // spec as `"../math"` and must not escape by a leading space.
-    range = range.trim();
-    if (LOCAL_PROTOCOL_RANGE.test(range) || LOCAL_PATH_RANGE.test(range)) {
+    // Every *prefix* test below is run against the trimmed range, so a leading
+    // space cannot smuggle `" ../math"` or `" file:../math"` past an anchored
+    // pattern. npm itself does not trim — it rejects such a spec outright —
+    // so being stricter here only ever blocks a release for a range no
+    // consumer could install anyway.
+    const trimmed = range.trim();
+    if (LOCAL_PROTOCOL_RANGE.test(trimmed) || LOCAL_PATH_RANGE.test(trimmed)) {
         return true;
     }
-    if (HAS_PROTOCOL.test(range)) {
+    if (HAS_PROTOCOL.test(trimmed) || SCP_GIT_RANGE.test(trimmed)) {
         // A `remote` tarball or a git URL: resolvable from anywhere.
         return false;
     }
-    if (TARBALL_RANGE.test(range)) {
+    if (TARBALL_RANGE.test(trimmed)) {
         return true;
     }
-    return BARE_PATH_RANGE.test(range) && !GITHUB_SHORTHAND_RANGE.test(range);
+    // …but the GitHub shorthand is matched against the *raw* range, and this
+    // asymmetry is the whole point. npm does not trim, and `hosted-git-info`
+    // refuses any spec containing whitespace, so `"vendor/math "` never
+    // becomes a repository to npm — it falls through to the bare-path branch
+    // and installs as a directory. Trimming before this test turned it back
+    // into a clean `user/repo` shape and called it publishable; measured
+    // against npm 11.12.1, that range installs `node_modules/math-expressions`
+    // as a *dangling* symlink to `vendor/math ` and exits 0, so the consumer's
+    // `require` throws at run time.
+    return BARE_PATH_RANGE.test(trimmed) && !GITHUB_SHORTHAND_RANGE.test(range);
 }
 
 /**

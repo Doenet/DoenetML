@@ -5594,4 +5594,53 @@ describe("LineSegment info diagnostics @group5", async () => {
         expect(d.warnings.length).eq(0);
         expect(d.infos.length).eq(0);
     });
+
+    /**
+     * A segment with an endpoint that is not a constant has no slope, and its
+     * public `slope` must say so.
+     *
+     * `evaluate_to_constant` answers `null` for a blank or symbolic
+     * coordinate, and `null` is `0` to the subtraction the slope is built
+     * from, so `endpoints="($blank,1) (3,4)"` reported the slope of
+     * `(0,1)–(3,4)` — the number `1` — rather than `NaN`. The legacy engine
+     * returned `NaN` here, which is why this read as correct until the engine
+     * switch. `slope` is public (`createComponentOfType: "number"`) and
+     * reaches `<answer>` through `<when>`, so the wrong number is a wrong
+     * grade.
+     *
+     * The numeric case is checked first: it is the control that keeps a test
+     * which always answered `NaN` from passing.
+     */
+    it("slope is NaN when an endpoint is not a constant", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" />
+    <lineSegment name="blank" endpoints="($mi,1) (3,4)" />
+    <lineSegment name="symbolic" endpoints="(a,1) (3,4)" />
+    <lineSegment name="numeric" endpoints="(0,1) (3,4)" />
+    `,
+        });
+
+        async function slopeOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .slope;
+        }
+
+        // The control: the same segment with the coordinate filled in.
+        expect(await slopeOf("numeric")).closeTo(1, 1e-12);
+        expect(await slopeOf("blank")).eqls(NaN);
+        expect(await slopeOf("symbolic")).eqls(NaN);
+
+        // ...and it becomes a number once the input is a number.
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await slopeOf("blank")).closeTo(1, 1e-12);
+    });
 });

@@ -180,8 +180,24 @@ describe("createPackageJsonTransformer", () => {
         // scoped-package-shaped spec, are both directories to npm.
         "math/",
         "@scope/pkg",
-        // Leading whitespace is not an escape — npm trims the spec first.
+        // Whitespace is not an escape, in either direction, and the two
+        // directions fail for opposite reasons. A *leading* space would slip
+        // past every anchored prefix test, so those run against the trimmed
+        // range. A *trailing* one is the subtler case: trimming before the
+        // GitHub-shorthand test turned `"vendor/math "` back into a clean
+        // `user/repo` shape and called it publishable — but npm does not trim,
+        // `hosted-git-info` refuses a spec containing whitespace, and npm
+        // 11.12.1 installs `node_modules/math-expressions` as a *dangling*
+        // symlink to `vendor/math ` and exits 0.
         " ../math",
+        " file:../math",
+        " C:/math",
+        "vendor/math-expressions ",
+        " vendor/math-expressions",
+        " vendor/math-expressions ",
+        "user/repo ",
+        " user/repo",
+        "a/b\t",
         // Deliberately stricter than `npm-package-arg`, which reads this as the
         // GitHub shorthand for a repository named `math.tar.gz`. Anyone who
         // writes a `.tar.gz` range means a tarball on this machine.
@@ -220,6 +236,12 @@ describe("createPackageJsonTransformer", () => {
         "packages/math",
         // A range with a space in it, which must not be mistaken for a path.
         ">= 1.0.0 || ^2",
+        // An scp-style git URL. It carries no `scheme:`, so the protocol test
+        // does not see it, and it has a slash with an `@` and a `:` before it,
+        // so the GitHub shorthand does not either — but `npa` calls it `git`
+        // and any consumer can clone it.
+        "git@github.com:user/repo.git",
+        "git@gitlab.example.com:group/repo.git#v3",
     ])("still publishes with the registry range %s", (range) => {
         const { pkg } = transform({ "math-expressions": range }, [
             "math-expressions",

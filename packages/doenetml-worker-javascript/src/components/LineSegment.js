@@ -1969,10 +1969,18 @@ export default class LineSegment extends GraphicalComponent {
                 }
 
                 let ep = dependencyValues.endpoints;
-                let A1 = ep[0][0].evaluate_to_constant();
-                let A2 = ep[0][1].evaluate_to_constant();
-                let B1 = ep[1][0].evaluate_to_constant();
-                let B2 = ep[1][1].evaluate_to_constant();
+                // `evaluateToNumber`, not a bare `evaluate_to_constant()`: an
+                // endpoint that is blank or symbolic gives `null`, `null`
+                // subtracts as `0`, and a segment with no slope reported one.
+                // `(3,4)` against a blank first endpoint answered `1`, and
+                // `slope` is public and reaches `<answer>` through `<when>`.
+                // Every other reader of these endpoints in this file already
+                // takes a number or refuses (`numericalEndpoints` above, the
+                // inverse definition below).
+                let A1 = evaluateToNumber(ep[0][0]);
+                let A2 = evaluateToNumber(ep[0][1]);
+                let B1 = evaluateToNumber(ep[1][0]);
+                let B2 = evaluateToNumber(ep[1][1]);
                 let slope = (B2 - A2) / (B1 - A1);
 
                 return { setValue: { slope } };

@@ -44,7 +44,10 @@ function makeFakeDefs() {
     const defsEl = {
         ownerDocument,
         children: [] as FakeElement[],
-        appendChild(child: FakeElement) {
+        // `this` in a method of an object literal that is immediately
+        // asserted to another type is inferred as `{}`, so it has to be
+        // annotated for `this.children` to resolve.
+        appendChild(this: { children: FakeElement[] }, child: FakeElement) {
             this.children.push(child);
             return child;
         },

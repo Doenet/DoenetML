@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { isNumericConstant } from "./math";
+import { evaluateToNumber, isNumericConstant } from "./math";
 const { mod, min, fraction, number: mathNumber } = me.math;
 
 export default function periodicSetEquality(
@@ -96,9 +96,20 @@ export default function periodicSetEquality(
             return false;
         }
 
-        number_list = number_list.map((x) =>
-            me.fromAst(x).evaluate_to_constant(),
-        );
+        // `toNumberOrNaN`, not the raw `evaluate_to_constant`: an offered
+        // element that is not a constant answers `null`, and `null` is `0` to
+        // `mod` — so a wholly symbolic list `y, z, w` passed the "first
+        // element lies on the set" test below and, with `match_partial`, was
+        // awarded a third of the credit. `NaN` fails that test, which is what
+        // the legacy engine produced here.
+        //
+        // Mapping to `NaN` rather than refusing the whole list is the point:
+        // the loop below counts a *consecutive run* from the first element, so
+        // a partly symbolic `0, y, 6` must still score the one element it got
+        // right, exactly as it did before the engine switch. Every other
+        // `evaluate_to_constant` in this file is already guarded; this was the
+        // one that was not.
+        number_list = number_list.map((x) => evaluateToNumber(me.fromAst(x)));
 
         // use me.math.mod rather than % so it always non-negative
         let offset_diff = mod(number_list[0] - offset, period);

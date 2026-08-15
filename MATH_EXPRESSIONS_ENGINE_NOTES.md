@@ -230,7 +230,7 @@ copies of the engine once the seam was externalized everywhere.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
   the primary risk of the engine switch and the ordinary suites are all that guard it. A green
   suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
-  turned up **nine** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  turned up **eleven** wrong-answer-on-grading defects, and no pre-existing test named any of them.
   Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
   identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
   correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
@@ -260,6 +260,10 @@ copies of the engine once the seam was externalized everywhere.
   `simplify(mod((7,3)))` was `1` while `equals(mod((7,3)), 1)` was `false` and
   `evaluate_to_constant` was `None`. Both layers now go through one helper,
   `normalize::spread_list_argument`, the way `det`/`trace` go through `matrix::scalar_reduction`.
+  (The eighteenth pass then closed the *parenthesized* spelling one layer earlier still: the
+  parsers flatten a lone `Tuple` argument, so `mod((7,3))` is literally the tree `mod(7,3)` before
+  normalization sees it. The helper is still what makes `mod([7,3])` and
+  `["apply","mod",["list",7,3]]` work, and the split it repaired was real either way.)
 
   The ninth is not an engine defect at all but a DoenetML one, and it is the *other* recurring
   shape: `evaluate_to_constant` answers `null` where legacy answered `NaN`, and `null` coerces to
@@ -269,22 +273,41 @@ copies of the engine once the seam was externalized everywhere.
   seventeenth pass, pinned in `booleanoperatorsonmath.test.ts`, and it is why follow-up 3 below is
   a follow-up rather than closed — the population it names is where the rest of this class lives.
 
-  Read the nine together and the pattern is not "the engine is wrong" but "the suites test one
+  The **tenth and eleventh** are that same `null`-coerces-to-`0` shape, found at the eighteenth
+  pass by sweeping the population follow-up 3 names rather than by waiting for it. Both are
+  DoenetML's, not the engine's. `<lineSegment>`'s public `slope` read its four endpoint
+  coordinates raw, so `endpoints="($blank,1) (3,4)"` reported the slope of `(0,1)–(3,4)` — the
+  number `1` — for a segment that has none; `slope` is `createComponentOfType: "number"` and
+  reaches `<answer>` through `<when>`, so a student who submitted nothing scored full credit.
+  And `periodicSetEquality` mapped the offsets a student typed through the raw call before
+  `mod(offset₀ − offset, period)`, so an answer made entirely of free variables looked like it
+  started on the set and collected a third of the credit under `matchPartial`. Pinned in
+  `linesegment.test.ts` and a new `math/periodicSetEquality.test.ts`, each verified to fail
+  without its fix.
+
+  Read the eleven together and the pattern is not "the engine is wrong" but "the suites test one
   path at a time". **Three** of them were invisible because a *different* path answered
   correctly: `erf` plotted while it could not be graded, `det`/`trace` simplified *and* plotted
   while they could not be compared, and `f((a, b))` folded while it could not be compared. Two
   were codified as deliberate in a test's own exemption list before anyone measured them. The
   seventh and eighth are the same shape reached twice, which is the argument for the shared-helper
   habit rather than for a longer list of special cases: whenever *two* layers decide independently
-  whether an application has a value, they will eventually answer differently. And the ninth says
-  the same thing about a *guard*: a helper that exists (`evaluateToNumber`) is worth nothing at the
-  one call site that does not use it.
+  whether an application has a value, they will eventually answer differently. And the ninth,
+  tenth and eleventh say the same thing about a *guard*: a helper that exists (`evaluateToNumber`)
+  is worth nothing at the one call site that does not use it. All three sit in a file that already
+  imports the guard and already uses it a few lines away — `<isBetween>` beside two siblings that
+  call `Number.isFinite`, `slope` between a `numericalEndpoints` that was fixed on this branch and
+  an inverse definition that refuses, `periodicSetEquality` among six other guarded reads in the
+  same function.
 
-  `nthroot` is the mirror image of `erf` and is deliberately **not** among the eight: it could not
+  `nthroot` is the mirror image of `erf` and is deliberately **not** among the eleven: it could not
   be plotted while grading it worked perfectly, so no answer was ever marked wrong. It belongs to
   the same lesson about single-path testing and to none of the grading arithmetic — an earlier
-  wording counted it as one of the eight and split `det`/`trace` into two to reach "four", which is
-  the same error twice.
+  wording counted it as one of them and split `det`/`trace` into two to reach "four invisible",
+  which is the same error twice. The `f((a, b))` *serialization* defect the eighteenth pass fixed
+  is likewise not one of the eleven, and for the opposite reason: `checkEquality` rebuilds both
+  operands with `me.fromAst` one line before comparing them, so grading never saw it. It was a
+  rendering regression.
 
 ## Follow-up PRs, written up so they can be opened from here
 
@@ -329,10 +352,25 @@ copies of the engine once the seam was externalized everywhere.
    core every one whose result reaches arithmetic or a `number`-typed state variable; **six** were
    wrong (`<polygon>`'s centroid, `<vector>`'s `numericalEndpoints`, `<ray>`'s
    `numericalEndpoint`, `<angle>`'s third point, `<math>`'s `.number`, `<cell>`'s `.number`), and
-   each was fixed with a regression test that fails without its fix. What is left is therefore the
-   long tail: sites added since, and the guarded majority that should be converted for uniformity
-   rather than because they are broken. Mechanical but large; belongs in its own PR with the count
-   re-measured first, and with the 204/6 ratio as the expectation to calibrate against.
+   each was fixed with a regression test that fails without its fix.
+
+   Re-measured at the eighteenth pass over the same packages plus `doenetml-prototype` and
+   `doenetml-to-pretext`: **254 live call sites** (300 occurrences, 46 of them in comments), of
+   which **44 are unguarded**. Reading all 44 turned up **two** more wrong answers —
+   `<lineSegment>`'s `slope` and `periodicSetEquality`, the tenth and eleventh defects above —
+   plus one contract violation with no reproducer (`<piecewiseFunction>`'s `numericalfs` returning
+   `null` where every sibling branch returns `NaN`, character-for-character the code this branch
+   already fixed in `Function.js`). All three are fixed here. The rest of the 44 fall into three
+   groups: rendering-only (`<angle>`'s `numericalPoints`/`numericalRadius`, whose renderer guards),
+   latent with no consumer (`<line>`'s `numericalCoeff*`), and pointer-coordinate paths where the
+   input is a number by construction (the six `nearestPoint` definitions, the drag arithmetic in
+   `<polyline>` and `<cobwebPolyline>`). None of those is wrong today; each is one refactor away
+   from being wrong, which is what makes the sweep worth finishing.
+
+   The mechanical rule that would have caught all three of this pass's findings, and roughly a
+   third of the remaining 44: *no bare `evaluate_to_constant()` result may reach `<`, `>`, `-`,
+   `/`, or a `number`-typed `setValue`*. Belongs in its own PR with the count re-measured first,
+   and with the 44/2 ratio — not the older 204/6 — as the expectation to calibrate against.
 4. **The extrema search's remaining gaps are the two the exact roots cannot close on their own.**
    Three quarters of this item is now fixed and only the redesign is left. `exactCriticalPointsOf`
    returns the *complete* real root set of `f'` when the derivative is rational, so
@@ -413,18 +451,33 @@ copies of the engine once the seam was externalized everywhere.
    the new `inputNumericFs` flag correctly went on the numeric pair only, which means correctness
    now rests on telling four look-alike blocks apart; extracting
    `symbolicInputFs`/`numericInputFs` would make the pairing structural.
-9. **Nothing in CI runs `tsc`, so a type error in `packages/doenetml` is invisible.** The job named
-   `Lint Typescript Code` runs Prettier and a case-insensitive-filename check, and nothing else;
-   `packages/doenetml`'s build is `vite build`, whose `vite-plugin-dts` step *logs* every
-   diagnostic and still exits `0` (measured: 43 diagnostics logged, exit 0). That is how the
-   sixteenth pass's widening of `evaluate_to_constant` — correct, and the reason two real defects
-   were found — could leave 22 fresh `TS2322`s in `packages/doenetml` and one in
-   `doenetml-worker-rust` without turning anything red. The seventeenth pass fixed those 23, but
-   the *guard* is still missing, and adding it is not a one-liner: `npx tsc --noEmit` in
-   `packages/doenetml` reports **18** further errors that predate this branch (17 are JSXGraph
-   label/circle typings in the renderers, one is `RoundType` used as a type in `pegboard.tsx`).
-   The follow-up is those 18 plus a `typecheck` step per package, and it wants its own PR — the
-   fix for each is a typings question with no math in it.
+9. **Five packages still do not type-check, and are excluded from the new `tsc` gate.** Until the
+   eighteenth pass nothing in CI ran `tsc` at all: `Lint Typescript Code` runs Prettier and a
+   case-insensitive-filename check and nothing else, and `packages/doenetml`'s `vite build` *logs*
+   every `vite-plugin-dts` diagnostic and still exits `0` (measured: 43 logged, exit 0). That is
+   how the sixteenth pass's widening of `evaluate_to_constant` could leave 22 fresh `TS2322`s in
+   `packages/doenetml` and one in `doenetml-worker-rust` without turning anything red; the
+   seventeenth pass fixed those 23 by hand.
+
+   The gate is now `npm run typecheck` (`scripts/typecheck.mjs`), a step in the **Build** job —
+   there rather than in the lint job because the root `paths` mapping resolves `@doenet/…` to a
+   package's `dist`, so type-checking needs the build. It discovers packages rather than listing
+   them, so a new one is gated the day it is added, and it fails on a stale exclusion. 22 packages
+   pass in about 30 seconds, including `packages/doenetml`, which is where the 22 errors were, and
+   `packages/math`, which is where this branch's type surface lives. Making `packages/doenetml`
+   clean cost three edits, not eighteen: 16 of its 18 pre-existing errors were one
+   `LabelLikeJXG.update` declaration (jsxgraph types the `.label` property's `update` as
+   `Function`, which is assignable to no specific signature), and the other two were a `RoundType`
+   missing a `typeof` and a `this` in an object-literal method.
+
+   What is left for a follow-up is the five packages the gate skips, with the counts measured on
+   the branch: `doenetml-worker-javascript` (**35**, all in `core/CompositeExpander.ts` and
+   `core/StateVariableDefinitionFactory.ts` — implicit `any` in the state-variable machinery),
+   `vscode-extension` (**18**), `utils` (**2**), `parser` (**2**), `test-cypress` (**2**). None is
+   in a file this branch touches, and the fix for each is a typings question with no math in it.
+   Deleting a package's line from `KNOWN_UNCLEAN` is how it re-enters the gate. Note that the
+   seventeenth pass reported "18 pre-existing errors" as the blocker; that was `packages/doenetml`
+   alone, and the repo-wide figure was 75.
 10. **`numberFromSerializedAst` is copied into two packages, and should live in `@doenet/utils`.**
     `packages/doenetml-to-pretext/src/utils/math/math-expression-utils.ts` and
     `packages/doenetml-prototype/src/utils/math/math-expression-utils.ts` are byte-identical

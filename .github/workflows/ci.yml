@@ -68,6 +68,18 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
+            # Nothing else in CI runs `tsc`: `Lint Typescript Code` is Prettier
+            # plus a filename-collision check, and the packages built with
+            # `vite build` only *log* their vite-plugin-dts diagnostics before
+            # exiting 0. Twenty-two type errors sat in packages/doenetml that
+            # way. Run here rather than in the lint job because the root
+            # `paths` mapping resolves `@doenet/…` to a package's `dist`, so
+            # type-checking needs the build above. ~30s. The packages that do
+            # not type-check yet are listed, with their error counts, in
+            # scripts/typecheck.mjs.
+            - name: Type check
+              run: npm run typecheck
+
             # The standalone bundle has carried megabytes it should not have
             # before — the Rust core was inlined into it until #1465 — and
             # nothing failed. Checked here rather than in a test job because

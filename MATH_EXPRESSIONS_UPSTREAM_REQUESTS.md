@@ -7,11 +7,7 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — two items, plus one recorded beside the entry it belongs to
-
-(The third is `f((x, y))` and `f(x, y)` serializing to the same JS AST while comparing unequal —
-filed under `mod((7,3))` in "Closed" below, because it is what that fix does *not* reach. It is a
-rendering divergence, not a grading one; both halves of that were measured.)
+## Open — two items
 
 **`substitute_component` accepts a receiver that is not a container, and answers.** Legacy validated
 the head at each level of the path and the index range, throwing `expected list, tuple, vector, or
@@ -120,25 +116,38 @@ the sampler was the half that was wrong. And that entry's example,
 argument into an argument list first, so a DoenetML tree could not reach it and only the text
 parser could.
 
-Related, and **open**: the fix reaches only the heads whose *spread* arity is evaluable, which is
-the subset that reached grading. Underneath it is a serialization problem, not an equality one:
-`f((x, y))` parses to `Apply(f, [Seq(Tuple, [x, y])])` and `f(x, y)` to `Apply(f, [x, y])`, and both
+Related, and **also fixed at the current pin** — filed at the seventeenth pass, taken on at the
+eighteenth. The spread above reaches only the heads whose *spread* arity is evaluable, which is the
+subset that reached grading. Underneath it was a serialization problem, not an equality one:
+`f((x, y))` parsed to `Apply(f, [Seq(Tuple, [x, y])])` and `f(x, y)` to `Apply(f, [x, y])`, and both
 serialize to the identical JS AST `["apply","f",["tuple","x","y"]]`, which deserializes back to the
-second. So `me.fromText("f((1,2))").tree` equals `me.fromText("f(1,2)").tree` byte for byte while
-`x.equals(me.fromAst(x.tree))` is `false`.
+second. So `me.fromText("f((1,2))").tree` equalled `me.fromText("f(1,2)").tree` byte for byte while
+`x.equals(me.fromAst(x.tree))` was `false` — an expression that was not equal to itself after a
+round trip through its own `.tree`.
 
-**It does not reach grading, and that was measured rather than reasoned.** `checkEquality.js` hands
+**It did not reach grading, and that was measured rather than reasoned.** `checkEquality.js` hands
 raw `.tree` values to `check_equality`, which rebuilds both operands with `me.fromAst` immediately
-before `.equals()` — so an `<answer>` awards full credit for `sin((7,3))` against `sin(7,3)`, and
-`<boolean>$m1 = $m2</boolean>` is `true` while the underlying objects compare `false`. What it does
-reach is **display**: a `<mathInput>` holding `\sin\left(\left(x,y\right)\right)` renders with
-its inner parentheses, and after a save/restore through `serializedComponentsReviver` the same
-saved JSON renders without them; `floor((x,y))` changes notation outright, from
-`\left\lfloor … \right\rfloor` to `\operatorname{floor}(…)`. Legacy is stable across the same
-round trip, so it is a regression — a rendering one. Filed upstream in
-`active-plans/PR84_REVIEW_KNOWN_ISSUES.md` with the fix identified (flatten a lone `Tuple` argument
-in the *parsers*, since the printers read the raw tree and a canonical-form fix would leave the
-display alone).
+before `.equals()` — so an `<answer>` awarded full credit for `sin((7,3))` against `sin(7,3)`, and
+`<boolean>$m1 = $m2</boolean>` was `true` while the underlying objects compared `false`. What it
+did reach is **display**: a `<mathInput>` holding `\sin\left(\left(x,y\right)\right)` rendered
+with its inner parentheses, and after a save/restore through `serializedComponentsReviver` the same
+saved JSON rendered without them. Legacy is stable across the same round trip, so it was a
+regression — a rendering one.
+
+The fix is in the **parsers**, not in canonicalization, because the printers read the raw tree: a
+canonical-form fix would have repaired `equals` and left the display wrong. `parse::common::apply`
+flattens a lone `Tuple` argument exactly as `expr::serde::try_from_js` always has, and every
+`Expr::Apply` both parsers build now goes through it. Only a lone tuple flattens — in
+`f((x, y), z)` the inner tuple is one of two arguments and round-trips intact. `spread_list_argument`
+keeps its place for the list kinds that are *not* `Tuple`.
+
+Fixing it exposed a second, older divergence one layer down, which is why `floor((x,y))` had
+"changed notation outright" in the filing: the LaTeX printer's bracket notations were guarded on
+`args.len() == 1` and fell through to `head\left(…\right)` otherwise, spelling the head as a
+command that does not exist — `abs(x, y)` rendered as `\abs\left( x, y \right)` and `sqrt(x, y)`
+as `\sqrt\left( x, y \right)`, neither of which MathJax can render. That was reachable from any
+stored tree before the parser change, which merely routed more spellings into it. They now wrap the
+tuple, which is what the JS AST says the argument is and exactly what legacy rendered.
 
 And **fixed at the current pin** after being filed once: the sweep accompanying the `det`
 fix concluded that `rootof`, the one remaining registry definition with no evaluation, was

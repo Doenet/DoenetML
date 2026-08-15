@@ -155,9 +155,13 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
                             // `Number.isFinite`: `evaluate_to_constant` answers
                             // `null` for an expression that is not a constant,
                             // and `null` *coerces to 0* in a comparison — so
-                            // `<isBetween lowerLimit="-1" upperLimit="1">x</isBetween>`
-                            // answered `true`, placing a free variable inside
-                            // the interval. `NaN` fails both comparisons, which
+                            // `<isBetween limits="-1 5">x</isBetween>` answered
+                            // `true`, placing a free variable inside the
+                            // interval. (`limits` is the attribute; there is no
+                            // `lowerLimit`/`upperLimit` pair — a spelling using
+                            // one would leave `limits` empty and answer `false`
+                            // for a different reason.)
+                            // `NaN` fails both comparisons, which
                             // is what the legacy engine returned here (its
                             // `nan_for_non_numeric` default) and why this read
                             // as correct before the engine switch.
