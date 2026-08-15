@@ -30,16 +30,21 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 /**
  * Packages excluded from the gate because they have pre-existing type errors,
  * none of which is in the way of any current work. The counts were measured on
- * 2026-08-15 with TypeScript as pinned in the root lockfile.
+ * 2026-08-15 with TypeScript as pinned in the root lockfile, and total 59.
+ *
+ * Each entry is checked, not trusted: an excluded package is still type-checked
+ * below, and the run fails if one of them now comes back *clean*. Naming the
+ * cause is therefore a description rather than a promise — but it is what tells
+ * the next reader whether the debt is worth paying, so it has to be true.
  */
 const KNOWN_UNCLEAN = new Map([
     [
         "doenetml-worker-javascript",
-        "35 errors, all in core/CompositeExpander.ts and core/StateVariableDefinitionFactory.ts (implicit `any` in the state-variable machinery)",
+        "35 errors in core/CompositeExpander.ts and core/StateVariableDefinitionFactory.ts: 23 implicit-`any` (TS70xx) in the state-variable machinery, and 12 real mismatches (10 × TS2339 `Property 'returnDependencies' does not exist`, one TS2345, one TS2554)",
     ],
     [
         "vscode-extension",
-        "18 errors in the preview-window React code and dark-mode-monitor",
+        '18 errors in the preview-window React code, all of them TS2812/TS2584/TS2304/TS2552 from a missing `dom` in that package\'s own `lib` (`["es2020", "WebWorker"]`) — a tsconfig fix rather than code to write',
     ],
     [
         "utils",
@@ -64,24 +69,31 @@ const packages = readdirSync(packagesDir, { withFileTypes: true })
 
 const skipped = [];
 const failed = [];
+const nowClean = [];
 
 for (const name of packages) {
-    if (KNOWN_UNCLEAN.has(name)) {
-        skipped.push(name);
-        continue;
-    }
+    const excluded = KNOWN_UNCLEAN.has(name);
     process.stdout.write(`type-checking packages/${name} ... `);
+    let error;
     try {
         execFileSync(
             "npx",
             ["tsc", "--noEmit", "-p", join("packages", name, "tsconfig.json")],
             { cwd: repoRoot, stdio: ["ignore", "pipe", "pipe"] },
         );
-        process.stdout.write("ok\n");
     } catch (e) {
-        process.stdout.write("FAILED\n");
-        const out = `${e.stdout ?? ""}${e.stderr ?? ""}`.trim();
-        failed.push({ name, out });
+        error = `${e.stdout ?? ""}${e.stderr ?? ""}`.trim();
+    }
+    if (excluded) {
+        // Excluded packages are type-checked too, and the *absence* of errors
+        // is what fails: see the note on `nowClean` below.
+        process.stdout.write(error ? "not gated\n" : "CLEAN\n");
+        (error ? skipped : nowClean).push(name);
+    } else {
+        process.stdout.write(error ? "FAILED\n" : "ok\n");
+        if (error) {
+            failed.push({ name, out: error });
+        }
     }
 }
 
@@ -94,11 +106,26 @@ if (skipped.length > 0) {
 }
 
 // A stale entry is its own kind of rot: it silently un-gates a package that
-// someone has already cleaned up.
+// someone has already cleaned up. There are two ways for one to go stale, and
+// the likelier of them is not the package disappearing — it is somebody fixing
+// the errors and not deleting the line, after which the package is never gated
+// again and the next regression in it lands unnoticed. So an excluded package
+// is run like any other and failed when it comes back clean; the exclusion list
+// cannot outlive what it excuses.
 const stale = [...KNOWN_UNCLEAN.keys()].filter((n) => !packages.includes(n));
 if (stale.length > 0) {
     console.error(
         `\nKNOWN_UNCLEAN names a package that no longer exists (or has no tsconfig.json): ${stale.join(", ")}`,
+    );
+    process.exit(1);
+}
+
+if (nowClean.length > 0) {
+    console.error(
+        `\n${nowClean.length} package(s) in KNOWN_UNCLEAN now type-check clean — ` +
+            `delete their entries so they are gated from now on:\n${nowClean
+                .map((n) => `  packages/${n}`)
+                .join("\n")}`,
     );
     process.exit(1);
 }

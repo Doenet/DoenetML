@@ -202,6 +202,28 @@ describe("createPackageJsonTransformer", () => {
         // GitHub shorthand for a repository named `math.tar.gz`. Anyone who
         // writes a `.tar.gz` range means a tarball on this machine.
         "vendor/math.tar.gz",
+        // scp-style ranges on a host `hosted-git-info` does *not* know. npm has
+        // no general scp parser: `npa` calls these a `directory`, and npm
+        // 11.12.1 installs `user@host:../math` as a *dangling* symlink to
+        // `../user@host:../math` and exits 0. A self-hosted GitLab or Gitea
+        // remote is the realistic spelling, so this is not a corner.
+        "git@gitlab.example.com:group/repo.git#v3",
+        "git@git.company.internal:team/math.git",
+        "user@host:../math",
+        // …and a known host does not rescue a tail that is not `user/project`.
+        "git@github.com:../math",
+        "git@github.com:/srv/math",
+        // No slash at all, so the bare-path test never sees it: `npa` does not
+        // classify this, it *throws* `EINVALIDTAGNAME`, and every consumer's
+        // install would fail on the published manifest.
+        "user@host:math",
+        // A `%` keeps `hosted-git-info` from reading a `user/repo` shorthand —
+        // it `decodeURIComponent`s and catches the `URIError` — so `npa` calls
+        // this a `directory`, and npm installs it as a *working* local symlink,
+        // which ships silently.
+        "vendor/math%po",
+        "user/re%po",
+        "us%er/repo",
     ])("treats %s as unpublishable too", (range) => {
         const { pkg } = transform({ "math-expressions": range }, [
             "math-expressions",
@@ -236,12 +258,14 @@ describe("createPackageJsonTransformer", () => {
         "packages/math",
         // A range with a space in it, which must not be mistaken for a path.
         ">= 1.0.0 || ^2",
-        // An scp-style git URL. It carries no `scheme:`, so the protocol test
-        // does not see it, and it has a slash with an `@` and a `:` before it,
-        // so the GitHub shorthand does not either — but `npa` calls it `git`
-        // and any consumer can clone it.
+        // An scp-style git URL on a host `hosted-git-info` knows. It carries no
+        // `scheme:`, so the protocol test does not see it, and it has a slash
+        // with an `@` and a `:` before it, so the GitHub shorthand does not
+        // either — but `npa` calls it `git` and any consumer can clone it.
         "git@github.com:user/repo.git",
-        "git@gitlab.example.com:group/repo.git#v3",
+        "git@github.com:user/repo.git#v3",
+        "git@gitlab.com:group/repo.git#v3",
+        "git@bitbucket.org:group/repo.git",
     ])("still publishes with the registry range %s", (range) => {
         const { pkg } = transform({ "math-expressions": range }, [
             "math-expressions",

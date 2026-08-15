@@ -423,6 +423,15 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                             let x1 = variables.x1?.evaluate_to_constant();
                             let x2 = variables.x2?.evaluate_to_constant();
 
+                            // A point with a non-numeric coordinate has no
+                            // nearest point; leave it where it is. See the
+                            // note on `<polygon>`'s `nearestPoint`: the engine
+                            // returns `null` where the old one returned `NaN`,
+                            // and `null` is `0` to the distance arithmetic.
+                            if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
+                                return {};
+                            }
+
                             let prevPtx, prevPty;
                             let nextPtx = numericalVertices[0][0];
                             let nextPty = numericalVertices[0][1];

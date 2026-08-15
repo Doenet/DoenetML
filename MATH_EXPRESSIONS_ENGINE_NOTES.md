@@ -258,7 +258,7 @@ copies of the engine once the seam was externalized everywhere.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
   the primary risk of the engine switch and the ordinary suites are all that guard it. A green
   suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
-  turned up **eleven** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  turned up **fourteen** wrong-answer-on-grading defects, and no pre-existing test named any of them.
   Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
   identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
   correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
@@ -313,7 +313,33 @@ copies of the engine once the seam was externalized everywhere.
   `linesegment.test.ts` and a new `math/periodicSetEquality.test.ts`, each verified to fail
   without its fix.
 
-  Read the eleven together and the pattern is not "the engine is wrong" but "the suites test one
+  The **twelfth, thirteenth and fourteenth** are the same shape again, found at the nineteenth
+  pass by disbelieving follow-up 3's own dismissal of them (see below). `<constrainTo>` hands a
+  `nearestPoint` definition the constrained point's coordinates as *math expressions*, so a point
+  with a blank or symbolic coordinate arrives un-evaluated — and `null` is `0` to the distance
+  arithmetic, where `NaN` had made every candidate distance fail its comparison and left the point
+  alone. `<polygon>`, `<polyline>` and `<regionBetweenCurveXAxis>` therefore *snapped* such a
+  point onto themselves. The measured document is worth stating in full, because nothing in it
+  looks like a math bug:
+
+  ```
+  <mathInput name="mi" />
+  <graph>
+    <polygon name="poly" vertices="(0,0) (4,0) (4,4) (0,4)" />
+    <point name="P" x="$mi" y="9"><constraints><constrainTo>$poly</constrainTo></constraints></point>
+  </graph>
+  <answer><award><when>$P = (0,4)</when></award></answer>
+  ```
+
+  With the input left empty, `P` sits at exactly `(0, 4)` and the answer scores **full credit for
+  a student who entered nothing**. `<circle>`, `<line>`, `<parabola>` and `<curve>` were already
+  guarded — the identical four-line `Number.isFinite` idiom — so this is the ninth/tenth/eleventh
+  lesson a fourth time: the guard existed and three call sites did not use it. Fixed in all five
+  unguarded definitions (`<discreteSimulationResultPolyline>` and `<regionBetweenCurves>` are the
+  same code reached by the same path, fixed for symmetry rather than from a reproducer), each
+  pinned by a test verified to fail without its fix.
+
+  Read the fourteen together and the pattern is not "the engine is wrong" but "the suites test one
   path at a time". **Three** of them were invisible because a *different* path answered
   correctly: `erf` plotted while it could not be graded, `det`/`trace` simplified *and* plotted
   while they could not be compared, and `f((a, b))` folded while it could not be compared. Two
@@ -321,9 +347,10 @@ copies of the engine once the seam was externalized everywhere.
   seventh and eighth are the same shape reached twice, which is the argument for the shared-helper
   habit rather than for a longer list of special cases: whenever *two* layers decide independently
   whether an application has a value, they will eventually answer differently. And the ninth,
-  tenth and eleventh say the same thing about a *guard*: a helper that exists (`evaluateToNumber`)
-  is worth nothing at the one call site that does not use it. All three sit in a file that already
-  imports the guard and already uses it a few lines away — `<isBetween>` beside two siblings that
+  tenth, eleventh and twelfth-through-fourteenth say the same thing about a *guard*: a helper that
+  exists (`evaluateToNumber`, or the four-line `Number.isFinite` opening of a `nearestPoint`)
+  is worth nothing at the one call site that does not use it. All of them sit in a file that
+  already imports the guard and already uses it a few lines away — `<isBetween>` beside two siblings that
   call `Number.isFinite`, `slope` between a `numericalEndpoints` that was fixed on this branch and
   an inverse definition that refuses, `periodicSetEquality` among six other guarded reads in the
   same function.
@@ -388,17 +415,56 @@ copies of the engine once the seam was externalized everywhere.
    `<lineSegment>`'s `slope` and `periodicSetEquality`, the tenth and eleventh defects above —
    plus one contract violation with no reproducer (`<piecewiseFunction>`'s `numericalfs` returning
    `null` where every sibling branch returns `NaN`, character-for-character the code this branch
-   already fixed in `Function.js`). All three are fixed here. The rest of the 44 fall into three
-   groups: rendering-only (`<angle>`'s `numericalPoints`/`numericalRadius`, whose renderer guards),
-   latent with no consumer (`<line>`'s `numericalCoeff*`), and pointer-coordinate paths where the
-   input is a number by construction (the six `nearestPoint` definitions, the drag arithmetic in
-   `<polyline>` and `<cobwebPolyline>`). None of those is wrong today; each is one refactor away
-   from being wrong, which is what makes the sweep worth finishing.
+   already fixed in `Function.js`). All three are fixed here.
 
-   The mechanical rule that would have caught all three of this pass's findings, and roughly a
-   third of the remaining 44: *no bare `evaluate_to_constant()` result may reach `<`, `>`, `-`,
-   `/`, or a `number`-typed `setValue`*. Belongs in its own PR with the count re-measured first,
-   and with the 44/2 ratio — not the older 204/6 — as the expectation to calibrate against.
+   The eighteenth pass then sorted the rest of the 44 into three groups and called all of them
+   safe. **Two of the three claims were wrong, and one was hiding three live grading defects** —
+   which is the single most useful thing to know about this ledger, and the reason the remaining
+   entries below are stated with what was actually measured rather than with a category:
+
+   - *"pointer-coordinate paths where the input is a number by construction (the six `nearestPoint`
+     definitions)"* — **wrong, and the twelfth-through-fourteenth defects above came out of it.**
+     `nearestPoint` is not reached only by a pointer. `ConstrainTo.js:118` passes the constrained
+     point's `variables` straight through as math expressions, so a `<point>` with a blank or
+     symbolic coordinate reaches every one of these definitions un-evaluated. `<polygon>`,
+     `<polyline>` and `<regionBetweenCurveXAxis>` all snapped such a point onto themselves; the
+     other four (`<circle>`, `<line>`, `<parabola>`, `<curve>`) were already guarded, which is
+     what made the group look uniform from a distance. Now fixed in all five that were not.
+   - *"rendering-only (`<angle>`'s `numericalPoints`/`numericalRadius`, whose renderer guards)"* —
+     **half wrong.** `angle.tsx` guards `numericalRadius` with `Number.isFinite` at two places and
+     guards nothing about the point coordinates, which reach JSXGraph, where `null` reads as `0`.
+     Measured: `<angle through="($mi,1) (0,0) (1,0)" />` with an empty input gives
+     `numericalPoints = [[null,1],[0,0],[1,0]]` — a real `null`, disambiguated against
+     `<curve>`'s `numericalThroughPoints` in the same document, which correctly holds `NaN`.
+     `numericalPoints` is `forRenderer` and not `public`, so no grading path reaches it and this
+     stays a display defect; it is left for the follow-up rather than fixed here because it is a
+     renderer question, not an engine one.
+   - *"latent with no consumer (`<line>`'s `numericalCoeff*`)"* — **wrong reason, right verdict.**
+     They are consumed, by `Line.js`'s own `nearestPoint`, which guards with `Number.isFinite`.
+
+   What was checked and *is* genuinely benign, with the reason rather than the category:
+   `ChoiceInput`/`CollaborateGroups` (`Number.isInteger`), `<angle>`'s other reads (a
+   `Number.isFinite` block immediately below), `<graph>`'s spacing (`spacing > 0` rejects both),
+   `MathOperators`/`SolveEquations`/`MathBaseOperator`/`PeriodicSet` (guarded), `clampFunction`
+   and `wrapFunctionPeriodic` (both open with `Number.isFinite`), `<number>`'s four reads
+   (`me.fromAst(NaN).evaluate_to_constant()` is `NaN`, so `valueForDisplay` cannot see `null`),
+   `<functionIterates>` (the raw array does hold `null`, but `numericalfs` converts it, so the
+   public `iterates` are `NaN` as before — latent only), and `<sequence>`'s two reads
+   (`Math.floor(null * …)` and `Math.floor(NaN * …)` both end at `length = 0`; only a lost
+   `console.warn`). `booleanLogic.js` and `checkEquality.js` — the grading core — are clean: every
+   `evaluate_to_constant` in them is guarded, and their `.tree` reads are structural.
+
+   One entry is worth naming as a trap rather than a defect: `sequence.js:536` is unreachable from
+   a document today, but if a `null` ever reached `exclude`, `returnSequenceValues` silently drops
+   the value `0` (`[null]` → `[-2,-1,1,2]` where `[NaN]` → `[-2,-1,0,1,2]`). It is one refactor
+   from being wrong, which is the general shape of what remains.
+
+   The mechanical rule that would have caught all six of the findings from the last two passes,
+   and roughly a third of the remaining 44: *no bare `evaluate_to_constant()` result may reach
+   `<`, `>`, `-`, `/`, or a `number`-typed `setValue`*. Belongs in its own PR with the count
+   re-measured first. Calibrate against 44/5, not the older 204/6 — and note that two consecutive
+   passes have now each found real defects in the residue after the previous one declared it safe,
+   so the expectation for the next sweep should be that the residue still contains some.
 4. **The extrema search's remaining gaps are the two the exact roots cannot close on their own.**
    Three quarters of this item is now fixed and only the redesign is left. `exactCriticalPointsOf`
    returns the *complete* real root set of `f'` when the derivative is rational, so
@@ -496,22 +562,40 @@ copies of the engine once the seam was externalized everywhere.
    The gate is now `npm run typecheck` (`scripts/typecheck.mjs`), a step in the **Build** job —
    there rather than in the lint job because the root `paths` mapping resolves `@doenet/…` to a
    package's `dist`, so type-checking needs the build. It discovers packages rather than listing
-   them, so a new one is gated the day it is added, and it fails on a stale exclusion. 22 packages
-   pass in about 30 seconds, including `packages/doenetml`, which is where the 22 errors were, and
-   `packages/math`, which is where this branch's type surface lives. Making `packages/doenetml`
+   them, so a new one is gated the day it is added, and it fails on a stale exclusion — in both
+   senses. A package can leave the tree, and it can be *fixed*; the second is the likelier way an
+   exclusion goes stale and the one the check originally missed, so an excluded package is now
+   type-checked like any other and the run fails when one comes back clean. 22 packages pass, 5
+   are excluded and confirmed still unclean, in about 36 seconds all told — including
+   `packages/doenetml`, which is where the 22 errors were, and `packages/math`, which is where
+   this branch's type surface lives. Making `packages/doenetml`
    clean cost three edits, not eighteen: 16 of its 18 pre-existing errors were one
    `LabelLikeJXG.update` declaration (jsxgraph types the `.label` property's `update` as
    `Function`, which is assignable to no specific signature), and the other two were a `RoundType`
    missing a `typeof` and a `this` in an object-literal method.
 
-   What is left for a follow-up is the five packages the gate skips, with the counts measured on
-   the branch: `doenetml-worker-javascript` (**35**, all in `core/CompositeExpander.ts` and
-   `core/StateVariableDefinitionFactory.ts` — implicit `any` in the state-variable machinery),
+   What is left for a follow-up is the five packages the gate skips, **59 errors** in total, with
+   the counts measured on the branch: `doenetml-worker-javascript` (**35**, in
+   `core/CompositeExpander.ts` and `core/StateVariableDefinitionFactory.ts`),
    `vscode-extension` (**18**), `utils` (**2**), `parser` (**2**), `test-cypress` (**2**). None is
    in a file this branch touches, and the fix for each is a typings question with no math in it.
-   Deleting a package's line from `KNOWN_UNCLEAN` is how it re-enters the gate. Note that the
-   seventeenth pass reported "18 pre-existing errors" as the blocker; that was `packages/doenetml`
-   alone, and the repo-wide figure was 75.
+   Deleting a package's line from `KNOWN_UNCLEAN` is how it re-enters the gate — and the gate now
+   makes that mandatory rather than optional.
+
+   Two of those five were described wrongly when they were recorded, and both descriptions are
+   worth correcting because they are what a follow-up would budget from.
+   `doenetml-worker-javascript`'s 35 are *not* "all implicit `any`": 23 are (TS70xx), but 12 are
+   real mismatches — ten `TS2339 Property 'returnDependencies' does not exist`, one `TS2345`, one
+   `TS2554`. And `vscode-extension`'s 18 are not React code needing work: every one is
+   `TS2812`/`TS2584`/`TS2304`/`TS2552`, and `tsc` names the fix itself — that package's own
+   `lib` is `["es2020", "WebWorker"]` with no `dom`, so `scrollTop`, `addEventListener` and the
+   JSX namespace are all missing from a file that renders a preview window. Adding `"dom"` is a
+   one-line follow-up; it is out of scope here only because nothing about it touches the engine.
+
+   Note that the seventeenth pass reported "18 pre-existing errors" as the blocker; that was
+   `packages/doenetml` alone. The eighteenth pass corrected it to a repo-wide 75, which is also
+   wrong — 75 reconciles with nothing measurable, and the five entries in `KNOWN_UNCLEAN` sum to
+   59 (77 if `packages/doenetml`'s own 18, fixed by that pass, are added back).
 10. **`numberFromSerializedAst` is copied into two packages, and should live in `@doenet/utils`.**
     `packages/doenetml-to-pretext/src/utils/math/math-expression-utils.ts` and
     `packages/doenetml-prototype/src/utils/math/math-expression-utils.ts` are byte-identical

@@ -46,11 +46,20 @@ const HAS_PROTOCOL = /^(?:git\+)?[a-z]+:/i;
  * Exactly one slash, and none of `@ : # \` before it: `@scope/pkg`,
  * `some/dir/pkg` and `math/` are all paths to npm, not repositories.
  *
+ * A `%` anywhere disqualifies it too. `hosted-git-info` `decodeURIComponent`s
+ * the user, project and committish; a malformed escape throws `URIError`, which
+ * it catches by returning "not a repository", so `npa` falls through to
+ * `fromFile` and calls `vendor/math%po` a **`directory`**. Measured against npm
+ * 11.12.1, that range installs as a *working* local symlink — so unlike the
+ * whitespace case below it breaks nothing at install time and ships silently.
+ * Excluding every `%` is stricter than the escapes that actually fail to
+ * decode, which is the safe direction: no repository name needs one.
+ *
  * Whitespace anywhere disqualifies it, and this is the one test that must run
  * against the *untrimmed* range — see [`isUnpublishableRange`].
  */
 const GITHUB_SHORTHAND_RANGE =
-    /^[^./\\@:#\s][^/\\@:#\s]*\/[^/\\@:#\s]+(?:#.+)?$/;
+    /^[^./\\@:#%\s][^/\\@:#%\s]*\/[^/\\@:#%\s]+(?:#[^%]*)?$/;
 
 /**
  * A protocol-less range containing a separator is a path — the branch npm
@@ -74,8 +83,46 @@ const BARE_PATH_RANGE = /[/\\]/;
  * clonable by any consumer. Without this it fell to the bare-path test (a
  * slash, and the `@`/`:` keep it out of the GitHub shorthand) and would have
  * blocked a release over a perfectly resolvable dependency.
+ *
+ * **Both halves are load-bearing, and a shape test on `user@host:anything` is
+ * not enough.** npm has no general scp-style parser: `npa` calls such a spec
+ * `git` only when `hosted-git-info` recognises *both* the host and a
+ * `user/project`-shaped tail, and otherwise falls through to `fromFile` and
+ * calls it a **`directory`** — the very thing this predicate exists to catch.
+ * Measured against `npm-package-arg` 13.0.2 and 14.0.0, which agree:
+ *
+ * | range | `npa` type |
+ * |---|---|
+ * | `git@github.com:user/repo.git#v3` | `git` |
+ * | `git@gitlab.com:group/repo.git` | `git` |
+ * | `git@gitlab.example.com:group/repo.git` | **`directory`** |
+ * | `git@git.company.internal:team/math.git` | **`directory`** |
+ * | `user@host:../math` | **`directory`** |
+ * | `git@github.com:../math` | **`directory`** |
+ *
+ * A self-hosted GitLab or Gitea remote is the realistic spelling of the first
+ * two, and `user@host:../math` was measured against npm 11.12.1: it installs
+ * `node_modules/math-expressions` as a **dangling** symlink to
+ * `../user@host:../math` and exits 0, so the consumer's `require` throws at run
+ * time. Restricting to the known hosts is what keeps this a git test rather
+ * than a hole; erring toward blocking is the safe direction, since a false
+ * positive stops a release loudly and a false negative ships a broken package.
  */
-const SCP_GIT_RANGE = /^[A-Za-z0-9._-]+@[A-Za-z0-9._-]+:[^\s]+$/;
+const SCP_GIT_RANGE =
+    /^[A-Za-z0-9._-]+@(?:www\.)?(?:github\.com|gitlab\.com|bitbucket\.org|gist\.github\.com):[^./\\@:#\s][^/\\@:#\s]*\/[^/\\@:#\s]+(?:#.+)?$/i;
+
+/**
+ * A protocol-less range carrying an `@` or a `:` that {@link SCP_GIT_RANGE} did
+ * not recognise. No npm version range, dist-tag or GitHub shorthand contains
+ * either character — `^1.2.3`, `latest`, `1.2.3-beta.1+build` and `user/repo`
+ * are all clean, and an `npm:` alias has a protocol for {@link HAS_PROTOCOL} to
+ * find — so what is left is an scp-style URL npm cannot resolve. `npa` does not
+ * classify these at all: `user@host:math` *throws* `EINVALIDTAGNAME`, so every
+ * consumer's `npm install` fails on the published manifest. That is loud rather
+ * than silent, but it is still a broken release, and it is the residue of
+ * restricting the scp test to known hosts.
+ */
+const UNRESOLVABLE_SCP_RANGE = /[@:]/;
 
 /**
  * Does this dependency range mean "resolve this from somewhere on this machine"
@@ -122,6 +169,15 @@ function isUnpublishableRange(range: string): boolean {
         return false;
     }
     if (TARBALL_RANGE.test(trimmed)) {
+        return true;
+    }
+    // The GitHub shorthand is checked first because a `#committish` may
+    // legitimately carry a colon — `user/repo#semver:^3` is npm's own spelling
+    // for "the latest tag matching `^3`".
+    if (
+        UNRESOLVABLE_SCP_RANGE.test(trimmed) &&
+        !GITHUB_SHORTHAND_RANGE.test(range)
+    ) {
         return true;
     }
     // …but the GitHub shorthand is matched against the *raw* range, and this

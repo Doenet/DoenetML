@@ -5294,4 +5294,53 @@ describe("Polyline tag tests @group1", async () => {
         await test_items("light");
         await test_items("dark");
     });
+
+    /**
+     * The same defect as `<polygon>`'s: `<constrainTo>` hands `nearestPoint`
+     * the point's coordinates as math expressions, and a blank or symbolic one
+     * evaluates to `null` under the new engine where it was `NaN` before.
+     * `null` is `0` to the distance arithmetic, so the point was measured as
+     * though its unknown coordinate were `0` and snapped onto the polyline.
+     */
+    it("constraining to a polyline leaves a point with a non-numeric coordinate alone", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" />
+    <graph>
+      <polyline name="pl" vertices="(0,0) (4,0) (4,4)" />
+      <point name="blank" x="$mi" y="9">
+        <constraints><constrainTo>$pl</constrainTo></constraints>
+      </point>
+      <point name="symbolic" x="a" y="9">
+        <constraints><constrainTo>$pl</constrainTo></constraints>
+      </point>
+      <point name="numeric" x="2" y="9">
+        <constraints><constrainTo>$pl</constrainTo></constraints>
+      </point>
+    </graph>
+    `,
+        });
+
+        async function coordsOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.xs.map((v: any) => v.tree);
+        }
+
+        // The control: a numeric point really is pulled onto the polyline.
+        expect(await coordsOf("numeric")).eqls([4, 4]);
+        expect(await coordsOf("blank")).eqls(["\uff3f", 9]);
+        expect(await coordsOf("symbolic")).eqls(["a", 9]);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await coordsOf("blank")).eqls([4, 4]);
+    });
 });

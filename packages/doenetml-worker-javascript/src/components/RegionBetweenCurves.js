@@ -152,8 +152,18 @@ export default class RegionBetweenCurves extends GraphicalComponent {
                 const f2 = dependencyValues.functions[1];
 
                 let nearestPoint = function ({ variables }) {
-                    let x1 = variables.x1.evaluate_to_constant();
-                    let x2 = variables.x2.evaluate_to_constant();
+                    let x1 = variables.x1?.evaluate_to_constant();
+                    let x2 = variables.x2?.evaluate_to_constant();
+
+                    // A point with a non-numeric coordinate has no nearest
+                    // point; leave it where it is. See the note on
+                    // `<polygon>`'s `nearestPoint`: the engine returns `null`
+                    // where the old one returned `NaN`, and the clamping below
+                    // reads `null` as `0`, silently snapping the point into
+                    // the region instead of leaving it alone.
+                    if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
+                        return {};
+                    }
 
                     if (dependencyValues.flipFunctions) {
                         [x1, x2] = [x2, x1];

@@ -7579,4 +7579,61 @@ describe("Polygon tag tests @group2", async () => {
                 .numericalCentroidUnconstrained;
         expect(centroid).eqls([NaN, NaN]);
     });
+
+    /**
+     * A `<constrainTo>` a polygon hands `nearestPoint` the point's coordinates
+     * as math expressions, so a point with a blank or symbolic coordinate
+     * reaches it un-evaluated. The new engine answers `null` there where the
+     * old one answered `NaN`, and `null` is `0` to the distance arithmetic —
+     * so instead of every candidate distance being `NaN` (and no vertex ever
+     * winning), the point was measured as though its unknown coordinate were
+     * `0` and snapped to the nearest edge. A student who had entered nothing
+     * got a point sitting exactly on the polygon.
+     *
+     * The numeric case is the control: it is what keeps a test that always
+     * saw an unconstrained point from passing.
+     */
+    it("constraining to a polygon leaves a point with a non-numeric coordinate alone", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" />
+    <graph>
+      <polygon name="pg" vertices="(0,0) (4,0) (4,4) (0,4)" />
+      <point name="blank" x="$mi" y="9">
+        <constraints><constrainTo>$pg</constrainTo></constraints>
+      </point>
+      <point name="symbolic" x="a" y="9">
+        <constraints><constrainTo>$pg</constrainTo></constraints>
+      </point>
+      <point name="numeric" x="2" y="9">
+        <constraints><constrainTo>$pg</constrainTo></constraints>
+      </point>
+    </graph>
+    `,
+        });
+
+        async function coordsOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.xs.map((v: any) => v.tree);
+        }
+
+        // The control: a numeric point really is pulled onto the polygon.
+        expect(await coordsOf("numeric")).eqls([2, 4]);
+        // Neither of the others has a nearest point, so neither moves.
+        expect(await coordsOf("blank")).eqls(["\uff3f", 9]);
+        expect(await coordsOf("symbolic")).eqls(["a", 9]);
+
+        // ...and the blank one is constrained as soon as it is a number.
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await coordsOf("blank")).eqls([2, 4]);
+    });
 });

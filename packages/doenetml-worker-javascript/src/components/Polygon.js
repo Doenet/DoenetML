@@ -235,6 +235,18 @@ export default class Polygon extends Polyline {
                             let x1 = variables.x1?.evaluate_to_constant();
                             let x2 = variables.x2?.evaluate_to_constant();
 
+                            // A point with a non-numeric coordinate has no
+                            // nearest point; leave it where it is. The engine
+                            // returns `null` here where the old one returned
+                            // `NaN`, and `null` is `0` to the distance
+                            // arithmetic below — so without this the point
+                            // silently snaps to whatever is nearest the origin
+                            // instead of staying put. Same guard as
+                            // `<circle>`, `<line>`, `<parabola>` and `<curve>`.
+                            if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
+                                return {};
+                            }
+
                             let prevPtx, prevPty;
                             let nextPtx = numericalVertices[numVertices - 1][0];
                             let nextPty = numericalVertices[numVertices - 1][1];
