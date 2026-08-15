@@ -38,6 +38,15 @@ function dropDefaultWasmPath(): Plugin {
     return {
         name: "doenet:drop-default-wasm-path",
         enforce: "pre",
+        // `hits` is closed over the plugin instance, which `vite build --watch`
+        // (this package's `watch` script) reuses across rebuilds. Without this
+        // reset, a rebuild inherits the first build's non-zero count and the
+        // miss check below can never fire again — putting the ~2.25 MiB
+        // duplicate straight back, silently, which is the one outcome that
+        // check exists to prevent.
+        buildStart() {
+            hits = 0;
+        },
         transform(code, id) {
             if (!id.startsWith(GENERATED) || !code.includes(NEEDLE)) {
                 return null;
@@ -97,9 +106,20 @@ export default defineConfig({
         // that writes `import me from "math-expressions"` was therefore typed
         // `any`, which is the one thing this package's type surface exists to
         // prevent.
+        //
+        // `src/vendor-shims.d.ts` is excluded on top of *that*, and for the
+        // opposite reason to `src/generated/**`: `copyDtsFiles` copies it, but
+        // the plugin rewrites module specifiers on the way, turning its
+        // `declare module "math-expressions-js-compat"` into a *relative* path
+        // into the submodule. That is invalid TypeScript — `TS2436: Ambient
+        // module declaration cannot specify relative module name` — and it put
+        // a `../../../vendor/math-expressions/…` path into a shipped `dist/`,
+        // which is precisely the leak `engine-rust.ts` and `wasm-loader.ts`
+        // are written to avoid. Nothing in `dist/` references the file; it is
+        // input to *our* type-check, not part of our published surface.
         dts({
             include: ["src"],
-            exclude: ["src/generated/**"],
+            exclude: ["src/generated/**", "src/vendor-shims.d.ts"],
             copyDtsFiles: true,
         }),
     ],

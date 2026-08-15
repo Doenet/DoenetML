@@ -4,7 +4,7 @@
  *
  * This module used to be a build-time switch between two engines. There is only
  * one now — the legacy JavaScript library was removed once it stopped carrying
- * any runtime code we ship. The indirection is kept because the 147 files that
+ * any runtime code we ship. The indirection is kept because the files that
  * import `math-expressions` name no engine, and because it remains the one
  * place to look to answer "what backs `me` in this build?".
  */

@@ -85,6 +85,21 @@ export function initMathWasmSync(): void {
     if (initialized) {
         return;
     }
+    if (initPromise) {
+        // The header's "both share one promise/instance" was true of the
+        // *completed* case only: this function tested `initialized` and never
+        // `initPromise`, so a synchronous call landing while an async one was
+        // in flight would have instantiated a second time and replaced the
+        // module-level instance out from under the first. Unreachable today
+        // (every realm where sync init is legal has already initialized
+        // eagerly below, and the browser main thread throws just after this),
+        // so refusing is honest where returning would be a lie about being
+        // ready.
+        throw new Error(
+            "@doenet/math: initMathWasm() is already in flight; await it " +
+                "rather than initializing synchronously on top of it.",
+        );
+    }
     if (!canInitSync()) {
         throw new Error(
             "@doenet/math: refusing to compile a " +

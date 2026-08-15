@@ -9,7 +9,7 @@
  *     const expr = me.fromAst(["+", "x", 1]);
  *
  * resolves here instead of to the npm library — which is why swapping the
- * JavaScript library for the Rust/WASM drop-in touched none of the 147 files
+ * JavaScript library for the Rust/WASM drop-in touched none of the files
  * that import it. What backs `me` is decided in `./engine.ts`.
  *
  * Realms that run the engine on the browser main thread must `await

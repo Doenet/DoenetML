@@ -13,7 +13,7 @@
  *   npm run build -w packages/math && npm run test -w packages/math
  */
 import { describe, expect, it } from "vitest";
-import me, { engineName, getComponent, isTree } from "../dist/index.js";
+import me, { dopri, engineName, getComponent, isTree } from "../dist/index.js";
 
 describe(`math engine (${engineName})`, () => {
     it("parses text", () => {
@@ -67,9 +67,49 @@ describe(`math engine (${engineName})`, () => {
         expect(me.fromText("x/2").toLatex()).toContain("frac");
     });
 
+    // The four gap fills `engine-rust.ts` used to carry, one test each.
+    // Deleting them was how this seam verifies each upstream fix covers our
+    // usage — which only holds if something checks the contract afterwards.
+    // Only `.f()` was checked; the other three were unpinned until now.
+
     it("compiles to a numeric function via .f()", () => {
         const f = me.fromText("x^2+1").f();
         expect(f({ x: 3 })).toBe(10);
+    });
+
+    it("offers the operation family on the context as well as the expression", () => {
+        expect(me.simplify(me.fromText("x+x")).tree).toEqual(["*", 2, "x"]);
+        expect(me.fromText("x+x").simplify().tree).toEqual(["*", 2, "x"]);
+    });
+
+    it("round-trips the non-finite leaves through fromAst/.tree", () => {
+        // `JSON.stringify` renders all three as the literal `null`, so the
+        // compat layer tags them as `{"$":…}` specials on the way in. That
+        // makes `fromAst(x).tree` a fixpoint; without it a `<number>` holding
+        // `NaN` came back as a symbol named "null".
+        expect(me.fromAst(NaN).tree).toBeNaN();
+        expect(me.fromAst(Infinity).tree).toBe(Infinity);
+        expect(me.fromAst(-Infinity).tree).toBe(-Infinity);
+        expect(me.fromAst(["+", NaN, 1]).tree[1]).toBeNaN();
+    });
+
+    it("accepts an Expression where fromAst expects a tree", () => {
+        // A math-valued state variable *holds* an `Expression`, and code that
+        // re-wraps one hands it straight back.
+        expect(me.fromAst(me.fromText("3")).tree).toBe(3);
+        expect(me.fromAst(me.fromText("x+1")).tree).toEqual(["+", "x", 1]);
+    });
+
+    // `dopri` is the one export whose absence is silent in *both* the type
+    // system and the suite: `engine-rust.ts` reads it off the context through
+    // an `as unknown as` cast, so an upstream rename yields `undefined` with no
+    // type error, and the failure surfaces at run time in `ODESystem.js` and
+    // `packages/utils/src/components/function.ts`.
+    it("exports a working dopri integrator", () => {
+        expect(typeof dopri).toBe("function");
+        // y' = y, y(0) = 1 — so y(1) = e.
+        const sol = dopri(0, 1, 1, (_t: number, y: number) => y);
+        expect(sol.at(1)).toBeCloseTo(Math.E, 5);
     });
 
     it("reports variables", () => {

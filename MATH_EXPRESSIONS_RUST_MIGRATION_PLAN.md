@@ -99,8 +99,9 @@ shadow stack, *including on `Drop`*); `panic = "abort"` makes reachable panics f
 
 ### 2.1 The JS surface
 
-147 files import the library, essentially all as `import me from "math-expressions"` (150 import
-statements in all):
+150 files import the library, essentially all as `import me from "math-expressions"` (139 of them
+in exactly that form). The counts, the command that reproduces them, and how they moved on the
+branch are in `MATH_EXPRESSIONS_ENGINE_NOTES.md`; they are stated once, there.
 
 | Package | Files | Realm |
 | --- | ---: | --- |
@@ -112,8 +113,10 @@ statements in all):
 Source (non-test) call counts. **These are audit-era figures**, measured on the pre-switch tree on
 2026-07-30; they describe the *shape* of the dependency, not a current census, and several have
 moved since as review passes replaced call sites with the `toNumberOrNaN`/`evaluateToNumber`
-helpers. Spot-checked at this head: `evaluate_to_constant` is 194 in `worker-javascript/src` and 17
-in `utils/src`, and `.tree` is 42 in `utils/src`. Re-measure before quoting one.
+helpers. Re-spot-checked at the eighteenth pass (non-test sources only): `evaluate_to_constant` is
+**206** in `worker-javascript/src` and **21** in `utils/src`, and `.tree` is **39** in `utils/src`.
+The previous spot-check said 194/17/42 and had gone stale in all three. Re-measure before quoting
+one.
 
 | Call | `worker-javascript/src` | `utils/src` | `doenetml/src` |
 | --- | ---: | ---: | ---: |
@@ -217,7 +220,7 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >
 > - **The seam is an npm alias, not a codemod.** Step 1 below anticipated rewriting every import to
 >   a new module name. That is *not* what was done: each consuming `package.json` declares
->   `"math-expressions": "file:../math"`, so the 147 files that already said
+>   `"math-expressions": "file:../math"`, so the files that already said
 >   `import me from "math-expressions"` were left untouched and now resolve to `packages/math`.
 >   Everything Step 1 wanted from the seam still holds — one file decides the engine, and Stage 2
 >   repoints that one file — with no call-site churn at all. The consequence to remember is that
@@ -267,9 +270,8 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   delimiter from real content — `(, )` in prose is not a tuple.
 >
 > - **Sizes**, measured at the current pin with `npm run build -w packages/math`: the `web`-target
->   WASM is **1.69 MiB** (1,769,179 B, before `wasm-opt`, unavailable here), which inlines as
->   2.25 MiB of base64 (2,358,908 characters) into a **2.41 MiB** `dist/engine-rust.js`
->   (2,528,975 B) — **792 kB gzipped**,
+>   WASM is **1.69 MiB** (before `wasm-opt`, unavailable here), which inlines as 2.25 MiB of base64
+>   into a **2.41 MiB** `dist/engine-rust.js` — **792 kB gzipped**,
 >   against roughly 1 MiB for the JavaScript library it replaces (a figure measured before the
 >   legacy package was removed from the tree, and not re-measurable here).
 >   Bundle size is not the obstacle §5-R7 feared, *provided* every
@@ -323,7 +325,7 @@ dependency properly in every consuming `package.json` (fixes §2.1's hoisting bu
 implementation-status note above.
 
 Payoff: the engine becomes a one-line switch, a dual-engine A/B mode becomes possible, and —
-critically — **Stage 2 repoints this one file instead of touching 147 files**.
+critically — **Stage 2 repoints this one file instead of touching every importer**.
 
 ### Step 2 — Web-target WASM + inlined, synchronous init
 
@@ -403,7 +405,7 @@ divergence ledger is empty or accepted; keep the flag one release, then delete i
 This is the decided end state for Stage 1, and the checklist below is measured against this tree so
 the swap can be costed rather than guessed at.
 
-**What does *not* change — this is what the alias design bought.** No call site moves: the 147
+**What does *not* change — this is what the alias design bought.** No call site moves: the
 files still say `import me from "math-expressions"`, and every bundler rule already names that bare
 specifier, so all seven survive untouched — `external` in `packages/doenetml`,
 `packages/doenetml-prototype`, `packages/doenetml-worker-javascript`,
@@ -457,12 +459,12 @@ any more.
 One consequence for this side: the published package declares `types`, so
 `packages/math/src/vendored/math-expressions.d.ts` can be deleted at the same time and
 `src/types.ts` can re-export from the package instead. Keep the vendored copy until then — it is
-what 147 call sites type-check against today, and the two are currently the same declarations with
+what every call site type-checks against today, and the two are currently the same declarations with
 one documented difference (ours drops the default export, since `engine-rust.ts` supplies that
 value).
 
-How much of `packages/math`'s type surface that retires is now measured rather than guessed: the
-1,152 declaration lines are byte-identical to upstream's, and `src/types.ts`'s three hand-rolled
+How much of `packages/math`'s type surface that retires is now measured rather than guessed: its
+504 declaration lines (comments and blanks stripped) are byte-identical to upstream's, and `src/types.ts`'s three hand-rolled
 ODE types (`OdeState`, `OdeSolution`, `Dopri`) are upstream's as well — so the deletion is the whole
 directory plus those three declarations, replaced by one re-export, with nothing DoenetML-specific
 to unpick. It cannot be done *before* this step because an `exports` target may not escape its
@@ -595,7 +597,7 @@ sites tolerate async; measure (b) once the size work in step 7 is done.
 
 **Critical path note:** S1.0 and S1.1 are unblocked today and are worth doing even if Stage 1
 never ships, because Stage 2 needs both — the corpus is the only real defense against R1, and the
-seam is what makes S2.4 a one-file change instead of a 147-file refactor.
+seam is what makes S2.4 a one-file change instead of a whole-tree refactor.
 
 **Do not let Stage 1 harden into the destination.** Its two structural costs — no handle freeing
 (R2) and the uncached `.tree` (R3) — are exactly what Stage 2 removes for free. If Stage 2 is

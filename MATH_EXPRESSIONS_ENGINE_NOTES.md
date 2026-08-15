@@ -13,17 +13,26 @@ behavior changes are in `.changeset/rust-math-expressions-engine.md`.
 `@doenet/math` (`packages/math`) is the one module that decides what backs `me`.
 
 **No call site changed, and none was rewritten.** The files that say
-`import me from "math-expressions"` still say exactly that. Counted over `packages/`, excluding
-`node_modules` and `dist`, anchored at the start of a line so comments and doc examples do not
-inflate it:
+`import me from "math-expressions"` still say exactly that. This table is the one place the counts
+are stated; everywhere else says "the files that import the library", because a number repeated in
+ten files goes stale in ten files. Reproduce it with
+`git grep -lE '<pattern>' -- 'packages/*.ts' 'packages/*.tsx' 'packages/*.js' 'packages/*.jsx' | wc -l`
+— `git grep` searches tracked files only, so `node_modules` and `dist` drop out, and the patterns
+are anchored so comments and doc examples do not inflate them:
 
-| pattern | files |
-| --- | --- |
-| `^import me from "math-expressions";$` | 136 |
-| `^import me[ ,][^;]*from "math-expressions";$` (default binding in any form) | 142 |
-| `^import .*from "math-expressions";$` (anything from the specifier) | 147 |
+| pattern | files, this head | files, merge base |
+| --- | ---: | ---: |
+| `^import me from "math-expressions";$` | 139 | 139 |
+| `^import me[ ,][^;]*from "math-expressions";$` (default binding in any form) | 145 | 142 |
+| `^import .*from "math-expressions";$` (anything from the specifier) | 150 | 145 |
 
-The counts are identical at the merge base. Each consuming `package.json` declares
+The first row is what "no call site changed" means, and it is **identical at the merge base**. The
+other two are not, and the difference is entirely files this branch *adds*: three take a named
+import alongside the default (`import me, { dopri } …` in `thunks.ts` and `docUtils.ts`, plus the
+new `appliedFunctionSymbols.test.ts`), and two more are review tests
+(`periodicSetEquality.test.ts`, `utils/test/domain.test.ts`). An earlier wording gave 136/142/147
+and said all three were identical at the base; only the middle number was ever a real
+measurement, and it was the base's. Each consuming `package.json` declares
 `"math-expressions": "file:../math"`, so the specifier resolves to the workspace package instead
 of the npm library. It is an alias, not a codemod. The practical consequence: every bundler rule —
 `external`, `dedupe` — must name the bare specifier `math-expressions`, because that is what the
@@ -140,8 +149,10 @@ Every workflow checkout that builds needs `submodules: recursive` plus that acti
 because the container image carries the toolchain itself.
 
 `packages/math`'s `build:wasm` declares wireit `files`/`output` so the WASM compile caches; wireit
-propagates "not fully tracked" to every dependent and `../math:build` is a dependency of four
-packages, so without it CI's `WIREIT_CACHE: local` never hits. Declaring the outputs is why
+propagates "not fully tracked" to every dependent and `../math:build` is a dependency of seven
+packages (`utils`, `doenetml`, `doenetml-prototype`, `doenetml-to-pretext`,
+`doenetml-worker-javascript`, `doenetml-worker-rust`, `test-cypress`), so without it CI's
+`WIREIT_CACHE: local` never hits. Declaring the outputs is why
 `build-wasm.mjs` copies the wasm-bindgen glue into `src/generated/` rather than aliasing into the
 submodule — wireit refuses an output outside the package.
 
@@ -441,18 +452,24 @@ copies of the engine once the seam was externalized everywhere.
    function fixing the *formula* branch beside it and would otherwise have looked past it. The fix
    is one word (`coeffsFlip` → `coeffs`) plus a test with a through-points piece, and it belongs
    with whatever PR takes the root-driven search left open in item 4 above.
-6. **`@doenet/static-assets`' generated `math-assets.json` is stale, and nothing checks it.**
-   `packages/static-assets/src/generated/math-assets.json` is produced by
-   `scripts/generate-math-assets.ts`, which runs under `build:assets` — *not* under `build:schema`,
-   which is what the `schema-freshness` CI job verifies. So the copy in git has drifted: its
-   `appliedFunctionSymbolsDefault` is missing `cbrt` and `nthroot` (65 entries against the source's
-   67). Its one consumer is `packages/doenetml-worker-rust/lib-js-wasm-binding/src/math-utils.ts`,
-   which uses it as the parser's applied-function list, so in that realm `nthroot(x,3)` parses as a
+6. **`@doenet/static-assets`' `math-assets.json` is out of step with the parser's real
+   applied-function list, and the generator is the copy that is wrong.**
+   `packages/static-assets/src/generated/math-assets.json` carries an
+   `appliedFunctionSymbolsDefault` of **65** entries, missing `cbrt` and `nthroot`; the
+   authoritative list in `packages/doenetml-worker-javascript/src/utils/math.ts` has **67**. Its
+   one consumer is `packages/doenetml-worker-rust/lib-js-wasm-binding/src/math-utils.ts`, which
+   uses it as the parser's applied-function list, so in that realm `nthroot(x,3)` parses as a
    product of letters rather than as a root. Pre-existing — identical on `upstream/main`, and the
-   engine switch neither caused it nor changed it — but it is adjacent to the twelfth pass's
-   `nthroot` work and it is one line of CI to prevent (extend `schema-freshness` to run
-   `build:assets`, or fold the generator into `build:schema`).
-7. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
+   engine switch neither caused it nor changed it.
+
+   An earlier wording called this *staleness* and proposed extending `schema-freshness` to run
+   `build:assets`. That fix would do nothing, and the eighteenth pass measured why:
+   `packages/static-assets/scripts/generate-math-assets.ts` holds its **own** hard-coded 65-entry
+   list, which is byte-for-byte what the committed JSON already contains. Re-running the generator
+   changes not one character. The divergence is between the generator and the worker's list, which
+   the generator duplicates instead of importing — so the fix is to make the generator read the
+   worker's list (or move that list somewhere both can import), and only then is a freshness check
+   worth adding.7. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
    items, neither reaching grading — the seventh grading-reaching divergence, `equals` reading a
    determinant as an opaque variable, was fixed at the fifteenth pass) and
    `active-plans/PR84_REVIEW_KNOWN_ISSUES.md` in the math-expressions repo (the full crate/compat
@@ -506,7 +523,11 @@ copies of the engine once the seam was externalized everywhere.
     `@doenet/utils`' dependency set, so there is no cycle; and both files already import from
     `@doenet/utils`, so no call site gains an import. Two things to fix while there: **neither
     package declares `@doenet/utils`** in its `dependencies` or in its wireit `build.dependencies`
-    — the build works only because `doenetml-worker:build` pulls `../utils:build` in first.
+    — the build works only because `doenetml-worker:build` pulls `../utils:build` in first. That
+    undeclared dependency has a third instance, found at the eighteenth pass and worth fixing in
+    the same PR: `packages/doenetml-worker-rust` declares only `math-expressions` while
+    `lib-js-wasm-binding/src/eval-math.ts` imports five names from `@doenet/utils`, one of them
+    added on this branch.
 
 ## What is still riding along, and should not be
 
@@ -515,7 +536,8 @@ Two rounds of scope-trimming have already landed (`packages/doenetml-print`'s te
 crash were flagged in the PR body). A twelfth-pass sweep of the whole diff, reading hunks rather
 than filenames, finds these still in and still unrelated. None is deleted here — they are another
 author's work — but each is self-contained enough to lift into its own PR, and together they are
-roughly 1,100 of the 8,583 added lines (`git diff --shortstat` against the merge base).
+roughly 1,100 added lines out of the branch's ~10,900 (`git diff --shortstat` against the merge
+base; the denominator moves with every review pass, the numerator does not).
 
 - **`<video>` playback state** — `renderers/video.tsx`, `components/Video.js`,
   `tagSpecific/video.test.ts` (~152 lines). The one changed component file with no math, NaN or

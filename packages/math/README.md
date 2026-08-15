@@ -2,7 +2,7 @@
 
 The single seam through which DoenetML reaches a math-expressions engine.
 
-**No call site changed.** The 147 files that already said
+**No call site changed.** The files that already said
 
 ```ts
 import me, { isTree } from "math-expressions";
@@ -14,7 +14,7 @@ const expr = me.fromAst(["+", "x", 1]);
 still say exactly that. Each consuming `package.json` declares
 `"math-expressions": "file:../math"`, so the specifier resolves to this package
 instead of to the npm library — an alias, not a codemod. That is why swapping
-the implementation is a one-module change rather than a 147-file refactor, and
+the implementation is a one-module change rather than a whole-tree refactor, and
 why the bundler configuration that externalizes the seam
 (`packages/doenetml/vite.config.ts` and friends) matches the specifier
 `math-expressions` rather than `@doenet/math`.
@@ -55,17 +55,18 @@ in different packages depending on resolution.
 
 Its hand-written type definitions were the one thing still needed, and those are
 vendored verbatim in [`src/vendored/math-expressions.d.ts`](src/vendored/math-expressions.d.ts).
-They are the API contract those 147 files are written against; they arrived with
+They are the API contract those files are written against; they arrived with
 that library but were never *about* it, since the Rust engine is a drop-in for
 exactly this shape.
 
 The same declarations are now `math-expressions@3.x`'s own published `types`
 entry, so this copy goes away when the submodule does — see Step 6 of the
 migration plan. The legacy contract itself is byte-identical, `diff`ed at the
-current pin: 1,152 declaration lines either side, differing only in the file
-header. The delta is upstream's trailing *v3 additions* block (1,206 lines here
-against 1,255 there), and Step 6 absorbs all of it rather than reconciling
-anything:
+current pin. Comparing the two with comments and blank lines stripped — the
+stable way to say it, since either file's prose moves without its contract
+moving — gives 504 declaration lines here against 525 upstream, and the whole
+21-line delta is upstream's trailing *v3 additions* block, which Step 6 absorbs
+rather than reconciling:
 
 - `OdeState`, `OdeSolution` and `dopri` — hand-rolled here in
   [`src/types.ts`](src/types.ts), so those three declarations go too;

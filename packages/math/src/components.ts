@@ -46,10 +46,10 @@
  *     `DiscreteSimulationResult*` files). `DirectionComponent.js:274` takes the
  *     first of those routes too — a `vectorOperators.includes` test at `:265`.
  *
- * Eight reads take none of those routes. Five are shadow reads: `headShadow`
+ * Nine reads take none of those routes. Five are shadow reads: `headShadow`
  * and `tailShadow` (`Vector.js:1768`, `:1986`), `directionShadow`,
  * `throughShadow` and `endpointShadow` (`Ray.js:806`, `:1058`, `:1287`). The
- * other three read something else unguarded:
+ * other four read something else unguarded:
  * `desiredStateVariableValues.parallelCoords` (`LineSegment.js:1581`, `:1588`,
  * `Line.js:1656`) and `globalDependencyValues.unnormalizedDirection`
  * (`DirectionComponent.js:322`). They rest on a point-valued state variable
@@ -90,8 +90,19 @@ export function getComponent(
         return undefined;
     }
     try {
-        return expr.get_component(index) ?? undefined;
-    } catch {
+        // Not `?? undefined`: upstream's `get_component` throws rather than
+        // returning `undefined` when the wasm entry point declines, so there
+        // is no nullish case to fold.
+        return expr.get_component(index);
+    } catch (e) {
+        // An uninitialized engine reaches here too — the `guarded` Proxy in
+        // `wasm-loader.ts` throws on every property access — and answering
+        // "no such component" to that would turn a setup error into a silently
+        // dropped value. Only the container/range failure is an ordinary
+        // answer.
+        if (e instanceof Error && e.message.startsWith("@doenet/math:")) {
+            throw e;
+        }
         // Not a container, or no operand at `index`.
         return undefined;
     }

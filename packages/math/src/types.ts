@@ -1,5 +1,5 @@
 /**
- * The types DoenetML imports alongside `me` — the shape the 147 files that
+ * The types DoenetML imports alongside `me` — the shape the files that
  * import `math-expressions` are written against.
  *
  * They are vendored in `./vendored/math-expressions.d.ts` rather than pulled
