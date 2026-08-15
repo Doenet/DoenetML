@@ -53,15 +53,16 @@ but the engine is a different implementation and some results differ:
   origin. Writing the same function as `x^(1/3)` still leaves that gap — the evaluator behind
   plotting takes the principal complex branch for a fractional power, as it did before, so a
   `<function>` and an `<answer>` can disagree about `x^(1/3)` at a negative input.
-- **A `<function>`'s extrema are cleaner near a pole, and exact where the engine can be exact.**
-  The critical points of a rational derivative are now taken from the engine directly rather than
-  found by bracketing and refining, so the reported locations no longer carry refinement
-  round-off. A derivative sample that lands on a pole now reads as "no value" rather than as
-  `±Infinity`, so the cells beside it no longer bracket a sign change, which removes a
-  long-standing spurious minimum: `(x+8)(x-8)/((x-2)(x+4)(x-5)^2)` reported a minimum at
+- **A `<function>` no longer reports an extremum beside a pole, and its extrema are exact where
+  the engine can be exact.** Where a function's derivative is a rational function, the engine now
+  gives every one of its roots exactly, so the reported locations no longer carry the round-off
+  left by refining a bracket — and, because that list is *complete*, a place where the derivative
+  flips sign without being on it can be recognized as a pole and left alone. That removes a
+  long-standing spurious extremum: `(x+8)(x-8)/((x-2)(x+4)(x-5)^2)` reported a minimum at
   `4.999999948`, beside its double pole at `x = 5` (issue #940), and now reports only its four
-  real extrema. A pole that no sample lands on is unchanged, and can still report a minimum
-  next to it.
+  real extrema. Moving the pole off the sampling grid — `(x-5.1)^2` — used to bring the spurious
+  minimum back; it no longer does. Functions whose derivative is not rational (anything with a
+  `sin`, a `log`, an absolute value) are unchanged, and still search numerically.
 - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
   had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
   with more than about seventeen significant digits now goes through a double on the way in, so its

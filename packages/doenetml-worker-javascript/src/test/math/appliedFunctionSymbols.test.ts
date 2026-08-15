@@ -111,15 +111,17 @@ const allSpellings = [
  * Spellings with no *scalar* kernel on the engine's own evaluator, listed so the
  * second test below can still be exhaustive over everything else.
  *
- * `det` is a matrix reducer, and the probe table above can only hand it a
- * scalar. The engine has no scalar `det` kernel, so `evaluate_to_constant` of
- * the degenerate `det(3)` is `NaN` while `f()` compiles it to math.js's `det`,
- * which accepts a scalar and answers `3`. Applied to what an author would
- * actually write — a matrix — both paths agree, which is what
- * `matrix reducers` below pins; `trace` needs no exemption only because its
- * kernel is the identity, so the degenerate scalar case happens to work.
+ * Empty, and worth keeping empty. `det` was the one entry: it is a matrix
+ * reducer and the probe table can only hand it a scalar, so the exemption read
+ * as reasonable — but what it actually recorded was a missing kernel. `det(3)`
+ * was `NaN` from `evaluate_to_constant` and `3` from `f()` (math.js's `det`
+ * takes mathjs's scalar convention), and the engine's *third* numeric path, the
+ * one `equals` samples, read `det` of anything as an unknown variable, so a
+ * determinant compared unequal to its own value. `det` now carries the same
+ * scalar identity `trace` always had, and the exemption is gone. An entry added
+ * here should be justified as a property of the function, not of the probe.
  */
-const NO_SCALAR_KERNEL = new Set(["det"]);
+const NO_SCALAR_KERNEL = new Set<string>([]);
 
 function parse(src: string) {
     return me.fromText(src, {
@@ -182,5 +184,16 @@ describe("matrix reducers evaluate on both numeric paths", () => {
             expected,
             1e-12,
         );
+        // The third numeric path, and the one `<answer>` grades on: `equals`
+        // samples through neither of the two above. `det` had no kernel there
+        // and `trace`'s could not see inside a matrix, so each application was
+        // sampled as an unknown and a determinant compared unequal to its own
+        // value.
+        expect(
+            expr.substitute({ x }).equals(me.fromText(String(expected))),
+        ).toBe(true);
+        expect(
+            expr.substitute({ x }).equals(me.fromText(String(expected + 1))),
+        ).toBe(false);
     });
 });

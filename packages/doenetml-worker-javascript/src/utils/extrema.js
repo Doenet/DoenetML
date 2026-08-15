@@ -17,16 +17,27 @@ import { treeContainsBlank } from "./math";
  * polynomial and the engine returns them exactly — so the caller uses an exact
  * root in place of the refined one whenever a bracketed cell contains one.
  *
- * Note what this does *not* buy, because the exact roots are consulted only
- * inside the sign-change test: a root that touches zero without crossing is
- * still invisible, and a cell holding several roots still yields one. Widening
- * the caller to use these roots on their own terms would fix both; it has not
- * been done.
+ * The list is *complete* when it is not null, which is the stronger property
+ * and the one that removes spurious extrema rather than merely sharpening real
+ * ones: a cell holding none of these roots holds no extremum, so both
+ * estimators are declined there (`cellHasNoExtremum` below).
  *
- * `critical_points` is three-valued, but the caller currently treats two of the
- * three alike: an empty array means "provably none" and `null` means undecided
- * (a derivative that is not rational in the variable, a constant function), and
- * both simply leave bracketing to do the work.
+ * Note what this does *not* buy: a root that touches zero without crossing is
+ * still invisible, because nothing looks for a root except a bracketed sign
+ * change, and a cell holding several roots still yields one. Driving the search
+ * from these roots instead of from the grid would fix both; it has not been
+ * done.
+ *
+ * `critical_points` is three-valued and the caller uses all three: an empty
+ * array means "provably none" — so every cell is a `cellHasNoExtremum` cell —
+ * and `null` means undecided (a derivative that is not rational in the
+ * variable, a constant function), which leaves bracketing to do the work
+ * unaided.
+ *
+ * Inexactness anywhere in the formula makes the engine decline, so a caller
+ * must not hand it a formula that has been through a JSON AST round trip: `5.1`
+ * is `51/10` in the engine and an f64 in the AST. See `formulaFlip` in
+ * [`find_local_global_maxima`].
  *
  * The `evaluate_to_constant` test in the loop below is a guard, not a response
  * to an observed case: at the current pin a free parameter in a coefficient
@@ -73,10 +84,14 @@ function exactCriticalPointsOf(plainFormula, varString) {
  * `d/dx log|x|` = `1/x` at `x = 0`, the batch gives `NaN` and the per-point
  * call gives `Infinity`. The sign-change test downstream is
  * `dleft * dright <= 0`, which is `false` for `NaN` and `true` for `-Infinity`,
- * so whether a spurious extremum is reported *at a pole* depends on which path
- * ran. Reporting nothing at a pole is the better answer of the two, so this is
- * left as is rather than normalized — but it is a behavioral difference, not
- * only a speed-up.
+ * so a sample landing bit-exactly *on* a pole brackets nothing here and does
+ * bracket on the per-point path. Reporting nothing at a pole is the better
+ * answer of the two, so this is left as is rather than normalized — but it is
+ * a behavioral difference, not only a speed-up.
+ *
+ * It is not what makes poles safe, and it was mistaken for that once: it fires
+ * only when a sample lands on the pole exactly. The general rejection is
+ * `cellHasNoExtremum` below, which does not depend on where the grid falls.
  */
 function sampleGrid(expr, varString, xs) {
     if (!expr) {
@@ -709,19 +724,55 @@ export function find_local_global_minima({
 
             let foundFromDeriv = false;
 
-            if (haveDerivative && dleft * dright <= 0) {
-                let x;
+            // A sign change of f' across this cell normally means a root of f'
+            // is inside it. Where the exact roots are known, look up the one
+            // that is here: taking it directly avoids the refinement round-off
+            // that later reads as a spurious extremum a hair off the true one.
+            //
+            // The slack absorbs rounding on both ends of the comparison — a
+            // cell edge is `minx + i·dx`, an exact root arrives through
+            // `evaluate_to_constant` — so a root sitting *on* an edge cannot
+            // fall between the two cells that share it. It stays many orders
+            // below a cell width, so it cannot reach into a neighbour either.
+            let rootSlack =
+                1e-9 * Math.max(dx, Math.abs(xleft), Math.abs(xright));
+            let exact =
+                exactCriticalPoints === null
+                    ? undefined
+                    : exactCriticalPoints.find(
+                          (p) =>
+                              p >= xleft - rootSlack && p <= xright + rootSlack,
+                      );
 
-                // The sign change says a root of f' is in this cell. Where the
-                // exact roots are known, take the one that is here rather than
-                // refining towards it — same root, none of the round-off that
-                // later reads as a spurious extremum.
-                let exact =
-                    exactCriticalPoints === null
-                        ? undefined
-                        : exactCriticalPoints.find(
-                              (p) => p >= xleft && p <= xright,
-                          );
+            // …and where they are known and none of them is here, this cell
+            // holds no local extremum at all, and anything that looks like one
+            // is a pole.
+            //
+            // `critical_points`'s `Some` answer is the *complete* real root set
+            // of f'. It is given only for a derivative that is a rational
+            // function, put over a common denominator and reduced, so a pole
+            // cannot masquerade as a root — which makes "not in the list" a
+            // proof rather than a guess. Where such an f' exists, f is
+            // differentiable everywhere f' is finite, so an interior local
+            // extremum has f' = 0 and is in the list; and where f' changes sign
+            // at a *pole* instead, f itself diverges there (the antiderivative
+            // of `c/(x-a)^k` is unbounded at `a` for every k ≥ 1), so that
+            // point is an infimum, not a minimum. Nothing is thrown away by
+            // declining, and both estimators below are declined together —
+            // refining into a pole is the classic spurious extremum beside one
+            // (issue #940), and `fzero` and `fminbr` each reach it their own
+            // way.
+            //
+            // Until this test existed, the only thing suppressing that
+            // extremum was a grid coincidence: with a sample landing
+            // bit-exactly *on* the pole, `f` reads non-finite and the whole
+            // cell is skipped a few lines above. Move the pole between two
+            // samples and it came back.
+            let cellHasNoExtremum =
+                exactCriticalPoints !== null && exact === undefined;
+
+            if (haveDerivative && dleft * dright <= 0 && !cellHasNoExtremum) {
+                let x;
 
                 if (exact !== undefined) {
                     x = exact;
@@ -936,8 +987,16 @@ export function find_local_global_minima({
                         } else {
                             minimumAtPreviousRight = false;
 
-                            // make sure it actually looks like a strict minimum of f(x)
+                            // make sure it actually looks like a strict minimum
+                            // of f(x) — and that this cell can hold one at all
+                            // (see `cellHasNoExtremum` above; without that test
+                            // `fminbr` descends into a pole and the four
+                            // comparisons here all pass, because `result.tol`
+                            // steps far enough to either side of the point it
+                            // converged on that both neighbours read *less*
+                            // deep than it does).
                             if (
+                                !cellHasNoExtremum &&
                                 Number.isFinite(fx) &&
                                 fx < fright - mindf &&
                                 fx < fleft - mindf &&
@@ -1039,7 +1098,16 @@ export function find_local_global_maxima({
         argsForRecursion.numerics = numerics;
         return find_local_global_maxima(argsForRecursion);
     } else {
-        formulaFlip = formula.context.fromAst(["-", formula.tree]);
+        // `multiply(-1)`, not `fromAst(["-", formula.tree])`: reading `.tree`
+        // serializes the expression to a JSON AST, where every non-integer
+        // literal becomes an f64. The engine holds `5.1` exactly as `51/10`,
+        // and `critical_points` — the exact seeding the minimum hunt relies on
+        // — declines outright once a coefficient is inexact. So the round trip
+        // silently cost every maximum of a function with a decimal coefficient
+        // both its exact location and the pole rejection that depends on
+        // knowing the complete root set. Negating inside the engine keeps the
+        // rationals.
+        formulaFlip = formula.multiply(-1);
     }
 
     let { localMinima, globalMinimum, globalInfimum } =

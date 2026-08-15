@@ -7,37 +7,7 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — three items
-
-**`equals` says a determinant differs from its own value.** `\det\begin{pmatrix}1&2\\3&4\end{pmatrix}`
-simplifies to `-2` and `evaluate_to_constant`s to `-2`, and so does `-2`; `equals` between them is
-`false`. `trace` behaves the same way (`5` versus `false`). This is the third numeric path in the
-engine, and it is the one grading depends on: `equals` samples through `eval_complex`, whose
-`head_evaluable` (`eval_numeric/complex.rs`) asks `special_functions::eval1` whether a head is
-evaluable. `det` and `trace` have no scalar kernel there, so `is_opaque_atom` classifies the whole
-application as an **opaque variable** and samples it as one — a fresh unknown that agrees with `-2`
-at no sample. The reduction that produces the right answer lives one layer away, in
-`normalize/fold_apply.rs`'s `det`/`trace` arm over `crate::matrix::{det, trace}`, which
-`evaluate_to_constant` reaches through `simplify` and the sampler never consults. The fix is to
-teach the sampler the same arm — fold `Apply(det|trace, [Matrix])` through `crate::matrix` and
-recurse — with `head_evaluable` and `free_symbols` following, so a symbolic entry is still a free
-variable rather than part of an opaque key. Reproduce with:
-
-```bash
-npm run build -w packages/math
-node --input-type=module -e '
-import me from "./packages/math/dist/index.js";
-const d = me.fromLatex(String.raw`\det\begin{pmatrix}1&2\\3&4\end{pmatrix}`);
-console.log(d.simplify().tree, d.evaluate_to_constant());  // -2 -2
-console.log(d.equals(me.fromText("-2")));                  // false
-'
-```
-
-No DoenetML test grades a determinant today and no upstream spec covers `det` equality, so nothing
-is red — this is the same shape as the six grading defects the review did find, and it was missed
-for the same reason. The two *other* numeric paths agree on the matrix form (`f()` and
-`evaluate_to_constant` both answer `-2`, and `14` for `x = 5` in `[[x,2],[3,4]]`), which is now
-pinned by `appliedFunctionSymbols.test.ts`'s "matrix reducers" block; only the sampler diverges.
+## Open — two items
 
 **`substitute_component` accepts a receiver that is not a container, and answers.** Legacy validated
 the head at each level of the path and the index range, throwing `expected list, tuple, vector, or
@@ -87,6 +57,37 @@ the safer half and does not need upstream — but it should be one edit, made de
 than a member quietly disappearing each time the snapshot is refreshed.
 
 ## Closed
+
+### `det`/`trace` compared unequal to their own value — fixed at the current pin
+
+**Found at the fourteenth pass, fixed at the fifteenth.** `\det\begin{pmatrix}1&2\\3&4\end{pmatrix}`
+simplified to `-2` and compared `false` against `-2`; `trace` and `5` behaved the same way. This was
+the engine's *third* numeric path, and the one grading depends on: `equals` samples through
+`eval_complex`, whose `head_evaluable` (`eval_numeric/complex.rs`) asked
+`special_functions::eval1` whether a head was evaluable. `det` had no kernel at all and `trace`'s
+was a scalar identity that cannot see inside a `Matrix`, so `is_opaque_atom` classified the whole
+application as an **opaque variable** and sampled it as a fresh unknown, which agrees with `-2` at
+no point. `evaluate_to_constant` answered `null` on the same expression, so the divergence was
+wider than first recorded (the fourteenth pass reported it as `-2` there, measured through a
+`substitute` that simplifies on the way).
+
+The legacy JavaScript library answered `-2`, `5` and `true` to every one of these, so it was a
+regression rather than a gap.
+
+The reduction that gets the right answer lived one layer away, in `normalize/fold_apply.rs`'s
+`det`/`trace` arm over `crate::matrix::{det, trace}`, which `simplify` reached and the sampler
+never consulted. It is now `matrix::scalar_reduction`, called by both, so one place decides which
+applications have a scalar value; `head_evaluable` takes the arguments rather than just their
+count so it can ask, and `free_symbols` follows by descending into the matrix as it already did for
+any other evaluable application. A matrix the reducers decline (non-square, over the size caps)
+still comes back as the opaque `OtherOp` residual and is still sampled as an unknown. Separately,
+`DET` gained the scalar identity kernel `TRACE` already had — mathjs's `det(2) = 2`, which legacy
+also implemented — so the degenerate scalar spelling agrees on all three paths too.
+
+Pinned in the crate's `tests/matrix.rs`, the compat suite's `quick_doenet_compat_pr84.spec.ts`, and
+DoenetML's `appliedFunctionSymbols.test.ts` (whose `NO_SCALAR_KERNEL` exemption for `det` — the
+place the omission had been codified, exactly as `erf`'s was — is now empty). All verified to fail
+against the unfixed engine.
 
 ### Odd roots of a negative number — fixed at the current pin
 

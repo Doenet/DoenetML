@@ -8,8 +8,16 @@ const require = createRequire(import.meta.url);
  * rather than "resolve this from the registry". They are the right thing inside
  * the monorepo and meaningless to an npm consumer: `file:../math` names a
  * directory that does not exist once the tarball is unpacked.
+ *
+ * Two spellings, because npm has two. The protocol forms are the ones the
+ * monorepo writes; the bare-path form is what npm accepts *without* a protocol
+ * — `"math-expressions": "../math"` installs the sibling directory exactly as
+ * `file:../math` does — and it slipped past a protocol-only list. Nothing
+ * legitimate is caught by that second alternative: a semver range never begins
+ * with `.` or `/` (`^1.2` and `~1.2` do not), and neither does a dist-tag.
  */
-const UNPUBLISHABLE_RANGE = /^(?:file|link|portal|workspace|catalog):/;
+const UNPUBLISHABLE_RANGE =
+    /^(?:(?:file|link|portal|workspace|catalog|git\+file):|[./])/;
 
 /**
  * Create a transformer that will modify the contents of a package.json file
@@ -59,10 +67,17 @@ export function createPackageJsonTransformer({
         // `dependencies` and `peerDependencies` are the ranges a consumer's
         // installer would act on; `devDependencies` is only a fallback for a
         // package that declares an externalized dependency nowhere else.
-        // Spreading `devDependencies` last would let one shadow the real range
-        // — adding a `"math-expressions": "^3.0.0"` devDependency to
-        // `packages/doenetml` would then clear the guard below while the
-        // published peer range was still `file:../math`.
+        //
+        // One range per dep is read out of this, and it both decides the guard
+        // and becomes the emitted peer range — so whichever field wins here is
+        // the one that ships. Spreading `devDependencies` last would hand both
+        // jobs to the field a consumer's installer never sees: adding a
+        // `"math-expressions": "^3.0.0"` devDependency to `packages/doenetml`
+        // would clear the guard below *and* publish `^3.0.0` as the peer range,
+        // while the build was still resolving `file:../math` from the sibling
+        // directory. (Measured through this transformer with the old order.
+        // The two cannot come apart — the tested range and the emitted one are
+        // the same lookup — so it is the *field* that must be right.)
         const allDeps = {
             ...pkg.devDependencies,
             ...pkg.peerDependencies,

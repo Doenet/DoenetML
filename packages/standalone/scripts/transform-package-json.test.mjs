@@ -147,13 +147,32 @@ describe("createPackageJsonTransformer", () => {
         expect(pkg.peerDependencies).toEqual({ react: "^19.2.3" });
     });
 
-    it.each(["link:../math", "portal:../math", "workspace:*", "catalog:"])(
-        "treats %s as unpublishable too",
+    it.each([
+        "link:../math",
+        "portal:../math",
+        "workspace:*",
+        "catalog:",
+        "git+file:../math",
+        // npm takes a bare path wherever it takes `file:` — this installs the
+        // sibling directory just as `file:../math` does, and a protocol-only
+        // guard did not see it.
+        "../math",
+        "./math",
+        "/srv/math",
+    ])("treats %s as unpublishable too", (range) => {
+        const { pkg } = transform({ "math-expressions": range }, [
+            "math-expressions",
+        ]);
+        expect(pkg.private).toBe(true);
+    });
+
+    it.each(["^3.0.0", "~3.0.0", "3.x", "*", "latest", "npm:@scope/math@^3"])(
+        "still publishes with the registry range %s",
         (range) => {
             const { pkg } = transform({ "math-expressions": range }, [
                 "math-expressions",
             ]);
-            expect(pkg.private).toBe(true);
+            expect(pkg.private).toBe(false);
         },
     );
 

@@ -3083,21 +3083,18 @@ describe("Function tag tests @group4", async () => {
         let minimumLocations = [-2.29152990292159];
 
         // Issue #940 — the spurious minimum at 4.999999948194912, an artifact
-        // of bracketing next to the double pole at x = 5 — is gone. What
-        // removes it is the batch sampler: `evaluate_many` reports a
-        // non-finite derivative sample as `NaN` where `.f()` reported
-        // `±Infinity`, and the sign-change test `dleft * dright <= 0` is
-        // `false` for `NaN`, so neither cell touching that sample brackets one
-        // (see `utils/extrema.js`).
+        // of bracketing next to the double pole at x = 5 — is gone. A pole is
+        // now recognized as such: `critical_points` gives the *complete* real
+        // root set of f' for a rational derivative, so a cell that brackets a
+        // sign change while holding none of those roots is a pole, and
+        // `utils/extrema.js` declines to refine into it.
         //
-        // Be precise about the scope, because it is narrower than it looks:
-        // this works because a sample lands *exactly on* the pole. The default
-        // domain is [-100, 100] over 1000 intervals, so `dx = 0.2` and
-        // `-100 + 525 * 0.2` is bit-exactly 5. Move the pole off the grid —
-        // `(x - 5.1)^2` — and both adjacent samples are finite and of opposite
-        // sign, `fzero` runs, and the spurious minimum comes back (measured:
-        // 5.100000624836199). The general fix is written up in
-        // `MATH_EXPRESSIONS_ENGINE_NOTES.md`; this test pins the on-grid case.
+        // That is independent of where the grid falls, which the earlier
+        // NaN-at-the-sample explanation was not: the default domain is
+        // [-100, 100] over 1000 intervals, so `dx = 0.2` and `-100 + 525·0.2`
+        // is bit-exactly 5 — the sample landed *on* the pole and read `NaN`,
+        // and that alone was what suppressed the extremum. The off-grid case is
+        // the next test.
         //
         // Seeding from `critical_points` is what keeps the four real extrema
         // exact: -11.66601734921, -2.29152990292, 3.18454272065,
@@ -3113,6 +3110,83 @@ describe("Function tag tests @group4", async () => {
             resolvePathToNodeIdx,
             maxima,
             minima,
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinfSmallerThan: -1e5,
+            haveGlobalMin: true,
+        });
+    });
+
+    it("extrema of rational function with a pole between grid samples", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f">
+      (x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)
+    </function>
+    <function name="g">
+      -(x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)
+    </function>
+    `,
+        });
+
+        let f =
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
+                .numericalf.value;
+
+        // The same shape as the test above with the double pole moved to 5.1,
+        // which is *not* a grid point: on the default [-100, 100] over 1000
+        // intervals every sample near it is finite, the two straddling cells
+        // each see f' flip sign, and `fzero` used to refine into the pole and
+        // report a minimum at 5.100000624836199. Recognizing the pole from the
+        // exact root set removes it here too, which is the general property —
+        // the on-grid test above cannot distinguish it from the accident of a
+        // sample landing on the pole.
+        //
+        // Locations from `critical_points` (checked against a sign scan of f'):
+        let minimumLocations = [-2.28205595296559];
+        let minima = minimumLocations.map((x) => [x, f(x)]);
+        let maximumLocations = [
+            -11.681167550861327, 3.2319992003041587, 9.731224303522758,
+        ];
+        let maxima = maximumLocations.map((x) => [x, f(x)]);
+
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            maxima,
+            minima,
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinfSmallerThan: -1e5,
+            haveGlobalMin: true,
+        });
+
+        // `check_extrema`'s 1e-3 tolerance cannot tell an exact root from a
+        // refined one, so pin that half separately: these locations come
+        // straight from `critical_points`, not from `fzero`.
+        let fState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("f")
+        ].stateValues;
+        expect(fState.minima[0][0]).closeTo(minimumLocations[0], 1e-12);
+        for (let [i, loc] of maximumLocations.entries()) {
+            expect(fState.maxima[i][0]).closeTo(loc, 1e-12);
+        }
+
+        // `-f` must be the mirror image, and it exercises a second seam: the
+        // maximum hunt is the minimum hunt on a negated formula, and negating
+        // by rebuilding from `.tree` sent `5.1` through an f64, which made
+        // `critical_points` decline and put the pole rejection out of reach on
+        // that side only. That reported a spurious *maximum* at
+        // 5.100000370673212.
+        let g =
+            await core.core!.components![await resolvePathToNodeIdx("g")].state
+                .numericalf.value;
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            fName: "g",
+            maxima: minimumLocations.map((x) => [x, g(x)]),
+            minima: maximumLocations.map((x) => [x, g(x)]),
             globalsupLargerThan: 1e5,
             haveGlobalMax: true,
             globalinfSmallerThan: -1e5,

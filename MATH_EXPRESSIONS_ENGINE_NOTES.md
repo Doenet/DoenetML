@@ -127,6 +127,15 @@ copies of the engine once the seam was externalized everywhere.
   `packages/doenetml-worker-javascript/src/utils/math.ts` and `@doenet/utils`
   (`isNumericConstant`, `toNumberOrNaN`, `evaluateToNumber`, `plainComplex`); a new call site that
   forgets fails silently, not loudly. See the follow-up below for the unswept remainder.
+- **Rebuild an expression with an engine method, not from its `.tree`.** The engine holds `5.1`
+  exactly, as `51/10`; the JSON AST that `.tree` produces has only f64, so a `fromAst(...)` round
+  trip silently makes the expression inexact. Nothing looks different afterwards — the value is
+  the same to fifteen digits — but the exact-arithmetic entry points refuse it. `critical_points`
+  returns `null` outright for a formula with one inexact coefficient, which is how negating a
+  formula as `fromAst(["-", formula.tree])` cost every `<function>`'s *maxima* both their exact
+  locations and the pole rejection that needs the complete root set, while its minima kept both
+  (`find_local_global_maxima` in `utils/extrema.js`, now `formula.multiply(-1)`). Reach for
+  `multiply`/`add`/`substitute` — they stay inside the engine.
 - **Sparse vector ASTs are marked, not guessed at**: `markUnspecifiedComponents` writes the
   `UNSPECIFIED_COMPONENT` marker into empty slots (`Point.js`, `Ray.js`, `Vector.js`,
   `DirectionComponent.js` leave holes; `JSON.stringify` would turn them into `null`, which the
@@ -252,24 +261,23 @@ copies of the engine once the seam was externalized everywhere.
    long tail: sites added since, and the guarded majority that should be converted for uniformity
    rather than because they are broken. Mechanical but large; belongs in its own PR with the count
    re-measured first, and with the 204/6 ratio as the expectation to calibrate against.
-4. **A pole that no sample lands on still gets a spurious minimum.** The `<function>` extrema fix
-   for issue #940 is narrower than it reads: `evaluate_many` reports a derivative sample *on* the
-   pole as `NaN`, and `dleft * dright <= 0` is false for `NaN`, so the two cells touching that
-   sample drop out. `(x-5)^2` in the denominator works because the default `[-100, 100]` over 1000
-   intervals puts a sample bit-exactly on 5. Move the pole to 5.1 and both neighbours are finite
-   and opposite in sign, `fzero` runs, and the minimum comes back at `5.100000624836199`
-   (measured). The information for the general fix is already computed and thrown away:
-   `exactCriticalPointsOf` (`utils/extrema.js`) returns the *complete* real root set of `f'` when
-   the derivative is rational, so at `:719-734` a bracketed sign change that matches no exact root
-   is provably a discontinuity and the derivative branch should be skipped rather than falling
-   through to `fzero` — with a tolerance on the cell-membership test, since the roots arrive as
-   floats. The `fminbr` branch still runs, so genuine minima in that cell are unaffected. The
-   file's own header comment already names the gap. Same PR should carry two cheaper items in that
-   file: `exactCriticalPointsOf` and the derivative construction are pure functions of `formula`
-   and are recomputed on each of up to ~1000 cells × 100 recursion levels (pass them down through
-   `argsForRecursion`), and the `1e-3` tolerance on the extrema-location assertions in
-   `functionTag.test.ts` cannot distinguish an exact root from a refined one, so the "no refinement
-   round-off" half of the claim is unpinned.
+4. **The extrema search still recomputes what it could carry down, and its "no round-off" claim is
+   only just pinned.** The spurious-minimum-beside-a-pole half of this item is fixed (see the
+   `<function>` extrema entry in the changeset): `exactCriticalPointsOf` returns the *complete*
+   real root set of `f'` when the derivative is rational, so a cell holding none of them holds no
+   extremum, and `utils/extrema.js` declines both estimators there rather than only the `fzero`
+   one. The fourteenth pass's write-up predicted that the `fminbr` branch would be harmless and
+   could keep running; it is in fact where the surviving spurious minimum came from, since
+   `result.tol` steps far enough either side of the point it converges on that a pole reads as a
+   strict minimum. `functionTag.test.ts` now pins the off-grid pole (`(x-5.1)^2`, at 5.1000006) and
+   its negation, and asserts the four exact locations to 1e-12 — closing the "no refinement
+   round-off" half, which the 1e-3 tolerance on the other assertions could not distinguish.
+   What is left in the file is cheap and mechanical: `exactCriticalPointsOf` and the derivative
+   construction are pure functions of `formula` and are recomputed on each of up to ~1000 cells ×
+   100 recursion levels, and should be passed down through `argsForRecursion`. Also unfixed by
+   design: a critical point that touches zero without crossing is still invisible, and a cell
+   holding several roots still yields one — nothing looks for a root except a bracketed sign
+   change. Driving the search from the exact roots instead of from the grid would fix both.
 5. **`@doenet/static-assets`' generated `math-assets.json` is stale, and nothing checks it.**
    `packages/static-assets/src/generated/math-assets.json` is produced by
    `scripts/generate-math-assets.ts`, which runs under `build:assets` — *not* under `build:schema`,
@@ -281,9 +289,9 @@ copies of the engine once the seam was externalized everywhere.
    engine switch neither caused it nor changed it — but it is adjacent to the twelfth pass's
    `nthroot` work and it is one line of CI to prevent (extend `schema-freshness` to run
    `build:assets`, or fold the generator into `build:schema`).
-6. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (three open
-   items, one of them a seventh grading-reaching divergence: `equals` reads a determinant as an
-   opaque variable, so `\det[[1,2],[3,4]]` and `-2` compare unequal) and
+6. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
+   items, neither reaching grading — the seventh grading-reaching divergence, `equals` reading a
+   determinant as an opaque variable, was fixed at the fifteenth pass) and
    `active-plans/PR84_REVIEW_KNOWN_ISSUES.md` in the math-expressions repo (the full crate/compat
    ledger).
 7. **Smaller, all measured during review, none blocking.** CI installs no `binaryen`, so
