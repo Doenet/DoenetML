@@ -163,7 +163,12 @@ export class RunThroughCore {
         let timer: ReturnType<typeof setTimeout> | undefined;
         try {
             await Promise.race([
-                browser.deleteSession().catch(() => {}),
+                // Swallowing the rejection is what keeps a failed teardown
+                // from becoming an unhandled rejection after the race has
+                // walked away, but say so rather than losing it silently.
+                browser.deleteSession().catch((error) => {
+                    console.warn(`Could not end the browser session: ${error}`);
+                }),
                 new Promise<void>((resolve) => {
                     timer = setTimeout(resolve, CLOSE_BUDGET_MS);
                 }),

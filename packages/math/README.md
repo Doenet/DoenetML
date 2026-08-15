@@ -61,11 +61,20 @@ exactly this shape.
 
 The same declarations are now `math-expressions@3.x`'s own published `types`
 entry, so this copy goes away when the submodule does — see Step 6 of the
-migration plan. The two differ in one documented way: ours drops the trailing
-`declare const MathExpression: Context; export default …`, because here
-`engine-rust.ts` supplies that value. The 1,152 declaration lines themselves are
-byte-identical — `diff`ed at the current pin — so Step 6 deletes the directory
-in one move rather than reconciling anything.
+migration plan. The legacy contract itself is byte-identical, `diff`ed at the
+current pin: 1,152 declaration lines either side, differing only in the file
+header. The delta is upstream's trailing *v3 additions* block (1,206 lines here
+against 1,255 there), and Step 6 absorbs all of it rather than reconciling
+anything:
+
+- `OdeState`, `OdeSolution` and `dopri` — hand-rolled here in
+  [`src/types.ts`](src/types.ts), so those three declarations go too;
+- `setWasmModule` — declared here in
+  [`src/vendor-shims.d.ts`](src/vendor-shims.d.ts) instead, because at the
+  current pin it is reached through the submodule rather than a published
+  package;
+- `declare const MathExpression: Context; export default …` — deliberately
+  absent here, because `engine-rust.ts` supplies that value.
 
 A hand-written `.d.ts` under `src/` only reaches consumers because
 `vite.config.ts` passes `copyDtsFiles` to `vite-plugin-dts`: the plugin
@@ -80,11 +89,13 @@ To A/B against the old engine now, check out a commit from before the switch.
 ## WASM initialization
 
 The Rust engine's WASM is **inlined** into `dist/engine-rust.js` as base64 — at
-the pinned submodule revision, 1.68 MiB of WASM becoming 2.25 MiB of base64 in a
-2.41 MiB chunk (790 kB gzipped) — the same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
+the pinned submodule revision, 1.69 MiB of WASM becoming 2.25 MiB of base64 in a
+2.41 MiB chunk (792 kB gzipped) — the same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
 `lib_doenetml_worker_bg.wasm`. It instantiates from bytes, so it needs no
 `fetch` — which matters because `fetch` is blocked for blob/data URLs in the VS
-Code web-worker extension host (issue #1375).
+Code web-worker extension host. (`CoreWorker.ts` cites issue #1375 for this; that
+citation is pre-existing and wrong — #1375 is a VS Code extension diagnostics
+bug — so no number is repeated here.)
 
 Where synchronous compilation is legal — a Web Worker, or node/Vitest — the
 module instantiates itself as it loads, and the legacy synchronous API works with
@@ -143,7 +154,8 @@ src/
   types.ts           the types consumers import
   vendored/          math-expressions.d.ts — the API contract, vendored
   vendor-shims.d.ts  declared surface of the submodule modules we consume
-  generated/         wasm-bytes.ts, written by scripts/build-wasm.mjs (git-ignored)
+  generated/         wasm-bytes.ts plus the wasm-bindgen glue (math_expressions_wasm.js
+                     and its .d.ts), all written by scripts/build-wasm.mjs (git-ignored)
 test/
   engine-smoke.test.ts   exercises dist/
 ```

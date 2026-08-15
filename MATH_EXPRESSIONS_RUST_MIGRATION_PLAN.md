@@ -15,6 +15,30 @@ the audit predates it and named PR #82 as the then-pending improvement.
 
 ---
 
+## Publishing is blocked until this order is followed
+
+This is the one ordering constraint in Stage 1, and it exists because `.github/workflows/publish.yml`
+publishes a **dev release to npm on every successful CI run on `main`** — merging is releasing.
+
+1. Merge [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84).
+2. Publish **`math-expressions@3.x`** from that repo to npm.
+3. Only then merge the DoenetML side, having first replaced
+   `"math-expressions": "file:../math"` with the published `^3.x` range (Step 6 below).
+
+Merging DoenetML first would try to release a `@doenet/doenetml` whose bundle keeps a bare
+`import ... from "math-expressions"` that resolves to nothing on a consumer's machine — or, if they
+already have the unrelated `math-expressions@2.x` in their tree, silently to the *legacy JS engine*,
+which is worse than a build error.
+
+**It cannot happen by accident.** `scripts/transform-package-json.ts` marks the built package
+`"private": true` whenever something the bundle imports by name was externalized without a
+registry-resolvable version, and `npm publish` refuses a private package
+(`.github/scripts/npm-publish-with-retry.mjs` refuses first, with the reason). So a premature merge
+turns the publish job red instead of shipping a broken tarball. Changing the range in step 3 clears
+the block on its own — there is no flag to remember to flip.
+
+---
+
 ## 1. Upstream state
 
 The repo is a Rust monorepo; the JS library survives only as an out-of-tree oracle
@@ -25,16 +49,16 @@ The repo is a Rust monorepo; the JS library survives only as an out-of-tree orac
 | `math-expressions-rs/` | The core Rust crate: text/LaTeX parsing, equality (numeric, finite-field, exact, structural), normalize/simplify/expand, differentiation, symbolic + certified integration, matrices/eigen, ODEs, assumptions, factoring, arbitrary precision. | **Stage 2** (as a crate) |
 | `math-expressions-rs-wasm/` | The `wasm-bindgen` boundary (`src-rust/`) + TypeScript bindings (`src-js/`), notably the AST→math.js bridge backing `.f()`. `build-wasm.sh <target> <outdir>` accepts **`web`** and `nodejs`, with an optional `wasm-opt -Oz` pass. | Both |
 | `math-expressions-js-compat/` | **Published as `math-expressions` v3 (`3.0.0-alpha1`)** — a drop-in TypeScript reimplementation of the legacy `me.*` API over the WASM core, preserving the synchronous surface. | **Stage 1** |
-| `playground/` | Vite/React app running Rust-WASM against canonical JS. Ships the `web` build to GitHub Pages on every push to `main`. | Reference |
+| `packages/playground/` | Vite/React app running Rust-WASM against canonical JS. Ships the `web` build to GitHub Pages on every push to `main`. | Reference |
 
 ### The playground already proves the browser path
 
-`playground/src/engines.ts` dynamically imports the `web` glue and calls `await r.default()`
+`packages/playground/src/engines.ts` dynamically imports the `web` glue and calls `await r.default()`
 (wasm-bindgen `init`), then adapts handles into a `me`-shaped API — `fromText`→`parse_text`,
 `treeOf`→`JSON.parse(h.tree_json())`, notation through `parse_*_with_options`. Handles **are**
 freed, deterministically: `if (h && typeof h.free === "function" && h.__wbg_ptr !== 0) h.free()`,
 with the note that "relying on FinalizationRegistry GC corrupted the wasm heap under rapid handle
-churn." So `free()` works; *GC-driven* freeing is what failed. `playground/src/wasmApi.ts`
+churn." So `free()` works; *GC-driven* freeing is what failed. `packages/playground/src/wasmApi.ts`
 reflects the generated `math_expressions_wasm.d.ts` to enumerate every chainable `Expression`
 method — a ready-made way to diff the WASM surface against our needs (§2).
 
@@ -45,8 +69,8 @@ method — a ready-made way to diff the WASM surface against our needs (§2).
    current layout would need rebasing; do not start Stage 2 integration until #82 lands.*
 2. **`simplify()` becomes the aggressive simplifier** — now does `exp(ln x) → x`, `cos(π/3) → 1/2`,
    which the JS version could not. **This is user-visible and hits us directly**: we have ~160
-   `.simplify()` call sites, many inside answer normalization. It must be the first thing in the
-   differential corpus (§3, Step 1).
+   `.simplify()` call sites (147 at this head), many inside answer normalization. It must be the
+   first thing in the differential corpus (§3, Step 1).
 3. **Equality on exact constants** — certified-stage evaluation means `equals(1/2, cos(π/3))` is
    now `true`. Almost certainly an improvement for grading, but it *changes grading outcomes*.
 4. **Stronger integration** — symbolic integration handles integer powers of sin/cos with linear
@@ -59,7 +83,7 @@ method — a ready-made way to diff the WASM surface against our needs (§2).
 
 > **As of the pinned revision, two of these are closed.** PR #84 ports MathML parsing
 > (`lib/converters/mml-to-ast.ts`, exported as `converters.MmlToAst`) and the polynomial/Groebner
-> subtree (`math-expressions-rs/src/polynomials/`, including `compat/`). The rest of this
+> subtree (`packages/math-expressions-rs/src/polynomials/`, including `compat/`). The rest of this
 > paragraph is the audit's state and is left as the record of what the plan was written against.
 
 MathML parsing (`mmlToAst`), derivative step narration, polynomial/Groebner, `equalsViaSyntax`
@@ -85,7 +109,11 @@ statements in all):
 | `utils` | 9 | Both |
 | `test-cypress`, `doenetml-prototype`, `doenetml-worker-rust`, `doenetml-to-pretext` | 1–3 each | Mixed / node |
 
-Source (non-test) call counts:
+Source (non-test) call counts. **These are audit-era figures**, measured on the pre-switch tree on
+2026-07-30; they describe the *shape* of the dependency, not a current census, and several have
+moved since as review passes replaced call sites with the `toNumberOrNaN`/`evaluateToNumber`
+helpers. Spot-checked at this head: `evaluate_to_constant` is 194 in `worker-javascript/src` and 17
+in `utils/src`, and `.tree` is 42 in `utils/src`. Re-measure before quoting one.
 
 | Call | `worker-javascript/src` | `utils/src` | `doenetml/src` |
 | --- | ---: | ---: | ---: |
@@ -203,9 +231,10 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   import with nothing declaring it, so an npm consumer either fails to resolve it or, if they
 >   happen to have the real npm `math-expressions@2.x` in their tree, silently resolves it to the
 >   *legacy JS engine* — a different engine behind the same specifier, which is worse than a build
->   error. The `peerDependencies` half is already handled (`packages/doenetml/vite.config.ts`
->   deliberately keeps `math-expressions` out of the published `peerDependencies`, because a
->   `file:` range means nothing to a consumer).
+>   error. **That release cannot happen by accident:** `scripts/transform-package-json.ts` sees that
+>   an externalized dependency's range (`file:../math`) is one an npm consumer cannot resolve and
+>   leaves `"private": true` in the built `dist/package.json`, which `npm publish` refuses. See
+>   "Publishing is blocked until this order is followed" at the top of this document.
 >
 >   **The resolution is not to publish `@doenet/math` and not to bundle the seam.**
 >   [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84) merges, the upstream
@@ -238,9 +267,9 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   delimiter from real content — `(, )` in prose is not a tuple.
 >
 > - **Sizes**, measured at the current pin with `npm run build -w packages/math`: the `web`-target
->   WASM is **1.68 MiB** (1,765,649 B, before `wasm-opt`, unavailable here), which inlines as
->   2.25 MiB of base64 (2,354,200 characters) into a **2.41 MiB** `dist/engine-rust.js`
->   (2,524,245 B) — **790 kB gzipped**,
+>   WASM is **1.69 MiB** (1,769,179 B, before `wasm-opt`, unavailable here), which inlines as
+>   2.25 MiB of base64 (2,358,908 characters) into a **2.41 MiB** `dist/engine-rust.js`
+>   (2,528,975 B) — **792 kB gzipped**,
 >   against roughly 1 MiB for the JavaScript library it replaces (a figure measured before the
 >   legacy package was removed from the tree, and not re-measurable here).
 >   Bundle size is not the obstacle §5-R7 feared, *provided* every
@@ -265,7 +294,7 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 ### Step 0 — Evidence before code (~1–2 weeks, start now)
 
 1. **API diff.** Generate our used-API inventory (§2.1) from source, and diff it against the WASM
-   surface using the `playground/src/wasmApi.ts` reflection over `math_expressions_wasm.d.ts`.
+   surface using the `packages/playground/src/wasmApi.ts` reflection over `math_expressions_wasm.d.ts`.
    Output: a have/need/missing matrix that stays current automatically. Resolve every
    "not needed for Doenet" claim against real code — specifically `mmlToAst`, `astToMathjs`, and
    the `me.converters.{textToAstObj,latexToAstObj}` constructor-with-options form used in 9
@@ -407,10 +436,10 @@ end-to-end as an executable check, and its `package publishability` CI job runs 
 | What | Where | Change |
 | --- | --- | --- |
 | Consumer manifests | `packages/{doenetml,doenetml-prototype,doenetml-to-pretext,doenetml-worker-javascript,doenetml-worker-rust,test-cypress,utils}/package.json` | 7 × `"math-expressions": "file:../math"` → `"^3.x"`, *if* `packages/math` is retired; if it survives as the wasm-injecting seam they stay as they are and only `packages/math/package.json` gains the npm dependency. |
-| Published peers | `packages/doenetml/vite.config.ts` | Delete `PUBLISHED_PEER_DEPS`' `dep !== "math-expressions"` filter, so `math-expressions` becomes a real `peerDependencies` entry in the published tarball. **This is the line that actually unblocks publishing.** |
+| Published peers | `packages/doenetml/package.json` | Nothing to edit in `vite.config.ts`: `math-expressions` is already declared as a `peerDependencies` entry of the published tarball, and `scripts/transform-package-json.ts` marks the built package `"private": true` for exactly as long as that entry's range is `file:../math`. **Changing that one range to `^3.x` is what unblocks publishing** — see "Publishing is blocked until this order is followed" at the top of this document. |
 | Source aliases | `packages/math/vite.config.ts` | The four aliases (`math-expressions-js-compat`, `math-expressions-js-compat/lib/*`, `math-expressions-rs-wasm`, `math-expressions-wasm-glue`) all resolve into the submodule; three become plain node resolution and the glue alias points at `node_modules`. |
 | Build inputs | `packages/math/package.json` | Nine wireit `files` globs under `../../vendor/math-expressions/` — seven in `build:wasm`, two in `build` — become `node_modules` paths, or `build:wasm` disappears entirely. |
-| CI | `.github/workflows/{ci,publish,gh-pages-docs}.yml` | 13 × `submodules: recursive` and 11 × `uses: ./.github/actions/setup-math-wasm` become removable, and `.github/actions/setup-math-wasm/` can be deleted. |
+| CI | `.github/workflows/{ci,publish,gh-pages-docs,publish-doenetml-to-pretext-python}.yml` | 14 × `submodules: recursive` and 12 × `uses: ./.github/actions/setup-math-wasm` become removable, and `.github/actions/setup-math-wasm/` can be deleted. (The two differ because `ci.yml`'s devcontainer jobs need the checkout but not the action — their image carries the toolchain.) |
 | Devcontainer | `.devcontainer/devcontainer.json`, `.devcontainer/features/wasm-toolchain/` | The `wasm-toolchain` feature and its `devcontainer.json` entry can be deleted. |
 | Submodule | `.gitmodules`, `vendor/math-expressions`, `.prettierignore` | Delete the submodule entry and the checkout, and drop the `vendor/math-expressions` line from `.prettierignore` (it exists only because the submodule is a second git repo with its own prettier config). |
 

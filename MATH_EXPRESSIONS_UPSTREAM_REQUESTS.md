@@ -14,9 +14,10 @@ the head at each level of the path and the index range, throwing `expected list,
 array` / `component out of range`. The compat method validates nothing: `me.fromText("x*y")
 .substitute_component(0, 5)` returns `5·y` where legacy threw, and an out-of-range index returns
 `undefined` — breaking the "every method hands back an `Expression`" contract the rest of the port
-keeps, so the caller fails one line later with `Cannot read properties of undefined`. `Math.js`'s
-`substituteMathIntoExpression` walks a path built from the expression's own structure, so it should
-not hit either case, but it has no guard of its own. `get_component` has the same shape: its
+keeps, so the caller fails one line later with `Cannot read properties of undefined`. The one
+DoenetML call site — `invertMath` in `Math.js` (the `substitute_component` at `Math.js:1943`) —
+walks a path taken from `inverseMaps[piece].components`, built from the expression's own structure,
+so it should not hit either case, but it has no guard of its own. `get_component` has the same shape: its
 container check runs on the receiver only, and the rest of the path is delegated to a wasm entry
 point that indexes the operands of *any* operator — `me.fromText("(x*y, 3)").get_component([0,0])`
 answers `x` where legacy threw. (`@doenet/math`'s `getComponent` restores the legacy contract for

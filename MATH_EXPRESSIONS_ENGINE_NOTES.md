@@ -58,7 +58,9 @@ initMathWasm()` during startup; in a worker or under node the engine instantiate
 it loads and the legacy synchronous `me.*` API works with no `await` anywhere — which is the whole
 reason inlining is worth its bundle cost. The bytes are inlined rather than fetched, mirroring
 `CoreWorker.ts`, because `fetch` is blocked for blob/data URLs in the VS Code web-worker extension
-host (#1375) and because one artifact behaves identically under Vitest and in the browser.
+host and because one artifact behaves identically under Vitest and in the browser. (`CoreWorker.ts`
+attributes that to issue #1375, which is a pre-existing mis-citation — #1375 is a VS Code extension
+diagnostics bug — so no issue number is repeated here.)
 
 **Publishability** is the one open item, and it is upstream-solved, this-side-pending: `@doenet/math`
 is `private: true`, so the externalized `math-expressions` import in a published `@doenet/doenetml`
@@ -66,16 +68,27 @@ tarball resolves to nothing — or to npm's `math-expressions@2.x`, a different 
 resolution is that `math-expressions@3.x` publishes to npm (its `package publishability` CI job
 already verifies the tarball works, `--target web` wasm included) and this side swaps the seam per
 Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`; because the seam is an alias, no call site
-and no bundler rule moves — deleting the filter keeping `math-expressions` out of
-`PUBLISHED_PEER_DEPS` (`packages/doenetml/vite.config.ts`) is what unblocks publication.
+and no bundler rule moves — changing `packages/doenetml/package.json`'s
+`"math-expressions": "file:../math"` to the published `^3.x` range is what unblocks publication.
+
+Until that happens the release is blocked *mechanically*, not by convention.
+`scripts/transform-package-json.ts` marks a built package `"private": true` when something the
+bundle imports by name was externalized without a registry-resolvable version, and `npm publish`
+refuses a private package (`.github/scripts/npm-publish-with-retry.mjs` refuses first, naming the
+reason). That matters because `publish.yml` releases to npm on every successful CI run on `main`,
+so merging this branch early would otherwise *publish* the broken tarball rather than merely make
+one possible; now it turns the publish job red. The block clears itself when the range changes —
+there is no flag to remember to flip.
 
 ## Building
 
 A Rust toolchain is required: the `wasm32-unknown-unknown` target and a `wasm-bindgen-cli`
 matching the submodule's pinned `wasm-bindgen` (`0.2.126`). CI installs it via
 `.github/actions/setup-math-wasm`; the devcontainer bakes it in via the `wasm-toolchain` feature.
-Every workflow checkout that builds (`ci.yml`, `publish.yml`, `gh-pages-docs.yml`) needs
-`submodules: recursive` plus that action.
+Every workflow checkout that builds needs `submodules: recursive` plus that action: `ci.yml`,
+`publish.yml`, `gh-pages-docs.yml` and `publish-doenetml-to-pretext-python.yml` — 14 checkouts and
+12 uses of the action, the two devcontainer jobs in `ci.yml` taking the checkout without the action
+because the container image carries the toolchain itself.
 
 `packages/math`'s `build:wasm` declares wireit `files`/`output` so the WASM compile caches; wireit
 propagates "not fully tracked" to every dependent and `../math:build` is a dependency of four
@@ -88,8 +101,9 @@ submodule — wireit refuses an output outside the package.
 Order of magnitude, not a fingerprint — the wasm is not byte-reproducible build to build, and CI
 builds without `wasm-opt` (a developer with binaryen installed measures smaller);
 `packages/standalone/bundle-budgets.json` records the same caveats. Measured at the tenth review
-pass: `web`-target WASM 1.68 MiB, 2.25 MiB as base64, `dist/engine-rust.js` 2.41 MiB, ~790 kB
-gzipped — against roughly 1 MiB for the JavaScript library it replaces. `@doenet/standalone`'s
+pass and re-measured at the thirteenth: `web`-target WASM 1.69 MiB, 2.25 MiB as base64,
+`dist/engine-rust.js` 2.41 MiB, ~792 kB gzipped — against roughly 1 MiB for the JavaScript library
+it replaces. `@doenet/standalone`'s
 main bundle *shrank* (13.82 → 11.41 MiB observed) because libraries stopped carrying private
 copies of the engine once the seam was externalized everywhere.
 
@@ -118,6 +132,28 @@ copies of the engine once the seam was externalized everywhere.
 
 ## Known risks and open product decisions
 
+- **A function's two numeric paths can disagree, and neither disagreement is loud.** DoenetML
+  reaches the engine for numbers two ways: `Expression#f()`, which compiles the tree to math.js
+  and is what a `<function>` plots and what root-finding samples; and the engine's own evaluators
+  (`evaluate_to_constant`, `evaluate_many`), which are what `<number>$$f(2)</number>` and the
+  extrema sampler use. A head missing from *either* one produces `NaN` per sample rather than an
+  error, so the failure is invisible: `nthroot` was unevaluable through `f()` at every input while
+  grading it worked perfectly (twelfth pass), and `erf` was the mirror image — it plotted a correct
+  curve while `<number>$$f(0.5)</number>` read `NaN` (thirteenth pass). Both are fixed upstream and
+  the sweep for siblings has now been done: every spelling an author can type is probed through
+  both paths by
+  `packages/doenetml-worker-javascript/src/test/math/appliedFunctionSymbols.test.ts`, whose first
+  assertion fails if a spelling is added to `appliedFunctionSymbolsDefault` without a probe.
+
+  One disagreement survives deliberately. `f()` hands a `Pow` node to math.js, which takes the
+  principal complex branch for a fractional exponent, while the engine's own evaluators take the
+  real branch for an odd root — so `x^(1/3)` at a negative input is a gap when plotted and the real
+  cube root when graded, whereas `cbrt` and `nthroot` are real on both. That gap is unchanged from
+  the JavaScript library (which also evaluated the power spelling principal through `numericalf`),
+  so it is a standing difference rather than a regression; closing it means mapping the odd-root
+  `Pow` shape onto `nthRoot` in the engine's `tree-to-mathjs.ts`. It does not currently reach the
+  extrema output, because `find_local_global_minima` skips any grid cell whose `f` value is `NaN`
+  before it consults the derivative grid.
 - **`<floor>`/`<ceil>` and `simplify`'s `floor`/`ceil` disagree.** The components still nudge a
   value within relative `1e-15` of an integer onto it (`MathOperators.js`) — a repair for the f64
   the JavaScript library held every decimal in; the engine holds decimals exactly and needs no
@@ -128,7 +164,7 @@ copies of the engine once the seam was externalized everywhere.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
   the primary risk of the engine switch and the ordinary suites are all that guard it. A green
   suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
-  turned up **five** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  turned up **six** wrong-answer-on-grading defects, and no pre-existing test named any of them.
   Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
   identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
   correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
@@ -140,7 +176,13 @@ copies of the engine once the seam was externalized everywhere.
   `x = 1` instance; and odd roots of negatives split by whether the radicand was a perfect power,
   which cost four `<answer>` cases that scored 1 against legacy — measured end to end on both trees
   at the tenth pass, fixed upstream at the eleventh, and now pinned by
-  `answerValidation/oddRootsOfNegatives.test.ts` here.
+  `answerValidation/oddRootsOfNegatives.test.ts` here. The sixth was found at the thirteenth pass
+  and did not look like a grading defect at first: `erf` had no evaluation kernel, which showed up
+  as a `<function>erf(x)</function>` that plotted correctly and reported `NaN` for
+  `<number>$$f(0.5)</number>`. It reaches grading because `equals` decides numeric constants
+  through the same evaluators — measured on the unfixed engine,
+  `equals(erf(0.5), 0.5204998778130465)` is `false`, so a correct student answer was marked wrong.
+  Fixed upstream and pinned in the crate's `tests/erf.rs` and the compat suite.
 
 ## Follow-up PRs, written up so they can be opened from here
 
@@ -160,14 +202,19 @@ copies of the engine once the seam was externalized everywhere.
    clear the crash, then reverted), or by making `Curve.domainForFunctions` a proper array state
    variable; either way `shadowInverseArrayDefinitionByKey` needs the matching treatment, plus a
    regression test asserting `f.domain`'s shape and a working `$f.minima`.
-2. **Six `get_component` reads rest on an unstated invariant.** The `headShadow` / `tailShadow` /
-   `endpointShadow` / `throughShadow` / `directionShadow` reads in `Vector.js`, `Ray.js`,
-   `LineSegment.js` and `DirectionComponent.js` are not inside a `try`, and `get_component`
-   throws on a non-container receiver — a shadowed point-valued state variable that is ever a
-   scalar would take the update down. No route producing one was found (the attributes are all
-   `createComponentOfType: "point"`), so this is an unstated invariant, not a known bug. Closing
-   it means proving the invariant and asserting it once, or deciding what a non-container shadow
-   should mean.
+2. **Eight unguarded `get_component` reads rest on an unstated invariant.** `get_component`
+   throws on a non-container receiver, and these calls are not inside a `try`, so a state
+   variable that is ever a scalar where a point is expected would take the update down. Five are
+   *shadow* reads — `headShadow` and `tailShadow` (`Vector.js:1768`, `:1986`), `directionShadow`,
+   `throughShadow` and `endpointShadow` (`Ray.js:806`, `:1058`, `:1287`). The other three read
+   something else unguarded: `desiredStateVariableValues.parallelCoords` in `LineSegment.js:1581`
+   and `:1588` and in `Line.js:1656`, and `globalDependencyValues.unnormalizedDirection` in
+   `DirectionComponent.js:322`. (`DirectionComponent.js:274` looks like a ninth and is not — the
+   `vectorOperators.includes` shape test at `:265` guards it, a route
+   `packages/math/src/components.ts` does not currently credit.) No route producing a scalar was
+   found for any of them — the attributes are all `createComponentOfType: "point"` — so this is an
+   unstated invariant, not a known bug. Closing it means proving the invariant and asserting it
+   once, or deciding what a non-container receiver should mean.
 3. **Sweep the remaining raw null-coercions.** `evaluate_to_constant()` is called from **277 sites
    across 67 files** in `packages/*/src` outside the test trees (`grep -rn "evaluate_to_constant("
    packages/*/src`, dropping `/test/` and `*.test.*`; re-measured at the twelfth pass and unchanged
@@ -195,7 +242,7 @@ Two rounds of scope-trimming have already landed (`packages/doenetml-print`'s te
 crash were flagged in the PR body). A twelfth-pass sweep of the whole diff, reading hunks rather
 than filenames, finds these still in and still unrelated. None is deleted here — they are another
 author's work — but each is self-contained enough to lift into its own PR, and together they are
-roughly 1,100 of the ~8,100 added lines.
+roughly 1,100 of the 8,583 added lines (`git diff --shortstat` against the merge base).
 
 - **`<video>` playback state** — `renderers/video.tsx`, `components/Video.js`,
   `tagSpecific/video.test.ts` (~152 lines). The one changed component file with no math, NaN or

@@ -43,17 +43,21 @@
  *     `NumberList.js`; against `["vector","tuple"]` in `Polyline.js`), a
  *     `try`/`catch` around the read (`Parabola.js`), or a boolean settled
  *     earlier in the definition (`haveVector` in the two
- *     `DiscreteSimulationResult*` files).
+ *     `DiscreteSimulationResult*` files). `DirectionComponent.js:274` takes the
+ *     first of those routes too — a `vectorOperators.includes` test at `:265`.
  *
- * Six of that last group take none of those routes: the `headShadow` /
- * `tailShadow` / `endpointShadow` / `throughShadow` / `directionShadow` reads
- * in `Vector.js`, `Ray.js`, `LineSegment.js` and `DirectionComponent.js`. They
- * rest on a shadowed point-valued state variable always being a container,
- * which is true of every route found so far but is an invariant nothing states
- * or checks. Noted rather than converted, because `undefined` is not obviously
- * the right answer there either — see follow-up 2 in
- * `MATH_EXPRESSIONS_ENGINE_NOTES.md` ("Follow-up PRs, written up so they can be
- * opened from here") at the repository root.
+ * Eight reads take none of those routes. Five are shadow reads: `headShadow`
+ * and `tailShadow` (`Vector.js:1768`, `:1986`), `directionShadow`,
+ * `throughShadow` and `endpointShadow` (`Ray.js:806`, `:1058`, `:1287`). The
+ * other three read something else unguarded:
+ * `desiredStateVariableValues.parallelCoords` (`LineSegment.js:1581`, `:1588`,
+ * `Line.js:1656`) and `globalDependencyValues.unnormalizedDirection`
+ * (`DirectionComponent.js:322`). They rest on a point-valued state variable
+ * always being a container, which is true of every route found so far but is an
+ * invariant nothing states or checks. Noted rather than converted, because
+ * `undefined` is not obviously the right answer there either — see follow-up 2
+ * in `MATH_EXPRESSIONS_ENGINE_NOTES.md` ("Follow-up PRs, written up so they can
+ * be opened from here") at the repository root.
  *
  * The shape here is wanted only where "no such component" is an ordinary
  * answer that the caller then acts on, which so far is

@@ -4,9 +4,26 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
 /**
+ * Dependency ranges that mean "resolve this from somewhere on this machine"
+ * rather than "resolve this from the registry". They are the right thing inside
+ * the monorepo and meaningless to an npm consumer: `file:../math` names a
+ * directory that does not exist once the tarball is unpacked.
+ */
+const UNPUBLISHABLE_RANGE = /^(?:file|link|portal|workspace):/;
+
+/**
  * Create a transformer that will modify the contents of a package.json file
  * so that it is suitable for publishing. This function returns a `transformer`
  * that can be used by `viteStaticCopy` to transform a `package.json` file.
+ *
+ * Externalized dependencies become `peerDependencies` of the published package,
+ * because the bundle keeps a bare `import ... from "<dep>"` that the consumer's
+ * installer has to satisfy. If any of them cannot be satisfied from the
+ * registry — it is missing a version, or its range is a local one such as
+ * `file:` — the built package is *not* publishable, and the transformer says so
+ * by leaving `"private": true` in the emitted manifest. `npm publish` refuses a
+ * private package, so a release that would otherwise ship an unresolvable
+ * import fails loudly instead of shipping.
  *
  * @param externalDeps An array of dependencies that should be externalized.
  * @param targetDir The directory where the `package.json` file will be written. This is usually `./dist`, but it may be a different subdirectory. Any paths in the exports field of package.json are rewritten to be relative to this directory instead.
@@ -43,21 +60,42 @@ export function createPackageJsonTransformer({
         delete pkg.prettier;
         delete pkg.wireit;
 
-        pkg.private = false;
-
         const pkgRootDir = path.dirname(findPackageJsonPath(pkg.name));
 
-        // Everything that is externalized should be a peer dependency
+        // Everything that is externalized should be a peer dependency, since
+        // the bundle imports it by name and the consumer has to provide it.
+        const unpublishable: string[] = [];
         pkg.peerDependencies = {};
         for (const dep of externalDeps) {
-            if (!allDeps[dep]) {
-                console.warn(
-                    dep,
-                    "is listed as a dependency for vite to externalize, but a version is not specified in package.json.",
+            const range = allDeps[dep];
+            if (!range) {
+                unpublishable.push(
+                    `${dep}: externalized by vite, but no version is specified in package.json`,
                 );
                 continue;
             }
-            pkg.peerDependencies[dep] = allDeps[dep];
+            pkg.peerDependencies[dep] = range;
+            if (UNPUBLISHABLE_RANGE.test(range)) {
+                unpublishable.push(
+                    `${dep}: "${range}" is a local range that an npm consumer cannot resolve`,
+                );
+            }
+        }
+
+        // Publishable unless one of the externalized imports cannot be
+        // satisfied from the registry. See the doc comment above: a private
+        // manifest is what stops `npm publish` from shipping a tarball whose
+        // imports do not resolve.
+        pkg.private = unpublishable.length > 0;
+        if (pkg.private) {
+            console.warn(
+                [
+                    `${pkg.name}: marking the built package private — it is not publishable:`,
+                    ...unpublishable.map((reason) => `  - ${reason}`),
+                    "  `npm publish` will refuse this package until every externalized",
+                    "  dependency has a registry-resolvable version.",
+                ].join("\n"),
+            );
         }
 
         // Fix up the paths. The existing package.json refers to files in the `./dist` directory. But

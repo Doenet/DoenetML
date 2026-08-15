@@ -21,24 +21,21 @@ import {
 // once.
 const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
 
-// The subset of `EXTERNAL_DEPS` that becomes a `peerDependencies` entry in the
-// published `dist/package.json`.
+// Externalizing `math-expressions` is right for the workspace —
+// `@doenet/standalone` builds against this `dist/` and resolves the seam once —
+// but it is what makes this package unpublishable for now. The specifier
+// resolves through `"math-expressions": "file:../math"` to the workspace-only
+// `@doenet/math`, and a `file:` range is meaningless to an npm consumer, so the
+// tarball would carry an `import ... from "math-expressions"` that resolves to
+// nothing (or, worse, to the unrelated `math-expressions@2.x` on npm).
 //
-// `math-expressions` is deliberately absent. It resolves to the workspace-only
-// `@doenet/math` through `"math-expressions": "file:../math"`, and a `file:`
-// range is meaningless to an npm consumer. Externalizing it is still right for
-// the workspace — `@doenet/standalone` builds against this `dist/` and resolves
-// the seam once — but it means the *published* tarball carries an unresolved
-// `math-expressions` import.
-//
-// This filter is therefore temporary, and deleting it is what unblocks
-// publishing: once math-expressions#84 merges and upstream publishes
-// `math-expressions@3.x` to npm, the specifier names a real package and belongs
-// in `peerDependencies` like `react`. See Step 6 of
-// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` for the rest of that swap.
-const PUBLISHED_PEER_DEPS = EXTERNAL_DEPS.filter(
-    (dep) => dep !== "math-expressions",
-);
+// `createPackageJsonTransformer` detects that by itself and leaves
+// `"private": true` in the emitted `dist/package.json`, which `npm publish`
+// refuses — so merging this branch cannot silently release a broken
+// `@doenet/doenetml`. The block clears on its own once math-expressions#84 is
+// merged and `math-expressions@3.x` is on npm and this package depends on that
+// range instead of `file:../math`; the dep then behaves exactly like `react`.
+// See Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`.
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -65,7 +62,7 @@ export default defineConfig(({ mode }) => {
                         src: "package.json",
                         dest: "./",
                         transform: createPackageJsonTransformer({
-                            externalDeps: PUBLISHED_PEER_DEPS,
+                            externalDeps: EXTERNAL_DEPS,
                         }),
                     },
                     // Ship the README in the published package (`dist/` is
