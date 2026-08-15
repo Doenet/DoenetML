@@ -87,17 +87,20 @@ function exactCriticalPointsOf(plainFormula, varString) {
  * - `exactCriticalPoints` — see [`exactCriticalPointsOf`].
  */
 function derivativeInfoFor(formula, varString) {
+    // Read only, and the same for every formula that has no usable derivative.
+    const NO_DERIVATIVE = {
+        haveDerivative: false,
+        derivative: () => NaN,
+        derivative_formula: null,
+        exactCriticalPoints: null,
+    };
+
     // A hole in the formula, not a variable: the engine does not list the blank
     // in `variables()` the way the legacy library did, so the test this
     // replaces could not fire and an unfilled input was differentiated as
     // though it were complete.
     if (treeContainsBlank(formula.tree)) {
-        return {
-            haveDerivative: false,
-            derivative: () => NaN,
-            derivative_formula: null,
-            exactCriticalPoints: null,
-        };
+        return NO_DERIVATIVE;
     }
 
     let plainFormula = formula.subscripts_to_strings();
@@ -106,12 +109,7 @@ function derivativeInfoFor(formula, varString) {
     try {
         derivative_f = derivative_formula.f();
     } catch (e) {
-        return {
-            haveDerivative: false,
-            derivative: () => NaN,
-            derivative_formula: null,
-            exactCriticalPoints: null,
-        };
+        return NO_DERIVATIVE;
     }
 
     return {

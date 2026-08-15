@@ -89,6 +89,43 @@ DoenetML's `appliedFunctionSymbols.test.ts` (whose `NO_SCALAR_KERNEL` exemption 
 place the omission had been codified, exactly as `erf`'s was — is now empty). All verified to fail
 against the unfixed engine.
 
+### `mod((7,3))` compared unequal to `1` — fixed at the current pin
+
+**Found and fixed at the sixteenth pass, by asking what else the `det` split could reach.** Same
+two layers, same failure shape, different way in: an extra pair of parentheses. Legacy's text
+parser wrote one tree for `mod(7,3)` and `mod((7,3))` — a head applied to a tuple — so the extra
+parentheses cost nothing and both answered `1`. This parser keeps the spellings apart, and only
+`normalize/fold_apply.rs` put them back together, spreading a single list argument before folding.
+The sampler did not, and `known_function("mod", 1)` is false, so `simplify(mod((7,3)))` was `1`
+while `equals(mod((7,3)), 1)` was `false` and `evaluate_to_constant` was `None`. `nPr` and `nCr`
+are the other two heads whose folder takes the arity the spread produces.
+
+The spread is now `normalize::spread_list_argument`, `pub(crate)` and consulted by both layers,
+which is `matrix::scalar_reduction`'s shape one function over. The arity check still happens
+downstream on the spread list, so `abs((-3,5))` stays symbolic on both layers rather than being
+forced into a two-argument `abs`. Pinned in `tests/equality.rs`, `normalize/fold_apply.rs` and the
+compat suite, verified to fail against the unfixed engine.
+
+Two things had to be measured before the fix could be the right one, and both are worth recording
+because the obvious fix is the wrong one. The crate's own open ledger had described this as
+`is_variadic` testing "has an exact folder" rather than "is an aggregate" — i.e. as the *fold*
+over-spreading. Narrowing the fold to the aggregates makes `mod((7,3))` stop being `1`, which is a
+regression against `math-expressions@2.0.0-alpha94`, not a fix; the spreading is legacy parity and
+the sampler was the half that was wrong. And that entry's example,
+`["apply","mod",["tuple",7,3]]`, never took the branch at all: the JS deserializer flattens a tuple
+argument into an argument list first, so a DoenetML tree could not reach it and only the text
+parser could.
+
+Related, and **open rather than closed**: the sweep accompanying the `det` fix concluded that
+`rootof`, the one remaining registry definition with no evaluation, was unreachable because
+`canonicalize` rewrites `Apply(rootof, …)` into the `Expr::RootOf` leaf. The rewrite is heavily
+conditional — it needs an already-expanded univariate polynomial — so
+`rootof((x-1)(x-2), 0)` stays an opaque application and compares unequal to `1` and to
+`rootof(x^2-3x+2, 0)`. It is narrower than the `det` defect (the residue is self-consistent, so
+nothing simplifies to a value it then denies) and `rootof` is in neither of DoenetML's
+applied-function lists, so it is filed in the crate's
+`active-plans/PR84_REVIEW_KNOWN_ISSUES.md` rather than fixed here.
+
 ### Odd roots of a negative number — fixed at the current pin
 
 **Was the headline open item through ten review passes; fixed in the eleventh.** `x^(1/n)` was

@@ -316,11 +316,14 @@ copies of the engine once the seam was externalized everywhere.
    Also fixed: the derivative and the exact roots are computed once and carried down through the
    recursion. An earlier draft of this item said they were recomputed "on each of up to ~1000 cells
    × 100 recursion levels"; measured, the per-cell claim was wrong — the loop only *reads* the
-   finished list, and the work happens once per call. Per *recursion level* it was real, and
-   `critical_points` is the expensive call: for a degree-12 polynomial over the default domain it
-   is 98ms of the 131ms a hunt takes, and one extra level used to cost as much as the whole search
-   (392ms → 316ms measured over minima and maxima together, `-19%`; the shallow cases are inside
-   the noise).
+   finished list, and the work happens once per entry to the function. Per *recursion level* it was
+   real, and `critical_points` is what makes it worth removing. On
+   `(x-1)(x-2)…(x-12)` over the default domain, finding the minima and the maxima together made
+   three `critical_points` calls — one per hunt, plus one for the single level of recursion — at
+   about 98ms each. Toggling only the memo, on otherwise identical code: 412ms → 314ms, `-24%`
+   (`sin(20x)+x^2/100`, which recurses sixteen times over a much cheaper derivative, 72ms → 63ms).
+   Functions that do not recurse are unchanged, and those cases measured inside the run-to-run
+   noise.
 
    **Left, by design and now the only thing left here:** a critical point that touches zero without
    crossing is still invisible, and a cell holding several roots still yields one — nothing looks
