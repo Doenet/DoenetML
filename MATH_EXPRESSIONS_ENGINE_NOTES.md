@@ -83,7 +83,7 @@ there is no flag to remember to flip.
 Two limits of that guard, stated so nobody over-reads it. It is a **shape test on the range**, run
 at build time with no network. What it tests is npm's own classification — the ranges
 `npm-package-arg` resolves to a `directory` or a local `file` — rather than a list of spellings
-anyone thought of, which is the fourth form the test has taken: the thirteenth pass wrote the
+anyone thought of, which is the fifth form the test has taken: the thirteenth pass wrote the
 protocols (`file:`/`link:`/`portal:`/`workspace:`/`catalog:`/`git+file:`), the fifteenth found the
 bare path (`../math` installs the sibling directory exactly as `file:../math` does), the sixteenth
 found `~/src/math-expressions` and a bare tarball path still passing, and the seventeenth found
@@ -93,10 +93,27 @@ spec containing a separator is a path to npm — no leading dot, no `~/`, no dri
 monorepo would actually write, read as publishable and shipped an unresolvable peer range. Measured
 against npm 11.12.1, which installs `sub/dir/pkg` as a symlink to that directory.
 
+The eighteenth found the fifth door, and it had been opened by an earlier pass's own fix rather
+than merely missed: the guard `.trim()`ed the range before classifying it, on the stated grounds
+that "npm trims the range first". npm does not. `hosted-git-info` refuses any spec containing
+whitespace, so `"vendor/math "` never becomes a repository to npm — it falls through to that same
+bare-path branch — but trimming before the GitHub-shorthand test turned it back into a clean
+`user/repo` shape and called it publishable. Measured against npm 11.12.1: that range installs
+`node_modules/math-expressions` as a **dangling** symlink and exits 0, so the consumer's import
+throws at run time, which is exactly what the guard exists to prevent. The prefix tests still run
+on the trimmed range — a leading space must not slip `" file:../math"` past an anchored pattern —
+and only the shorthand test sees the raw one; that asymmetry is the whole content of the fix. The
+same sweep, a diff against the real `npm-package-arg@14` over 173 spellings, found the guard
+*over*-strict in one realistic place and fixed that too: `git@github.com:user/repo.git` carries no
+`scheme:` and has an `@` and a `:` before its slash, so it read as a local path and would have
+blocked a release over a perfectly clonable dependency.
+
 The remaining divergences from `npa` are deliberate, and each is asserted: the guard is stricter on
 `link:`/`portal:`/`workspace:`/`catalog:` (npm *throws* `EUNSUPPORTEDPROTOCOL` on those rather than
 classifying them, so "not local" is not "publishable"), on `\\unc\path` (a `directory` to `npa`
-only when it runs on Windows — the platform union is the point), and on a one-slash `.tar.gz`
+only when it runs on Windows — the platform union is the point), on a range whose prefix tests only
+match after trimming (`" file:../math"`, `" C:/math"` — an invalid tag name to `npa`, which throws),
+and on a one-slash `.tar.gz`
 (`vendor/math.tar.gz` is the GitHub shorthand for a repository named `math.tar.gz` to `npa`; anyone
 who writes it means a tarball). The one thing it cannot separate is a one-slash path from the
 `user/repo` shorthand, because nothing in the spelling distinguishes them — and npm resolves that
