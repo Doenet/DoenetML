@@ -175,10 +175,16 @@ export function countInlinedBinaries(text) {
             return;
         }
         const start = end - run;
-        // The length test is not redundant: `startsWith` clamps a negative
-        // position to 0, so without it a blob beginning within the first
-        // `WASM_URI_PREFIX.length` characters of the file would be classified
-        // by whether the *file* starts with the prefix.
+        // `startsWith` clamps a negative position to 0, so without the length
+        // test a blob beginning within the first `WASM_URI_PREFIX.length`
+        // characters of the file would be classified by whether the *file*
+        // starts with the prefix. No input reaches that today, and the reason
+        // is a property of the prefix rather than of this loop: it ends in `,`,
+        // which is not a base64 character, so a run starting before its end is
+        // cut off at that comma and never reaches `BIG_BLOB_MIN`. Kept because
+        // that coupling is implicit — an inlined-asset prefix that happened to
+        // end in a base64 character would make it live, and no test can pin it
+        // in the meantime.
         if (
             start >= WASM_URI_PREFIX.length &&
             text.startsWith(WASM_URI_PREFIX, start - WASM_URI_PREFIX.length)

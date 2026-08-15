@@ -39,13 +39,16 @@ export function find_effective_domain({
     let openMin = true,
         openMax = true;
 
-    // `?.` rather than `domain !== null`, matching `find_domain_endpoints`
-    // below: the sole difference between them was that this one would have
-    // thrown on an explicit `undefined` where that one returns the unbounded
-    // default. No caller passes one today — every call site in `function.ts`
-    // defaults the parameter to `null` — but the asymmetry is a trap.
+    // Read and tested exactly as `find_effective_domains_piecewise_children`
+    // below reads and tests it, so the two entry points cannot disagree about
+    // what "no domain" is. They used to: this one threw on a `domain` of
+    // `undefined` and on a `domain[0]` of `null`, where that one returns the
+    // unbounded default for both. No caller passes either today — every call
+    // site in `function.ts` defaults the parameter to `null`, and the array
+    // itself only ever holds an interval or a hole — but a crash is the wrong
+    // answer to "no domain" whichever way it arrives.
     const domain1 = domain?.[0];
-    if (domain1 !== undefined) {
+    if (domain1) {
         // `isNumericConstant`, not `Number.isFinite`: an endpoint that
         // *evaluates to* ±∞ is a real endpoint and is kept as written,
         // where one that cannot be evaluated at all — `null` from the
