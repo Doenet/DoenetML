@@ -221,18 +221,15 @@ export default class FunctionIterates extends InlineComponent {
                         let numericalfs = functionComp.stateValues.numericalfs;
                         let value = initialValue.tree
                             .slice(1)
+                            // `evaluateToNumber`, not the bare call: a
+                            // component with no numeric value has to reach the
+                            // numerical function as `NaN` and come back out as
+                            // `NaN`, rather than as the orbit of some other
+                            // point. The iterates then read `(NaN,NaN)`, which
+                            // is this branch's spelling of "no value" — the
+                            // one-dimensional branch above spells it `＿`
+                            // instead, and the suite pins both.
                             .map((x) => evaluateToNumber(me.fromAst(x)));
-                        // Same guard as the one-dimensional branch above: a
-                        // component with no numeric value makes the whole orbit
-                        // undefined rather than the orbit of some other point.
-                        if (!value.every(isNumericConstant)) {
-                            allIterates = Array(numIterates).fill(
-                                me.fromAst("\uff3f"),
-                            );
-                            return {
-                                setValue: { allIterates },
-                            };
-                        }
                         for (let ind = 0; ind < numIterates; ind++) {
                             let iterComps = [];
                             for (
