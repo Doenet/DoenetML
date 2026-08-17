@@ -132,7 +132,12 @@ export interface EvaluateToConstantOptions {
     remove_units_first?: boolean;
     /** Scale result based on unit (default: true) */
     scale_based_on_unit?: boolean;
-    /** Return NaN instead of null for non-numeric results (default: true) */
+    /**
+     * Accepted for source compatibility and **ignored**. Legacy used it to ask
+     * for `null` instead of `NaN` on a non-numeric result; this engine always
+     * answers `NaN` — legacy's default — so passing `false` changes nothing.
+     * @deprecated has no effect
+     */
     nan_for_non_numeric?: boolean;
 }
 
@@ -211,6 +216,36 @@ export interface Bindings {
  */
 export interface MatchResult {
     [key: string]: Tree;
+}
+
+/**
+ * Options for the pattern-matching methods.
+ *
+ * The declared shape used to be a bare `allow_permutations?: boolean` second
+ * argument. That was never the API: the implementation takes an options
+ * *object* and routes it through `normalizeMatchOptions`, and a bare `true`
+ * takes the no-options path instead (`hasOptions` requires an object), so the
+ * declaration described a call that silently does nothing.
+ */
+export interface MatchOptions {
+    /**
+     * The declared parameters, as `{name: kind}`. Present-and-empty declares
+     * *no* parameters, so only an exact match succeeds; omitting it keeps the
+     * legacy default where every string leaf in the pattern binds.
+     *
+     * Legacy's per-parameter predicate functions and regular expressions are
+     * rejected with an error rather than ignored — a function cannot cross the
+     * wasm boundary, and silently treating one as "any" is what made
+     * `requireNumericMatches` a no-op.
+     */
+    variables?: { [name: string]: true | "any" | "number" | "variable" };
+    /** Match `+`/`*` operands in any order. */
+    allow_permutations?: boolean;
+    /**
+     * Parameter names that may take the operator's identity, so `a x + b`
+     * matches `x` with `a = 1`, `b = 0`.
+     */
+    allow_implicit_identities?: string[];
 }
 
 /**
@@ -648,19 +683,31 @@ export interface Expression {
     /**
      * Evaluate to a constant if possible.
      *
-     * `Complex` is not an oversight: legacy returned a plain number for a real
-     * value and a complex one for a non-real value, and the engine keeps that
-     * contract — `fromText("i").evaluate_to_constant()` is a math.js `Complex`,
-     * not `null`. Callers that need a number must narrow (`plainComplex` and
-     * `toNumberOrNaN` in DoenetML exist for it); callers that pass the result
-     * back into math.js want the `Complex` intact.
+     * **There are exactly two things this can return, and neither is `null`.**
+     *
+     * `number` — including `Infinity` and, when the expression has no numeric
+     * value at all, `NaN`. `NaN` is the "no value" marker, as it was in the
+     * legacy library: a free variable (`x+1`), a blank `＿`, a matrix, a
+     * leftover unit all answer `NaN`. It is deliberately the same `NaN` an
+     * expression can genuinely *evaluate* to (`0/0`), because a marker that
+     * does not poison arithmetic is worse than no marker — `null` coerces to
+     * `0` and satisfies `<`/`<=`, and this method returned `null` for a while,
+     * which is how blank answers came to score full credit.
+     *
+     * `Complex` — a math.js complex value, for a non-real result.
+     * `fromText("i").evaluate_to_constant()` is a `Complex`, as legacy's was,
+     * so a caller that passes the result into math.js gets it intact.
+     *
+     * That means `typeof x === "number"` is the narrowing every real-valued
+     * caller wants, and it is not enough to write `x !== null`: `Complex` is
+     * still there and `NaN` is still a number. DoenetML's `isNumericConstant`
+     * and `toNumberOrNaN` are that narrowing, and they are what the `Complex`
+     * arm still needs — the `null` arm no longer exists.
      *
      * @param options Evaluation options
-     * @returns Constant value, or null if the expression contains variables
+     * @returns The constant value; `NaN` when the expression has none
      */
-    evaluate_to_constant(
-        options?: EvaluateToConstantOptions,
-    ): number | Complex | null;
+    evaluate_to_constant(options?: EvaluateToConstantOptions): number | Complex;
 
     /**
      * Check if expression is analytic (has no discontinuities)
@@ -669,14 +716,19 @@ export interface Expression {
     isAnalytic(options?: IsAnalyticOptions | string[]): boolean;
 
     /**
-     * Match expression against a pattern
+     * Match expression against a pattern.
+     *
+     * Returns `false`, not `null`, when the pattern does not match — as legacy
+     * did. (This was declared `MatchResult | null` for a long time, so a
+     * `!== null` test written against the declaration was always true.)
+     *
      * @param pattern Pattern tree to match against
-     * @param allow_permutations Allow reordering of commutative operations
+     * @param options Matching options
      */
     match(
         pattern: Expression | Tree,
-        allow_permutations?: boolean,
-    ): MatchResult | null;
+        options?: MatchOptions,
+    ): MatchResult | false;
 
     // ========== Formatting methods ==========
 
@@ -801,8 +853,8 @@ export interface Utils {
     match(
         tree: Tree,
         pattern: Tree,
-        allow_permutations?: boolean,
-    ): MatchResult | null;
+        options?: MatchOptions,
+    ): MatchResult | false;
 
     /**
      * Flatten an AST tree
@@ -1161,19 +1213,22 @@ export interface Context {
         bindings: Bindings,
         modulus: number,
     ): number;
+    /** See {@link Expression.evaluate_to_constant} — `NaN` when there is no
+     * numeric value, never `null`. */
     evaluate_to_constant(
         expr: Expression | Tree,
         options?: EvaluateToConstantOptions,
-    ): number | Complex | null;
+    ): number | Complex;
     isAnalytic(
         expr: Expression | Tree,
         options?: IsAnalyticOptions | string[],
     ): boolean;
+    /** Returns `false`, not `null`, when the pattern does not match. */
     match(
         expr: Expression | Tree,
         pattern: Expression | Tree,
-        allow_permutations?: boolean,
-    ): MatchResult | null;
+        options?: MatchOptions,
+    ): MatchResult | false;
     // ========== Formatting methods ==========
     toString(expr: Expression | Tree, params?: FormatParams): string;
     toLatex(expr: Expression | Tree, params?: FormatParams): string;

@@ -73,17 +73,25 @@ export function convertValueToMathExpression(value: any): any {
 export const vectorOperators = ["vector", "altvector", "tuple"];
 
 /**
- * Whether `evaluate_to_constant()` produced a number we can actually compute
- * with.
+ * Whether a value is a number we can actually compute with.
  *
- * It reports `null` — not `NaN` — for most of what it cannot evaluate: a free
- * variable, a blank `＿`, an unevaluable head. (Not all of it: a stray scaling
- * unit such as `2$` answers `NaN`.) `Number.isNaN(null)` is `false` and `null`
- * coerces to `0` in arithmetic and comparisons, so testing only for `NaN` lets
- * an unevaluable expression pass as numeric and then silently behave like zero.
- * `＿ < 1` became `null < 1`, which is `true`, and a blank answer scored full
- * credit. A complex `{re, im}` is a "no" for the same reason: `null >= -3` and
- * `{re,im} >= -3` are both answers JavaScript will happily invent.
+ * `evaluate_to_constant()` returns `number | Complex`, and `NaN` is how it says
+ * "no numeric value" — a free variable, a blank `＿`, a matrix, a stray unit,
+ * an indeterminate form. Both halves of this test are load-bearing:
+ *
+ * - `typeof value === "number"` rejects the `Complex` arm. `{re, im} >= -3` is
+ *   an answer JavaScript will happily invent, and a complex value put into a
+ *   real-valued state variable is structure-cloned to the main thread and
+ *   arrives prototype-stripped.
+ * - `!Number.isNaN(value)` rejects the no-value marker.
+ *
+ * It used to have a third job. The engine answered `null` rather than `NaN` for
+ * most of what it could not evaluate, and `null` is the one marker that does
+ * *not* poison what it touches: `Number.isNaN(null)` is `false`, `null` coerces
+ * to `0`, and `＿ < 1` was `null < 1`, which is `true` — a blank answer scoring
+ * full credit. The engine answers `NaN` now (math-expressions#84), so a site
+ * that forgets this guard degrades loudly instead of silently. That is a reason
+ * to keep using it, not to stop: the `Complex` arm is still here.
  *
  * Use this anywhere the result feeds arithmetic, a comparison, or a sort.
  * `±Infinity` passes deliberately: it is not finite, but it *is* ordered, which
@@ -101,14 +109,11 @@ export function isNumericConstant(value: unknown): value is number {
  * Anything that is not a plain number reported as `NaN`.
  *
  * The other half of {@link isNumericConstant}: that one asks the question, this
- * one answers it with a value a numeric state variable can hold. `null` — what
- * `evaluate_to_constant()` returns for an expression it cannot evaluate — is
- * the case that matters, because `Number.isNaN(null)` is `false` and `null`
- * coerces to `0`, so passing it on reads a blank input as zero.
- *
- * Code that needs to tell "evaluates to NaN" from "cannot be evaluated" apart
- * should call `evaluate_to_constant()` and test with {@link isNumericConstant}
- * instead.
+ * one answers it with a value a numeric state variable can hold. What it is
+ * still for, now that `evaluate_to_constant()` answers `NaN` rather than `null`
+ * for an expression with no value, is everything that is not a number at all —
+ * a `Complex`, an `me.class` that was never evaluated, an `undefined` from a
+ * missing array key.
  */
 export function toNumberOrNaN(value: unknown): number {
     return typeof value === "number" ? value : NaN;

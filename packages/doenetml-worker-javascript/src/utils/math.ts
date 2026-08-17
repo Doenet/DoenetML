@@ -286,19 +286,21 @@ export function findFiniteNumericalValue(value: any) {
  * `expr.evaluate_to_constant()` as a plain number, with everything that is not
  * one reported as `NaN`.
  *
- * The engine distinguishes two failures the legacy one did not: `NaN` for an
- * expression that *evaluates to* NaN (`0/0`), and `null` for one it cannot
- * evaluate at all — a free variable, a blank `＿`. That distinction is worth
- * having, but a *number* state variable has only one way to say "not a number",
- * and it is `NaN`. Passing `null` on instead is worse than useless:
- * `Number.isNaN(null)` is `false`, so every guard waves it through, and it then
- * coerces to `0` — a blank input silently reading as zero.
+ * `evaluate_to_constant()` returns `number | Complex`. The `number` arm already
+ * spells "no numeric value" as `NaN`, so this is a pass-through for it; what it
+ * converts is the `Complex` arm, which is a value but not one a real-valued
+ * state variable can hold, and which arrives prototype-stripped on the main
+ * thread anyway.
  *
- * Use this at the boundary where an expression becomes a numeric state
- * variable. Code that needs to tell the two apart should call
- * `evaluate_to_constant()` directly and test with {@link isNumericConstant}. A
- * complex result is also `NaN` here: it is a value, but not one a real-valued
- * state variable can hold.
+ * The engine briefly answered `null` instead of `NaN` for an expression it
+ * could not evaluate at all, and this function was written for that: `null`
+ * slips past `Number.isNaN` and then coerces to `0`, so a blank input read as
+ * zero. That is fixed at the source (math-expressions#84). Keeping this at the
+ * boundary is still worth it for the complex arm and because a state variable
+ * has exactly one way to say "not a number".
+ *
+ * Code that needs to tell "cannot be evaluated" from "evaluates to NaN" apart
+ * should ask `expr.variables()`, which is where that information now lives.
  */
 export function evaluateToNumber(expr: {
     evaluate_to_constant: () => unknown;

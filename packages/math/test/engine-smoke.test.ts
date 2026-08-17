@@ -47,6 +47,58 @@ describe(`math engine (${engineName})`, () => {
         expect(me.fromText("2+3").evaluate_to_constant()).toBe(5);
     });
 
+    // The seam's most load-bearing contract, pinned here because it is what
+    // ~890 DoenetML call sites read and because getting it wrong is silent.
+    //
+    // "No numeric value" is spelled `NaN`, as it was in the legacy library.
+    // The Rust core answers `Option<f64>`, which crosses to JS as `null`, and
+    // for a while the compat layer passed that through for a free variable or
+    // a blank. `null` is the one marker that does *not* survive being computed
+    // with — `Number(null)` is `0`, `null + 5` is `5`, `null <= 1` is `true`,
+    // `Number.isNaN(null)` is `false` — so an expression with no value read as
+    // zero in every consumer that had not been individually taught to test for
+    // it: a rectangle 0 wide, a vertical line with slope 1, a blank answer
+    // scoring full credit.
+    describe("evaluate_to_constant's no-value marker", () => {
+        it.each([
+            ["a free variable", "x+1"],
+            ["a bare blank", "＿"],
+            ["a blank in a computation", "1+2+＿"],
+            ["a placeholder hole", "0*_"],
+            ["an indeterminate form", "0/0"],
+            ["a stray scaling unit", "2$"],
+            ["a matrix", "[[1,2],[3,4]]"],
+        ])("is NaN for %s", (_label, text) => {
+            expect(me.fromText(text).evaluate_to_constant()).toBeNaN();
+        });
+
+        it("poisons arithmetic and comparison rather than reading as zero", () => {
+            const noValue = me.fromText("x+1").evaluate_to_constant() as number;
+            expect(noValue + 5).toBeNaN();
+            expect(noValue * 2).toBeNaN();
+            expect((noValue + 3) / 2).toBeNaN();
+            expect(Number(noValue)).toBeNaN();
+            expect(noValue <= 1).toBe(false);
+            expect(noValue >= -3).toBe(false);
+            expect(Number.isNaN(noValue)).toBe(true);
+        });
+
+        // Still not a plain number, so the narrowing helpers stay: this is the
+        // arm `isNumericConstant`/`toNumberOrNaN` exist for now that the `null`
+        // arm is gone.
+        it("keeps a complex value rather than flattening it", () => {
+            const v = me.fromText("i").evaluate_to_constant();
+            expect(typeof v).toBe("object");
+            expect((v as { re: number; im: number }).re).toBe(0);
+            expect((v as { re: number; im: number }).im).toBe(1);
+        });
+
+        // ±Infinity is a value, not a marker, and must stay orderable.
+        it("still reports an infinite value as infinite", () => {
+            expect(me.fromText("1/0").evaluate_to_constant()).toBe(Infinity);
+        });
+    });
+
     it("differentiates", () => {
         expect(me.fromText("x^2").derivative("x").simplify().tree).toEqual([
             "*",

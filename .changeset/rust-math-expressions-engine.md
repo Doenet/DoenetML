@@ -24,9 +24,10 @@ but the engine is a different implementation and some results differ:
   which can change whether a student's answer is marked correct.
 - **Inverse trigonometric notation parses correctly.** `sin^(-1)(1)` is read as the inverse
   function; the old engine read it as `(1/sin)(1)`.
-- **A value that is not a number now reads as `NaN` rather than as zero.** The engine reports "I
-  cannot evaluate this" separately from "this evaluates to NaN", and the first of those coerces to
-  `0` in JavaScript. Where a numeric state variable used to take it — `<numberList>` over a
+- **A value that is not a number now reads as `NaN` rather than as zero.** An expression with no
+  numeric value — a free variable, a blank, a matrix — reports `NaN` from every path, uniformly,
+  and `NaN` propagates through arithmetic and falsifies every comparison. Where a numeric state
+  variable used to take it — `<numberList>` over a
   symbolic child, `<clampNumber>` of a free variable, a `<curve>` whose `parMin` does not evaluate,
   a `<line>` through an undefined point, a `<rectangle>` or `<regularPolygon>` on symbolic
   vertices, a `<circle>` with a symbolic radius, a `<curve>` whose `<bezierControls>` are symbolic,
