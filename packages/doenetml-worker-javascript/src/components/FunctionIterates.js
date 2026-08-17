@@ -7,7 +7,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { isNumericConstant } from "../utils/math";
+import { evaluateToNumber, isNumericConstant } from "../utils/math";
 
 export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
@@ -221,7 +221,18 @@ export default class FunctionIterates extends InlineComponent {
                         let numericalfs = functionComp.stateValues.numericalfs;
                         let value = initialValue.tree
                             .slice(1)
-                            .map((x) => me.fromAst(x).evaluate_to_constant());
+                            .map((x) => evaluateToNumber(me.fromAst(x)));
+                        // Same guard as the one-dimensional branch above: a
+                        // component with no numeric value makes the whole orbit
+                        // undefined rather than the orbit of some other point.
+                        if (!value.every(isNumericConstant)) {
+                            allIterates = Array(numIterates).fill(
+                                me.fromAst("\uff3f"),
+                            );
+                            return {
+                                setValue: { allIterates },
+                            };
+                        }
                         for (let ind = 0; ind < numIterates; ind++) {
                             let iterComps = [];
                             for (

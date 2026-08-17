@@ -230,14 +230,16 @@ export default class MathOperator extends MathComponent {
                         } else {
                             // math
                             //
-                            // `evaluate_to_constant()` gives `null`, not `NaN`,
-                            // for anything it cannot evaluate — `x+1` in
-                            // `<median>1 4 5 x+1</median>`. The numeric
-                            // operators are mathjs functions that accept `NaN`
-                            // and reject `null`: `median([1,4,5,null])` throws
+                            // The numeric operators are mathjs functions, and
+                            // they accept `NaN` while rejecting anything that
+                            // is not a number: `median([1,4,5,null])` throws
                             // "unexpected type of argument" and takes the whole
                             // document with it, where `median([1,4,5,NaN])`
                             // returns `NaN` and the operator degrades quietly.
+                            // `evaluate_to_constant()` used to answer `null`
+                            // for `x+1` in `<median>1 4 5 x+1</median>`; it
+                            // answers `NaN` now, and a `Complex` is the case
+                            // this guard still catches.
                             let value =
                                 child.stateValues.value.evaluate_to_constant();
                             inputs.push(isNumericConstant(value) ? value : NaN);

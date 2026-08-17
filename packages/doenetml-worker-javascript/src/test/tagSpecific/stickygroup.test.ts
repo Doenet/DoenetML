@@ -1926,8 +1926,8 @@ describe("StickyGroup tag tests @group3", async () => {
     it("a symbolic vertex does not abort the drag", async () => {
         // Regression test. A vertex that cannot be evaluated to a number is
         // reduced to `NaN` before the numerical constraint machinery sees it.
-        // `evaluate_to_constant()` answers `null` there, and `me.fromAst(null)`
-        // throws, so this drag used to be discarded whole: the moved vertex
+        // While `evaluate_to_constant()` answered `null` there, `me.fromAst`
+        // *threw* on it, so this drag was discarded whole: the moved vertex
         // stayed at its old position instead of snapping to the sticky
         // neighbour.
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -1958,7 +1958,7 @@ describe("StickyGroup tag tests @group3", async () => {
         expect(vertices[1][0].evaluate_to_constant()).eq(-5);
         expect(vertices[1][1].evaluate_to_constant()).eq(-4);
 
-        // the unevaluable vertex is NaN, not `null` and not the origin
+        // the unevaluable vertex is NaN, and not the origin
         expect(vertices[0][0].evaluate_to_constant()).eqls(NaN);
         expect(vertices[0][1].evaluate_to_constant()).eqls(NaN);
 

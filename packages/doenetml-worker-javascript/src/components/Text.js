@@ -344,11 +344,13 @@ export default class Text extends InlineComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        // `?? NaN` rather than `evaluateToNumber`: `null`
-                        // ("could not evaluate") must not flow on, because it
-                        // coerces to `0`, but a *complex* result has to survive
-                        // — `<number><text>3+4i</text></number>` reads this
-                        // through `Number.js`, which keeps complex values.
+                        // `?? NaN` rather than `evaluateToNumber`: a
+                        // *complex* result has to survive here —
+                        // `<number><text>3+4i</text></number>` reads this
+                        // through `Number.js`, which keeps complex values —
+                        // and `evaluateToNumber` would flatten it. "No value"
+                        // is already `NaN`, so the `??` is now belt and braces
+                        // against a `null` from somewhere else entirely.
                         //
                         // `plainComplex` because this is `public` and
                         // `forRenderer`: the math.js `Complex` it would

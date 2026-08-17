@@ -395,12 +395,13 @@ describe("Boolean Operator tag tests @group4", async () => {
      * A math that is not a constant at all — a free variable, or an expression
      * that only *looks* like it cancels — must be outside every interval.
      *
-     * `evaluate_to_constant` answers `null` for those, and `null` coerces to
-     * `0` in a `<`/`>` comparison, so `<isBetween>` reported a free variable as
-     * lying inside any interval containing zero. The legacy engine returned
-     * `NaN` here instead (its `nan_for_non_numeric` default), which fails both
-     * comparisons — so this read as correct until the engine switch, and
-     * `<isBetween>` feeds `<answer>` through `<when>`.
+     * Regression test for the `null` sentinel: while `evaluate_to_constant`
+     * answered `null` for those, `null` coerced to `0` in a `<`/`>` comparison
+     * and `<isBetween>` reported a free variable as lying inside any interval
+     * containing zero. `NaN` fails both comparisons, which is what the legacy
+     * engine answered (its `nan_for_non_numeric` default) and what the current
+     * one answers again. `<isBetween>` feeds `<answer>` through `<when>`, so
+     * this was a wrong grade.
      *
      * The limits are asymmetric about zero so a wrong `0` cannot be right by
      * accident, and `x-x` is included because it is a case where cancelling

@@ -5,13 +5,17 @@ import me from "math-expressions";
  * Reduce a list of vertices held as math expressions to plain numbers, so the
  * numerical constraint functions can work on them.
  *
- * A vertex component that cannot be evaluated — `(a,b)` — must become `NaN`
- * and not `null`. `evaluate_to_constant()` answers `null` there, and `null` is
- * `0` to every arithmetic operator, so the constraint machinery would place
- * such a vertex at the origin: it would attract to whatever is near `(0,0)`
- * and translate the rest of a rigid shape to match. Worse, the unconstrained
- * value is handed back through `me.fromAst`, which *throws* on `null` and so
- * takes the whole drag with it, leaving the shape where it was.
+ * A vertex component that cannot be evaluated — `(a,b)` — must become `NaN`,
+ * which is what `evaluate_to_constant()` answers for it. `toNumberOrNaN` is
+ * still the right call because a *complex* component would otherwise reach the
+ * constraint functions as an object.
+ *
+ * This is the shape the marker has to have. When the engine answered `null`
+ * here, `null` was `0` to every arithmetic operator, so the constraint
+ * machinery placed such a vertex at the origin — it attracted to whatever was
+ * near `(0,0)` and translated the rest of a rigid shape to match — and the
+ * unconstrained value handed back through `me.fromAst` *threw* on `null`,
+ * taking the whole drag with it and leaving the shape where it was.
  */
 function numericalizeVertices(vertices) {
     return vertices.map((vertex) =>

@@ -2025,10 +2025,9 @@ export default class Curve extends GraphicalComponent {
                             dependencyValuesByKey[arrayKey].controlVectorX;
 
                         if (vectorX) {
-                            let pointX =
-                                dependencyValuesByKey[
-                                    arrayKey
-                                ].throughPointX.evaluate_to_constant();
+                            let pointX = evaluateToNumber(
+                                dependencyValuesByKey[arrayKey].throughPointX,
+                            );
                             newControlValues[arrayKey] = me.fromAst(
                                 pointX + vectorX.tree,
                             );
@@ -4561,7 +4560,11 @@ function calculateControlVectorFromSpline({
     let p1, p2, p3;
 
     if (point2) {
-        p2 = point2.map((x) => x.evaluate_to_constant());
+        // `evaluateToNumber`, not the bare call: these feed the arithmetic
+        // below and then `numericEntries`, which asks `Number.isFinite`. A
+        // through point with no numeric value must poison that, not shift the
+        // spline toward wherever it coerces to.
+        p2 = point2.map(evaluateToNumber);
     } else {
         return {
             coordsNumeric: [me.fromAst(NaN), me.fromAst(NaN)],
@@ -4570,16 +4573,16 @@ function calculateControlVectorFromSpline({
     }
 
     if (point3) {
-        p3 = point3.map((x) => x.evaluate_to_constant());
+        p3 = point3.map(evaluateToNumber);
 
         if (point1) {
-            p1 = point1.map((x) => x.evaluate_to_constant());
+            p1 = point1.map(evaluateToNumber);
         } else {
             p1 = [2 * p2[0] - p3[0], 2 * p2[1] - p3[1]];
         }
     } else {
         if (point1) {
-            p1 = point1.map((x) => x.evaluate_to_constant());
+            p1 = point1.map(evaluateToNumber);
             p3 = [2 * p2[0] - p1[0], 2 * p2[1] - p1[1]];
         } else {
             return {

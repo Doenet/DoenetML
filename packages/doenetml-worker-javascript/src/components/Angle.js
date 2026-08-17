@@ -410,8 +410,8 @@ export default class Angle extends GraphicalComponent {
                         let point2 = lineIntersection;
 
                         // See the note in the one-line case: a symbolic
-                        // coordinate is `null`, which would read as `0` in the
-                        // offsets below rather than as "no point".
+                        // coordinate has no numeric value, and the offsets
+                        // below must see `NaN` rather than a number.
                         let a1 = evaluateToNumber(
                             line1.stateValues.points[0][0],
                         );
@@ -531,10 +531,11 @@ export default class Angle extends GraphicalComponent {
                     }
 
                     // `<angle through="(a,b) (0,0)" />`: the prescribed points
-                    // are symbolic, so `evaluate_to_constant()` answers `null`
-                    // for each. Left as `null` they subtract as `0`, and
-                    // `Math.atan2(0, 0)` is `0` — the third point came out at a
-                    // real position on the unit circle instead of nowhere.
+                    // are symbolic, so they have no numeric value and
+                    // `Math.atan2` must see `NaN`. While the engine answered
+                    // `null` here they subtracted as `0`, and `Math.atan2(0, 0)`
+                    // is `0` — the third point came out at a real position on
+                    // the unit circle instead of nowhere.
                     let a1 = evaluateToNumber(points["0,0"]);
                     let a2 = evaluateToNumber(points["0,1"]);
                     let b1 = evaluateToNumber(points["1,0"]);
@@ -801,8 +802,10 @@ export default class Angle extends GraphicalComponent {
                     let point = dependencyValuesByKey[arrayKey].point;
                     let numericalP = [];
                     for (let ind = 0; ind < 2; ind++) {
-                        let val = point[ind].evaluate_to_constant();
-                        numericalP.push(val);
+                        // `evaluateToNumber`: `numericalPoints` is
+                        // `forRenderer` and JSXGraph coerces whatever it is
+                        // given, so a complex coordinate has to arrive as NaN.
+                        numericalP.push(evaluateToNumber(point[ind]));
                     }
                     numericalPoints[arrayKey] = numericalP;
                 }

@@ -16,11 +16,12 @@ export function directionFromSlope(slope) {
 /**
  * A coordinate as a number, `NaN` when it is not one.
  *
- * `evaluate_to_constant()` answers `null` for an expression that is not a
- * constant, and `null` is `0` to arithmetic — so a blank or symbolic endpoint
- * made `dx`/`dy` below zero and took the *identical endpoints* branch instead
- * of the no-slope one. `NaN` is what the legacy engine returned here, and what
- * every caller of this file's helpers is written against.
+ * `NaN` is what every caller of this file's helpers is written against, and
+ * what `evaluate_to_constant()` answers for an expression that is not a
+ * constant. `toNumberOrNaN` is still needed for a *complex* value. When the
+ * engine answered `null` here instead, `null` was `0` to arithmetic, so a blank
+ * or symbolic endpoint made `dx`/`dy` zero and took the *identical endpoints*
+ * branch rather than the no-slope one.
  */
 function getNumericValue(mathOrNumber) {
     return toNumberOrNaN(

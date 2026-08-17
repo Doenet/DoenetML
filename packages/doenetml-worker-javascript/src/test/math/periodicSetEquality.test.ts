@@ -8,10 +8,11 @@ import periodicSetEquality from "../../utils/periodicSetEquality";
  * credit the student gets.
  *
  * The offsets a student types are `<math>`es, so any of them can be an
- * expression with no value. `evaluate_to_constant` answers `null` for those,
- * and `null` is `0` to the modular arithmetic below — so an answer made
- * entirely of free variables looked like it started on the set and collected
- * partial credit. The legacy engine answered `NaN`, which fails that test.
+ * expression with no value. This is a regression test for what happened when
+ * the engine answered `null` for those: `null` is `0` to the modular
+ * arithmetic below, so an answer made entirely of free variables looked like it
+ * started on the set and collected partial credit. `NaN` — what both the legacy
+ * engine and the current one answer — fails that test.
  */
 describe("periodicSetEquality @group3", () => {
     /** `…, -3, 0, 3, 6, …` */

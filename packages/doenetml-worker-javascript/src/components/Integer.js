@@ -1,7 +1,8 @@
 import NumberComponent from "./Number";
 import me from "math-expressions";
 import { renameStateVariable } from "../utils/stateVariables";
-import { textToAst } from "../utils/math";
+import { evaluateToNumber, textToAst } from "../utils/math";
+import { toNumberOrNaN } from "@doenet/utils";
 
 export default class Integer extends NumberComponent {
     static componentType = "integer";
@@ -48,12 +49,12 @@ export default class Integer extends NumberComponent {
                 let number = Number(value);
                 if (Number.isNaN(number)) {
                     try {
-                        number = me
-                            .fromAst(textToAst.convert(value))
-                            .evaluate_to_constant();
-                        if (number === null) {
-                            number = NaN;
-                        }
+                        // `evaluateToNumber`, not the bare call: an integer
+                        // cannot hold a complex value, and `Math.round` of one
+                        // is `NaN` only by accident.
+                        number = evaluateToNumber(
+                            me.fromAst(textToAst.convert(value)),
+                        );
                     } catch (e) {
                         number = NaN;
                     }
@@ -70,8 +71,11 @@ export default class Integer extends NumberComponent {
             inverseDefinition({ desiredStateVariableValues }) {
                 let desiredValue = desiredStateVariableValues.value;
                 if (desiredValue instanceof me.class) {
-                    // `null` — an unevaluable expression — must not round to 0.
-                    desiredValue = desiredValue.evaluate_to_constant() ?? NaN;
+                    // An expression with no numeric value, or a complex one,
+                    // must not round to a number.
+                    desiredValue = toNumberOrNaN(
+                        desiredValue.evaluate_to_constant(),
+                    );
                 } else {
                     desiredValue = Number(desiredValue);
                 }

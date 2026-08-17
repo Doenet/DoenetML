@@ -1,11 +1,11 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 // Every vertex read below goes through `evaluateToNumber`, never a bare
-// `evaluate_to_constant()`. The engine answers `null` — not `NaN` — for a
-// vertex that is still symbolic, and `null` is `0` to every arithmetic
-// operator, so `Math.abs(v0 - v2)` on `<rectangle vertices="(a,b) (c,d)" />`
-// reported a width of exactly 0 rather than NaN. The legacy engine returned
-// NaN there, so this is a boundary the switch moved.
+// `evaluate_to_constant()` — it can answer a math.js `Complex`, which
+// `Math.abs(v0 - v2)` would turn into `NaN` only by accident. The engine
+// briefly answered `null` for a still-symbolic vertex too, and `null` is `0` to
+// every arithmetic operator, so `<rectangle vertices="(a,b) (c,d)" />` reported
+// a width of exactly 0; that is `NaN` at the source now.
 import { evaluateToNumber } from "../utils/math";
 import Polygon from "./Polygon";
 import me from "math-expressions";

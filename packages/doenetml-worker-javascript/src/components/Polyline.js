@@ -1288,8 +1288,12 @@ export default class Polyline extends GraphicalComponent {
                             referenceCentroid = numericalCentroidUnconstrained;
                             referenceVertices =
                                 globalDependencyValues.unconstrainedVertices.map(
-                                    (v) =>
-                                        v.map((c) => c.evaluate_to_constant()),
+                                    // `evaluateToNumber`: these are rotated and
+                                    // dilated about a finite point below, so a
+                                    // vertex with no numeric value must stay
+                                    // undefined rather than be swung about the
+                                    // origin and written back as a number.
+                                    (v) => v.map(evaluateToNumber),
                                 );
                         }
 

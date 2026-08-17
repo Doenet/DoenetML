@@ -608,11 +608,11 @@ export function mathStateVariableFromNumberStateVariable({
 
             let desiredNumber;
             if (desiredMath instanceof me.class) {
-                // `null` is "cannot be evaluated" — a free variable, a blank.
-                // The number side of this bridge spells that `NaN`; leaving it
-                // as `null` makes every `Number.isNaN` guard downstream miss it
-                // and the value settle at `0`. A complex result passes through:
-                // components that accept one test `re`/`im` themselves.
+                // The number side of this bridge spells "no value" `NaN`,
+                // which is what `evaluate_to_constant()` answers. A complex
+                // result passes through deliberately: components that accept
+                // one test `re`/`im` themselves, which is why this is not
+                // `toNumberOrNaN`. The `?? NaN` is belt and braces.
                 desiredNumber = desiredMath.evaluate_to_constant() ?? NaN;
             } else if (typeof desiredMath === "number") {
                 desiredNumber = desiredMath;

@@ -7,10 +7,11 @@ import { serializedComponentsReviver, toNumberOrNaN } from "@doenet/utils";
  * create a math expression from it,
  * and evaluate it as a constant, returning the resulting number.
  *
- * `toNumberOrNaN` rather than `?? NaN`: `evaluate_to_constant()` answers `null`
- * for an expression it cannot evaluate *and* a math.js `Complex` for one whose
- * value is not real, so `?? NaN` caught only the first of the two and let a
- * `{re, im}` object out of a function that promises a number.
+ * `toNumberOrNaN` rather than `?? NaN`: `evaluate_to_constant()` answers a
+ * math.js `Complex` for an expression whose value is not real, and `?? NaN`
+ * would let a `{re, im}` object out of a function that promises a number. (It
+ * also used to answer `null` for an expression it could not evaluate, which
+ * `?? NaN` did catch; that one is `NaN` at the source now.)
  *
  * @param serializedAst
  * @returns number

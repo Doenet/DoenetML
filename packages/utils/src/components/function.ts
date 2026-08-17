@@ -863,17 +863,19 @@ function evaluateChildToNumber(child: any, argsForInputs: any): number {
     const input = child.inputMathFs.map((f: any) =>
         asExpression(f(argsForInputs)),
     );
-    // A child that lands outside its own domain evaluates to a blank, which
-    // `evaluate_to_constant()` declines with `null` — note that a child which
-    // is genuinely NaN comes back as NaN, so `null` really does mean "no value".
+    // A child that lands outside its own domain evaluates to a blank, and
+    // `evaluate_to_constant()` answers `NaN` for it — the same `NaN` a child
+    // that is genuinely NaN gives, which is right: a numerical function has one
+    // way to say "no value here".
     //
-    // Left as `null`, it reaches the compiled formula, where mathjs rejects it
-    // for every operator — caught upstream, so the answer is NaN by way of an
-    // exception. The exception is the formula that is *just* this code, as
-    // `<function>$$f(x)</function>` is: nothing operates on the value, so the
-    // `null` is handed back as the function's number, and downstream JS reads it
-    // as zero. NaN is the answer in both cases, and it costs no throw.
-    return childF(input).evaluate_to_constant() ?? NaN;
+    // `toNumberOrNaN` rather than the bare call because the result can also be
+    // a math.js `Complex`, and this returns the function's number. It used to
+    // be `?? NaN` against a `null` sentinel, which reached the compiled formula
+    // and was rejected by mathjs for every operator — caught upstream, so the
+    // answer was NaN by way of an exception, except for the formula that is
+    // *just* this code (`<function>$$f(x)</function>`), where nothing operated
+    // on the value and downstream JS read the `null` as zero.
+    return toNumberOrNaN(childF(input).evaluate_to_constant());
 }
 
 export function returnSymbolicFunctionForEvaluate({

@@ -147,15 +147,15 @@ export default class PiecewiseFunction extends Function {
                         let intervalMinIsClosed = fDomain.tree[2][1];
                         let intervalMaxIsClosed = fDomain.tree[2][2];
 
-                        // `evaluate_to_constant` returns `null`, not `NaN`, for
-                        // an endpoint it cannot evaluate — a free variable in
-                        // `[a,a]` or `(s,t)` — and `Number.isNaN(null)` is
-                        // `false`, so testing for NaN alone read those pieces
-                        // as *numeric* with an unusable domain and dropped them
-                        // from the rendered `\begin{cases}` entirely, which is
-                        // why this asks `isNumericConstant` rather than
-                        // `Number.isNaN`. ±Infinity is a legitimate numeric
-                        // endpoint and passes.
+                        // `isNumericConstant` rather than `!Number.isNaN`,
+                        // because an endpoint can also be complex and that is
+                        // not a numeric domain either. It also used to be the
+                        // only thing catching the `null` the engine answered
+                        // for a free variable in `[a,a]` or `(s,t)`: testing
+                        // NaN alone read those pieces as *numeric* with an
+                        // unusable domain and dropped them from the rendered
+                        // `\begin{cases}` entirely. ±Infinity is a legitimate
+                        // numeric endpoint and passes.
                         childrenWithNonNumericDomains.push(
                             !isNumericConstant(intervalMin) ||
                                 !isNumericConstant(intervalMax),

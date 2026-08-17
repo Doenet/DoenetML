@@ -765,11 +765,11 @@ export default class MathComponent extends InlineComponent {
             definition: function ({ dependencyValues }) {
                 // `plainComplex` because a math.js `Complex` does not survive
                 // the structured clone to the main thread with its prototype,
-                // and `?? NaN` because `evaluate_to_constant()` reports an
-                // expression it cannot evaluate — `x+y` — as `null`, which
-                // `plainComplex` passes straight through and which coerces to
-                // `0`. This variable's own description promises NaN for
-                // anything that is not a number.
+                // and `?? NaN` as belt and braces: `plainComplex` passes
+                // anything that is not a `Complex` straight through, and this
+                // variable's own description promises NaN for anything that is
+                // not a number. `evaluate_to_constant()` reports `x+y` as
+                // `NaN` itself, so the `??` no longer has a case it must catch.
                 let number =
                     plainComplex(
                         dependencyValues.value.evaluate_to_constant(),

@@ -5599,14 +5599,13 @@ describe("LineSegment info diagnostics @group5", async () => {
      * A segment with an endpoint that is not a constant has no slope, and its
      * public `slope` must say so.
      *
-     * `evaluate_to_constant` answers `null` for a blank or symbolic
-     * coordinate, and `null` is `0` to the subtraction the slope is built
-     * from, so `endpoints="($blank,1) (3,4)"` reported the slope of
-     * `(0,1)–(3,4)` — the number `1` — rather than `NaN`. The legacy engine
-     * returned `NaN` here, which is why this read as correct until the engine
-     * switch. `slope` is public (`createComponentOfType: "number"`) and
-     * reaches `<answer>` through `<when>`, so the wrong number is a wrong
-     * grade.
+     * Regression test for the `null` sentinel: while `evaluate_to_constant`
+     * answered `null` for a blank or symbolic coordinate, `null` was `0` to the
+     * subtraction the slope is built from, so `endpoints="($blank,1) (3,4)"`
+     * reported the slope of `(0,1)–(3,4)` — the number `1` — rather than `NaN`.
+     * The legacy engine returned `NaN` here and the current one does again.
+     * `slope` is public (`createComponentOfType: "number"`) and reaches
+     * `<answer>` through `<when>`, so the wrong number was a wrong grade.
      *
      * The numeric case is checked first: it is the control that keeps a test
      * which always answered `NaN` from passing.

@@ -166,12 +166,12 @@ function clamp({ value, lowerValue, upperValue }) {
     if (numericValue instanceof me.class) {
         numericValue = numericValue.evaluate_to_constant();
     }
-    // `evaluate_to_constant()` returns `null` for anything it cannot evaluate —
-    // a free variable, a blank. `null` coerces to `0`, so without this the
-    // clamp runs on zero: `Math.max(lower, Math.min(upper, null))` is the lower
-    // bound when that is positive and **0** when it is negative, either way a
-    // real-looking answer for an input that has none. There is nothing to
-    // clamp, so the result is not a number.
+    // There is nothing to clamp when the input has no numeric value — a free
+    // variable, a blank, a complex value — so the result is not a number. This
+    // is why `null` was the wrong marker for the engine to use: with it,
+    // `Math.max(lower, Math.min(upper, null))` was the lower bound when that
+    // was positive and **0** when it was negative, either way a real-looking
+    // answer for an input that has none.
     //
     // `±Infinity` is *not* in that class and must reach the clamp: bounding an
     // unbounded value at the bound is exactly what a clamp is for, which is why

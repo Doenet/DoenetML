@@ -40,13 +40,18 @@ import {
  * a wrong number rather than a refusal, and it is the known cost of doing this
  * with `substitute` instead of matching the marker where it sits.
  *
- * A free factor makes `evaluate_to_constant()` answer `null` — measured: `2$`,
- * `-5$` and a bare `$` all give `null`, none of them `NaN`. So it is the
- * callers' `number === null` test that actually reaches this function; the
- * `Number.isNaN` half of that test is defensive, and no marker spelling has
- * been found that takes it. Returns `null` when the expression has no numeric
- * value for another reason (a free variable), leaving the caller's own handling
- * in charge.
+ * Returns `NaN` when the expression still has no numeric value after the
+ * marker is dropped — a free variable, say — which is what
+ * `evaluate_to_constant()` answers for it, so a caller can test the result the
+ * one way.
+ *
+ * A note for the record, because an earlier review pass wrote the opposite here
+ * and it was never true: `2$`, `-5$` and a bare `$` all answer `NaN`, not
+ * `null`, and did so even while `evaluate_to_constant` had a `null` sentinel —
+ * `$` is one of the unit names it excludes from "free variables", so those fell
+ * through to its `NaN` arm. The claim that the callers' `number === null` test
+ * was the half that reached this function was therefore backwards; it was
+ * always `Number.isNaN`. Measured both then and now.
  */
 function valueIgnoringUnits(expr) {
     try {
@@ -55,7 +60,7 @@ function valueIgnoringUnits(expr) {
             .substitute({ $: 1 })
             .evaluate_to_constant();
     } catch (e) {
-        return null;
+        return NaN;
     }
 }
 
@@ -576,9 +581,8 @@ export default class NumberComponent extends InlineComponent {
                                     ),
                                 );
                                 number = parsed.evaluate_to_constant();
-                                if (number === null || Number.isNaN(number)) {
-                                    number =
-                                        valueIgnoringUnits(parsed) ?? number;
+                                if (Number.isNaN(number)) {
+                                    number = valueIgnoringUnits(parsed);
                                 }
 
                                 if (typeof number === "boolean") {
@@ -587,14 +591,11 @@ export default class NumberComponent extends InlineComponent {
                                     } else {
                                         number = dependencyValues.valueOnNaN;
                                     }
-                                    // `null` is "could not evaluate" — a blank
-                                    // `_`, or a free variable. `Number.isNaN(null)`
-                                    // is `false`, so without this it flows on as
-                                    // `null` and coerces to `0` downstream.
-                                } else if (
-                                    number === null ||
-                                    Number.isNaN(number)
-                                ) {
+                                    // `NaN` is "no numeric value" — a blank
+                                    // `_`, a free variable, or an indeterminate
+                                    // form. `valueOnNaN` is the author-facing
+                                    // knob for what to show instead.
+                                } else if (Number.isNaN(number)) {
                                     if (dependencyValues.convertBoolean) {
                                         let parsedExpression =
                                             buildParsedExpression({
@@ -713,8 +714,8 @@ export default class NumberComponent extends InlineComponent {
                                 ),
                             );
                             number = parsed.evaluate_to_constant();
-                            if (number === null || Number.isNaN(number)) {
-                                number = valueIgnoringUnits(parsed) ?? number;
+                            if (Number.isNaN(number)) {
+                                number = valueIgnoringUnits(parsed);
                             }
                         } catch (e) {
                             number = dependencyValues.valueOnNaN;
@@ -780,11 +781,11 @@ export default class NumberComponent extends InlineComponent {
                 let number = Number(value);
                 if (Number.isNaN(number)) {
                     try {
-                        // `?? NaN` because `evaluate_to_constant()` reports
-                        // "could not evaluate" — a free variable, a blank — as
-                        // `null`, which `plainComplex` passes straight through.
-                        // `null` coerces to `0`, so an unevaluable string set
-                        // through this path would read as the number zero.
+                        // `?? NaN` is belt and braces: `plainComplex` passes
+                        // anything that is not a `Complex` straight through, and
+                        // `evaluate_to_constant()` used to hand it a `null` for
+                        // a free variable or a blank, which coerces to `0`. It
+                        // answers `NaN` for those now.
                         number =
                             plainComplex(
                                 me

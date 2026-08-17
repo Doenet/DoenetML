@@ -1,12 +1,12 @@
 import { returnGraphicalStyleDescriptionDefinitions } from "@doenet/utils";
 import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 // Vertices and centers are read through `evaluateToNumber`, never a bare
-// `evaluate_to_constant()`. The engine answers `null` — not `NaN` — for a
-// coordinate that is still symbolic, and `null` is `0` to every arithmetic
-// operator here, so a polygon built from symbolic vertices silently came out
-// centered on the origin instead of reporting NaN. The legacy engine returned
-// NaN, so this is a boundary the switch moved. The two `?.` reads below are the
-// exception: `Number.isFinite` already rejects `null` there.
+// `evaluate_to_constant()` — it can answer a math.js `Complex`, which the
+// averaging below would carry rather than reject. The engine briefly answered
+// `null` for a still-symbolic coordinate too, and `null` is `0` to every
+// arithmetic operator here, so a polygon on symbolic vertices came out centered
+// on the origin; that is `NaN` at the source now. The two `?.` reads below are
+// the exception: `Number.isFinite` rejects a non-number on its own.
 import { evaluateToNumber } from "../utils/math";
 import Polygon from "./Polygon";
 import me from "math-expressions";

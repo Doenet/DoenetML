@@ -1272,8 +1272,8 @@ export default class Point extends GraphicalComponent {
                 for (let arrayKey of arrayKeys) {
                     let x = dependencyValuesByKey[arrayKey].x;
                     if (x) {
-                        // `Number(null)` is `0`, so an unevaluable
-                        // coordinate has to be mapped to `NaN` explicitly.
+                        // A coordinate with no numeric value, or a complex
+                        // one, has to reach the renderer as `NaN`.
                         numericalXs[arrayKey] = evaluateToNumber(
                             dependencyValuesByKey[arrayKey].x,
                         );

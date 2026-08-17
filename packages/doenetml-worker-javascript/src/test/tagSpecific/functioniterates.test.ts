@@ -675,4 +675,37 @@ describe("FunctionIterates tag tests @group2", async () => {
             `(40,36,0)`,
         );
     });
+    /**
+     * A multi-dimensional initial value with a component that has no numeric
+     * value must produce blank iterates, exactly as the one-dimensional form
+     * already did. Those two branches disagreed: the 1-D one asked
+     * `isNumericConstant` and filled `＿`, and the multi-D one read
+     * `evaluate_to_constant()` raw. While that answered `null` for `(a,b)`,
+     * `null` was `0` to the numerical function, so this reported the orbit of
+     * the **origin** as the student's answer, with no sign that anything was
+     * wrong. `iterates` is public and feeds `<answer>`.
+     */
+    it("a symbolic initial value gives blank iterates in every dimension", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f" simplify variables="x y">⟨2x, 3y⟩</function>
+  <functionIterates function="$f" initialValue="(a,b)" numIterates="2" name="fis" forceNumeric />
+  <mathList extend="$fis.iterates" name="iterates" />
+  <function name="g" variables="x">2x</function>
+  <functionIterates function="$g" initialValue="a" numIterates="2" name="gis" forceNumeric />
+  <mathList extend="$gis.iterates" name="giterates" />
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["iterates", "giterates"]) {
+            const names = stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].replacements!.map((x) => x.componentIdx);
+            expect(names.length).eq(2);
+            for (const n of names) {
+                expect(stateVariables[n].stateValues.value.tree).eq("\uff3f");
+            }
+        }
+    });
 });
