@@ -7583,9 +7583,9 @@ describe("Polygon tag tests @group2", async () => {
     /**
      * A `<constrainTo>` a polygon hands `nearestPoint` the point's coordinates
      * as math expressions, so a point with a blank or symbolic coordinate
-     * reaches it un-evaluated. The new engine answers `null` there where the
-     * old one answered `NaN`, and `null` is `0` to the distance arithmetic —
-     * so instead of every candidate distance being `NaN` (and no vertex ever
+     * reaches it un-evaluated. The engine briefly answered `null` there where
+     * legacy answered `NaN`, and `null` is `0` to the distance arithmetic — so
+     * instead of every candidate distance being `NaN` (and no vertex ever
      * winning), the point was measured as though its unknown coordinate were
      * `0` and snapped to the nearest edge. A student who had entered nothing
      * got a point sitting exactly on the polygon.
@@ -7635,5 +7635,77 @@ describe("Polygon tag tests @group2", async () => {
             core,
         });
         expect(await coordsOf("blank")).eqls([2, 4]);
+    });
+
+    /**
+     * Rotating a `rigid` polygon reads its unconstrained vertices as numbers so
+     * it can swing them about a rotation point, and then writes the rotated
+     * numbers back. A vertex with no numeric value has no rotated position, so
+     * the whole rotation must come out undefined.
+     *
+     * While `evaluate_to_constant()` answered `null` rather than `NaN`, it did
+     * not: `null` was `0` to the trigonometry, so the symbolic vertex was
+     * rotated *as if it sat at the origin* and a concrete number was written
+     * back over the symbol. Measured against the previous engine pin, dragging
+     * this polygon replaced `(a,b)` with `(0.156, -0.071)` and pulled the third
+     * vertex to `(2.84, 4.15)` — plausible coordinates that no part of the
+     * document justifies, and the symbol destroyed with no warning.
+     *
+     * The all-numeric polygon is the control: it must still rotate.
+     */
+    it("rotating a rigid polygon with a non-numeric vertex does not invent coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <polygon name="pg" vertices="(1,2) (a,b) (3,4)" rigid rotateAround="vertex" rotationVertex="1" />
+      <polygon name="pgNumeric" vertices="(1,2) (5,2) (3,4)" rigid rotateAround="vertex" rotationVertex="1" />
+    </graph>
+    `,
+        });
+
+        async function verticesOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.vertices.map((v: any[]) => v.map((x) => x.tree));
+        }
+
+        expect(await verticesOf("pg")).eqls([
+            [1, 2],
+            ["a", "b"],
+            [3, 4],
+        ]);
+
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("pgNumeric"),
+            pointCoords: { 2: [7, 9] },
+            core,
+        });
+        await movePolygon({
+            componentIdx: await resolvePathToNodeIdx("pg"),
+            pointCoords: { 2: [7, 9] },
+            core,
+        });
+
+        // The control: an all-numeric rigid polygon really does rotate about
+        // vertex 1, which stays put.
+        const numericVertices = await verticesOf("pgNumeric");
+        expect(numericVertices[0]).eqls([1, 2]);
+        expect(
+            numericVertices.flat().every((x: number) => Number.isFinite(x)),
+        ).eq(true);
+        expect(numericVertices[2]).not.eqls([3, 4]);
+
+        // The symbolic one. The vertex that had no numeric value is the
+        // defect's target, so it is checked first: it must not have become a
+        // number. A rigid body with one undefined vertex has no defined
+        // rotation at all, so the other two are `NaN` with it.
+        const symbolicVertices = await verticesOf("pg");
+        expect(symbolicVertices[1]).eqls([NaN, NaN]);
+        expect(symbolicVertices[0]).eqls([NaN, NaN]);
+        expect(symbolicVertices[2]).eqls([NaN, NaN]);
     });
 });

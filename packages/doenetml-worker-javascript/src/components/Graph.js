@@ -66,8 +66,8 @@ function gridSpacingFromGroup(group, dependencyValues) {
         spacing *= factor;
     }
 
-    // Rejects zero and negatives, and the null or NaN that an expression
-    // without a constant value evaluates to.
+    // Rejects zero and negatives, and the `NaN` that an expression without a
+    // constant value evaluates to (`NaN > 0` is `false`).
     return spacing > 0 ? spacing : null;
 }
 

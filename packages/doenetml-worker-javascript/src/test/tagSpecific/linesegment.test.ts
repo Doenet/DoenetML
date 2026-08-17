@@ -19,11 +19,12 @@ vi.mock("hyperformula");
 /**
  * Whether a coordinate has no value — the segment is underdetermined there.
  *
- * Not `Number.isNaN(v.evaluate_to_constant())`: the engine reports "this has no
- * numeric value" as `null`, where the JS library said `NaN`, and `null` is not
- * NaN — it is `0` to every JavaScript operator that touches it. The components
- * spell an undefined coordinate `＿` (the blank), so that is what this checks,
- * along with the numeric projection being non-finite either way.
+ * Not `Number.isNaN(v.evaluate_to_constant())`: the engine briefly reported
+ * "this has no numeric value" as `null`, where the JS library said `NaN`, and
+ * `null` is not NaN — it is `0` to every JavaScript operator that touches it.
+ * The components spell an undefined coordinate `＿` (the blank), so that is what
+ * this checks, along with the numeric projection being non-finite either way —
+ * which is the part that stays true whichever marker the engine uses.
  */
 function coordIsUndefined(v: Expression): boolean {
     const numeric = v.evaluate_to_constant();

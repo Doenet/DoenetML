@@ -236,13 +236,22 @@ export default class Polygon extends Polyline {
                             let x2 = variables.x2?.evaluate_to_constant();
 
                             // A point with a non-numeric coordinate has no
-                            // nearest point; leave it where it is. The engine
-                            // returns `null` here where the old one returned
-                            // `NaN`, and `null` is `0` to the distance
-                            // arithmetic below — so without this the point
-                            // silently snaps to whatever is nearest the origin
-                            // instead of staying put. Same guard as
-                            // `<circle>`, `<line>`, `<parabola>` and `<curve>`.
+                            // nearest point; leave it where it is. `NaN` fails
+                            // this test, which is the whole job.
+                            //
+                            // The guard was added when the engine answered
+                            // `null` rather than `NaN` here, and `null` is `0`
+                            // to the distance arithmetic below — so the point
+                            // silently snapped to whatever is nearest the
+                            // origin instead of staying put. The engine
+                            // answers `NaN` now (math-expressions#84), so the
+                            // guard is no longer the only thing standing
+                            // between a blank coordinate and a wrong snap; it
+                            // stays because `evaluate_to_constant` can also
+                            // answer a `Complex`, which orders against numbers
+                            // in ways JavaScript will happily invent. Same
+                            // guard as `<circle>`, `<line>`, `<parabola>` and
+                            // `<curve>`.
                             if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
                                 return {};
                             }

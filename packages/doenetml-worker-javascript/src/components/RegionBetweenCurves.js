@@ -157,10 +157,11 @@ export default class RegionBetweenCurves extends GraphicalComponent {
 
                     // A point with a non-numeric coordinate has no nearest
                     // point; leave it where it is. See the note on
-                    // `<polygon>`'s `nearestPoint`: the engine returns `null`
-                    // where the old one returned `NaN`, and the clamping below
-                    // reads `null` as `0`, silently snapping the point into
-                    // the region instead of leaving it alone.
+                    // `<polygon>`'s `nearestPoint`: the clamping below read
+                    // the engine's old `null` as `0` and silently snapped the
+                    // point into the region instead of leaving it alone. The
+                    // engine answers `NaN` now; the guard stays for the
+                    // `Complex` arm.
                     if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
                         return {};
                     }

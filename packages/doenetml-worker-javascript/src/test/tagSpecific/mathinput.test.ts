@@ -12027,10 +12027,10 @@ describe("MathInput tag tests @group2", async () => {
             }
 
             if (numDimensions === 1) {
-                // `<numberList>` reports "no number here" as `NaN`; the engine
-                // reports it as `null` (an unfilled `＿` has no value, as
-                // distinct from having the value NaN). Both are right for their
-                // own contract, so the expectation converts.
+                // `<numberList>` reports "no number here" as `NaN`, and so
+                // does the engine — but `evaluate_to_constant` can also answer
+                // a `Complex`, which a `<numberList>` cannot hold, so the
+                // expectation makes the same conversion the component does.
                 let evaluated = math.evaluate_to_constant();
                 let num = typeof evaluated === "number" ? evaluated : NaN;
 
@@ -12043,8 +12043,9 @@ describe("MathInput tag tests @group2", async () => {
                         .numbers,
                 ).eqls([num]);
             } else {
-                // As above: the engine's "no value" is `null`, the
-                // `<numberList>`'s is `NaN`.
+                // As above: `evaluate_to_constant` can answer a `Complex`,
+                // and once answered `null`; a `<numberList>` holds only
+                // numbers, so anything else has to become `NaN`.
                 let nums = math.tree
                     .slice(1)
                     .map((v: Tree) => me.fromAst(v).evaluate_to_constant())

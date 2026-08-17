@@ -6375,12 +6375,12 @@ $c7.radius
     });
 
     it("a symbolic radius leaves numericalRadius NaN, not null", async () => {
-        // `numericalRadius` is `forRenderer`, and the engine reports an
-        // expression it cannot evaluate as `null` where the JavaScript library
-        // reported `NaN`. Both keep the circle off the board — the renderer
-        // gates on `numericalRadius > 0`, which neither passes — but `null` is
-        // `0` to the arithmetic the renderer does with it afterwards, and it is
-        // not the `number` the renderer declares.
+        // `numericalRadius` is `forRenderer`. The engine briefly reported an
+        // expression it cannot evaluate as `null`, where legacy — and the
+        // engine again now — reported `NaN`. Both keep the circle off the
+        // board (the renderer gates on `numericalRadius > 0`, which neither
+        // passes), but `null` is `0` to the arithmetic the renderer does with
+        // it afterwards, and it is not the `number` the renderer declares.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph><circle name="c" center="(0,0)" /></graph>

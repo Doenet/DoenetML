@@ -960,11 +960,12 @@ export function returnNumericFunctionForEvaluate({
             return me.fromAst("\uFF3F");
         }
 
-        // An input with no numeric value is `NaN` here, never `null`: the
-        // engine reports "no value" as `null`, and `null` is `0` to every
-        // arithmetic operator downstream — so evaluating `$$f(x)` with `x`
-        // still symbolic silently returned *f(0)* and passed it off as the
-        // value of the call.
+        // An input with no numeric value has to be `NaN` here. While the
+        // engine reported "no value" as `null`, and `null` is `0` to every
+        // arithmetic operator downstream, evaluating `$$f(x)` with `x` still
+        // symbolic silently returned *f(0)* and passed it off as the value of
+        // the call. The engine answers `NaN` now; `toNumberOrNaN` still has
+        // the `Complex` arm to fold.
         let numericInput = input.map((x: any) =>
             toNumberOrNaN(x.evaluate_to_constant()),
         );

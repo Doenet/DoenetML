@@ -625,9 +625,11 @@ function convertValueToType(value, type) {
     if (type === "number") {
         // Both branches have to spell "not a number" the same way, and for a
         // `number`-typed value that spelling is `NaN`. The sibling
-        // `Number(value)` already gives NaN for anything unconvertible, while
-        // the engine reports an expression it cannot evaluate as `null` —
-        // which is `0` to arithmetic and passes `Number.isNaN`.
+        // `Number(value)` already gives `NaN` for anything unconvertible. The
+        // engine used to report an expression it cannot evaluate as `null`,
+        // which is `0` to arithmetic and which `Number.isNaN` answers `false`
+        // for; it answers `NaN` now, and `evaluateToNumber` still maps the
+        // `Complex` arm onto the same spelling.
         if (value instanceof me.class) {
             return evaluateToNumber(value);
         }

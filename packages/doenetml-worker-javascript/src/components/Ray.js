@@ -1455,10 +1455,11 @@ export default class Ray extends GraphicalComponent {
 
                 let endpoint = dependencyValues.endpoint;
                 // `evaluateToNumber`, not a bare `evaluate_to_constant()`:
-                // this array is `forRenderer`, and the engine reports a
-                // still-symbolic coordinate as `null`, which is `0` to the
-                // arithmetic on the other side — an undefined endpoint would be
-                // drawn at the origin rather than not drawn.
+                // this array is `forRenderer`, and neither a `Complex` nor the
+                // `null` the engine used to report for a still-symbolic
+                // coordinate survives the crossing. `Number(null)` is `0`, so
+                // an undefined endpoint was drawn at the origin rather than not
+                // drawn.
                 let numericalEndpoint = [];
                 for (let ind = 0; ind < dependencyValues.numDimensions; ind++) {
                     numericalEndpoint.push(evaluateToNumber(endpoint[ind]));

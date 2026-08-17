@@ -2,11 +2,13 @@ import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 // Control components are read through `evaluateToNumber`. Each of these
-// readings is handed straight to `me.fromAst`, and the engine answers `null` —
-// not `NaN` — for a control vector that is still symbolic. `me.fromAst(null)`
-// throws ("unexpected value null"), which out of a state-variable definition
-// takes the update with it, and `-null` is `-0`. The legacy engine returned
-// NaN, which `fromAst` accepts, so this is a boundary the switch moved.
+// readings is handed straight to `me.fromAst`, and the engine used to answer
+// `null` — not `NaN` — for a control vector that is still symbolic.
+// `me.fromAst(null)` throws ("unexpected value null"), which out of a
+// state-variable definition takes the update with it, and `-null` is `-0`.
+// Both the legacy engine and this one answer `NaN`, which `fromAst` accepts;
+// the reading stays guarded because `evaluate_to_constant` can also answer a
+// `Complex`, which `fromAst` does not accept either.
 import { evaluateToNumber } from "../utils/math";
 
 export default class BezierControls extends InlineComponent {

@@ -542,12 +542,13 @@ export default class Curve extends GraphicalComponent {
                         parMax *= 2;
                     }
                 } else if (dependencyValues.parMaxAttr !== null) {
-                    // `evaluate_to_constant()` reports a non-numeric bound
-                    // (`parMax="a"`) as `null`, and `null` coerces to `0` in
-                    // every arithmetic consumer of `parMax` — including
-                    // `getNearestPointFunctionCurve`, which would anchor its
-                    // search at the origin rather than decline. `NaN` is the
-                    // one spelling of "not a number" those consumers test for.
+                    // `evaluate_to_constant()` used to report a non-numeric
+                    // bound (`parMax="a"`) as `null`, and `null` coerces to
+                    // `0` in every arithmetic consumer of `parMax` — including
+                    // `getNearestPointFunctionCurve`, which anchored its search
+                    // at the origin rather than declining. `NaN` is the one
+                    // spelling of "not a number" those consumers test for, and
+                    // is what the engine answers now.
                     parMax = evaluateToNumber(
                         dependencyValues.parMaxAttr.stateValues.value,
                     );

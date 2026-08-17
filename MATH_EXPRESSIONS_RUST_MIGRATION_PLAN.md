@@ -288,10 +288,11 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   the branch, and `initMathWasmSync` runs in a real browser Web Worker on every Cypress and
 >   PreTeXt-export run. That is weaker evidence than a divergence ledger, and the review measured
 >   how much weaker — see the "Known risks" section of
->   [MATH_EXPRESSIONS_ENGINE_NOTES.md](MATH_EXPRESSIONS_ENGINE_NOTES.md), which lists eleven
->   wrong-answer-on-grading defects no pre-existing test named. All eleven are fixed; three of them
->   were invisible because a *different* numeric path answered correctly, and the last three were
->   the same `null` coercing to `0` where the legacy engine returned `NaN`.
+>   [MATH_EXPRESSIONS_ENGINE_NOTES.md](MATH_EXPRESSIONS_ENGINE_NOTES.md), which lists eighteen
+>   wrong-answer-on-grading defects no pre-existing test named. All eighteen are fixed; three of
+>   them were invisible because a *different* numeric path answered correctly, and ten were the
+>   same `null` coercing to `0` where the legacy engine returned `NaN` — a shape now fixed at its
+>   source, by making the engine answer `NaN` too, rather than one call site at a time.
 >
 >   The failure inventory this document used to carry has been removed rather than restated,
 >   because its numbers were measured against an older submodule pin and several of the divergences

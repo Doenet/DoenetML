@@ -5298,9 +5298,10 @@ describe("Polyline tag tests @group1", async () => {
     /**
      * The same defect as `<polygon>`'s: `<constrainTo>` hands `nearestPoint`
      * the point's coordinates as math expressions, and a blank or symbolic one
-     * evaluates to `null` under the new engine where it was `NaN` before.
-     * `null` is `0` to the distance arithmetic, so the point was measured as
-     * though its unknown coordinate were `0` and snapped onto the polyline.
+     * evaluated to `null` under the engine's original sentinel where legacy
+     * answered `NaN`. `null` is `0` to the distance arithmetic, so the point
+     * was measured as though its unknown coordinate were `0` and snapped onto
+     * the polyline. The engine answers `NaN` again now.
      */
     it("constraining to a polyline leaves a point with a non-numeric coordinate alone", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({

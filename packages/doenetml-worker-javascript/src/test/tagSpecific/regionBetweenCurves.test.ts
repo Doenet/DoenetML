@@ -311,10 +311,10 @@ describe("RegionBetweenCurves tag tests @group2", async () => {
     /**
      * Both region components clamp the point's coordinates into the region
      * (`Math.max(minx, Math.min(maxx, x1))`), and clamping reads `null` as
-     * `0`. Under the new engine a blank or symbolic coordinate evaluates to
-     * `null` rather than `NaN`, so a point that should have been left alone
-     * was silently pulled inside the region — the same defect as
-     * `<polygon>`'s `nearestPoint`.
+     * `0`. While the engine evaluated a blank or symbolic coordinate to `null`
+     * rather than `NaN`, a point that should have been left alone was silently
+     * pulled inside the region — the same defect as `<polygon>`'s
+     * `nearestPoint`.
      */
     it("constraining to a region leaves a point with a non-numeric coordinate alone", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({

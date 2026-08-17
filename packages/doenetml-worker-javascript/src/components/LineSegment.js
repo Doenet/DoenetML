@@ -1786,12 +1786,13 @@ export default class LineSegment extends GraphicalComponent {
                         ind < globalDependencyValues.numDimensions;
                         ind++
                     ) {
-                        // `evaluate_to_constant` reports "no numeric value"
-                        // as `null`, and this array goes straight to the
-                        // renderer, where `Number(null)` is `0` — an undefined
-                        // endpoint would be drawn at the origin rather than not
+                        // This array goes straight to the renderer, where
+                        // `Number(null)` is `0` — so while `evaluate_to_constant`
+                        // reported "no numeric value" as `null`, an undefined
+                        // endpoint was drawn at the origin rather than not
                         // drawn. Map it to `NaN` explicitly, as `Point.js`'s
-                        // `numericalXs` does.
+                        // `numericalXs` does; that also folds the `Complex`
+                        // arm, which the renderer cannot hold either.
                         numericalP.push(evaluateToNumber(endpoint[ind]));
                     }
                     numericalEndpoints[arrayKey] = numericalP;

@@ -312,12 +312,14 @@ export default class DirectionComponent extends BaseComponent {
                     // try to preserve the magnitude of unnormalizedDirection
                     let unnormalizedMagnitude = 0;
                     for (let dim = 0; dim < arraySize[0]; dim++) {
-                        // `evaluate_to_constant()` reports a component with no
-                        // numeric value — a symbolic direction — as `null`, and
-                        // `null * null` is `0`, so the sum stayed finite and
-                        // the magnitude came out `0`: every desired component
-                        // was then multiplied by zero. `NaN` is what the
-                        // fallback below tests for, so map to it explicitly.
+                        // `evaluate_to_constant()` used to report a component
+                        // with no numeric value — a symbolic direction — as
+                        // `null`, and `null * null` is `0`, so the sum stayed
+                        // finite and the magnitude came out `0`: every desired
+                        // component was then multiplied by zero. `NaN` is what
+                        // the fallback below tests for; the engine answers it
+                        // directly now, and this keeps the `Complex` arm on the
+                        // same spelling.
                         let comp = evaluateToNumber(
                             globalDependencyValues.unnormalizedDirection.get_component(
                                 dim,

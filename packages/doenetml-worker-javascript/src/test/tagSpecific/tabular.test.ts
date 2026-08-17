@@ -156,9 +156,9 @@ describe("Tabular tag tests @group3", async () => {
 
     it("a cell that is not a number reports NaN, not null", async () => {
         // `<cell>.number` is public and typed `number`, which has one spelling
-        // for "not a number". The engine reports an expression it cannot
-        // evaluate as `null`, which is `0` to every arithmetic consumer and
-        // passes `Number.isNaN`.
+        // for "not a number". The engine briefly reported an expression it
+        // cannot evaluate as `null`, which is `0` to every arithmetic consumer
+        // and which `Number.isNaN` answers `false` for.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <table><tabular>

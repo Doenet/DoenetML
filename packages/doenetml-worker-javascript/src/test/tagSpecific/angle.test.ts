@@ -1582,7 +1582,7 @@ describe("Angle tag tests @group4", async () => {
     it("a symbolic through point leaves the derived point NaN", async () => {
         // With two points given, the third is placed at the default right
         // angle from them. A symbolic coordinate has no numeric value, and the
-        // engine reports that as `null`: subtracted as `0` it made
+        // engine briefly reported that as `null`: subtracted as `0` it made
         // `Math.atan2(0, 0)` answer `0`, so the derived point landed on the
         // unit circle at a real position instead of nowhere.
         const { core, resolvePathToNodeIdx } = await createTestCore({

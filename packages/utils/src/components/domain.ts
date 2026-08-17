@@ -120,12 +120,14 @@ export function find_effective_domains_piecewise_children({
         let domainMin = me.fromAst(domain1.tree[1][1]).evaluate_to_constant();
         let domainMax = me.fromAst(domain1.tree[1][2]).evaluate_to_constant();
 
-        // `isNumericConstant`, not `Number.isNaN`: the engine reports an
-        // endpoint it cannot evaluate — a symbolic one — as `null`, where the
-        // legacy engine reported `NaN`. `Number.isNaN(null)` is `false`, so a
-        // symbolic endpoint stopped falling back to the real line and was
-        // handed to `buildSubsetFromMathExpression` instead. `±Infinity` still
-        // passes, as it did before: an unbounded domain is a real interval.
+        // `isNumericConstant`, not `Number.isNaN`: the engine briefly
+        // reported an endpoint it cannot evaluate — a symbolic one — as
+        // `null`, where legacy reported `NaN`. `Number.isNaN(null)` is
+        // `false`, so a symbolic endpoint stopped falling back to the real
+        // line and was handed to `buildSubsetFromMathExpression` instead. The
+        // engine answers `NaN` again; the helper stays because it also rejects
+        // the `Complex` arm. `±Infinity` still passes: an unbounded domain is
+        // a real interval.
         if (!isNumericConstant(domainMin) || !isNumericConstant(domainMax)) {
             domainUnused = RealLine();
         } else {

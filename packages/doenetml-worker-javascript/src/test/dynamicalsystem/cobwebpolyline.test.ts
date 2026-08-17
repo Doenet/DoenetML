@@ -513,4 +513,54 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         expect(vertices[50].map((v) => v.tree)).eqls([Infinity, Infinity]);
         expect(vertices[99].map((v) => v.tree)).eqls([Infinity, Infinity]);
     });
+
+    /**
+     * A vertex is marked correct when its squared distance from the attractor
+     * falls inside `attractThreshold`, and both the vertex and the attractor
+     * are read out of math expressions. A vertex with no numeric value has no
+     * distance from anything, so it must never be marked correct.
+     *
+     * While `evaluate_to_constant()` answered `null` rather than `NaN` there,
+     * it was: `null - null` is `0`, so the distance came out exactly `0` and
+     * the vertex scored full marks. Measured against the previous engine pin,
+     * `correctVertices` for this document was `[false, true]` — the second
+     * entry being a vertex the student never placed. With `NaN` the distance
+     * is `NaN`, every comparison against the threshold is false, and it reads
+     * `[false, false]`.
+     *
+     * The numeric leg of the test is the control: a vertex actually on the
+     * attractor must still be marked correct.
+     */
+    it("a vertex with no numeric value is never marked correct", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f">3x(1-x)</function>
+  <graph>
+    <cobwebPolyline name="cw" function="$f" numPoints="3"
+        initialPoint="(0.5,0)" defaultPoint="(a,b)" attractThreshold="0.5" />
+  </graph>
+  `,
+        });
+
+        async function correctOf() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("cw")].stateValues
+                .correctVertices;
+        }
+
+        // Both unplaced vertices are `(a,b)`; neither has a distance from its
+        // attractor, so neither scores.
+        expect(await correctOf()).eqls([false, false]);
+
+        // The control: place the first one where it belongs and it scores.
+        await movePolyline({
+            componentIdx: await resolvePathToNodeIdx("cw"),
+            pointCoords: { 1: [0.5, 0.75] },
+            core,
+        });
+        expect(await correctOf()).eqls([true, false]);
+    });
 });

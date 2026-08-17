@@ -431,10 +431,10 @@ export default class PiecewiseFunction extends Function {
                                 // The same contract as `Function.js`' twin of
                                 // this branch: a `numericalf` must answer a
                                 // number, every other branch here answers
-                                // `NaN` when it has nothing, and `null` — what
-                                // the engine reports for a shadowed symbolic
-                                // function that did not reduce to a constant —
-                                // is `0` to whatever plots or integrates it.
+                                // `NaN` when it has nothing, and the engine's
+                                // old `null` for a shadowed symbolic function
+                                // that did not reduce to a constant was `0` to
+                                // whatever plots or integrates it.
                                 let val = globalDependencyValues
                                     .symbolicfShadow(me.fromAst(x))
                                     .evaluate_to_constant();

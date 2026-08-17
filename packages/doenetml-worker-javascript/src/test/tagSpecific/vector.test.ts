@@ -6642,9 +6642,9 @@ describe("Vector Tag Tests @group4", function () {
     });
 
     it("a symbolic head leaves numericalEndpoints NaN, not null", async () => {
-        // `numericalEndpoints` is `forRenderer`, and `Number(null)` is `0`, so
-        // a head with no numeric value would be drawn at the origin rather
-        // than not drawn.
+        // `numericalEndpoints` is `forRenderer`. `Number(null)` is `0`, so
+        // while the engine answered `null` a head with no numeric value was
+        // drawn at the origin rather than not drawn.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph><vector name="v" head="(q,b)" /></graph>

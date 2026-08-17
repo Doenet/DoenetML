@@ -56,6 +56,49 @@ Either port them, or narrow the vendored declarations to what the engine impleme
 the safer half and does not need upstream — but it should be one edit, made deliberately, rather
 than a member quietly disappearing each time the snapshot is refreshed.
 
+**A worse class than the missing members: declared parameters the engine ignores.** A missing
+method throws. A parameter that is declared, accepted and dropped compiles, runs, and answers the
+question you did not ask. Two of these were found by accident — `match` was declared to take
+`allow_permutations?: boolean` when the implementation takes an options object, so a bare `true`
+took the *no-options* path; `evaluate_to_constant` was declared `| null` when it never returns one
+— which prompted a member-by-member audit of the declaration file against `lib/` at the
+twenty-first pass. Nine more, all verified by running the built package:
+
+| member | declared | does |
+| --- | --- | --- |
+| `simplify(assumptions?, max_digits?)` | two options params | arity 0 — both dropped |
+| `simplify_logical(assumptions?)` | assumptions | arity 0 |
+| `collect_like_terms_factors(assumptions?, max_digits?)` | two params | arity 0 |
+| `simplify_ratios(assumptions?)` | assumptions | arity 0 |
+| `expand(no_division?)` | "if true, don't expand divisions" | arity 0 — always expands |
+| `derivative(variable, story?)` | "array to capture steps" | arity 1 — array left empty |
+| `equalsViaReal/Complex(other, options?)` | `EqualsOptions` | arity 1 — tolerances have no effect |
+| `isAnalytic(options?: … \| string[])` | a `string[]` arm | reads it as an options object, so every flag is `false` — `match(true)` again |
+| `Context.toString(expr, params?)` | "convert to text" | returns `"[object Object]"`; the expression-first mirror deliberately skips `Object.prototype` members, so it was never wired |
+
+None is reachable from DoenetML — re-verified by grepping every one across `packages/*/src` — so
+nothing here is broken today. All nine now say so in the published declarations (`@deprecated`,
+"accepted and ignored", the way `nan_for_non_numeric` already did), the `string[]` arm is gone and
+`Context.toString` is no longer declared. **That is the honest half, not the fix**: the engine
+should either honor these parameters or upstream should drop them. Two further findings from the
+same audit were fixed outright rather than documented, because both were failures rather than
+divergences: `add_unit` passed its argument straight to a wasm entry point typed `&str`, so the
+`Expression` the declaration invites produced `RuntimeError: memory access out of bounds` (fixed
+with the same `varName` coercion `critical_points` already used, pinned in
+`quick_doenet_open_items.spec.ts`); and `evaluate()` marshals its bindings through a `Float64Array`,
+so a declared-legal `Complex` binding silently became `NaN` and the declared `Complex` *return*
+never occurs — now declared `NumericBindings → number`, with `f()` named as the complex path.
+
+Still open, and filed rather than fixed because each needs a decision about intent rather than an
+edit: `Context.assumptions` is declared as a variable-keyed map and is an object of methods;
+`Context.get_assumptions(string[])` is the one declared input shape that answers `undefined`, and
+its return is a `Tree` rather than the declared `Assumptions`; `solve_linear` returns a frozen
+`ABSENT_EXPRESSION` whose `.tree` is `undefined` where the declaration promises a `Tree`;
+`Context.from` and `create_discrete_infinite_set` can return `undefined`; `Context.class` is
+declared as an AST constructor and takes a wasm handle; and `Expression.match` drops
+`allow_extended_match` where the free `utils.match` honors it, so the two answer differently for
+the same call.
+
 ## Closed
 
 ### `det`/`trace` compared unequal to their own value — fixed at the current pin

@@ -322,11 +322,12 @@ export default class Angle extends GraphicalComponent {
 
                         // Read through `evaluateToNumber`: a line through
                         // symbolic points has no numeric coordinates, and the
-                        // engine reports those as `null`, which is `0` to `-`.
-                        // `Math.atan2(0, 0)` is `0`, so the angle came out
-                        // along the positive x-axis and every point below was
-                        // a real number placed on it. NaN is what "no angle"
-                        // has to look like here.
+                        // engine used to report those as `null`, which is `0`
+                        // to `-`. `Math.atan2(0, 0)` is `0`, so the angle came
+                        // out along the positive x-axis and every point below
+                        // was a real number placed on it. `NaN` is what "no
+                        // angle" has to look like here, and is what the engine
+                        // now answers directly.
                         let a1 = evaluateToNumber(
                             line1.stateValues.points[0][0],
                         );

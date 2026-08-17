@@ -2820,4 +2820,101 @@ describe("Curve Tag Bezier Tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
         ).eq("a");
     });
+
+    /**
+     * A through point with no numeric value must make the control data around
+     * it undefined, not shift it toward the origin.
+     *
+     * Both of a bezier curve's control state variables are computed by adding
+     * a control *vector* to a through *point* read through
+     * `evaluate_to_constant()`. While that answered `null` rather than `NaN`
+     * for a symbolic point, `null + 1` was `1`: `controlPoints` for the
+     * symbolic through point reported the bare control vector, exactly as if
+     * the point sat at `(0,0)`, and the numbers looked entirely plausible.
+     * Measured against the previous engine pin, `controlPoints[1]` was
+     * `[[1,1],[-1,-1]]` — the control vector itself.
+     *
+     * The first and third through points are the control: they are numeric and
+     * their control points must still be the real sums.
+     */
+    it("a through point with no numeric value gives undefined control points", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <curve name="c" through="(1,2) (a,b) (5,6)">
+        <bezierControls>(1,1) (1,1) (1,1)</bezierControls>
+      </curve>
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controlPoints =
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .controlPoints;
+
+        // The control: numeric through points still add normally.
+        expect(controlPoints[0].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [2, 3],
+            [0, 1],
+        ]);
+        expect(controlPoints[2].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [6, 7],
+            [4, 5],
+        ]);
+
+        // The symbolic one: `NaN`, and in particular not the bare control
+        // vector `[[1,1],[-1,-1]]`.
+        expect(controlPoints[1].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [NaN, NaN],
+            [NaN, NaN],
+        ]);
+    });
+
+    /**
+     * The same hazard on the *default* path, which is the one a curve takes
+     * with no `<bezierControls>` at all: `calculateControlVectorFromSpline`
+     * reads three consecutive through points and interpolates. With the old
+     * `null` sentinel a symbolic point read as `0` in that arithmetic, so
+     * `<curve through="(0,0) (a,b) (2,3)" />` produced finite, plausible
+     * control vectors for *every* point — measured, `[-0.267, -0.4]` at index
+     * 1 — describing a spline through the origin that nothing in the document
+     * asked for.
+     *
+     * The spline is not local, so one undefined point makes the whole set
+     * undefined; that is the intended answer, and it is loud.
+     */
+    it("a through point with no numeric value gives undefined spline control vectors", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <curve name="c" through="(0,0) (a,b) (2,3)" />
+      <curve name="cNumeric" through="(0,0) (1,1) (2,3)" />
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const treesOf = (name: number) =>
+            stateVariables[name].stateValues.controlVectors.map((v: any[]) =>
+                v.map((c: any[]) => c.map((x) => x.tree)),
+            );
+
+        // The control: an all-numeric curve gets real spline control vectors.
+        const numericVectors = treesOf(
+            await resolvePathToNodeIdx("cNumeric"),
+        ).flat(2);
+        expect(numericVectors.every((x: number) => Number.isFinite(x))).eq(
+            true,
+        );
+        expect(numericVectors.some((x: number) => x !== 0)).eq(true);
+
+        // The symbolic one: every control vector is `NaN`.
+        for (const point of treesOf(await resolvePathToNodeIdx("c"))) {
+            expect(point).eqls([
+                [NaN, NaN],
+                [NaN, NaN],
+            ]);
+        }
+    });
 });

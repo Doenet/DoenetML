@@ -1656,11 +1656,12 @@ describe("Rectangle tag tests @group3", async () => {
     });
 
     it("symbolic vertices give a NaN width and height, not zero", async () => {
-        // The engine reports an expression it cannot evaluate as `null`, where
-        // the JavaScript library reported `NaN`. `null` is `0` to every
-        // arithmetic operator, so `Math.abs(v0 - v2)` over two symbolic
-        // corners answered exactly 0 — a public state variable reporting a
-        // finite, wrong size for a rectangle that has no size at all.
+        // The engine briefly reported an expression it cannot evaluate as
+        // `null`, where the JavaScript library reported `NaN`. `null` is `0`
+        // to every arithmetic operator, so `Math.abs(v0 - v2)` over two
+        // symbolic corners answered exactly 0 — a public state variable
+        // reporting a finite, wrong size for a rectangle that has no size at
+        // all.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph><rectangle name="r" vertices="(a,b) (c,d)" /></graph>

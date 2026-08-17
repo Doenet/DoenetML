@@ -1463,10 +1463,14 @@ describe("Spreadsheet tag tests @group1", async () => {
             let m1 = me.fromAst(["+", A1tree, 1]);
             let m2 = me.fromAst(["+", A1tree, A2tree]);
             // A `<number>` reports "not a number" as `NaN`. Its source here is
-            // `evaluate_to_constant()`, which reports an expression it cannot
-            // evaluate — an empty cell parses to a blank — as `null`, so the
-            // expectation has to make the same translation the component does.
-            const asNumber = (m: any) => m.evaluate_to_constant() ?? NaN;
+            // `evaluate_to_constant()`, which answers `NaN` for an expression
+            // it cannot evaluate — an empty cell parses to a blank — but can
+            // also answer a `Complex`, so the expectation makes the same
+            // translation the component does.
+            const asNumber = (m: any) => {
+                const v = m.evaluate_to_constant();
+                return typeof v === "number" ? v : NaN;
+            };
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,

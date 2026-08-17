@@ -491,10 +491,12 @@ export default class Cell extends BaseComponent {
             }),
             definition({ dependencyValues }) {
                 // A cell holding text the parser cannot evaluate has no
-                // numeric value, and the engine says so with `null`. This is a
-                // public state variable of type `number`, which has exactly one
-                // spelling for that, and it is `NaN` — `null` would be read as
-                // `0` by every consumer that does arithmetic on it.
+                // numeric value. This is a public state variable of type
+                // `number`, which has exactly one spelling for that, and it is
+                // `NaN` — the engine's own answer now, and what
+                // `evaluateToNumber` also maps the `Complex` arm to. The
+                // engine used to say `null` here, which every consumer that
+                // does arithmetic on it would have read as `0`.
                 let number = evaluateToNumber(dependencyValues.math);
                 return { setValue: { number } };
             },

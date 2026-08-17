@@ -457,10 +457,11 @@ async function checkLineValues({
     // Read the numeric projections through `evaluateToNumber`, the same helper
     // the components use. A line that is degenerate — both defining points on
     // top of each other — has no equation, so its coefficients are the blank
-    // `＿` and these quantities have no numeric value at all. The engine reports
-    // that as `null`, where the JS library said `NaN`; `Math.abs(null)` is `0`,
-    // which would read as a *finite* intercept. `evaluateToNumber` maps
-    // "no numeric value" to `NaN`, which is what these comparisons mean.
+    // `＿` and these quantities have no numeric value at all. The engine
+    // briefly reported that as `null`, where the JS library said `NaN`;
+    // `Math.abs(null)` is `0`, which would read as a *finite* intercept.
+    // `evaluateToNumber` maps "no numeric value" to `NaN`, which is what these
+    // comparisons mean, and is now also what the engine answers directly.
     if (Number.isFinite(slope)) {
         expect(evaluateToNumber(lineSlope)).closeTo(slope, 1e-12);
     } else {
@@ -6330,12 +6331,13 @@ describe("Line tag tests @group3", async () => {
     // `_directionComponent` is the adapter every `direction` attribute — i.e.
     // `parallelTo` and `perpendicularTo` — is read through, and its inverse
     // definition scales the desired unit direction back up by the magnitude of
-    // the direction it was given. `evaluate_to_constant()` reports a component
-    // of a *symbolic* direction as `null`, and `null * null` is `0`, so that
-    // magnitude came out `0` and multiplied every desired component away: the
-    // direction became the zero vector and the line lost its second point.
-    // `NaN` is what the fallback below the sum tests for, so the components are
-    // mapped to it explicitly and the fallback magnitude of 1 applies.
+    // the direction it was given. `evaluate_to_constant()` used to report a
+    // component of a *symbolic* direction as `null`, and `null * null` is `0`,
+    // so that magnitude came out `0` and multiplied every desired component
+    // away: the direction became the zero vector and the line lost its second
+    // point. `NaN` is what the fallback below the sum tests for, so the
+    // components are mapped to it explicitly and the fallback magnitude of 1
+    // applies.
     it("moving a line with a symbolic parallelTo sets a unit direction, not zero", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

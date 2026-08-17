@@ -661,9 +661,10 @@ export default class CobwebPolyline extends Polyline {
                         globalDependencyValues.lockToSolution
                     ) {
                         // `evaluate_to_constant()` on a non-numeric vertex, or
-                        // `f` at such a point, yields `null` — which `fromAst`
-                        // rejects and which would abort the whole update. A
-                        // vertex we cannot place is NaN, not a hard error.
+                        // `f` at such a point, can be a `Complex` — and used to
+                        // be `null` — neither of which `fromAst` accepts, and a
+                        // throw out of here would abort the whole update. A
+                        // vertex we cannot place is `NaN`, not a hard error.
                         vertices[pointInd + ",0"] = me.fromAst(
                             toNumberOrNaN(attractPoint[0]),
                         );

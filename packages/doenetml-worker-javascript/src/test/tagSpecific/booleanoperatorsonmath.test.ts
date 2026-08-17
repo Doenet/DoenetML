@@ -406,7 +406,7 @@ describe("Boolean Operator tag tests @group4", async () => {
      * The limits are asymmetric about zero so a wrong `0` cannot be right by
      * accident, and `x-x` is included because it is a case where cancelling
      * *would* give a number: `evaluate_to_constant` deliberately does not
-     * cancel first, so it is `null` rather than `0`.
+     * cancel first, so it is `NaN` rather than `0`.
      */
     it("isBetween is false for a math that is not a constant", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({

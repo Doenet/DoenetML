@@ -2256,13 +2256,13 @@ export default class Vector extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // `evaluate_to_constant()` reports a coordinate with no numeric
-                // value — a symbolic head or tail — as `null`, and this array
-                // goes straight to the renderer, where `Number(null)` is `0`:
-                // an undefined endpoint would be drawn at the origin rather
+                // `evaluate_to_constant()` used to report a coordinate with no
+                // numeric value — a symbolic head or tail — as `null`, and this
+                // array goes straight to the renderer, where `Number(null)` is
+                // `0`: an undefined endpoint was drawn at the origin rather
                 // than not drawn at all. Map it to `NaN`, as `Point.js`'s
                 // `numericalXs` and `LineSegment.js`'s own `numericalEndpoints`
-                // already do.
+                // already do — which also folds the `Complex` arm.
                 let numericalHead, numericalTail;
                 if (dependencyValues.numDimensions === 1) {
                     numericalHead = evaluateToNumber(dependencyValues.head[0]);

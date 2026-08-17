@@ -425,9 +425,9 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
 
                             // A point with a non-numeric coordinate has no
                             // nearest point; leave it where it is. See the
-                            // note on `<polygon>`'s `nearestPoint`: the engine
-                            // returns `null` where the old one returned `NaN`,
-                            // and `null` is `0` to the distance arithmetic.
+                            // note on `<polygon>`'s `nearestPoint` for why the
+                            // guard was added and why it stays now that the
+                            // engine answers `NaN` rather than `null`.
                             if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
                                 return {};
                             }

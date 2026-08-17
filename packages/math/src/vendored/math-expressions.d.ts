@@ -37,21 +37,31 @@
 //
 // HOW MUCH GOES AWAY, MEASURED
 //
-// Everything below this header, and it is all of it: every *declaration* here
-// is byte-identical to upstream's `types/math-expressions.d.ts` at the current
-// pin — same 114 `Expression` members, same 138 `Context` members, nothing here
-// that is not there. Only two things differ, both accounted for above: the
-// trailing ODE block, which upstream carries and `src/types.ts` hand-rolls
-// here, and the prose of one doc comment (`evaluate_to_constant`, where this
-// copy names DoenetML's own narrowing helpers). Step 6 replaces this file *and*
-// those types with one re-export. Nothing in this directory is
-// DoenetML-specific, which is why it can go in one move rather than being
-// unpicked.
+// Everything below this header, and it is all of it: the same 114 `Expression`
+// members and 137 `Context` members upstream's `types/math-expressions.d.ts`
+// declares at the current pin, with the same types, and nothing here that is
+// not there. Step 6 replaces this file *and* `src/types.ts` with one
+// re-export. Nothing in this directory is DoenetML-specific, which is why it
+// can go in one move rather than being unpicked.
 //
 // The check that keeps this honest is a `diff` of the two files with comment
-// lines stripped; "a change to either belongs in both" is not automated, and
-// the sixteenth pass's widening of `evaluate_to_constant` reached only this
-// copy until the seventeenth carried it upstream.
+// lines stripped. It is not empty, and these are the three hunks it should
+// show — anything else is drift:
+//
+//   1. The trailing block upstream carries and this copy drops: `OdeState`,
+//      `OdeSolution`, `dopri` (hand-rolled in `src/types.ts`), the
+//      `setWasmModule` declaration (`engine-rust.ts` reaches it through the
+//      package instead), and the `declare const MathExpression` default export.
+//   2. `evaluate_to_constant`'s signature, wrapped across three lines upstream
+//      and one here. This copy is Prettier-gated by DoenetML CI and upstream's
+//      tree is not, so byte-identity is not achievable in both directions; the
+//      *type* is the same.
+//   3. The prose of one doc comment (`evaluate_to_constant`, where this copy
+//      names DoenetML's own narrowing helpers).
+//
+// "A change to either belongs in both" is not automated, and the sixteenth
+// pass's widening of `evaluate_to_constant` reached only this copy until the
+// seventeenth carried it upstream.
 //
 // What keeps it here until then is that `exports` targets may not escape a
 // package root, so `dist/` cannot name the submodule without a
@@ -212,6 +222,17 @@ export interface Bindings {
 }
 
 /**
+ * Bindings for the real-only evaluation path.
+ *
+ * {@link Expression.evaluate} marshals its bindings into a `Float64Array` to
+ * cross the wasm boundary, so a `Complex` there becomes `NaN` rather than
+ * being evaluated. {@link Expression.f} takes the wider {@link Bindings}.
+ */
+export interface NumericBindings {
+    [variable: string]: number;
+}
+
+/**
  * Match result from pattern matching
  */
 export interface MatchResult {
@@ -299,21 +320,30 @@ export interface Expression {
 
     /**
      * Simplify the expression algebraically
-     * @param assumptions Optional assumptions about variables
-     * @param max_digits Maximum digits for numerical operations
+     *
+     * **Both parameters are accepted and ignored.** This engine's `simplify`
+     * takes no arguments; the declaration keeps them so a legacy call still
+     * compiles, but passing them changes nothing. Assumptions come from the
+     * context (`add_assumption`). Filed in
+     * `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md`.
+     *
+     * @param assumptions @deprecated has no effect
+     * @param max_digits @deprecated has no effect
      */
     simplify(assumptions?: Assumptions, max_digits?: number): Expression;
 
     /**
      * Simplify logical expressions
-     * @param assumptions Optional assumptions about variables
+     *
+     * @param assumptions @deprecated accepted and ignored — see `simplify`
      */
     simplify_logical(assumptions?: Assumptions): Expression;
 
     /**
      * Collect like terms and factors
-     * @param assumptions Optional assumptions about variables
-     * @param max_digits Maximum digits for numerical operations
+     *
+     * @param assumptions @deprecated accepted and ignored — see `simplify`
+     * @param max_digits @deprecated accepted and ignored — see `simplify`
      */
     collect_like_terms_factors(
         assumptions?: Assumptions,
@@ -352,7 +382,8 @@ export interface Expression {
 
     /**
      * Simplify ratios in expression
-     * @param assumptions Optional assumptions about variables
+     *
+     * @param assumptions @deprecated accepted and ignored — see `simplify`
      */
     simplify_ratios(assumptions?: Assumptions): Expression;
 
@@ -360,8 +391,10 @@ export interface Expression {
 
     /**
      * Compute symbolic derivative with respect to a variable
+     *
      * @param variable Variable to differentiate with respect to
-     * @param story Optional array to capture differentiation steps
+     * @param story @deprecated accepted and ignored — this engine records no
+     * differentiation steps, so the array is left empty
      */
     derivative(variable: string, story?: string[]): Expression;
 
@@ -378,7 +411,9 @@ export interface Expression {
 
     /**
      * Expand products and powers in the expression
-     * @param no_division If true, don't expand divisions
+     *
+     * @param no_division @deprecated accepted and ignored — this engine's
+     * `expand` takes no arguments and always expands divisions
      */
     expand(no_division?: boolean): Expression;
 
@@ -641,15 +676,18 @@ export interface Expression {
 
     /**
      * Test equality using complex number evaluation
+     *
      * @param other Expression to compare with
-     * @param options Comparison options
+     * @param options @deprecated accepted and ignored — the tolerances come
+     * from the engine's defaults. Use `equals`, whose options *are* honored.
      */
     equalsViaComplex(other: Expression, options?: EqualsOptions): boolean;
 
     /**
      * Test equality using real number evaluation
+     *
      * @param other Expression to compare with
-     * @param options Comparison options
+     * @param options @deprecated accepted and ignored — see `equalsViaComplex`
      */
     equalsViaReal(other: Expression, options?: EqualsOptions): boolean;
 
@@ -668,10 +706,17 @@ export interface Expression {
     f(): (bindings: Bindings) => number | Complex;
 
     /**
-     * Evaluate expression with variable bindings
+     * Evaluate expression with variable bindings.
+     *
+     * Real only, in both directions: the bindings cross the wasm boundary as a
+     * `Float64Array`, so a `Complex` binding becomes `NaN`, and the result is
+     * always a `number` (`NaN` where there is none) — never a `Complex`. Use
+     * {@link Expression.f} when either end can be complex; it goes through
+     * math.js and handles both.
+     *
      * @param bindings Object mapping variable names to numeric values
      */
-    evaluate(bindings: Bindings): number | Complex;
+    evaluate(bindings: NumericBindings): number;
 
     /**
      * Evaluate expression in a finite field
@@ -711,9 +756,15 @@ export interface Expression {
 
     /**
      * Check if expression is analytic (has no discontinuities)
+     *
+     * The options must be an object. A `string[]` — which this was declared to
+     * accept — is read as an options object, so every flag comes out `false`
+     * and the call silently takes the strictest path: the same shape of bug
+     * `match(true)` had.
+     *
      * @param options Analytic check options
      */
-    isAnalytic(options?: IsAnalyticOptions | string[]): boolean;
+    isAnalytic(options?: IsAnalyticOptions): boolean;
 
     /**
      * Match expression against a pattern.
@@ -1207,7 +1258,7 @@ export interface Context {
         options?: EqualsOptions,
     ): boolean;
     f(expr: Expression | Tree): (bindings: Bindings) => number | Complex;
-    evaluate(expr: Expression | Tree, bindings: Bindings): number | Complex;
+    evaluate(expr: Expression | Tree, bindings: NumericBindings): number;
     finite_field_evaluate(
         expr: Expression,
         bindings: Bindings,
@@ -1230,7 +1281,11 @@ export interface Context {
         options?: MatchOptions,
     ): MatchResult | false;
     // ========== Formatting methods ==========
-    toString(expr: Expression | Tree, params?: FormatParams): string;
+    // No expression-first `toString`. `Context` inherits `Object.prototype`'s,
+    // and the expression-first mirror deliberately does not shadow it — doing
+    // so would break `String(me)` and every template literal. `me.toString(e)`
+    // therefore answers `"[object Object]"`, so it is not declared; write
+    // `e.toString()`.
     toLatex(expr: Expression | Tree, params?: FormatParams): string;
     tex(expr: Expression | Tree, params?: FormatParams): string;
     toXML(expr: Expression | Tree): string;

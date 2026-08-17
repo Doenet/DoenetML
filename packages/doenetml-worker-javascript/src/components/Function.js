@@ -2278,10 +2278,12 @@ export default class Function extends InlineComponent {
                             numericalfs[arrayKey] = function (x) {
                                 // A `numericalf` must answer a number, and
                                 // every other branch of this definition answers
-                                // `NaN` when it has nothing. `null` — what the
-                                // engine reports for a shadowed symbolic
-                                // function that did not reduce to a constant —
-                                // is `0` to whatever plots or integrates it.
+                                // `NaN` when it has nothing. The engine used to
+                                // report `null` for a shadowed symbolic
+                                // function that did not reduce to a constant,
+                                // and `null` is `0` to whatever plots or
+                                // integrates it; it reports `NaN` now, and the
+                                // `Complex` arm still needs folding.
                                 let val = globalDependencyValues
                                     .symbolicfShadow(me.fromAst(x))
                                     .evaluate_to_constant();

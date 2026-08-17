@@ -78,7 +78,11 @@ resolution is that `math-expressions@3.x` publishes to npm (its `package publish
 already verifies the tarball works, `--target web` wasm included) and this side swaps the seam per
 Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`; because the seam is an alias, no call site
 and no bundler rule moves — changing `packages/doenetml/package.json`'s
-`"math-expressions": "file:../math"` to the published `^3.x` range is what unblocks publication.
+`"math-expressions": "file:../math"` to the published range is what unblocks publication. *Which*
+range depends on the version string the maintainer actually publishes, and the two cases differ:
+`^3.0.0` for a real `3.0.0`, but `^3.0.0-alpha1` (or an exact pin) for a prerelease, because npm
+semver excludes prereleases from `^3.x`. Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` states
+both cases; nothing in the build checks which one is right.
 
 Nothing in this repo *enforces* that order, and nothing should: the person who publishes
 `math-expressions@3.x` is the person who merges these two PRs, so code protecting them from
@@ -213,12 +217,13 @@ copies of the engine once the seam was externalized everywhere.
 - **No differential grading harness or memory baseline exists.** Semantic divergence in grading is
   the primary risk of the engine switch and the ordinary suites are all that guard it. A green
   suite is weaker evidence than a divergence ledger, and the review measured how much weaker: it
-  turned up **fourteen** wrong-answer-on-grading defects, and no pre-existing test named any of them.
-  Two came from the branch's first full CI run (a float-valued `1` that was not the multiplicative
-  identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a `symbolicEquality` check a
-  correct answer should pass; and a fuzzy unordered term re-match that fired when its tolerance was
-  never spent, so `<answer symbolicEquality allowedErrorInNumbers>` accepted a reordered response
-  it is tested as refusing). The other three were found only by reading or by deliberately probing:
+  turned up **eighteen** wrong-answer-on-grading defects, and no pre-existing test named any of them.
+  The first two came from the branch's first full CI run (a float-valued `1` that was not the
+  multiplicative identity, so `<math simplify expand>` of `0.5(2x-2)(x+1)` failed a
+  `symbolicEquality` check a correct answer should pass; and a fuzzy unordered term re-match that
+  fired when its tolerance was never spent, so `<answer symbolicEquality allowedErrorInNumbers>`
+  accepted a reordered response it is tested as refusing). The third, fourth and fifth were found
+  only by reading or by deliberately probing:
   `default_order` was not a normal form, so `simplify="normalizeOrder"` could grade one answer two
   ways depending on how the student wrote it; the odd-root sign extraction treated *unknown*
   realness as permission, so `equals` answered `true` for a symbolic pair and `false` for its
@@ -293,6 +298,41 @@ copies of the engine once the seam was externalized everywhere.
   unguarded definitions (`<discreteSimulationResultPolyline>` and `<regionBetweenCurves>` are the
   same code reached by the same path, fixed for symmetry rather than from a reproducer), each
   pinned by a test verified to fail without its fix.
+
+  The **fifteenth through eighteenth** are the last of that shape, and they are the reason it is
+  now fixed at its source rather than one call site at a time. The twentieth pass changed
+  `evaluate_to_constant` to answer `NaN` — legacy's answer — instead of `null`, and swept the 269
+  non-test call sites for reads that computed with the raw result. Six sites came back; the
+  twentieth pass verified two of them end to end and withdrew its claim about the other five. The
+  twenty-first verified those five, by restoring the previous engine pin *and* reverting each
+  guard and measuring what the document reported:
+
+  - `<curve through="(1,2) (a,b) (5,6)">` with `<bezierControls>` — `controlPoints` for the
+    symbolic through point was the bare control vector `[[1,1],[-1,-1]]`, because
+    `null + vectorX` is `vectorX`: the control points of a point that is nowhere, reported as if
+    it sat at the origin. **Reproduces.**
+  - `<curve through="(0,0) (a,b) (2,3)" />` — the *default* path, with no `<bezierControls>` at
+    all. `calculateControlVectorFromSpline` interpolates three consecutive through points, so one
+    symbolic point read as `0` gave every control vector a finite, plausible value
+    (`[-0.267, -0.4]` at index 1) describing a spline through the origin that nothing in the
+    document asked for. **Reproduces.**
+  - `<polygon vertices="(1,2) (a,b) (3,4)" rigid rotateAround="vertex" />` — dragging it rotated
+    the symbolic vertex about the origin and wrote the result back over the symbol: `(a,b)` became
+    `(0.156, -0.071)` and the third vertex moved to `(2.84, 4.15)`. **Reproduces**, and it is the
+    only one of the class that *destroys* authored content rather than mis-reporting it.
+  - `<cobwebPolyline>` with a vertex the student never placed — the squared distance from the
+    attractor came out exactly `0` (`null - null`), so it fell inside `attractThreshold` and
+    `correctVertices` read `[false, true]`. **Reproduces**, and it is a grade.
+  - `<functionIterates initialValue="(a,b)">`, multi-dimensional — **does not reproduce.** The
+    numerical function guards its own input, so the orbit was already `(NaN,NaN)`. The site was
+    worth hardening for the `Complex` arm; it was not producing a wrong number. This is the one
+    the twentieth pass had already checked, and the twenty-first re-checked independently.
+
+  Each of the four is pinned by a test in `curve.bezier.test.ts`, `polygon.test.ts` and
+  `cobwebpolyline.test.ts`, all four verified to fail against the previous pin with their guards
+  reverted. The honest summary of the sweep is therefore *six sites hardened, four confirmed
+  user-visible defects among them, one confirmed not a defect, and `<angle>`'s the sixth* — and
+  the sentinel change is what makes the remaining ~890 unswept reads safe by default.
 
   Read the fourteen together and the pattern is not "the engine is wrong" but "the suites test one
   path at a time". **Three** of them were invisible because a *different* path answered
