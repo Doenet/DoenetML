@@ -68,21 +68,6 @@ if (!name || !version) {
     process.exit(1);
 }
 
-// `scripts/transform-package-json.ts` leaves `"private": true` in a built
-// manifest when the package is not publishable — most often because something
-// the bundle imports by name was externalized without a registry-resolvable
-// version, so the tarball would carry an import that resolves to nothing on a
-// consumer's machine. `npm publish` refuses a private package anyway; failing
-// here first turns npm's generic EPRIVATE into an explanation.
-if (pkg.private) {
-    console.error(
-        `✖ ${name} is marked private in ${cwd}/package.json; refusing to publish.\n` +
-            `  The build marks a package private when it is not publishable — see the\n` +
-            `  "marking the built package private" warning in the build log for the reason,\n` +
-            `  and scripts/transform-package-json.ts for how that decision is made.`,
-    );
-    process.exit(1);
-}
 const spec = `${name}@${version}`;
 const explicitPublishTag = getExplicitPublishTag();
 

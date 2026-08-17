@@ -9,12 +9,12 @@
  * build-tooling tests (`check-bundle-size.test.mjs`), and it consumes the
  * transformer too, so the tests ride along here.
  *
- * The behaviour that matters most below is the publishability guard: a package
- * whose bundle imports something by name that an npm consumer cannot install
- * must not be publishable. `@doenet/doenetml` is in exactly that state while
- * `math-expressions` resolves through `"file:../math"`, and shipping it would
- * put an unresolvable import — or a silent fallback to the unrelated
- * `math-expressions@2.x` on npm — into every consumer's build.
+ * What it does that matters: it promotes every externalized dependency to a
+ * `peerDependencies` entry, copying the range the source manifest declares —
+ * the bundle keeps a bare `import ... from "<dep>"`, so the consumer's
+ * installer has to satisfy it — and strips the workspace-only fields. Which
+ * *field* a range is read from decides what ships, so that precedence is
+ * pinned below.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -76,55 +76,38 @@ function transform(dependencies, externalDeps) {
 }
 
 describe("createPackageJsonTransformer", () => {
-    it("publishes a package whose externals all have registry ranges", () => {
+    it("promotes an externalized dep to a peer dependency", () => {
         const { pkg, warnings } = transform(
             { react: "^19.2.3", "@doenet/utils": "file:../utils" },
             ["react"],
         );
 
-        expect(pkg.private).toBe(false);
         expect(pkg.peerDependencies).toEqual({ react: "^19.2.3" });
-        // A `file:` dependency that is *bundled* rather than externalized is
-        // fine — it never reaches the tarball.
+        // A dependency that is *bundled* rather than externalized never
+        // reaches the tarball, whatever its range.
         expect(pkg.dependencies).toBeUndefined();
         expect(warnings).toEqual([]);
     });
 
-    it("refuses to publish when an externalized dep has a local range", () => {
-        const { pkg, warnings } = transform(
-            { react: "^19.2.3", "math-expressions": "file:../math" },
-            ["react", "math-expressions"],
-        );
-
-        expect(pkg.private).toBe(true);
-        // The range is still reported, so the built manifest says what is
-        // wrong rather than hiding the dependency.
-        expect(pkg.peerDependencies).toEqual({
-            react: "^19.2.3",
-            "math-expressions": "file:../math",
-        });
-        expect(warnings.join("\n")).toMatch(/math-expressions/);
-        expect(warnings.join("\n")).toMatch(/not publishable/);
-    });
-
-    it("refuses to publish when an externalized dep has no version at all", () => {
-        const { pkg, warnings } = transform({ react: "^19.2.3" }, [
-            "react",
-            "some-forgotten-dep",
-        ]);
-
-        expect(pkg.private).toBe(true);
-        expect(pkg.peerDependencies).toEqual({ react: "^19.2.3" });
-        expect(warnings.join("\n")).toMatch(/some-forgotten-dep/);
+    it("copies the declared range verbatim, whatever its shape", () => {
+        // The transformer does not judge the range — that is the release
+        // order's job, not the build's (see the plan document). What it must
+        // do is emit the range the manifest actually declares, so that what
+        // ships is what someone can read in `package.json`.
+        for (const range of ["^3.0.0", "file:../math", "workspace:*"]) {
+            const { pkg } = transform({ "math-expressions": range }, [
+                "math-expressions",
+            ]);
+            expect(pkg.peerDependencies["math-expressions"]).toBe(range);
+        }
     });
 
     it("does not let a devDependency shadow the range that ships", () => {
-        // The guard reads one range per externalized dep, so the field it reads
-        // it from decides whether the guard fires at all. `devDependencies` is
-        // the lowest-precedence source: a `math-expressions` devDependency
-        // added for tests must not clear a block that `dependencies` still
-        // earns.
-        const { pkg, warnings } = transformFields(
+        // One range per externalized dep is read, and `devDependencies` is the
+        // lowest-precedence source — the one field a consumer's installer
+        // never sees. A `math-expressions` devDependency added for tests must
+        // not become the published peer range.
+        const { pkg } = transformFields(
             {
                 dependencies: { "math-expressions": "file:../math" },
                 devDependencies: { "math-expressions": "^3.0.0" },
@@ -132,9 +115,7 @@ describe("createPackageJsonTransformer", () => {
             ["math-expressions"],
         );
 
-        expect(pkg.private).toBe(true);
         expect(pkg.peerDependencies["math-expressions"]).toBe("file:../math");
-        expect(warnings.join("\n")).toMatch(/math-expressions/);
     });
 
     it("falls back to devDependencies when nothing else declares the dep", () => {
@@ -143,145 +124,27 @@ describe("createPackageJsonTransformer", () => {
             ["react"],
         );
 
-        expect(pkg.private).toBe(false);
         expect(pkg.peerDependencies).toEqual({ react: "^19.2.3" });
     });
 
-    it.each([
-        "link:../math",
-        "portal:../math",
-        "workspace:*",
-        "catalog:",
-        "git+file:../math",
-        // npm takes a bare path wherever it takes `file:` — this installs the
-        // sibling directory just as `file:../math` does, and a protocol-only
-        // guard did not see it.
-        "../math",
-        "./math",
-        "/srv/math",
-        // …and a path is not only a slash-or-dot one. Each of these is a
-        // `directory` or a local `file` to `npm-package-arg`, so each installs
-        // from this machine. `~/…` in particular is the natural way to point at
-        // a checkout while debugging, and the spelling closest to one that is
-        // *not* local (`~3.0.0`, asserted publishable below).
-        "~/src/math-expressions",
-        "C:/math",
-        "math.tgz",
-        // A *bare* path — no leading dot, no `~/`, no drive letter, no `.tgz`.
-        // npm reaches these on the branch after `isFileSpec` and
-        // `hosted-git-info` have both declined: any protocol-less spec with a
-        // separator is a path. Verified against npm 11.12.1, which installs
-        // `sub/dir/pkg` as a symlink to that directory. This is the spelling
-        // the monorepo would actually write, since every real path in it starts
-        // `vendor/` or `packages/`.
-        "vendor/math-expressions/packages/math-expressions-js-compat",
-        "some/dir/math",
-        // One slash, but not a `user/repo` shape: a trailing slash, and a
-        // scoped-package-shaped spec, are both directories to npm.
-        "math/",
-        "@scope/pkg",
-        // Whitespace is not an escape, in either direction, and the two
-        // directions fail for opposite reasons. A *leading* space would slip
-        // past every anchored prefix test, so those run against the trimmed
-        // range. A *trailing* one is the subtler case: trimming before the
-        // GitHub-shorthand test turned `"vendor/math "` back into a clean
-        // `user/repo` shape and called it publishable — but npm does not trim,
-        // `hosted-git-info` refuses a spec containing whitespace, and npm
-        // 11.12.1 installs `node_modules/math-expressions` as a *dangling*
-        // symlink to `vendor/math ` and exits 0.
-        " ../math",
-        " file:../math",
-        " C:/math",
-        "vendor/math-expressions ",
-        " vendor/math-expressions",
-        " vendor/math-expressions ",
-        "user/repo ",
-        " user/repo",
-        "a/b\t",
-        // Deliberately stricter than `npm-package-arg`, which reads this as the
-        // GitHub shorthand for a repository named `math.tar.gz`. Anyone who
-        // writes a `.tar.gz` range means a tarball on this machine.
-        "vendor/math.tar.gz",
-        // scp-style ranges on a host `hosted-git-info` does *not* know. npm has
-        // no general scp parser: `npa` calls these a `directory`, and npm
-        // 11.12.1 installs `user@host:../math` as a *dangling* symlink to
-        // `../user@host:../math` and exits 0. A self-hosted GitLab or Gitea
-        // remote is the realistic spelling, so this is not a corner.
-        "git@gitlab.example.com:group/repo.git#v3",
-        "git@git.company.internal:team/math.git",
-        "user@host:../math",
-        // …and a known host does not rescue a tail that is not `user/project`.
-        "git@github.com:../math",
-        "git@github.com:/srv/math",
-        // No slash at all, so the bare-path test never sees it: `npa` does not
-        // classify this, it *throws* `EINVALIDTAGNAME`, and every consumer's
-        // install would fail on the published manifest.
-        "user@host:math",
-        // A `%` keeps `hosted-git-info` from reading a `user/repo` shorthand —
-        // it `decodeURIComponent`s and catches the `URIError` — so `npa` calls
-        // this a `directory`, and npm installs it as a *working* local symlink,
-        // which ships silently.
-        "vendor/math%po",
-        "user/re%po",
-        "us%er/repo",
-    ])("treats %s as unpublishable too", (range) => {
-        const { pkg } = transform({ "math-expressions": range }, [
-            "math-expressions",
+    it("warns, and emits no entry, when an externalized dep declares no range", () => {
+        const { pkg, warnings } = transform({ react: "^19.2.3" }, [
+            "react",
+            "some-forgotten-dep",
         ]);
-        expect(pkg.private).toBe(true);
+
+        expect(pkg.peerDependencies).toEqual({ react: "^19.2.3" });
+        expect(warnings.join("\n")).toMatch(/some-forgotten-dep/);
     });
 
-    it.each([
-        "^3.0.0",
-        "~3.0.0",
-        "3.x",
-        "*",
-        "latest",
-        "npm:@scope/math@^3",
-        // A tarball a consumer's installer really can fetch. The local-tarball
-        // test above must not swallow this one.
-        "https://example.com/math-3.0.0.tgz",
-        // The one protocol-less spec with a slash that is *not* a path: npm
-        // clones it from GitHub, so the bare-path test above must not swallow
-        // it either. `#committish` and `#semver:` forms included, since those
-        // add the characters that make it look least like a shorthand.
-        "user/repo",
-        "user/repo#main",
-        "user/repo#semver:^3",
-        "github:user/repo",
-        // The acknowledged limit of the bare-path test, and it matches npm:
-        // a *one-slash* path is indistinguishable from that shorthand, so npm
-        // clones `github.com/packages/math` rather than installing a directory.
-        // It is not a realistic escape — npm resolves a local path relative to
-        // the *manifest*, so a path this repo would write from
-        // `packages/doenetml/` starts `../`, which is caught above.
-        "packages/math",
-        // A range with a space in it, which must not be mistaken for a path.
-        ">= 1.0.0 || ^2",
-        // An scp-style git URL on a host `hosted-git-info` knows. It carries no
-        // `scheme:`, so the protocol test does not see it, and it has a slash
-        // with an `@` and a `:` before it, so the GitHub shorthand does not
-        // either — but `npa` calls it `git` and any consumer can clone it.
-        "git@github.com:user/repo.git",
-        "git@github.com:user/repo.git#v3",
-        "git@gitlab.com:group/repo.git#v3",
-        "git@bitbucket.org:group/repo.git",
-    ])("still publishes with the registry range %s", (range) => {
-        const { pkg } = transform({ "math-expressions": range }, [
-            "math-expressions",
-        ]);
-        expect(pkg.private).toBe(false);
-    });
+    it("does not carry the source manifest's private flag into the tarball", () => {
+        // Every published package in this repo is `"private": true` at the
+        // root so that a stray `npm publish` from the workspace does nothing.
+        // The built manifest is the one that gets published, so the flag must
+        // not survive the transform.
+        const { pkg } = transform({ react: "^19.2.3" }, ["react"]);
 
-    it("becomes publishable again once the dep names a registry range", () => {
-        const { pkg, warnings } = transform(
-            { react: "^19.2.3", "math-expressions": "^3.0.0" },
-            ["react", "math-expressions"],
-        );
-
-        expect(pkg.private).toBe(false);
-        expect(pkg.peerDependencies["math-expressions"]).toBe("^3.0.0");
-        expect(warnings).toEqual([]);
+        expect(pkg.private).toBeUndefined();
     });
 
     it("strips the workspace-only fields", () => {
@@ -299,11 +162,12 @@ describe("createPackageJsonTransformer", () => {
 
 /**
  * The tests above pin the transformer; these pin the one configuration that
- * has to reach it. The guard is only load-bearing if `@doenet/doenetml` hands
- * it the *whole* externalized list: this config used to pass a filtered copy
- * with `math-expressions` removed, precisely because a `file:` range looked
- * wrong in a published manifest, and with that filter in place the transformer
- * sees nothing to complain about and the built package publishes.
+ * has to reach it. `math-expressions` must stay in `@doenet/doenetml`'s
+ * externalized list and must carry a declared range, because that pair is what
+ * puts it into the published manifest's `peerDependencies`. This config once
+ * passed a *filtered* copy of the list with `math-expressions` removed, which
+ * dropped the seam out of the published manifest entirely — the tarball kept
+ * the bare import and told nobody about it.
  *
  * Read from source rather than from a build, so the assertion holds without
  * building `@doenet/doenetml` first.

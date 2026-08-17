@@ -15,27 +15,33 @@ the audit predates it and named PR #82 as the then-pending improvement.
 
 ---
 
-## Publishing is blocked until this order is followed
+## Release order
 
-This is the one ordering constraint in Stage 1, and it exists because `.github/workflows/publish.yml`
-publishes a **dev release to npm on every successful CI run on `main`** — merging is releasing.
+**This is the single statement of the order, and the only one.** It is a convention, followed by
+the person doing the release; nothing in either repo enforces it. It matters because
+`.github/workflows/publish.yml` publishes a **dev release to npm on every successful CI run on
+`main`** — merging is releasing.
 
 1. Merge [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84).
 2. Publish **`math-expressions@3.x`** from that repo to npm.
 3. Only then merge the DoenetML side, having first replaced
-   `"math-expressions": "file:../math"` with the published `^3.x` range (Step 6 below).
+   `"math-expressions": "file:../math"` with the published range (Step 6 below).
 
 Merging DoenetML first would try to release a `@doenet/doenetml` whose bundle keeps a bare
 `import ... from "math-expressions"` that resolves to nothing on a consumer's machine — or, if they
 already have the unrelated `math-expressions@2.x` in their tree, silently to the *legacy JS engine*,
 which is worse than a build error.
 
-**It cannot happen by accident.** `scripts/transform-package-json.ts` marks the built package
-`"private": true` whenever something the bundle imports by name was externalized without a
-registry-resolvable version, and `npm publish` refuses a private package
-(`.github/scripts/npm-publish-with-retry.mjs` refuses first, with the reason). So a premature merge
-turns the publish job red instead of shipping a broken tarball. Changing the range in step 3 clears
-the block on its own — there is no flag to remember to flip.
+The one mechanism to know: `scripts/transform-package-json.ts` copies each externalized
+dependency's declared range verbatim into the built `dist/package.json`'s `peerDependencies`, so
+`packages/doenetml/package.json`'s `"math-expressions"` range is exactly the range a consumer
+installs. Step 3's edit is the whole of it.
+
+> There used to be a build-time shape test on that range that forced `"private": true` when it
+> looked local, so that a premature merge turned the publish job red. It was removed at the
+> twentieth review pass, at the maintainer's direction: he is the one who publishes and merges, so
+> code protecting him from doing it in the wrong order is superfluous. It had also been holed six
+> times over passes 13–19, twice by the pass that had just fixed it, which is its own argument.
 
 ---
 
@@ -234,10 +240,8 @@ changes. Ship it, measure it, and let it soak while Stage 2 is built.
 >   import with nothing declaring it, so an npm consumer either fails to resolve it or, if they
 >   happen to have the real npm `math-expressions@2.x` in their tree, silently resolves it to the
 >   *legacy JS engine* — a different engine behind the same specifier, which is worse than a build
->   error. **That release cannot happen by accident:** `scripts/transform-package-json.ts` sees that
->   an externalized dependency's range (`file:../math`) is one an npm consumer cannot resolve and
->   leaves `"private": true` in the built `dist/package.json`, which `npm publish` refuses. See
->   "Publishing is blocked until this order is followed" at the top of this document.
+>   error. Nothing prevents that release automatically — see "Release order" at the top of this
+>   document, which is the convention that does.
 >
 >   **The resolution is not to publish `@doenet/math` and not to bundle the seam.**
 >   [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84) merges, the upstream
@@ -402,8 +406,10 @@ divergence ledger is empty or accepted; keep the flag one release, then delete i
 
 ### Step 6 — Retire the submodule for the npm `math-expressions@3.x` dependency
 
-This is the decided end state for Stage 1, and the checklist below is measured against this tree so
-the swap can be costed rather than guessed at.
+This is the decided end state for Stage 1, and it is **imminent, not hypothetical**: the maintainer
+publishes `math-expressions@3.x` and moves this branch onto it *before* merging (see "Release
+order"). What follows is a checklist to execute in one sitting, measured against this tree at the
+current pin — every count and path below was re-verified at the twentieth review pass.
 
 **What does *not* change — this is what the alias design bought.** No call site moves: the
 files still say `import me from "math-expressions"`, and every bundler rule already names that bare
@@ -413,14 +419,27 @@ specifier, so all seven survive untouched — `external` in `packages/doenetml`,
 `packages/doenetml-worker`. `packages/standalone/scripts/check-bundle-size.mjs`'s two-binaries rule
 is unaffected for the same reason.
 
-**The question that used to decide how much else changes — which wasm the published package ships
-— is settled.** `packages/math` exists to hand the compat layer a `--target web` wasm-bindgen module
-through upstream's `setWasmModule`, because compat's own fallback (`lib/_wasm.ts`) loads a
-*nodejs*-target build through `createRequire` and there is no browser path without an injection. The
-tarball used to carry only the nodejs target, which would have retired the submodule while leaving
-the Rust toolchain behind — most of the cost the swap is meant to remove.
+**`packages/math` survives the swap.** The earlier hedge ("*if* it is retired") is resolved: it is
+not. Its remaining job is DoenetML's, not upstream's — base64-inlining the `.wasm` into the bundle
+so no extra network request is made, and calling `setWasmModule` with the `--target web` glue.
+Upstream ships the glue and the binary; deciding to *inline* them is this repo's choice, and
+`wasm-loader.ts` is where it lives. So the seven consumer manifests keep
+`"math-expressions": "file:../math"` and it is `packages/math/package.json` that gains the npm
+dependency. `packages/doenetml`'s entry is the exception — see step 2.
 
-At the current pin it carries both. `vendor/wasm-web/` ships under a `./wasm-web/*` export, so:
+**The question that used to decide how much else changes — which wasm the published package ships
+— is settled, and re-verified.** `packages/math` exists to hand the compat layer a `--target web`
+wasm-bindgen module through upstream's `setWasmModule`, because compat's own fallback
+(`lib/_wasm.ts`) loads a *nodejs*-target build through `createRequire` and there is no browser path
+without an injection. The tarball used to carry only the nodejs target, which would have retired
+the submodule while leaving the wasm-bindgen toolchain behind — most of the cost the swap is meant
+to remove.
+
+At the current pin it carries both. Upstream's `prepack` runs `build-wasm.sh` with no arguments,
+which builds `nodejs` *and* `web`; `files` includes `vendor`, and `exports` maps
+`"./wasm-web/*": "./vendor/wasm-web/*"`. Confirmed by `npm pack --dry-run` on the pinned tree: the
+tarball is 44 files / 1.2 MB packed, and carries `vendor/wasm-web/math_expressions_wasm_bg.wasm`
+(1.8 MB), `math_expressions_wasm.js` (99.8 kB) and both `.d.ts`. So:
 
 ```js
 import * as glue from "math-expressions/wasm-web/math_expressions_wasm.js";
@@ -429,23 +448,155 @@ const url = import.meta.resolve(
 );
 ```
 
-That is the whole of what `scripts/build-wasm.mjs` needs. It collapses from "shell out to the
-submodule's `build-wasm.sh web pkg`" to "read the `.wasm` out of `node_modules` and base64 it",
-`src/generated/math_expressions_wasm.js` is copied from `node_modules` rather than produced, and
-the toolchain requirement goes with it. Upstream's `scripts/consumer/web-path.mjs` is that path
-end-to-end as an executable check, and its `package publishability` CI job runs it.
+That is the whole of what `packages/math/scripts/build-wasm.mjs` needs. Upstream's
+`scripts/consumer/web-path.mjs` is that path end-to-end as an executable check — it asserts the
+binary's wasm magic number and that it is over 1 MB, then `initSync`s it and runs `me.*` — and its
+`package publishability` CI job runs it against a real tarball installed outside the workspace.
 
-**The mechanical part:**
+---
 
-| What | Where | Change |
+#### ⚠️ Two things to get right before writing any range
+
+**1. `^3.x` will not install `3.0.0-alpha1`.** Upstream's `package.json` says `3.0.0-alpha1`, which
+is a *prerelease*, and npm semver excludes prereleases from `^3.0.0` / `^3.x`. Measured:
+
+| range | matches `3.0.0-alpha1` | matches `3.0.0` |
 | --- | --- | --- |
-| Consumer manifests | `packages/{doenetml,doenetml-prototype,doenetml-to-pretext,doenetml-worker-javascript,doenetml-worker-rust,test-cypress,utils}/package.json` | 7 × `"math-expressions": "file:../math"` → `"^3.x"`, *if* `packages/math` is retired; if it survives as the wasm-injecting seam they stay as they are and only `packages/math/package.json` gains the npm dependency. |
-| Published peers | `packages/doenetml/package.json` | Nothing to edit in `vite.config.ts`: `math-expressions` is already declared as a `peerDependencies` entry of the published tarball, and `scripts/transform-package-json.ts` marks the built package `"private": true` for exactly as long as that entry's range is `file:../math`. **Changing that one range to `^3.x` is what unblocks publishing** — see "Publishing is blocked until this order is followed" at the top of this document. |
-| Source aliases | `packages/math/vite.config.ts` | The four aliases (`math-expressions-js-compat`, `math-expressions-js-compat/lib/*`, `math-expressions-rs-wasm`, `math-expressions-wasm-glue`) all resolve into the submodule; three become plain node resolution and the glue alias points at `node_modules`. |
-| Build inputs | `packages/math/package.json` | Nine wireit `files` globs under `../../vendor/math-expressions/` — seven in `build:wasm`, two in `build` — become `node_modules` paths, or `build:wasm` disappears entirely. |
-| CI | `.github/workflows/{ci,publish,gh-pages-docs,publish-doenetml-to-pretext-python}.yml` | 14 × `submodules: recursive` and 12 × `uses: ./.github/actions/setup-math-wasm` become removable, and `.github/actions/setup-math-wasm/` can be deleted. (The two differ because `ci.yml`'s devcontainer jobs need the checkout but not the action — their image carries the toolchain.) |
-| Devcontainer | `.devcontainer/devcontainer.json`, `.devcontainer/features/wasm-toolchain/` | The `wasm-toolchain` feature and its `devcontainer.json` entry can be deleted. |
-| Submodule | `.gitmodules`, `vendor/math-expressions`, `.prettierignore` | Delete the submodule entry and the checkout, and drop the `vendor/math-expressions` line from `.prettierignore` (it exists only because the submodule is a second git repo with its own prettier config). |
+| `^3.x` / `^3.0.0` | **no** | yes |
+| `^3.0.0-alpha1` | yes | yes |
+| `3.0.0-alpha1` | yes | no |
+
+So if the alpha is what gets published, every range below must be `^3.0.0-alpha1` (or pinned
+exactly), **not** `^3.x`. If upstream bumps to a release version first, `^3.0.0` is right. Decide
+this before step 1, because nothing in the build checks it — the shape test that used to look at
+these ranges was removed, and it never resolved them against the registry anyway.
+
+**2. Check which repo publishes.** `.gitmodules` points at
+`https://github.com/siefkenj/math-expressions.git` (branch `doenet`), while this document's prose
+says `Doenet/math-expressions`. The npm package name is `math-expressions`, whose `latest` on the
+registry is still `2.0.0-alpha95` — 3.x is not published as of the twentieth pass.
+
+---
+
+#### The checklist
+
+1. **Publish upstream.** From `packages/math-expressions-js-compat`, `npm run verify:package`
+   first (it packs, installs into a throwaway project outside the workspace and drives both loading
+   paths), then publish. Note the exact published version string.
+
+2. **`packages/doenetml/package.json`** — change `"math-expressions": "file:../math"` (line 95, in
+   `dependencies`) to the published range. This is the one that matters for publication:
+   `scripts/transform-package-json.ts` copies an externalized dependency's declared range verbatim
+   into the built `dist/package.json`'s `peerDependencies`, so this range is exactly what a
+   consumer installs. Rebuild and read `packages/doenetml/dist/package.json` to confirm.
+
+   The other six consumer manifests (`doenetml-prototype`:109, `doenetml-to-pretext`:117,
+   `doenetml-worker-javascript`:64, `doenetml-worker-rust`:116, `test-cypress`:63, `utils`:66) stay
+   on `file:../math`, because they consume the seam rather than publishing it.
+
+3. **`packages/math/package.json`** — add `"math-expressions": "<published range>"` to
+   `dependencies`. Note the name collision this creates: `@doenet/math` is itself installed *as*
+   `math-expressions` in every other workspace's `node_modules` (see `package-lock.json`'s
+   `"node_modules/math-expressions": { "resolved": "packages/math", "link": true }`). Verify after
+   `npm install` that `packages/math/node_modules/math-expressions` is the registry package and the
+   root symlink is still `packages/math`.
+
+   Then delete the nine wireit `files` globs under `../../vendor/math-expressions/` — seven in
+   `build:wasm` (lines 55–61), two in `build` (74–75) — replacing them with the `node_modules`
+   paths the new `build-wasm.mjs` reads.
+
+4. **`packages/math/scripts/build-wasm.mjs`** — drop the `SUBMODULE` constant, the submodule
+   existence check and the `execFileSync` of `build-wasm.sh`. What remains is: read
+   `math-expressions/wasm-web/math_expressions_wasm_bg.wasm` and `…_wasm.js` out of `node_modules`,
+   base64 the binary into `src/generated/wasm-bytes.ts`, copy the glue. It shrinks; it does not
+   disappear.
+
+5. **`packages/math/vite.config.ts`** — of the four aliases (lines 126–147), three become plain
+   node resolution (`math-expressions-js-compat` → the package; `math-expressions-js-compat/lib/*`
+   → its `./lib/*` export; `math-expressions-rs-wasm` → gone, it is bundled into upstream's
+   `dist/`) and `math-expressions-wasm-glue` points at whatever step 4 writes. **Keep
+   `dropDefaultWasmPath()`** (lines 34–84) — the glue still carries the
+   `new URL('…_bg.wasm', import.meta.url)` line that would inline a second 2.24 MiB copy, and the
+   plugin hard-fails if it stops matching. Re-point its `id.startsWith(GENERATED)` guard (line 51)
+   if the glue is no longer copied into `src/generated/`.
+
+6. **`packages/math/src/vendored/math-expressions.d.ts`** (1,223 lines) — delete, and re-export
+   from the package in `src/types.ts`. Its 509 declaration lines (comments and blanks stripped) are
+   byte-identical to upstream's `types/math-expressions.d.ts`; upstream carries 21 more, which are
+   exactly `OdeState`, `OdeSolution`, `dopri`, `setWasmModule`, and the `MathExpression` default
+   export the header documents dropping. Two things the re-export is not literal about:
+
+   - upstream declares `export function dopri(...)`, a *value*; `src/types.ts` (61–68) declares a
+     *type alias* `Dopri`. It must become `typeof import("math-expressions").dopri` or the alias
+     must stay hand-written.
+   - upstream's `setWasmModule(mod: Record<string, unknown>)` is weaker than the local
+     `vendor-shims.d.ts` declaration `(mod: WasmModule)`. That is a deliberate type-strength loss;
+     record it or keep the local declaration.
+
+   This cannot be done *before* this step: an `exports` target may not escape its package root, so
+   `dist/` has no way to name the submodule that would survive the move to npm.
+
+7. **`packages/math/src/vendor-shims.d.ts`** (76 lines) — delete. All three of its ambient
+   `declare module` blocks (`math-expressions-js-compat`, `math-expressions-rs-wasm`,
+   `math-expressions-wasm-glue`) become real, typed npm resolutions, except as noted in step 6.
+   `vite.config.ts`'s `dts({ exclude: [... "src/vendor-shims.d.ts"] })` entry goes with it.
+
+8. **Workflows** — remove `submodules: recursive` from all **14** checkouts and
+   `uses: ./.github/actions/setup-math-wasm` from all **12** steps, then delete
+   `.github/actions/setup-math-wasm/`:
+   - `ci.yml`: `build` (54/55), `test-main` (136/137), `test-worker-js` (182/183),
+     `test-cypress` (235/236), `test-doenetml-to-pretext-devcontainer` (356, checkout only),
+     `test-doenetml-to-pretext-full-devcontainer` (395, checkout only), `build-docs` (457/458),
+     `schema-freshness` (606/607), `check-docs-coverage` (683/684)
+   - `publish.yml`: `dev-release` (53/54), `dev-vscode-extension` (142/143),
+     `production-release` (248/249)
+   - `gh-pages-docs.yml`: `build-docs` (39/40)
+   - `publish-doenetml-to-pretext-python.yml`: `build` (97/98)
+
+   The two devcontainer jobs have the checkout but not the action because their image carries the
+   toolchain — see step 10.
+
+9. **Submodule removal** — `git submodule deinit -f vendor/math-expressions`, `git rm
+   vendor/math-expressions`, delete the `[submodule "vendor/math-expressions"]` stanza from
+   `.gitmodules` (the file then has no stanzas left and can go), remove `.git/modules/vendor/…`,
+   drop `vendor/math-expressions` from `.prettierignore` (line 26, with its comment at 22–25), and
+   delete the `git submodule update --init --recursive` line from
+   `.devcontainer/postCreateCommand.sh` (line 13 and its comment at 8–12).
+
+10. **⚠️ The Rust toolchain does *not* go away — only the pinned `wasm-bindgen-cli` does.**
+    `packages/doenetml-worker-rust` is a full Cargo workspace and its `build:rust` script runs
+    `npx wasm-pack build lib-js-wasm-binding --target web`, which itself requires
+    `rustup target add wasm32-unknown-unknown`. That build is on `packages/doenetml:build`'s
+    critical path, so a contributor still needs `cargo` + `wasm32-unknown-unknown` + `wasm-pack`
+    after this step. What leaves is the *version-locked* `wasm-bindgen-cli` that had to match the
+    submodule's `wasm-bindgen = "=0.2.126"` pin.
+
+    Therefore: keep `ci.yml`'s `lint` / "Lint Rust Code" job (428–440) untouched — it has no
+    submodule checkout and no `setup-math-wasm` and is entirely independent — and keep
+    `.devcontainer/devcontainer.json`'s `ghcr.io/devcontainers/features/rust:1` (12–14) and the
+    `rust-lang.rust-analyzer` extension (43). Only `"./features/wasm-toolchain": {}` (line 22, with
+    its comment at 19–21) and `.devcontainer/features/wasm-toolchain/` go — **and before deleting
+    them, confirm wasm-pack still resolves `wasm32-unknown-unknown` inside the rebuilt image**, or
+    the two devcontainer CI jobs break.
+
+11. **Loose ends to sweep** —
+    - `packages/math/package.json`'s `build` has `clean: true`, and
+      `packages/doenetml-iframe/package.json` carries explicit ordering comments (25–34, 63–75)
+      about the CI race that causes. Re-read them once `build:wasm` is gone; they may be
+      simplifiable but they are *not* dead, since `packages/math` survives.
+    - Update `MATH_EXPRESSIONS_ENGINE_NOTES.md`'s "Building" section, which still tells a
+      contributor to install a matching `wasm-bindgen-cli`.
+    - `package-lock.json` regenerates on `npm install`; check the
+      `"node_modules/math-expressions"` link entry survives.
+    - `packages/math/README.md`, `src/engine-rust.ts`, `src/wasm-loader.ts` all name the submodule
+      in comments.
+
+12. **Verify.** `npm run build:all-no-docs`; `npm run test -w packages/math`;
+    `npm run test -w packages/standalone` (the transform-package-json tests read
+    `packages/doenetml/vite.config.ts` and `package.json` from source); read the four built
+    `dist/package.json` files and confirm `@doenet/doenetml`'s `peerDependencies.math-expressions`
+    is the published range; then `npm pack` `packages/doenetml/dist` and install the tarball into a
+    scratch project outside the workspace to confirm the import resolves to the registry package.
 
 **Upstream's side is done.** The three things that used to make `math-expressions@3.x`
 uninstallable are fixed in [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84)
@@ -455,20 +606,6 @@ into a throwaway project outside the workspace and runs it: `math-expressions-rs
 *named* in the manifest was what made `npm install` fail with a 404), `prepack` builds the
 git-ignored `dist/`, and `exports["."]` names a `types` entry. Nothing mechanical gates this step
 any more.
-
-One consequence for this side: the published package declares `types`, so
-`packages/math/src/vendored/math-expressions.d.ts` can be deleted at the same time and
-`src/types.ts` can re-export from the package instead. Keep the vendored copy until then — it is
-what every call site type-checks against today, and the two are currently the same declarations with
-one documented difference (ours drops the default export, since `engine-rust.ts` supplies that
-value).
-
-How much of `packages/math`'s type surface that retires is now measured rather than guessed: its
-504 declaration lines (comments and blanks stripped) are byte-identical to upstream's, and `src/types.ts`'s three hand-rolled
-ODE types (`OdeState`, `OdeSolution`, `Dopri`) are upstream's as well — so the deletion is the whole
-directory plus those three declarations, replaced by one re-export, with nothing DoenetML-specific
-to unpick. It cannot be done *before* this step because an `exports` target may not escape its
-package root: `dist/` has no way to name the submodule that would survive the move to npm.
 
 **Stage 1 exit criteria:** all suites green on `rust`, flat memory over a long session, no
 main-thread init regression, bundle delta accepted, and `@doenet/doenetml` publishable against

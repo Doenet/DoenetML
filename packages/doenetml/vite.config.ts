@@ -21,22 +21,13 @@ import {
 // once.
 const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
 
-// Externalizing `math-expressions` is right for the workspace —
-// `@doenet/standalone` builds against this `dist/` and resolves the seam once —
-// but it is what makes this package unpublishable for now. The specifier
-// resolves through `"math-expressions": "file:../math"` to the workspace-only
-// `@doenet/math`, and a `file:` range is meaningless to an npm consumer, so the
-// tarball would carry an `import ... from "math-expressions"` that resolves to
-// nothing (or, worse, to the unrelated `math-expressions@2.x` on npm).
-//
-// `createPackageJsonTransformer` detects that by itself and leaves
-// `"private": true` in the emitted `dist/package.json`, which `npm publish`
-// refuses — so merging this branch cannot silently release a broken
-// `@doenet/doenetml`. Editing this package's `"math-expressions"` range to
-// `^3.x` is what clears the block, and the range is the only thing the build
-// can check: it reads the range's shape, not the registry, so it is on whoever
-// makes that edit to have published `math-expressions@3.x` first. See Step 6 of
-// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` for the rest of that checklist.
+// `math-expressions` stays in that list, and that is what puts it into the
+// published `dist/package.json`'s `peerDependencies`: the transformer copies
+// this package's declared range verbatim. So the range in `package.json` is the
+// range that ships. It is `file:../math` today, which no npm consumer can
+// resolve — changing it to the published `^3.x` is Step 6 of
+// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`, and that document states the order
+// the release has to follow.
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

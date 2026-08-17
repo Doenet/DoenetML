@@ -80,63 +80,18 @@ Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`; because the seam is an alia
 and no bundler rule moves — changing `packages/doenetml/package.json`'s
 `"math-expressions": "file:../math"` to the published `^3.x` range is what unblocks publication.
 
-Until that happens the release is blocked *mechanically*, not by convention.
-`scripts/transform-package-json.ts` marks a built package `"private": true` when something the
-bundle imports by name was externalized without a registry-resolvable version, and `npm publish`
-refuses a private package (`.github/scripts/npm-publish-with-retry.mjs` refuses first, naming the
-reason). That matters because `publish.yml` releases to npm on every successful CI run on `main`,
-so merging this branch early would otherwise *publish* the broken tarball rather than merely make
-one possible; now it turns the publish job red. The block clears itself when the range changes —
-there is no flag to remember to flip.
+Nothing in this repo *enforces* that order, and nothing should: the person who publishes
+`math-expressions@3.x` is the person who merges these two PRs, so code protecting them from
+themselves is only a thing to maintain. Five review passes wrote and rewrote a shape test on the
+range, and two of them opened a hole the previous one's fix had left; the test is gone. The order
+is stated once, at the top of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`, and that is where it
+lives.
 
-Two limits of that guard, stated so nobody over-reads it. It is a **shape test on the range**, run
-at build time with no network. What it tests is npm's own classification — the ranges
-`npm-package-arg` resolves to a `directory` or a local `file` — rather than a list of spellings
-anyone thought of, which is the fifth form the test has taken: the thirteenth pass wrote the
-protocols (`file:`/`link:`/`portal:`/`workspace:`/`catalog:`/`git+file:`), the fifteenth found the
-bare path (`../math` installs the sibling directory exactly as `file:../math` does), the sixteenth
-found `~/src/math-expressions` and a bare tarball path still passing, and the seventeenth found
-that the *third* branch of `npa`'s classification had never been mirrored at all. Any protocol-less
-spec containing a separator is a path to npm — no leading dot, no `~/`, no drive letter and no
-`.tgz` needed — so `"math-expressions": "vendor/math-expressions/packages/…"`, the spelling this
-monorepo would actually write, read as publishable and shipped an unresolvable peer range. Measured
-against npm 11.12.1, which installs `sub/dir/pkg` as a symlink to that directory.
-
-The eighteenth found the fifth door, and it had been opened by an earlier pass's own fix rather
-than merely missed: the guard `.trim()`ed the range before classifying it, on the stated grounds
-that "npm trims the range first". npm does not. `hosted-git-info` refuses any spec containing
-whitespace, so `"vendor/math "` never becomes a repository to npm — it falls through to that same
-bare-path branch — but trimming before the GitHub-shorthand test turned it back into a clean
-`user/repo` shape and called it publishable. Measured against npm 11.12.1: that range installs
-`node_modules/math-expressions` as a **dangling** symlink and exits 0, so the consumer's import
-throws at run time, which is exactly what the guard exists to prevent. The prefix tests still run
-on the trimmed range — a leading space must not slip `" file:../math"` past an anchored pattern —
-and only the shorthand test sees the raw one; that asymmetry is the whole content of the fix. The
-same sweep, a diff against the real `npm-package-arg@14` over 173 spellings, found the guard
-*over*-strict in one realistic place and fixed that too: `git@github.com:user/repo.git` carries no
-`scheme:` and has an `@` and a `:` before its slash, so it read as a local path and would have
-blocked a release over a perfectly clonable dependency.
-
-The remaining divergences from `npa` are deliberate, and each is asserted: the guard is stricter on
-`link:`/`portal:`/`workspace:`/`catalog:` (npm *throws* `EUNSUPPORTEDPROTOCOL` on those rather than
-classifying them, so "not local" is not "publishable"), on `\\unc\path` (a `directory` to `npa`
-only when it runs on Windows — the platform union is the point), on a range whose prefix tests only
-match after trimming (`" file:../math"`, `" C:/math"` — an invalid tag name to `npa`, which throws),
-and on a one-slash `.tar.gz`
-(`vendor/math.tar.gz` is the GitHub shorthand for a repository named `math.tar.gz` to `npa`; anyone
-who writes it means a tarball). The one thing it cannot separate is a one-slash path from the
-`user/repo` shorthand, because nothing in the spelling distinguishes them — and npm resolves that
-case as a clone, so the guard agrees with npm rather than diverging. It still catches a missing
-range too, but a
-registry-shaped range naming something nobody published — `^3.0.0` before
-`math-expressions@3.x` exists, or the `"*"` this repo uses for private workspace packages — reads
-as publishable. So the guard enforces the *edit*, and the release order still has to be followed
-for the edit to be honest. And it is not atomic: the root `publish` script fans out with
-`npm run publish -w …`, which continues past a workspace that exits non-zero, so a premature merge
-refuses `@doenet/doenetml` and still ships `@doenet/standalone`, `@doenet/doenetml-iframe` and
-`@doenet/v06-to-v07` at that dev version before the job goes red. Those three are individually
-correct — they bundle the seam — but the fixed group ends up version-skewed. A preflight over all
-four built manifests before any of them publishes would close that, and is a small follow-up.
+What remains is the mechanism the order acts on, which is worth knowing:
+`scripts/transform-package-json.ts` copies each externalized dependency's declared range verbatim
+into the built `dist/package.json`'s `peerDependencies`. So `packages/doenetml/package.json`'s
+`"math-expressions"` range *is* the range a consumer installs, and editing it is the whole of the
+publishability change.
 
 ## Building
 
