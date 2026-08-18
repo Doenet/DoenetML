@@ -138,8 +138,11 @@ copies of the engine once the seam was externalized everywhere.
 
 - **NaN, not null, at every numeric boundary.** The engine answers `NaN` for an expression with no
   numeric value, which is legacy's answer and the only one that poisons arithmetic rather than
-  reading as `0` — it briefly answered `null` instead, and that inversion is where roughly fourteen
-  grading defects came from. It is fixed at the source (math-expressions#84), so this is no longer
+  reading as `0` — it briefly answered `null` instead, and that inversion is where **ten** of the
+  eighteen grading defects below came from — the ninth through the eighteenth. (An earlier
+  wording here said "roughly fourteen", which reconciles with neither the ledger below nor
+  either PR body; corrected at the twenty-fifth pass.) It is fixed at the source
+  (math-expressions#84), so this is no longer
   a rule a call site can break by forgetting. What the boundary helpers in
   `packages/doenetml-worker-javascript/src/utils/math.ts` and `@doenet/utils`
   (`isNumericConstant`, `toNumberOrNaN`, `evaluateToNumber`, `plainComplex`) are still for is the
@@ -465,11 +468,13 @@ copies of the engine once the seam was externalized everywhere.
    to sweep is the `Complex` arm and the general discipline, not a coercion hazard. The history
    below is kept as written, because what it records is where defects were actually found.)*
 
-   `evaluate_to_constant()` occurs **259 times across 67 files** in `packages/*/src` outside the
-   test trees — 29 of those in comments, so **230 live call sites** (`grep -rn
+   `evaluate_to_constant()` occurs **260 times across 67 files** in `packages/*/src` outside the
+   test trees — 30 of those in comments, so **230 live call sites** (`grep -rn
    "evaluate_to_constant(" packages/*/src`, dropping `/test/`, `*.test.*` and the vendored
-   declarations; re-derived at the twenty-second pass, down from the eighteenth's 254 live as
-   passes replace sites with `toNumberOrNaN`/`evaluateToNumber`). That is the *population*, not the
+   declarations; re-derived at the twenty-fifth pass — only the comment total moved, by the one
+   the twenty-third pass's comment sweep netted, and the live count is unchanged — and down from
+   the eighteenth's 254 live as passes replace sites with
+   `toNumberOrNaN`/`evaluateToNumber`). That is the *population*, not the
    defect count, and the distinction is the whole reason this is a follow-up rather than an
    emergency: most sites hand their result straight to `Number.isFinite`, which rejects both a
    `null` and a `Complex` correctly. The eighth pass
@@ -730,9 +735,10 @@ Two rounds of scope-trimming have already landed (`packages/doenetml-print`'s te
 crash were flagged in the PR body). A twelfth-pass sweep of the whole diff, reading hunks rather
 than filenames, finds these still in and still unrelated. None is deleted here — they are another
 author's work — but each is self-contained enough to lift into its own PR, and together they are
-roughly 1,100 added lines out of the branch's 11,898 (`git diff --shortstat` against the merge
-base, re-derived at the twenty-fourth pass; the denominator moves with every review pass, the
-numerator does not).
+roughly 1,100 added lines out of the branch's ~12,000 (`git diff --shortstat main...HEAD`, which
+GitHub's own diffstat agrees with; 12,082 at the twenty-fifth pass). The denominator is left
+rounded on purpose: it moves with every review pass while the numerator does not, and a precise
+figure here has already gone stale more than once.
 
 - **`<video>` playback state** — `renderers/video.tsx`, `components/Video.js`,
   `tagSpecific/video.test.ts` (~152 lines). The one changed component file with no math, NaN or

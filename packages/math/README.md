@@ -67,12 +67,14 @@ exactly this shape.
 
 The same declarations are now `math-expressions@3.x`'s own published `types`
 entry, so this copy goes away when the submodule does — see Step 6 of the
-migration plan. The legacy contract itself is byte-identical, `diff`ed at the
-current pin. Comparing the two with comments and blank lines stripped — the
+migration plan. The shared part of the contract matches line for line, `diff`ed
+at the current pin. Comparing the two with comments and blank lines stripped — the
 stable way to say it, since either file's prose moves without its contract
-moving — gives 504 declaration lines here against 525 upstream, and the whole
-21-line delta is upstream's trailing *v3 additions* block, which Step 6 absorbs
-rather than reconciling:
+moving — gives 422 declaration lines here against 445 upstream. (Both counts
+moved at the twenty-second pass, when the two files were narrowed to the members
+the engine actually implements; re-derive them rather than quoting these, as
+Step 6 of the migration plan says.) Of that 23-line delta, 21 are upstream's
+trailing *v3 additions* block, which Step 6 absorbs rather than reconciling:
 
 - `OdeState`, `OdeSolution` and `dopri` — hand-rolled here in
   [`src/types.ts`](src/types.ts), so those three declarations go too;
@@ -82,6 +84,11 @@ rather than reconciling:
   package;
 - `declare const MathExpression: Context; export default …` — deliberately
   absent here, because `engine-rust.ts` supplies that value.
+
+The remaining 2 lines are not a contract difference at all: `evaluate_to_constant`'s
+signature is wrapped across three lines upstream and one here, because this copy
+is Prettier-gated by DoenetML CI and upstream's tree is not — so byte-identity in
+both directions is not achievable.
 
 A hand-written `.d.ts` under `src/` only reaches consumers because
 `vite.config.ts` passes `copyDtsFiles` to `vite-plugin-dts`: the plugin
