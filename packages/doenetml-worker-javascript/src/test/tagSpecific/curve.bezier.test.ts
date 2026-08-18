@@ -2871,6 +2871,49 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         ]);
     });
 
+    it("a through point with no real value gives undefined control points", async () => {
+        // The leg that measures the guard rather than the engine. `sqrt(-4)`
+        // *has* a value — `evaluate_to_constant()` answers a math.js
+        // `Complex` — so the engine does not report `NaN` for it and only
+        // `evaluateToNumber` does. It matters here more than at most guard
+        // sites because a control point is the through point *added* to the
+        // control vector, and `+` is the one operator that does not reduce a
+        // `Complex` to `NaN`: unguarded, the x coordinate of this control
+        // point is the string `"2i1"`, which is then stored in a math
+        // expression as a variable of that name.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <curve name="c" through="(1,2) (sqrt(-4),3) (5,6)">
+        <bezierControls>(1,1) (1,1) (1,1)</bezierControls>
+      </curve>
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controlPoints =
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .controlPoints;
+
+        // The control: the numeric through points either side are unaffected.
+        expect(controlPoints[0].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [2, 3],
+            [0, 1],
+        ]);
+        expect(controlPoints[2].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [6, 7],
+            [4, 5],
+        ]);
+
+        // The complex one: `NaN` in the coordinate that has no real value, and
+        // the real coordinate still added normally.
+        expect(controlPoints[1].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [NaN, 4],
+            [NaN, 2],
+        ]);
+    });
+
     /**
      * The same hazard on the *default* path, which is the one a curve takes
      * with no `<bezierControls>` at all: `calculateControlVectorFromSpline`

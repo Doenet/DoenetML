@@ -1975,8 +1975,12 @@ export default class LineSegment extends GraphicalComponent {
                 // subtracted as `0` and a segment with no slope reported one —
                 // `(3,4)` against a blank first endpoint answered `1`, and
                 // `slope` is public and reaches `<answer>` through `<when>`.
-                // The engine answers `NaN` there now; the helper stays for the
-                // `Complex` arm, which subtracts without complaint.
+                // The engine answers `NaN` there now, so this reading is
+                // the convention rather than the only thing holding the slope
+                // together: a `Complex` endpoint subtracts to `NaN` too
+                // (measured at the twenty-fourth pass — an earlier wording of
+                // this comment said it "subtracts without complaint", which is
+                // what `+` does, not `-`).
                 // Every other reader of these endpoints in this file already
                 // takes a number or refuses (`numericalEndpoints` above, the
                 // inverse definition below).

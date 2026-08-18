@@ -101,9 +101,16 @@ export default function periodicSetEquality(
         // constant, `null` was `0` to `mod`, so a wholly symbolic list
         // `y, z, w` passed the "first element lies on the set" test below and,
         // with `match_partial`, was awarded a third of the credit. The engine
-        // answers `NaN` now, as the legacy one did, and `NaN` fails that test;
-        // the helper stays for the `Complex` arm, which `mod` would carry
-        // rather than reject.
+        // answers `NaN` now, as the legacy one did, and `NaN` fails that test.
+        //
+        // The helper stays because this list is documented as numbers and a
+        // missing element would otherwise be `undefined` here — not because of
+        // the `Complex` arm, which an earlier version of this comment claimed
+        // and the twenty-fourth pass measured: the subtraction on the next line
+        // takes a `Complex` to `NaN` before `mod` ever sees it, so reverting
+        // this one reading changes no result. The guard that *is* load-bearing
+        // for a `Complex` is the per-tuple one in `contained_in` below, where
+        // the value reaches `fromAst` unsubtracted.
         //
         // Mapping to `NaN` rather than refusing the whole list is the point:
         // the loop below counts a *consecutive run* from the first element, so

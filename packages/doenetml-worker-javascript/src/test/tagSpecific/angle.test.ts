@@ -1598,4 +1598,29 @@ describe("Angle tag tests @group4", async () => {
         expect(points[1].map((v) => v.tree)).eqls([0, 0]);
         expect(points[2].map((v) => v.tree)).eqls([NaN, NaN]);
     });
+
+    it("a coordinate with no real value leaves numericalPoints NaN", async () => {
+        // The leg that measures the `numericalPoints` guard rather than the
+        // engine. `sqrt(-4)` *has* a value — `evaluate_to_constant()` answers
+        // a math.js `Complex` — so unlike the symbolic case above, the engine
+        // does not report `NaN` here and only `evaluateToNumber` does.
+        // `numericalPoints` is `forRenderer`, and a `Complex` crosses the
+        // structured clone prototype-stripped into an array JSXGraph reads as
+        // coordinates.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <angle name="a" through="(sqrt(-4),1) (0,0) (1,0)" />
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                .numericalPoints,
+        ).eqls([
+            [NaN, 1],
+            [0, 0],
+            [1, 0],
+        ]);
+    });
 });

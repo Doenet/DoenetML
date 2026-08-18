@@ -41,6 +41,25 @@ describe("periodicSetEquality @group3", () => {
         expect(credit(["list", ["+", "x", ["-", "x"]], "z", "w"])).eq(false);
     });
 
+    it("declines a covering piece whose offset has no real value", () => {
+        // The leg that measures the guard rather than the engine. Every other
+        // test here turns on `NaN`, which `evaluate_to_constant()` now
+        // produces by itself; `sqrt(-4)` *has* a value, and it is a math.js
+        // `Complex`, so only `isNumericConstant` keeps it out of `data`. It is
+        // the one guard in this file whose complex arm is load-bearing:
+        // without it the offset reaches `me.fromAst(["+", offset, …])` a few
+        // lines below, which rejects a `Complex` outright — and a throw here
+        // is not a wrong grade but a dead document, since `checkEquality`
+        // calls this synchronously while computing an `<answer>`'s credit.
+        const complexSet = me.fromAst([
+            "periodic_set",
+            ["tuple", ["apply", "sqrt", -4], 3, -Infinity, Infinity],
+        ]);
+        expect(
+            periodicSetEquality(set, complexSet, { match_partial: true }),
+        ).eq(0);
+    });
+
     it("still credits the constant prefix of a partly symbolic answer", () => {
         // Not a stricter rule than the old one, only a correct one: the match
         // loop counts a consecutive run from the first offset, so an answer

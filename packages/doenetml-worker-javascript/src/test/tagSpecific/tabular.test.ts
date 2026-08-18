@@ -159,10 +159,16 @@ describe("Tabular tag tests @group3", async () => {
         // for "not a number". The engine briefly reported an expression it
         // cannot evaluate as `null`, which is `0` to every arithmetic consumer
         // and which `Number.isNaN` answers `false` for.
+        //
+        // `c3` is the leg that measures this definition rather than the
+        // engine: `sqrt(-4)` *has* a value, and it is a math.js `Complex`, so
+        // the engine's own answer is not `NaN` and only `evaluateToNumber`
+        // makes it so. Without it a `number`-typed public state variable holds
+        // a `{re, im}` object.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <table><tabular>
-    <row><cell name="c1">q</cell><cell name="c2">7</cell></row>
+    <row><cell name="c1">q</cell><cell name="c2">7</cell><cell name="c3">sqrt(-4)</cell></row>
   </tabular></table>
   `,
         });
@@ -174,5 +180,8 @@ describe("Tabular tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("c2")].stateValues.number,
         ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.number,
+        ).eqls(NaN);
     });
 });

@@ -144,8 +144,16 @@ copies of the engine once the seam was externalized everywhere.
   `packages/doenetml-worker-javascript/src/utils/math.ts` and `@doenet/utils`
   (`isNumericConstant`, `toNumberOrNaN`, `evaluateToNumber`, `plainComplex`) are still for is the
   other arm: `evaluate_to_constant` returns `number | Complex`, and a `Complex` is a value no
-  `number`-typed state variable can hold and one that orders against numbers in ways JavaScript
-  will invent. Prefer them at any site whose result reaches arithmetic, a grade or a renderer.
+  `number`-typed state variable can hold. What JavaScript does with one is worth knowing exactly,
+  because it is what decides whether a guard is load-bearing (measured at the twenty-fourth pass,
+  on a math.js `Complex` of `2i` and on the prototype-stripped `{re, im}` a structured clone
+  delivers): `-`, `*`, `/`, `Number()` and `Math.abs()` all give `NaN`, so a site that only
+  subtracts or divides already degrades loudly. **Three operations do not.** Every comparison is
+  `false` — `c >= -3` *and* `c < -3` — so a range test silently excludes and a comparator sort
+  orders arbitrarily; `+` returns a **string** (`2i` + `1` is `"2i1"`, the cloned form
+  `"[object Object]1"`); and `me.fromAst` throws on one. Prefer the helpers at any site whose
+  result reaches arithmetic, a grade or a renderer, and expect the guard to be *observably*
+  load-bearing at the sites that compare, add or rebuild.
 - **A guard test in this family is falsified by simulating the old sentinel, not by reverting the
   guard.** Now that `evaluate_to_constant()` answers `NaN` itself, `evaluateToNumber(expr)` and a
   bare `expr.evaluate_to_constant()` agree for every input a document can write except a
@@ -161,10 +169,40 @@ copies of the engine once the seam was externalized everywhere.
   guards, and `domain?.[0]`), 2 are the `<line>` marker test and `periodicSetEquality`'s
   deliberate positive control, which are falsified by their own opposite, and the twenty-second
   pass's own four were verified when it wrote them. Where a test *can* be anchored on the
-  `Complex` arm instead it should be, because that arm is live and a plain revert does falsify it:
-  `<math>`'s `.number` and `<vector>`'s `numericalEndpoints` now have such a leg. Two that cannot
-  are marked as such in place — `<circle>`'s `numericalRadius`, which a `sqrt(-4)` radius does not
-  reach, and `<polygon>`'s centroid, where a `Complex` coerces through `+=` to `NaN` anyway.
+  `Complex` arm instead it should be, because that arm is live and a plain revert does falsify it.
+
+  **The twenty-fourth pass worked that question through the whole population, and the answer is
+  mostly "the guard changes nothing".** Twenty guard sites were probed with a `sqrt(-4)` in place
+  of the symbolic value, first with the guards in place and then with `toNumberOrNaN` made the
+  identity, `plainComplex` made the identity and `isNumericConstant`'s complex-rejecting half
+  removed — the same method as the sentinel patch above, aimed at the other arm. Instrumenting the
+  helpers to log a `Complex` argument shows one **reaches** the guard at 19 of the 20; `<circle>`'s
+  `numericalRadius` is the exception, as the twenty-third pass reported. But at only **five** does
+  it change what the document reports, and those five are exactly the sites that store the value or
+  hand it to `fromAst` rather than merely subtracting it — see the operator measurements in the
+  bullet above. Each is now anchored on the `Complex` arm and verified to fail with its own guard
+  plainly reverted, for the right reason, and to pass with it: `<angle>`'s `numericalPoints`,
+  `<cell>`'s `.number`, `<ray>`'s `numericalEndpoint`, `<curve>`'s bezier `controlPoints` and
+  `periodicSetEquality`'s per-tuple offset guard. That makes **seven** such legs in the branch,
+  with the twenty-third pass's `<math>`'s `.number` and `<vector>`'s `numericalEndpoints`. The
+  `<curve>` one is the `+`-returns-a-string case: unguarded, a control point's x coordinate becomes
+  the math variable named `2i1`. The `periodicSetEquality` one is the `fromAst`-throws case, and a
+  throw there is a dead document rather than a wrong grade. (Three of the five are new `it` blocks
+  and two are legs inside the existing test, so the population the paragraph above audits is 26
+  guard tests now, not 23.)
+
+  The other **fourteen** are reachable and *not* falsifiable by reverting: `<cobwebPolyline>`,
+  `<isBetween>`, `<curve>`'s default spline control vectors, `<functionIterates>`, `<line>`'s
+  `parallelTo`, `<lineSegment>`'s `slope`, `<rectangle>`'s width and height, `<stickyGroup>`'s
+  drag, `<polygon>`'s rigid rotate, `<polygon>`'s centroid, `find_effective_domain`'s endpoint
+  reads, and the three `nearestPoint` guards in
+  `<polygon>`/`<polyline>`/`<regionBetweenCurveXAxis>`. In every one the `Complex` meets a `-`, a
+  `/` or a comparison before it can be observed, and comes out `NaN` or `false` either way. They
+  keep their guards — the guards say what the definition requires, and one refactor away the
+  arithmetic could change — but their tests are behaviour locks and are falsified by the sentinel
+  patch, not by a revert. `<circle>`'s `numericalRadius` and `<polygon>`'s centroid say so in
+  place, as does `<polygon>`'s `nearestPoint` (the one where the `Complex` was traced all the way
+  to the guard's own `x1`); the rest are recorded here rather than in fourteen comments.
 - **Rebuild an expression with an engine method, not from its `.tree`.** The engine holds `5.1`
   exactly, as `51/10`; the JSON AST that `.tree` produces has only f64, so a `fromAst(...)` round
   trip silently makes the expression inexact. Nothing looks different afterwards — the value is
@@ -506,9 +544,14 @@ copies of the engine once the seam was externalized everywhere.
    `NaN` and fails loudly; the residue is a `Complex` reaching a real-valued consumer, which is
    rarer and does not silently read as `0`. The twenty-first pass measured four of the twentieth's
    seven hardened sites as having been live defects against the previous pin and none against this
-   one. So this is now a hardening sweep, not a bug hunt — but it is still worth doing, because
-   `<` and `>` against a `Complex` are decided by `Object.prototype.valueOf` and answer
-   confidently.
+   one. So this is now a hardening sweep, not a bug hunt — and the twenty-fourth pass narrowed
+   what it is worth sweeping *for*. An earlier wording here said `<` and `>` against a `Complex`
+   "are decided by `Object.prototype.valueOf` and answer confidently"; measured, they are decided
+   by math.js's own `valueOf`, which returns the string `"2i"`, and they answer `false` in **both**
+   directions. That is still worth finding — a range test that excludes silently, a comparator sort
+   that orders arbitrarily — but it is a narrower target than "answers confidently". The three
+   operations that do more than answer `false` are `+` (a string), `me.fromAst` (a throw) and
+   storing the value in a `number`-typed state variable; see the conventions section.
 4. **The extrema search's remaining gaps are the two the exact roots cannot close on their own.**
    Three quarters of this item is now fixed and only the redesign is left. `exactCriticalPointsOf`
    returns the *complete* real root set of `f'` when the derivative is rational, so
@@ -687,8 +730,9 @@ Two rounds of scope-trimming have already landed (`packages/doenetml-print`'s te
 crash were flagged in the PR body). A twelfth-pass sweep of the whole diff, reading hunks rather
 than filenames, finds these still in and still unrelated. None is deleted here — they are another
 author's work — but each is self-contained enough to lift into its own PR, and together they are
-roughly 1,100 added lines out of the branch's ~10,900 (`git diff --shortstat` against the merge
-base; the denominator moves with every review pass, the numerator does not).
+roughly 1,100 added lines out of the branch's 11,898 (`git diff --shortstat` against the merge
+base, re-derived at the twenty-fourth pass; the denominator moves with every review pass, the
+numerator does not).
 
 - **`<video>` playback state** — `renderers/video.tsx`, `components/Video.js`,
   `tagSpecific/video.test.ts` (~152 lines). The one changed component file with no math, NaN or

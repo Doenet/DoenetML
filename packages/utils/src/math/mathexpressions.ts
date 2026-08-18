@@ -79,10 +79,17 @@ export const vectorOperators = ["vector", "altvector", "tuple"];
  * "no numeric value" — a free variable, a blank `＿`, a matrix, a stray unit,
  * an indeterminate form. Both halves of this test are load-bearing:
  *
- * - `typeof value === "number"` rejects the `Complex` arm. `{re, im} >= -3` is
- *   an answer JavaScript will happily invent, and a complex value put into a
- *   real-valued state variable is structure-cloned to the main thread and
- *   arrives prototype-stripped.
+ * - `typeof value === "number"` rejects the `Complex` arm, which is a value
+ *   but not one a real-valued consumer can use. Measured on a math.js
+ *   `Complex` of `2i`, and on the prototype-stripped `{re, im}` a state
+ *   variable's structured clone delivers: `-`, `*`, `/`, `Number()` and
+ *   `Math.abs()` all give `NaN`, so a site that only subtracts or divides
+ *   degrades loudly on its own. Three do not. Every comparison is `false` —
+ *   `c >= -3` *and* `c < -3` — so a range test silently excludes and a
+ *   comparator sort orders arbitrarily; `+` returns a **string** (`2i` + `1`
+ *   is `"2i1"`, and the cloned form gives `"[object Object]1"`); and
+ *   `me.fromAst` throws on one outright. Those three are where this guard
+ *   earns its keep.
  * - `!Number.isNaN(value)` rejects the no-value marker.
  *
  * It used to have a third job. The engine answered `null` rather than `NaN` for

@@ -3956,9 +3956,18 @@ describe("Ray Tag Tests @group1", function () {
         // `Number(null)` is `0`, so while the engine answered `null` an
         // endpoint with no numeric value was drawn at the origin rather than
         // not drawn.
+        //
+        // `r2` is the leg that measures the guard rather than the engine:
+        // `sqrt(-4)` has a value and it is a math.js `Complex`, so
+        // `evaluate_to_constant()` does not answer `NaN` and only
+        // `evaluateToNumber` folds it. A `Complex` reaches the renderer
+        // prototype-stripped, which is not the `number` this array declares.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph><ray name="r" endpoint="(q,b)" through="(3,4)" /></graph>
+  <graph>
+    <ray name="r" endpoint="(q,b)" through="(3,4)" />
+    <ray name="r2" endpoint="(sqrt(-4),1)" through="(3,4)" />
+  </graph>
   `,
         });
 
@@ -3966,5 +3975,9 @@ describe("Ray Tag Tests @group1", function () {
         const ray = stateVariables[await resolvePathToNodeIdx("r")];
         expect(ray.stateValues.numericalEndpoint).eqls([NaN, NaN]);
         expect(ray.stateValues.numericalThroughpoint).eqls([3, 4]);
+
+        const ray2 = stateVariables[await resolvePathToNodeIdx("r2")];
+        expect(ray2.stateValues.numericalEndpoint).eqls([NaN, 1]);
+        expect(ray2.stateValues.numericalThroughpoint).eqls([3, 4]);
     });
 });

@@ -221,8 +221,13 @@ export default class PeriodicSet extends MathComponent {
                                 // `0` in JavaScript — a difference of zero,
                                 // which is exactly what "redundant" looks like.
                                 // The engine answers `NaN` there now, which
-                                // fails the comparison on its own; this stays
-                                // for the `Complex` arm, which `%` does not.
+                                // fails the comparison on its own, and a
+                                // `Complex` offset difference does the same:
+                                // `%` takes one to `NaN` (measured at the
+                                // twenty-fourth pass, correcting an earlier
+                                // wording that said it did not). The guard
+                                // stays because the value is documented as a
+                                // number, not because it is load-bearing.
                                 if (!isNumericConstant(offsetDiff)) {
                                     continue;
                                 }
