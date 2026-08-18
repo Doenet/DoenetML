@@ -406,7 +406,7 @@ copies of the engine once the seam was externalized everywhere.
   user-visible defects among them, one confirmed not a defect, and `<angle>`'s the sixth* — and
   the sentinel change is what makes the remaining ~890 unswept reads safe by default.
 
-  Read the fourteen together and the pattern is not "the engine is wrong" but "the suites test one
+  Read the eighteen together and the pattern is not "the engine is wrong" but "the suites test one
   path at a time". **Three** of them were invisible because a *different* path answered
   correctly: `erf` plotted while it could not be graded, `det`/`trace` simplified *and* plotted
   while they could not be compared, and `f((a, b))` folded while it could not be compared. Two
@@ -414,7 +414,7 @@ copies of the engine once the seam was externalized everywhere.
   seventh and eighth are the same shape reached twice, which is the argument for the shared-helper
   habit rather than for a longer list of special cases: whenever *two* layers decide independently
   whether an application has a value, they will eventually answer differently. And the ninth,
-  tenth, eleventh and twelfth-through-fourteenth say the same thing about a *guard*: a helper that
+  tenth, eleventh and twelfth-through-eighteenth say the same thing about a *guard*: a helper that
   exists (`evaluateToNumber`, or the four-line `Number.isFinite` opening of a `nearestPoint`)
   is worth nothing at the one call site that does not use it. All of them sit in a file that
   already imports the guard and already uses it a few lines away — `<isBetween>` beside two siblings that
@@ -422,12 +422,12 @@ copies of the engine once the seam was externalized everywhere.
   an inverse definition that refuses, `periodicSetEquality` among six other guarded reads in the
   same function.
 
-  `nthroot` is the mirror image of `erf` and is deliberately **not** among the eleven: it could not
+  `nthroot` is the mirror image of `erf` and is deliberately **not** among the eighteen: it could not
   be plotted while grading it worked perfectly, so no answer was ever marked wrong. It belongs to
   the same lesson about single-path testing and to none of the grading arithmetic — an earlier
   wording counted it as one of them and split `det`/`trace` into two to reach "four invisible",
   which is the same error twice. The `f((a, b))` *serialization* defect the eighteenth pass fixed
-  is likewise not one of the eleven, and for the opposite reason: `checkEquality` rebuilds both
+  is likewise not one of the eighteen, and for the opposite reason: `checkEquality` rebuilds both
   operands with `me.fromAst` one line before comparing them, so grading never saw it. It was a
   rendering regression.
 
