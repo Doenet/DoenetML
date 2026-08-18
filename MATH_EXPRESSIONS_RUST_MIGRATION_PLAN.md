@@ -575,7 +575,16 @@ registry is still `2.0.0-alpha95` — 3.x is not published as of the twentieth p
     `rustup target add wasm32-unknown-unknown`. That build is on `packages/doenetml:build`'s
     critical path, so a contributor still needs `cargo` + `wasm32-unknown-unknown` + `wasm-pack`
     after this step. What leaves is the *version-locked* `wasm-bindgen-cli` that had to match the
-    submodule's `wasm-bindgen = "=0.2.126"` pin.
+    submodule's `wasm-bindgen = "=0.2.126"` pin, and the explicit
+    `rustup target add wasm32-unknown-unknown` that `build-wasm.sh` needs because it calls `cargo`
+    directly.
+
+    `packages/doenetml-worker-rust`'s wireit `build` also gained `../math:build` as a dependency on
+    this branch, and that edge **stays**: `@doenet/math` survives Step 6 — step 2 above leaves the
+    six non-publishing manifests, `doenetml-worker-rust`'s among them, on `"file:../math"` — so the
+    package is still what the bare `math-expressions` specifier resolves to and still has to be
+    built first. What changes underneath the edge is that `../math:build` stops compiling Rust and
+    starts unpacking a prebuilt `.wasm` out of `node_modules` (step 4).
 
     Therefore: keep `ci.yml`'s `lint` / "Lint Rust Code" job (428–440) untouched — it has no
     submodule checkout and no `setup-math-wasm` and is entirely independent — and keep

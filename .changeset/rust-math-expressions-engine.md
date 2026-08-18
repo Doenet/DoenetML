@@ -82,5 +82,8 @@ but the engine is a different implementation and some results differ:
 The engine's WASM is inlined into the bundle rather than fetched, so no extra network request is
 made, but the bundle carries it: the engine is 2.41 MiB uncompressed and 792 kB gzipped, against
 roughly 1 MiB (about 290 kB gzipped) for the JavaScript library it replaces. Building DoenetML from
-source now requires a Rust toolchain with the `wasm32-unknown-unknown` target and a matching
-`wasm-bindgen-cli`.
+source already required a Rust toolchain — `packages/doenetml-worker-rust` compiles DoenetML's own
+core with `wasm-pack`, and that is on `npm run build`'s critical path. What this adds on top is a
+`wasm-bindgen-cli` on `PATH` whose version matches the engine's pinned `wasm-bindgen`, and an
+explicit `rustup target add wasm32-unknown-unknown` (`wasm-pack` adds that target itself; the
+engine's build calls `cargo` directly and does not).

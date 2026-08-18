@@ -99,8 +99,16 @@ publishability change.
 
 ## Building
 
-A Rust toolchain is required: the `wasm32-unknown-unknown` target and a `wasm-bindgen-cli`
-matching the submodule's pinned `wasm-bindgen` (`0.2.126`). CI installs it via
+A Rust toolchain is required — but it was required before this diff too, and saying otherwise has
+been the standing error here. `packages/doenetml-worker-rust:build:rust` runs
+`npx wasm-pack build lib-js-wasm-binding`, `packages/doenetml:build` depends on it through
+`doenetml-worker`, and `npm run build` *is* `packages/doenetml:build`; that is true at the merge
+base as well. What this diff adds is (a) a `wasm-bindgen-cli` on `PATH` matching the submodule's
+pinned `wasm-bindgen` (`0.2.126`) — nothing before it invoked the CLI directly, since `wasm-pack`
+carries its own — and (b) an explicit `rustup target add wasm32-unknown-unknown`, because
+`build-wasm.sh` calls `cargo build --target wasm32-unknown-unknown` where `wasm-pack` adds the
+target for itself. Both of those go at Step 6; the toolchain does not (Step 6 checklist, item 10).
+CI installs them via
 `.github/actions/setup-math-wasm`; the devcontainer bakes it in via the `wasm-toolchain` feature.
 Every workflow checkout that builds needs `submodules: recursive` plus that action: `ci.yml`,
 `publish.yml`, `gh-pages-docs.yml` and `publish-doenetml-to-pretext-python.yml` — 14 checkouts and

@@ -39,9 +39,15 @@ from the `vendor/math-expressions` submodule. It is the only engine.
 npm run build -w packages/math
 ```
 
-Building requires a Rust toolchain: `rustup target add wasm32-unknown-unknown`
-and `wasm-bindgen-cli` matching the `wasm-bindgen` version pinned in the
-submodule's `Cargo.toml` (`cargo install wasm-bindgen-cli --version <pinned>`).
+Building requires a Rust toolchain — which the repo already needed, since
+`packages/doenetml-worker-rust` compiles DoenetML's own core with `wasm-pack`
+on `npm run build`'s critical path. What this package adds is
+`rustup target add wasm32-unknown-unknown` (explicitly: the build below calls
+`cargo build --target …` directly, where `wasm-pack` adds the target itself)
+and a `wasm-bindgen-cli` on `PATH` matching the `wasm-bindgen` version pinned
+in the submodule's `Cargo.toml`
+(`cargo install wasm-bindgen-cli --version <pinned>`). Both requirements leave
+with the submodule; the toolchain stays.
 
 ### The legacy library is gone
 
