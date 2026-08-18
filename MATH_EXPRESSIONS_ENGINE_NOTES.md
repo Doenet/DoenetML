@@ -138,6 +138,25 @@ copies of the engine once the seam was externalized everywhere.
   other arm: `evaluate_to_constant` returns `number | Complex`, and a `Complex` is a value no
   `number`-typed state variable can hold and one that orders against numbers in ways JavaScript
   will invent. Prefer them at any site whose result reaches arithmetic, a grade or a renderer.
+- **A guard test in this family is falsified by simulating the old sentinel, not by reverting the
+  guard.** Now that `evaluate_to_constant()` answers `NaN` itself, `evaluateToNumber(expr)` and a
+  bare `expr.evaluate_to_constant()` agree for every input a document can write except a
+  `Complex` — so deleting a guard leaves its test green, and "I reverted it and the test failed"
+  is no longer available as a check. The falsification that works is to make the boundary behave
+  the way the unguarded code did under the old sentinel: patch `toNumberOrNaN` in
+  `packages/utils/src/math/mathexpressions.ts` to
+  `typeof value === "number" && !Number.isNaN(value) ? value : 0`, rebuild `@doenet/utils` (the
+  worker tests resolve it through `dist/`), and run. **The twenty-third pass audited all 23 guard
+  tests the seventh through twenty-second passes added for this class this way, and none is
+  vacuous**: 15 fail under that one patch, 5 more fail under the same simulation applied at their
+  own guard (`<math>`'s `plainComplex(...) ?? NaN`, the three `nearestPoint` `Number.isFinite`
+  guards, and `domain?.[0]`), 2 are the `<line>` marker test and `periodicSetEquality`'s
+  deliberate positive control, which are falsified by their own opposite, and the twenty-second
+  pass's own four were verified when it wrote them. Where a test *can* be anchored on the
+  `Complex` arm instead it should be, because that arm is live and a plain revert does falsify it:
+  `<math>`'s `.number` and `<vector>`'s `numericalEndpoints` now have such a leg. Two that cannot
+  are marked as such in place — `<circle>`'s `numericalRadius`, which a `sqrt(-4)` radius does not
+  reach, and `<polygon>`'s centroid, where a `Complex` coerces through `+=` to `NaN` anyway.
 - **Rebuild an expression with an engine method, not from its `.tree`.** The engine holds `5.1`
   exactly, as `51/10`; the JSON AST that `.tree` produces has only f64, so a `fromAst(...)` round
   trip silently makes the expression inexact. Nothing looks different afterwards — the value is
@@ -646,7 +665,12 @@ copies of the engine once the seam was externalized everywhere.
     leaving the document exactly as authored. Not fixed here because it is not something the engine
     switch caused: legacy's `evaluate_to_constant` answered `NaN` for `(a,b)` too, so this outcome
     predates the branch. Fixing it means the guard, one test expectation in `polygon.test.ts`, and
-    a check of the `preserveSimilarity` path beside it.
+    a check of the `preserveSimilarity` path beside it. *Re-confirmed at the twenty-third pass and
+    left as a follow-up rather than fixed:* the only change this branch makes to
+    `calculateNumericalCentroid` and to the rotate/dilate inverse's reference-vertex read is
+    `evaluate_to_constant()` → `evaluateToNumber(...)`, which is the identity for a number and for
+    `NaN` — so with the sentinel back to `NaN` the branch and its merge base compute this the same
+    way, and the outcome is legacy's.
 
 ## What is still riding along, and should not be
 

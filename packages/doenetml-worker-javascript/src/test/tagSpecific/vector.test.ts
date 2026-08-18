@@ -6641,13 +6641,21 @@ describe("Vector Tag Tests @group4", function () {
         await check_both([7, 8], [10, 12], [3, 4]);
     });
 
-    it("a symbolic head leaves numericalEndpoints NaN, not null", async () => {
+    it("a head with no real value leaves numericalEndpoints NaN", async () => {
         // `numericalEndpoints` is `forRenderer`. `Number(null)` is `0`, so
         // while the engine answered `null` a head with no numeric value was
         // drawn at the origin rather than not drawn.
+        //
+        // `v2` is the leg that measures the guard rather than the engine:
+        // `evaluate_to_constant()` answers a math.js `Complex` for
+        // `sqrt(-4)`, which reaches the renderer prototype-stripped and is not
+        // the `number` this array declares. Only `evaluateToNumber` folds it.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph><vector name="v" head="(q,b)" /></graph>
+  <graph>
+    <vector name="v" head="(q,b)" />
+    <vector name="v2" head="(sqrt(-4),1)" />
+  </graph>
   `,
         });
 
@@ -6658,6 +6666,14 @@ describe("Vector Tag Tests @group4", function () {
         expect(endpoints).eqls([
             [0, 0],
             [NaN, NaN],
+        ]);
+
+        const complexEndpoints =
+            stateVariables[await resolvePathToNodeIdx("v2")].stateValues
+                .numericalEndpoints;
+        expect(complexEndpoints).eqls([
+            [0, 0],
+            [NaN, 1],
         ]);
     });
 });

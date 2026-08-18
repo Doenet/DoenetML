@@ -152,9 +152,9 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
                             }
                             // `evaluateToNumber`, not the raw call, and for the
                             // reason its two siblings above already use
-                            // `Number.isFinite`: `evaluate_to_constant` answers
-                            // `null` for an expression that is not a constant,
-                            // and `null` *coerces to 0* in a comparison — so
+                            // `Number.isFinite`: while `evaluate_to_constant`
+                            // answered `null` for an expression that is not a
+                            // constant, `null` *coerced to 0* in a comparison — so
                             // `<isBetween limits="-1 5">x</isBetween>` answered
                             // `true`, placing a free variable inside the
                             // interval. (`limits` is the attribute; there is no

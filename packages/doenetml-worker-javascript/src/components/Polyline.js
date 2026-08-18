@@ -2600,11 +2600,14 @@ export default class Polyline extends GraphicalComponent {
  * The mean of `vertices`, as a `[x, y]` pair of plain numbers.
  *
  * `NaN` in either coordinate if any vertex is not numeric. That has to be
- * spelled out: `evaluate_to_constant()` reports a still-symbolic coordinate as
- * `null`, and `null` is `0` to `+=`, so a polygon with one symbolic vertex
- * came out with a centroid pulled towards the origin — a plausible-looking
- * number where the legacy engine gave NaN. It is the centroid the rotation,
- * dilation and reflection actions all measure from.
+ * spelled out: while `evaluate_to_constant()` reported a still-symbolic
+ * coordinate as `null`, `null` was `0` to `+=`, so a polygon with one symbolic
+ * vertex came out with a centroid pulled towards the origin — a
+ * plausible-looking number where the legacy engine gave `NaN`. The engine
+ * answers `NaN` again, so `evaluateToNumber` here is the convention rather
+ * than the only thing holding the sum together: a `Complex` coordinate reaches
+ * `+=` as a string and divides back to `NaN` either way. It is the centroid
+ * the rotation, dilation and reflection actions all measure from.
  */
 function calculateNumericalCentroid(vertices) {
     let x = 0,

@@ -1970,11 +1970,13 @@ export default class LineSegment extends GraphicalComponent {
                 }
 
                 let ep = dependencyValues.endpoints;
-                // `evaluateToNumber`, not a bare `evaluate_to_constant()`: an
-                // endpoint that is blank or symbolic gives `null`, `null`
-                // subtracts as `0`, and a segment with no slope reported one.
+                // `evaluateToNumber`, not a bare `evaluate_to_constant()`:
+                // while a blank or symbolic endpoint gave `null`, `null`
+                // subtracted as `0` and a segment with no slope reported one —
                 // `(3,4)` against a blank first endpoint answered `1`, and
                 // `slope` is public and reaches `<answer>` through `<when>`.
+                // The engine answers `NaN` there now; the helper stays for the
+                // `Complex` arm, which subtracts without complaint.
                 // Every other reader of these endpoints in this file already
                 // takes a number or refuses (`numericalEndpoints` above, the
                 // inverse definition below).

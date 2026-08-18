@@ -1738,11 +1738,14 @@ export default class Line extends GraphicalComponent {
                         ind < globalDependencyValues.numDimensions;
                         ind++
                     ) {
-                        // `evaluate_to_constant` reports "no numeric value" as
-                        // `null`, and this array is `forRenderer`, where
-                        // `Number(null)` is `0` — an undefined point would be
-                        // drawn at the origin rather than not drawn. Map it to
-                        // `NaN` explicitly, as `Point.js`'s `numericalXs` does.
+                        // `evaluateToNumber`, not a bare
+                        // `evaluate_to_constant()`: this array is
+                        // `forRenderer`, and neither a `Complex` nor the
+                        // `null` the engine used to report for "no numeric
+                        // value" survives the crossing as a number.
+                        // `Number(null)` was `0`, so an undefined point was
+                        // drawn at the origin rather than not drawn. Same
+                        // spelling as `Point.js`'s `numericalXs`.
                         numericalP.push(evaluateToNumber(point[ind]));
                     }
                     numericalPoints[arrayKey] = numericalP;

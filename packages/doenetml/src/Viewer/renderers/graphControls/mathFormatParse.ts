@@ -10,12 +10,12 @@ import type { GraphControlDisplaySettings } from "./model";
 export function parseSingleMathNumber(input: string): number | null {
     try {
         const expression = me.fromText(input);
-        // `toNumberOrNaN` is what turns the engine's two non-numeric
-        // answers into one: `null` for "not a constant", and a math.js
-        // `Complex` for a value that is a constant but not a real one
-        // (`evaluate_to_constant("i")` is `{re: 0, im: 1}`). Both must read as
-        // "invalid" here, and `Number.isFinite` already rejected both at
-        // runtime — it is the declared type that this makes honest.
+        // `toNumberOrNaN` is what turns the engine's non-numeric answers
+        // into one: a math.js `Complex` for a value that is a constant but not
+        // a real one (`evaluate_to_constant("i")` is `{re: 0, im: 1}`), and
+        // the `null` for "not a constant" while the sentinel was one. Both
+        // must read as "invalid" here, and `Number.isFinite` already rejected
+        // both at runtime — it is the declared type that this makes honest.
         const value = toNumberOrNaN(expression?.evaluate_to_constant?.());
         return Number.isFinite(value) ? value : null;
     } catch (_error) {

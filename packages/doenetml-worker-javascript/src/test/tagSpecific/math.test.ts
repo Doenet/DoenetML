@@ -13574,14 +13574,23 @@ describe("Math tag tests @group3", async () => {
         ).eq("inline");
     });
 
-    it("a math with no numeric value reports number as NaN, not null", async () => {
+    it("a math reports number as NaN when it has none, and as a plain complex when it is one", async () => {
         // `.number` is public and its own description promises "NaN if not a
-        // number". The engine reports an expression it cannot evaluate as
-        // `null`, which coerces to `0` in every consumer that does arithmetic.
+        // number". While the engine reported an expression it cannot evaluate
+        // as `null`, that coerced to `0` in every consumer that does
+        // arithmetic; it reports `NaN` now.
+        //
+        // `m3` is the leg that measures this definition rather than the
+        // engine. `evaluate_to_constant()` answers a math.js `Complex` for a
+        // constant that is not real, and `plainComplex` is what turns it into
+        // an object that survives the structured clone to the main thread —
+        // remove it and `m3` arrives with its prototype stripped and its
+        // `re`/`im` gone, while the `m1`/`m2` legs stay green.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <math name="m1">x+y</math>
   <math name="m2">3+4</math>
+  <math name="m3">sqrt(-4)</math>
   `,
         });
 
@@ -13592,5 +13601,8 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.number,
         ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.number,
+        ).eqls({ re: 0, im: 2 });
     });
 });

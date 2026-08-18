@@ -935,9 +935,11 @@ async function test_answer_multiple_inputs({
             if (inputs[i].type === "math") {
                 val = fromLatex(val).tree;
             } else if (inputs[i].type === "number") {
-                // A number input reports "not a number" as `NaN`; an empty
-                // entry parses to a blank, which `evaluate_to_constant()`
-                // declines with `null`. Translate it the way the component does.
+                // A number input reports "not a number" as `NaN`, and so does
+                // `evaluate_to_constant()` for the blank an empty entry parses
+                // to. The `??` is belt and braces — it was load-bearing while
+                // the engine declined with `null`. Translate it the way the
+                // component does.
                 val = fromLatex(val).evaluate_to_constant() ?? NaN;
             } else if (inputs[i].type === "boolean") {
                 val = val === "true";

@@ -242,11 +242,11 @@ export function evaluateToNumber(mathObject: string): number {
         JSON.parse(mathObject, serializedComponentsReviver),
     );
 
-    // `evaluate_to_constant` has two non-numeric answers, and the Rust side
-    // (`math_via_wasm.rs`, `.as_f64()`) can carry neither: `null` for "not a
-    // constant", and a math.js `Complex` for a constant that is not real
-    // (`evaluate_to_constant("i")` is `{re: 0, im: 1}`). `toNumberOrNaN` is
-    // the one place that maps both to `NaN`, which is what this function's
+    // `evaluate_to_constant` answers a math.js `Complex` for a constant that
+    // is not real (`evaluate_to_constant("i")` is `{re: 0, im: 1}`), which the
+    // Rust side (`math_via_wasm.rs`, `.as_f64()`) cannot carry — and answered
+    // `null` for "not a constant" while the sentinel was one. `toNumberOrNaN`
+    // is the one place that maps both to `NaN`, which is what this function's
     // name promises and what its sibling below already returned.
     return toNumberOrNaN(mathExpr.evaluate_to_constant());
 }

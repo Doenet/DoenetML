@@ -1550,11 +1550,14 @@ export default class Function extends InlineComponent {
                                 let val = x.evaluate_to_constant();
                                 // An interpolated function has no symbolic
                                 // form, so a symbolic input has no value here.
-                                // `evaluate_to_constant` reports that as
-                                // `null`, and `null` is `0` to arithmetic — so
+                                // While `evaluate_to_constant` reported that as
+                                // `null`, and `null` is `0` to arithmetic,
                                 // `$$f(x)` with `x` unbound came back as *f(0)*
                                 // and became a constant in the caller's
-                                // formula, taking its extrema with it.
+                                // formula, taking its extrema with it. The
+                                // engine answers `NaN` now; the `typeof` test
+                                // still catches the `Complex` arm, which
+                                // `numericalf` cannot take.
                                 if (typeof val !== "number") {
                                     return me.fromAst(NaN);
                                 }
@@ -1837,11 +1840,11 @@ export default class Function extends InlineComponent {
                                 // Same guard, and for the same reason, as the
                                 // interpolated branch above: a shadowed
                                 // *numerical* function has no symbolic form, so
-                                // a symbolic input has no value here.
-                                // `evaluate_to_constant` reports that as
-                                // `null`, which is `0` to arithmetic, so
-                                // `$$f(x)` with `x` unbound would answer `f(0)`
-                                // — a plausible constant rather than a blank.
+                                // a symbolic input has no value here. While
+                                // `evaluate_to_constant` reported that as
+                                // `null`, which is `0` to arithmetic,
+                                // `$$f(x)` with `x` unbound answered `f(0)` —
+                                // a plausible constant rather than a blank.
                                 let input = x.evaluate_to_constant();
                                 if (typeof input !== "number") {
                                     return me.fromAst(NaN);

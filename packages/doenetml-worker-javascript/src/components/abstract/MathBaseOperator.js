@@ -326,7 +326,9 @@ export default class MathOperator extends MathComponent {
                             }
                         }
                         let results = dependencyValues.inverseNumericOperator({
-                            // `null` here is caught by the `Number.isFinite`
+                            // Left raw: a value with no numeric reading —
+                            // `NaN` now, `null` while the sentinel was one, or
+                            // a `Complex` — is caught by the `Number.isFinite`
                             // test in both implementations, which falls back
                             // to `desiredMathValue`.
                             desiredValue:

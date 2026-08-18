@@ -215,11 +215,14 @@ export default class PeriodicSet extends MathComponent {
                                     .evaluate_to_constant();
                                 // An offset box the student has not filled in
                                 // cannot duplicate anything. Without this the
-                                // pair reads as redundant and the answer takes
+                                // pair read as redundant and the answer took
                                 // the redundancy penalty: the difference of two
-                                // blanks has no value, and `null % period` is
+                                // blanks has no value, and `null % period` was
                                 // `0` in JavaScript — a difference of zero,
                                 // which is exactly what "redundant" looks like.
+                                // The engine answers `NaN` there now, which
+                                // fails the comparison on its own; this stays
+                                // for the `Complex` arm, which `%` does not.
                                 if (!isNumericConstant(offsetDiff)) {
                                     continue;
                                 }

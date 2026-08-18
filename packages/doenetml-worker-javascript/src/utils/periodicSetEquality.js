@@ -96,12 +96,14 @@ export default function periodicSetEquality(
             return false;
         }
 
-        // `toNumberOrNaN`, not the raw `evaluate_to_constant`: an offered
-        // element that is not a constant answers `null`, and `null` is `0` to
-        // `mod` — so a wholly symbolic list `y, z, w` passed the "first
-        // element lies on the set" test below and, with `match_partial`, was
-        // awarded a third of the credit. `NaN` fails that test, which is what
-        // the legacy engine produced here.
+        // `evaluateToNumber`, not the raw `evaluate_to_constant`: while the
+        // engine answered `null` for an offered element that is not a
+        // constant, `null` was `0` to `mod`, so a wholly symbolic list
+        // `y, z, w` passed the "first element lies on the set" test below and,
+        // with `match_partial`, was awarded a third of the credit. The engine
+        // answers `NaN` now, as the legacy one did, and `NaN` fails that test;
+        // the helper stays for the `Complex` arm, which `mod` would carry
+        // rather than reject.
         //
         // Mapping to `NaN` rather than refusing the whole list is the point:
         // the loop below counts a *consecutive run* from the first element, so
@@ -252,9 +254,11 @@ function contained_in(tree, i_set, match_partial) {
     // normalize to period 1
     offset0 = me.fromAst(["/", offset0, period0]).evaluate_to_constant();
 
-    // A symbolic offset does not normalize to a number: `evaluate_to_constant`
-    // reports that as `null`, which then reaches `fromAst` further down and is
-    // rejected there ("unexpected value null"), taking the document with it.
+    // A symbolic offset does not normalize to a number: the engine answers
+    // `NaN` for it, and a `Complex` for an offset that is constant but not
+    // real. Neither belongs in the modular arithmetic below, and the `Complex`
+    // reaches `fromAst` further down, which rejects it — a throw out of here
+    // takes the document with it, which is what the engine's old `null` did.
     // This one returns `false`, unlike the per-tuple guards further down which
     // `continue`: `offset0` describes the piece being *tested*, and a piece we
     // cannot place on the number line is not contained in anything. See the

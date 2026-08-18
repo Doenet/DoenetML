@@ -7561,12 +7561,19 @@ describe("Polygon tag tests @group2", async () => {
     });
 
     it("a symbolic vertex makes the centroid NaN, not a number", async () => {
-        // `calculateNumericalCentroid` sums `evaluate_to_constant()` over the
-        // vertices, and the engine reports a still-symbolic coordinate as
-        // `null`, which is `0` to `+=`. Without the fix the centroid of
-        // `(q,b) (1,1) (4,0)` is the mean of the two numeric vertices and the
-        // origin — a plausible number where there is no centroid at all. It is
-        // what the rotate, dilate and reflect actions measure from.
+        // `calculateNumericalCentroid` sums the vertices. While the engine
+        // reported a still-symbolic coordinate as `null`, `null` was `0` to
+        // `+=`, so the centroid of `(q,b) (1,1) (4,0)` came out as the mean of
+        // the two numeric vertices and the origin — a plausible number where
+        // there is no centroid at all. It is what the rotate, dilate and
+        // reflect actions measure from.
+        //
+        // This asserts the engine's answer, not the guard's, and there is no
+        // `Complex` leg that would change that: a `Complex` reaches `+=` as a
+        // string and divides back to `NaN` too (measured at the twenty-third
+        // pass). Falsify it by simulating the old sentinel (`toNumberOrNaN`
+        // returning `0` for a value with no numeric reading), not by
+        // reverting the guard.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph><polygon name="p" vertices="(q,b) (1,1) (4,0)" /></graph>
