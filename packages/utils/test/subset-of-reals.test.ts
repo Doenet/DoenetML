@@ -60,7 +60,7 @@ describe("subset of reals", () => {
                 subsetValue: interval1,
                 variable: "x",
             }).toString(),
-        ).eq("[ -1, 6 ]");
+        ).eq("[-1, 6]");
 
         const union1 = Union([
             OpenInterval(3, 4),
@@ -78,6 +78,6 @@ describe("subset of reals", () => {
                 subsetValue: union1,
                 variable: "x",
             }).toString(),
-        ).eq("[ -1, 3 ) ∪ ( 3, 6 ]");
+        ).eq("[-1, 3) ∪ (3, 6]");
     });
 });

@@ -1,6 +1,7 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import MathComponent from "../Math";
 import me from "math-expressions";
+import { isNumericConstant } from "../../utils/math";
 
 export default class MathOperator extends MathComponent {
     static componentType = "_mathOperator";
@@ -228,9 +229,20 @@ export default class MathOperator extends MathComponent {
                             inputs.push(child.stateValues.value);
                         } else {
                             // math
+                            //
+                            // The numeric operators are mathjs functions, and
+                            // they accept `NaN` while rejecting anything that
+                            // is not a number: `median([1,4,5,null])` throws
+                            // "unexpected type of argument" and takes the whole
+                            // document with it, where `median([1,4,5,NaN])`
+                            // returns `NaN` and the operator degrades quietly.
+                            // `evaluate_to_constant()` used to answer `null`
+                            // for `x+1` in `<median>1 4 5 x+1</median>`; it
+                            // answers `NaN` now, and a `Complex` is the case
+                            // this guard still catches.
                             let value =
                                 child.stateValues.value.evaluate_to_constant();
-                            inputs.push(value);
+                            inputs.push(isNumericConstant(value) ? value : NaN);
                         }
                     }
 
@@ -293,10 +305,20 @@ export default class MathOperator extends MathComponent {
                                 );
                                 inputToChildIndex.push(childInd);
                             } else {
-                                // math
+                                // math — `NaN` for anything unevaluable, the
+                                // same coercion the forward definition above
+                                // applies and for the same reason. No
+                                // `inverseNumericOperator` reads `inputs`
+                                // today (`<min>` and `<max>`, the only two,
+                                // decide from `canBeModified` alone), so this
+                                // is what the contract says rather than a
+                                // defect repaired; a `null` here would be a
+                                // zero to the first one that did read it.
                                 let value =
                                     child.stateValues.value.evaluate_to_constant();
-                                inputs.push(value);
+                                inputs.push(
+                                    isNumericConstant(value) ? value : NaN,
+                                );
                                 canBeModified.push(
                                     child.stateValues.canBeModified,
                                 );
@@ -304,6 +326,11 @@ export default class MathOperator extends MathComponent {
                             }
                         }
                         let results = dependencyValues.inverseNumericOperator({
+                            // Left raw: a value with no numeric reading —
+                            // `NaN` now, `null` while the sentinel was one, or
+                            // a `Complex` — is caught by the `Number.isFinite`
+                            // test in both implementations, which falls back
+                            // to `desiredMathValue`.
                             desiredValue:
                                 desiredStateVariableValues.unnormalizedValue.evaluate_to_constant(),
                             inputs,

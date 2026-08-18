@@ -1,0 +1,60 @@
+name: Set up the math-expressions WASM toolchain
+description: >
+    Installs what `@doenet/math` needs to build. Its WASM core is compiled from
+    the `vendor/math-expressions` submodule at build time rather than shipped
+    prebuilt, so every job that runs a build reaching `packages/math:build`
+    needs the Rust wasm target and a matching `wasm-bindgen-cli`.
+
+    The caller is still responsible for checking the submodule out —
+    `actions/checkout` defaults to `submodules: false`, and a composite action
+    runs too late to fix that.
+
+inputs:
+    wasm-bindgen-version:
+        description: >
+            The `wasm-bindgen-cli` version to install. Must equal the
+            `wasm-bindgen` pin in the submodule's
+            `packages/math-expressions-rs-wasm/Cargo.toml`
+            (`wasm-bindgen = "=0.2.126"`) — the CLI and the crate must match
+            exactly or the generated glue is rejected at build time. Bump both
+            together when the submodule moves.
+        required: false
+        default: "0.2.126"
+
+runs:
+    using: composite
+    steps:
+        # The version reaches the cache key and the install from one place, so
+        # a bump cannot land in one and not the other. It used to be written
+        # out twice: a bump that missed the key restored the *old* binary,
+        # `command -v` found it, the install was skipped, and the build failed
+        # with a schema mismatch naming a version this file no longer mentions.
+        - name: Cache wasm-bindgen-cli
+          uses: actions/cache@v4
+          with:
+              path: ~/.cargo/bin/wasm-bindgen
+              key: wasm-bindgen-cli-${{ inputs.wasm-bindgen-version }}-${{ runner.os }}
+
+        - name: Install Rust wasm target and wasm-bindgen-cli
+          shell: bash
+          env:
+              WASM_BINDGEN_VERSION: ${{ inputs.wasm-bindgen-version }}
+          run: |
+              set -euo pipefail
+              rustup target add wasm32-unknown-unknown
+              # `cargo install` builds from source (minutes), so skip it when
+              # the wanted version is already here. Testing the *version* and
+              # not merely the binary's existence is what makes a stale or
+              # damaged cache entry self-healing: `~/.cargo/bin/wasm-bindgen`
+              # is restored from a cache `main` writes and every branch reads,
+              # so "a file is present" is not evidence it is the right file.
+              # `--locked` keeps the CLI's own build reproducible.
+              installed=""
+              if command -v wasm-bindgen >/dev/null; then
+                  installed="$(wasm-bindgen --version 2>/dev/null | awk '{print $2}')"
+              fi
+              if [ "$installed" != "$WASM_BINDGEN_VERSION" ]; then
+                  echo "wasm-bindgen: have '${installed:-none}', want $WASM_BINDGEN_VERSION; installing."
+                  cargo install wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION" --locked --force
+              fi
+              wasm-bindgen --version

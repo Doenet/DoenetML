@@ -9,18 +9,33 @@
         "the diff where a reviewer can ask about it. Update `observedBytes` in",
         "the same edit so the new headroom is visible: it records the size when",
         "`maxBytes` was chosen and is documentation only, enforced by nothing.",
-        "Today's budgets sit 7–8% above it."
+        "",
+        "Budgets normally sit 7–8% above the observation. `doenet-standalone.js`",
+        "is the exception right now: its observation dropped when the math seam",
+        "was externalized out of the libraries it bundles, and lowering a ceiling",
+        "is a separate decision from raising one — it should be taken against a",
+        "CI build.",
+        "",
+        "Measure on CI, not locally, because the math core's size is not",
+        "reproducible across machines. The submodule's `build-wasm.sh` runs an",
+        "optional `wasm-opt -Oz` pass, worth ~10-15%, and skips it when binaryen",
+        "is absent. Neither `.github/actions/setup-math-wasm` nor the",
+        "devcontainer's `wasm-toolchain` feature installs binaryen, and the",
+        "GitHub runner image does not carry it — so CI reliably builds the",
+        "*larger*, unoptimized core, and a developer who happens to have",
+        "`wasm-opt` on their PATH will observe a smaller bundle than the one that",
+        "actually ships."
     ],
     "files": {
         "dist/doenet-standalone.js": {
             "maxBytes": 15650000,
-            "observedBytes": 14489401,
-            "note": "No WebAssembly belongs in this bundle; the worker owns it."
+            "observedBytes": 11967438,
+            "note": "Carries one inlined math core. The Rust *document* core belongs to the worker, not here."
         },
         "dist/doenetml-worker/index.js": {
-            "maxBytes": 15950000,
-            "observedBytes": 14889393,
-            "note": "Carries the Rust core as a single inlined base64 wasm blob (~8.3 MiB)."
+            "maxBytes": 17250000,
+            "observedBytes": 15974410,
+            "note": "Carries the Rust document core as an inlined base64 wasm blob (~8.3 MiB) plus one inlined math core (~2.2 MiB)."
         }
     }
 }

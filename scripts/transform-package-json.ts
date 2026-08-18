@@ -8,6 +8,13 @@ const require = createRequire(import.meta.url);
  * so that it is suitable for publishing. This function returns a `transformer`
  * that can be used by `viteStaticCopy` to transform a `package.json` file.
  *
+ * Externalized dependencies become `peerDependencies` of the published package,
+ * because the bundle keeps a bare `import ... from "<dep>"` that the consumer's
+ * installer has to satisfy. Whatever range the source manifest declares for such
+ * a dependency is the range that ships, so it has to be one an npm consumer can
+ * resolve — the release order in `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` is
+ * about exactly that.
+ *
  * @param externalDeps An array of dependencies that should be externalized.
  * @param targetDir The directory where the `package.json` file will be written. This is usually `./dist`, but it may be a different subdirectory. Any paths in the exports field of package.json are rewritten to be relative to this directory instead.
  */
@@ -29,10 +36,16 @@ export function createPackageJsonTransformer({
      */
     return function transformPackageJson(contents: string, filePath: string) {
         const pkg = JSON.parse(contents);
+        // Resolution order matters, and it runs *lowest* precedence first.
+        // `dependencies` and `peerDependencies` are the ranges a consumer's
+        // installer would act on; `devDependencies` is only a fallback for a
+        // package that declares an externalized dependency nowhere else.
+        // Spreading `devDependencies` last would publish the range from the one
+        // field a consumer's installer never sees.
         const allDeps = {
-            ...pkg.dependencies,
-            ...pkg.peerDependencies,
             ...pkg.devDependencies,
+            ...pkg.peerDependencies,
+            ...pkg.dependencies,
         };
         // Delete unneeded entries
         delete pkg.private;
@@ -43,21 +56,23 @@ export function createPackageJsonTransformer({
         delete pkg.prettier;
         delete pkg.wireit;
 
-        pkg.private = false;
-
         const pkgRootDir = path.dirname(findPackageJsonPath(pkg.name));
 
-        // Everything that is externalized should be a peer dependency
+        // Everything that is externalized should be a peer dependency, since
+        // the bundle imports it by name and the consumer has to provide it.
         pkg.peerDependencies = {};
         for (const dep of externalDeps) {
-            if (!allDeps[dep]) {
+            const range = allDeps[dep];
+            if (!range) {
+                // Nothing to emit — there is no range to copy. Warn rather than
+                // throw: the emitted manifest is still valid, it just leaves
+                // the consumer to supply the import on their own.
                 console.warn(
-                    dep,
-                    "is listed as a dependency for vite to externalize, but a version is not specified in package.json.",
+                    `${pkg.name}: "${dep}" is externalized by vite but no version is declared in package.json, so it will not appear in peerDependencies`,
                 );
                 continue;
             }
-            pkg.peerDependencies[dep] = allDeps[dep];
+            pkg.peerDependencies[dep] = range;
         }
 
         // Fix up the paths. The existing package.json refers to files in the `./dist` directory. But

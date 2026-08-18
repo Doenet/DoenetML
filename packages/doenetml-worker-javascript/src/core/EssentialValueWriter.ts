@@ -2,13 +2,14 @@ import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
-import me from "math-expressions";
+import me, { getComponent } from "math-expressions";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
 import { expandAllComposites } from "./CompositeExpander";
 import { ensureStateVariableMaterialized } from "./StateVariableInitializer";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
+    isUnspecifiedComponentValue,
 } from "../utils/math";
 
 /**
@@ -1498,15 +1499,23 @@ function spreadMathOverArrayKeys(
 
     const desiredValuesForArray: Record<string, any> = {};
     for (let [ind, arrayKey] of arrayKeys.entries()) {
-        try {
-            desiredValuesForArray[arrayKey] = value.get_component(ind);
-        } catch (e) {
-            // `get_component(ind)` throws when the expression has no such
-            // component (it is shorter than the array, or is not a vector at
-            // all); leave the slot unset so the inverse definition keeps the
-            // current value for that key. Any other exception shape would also
-            // be swallowed here — narrow if a concrete error type from
-            // math-expressions becomes available.
+        // `getComponent` yields `undefined` when the expression has no such
+        // component — it is shorter than the array, is not a container at all,
+        // or is not an expression at all — and we leave the slot unset so the
+        // inverse definition keeps the current value for that key.
+        //
+        // This used to be a try/catch around `value.get_component(ind)`, reading
+        // the throw as "no component". `me` still throws for both of those
+        // cases, so the seam's `getComponent` is that try/catch, written once
+        // and expressed as a value instead of as control flow.
+        //
+        // An `UNSPECIFIED_COMPONENT` marker is skipped for the same reason: it
+        // is a component the producing inverse definition deliberately left
+        // alone, and it reaches here as a symbol only because a hole cannot
+        // survive the engine's JSON round trip.
+        const component = getComponent(value, ind);
+        if (!isUnspecifiedComponentValue(component)) {
+            desiredValuesForArray[arrayKey] = component;
         }
     }
     return desiredValuesForArray;

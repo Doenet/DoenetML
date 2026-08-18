@@ -101,7 +101,8 @@
             "dependencies": [
                 "../doenetml-worker:build",
                 "../parser:build",
-                "../codemirror:build"
+                "../codemirror:build",
+                "../math:build"
             ]
         }
     },
@@ -113,6 +114,7 @@
         "tabWidth": 4
     },
     "dependencies": {
+        "math-expressions": "file:../math",
         "xast-util-from-xml": "^4.0.0"
     }
 }

@@ -7,6 +7,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { evaluateToNumber, isNumericConstant } from "../utils/math";
 
 export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
@@ -206,7 +207,7 @@ export default class FunctionIterates extends InlineComponent {
                         let numericalf =
                             functionComp.stateValues.numericalfs[0];
                         let value = initialValue.evaluate_to_constant();
-                        if (Number.isNaN(value)) {
+                        if (!isNumericConstant(value)) {
                             allIterates = Array(numIterates).fill(
                                 me.fromAst("\uff3f"),
                             );
@@ -220,7 +221,15 @@ export default class FunctionIterates extends InlineComponent {
                         let numericalfs = functionComp.stateValues.numericalfs;
                         let value = initialValue.tree
                             .slice(1)
-                            .map((x) => me.fromAst(x).evaluate_to_constant());
+                            // `evaluateToNumber`, not the bare call: a
+                            // component with no numeric value has to reach the
+                            // numerical function as `NaN` and come back out as
+                            // `NaN`, rather than as the orbit of some other
+                            // point. The iterates then read `(NaN,NaN)`, which
+                            // is this branch's spelling of "no value" — the
+                            // one-dimensional branch above spells it `＿`
+                            // instead, and the suite pins both.
+                            .map((x) => evaluateToNumber(me.fromAst(x)));
                         for (let ind = 0; ind < numIterates; ind++) {
                             let iterComps = [];
                             for (

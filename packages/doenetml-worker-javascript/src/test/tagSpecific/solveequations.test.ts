@@ -13,6 +13,13 @@ async function check_solutions(
     core: PublicDoenetMLCore,
     resolvePathToNodeIdx: ResolvePathToNodeIdx,
     solutions: number[],
+    // The rendered text, for the cases where it cannot be derived from
+    // `solutions`: a numerically-found root and the exact literal it
+    // approximates can sit on opposite sides of a display-rounding boundary,
+    // so rounding the ideal value is not always what the component shows.
+    expectedText = `Solutions: ${solutions
+        .map((x) => me.round_numbers_to_precision_plus_decimals(x, 5))
+        .join(", ")}`,
 ) {
     const numSolutions = solutions.length;
     const stateVariables = await core.returnAllStateVariables(false, true);
@@ -35,9 +42,7 @@ async function check_solutions(
     ).eq(numSolutions);
     expect(
         stateVariables[await resolvePathToNodeIdx("sols")].stateValues.text,
-    ).eq(
-        `Solutions: ${solutions.map((x) => me.round_numbers_to_precision_plus_decimals(x, 5)).join(", ")}`,
-    );
+    ).eq(expectedText);
 }
 
 describe("SolveEquations tag tests @group2", async () => {
@@ -261,10 +266,20 @@ describe("SolveEquations tag tests @group2", async () => {
             componentIdx: await resolvePathToNodeIdx("equation"),
             core,
         });
+        // `-4.52365` sits on a display-rounding tie at 5 significant digits,
+        // and the two sides land on opposite sides of it. The literal written
+        // here is the f64 -4.5236499999999999488, just short of the tie, so
+        // the default `expectedText` above rounds it to -4.5236; the root the
+        // solver actually finds is far enough from zero to reach the tie and
+        // rounds away to -4.5237. Both are correctly rounded — they are simply
+        // not the same number, and the two agree to well within the 1e-5 the
+        // numeric assertions use. So the rendered text is given explicitly
+        // rather than derived.
         await check_solutions(
             core,
             resolvePathToNodeIdx,
             [-4.52365, -4.52352, 8.5823, 8.58263],
+            "Solutions: -4.5237, -4.5235, 8.5823, 8.5826",
         );
 
         await updateMathInputValue({
@@ -276,6 +291,8 @@ describe("SolveEquations tag tests @group2", async () => {
             core,
             resolvePathToNodeIdx,
             [-4.52365, -4.52352, 8.5823, 8.58263],
+            // Same rounding tie as above.
+            "Solutions: -4.5237, -4.5235, 8.5823, 8.5826",
         );
 
         await updateMathInputValue({

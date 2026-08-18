@@ -12,6 +12,7 @@ import {
 } from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { evaluateToNumber, markUnspecifiedComponents } from "../utils/math";
 
 export default class Ray extends GraphicalComponent {
     constructor(args) {
@@ -917,7 +918,9 @@ export default class Ray extends GraphicalComponent {
                         desiredDirection.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "directionShadow",
-                            desiredValue: me.fromAst(desiredDirection),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredDirection),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -1141,7 +1144,9 @@ export default class Ray extends GraphicalComponent {
                         desiredThrough.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "throughShadow",
-                            desiredValue: me.fromAst(desiredThrough),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredThrough),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -1405,7 +1410,9 @@ export default class Ray extends GraphicalComponent {
                         desiredEndpoint.length = arraySize[0] + 1;
                         instructions.push({
                             setDependency: "endpointShadow",
-                            desiredValue: me.fromAst(desiredEndpoint),
+                            desiredValue: me.fromAst(
+                                markUnspecifiedComponents(desiredEndpoint),
+                            ),
                         });
                     } else if (
                         arraySize[0] === 1 &&
@@ -1447,10 +1454,15 @@ export default class Ray extends GraphicalComponent {
                 }
 
                 let endpoint = dependencyValues.endpoint;
+                // `evaluateToNumber`, not a bare `evaluate_to_constant()`:
+                // this array is `forRenderer`, and neither a `Complex` nor the
+                // `null` the engine used to report for a still-symbolic
+                // coordinate survives the crossing. `Number(null)` is `0`, so
+                // an undefined endpoint was drawn at the origin rather than not
+                // drawn.
                 let numericalEndpoint = [];
                 for (let ind = 0; ind < dependencyValues.numDimensions; ind++) {
-                    let val = endpoint[ind].evaluate_to_constant();
-                    numericalEndpoint.push(val);
+                    numericalEndpoint.push(evaluateToNumber(endpoint[ind]));
                 }
 
                 return { setValue: { numericalEndpoint } };
@@ -1478,10 +1490,10 @@ export default class Ray extends GraphicalComponent {
                 }
 
                 let through = dependencyValues.through;
+                // See `numericalEndpoint` above.
                 let numericalThroughpoint = [];
                 for (let ind = 0; ind < dependencyValues.numDimensions; ind++) {
-                    let val = through[ind].evaluate_to_constant();
-                    numericalThroughpoint.push(val);
+                    numericalThroughpoint.push(evaluateToNumber(through[ind]));
                 }
 
                 return { setValue: { numericalThroughpoint } };

@@ -562,6 +562,9 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m5")].stateValues
                     .latex,
             ),
+            // Terms of equal degree order by coefficient, so `-2x^2` leads the
+            // three `x^2` terms. Matches the legacy library, which folds the
+            // sign into the coefficient and then sorts on it.
         ).eq("-2x^{2}+x^{2}+5x^{2}-2");
         expect(
             cleanLatex(
@@ -606,6 +609,10 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m5")].stateValues.value
                 .tree,
+            // Like terms stay uncollected (that is what `simplify="numbers"`
+            // means), and the ones that survive sort canonically rather than in
+            // written order: within one degree, by coefficient, so `-2x²`
+            // before `x²` before `5x²`. Same four terms, same value.
         ).eqls([
             "+",
             ["*", -2, ["^", "x", 2]],
@@ -688,6 +695,10 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
         ).eqls(["*", ["+", "x", -3], ["+", ["*", 2, "x"], 4]]);
+        // `(-2)x`, not `-(2x)`: a computed term carries its sign on the leading
+        // coefficient, which is where a student would write it. A bare `Neg`
+        // survives only when there is no number to carry the sign (`-x`, and
+        // the `-(3x+5)(7-x)` in `m3` below, whose leading factor is a sum).
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
                 .tree,
@@ -2490,7 +2501,11 @@ describe("Math tag tests @group3", async () => {
             ),
         ).eq("35203000");
 
-        // invalid both, no rounding
+        // invalid both, no rounding: the exact decimal as authored. Legacy
+        // could only show `35203423.023523435`, the shortest f64 that reads
+        // back as the same double, because it held the value as a float. The
+        // Rust engine parses a typed decimal to an exact rational, so "no
+        // rounding" now means no rounding at all.
         await updateMathInputValue({
             componentIdx: await resolvePathToNodeIdx("nDecimals"),
             latex: "y",
@@ -2502,7 +2517,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("na")].stateValues
                     .latex,
             ),
-        ).eq("35203423.023523435");
+        ).eq("35203423.02352343201");
 
         // only invalid nDecimals, falls back to digits
         await updateMathInputValue({
@@ -3533,7 +3548,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("tuple")].stateValues
                 .text,
-        ).eq("( a, b, c )");
+        ).eq("(a, b, c)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("doubleNoList")]
@@ -3551,7 +3566,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("doubleTuple")]
                 .stateValues.text,
-        ).eq("2 ( a, b, c )");
+        ).eq("2 (a, b, c)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("appendNoList")]
@@ -3587,7 +3602,7 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("functionOfList")]
                 .stateValues.text,
-        ).eq("f( a, b, c )");
+        ).eq("f(a, b, c)");
     });
 
     it("aslist inside math, sequence", async () => {
@@ -5673,7 +5688,11 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a2isumSimp")]
                     .stateValues.latex,
             ),
-        ).eq("(e,f)+\\langlep,q\\rangle");
+            // Simplified, so the sum is in canonical order — which for this
+            // pair is also the written order, so it reads identically to
+            // `a2isum` above. The pair still pins that simplifying does not
+            // *reorder* an angle-bracket vector against a tuple.
+        ).eq("\\langlep,q\\rangle+(e,f)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("st2mul")].stateValues
@@ -6589,13 +6608,13 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22sm22bSimp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}mn+a&mo+b\\\\mp+c&mq+d\\end{bmatrix}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22sm22bExpSimp")]
                     .stateValues.latex,
             ),
-        ).eq("\\begin{bmatrix}a+mn&b+mo\\\\c+mp&d+mq\\end{bmatrix}");
+        ).eq("\\begin{bmatrix}mn+a&mo+b\\\\mp+c&mq+d\\end{bmatrix}");
     });
 
     it("matrix multiplication", async () => {
@@ -6663,7 +6682,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m22aSq")].stateValues
                     .latex,
             ),
-        ).eq("(\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix})^{2}");
+        ).eq("\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}^{2}");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22aSqExp")]
@@ -6798,12 +6817,15 @@ describe("Math tag tests @group3", async () => {
                     .latex,
             ),
         ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        // A coordinate vector is read by position: a row (1×N) to the left of a
+        // matrix, a column (N×1) to its right. So `expand` contracts on both
+        // sides, and `$tuple2$matrix22` is the row product, not the column one.
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("t2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("(e,f)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("(ae+cf,be+df)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22v2")].stateValues
@@ -6827,7 +6849,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("v2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("(g,h)\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("(ag+ch,bg+dh)");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("m22a2")].stateValues
@@ -6851,7 +6873,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("a2m22Exp")]
                     .stateValues.latex,
             ),
-        ).eq("\\langlep,q\\rangle\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}");
+        ).eq("\\langleap+cq,bp+dq\\rangle");
     });
 
     it("matrix and vector state variables", async () => {
@@ -11497,7 +11519,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("e6")].stateValues
                     .latex,
             ),
-        ).eq("ac+adi+bci-bd");
+        ).eq("adi+bci+ac-bd");
         expect(
             cleanLatex(
                 stateVariables[await resolvePathToNodeIdx("e7")].stateValues
@@ -13228,6 +13250,9 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
                 .tree,
+            // A negative product is spelled `(-2)·…`, not `-(2·…)`: the sign
+            // rides the leading coefficient, as in the legacy library. A `Neg`
+            // wrapper is left only when no numeric factor can carry it.
         ).eqls(["*", -2, ["apply", "cbrt", ["*", 3, ["^", "x", 6]]]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
@@ -13426,7 +13451,10 @@ describe("Math tag tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("2/3 - (3 x)/4");
+            // No parentheses around the numerator: `3 x/4` re-parses as
+            // `(3x)/4` by precedence, so the two spellings are the same
+            // expression. The latex above keeps the grouping explicit.
+        ).eq("2/3 - 3 x/4");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
@@ -13544,5 +13572,37 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues
                 .renderMode,
         ).eq("inline");
+    });
+
+    it("a math reports number as NaN when it has none, and as a plain complex when it is one", async () => {
+        // `.number` is public and its own description promises "NaN if not a
+        // number". While the engine reported an expression it cannot evaluate
+        // as `null`, that coerced to `0` in every consumer that does
+        // arithmetic; it reports `NaN` now.
+        //
+        // `m3` is the leg that measures this definition rather than the
+        // engine. `evaluate_to_constant()` answers a math.js `Complex` for a
+        // constant that is not real, and `plainComplex` is what turns it into
+        // an object that survives the structured clone to the main thread —
+        // remove it and `m3` arrives with its prototype stripped and its
+        // `re`/`im` gone, while the `m1`/`m2` legs stay green.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <math name="m1">x+y</math>
+  <math name="m2">3+4</math>
+  <math name="m3">sqrt(-4)</math>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.number,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.number,
+        ).eq(7);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.number,
+        ).eqls({ re: 0, im: 2 });
     });
 });

@@ -11,7 +11,15 @@ import { suppressLogPlugin } from "../../scripts/vite-plugins";
 const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = ["react", "react-dom"];
+//
+// `math-expressions` resolves to `@doenet/math`, which inlines the Rust core as
+// ~2.3 MiB of base64. Bundling it here puts a private copy in this library and
+// then in everything that bundles this library's `dist` — `test-viewer` and
+// `test-cypress`. Externalized, the application bundle resolves it once.
+// (`packages/doenetml/vite.config.ts` carries the same rule for the published
+// side, where the sibling that ends up carrying the copies is
+// `doenet-standalone.js`; standalone does not consume this package.)
+const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
 
 // https://vitejs.dev/config/
 export default defineConfig({

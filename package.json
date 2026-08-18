@@ -49,11 +49,12 @@
         "lint:i18n": "npm run lint:i18n -w @doenet/i18n",
         "check:i18n-instances": "npm run check:instances -w @doenet/i18n",
         "prettier:check": "prettier --check .",
+        "typecheck": "node scripts/typecheck.mjs",
         "prettier:format": "prettier --write .",
         "publish": "npm run publish -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07",
         "test": "npm run test -ws --if-present -- run",
         "test:preview": "npm run preview --workspace packages/test-cypress",
-        "test:all-no-worker-js": "echo \"NOTE: 'test:all-no-worker-js' uses a hard-coded workspace list; update this list when adding or removing workspaces.\" && npm --if-present run test -w packages/codemirror -w packages/debug-hooks -w packages/docs-nextra -w packages/doenetml -w packages/doenetml-iframe -w packages/doenetml-prototype -w packages/doenetml-to-pretext -w packages/doenetml-worker -w packages/doenetml-worker-rust -w packages/i18n -w packages/lsp -w packages/lsp-tools -w packages/memory-benchmark -w packages/parser -w packages/prefigure -w packages/standalone -w packages/static-assets -w packages/test-cypress -w packages/test-viewer -w packages/ui-components -w packages/utils -w packages/v06-to-v07 -w packages/virtual-keyboard -w packages/webwork-to-doenetml -w @doenet/vscode-extension -- run",
+        "test:all-no-worker-js": "echo \"NOTE: 'test:all-no-worker-js' uses a hard-coded workspace list; update this list when adding or removing workspaces.\" && npm --if-present run test -w packages/codemirror -w packages/debug-hooks -w packages/docs-nextra -w packages/doenetml -w packages/doenetml-iframe -w packages/doenetml-prototype -w packages/doenetml-to-pretext -w packages/doenetml-worker -w packages/doenetml-worker-rust -w packages/i18n -w packages/lsp -w packages/lsp-tools -w packages/math -w packages/memory-benchmark -w packages/parser -w packages/prefigure -w packages/standalone -w packages/static-assets -w packages/test-cypress -w packages/test-viewer -w packages/ui-components -w packages/utils -w packages/v06-to-v07 -w packages/virtual-keyboard -w packages/webwork-to-doenetml -w @doenet/vscode-extension -- run",
         "test:e2e-group1": "npm run test:group1 -w packages/test-cypress",
         "test:e2e-group2": "npm run test:group2 -w packages/test-cypress",
         "test:e2e-group3": "npm run test:group3 -w packages/test-cypress",
@@ -69,9 +70,6 @@
     },
     "prettier": {
         "tabWidth": 4
-    },
-    "lint-staged": {
-        "*.{js,jsx,ts,tsx,css,json}": "prettier --write"
     },
     "overrides": {
         "@qualified/lsp-connection": {
@@ -165,10 +163,8 @@
         "json-stringify-deterministic": "1.0.14",
         "jsxgraph": "^1.12.2",
         "jszip": "^3.10.1",
-        "lint-staged": "^15.0.0",
         "katex": "^0.16.47",
         "lorem-ipsum": "^2.0.8",
-        "math-expressions": "^2.0.0-alpha95",
         "micromark": "^4.0.2",
         "nanoid": "^5.1.16",
         "nextra": "^3.3.1",

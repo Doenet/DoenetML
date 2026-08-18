@@ -1,10 +1,11 @@
-import me from "math-expressions";
+import me, { dopri } from "math-expressions";
 import type { mod as ModType } from "mathjs";
 const { mod } = me.math as { mod: ModType };
-const { dopri } = me.math;
 import {
     convertValueToMathExpression,
+    isNumericConstant,
     normalizeMathExpression,
+    toNumberOrNaN,
     vectorOperators,
 } from "../math/mathexpressions";
 import { find_effective_domain } from "./domain";
@@ -29,16 +30,20 @@ export function createFunctionFromDefinition(
     } else if (fDefinition.functionType === "reevaluatedFormula") {
         let evaluateChildrenToReevaluate: any = {};
         for (let code in fDefinition.evaluateChildrenToReevaluate) {
+            // These are compiled numeric evaluators, not expression builders —
+            // numbers in, number out — so they serve as both routes here.
+            const inputFs = fDefinition.evaluateChildrenToReevaluate[
+                code
+            ].inputMaths.map((x: any) =>
+                me.fromAst(x).subscripts_to_strings().f(),
+            );
             evaluateChildrenToReevaluate[code] = {
                 fReevaluate: createFunctionFromDefinition(
                     fDefinition.evaluateChildrenToReevaluate[code]
                         .fReevaluateDefinition,
                 ),
-                inputMathFs: fDefinition.evaluateChildrenToReevaluate[
-                    code
-                ].inputMaths.map((x: any) =>
-                    me.fromAst(x).subscripts_to_strings().f(),
-                ),
+                inputMathFs: inputFs,
+                inputNumericFs: inputFs,
             };
         }
 
@@ -158,40 +163,9 @@ export function returnNumericalFunctionFromFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: number, overrideDomain = false): number {
             if (overrideDomain) {
@@ -233,36 +207,9 @@ export function returnNumericalFunctionFromFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -340,40 +287,9 @@ export function returnNumericalFunctionFromReevaluatedFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain !== null) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-            }
-        }
-
-        // If the domain extends to +/- infinity, then consider the domain closed
-        // so that we can evaluate the function at +/- infinity
-        if (minx === -Infinity) {
-            openMin = false;
-        }
-        if (maxx === Infinity) {
-            openMax = false;
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: number, overrideDomain = false): number {
             if (overrideDomain) {
@@ -393,13 +309,11 @@ export function returnNumericalFunctionFromReevaluatedFormula({
             let fArgs: any = { [varString]: x };
 
             for (let code in evaluateChildrenToReevaluate) {
-                let childF = evaluateChildrenToReevaluate[code].fReevaluate;
-                let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
-                    let input = inputFs.map((f: any) =>
-                        me.fromAst(f(argsForInputs)),
+                    fArgs[code] = evaluateChildToNumber(
+                        evaluateChildrenToReevaluate[code],
+                        argsForInputs,
                     );
-                    fArgs[code] = childF(input).evaluate_to_constant();
                 } catch (e) {
                     return NaN;
                 }
@@ -432,36 +346,9 @@ export function returnNumericalFunctionFromReevaluatedFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -491,13 +378,11 @@ export function returnNumericalFunctionFromReevaluatedFormula({
 
         let argsForInputs: any = { ...fArgs };
         for (let code in evaluateChildrenToReevaluate) {
-            let childF = evaluateChildrenToReevaluate[code].fReevaluate;
-            let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
             try {
-                let input = inputFs.map((f: any) =>
-                    me.fromAst(f(argsForInputs)),
+                fArgs[code] = evaluateChildToNumber(
+                    evaluateChildrenToReevaluate[code],
+                    argsForInputs,
                 );
-                fArgs[code] = childF(input).evaluate_to_constant();
             } catch (e) {
                 return NaN;
             }
@@ -601,47 +486,23 @@ export function returnSymbolicFunctionFromFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain !== null) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: any, overrideDomain = false): any {
             if (!overrideDomain) {
                 let xNum = x.evaluate_to_constant();
 
+                // Only a *number* can be outside the domain. An input that has
+                // no numeric value — `10y`, or anything else still symbolic —
+                // cannot be placed, so the domain has nothing to say about it
+                // and the substitution goes ahead. The engine reports "no
+                // value" as `null`, and `null` compares as `0` in `>=`/`<=`,
+                // so a bare `Number.isNaN` check let a symbolic input be judged
+                // against the interval as if it were the origin.
                 if (
-                    !Number.isNaN(xNum) &&
+                    isNumericConstant(xNum) &&
                     (!(xNum >= minx) ||
                         !(xNum <= maxx) ||
                         (openMin && xNum === minx) ||
@@ -680,36 +541,9 @@ export function returnSymbolicFunctionFromFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -735,7 +569,10 @@ export function returnSymbolicFunctionFromFormula({
 
             if (haveDomain && allNumeric) {
                 let xNum = x.evaluate_to_constant();
-                if (Number.isNaN(xNum)) {
+                // See the note in the single-input case: "not a number" is how
+                // a symbolic input arrives, and it must switch off the domain
+                // check for the whole call rather than be compared as `0`.
+                if (!isNumericConstant(xNum)) {
                     allNumeric = false;
                 } else {
                     let [minx, maxx] = domainIntervals[i];
@@ -760,7 +597,15 @@ export function returnSymbolicFunctionFromFormula({
 
         return normalizeMathExpression({
             value: formula_transformed
-                .substitute(subArgs)
+                // Simultaneously: an argument may mention another variable's
+                // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
+                // left-to-right pass would substitute into its own output and
+                // answer `sin(-11π)`. `substitute` is simultaneous too since
+                // math-expressions #84 restored the legacy contract, and these
+                // arguments are already `Expression`s, so the two are the same
+                // call here; `substitute_all` is kept as the spelling that
+                // states the requirement at the call site.
+                .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,
             expand,
@@ -810,47 +655,23 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
     if (numInputs === 1) {
         let varString = variables[0].subscripts_to_strings().tree;
 
-        let minx = -Infinity,
-            maxx = Infinity;
-        let openMin = false,
-            openMax = false;
-        if (domain !== null) {
-            let domain0 = domain[0];
-            if (domain0 !== undefined) {
-                minx = me
-                    .fromAst(domain0.tree[1][1])
-                    .evaluate_to_constant() as number;
-                if (typeof minx !== "number" || Number.isNaN(minx)) {
-                    minx = -Infinity;
-                } else {
-                    openMin = !domain0.tree[2][1];
-                }
-                maxx = me
-                    .fromAst(domain0.tree[1][2])
-                    .evaluate_to_constant() as number;
-                if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                    maxx = Infinity;
-                } else {
-                    openMax = !domain0.tree[2][2];
-                }
-
-                // If the domain extends to +/- infinity, then consider the domain closed
-                // so that we can evaluate the function at +/- infinity
-                if (minx === -Infinity) {
-                    openMin = false;
-                }
-                if (maxx === Infinity) {
-                    openMax = false;
-                }
-            }
-        }
+        let { minx, maxx, openMin, openMax } = find_effective_domain({
+            domain,
+        });
 
         return function (x: any, overrideDomain = false): any {
             if (!overrideDomain) {
                 let xNum = x.evaluate_to_constant();
 
+                // Only a *number* can be outside the domain. An input that has
+                // no numeric value — `10y`, or anything else still symbolic —
+                // cannot be placed, so the domain has nothing to say about it
+                // and the substitution goes ahead. The engine reports "no
+                // value" as `null`, and `null` compares as `0` in `>=`/`<=`,
+                // so a bare `Number.isNaN` check let a symbolic input be judged
+                // against the interval as if it were the origin.
                 if (
-                    !Number.isNaN(xNum) &&
+                    isNumericConstant(xNum) &&
                     (!(xNum >= minx) ||
                         !(xNum <= maxx) ||
                         (openMin && xNum === minx) ||
@@ -867,8 +688,8 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 let childF = evaluateChildrenToReevaluate[code].fReevaluate;
                 let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
-                    let input = inputFs.map((f: any) =>
-                        me.fromAst(f(argsForInputs)),
+                    const input = inputFs.map((f: any) =>
+                        asExpression(f(argsForInputs)),
                     );
                     fArgs[code] = childF(input);
                 } catch (e) {
@@ -905,36 +726,9 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 break;
             }
 
-            let minx = -Infinity,
-                maxx = Infinity;
-            let openMin = false,
-                openMax = false;
-
-            minx = me
-                .fromAst(thisDomain.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !thisDomain.tree[2][1];
-            }
-            maxx = me
-                .fromAst(thisDomain.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !thisDomain.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
+            let { minx, maxx, openMin, openMax } = find_effective_domain({
+                domain: [thisDomain],
+            });
 
             domainIntervals.push([minx, maxx]);
             domainOpens.push([openMin, openMax]);
@@ -952,7 +746,10 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
 
             if (haveDomain && allNumeric) {
                 let xNum = x.evaluate_to_constant();
-                if (Number.isNaN(xNum)) {
+                // See the note in the single-input case: "not a number" is how
+                // a symbolic input arrives, and it must switch off the domain
+                // check for the whole call rather than be compared as `0`.
+                if (!isNumericConstant(xNum)) {
                     allNumeric = false;
                 } else {
                     let [minx, maxx] = domainIntervals[i];
@@ -981,7 +778,7 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
             let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
             try {
                 let input = inputFs.map((f: any) =>
-                    me.fromAst(f(argsForInputs)),
+                    asExpression(f(argsForInputs)),
                 );
                 subArgs[code] = childF(input);
             } catch (e) {
@@ -991,12 +788,94 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
 
         return normalizeMathExpression({
             value: formula_transformed
-                .substitute(subArgs)
+                // Simultaneously: an argument may mention another variable's
+                // name — `f(x,y) = sin(x+y)` evaluated at `(10y, -π)` — and a
+                // left-to-right pass would substitute into its own output and
+                // answer `sin(-11π)`. `substitute` is simultaneous too since
+                // math-expressions #84 restored the legacy contract, and these
+                // arguments are already `Expression`s, so the two are the same
+                // call here; `substitute_all` is kept as the spelling that
+                // states the requirement at the call site.
+                .substitute_all(subArgs)
                 .strings_to_subscripts(),
             simplify,
             expand,
         });
     };
+}
+
+/**
+ * A value that is already an `Expression` passed through untouched, anything
+ * else wrapped.
+ *
+ * `me.fromAst` accepts an `Expression` and quietly round-trips it — serialize
+ * to JSON, parse back — producing an equal but distinct object. That is one
+ * wasted crossing per input per sample in the evaluation loops below, which is
+ * where it stopped being affordable.
+ */
+function asExpression(value: any): any {
+    return value instanceof me.class ? value : me.fromAst(value);
+}
+
+/**
+ * Bind one `<evaluate>` child to a number, for callers that are themselves
+ * numeric.
+ *
+ * The expression route is the general one: it can spread a vector input across
+ * a multi-input function, and it keeps a symbolic function symbolic. The
+ * numeric route can do neither, so where it cannot answer it declines rather
+ * than guess, and we fall through — a wrong number is worse than a slow one.
+ *
+ * Taking the numeric route where it applies is the point of the split. A
+ * spline-backed function has no symbolic form at all, yet routing it through
+ * the expression route built an expression for each input, unwrapped it to a
+ * float, evaluated the spline, and wrapped the float back up — six crossings of
+ * the wasm boundary per sample to carry a number that never became symbolic.
+ * Extrema searches call this tens of thousands of times.
+ */
+function evaluateChildToNumber(child: any, argsForInputs: any): number {
+    const childF = child.fReevaluate;
+
+    // `inputNumericFs` is the discriminator, not a second array: a numeric
+    // producer sets it to the *same* functions as `inputMathFs` (they return
+    // numbers), and the two symbolic producers in `Function.js` leave it
+    // undefined because theirs return `Expression`s, which the compiled
+    // evaluator below cannot take. Testing for it is what keeps this route
+    // from depending on the call graph never handing us one of those.
+    if (childF.numeric && child.inputNumericFs) {
+        try {
+            const value = childF.numeric(
+                child.inputNumericFs.map((f: any) => f(argsForInputs)),
+            );
+            if (value !== undefined) {
+                return value;
+            }
+        } catch (e) {
+            // Fall through to the expression route below. It is not a *better*
+            // route for the two throws you would expect here — a vector input
+            // throws earlier, when `.f()` is constructed, and an unbound symbol
+            // throws again below, from the same argument functions — so this
+            // catch only buys resilience against an unforeseen throw out of the
+            // compiled evaluator.
+        }
+    }
+
+    const input = child.inputMathFs.map((f: any) =>
+        asExpression(f(argsForInputs)),
+    );
+    // A child that lands outside its own domain evaluates to a blank, and
+    // `evaluate_to_constant()` answers `NaN` for it — the same `NaN` a child
+    // that is genuinely NaN gives, which is right: a numerical function has one
+    // way to say "no value here".
+    //
+    // `toNumberOrNaN` rather than the bare call because the result can also be
+    // a math.js `Complex`, and this returns the function's number. It used to
+    // be `?? NaN` against a `null` sentinel, which reached the compiled formula
+    // and was rejected by mathjs for every operator — caught upstream, so the
+    // answer was NaN by way of an exception, except for the formula that is
+    // *just* this code (`<function>$$f(x)</function>`), where nothing operated
+    // on the value and downstream JS read the `null` as zero.
+    return toNumberOrNaN(childF(input).evaluate_to_constant());
 }
 
 export function returnSymbolicFunctionForEvaluate({
@@ -1006,7 +885,7 @@ export function returnSymbolicFunctionForEvaluate({
     symbolicfs: SymbolicFunction[];
     numInputs: number;
 }): VariableFunction {
-    return function (input: any[]): any {
+    const f = function (input: any[]): any {
         // if have a single input, check if it is a vector
         if (input.length === 1) {
             let inputTree = input[0].tree;
@@ -1022,17 +901,40 @@ export function returnSymbolicFunctionForEvaluate({
             return me.fromAst("\uFF3F");
         }
 
-        let components = symbolicfs.map((f) => f(...input).tree);
+        const results = symbolicfs.map((f) => f(...input));
 
-        let value;
-        if (components.length === 1) {
-            value = me.fromAst(components[0]);
-        } else {
-            value = me.fromAst(["vector", ...components]);
+        // One component is the overwhelmingly common case, and it is already
+        // the expression we want: taking `.tree` and handing it straight back
+        // to `fromAst` is a full JSON round-trip through wasm that cannot
+        // change the value. This runs once per sample inside the extrema
+        // search, so the round-trip was costing hundreds of thousands of
+        // serializations on a single interpolated function.
+        if (results.length === 1) {
+            return results[0];
         }
 
-        return value;
+        return me.fromAst(["vector", ...results.map((r) => r.tree)]);
     };
+
+    // Some "symbolic" functions have no symbolic form to preserve — an
+    // interpolated function is a spline, and its symbolic entry is the numeric
+    // one wrapped in an unwrap/rewrap pair. Where every component says so by
+    // naming its `numericalCounterpart`, a numeric caller can have the float
+    // directly. This is not an approximation of the symbolic route: it is the
+    // same function with the two wrappings removed.
+    const counterparts = symbolicfs.map(
+        (component: any) => component.numericalCounterpart,
+    );
+    if (counterparts.every((c: any) => typeof c === "function")) {
+        (f as any).numeric = function (input: number[]): number | undefined {
+            if (input.length !== numInputs || counterparts.length !== 1) {
+                return undefined;
+            }
+            return toNumberOrNaN(counterparts[0](...input));
+        };
+    }
+
+    return f;
 }
 
 export function returnNumericFunctionForEvaluate({
@@ -1042,7 +944,7 @@ export function returnNumericFunctionForEvaluate({
     numericalfs: NumericalFunction[];
     numInputs: number;
 }): VariableFunction {
-    return function (input: any[]): any {
+    const f = function (input: any[]): any {
         // if have a single input, check if it is a vector
         if (input.length === 1) {
             let inputTree = input[0].tree;
@@ -1058,9 +960,24 @@ export function returnNumericFunctionForEvaluate({
             return me.fromAst("\uFF3F");
         }
 
-        let numericInput = input.map((x: any) => x.evaluate_to_constant());
+        // An input with no numeric value has to be `NaN` here. While the
+        // engine reported "no value" as `null`, and `null` is `0` to every
+        // arithmetic operator downstream, evaluating `$$f(x)` with `x` still
+        // symbolic silently returned *f(0)* and passed it off as the value of
+        // the call. The engine answers `NaN` now; `toNumberOrNaN` still has
+        // the `Complex` arm to fold.
+        let numericInput = input.map((x: any) =>
+            toNumberOrNaN(x.evaluate_to_constant()),
+        );
 
-        let components = numericalfs.map((f) => f(...numericInput));
+        // A numerical function fed a non-numeric input can hand back `null`
+        // (or `undefined`), which `fromAst` rejects outright — a thrown error
+        // out of a state-variable definition takes the whole document down.
+        // "Could not evaluate numerically" is NaN, which the tree can hold and
+        // every downstream finiteness check already handles.
+        let components = numericalfs
+            .map((f) => f(...numericInput))
+            .map(toNumberOrNaN);
 
         let value;
         if (components.length === 1) {
@@ -1071,6 +988,21 @@ export function returnNumericFunctionForEvaluate({
 
         return value;
     };
+
+    // Numbers in, number out — the same evaluation with no expression built at
+    // either end, for numeric callers (see `evaluateChildToNumber`).
+    //
+    // `undefined` means "I can't answer this one, use the general route": a
+    // vector-valued function has no single number to return, and an arity
+    // mismatch is the vector-spread case, which needs the input's tree.
+    (f as any).numeric = function (input: number[]): number | undefined {
+        if (input.length !== numInputs || numericalfs.length !== 1) {
+            return undefined;
+        }
+        return toNumberOrNaN(numericalfs[0](...input));
+    };
+
+    return f;
 }
 
 export function returnBezierFunctions({
@@ -1162,43 +1094,13 @@ export function returnInterpolatedFunction({
         return () => NaN;
     }
 
-    let minx = -Infinity,
-        maxx = Infinity;
-    let openMin = false,
-        openMax = false;
-    if (domain !== null) {
-        // Function domains are represented as one interval per input variable.
-        // Interpolated functions here are single-input, so domain[0] is the
-        // x-domain interval, not the first piece of a union domain.
-        let domain0 = domain[0];
-        if (domain0 !== undefined) {
-            minx = me
-                .fromAst(domain0.tree[1][1])
-                .evaluate_to_constant() as number;
-            if (typeof minx !== "number" || Number.isNaN(minx)) {
-                minx = -Infinity;
-            } else {
-                openMin = !domain0.tree[2][1];
-            }
-            maxx = me
-                .fromAst(domain0.tree[1][2])
-                .evaluate_to_constant() as number;
-            if (typeof maxx !== "number" || Number.isNaN(maxx)) {
-                maxx = Infinity;
-            } else {
-                openMax = !domain0.tree[2][2];
-            }
-
-            // If the domain extends to +/- infinity, then consider the domain closed
-            // so that we can evaluate the function at +/- infinity
-            if (minx === -Infinity) {
-                openMin = false;
-            }
-            if (maxx === Infinity) {
-                openMax = false;
-            }
-        }
-    }
+    // Function domains are represented as one interval per input variable.
+    // Interpolated functions here are single-input, so `domain[0]` — which is
+    // what `find_effective_domain` reads — is the x-domain interval, not the
+    // first piece of a union domain.
+    let { minx, maxx, openMin, openMax } = find_effective_domain({
+        domain,
+    });
 
     let x0 = xs[0],
         xL = xs[xs.length - 1];

@@ -1462,6 +1462,15 @@ describe("Spreadsheet tag tests @group1", async () => {
             }
             let m1 = me.fromAst(["+", A1tree, 1]);
             let m2 = me.fromAst(["+", A1tree, A2tree]);
+            // A `<number>` reports "not a number" as `NaN`. Its source here is
+            // `evaluate_to_constant()`, which answers `NaN` for an expression
+            // it cannot evaluate — an empty cell parses to a blank — but can
+            // also answer a `Complex`, so the expectation makes the same
+            // translation the component does.
+            const asNumber = (m: any) => {
+                const v = m.evaluate_to_constant();
+                return typeof v === "number" ? v : NaN;
+            };
             let stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -1477,7 +1486,7 @@ describe("Spreadsheet tag tests @group1", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("number1")]
                     .stateValues.value,
-            ).eqls(m1.evaluate_to_constant());
+            ).eqls(asNumber(m1));
             expect(
                 stateVariables[await resolvePathToNodeIdx("text1")].stateValues
                     .value,
@@ -1489,7 +1498,7 @@ describe("Spreadsheet tag tests @group1", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("number2")]
                     .stateValues.value,
-            ).eqls(m2.evaluate_to_constant());
+            ).eqls(asNumber(m2));
             expect(
                 stateVariables[await resolvePathToNodeIdx("text2")].stateValues
                     .value,
@@ -1700,10 +1709,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                 .text,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
 
         await updateMathInputValue({
             latex: "3",
@@ -1714,10 +1723,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                 .text,
-        ).eq("( 3, 2 )");
+        ).eq("(3, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
-        ).eq("( 3, 2 )");
+        ).eq("(3, 2)");
 
         await updateMathInputValue({
             latex: "4",
@@ -1728,10 +1737,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("coords")].stateValues
                 .text,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
     }
 
     it("spreadsheet can merge coordinates", async () => {
@@ -1740,7 +1749,7 @@ describe("Spreadsheet tag tests @group1", async () => {
   <cell extend="$ss.cellA1" name="A1" />
   <text extend="$A1.text" name="t1" />
   <spreadsheet name="ss">
-  <cell name="coords" prefill="( 1, 2 )" />
+  <cell name="coords" prefill="(1, 2)" />
   </spreadsheet>
   <graph>
     <point name="P" coords="$(coords.math)" />

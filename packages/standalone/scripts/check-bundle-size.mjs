@@ -4,20 +4,27 @@
  * not belong.
  *
  * The core ships as a single base64 `data:application/wasm` URI inlined into
- * the worker bundle — 8.3 MiB of the worker's 14.2 MiB. Until #1465 the whole
- * worker, that blob included, was inlined into `doenet-standalone.js` instead,
- * which is why that bundle was ~28 MB rather than today's ~14 MB — and nothing
- * in the build noticed either its size or where the core had landed. A change
- * that puts the blob back into `doenet-standalone.js`, or emits it twice, would
- * be just as quiet.
+ * the worker bundle — 8.41 MiB of base64 in a bundle of 15.2 MiB. Until #1465
+ * the whole worker, that blob included, was inlined into `doenet-standalone.js`
+ * instead, which is why that bundle was ~28 MB rather than today's ~11.4 MB —
+ * and nothing in the build noticed either its size or where the core had
+ * landed. A change that puts the blob back into `doenet-standalone.js`, or
+ * emits it twice, would be just as quiet.
  *
- * Three checks, doing different jobs:
+ * There are now *two* inlined binaries, held to different rules: the Rust
+ * document core above, and `@doenet/math`'s ~2.2 MiB math core, which is legal
+ * in any script that uses math but never twice in one. {@link
+ * countInlinedBinaries} tells them apart by content.
  *
- *  - The placement check needs no threshold and never needs adjusting. The
- *    core is meant to sit in {@link WASM_CORE_SCRIPT} and nowhere else, and any
- *    other arrangement is a bug rather than a judgement call. It scans *every*
- *    emitted script under `dist/`, not just the budgeted ones, so a copy that
- *    lands in a newly emitted chunk is still caught.
+ * Three kinds of check, doing different jobs:
+ *
+ *  - The placement checks — three rules now — need no threshold and never need
+ *    adjusting. The document core is meant to sit in {@link WASM_CORE_SCRIPT}
+ *    and nowhere else, the math core at most once per script, and a
+ *    multi-megabyte inline that is neither belongs in no script at all — each
+ *    is a bug rather than a judgement call. They scan *every* emitted script
+ *    under `dist/`, not just the budgeted ones, so a copy that lands in a newly
+ *    emitted chunk is still caught.
  *  - The catalog check covers the same kind of mistake for `@doenet/i18n`'s
  *    message catalogs, which this bundle serves from `dist/locales/` rather
  *    than carrying. Both halves are silent failures: a catalog inlined back
@@ -34,8 +41,10 @@
  * Run via `npm run check:size -w packages/standalone`. Exits non-zero, and
  * prints every problem it found rather than just the first, when a bundle is
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
- * unusable, when the core is not inlined exactly once in the right script, or
- * when a served catalog is in the wrong place or missing.
+ * unusable, when the document core is not inlined exactly once in the right
+ * script, when the math core appears twice in one script, when a script holds a
+ * multi-megabyte inline that is neither, or when a served catalog is in the
+ * wrong place or missing.
  *
  * A third way the catalogs can fail to arrive — served, and nothing reading
  * them, because a bundle holds two copies of the module that decides what is
@@ -114,17 +123,79 @@ const WASM_URI = /data:application\/wasm;base64/g;
 /** Emitted JavaScript, in any extension a bundler might choose. */
 const SCRIPT_EXTENSION = /\.[cm]?js$/;
 
+/** The marker that precedes the DoenetML core's payload. */
+const WASM_URI_PREFIX = "data:application/wasm;base64,";
+
 /**
- * Count maximal base64 runs of at least {@link BIG_BLOB_MIN} characters.
+ * The base64 spelling of the WebAssembly magic number, `\0asm`. A blob that
+ * starts a base64 string at offset 0 — which `@doenet/math`'s does, being a
+ * whole string literal — encodes those four bytes as exactly this.
+ */
+const WASM_MAGIC_BASE64 = "AGFzbQ";
+
+/**
+ * Count maximal base64 runs of at least {@link BIG_BLOB_MIN} characters, split
+ * three ways.
+ *
+ *  - **DoenetML's Rust core** arrives as a `data:application/wasm;base64,…`
+ *    URI, so its payload is preceded by {@link WASM_URI_PREFIX}. It belongs to
+ *    {@link WASM_CORE_SCRIPT} and nowhere else.
+ *  - **`@doenet/math`'s core** is a bare base64 string assigned to a constant
+ *    (`packages/math/src/generated/wasm-bytes.ts`), with no URI wrapper, so it
+ *    is recognized by the wasm magic it starts with. It belongs wherever math
+ *    is used — including this bundle — but never more than once per script.
+ *  - **Anything else** is an unexplained multi-megabyte inline: a data-URI
+ *    font, an image, a bundled worker. Nothing in this repository should be
+ *    producing one, and it belongs in no script at all.
+ *
+ * The third bucket is why classification is positive rather than by
+ * elimination. Sorting "not a wasm URI" straight into the math core made every
+ * such asset look like the one blob that is now legal everywhere, so the
+ * unexplained-inline check {@link blobPlacementProblem} still advertises could
+ * never fire.
+ *
+ * Both cores are identified by what the bytes *are*, never by the variable name
+ * holding them, which minification renames.
  *
  * Scanned by hand rather than with `/[A-Za-z0-9+/]{1000000,}/`, which throws
  * `RangeError: Maximum call stack size exceeded` on a string this size — the
  * bundles are ~15 MB and the engine backtracks itself to death. A single pass
  * costs nothing and cannot blow up.
+ *
+ * @returns `{wasmUriBlobs, bareWasmBlobs, otherBlobs}`; their sum is every big
+ *   blob in `text`.
  */
-export function countBigBlobs(text) {
-    let count = 0;
+export function countInlinedBinaries(text) {
+    let wasmUriBlobs = 0;
+    let bareWasmBlobs = 0;
+    let otherBlobs = 0;
     let run = 0;
+    function finish(end) {
+        if (run < BIG_BLOB_MIN) {
+            return;
+        }
+        const start = end - run;
+        // `startsWith` clamps a negative position to 0, so without the length
+        // test a blob beginning within the first `WASM_URI_PREFIX.length`
+        // characters of the file would be classified by whether the *file*
+        // starts with the prefix. No input reaches that today, and the reason
+        // is a property of the prefix rather than of this loop: it ends in `,`,
+        // which is not a base64 character, so a run starting before its end is
+        // cut off at that comma and never reaches `BIG_BLOB_MIN`. Kept because
+        // that coupling is implicit — an inlined-asset prefix that happened to
+        // end in a base64 character would make it live, and no test can pin it
+        // in the meantime.
+        if (
+            start >= WASM_URI_PREFIX.length &&
+            text.startsWith(WASM_URI_PREFIX, start - WASM_URI_PREFIX.length)
+        ) {
+            wasmUriBlobs++;
+        } else if (text.startsWith(WASM_MAGIC_BASE64, start)) {
+            bareWasmBlobs++;
+        } else {
+            otherBlobs++;
+        }
+    }
     for (let i = 0; i < text.length; i++) {
         const c = text.charCodeAt(i);
         const isBase64 =
@@ -136,13 +207,12 @@ export function countBigBlobs(text) {
         if (isBase64) {
             run++;
         } else {
-            if (run >= BIG_BLOB_MIN) {
-                count++;
-            }
+            finish(i);
             run = 0;
         }
     }
-    return run >= BIG_BLOB_MIN ? count + 1 : count;
+    finish(text.length);
+    return { wasmUriBlobs, bareWasmBlobs, otherBlobs };
 }
 
 function mib(bytes) {
@@ -367,10 +437,19 @@ function collectEmittedScripts(probes) {
             .relative(PACKAGE_ROOT, file)
             .split(path.sep)
             .join("/");
+        const binaries = countInlinedBinaries(contents);
         scripts.set(relative, {
             size: buffer.length,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
-            bigBlobs: countBigBlobs(contents),
+            bigBlobs:
+                binaries.wasmUriBlobs +
+                binaries.bareWasmBlobs +
+                binaries.otherBlobs,
+            // Each of the three kinds is held to its own rule, so each is
+            // carried separately rather than recovered by subtraction.
+            doenetCores: binaries.wasmUriBlobs,
+            mathCores: binaries.bareWasmBlobs,
+            otherBlobs: binaries.otherBlobs,
             inlinedCatalogs: catalogsInScript(contents, probes),
         });
     }
@@ -421,6 +500,22 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
 }
 
 /**
+ * Describe a script carrying more than one copy of the `@doenet/math` core.
+ *
+ * One copy is expected wherever math is used. More than one is always a
+ * bundling fault rather than a judgement call, so this needs no threshold.
+ */
+function mathCorePlacementProblem(relative, count) {
+    return (
+        `${relative} carries ${count} copies of the @doenet/math core; one is expected.\n` +
+        `    Each copy is ~2.3 MiB of inlined base64 and a separate WASM instantiation\n` +
+        `    at runtime. It means the seam resolved as more than one module instance —\n` +
+        `    usually a package that bundles \`math-expressions\` into its own dist instead\n` +
+        `    of externalizing it, which then rides into every bundle embedding it.`
+    );
+}
+
+/**
  * Describe a script whose inlined-blob count is not what it should be.
  *
  * `expected` is 1 for {@link WASM_CORE_SCRIPT} and 0 for everything else, so
@@ -429,7 +524,7 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
 function blobPlacementProblem(relative, emitted, expected) {
     const observed =
         `${emitted.wasmUris} wasm data-URI(s) and ` +
-        `${emitted.bigBlobs} large inlined blob(s)`;
+        `${emitted.doenetCores} inlined copies of it`;
     if (expected === 1) {
         return (
             `${relative} should carry the Rust core exactly once, but has ${observed}.\n` +
@@ -440,11 +535,29 @@ function blobPlacementProblem(relative, emitted, expected) {
         );
     }
     return (
-        `${relative} should carry no inlined binary — the Rust core belongs to\n` +
+        `${relative} should carry no copy of the Rust document core — it belongs to\n` +
         `    ${WASM_CORE_SCRIPT} alone — but has ${observed}.\n` +
-        `    A wasm URI here means the core leaked out of the worker or was bundled\n` +
-        `    twice. A large blob without one means some other multi-megabyte asset is\n` +
-        `    now inlined into JavaScript. Either way it should be a deliberate change.`
+        `    That means the core leaked out of the worker or was bundled twice, and it\n` +
+        `    should be a deliberate change.`
+    );
+}
+
+/**
+ * Describe a script carrying a multi-megabyte inline that is neither core.
+ *
+ * Both cores are recognized by their content (see
+ * {@link countInlinedBinaries}), so anything left over is an asset that started
+ * being inlined into JavaScript without anyone deciding it should be — a
+ * data-URI font, an image, a bundled worker. There is no script where that is
+ * expected, so this needs no threshold and no per-script exception.
+ */
+function unexplainedBlobProblem(relative, count) {
+    return (
+        `${relative} carries ${count} multi-megabyte inlined blob(s) that are neither\n` +
+        `    the Rust document core nor the @doenet/math core.\n` +
+        `    Some other asset is now being inlined into JavaScript rather than emitted\n` +
+        `    beside it. Emit it as a file, or — if inlining it really is intended —\n` +
+        `    teach countInlinedBinaries to recognize it so it stops being unexplained.`
     );
 }
 
@@ -518,8 +631,26 @@ export function findProblems(budgets, scripts) {
     // cannot tell them apart.
     for (const [relative, emitted] of scripts) {
         const expected = relative === WASM_CORE_SCRIPT ? 1 : 0;
-        if (emitted.wasmUris !== expected || emitted.bigBlobs !== expected) {
+        // The DoenetML core: exactly where it belongs, exactly once. Its
+        // payload always arrives as a wasm data-URI, so both counts move
+        // together, and each is checked so that a URI without a payload (or the
+        // reverse) is still caught.
+        if (emitted.wasmUris !== expected || emitted.doenetCores !== expected) {
             problems.push(blobPlacementProblem(relative, emitted, expected));
+        }
+        // Anything inlined that is neither core, in any script.
+        if (emitted.otherBlobs > 0) {
+            problems.push(unexplainedBlobProblem(relative, emitted.otherBlobs));
+        }
+        // The math core: allowed anywhere math is used, but never twice in one
+        // script. Two copies means it was resolved as two module instances,
+        // each contributing its own ~2.3 MiB of inlined base64 — the failure
+        // this check exists to catch, and the reason the libraries that feed
+        // these bundles externalize the seam rather than bundling it.
+        if (emitted.mathCores > 1) {
+            problems.push(
+                mathCorePlacementProblem(relative, emitted.mathCores),
+            );
         }
     }
     // Catalogs this bundle is supposed to serve, not carry. Being one file, it

@@ -1,0 +1,92 @@
+{
+    "name": "@doenet/math",
+    "type": "module",
+    "description": "The single seam through which DoenetML reaches math-expressions: the Rust core compiled to WASM, inlined and re-exported behind the legacy API.",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./engine-rust": {
+            "types": "./dist/engine-rust.d.ts",
+            "import": "./dist/engine-rust.js"
+        }
+    },
+    "scripts": {
+        "watch": "vite build --watch",
+        "test": "wireit",
+        "build:wasm": "wireit",
+        "build": "wireit"
+    },
+    "wireit": {
+        "test": {
+            "//": [
+                "`vitest`, not `vitest run`, because the root aggregate script",
+                "`test:all-no-worker-js` invokes every workspace as",
+                "`npm run test -w <pkg> -- run` and wireit forwards that `run`",
+                "straight to the command. Spelling run mode here made it",
+                "`vitest run run`, where the second `run` is a *filename filter*",
+                "that matches no spec — `No test files found, exiting with code",
+                "1`, and the whole Test Main job red. Every sibling package",
+                "spells its test script the same bare way for the same reason."
+            ],
+            "command": "vitest",
+            "files": [
+                "test/**/*.ts",
+                "vitest.config.ts"
+            ],
+            "output": [],
+            "dependencies": [
+                "build"
+            ]
+        },
+        "build:wasm": {
+            "command": "node scripts/build-wasm.mjs",
+            "files": [
+                "scripts/build-wasm.mjs",
+                "../../vendor/math-expressions/Cargo.toml",
+                "../../vendor/math-expressions/Cargo.lock",
+                "../../vendor/math-expressions/packages/math-expressions-rs/Cargo.toml",
+                "../../vendor/math-expressions/packages/math-expressions-rs/src/**",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/Cargo.toml",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/build-wasm.sh",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-rust/**"
+            ],
+            "output": [
+                "src/generated/**"
+            ],
+            "clean": false
+        },
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "vite.config.ts",
+                "tsconfig.json",
+                "../../vendor/math-expressions/packages/math-expressions-js-compat/lib/**/*.ts",
+                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-js/**/*.ts",
+                "src/generated/**"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.map",
+                "dist/**/*.d.ts"
+            ],
+            "dependencies": [
+                "build:wasm"
+            ],
+            "clean": true
+        }
+    },
+    "dependencies": {
+        "mathjs": "^15.2.0"
+    }
+}

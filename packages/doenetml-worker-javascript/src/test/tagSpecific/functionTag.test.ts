@@ -3082,9 +3082,23 @@ describe("Function tag tests @group4", async () => {
         // values of extrema computed in Sage
         let minimumLocations = [-2.29152990292159];
 
-        // XXX: this is a spurious minimum that is now being picked up due to numerical issues.
-        // See issue #940
-        minimumLocations.push(4.999999948194912);
+        // Issue #940 — the spurious minimum at 4.999999948194912, an artifact
+        // of bracketing next to the double pole at x = 5 — is gone. A pole is
+        // now recognized as such: `critical_points` gives the *complete* real
+        // root set of f' for a rational derivative, so a cell that brackets a
+        // sign change while holding none of those roots is a pole, and
+        // `utils/extrema.js` declines to refine into it.
+        //
+        // That is independent of where the grid falls, which the earlier
+        // NaN-at-the-sample explanation was not: the default domain is
+        // [-100, 100] over 1000 intervals, so `dx = 0.2` and `-100 + 525·0.2`
+        // is bit-exactly 5 — the sample landed *on* the pole and read `NaN`,
+        // and that alone was what suppressed the extremum. The off-grid case is
+        // the next test.
+        //
+        // Seeding from `critical_points` is what keeps the four real extrema
+        // exact: -11.66601734921, -2.29152990292, 3.18454272065,
+        // 9.77300453148, the Sage values below and nothing near 5.
         let minima = minimumLocations.map((x) => [x, f(x)]);
         let maximumLocations = [
             -11.6660173492088, 3.18454272065031, 9.77300453148004,
@@ -3101,6 +3115,138 @@ describe("Function tag tests @group4", async () => {
             globalinfSmallerThan: -1e5,
             haveGlobalMin: true,
         });
+    });
+
+    it("extrema of rational function with a pole between grid samples", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f">
+      (x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)
+    </function>
+    <function name="g">
+      -(x+8)(x-8)/((x-2)(x+4)(x-5.1)^2)
+    </function>
+    `,
+        });
+
+        let f =
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
+                .numericalf.value;
+
+        // The same shape as the test above with the double pole moved to 5.1,
+        // which is *not* a grid point: on the default [-100, 100] over 1000
+        // intervals every sample near it is finite, the two straddling cells
+        // each see f' flip sign, and `fzero` used to refine into the pole and
+        // report a minimum at 5.100000624836199. Recognizing the pole from the
+        // exact root set removes it here too, which is the general property —
+        // the on-grid test above cannot distinguish it from the accident of a
+        // sample landing on the pole.
+        //
+        // Locations from `critical_points` (checked against a sign scan of f'):
+        let minimumLocations = [-2.28205595296559];
+        let minima = minimumLocations.map((x) => [x, f(x)]);
+        let maximumLocations = [
+            -11.681167550861327, 3.2319992003041587, 9.731224303522758,
+        ];
+        let maxima = maximumLocations.map((x) => [x, f(x)]);
+
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            maxima,
+            minima,
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinfSmallerThan: -1e5,
+            haveGlobalMin: true,
+        });
+
+        // `check_extrema`'s 1e-3 tolerance cannot tell an exact root from a
+        // refined one, so pin that half separately: these locations come
+        // straight from `critical_points`, not from `fzero`.
+        let fState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("f")
+        ].stateValues;
+        expect(fState.minima[0][0]).closeTo(minimumLocations[0], 1e-12);
+        for (let [i, loc] of maximumLocations.entries()) {
+            expect(fState.maxima[i][0]).closeTo(loc, 1e-12);
+        }
+
+        // `-f` must be the mirror image, and it exercises a second seam: the
+        // maximum hunt is the minimum hunt on a negated formula, and negating
+        // by rebuilding from `.tree` sent `5.1` through an f64, which made
+        // `critical_points` decline and put the pole rejection out of reach on
+        // that side only. That reported a spurious *maximum* at
+        // 5.100000370673212.
+        let g =
+            await core.core!.components![await resolvePathToNodeIdx("g")].state
+                .numericalf.value;
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            fName: "g",
+            maxima: minimumLocations.map((x) => [x, g(x)]),
+            minima: maximumLocations.map((x) => [x, g(x)]),
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinfSmallerThan: -1e5,
+            haveGlobalMin: true,
+        });
+    });
+
+    it("extrema of rational function with a root and a pole in one grid cell", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f">
+      (x-5)^2/(x-5.1)^2
+    </function>
+    <function name="g">
+      -(x-5)^2/(x-5.1)^2
+    </function>
+    `,
+        });
+
+        // The pole test above asks whether *the cell* holds one of the exact
+        // roots of f'. That is not enough on its own, and this is the shape it
+        // misses: the only root of f' in [-100, 100] is 5, which sits on the
+        // left edge of the cell [5.0, 5.2] — and the pole at 5.1 is in the same
+        // cell. The cell test is satisfied there, so `fminbr` still descended
+        // into the pole and reported a maximum of 3.01e10 at 5.100000576002722.
+        //
+        // Asking the question of the converged *point* instead closes it: a
+        // reported minimum has to be at one of the known roots, within
+        // `fminbr`'s own convergence width. Which leaves the genuine double
+        // root at 5, exactly.
+        let f =
+            await core.core!.components![await resolvePathToNodeIdx("f")].state
+                .numericalf.value;
+
+        await check_extrema({
+            core,
+            resolvePathToNodeIdx,
+            minima: [[5, f(5)]],
+            maxima: [],
+            globalsupLargerThan: 1e5,
+            haveGlobalMax: true,
+            globalinf: 0,
+            haveGlobalMin: true,
+            globalinfLocation: 5,
+        });
+
+        let fState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("f")
+        ].stateValues;
+        expect(fState.minima.length).eq(1);
+        expect(fState.minima[0][0]).closeTo(5, 1e-12);
+        expect(fState.maxima.length).eq(0);
+
+        // …and the mirror image, so the negated path is covered too.
+        let gState = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("g")
+        ].stateValues;
+        expect(gState.maxima.length).eq(1);
+        expect(gState.maxima[0][0]).closeTo(5, 1e-12);
+        expect(gState.minima.length).eq(0);
     });
 
     it("intervals of extrema are not counted", async () => {
@@ -3644,7 +3790,7 @@ describe("Function tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
-            ).eq(`( 0, 1 ), ( ${piString}, -1 )`);
+            ).eq(`(0, 1), (${piString}, -1)`);
         }
 
         for (const pName of [
@@ -3662,7 +3808,7 @@ describe("Function tag tests @group4", async () => {
                 stateVariables[await resolvePathToNodeIdx(pName)].stateValues
                     .text,
             ).eq(
-                `( -${piString}, 0 ), ( 0, 2 ), ( ${piString}, 0 ), ( ${twoPiString}, 2 )`,
+                `(-${piString}, 0), (0, 2), (${piString}, 0), (${twoPiString}, 2)`,
             );
         }
     });
@@ -5399,23 +5545,23 @@ describe("Function tag tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing1")].stateValues
                 .text,
-        ).eq("g1 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g1 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing2")].stateValues
                 .text,
-        ).eq("g2 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g2 domain: (3, 4), (5, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing3")].stateValues
                 .text,
-        ).eq("g3 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g3 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing4")].stateValues
                 .text,
-        ).eq("g4 domain: ( -∞, ∞ ), ( -∞, ∞ )");
+        ).eq("g4 domain: (-∞, ∞), (-∞, ∞)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pDomaing5")].stateValues
                 .text,
-        ).eq("g5 domain: ( 3, 4 ), ( 5, 6 )");
+        ).eq("g5 domain: (3, 4), (5, 6)");
 
         let diagnosticsByType = getDiagnosticsByType(core);
 
@@ -7429,5 +7575,47 @@ describe("Function tag tests @group4", async () => {
         expect(f1Latex).match(/10\^{-12}|10\^{21}|10\^21/);
         expect(f2Latex).contain("0.000000000007");
         expect(f2Latex).contain("2000000000000000000000");
+    });
+
+    it("radical functions evaluate numerically, including at negative inputs", async () => {
+        // `numericalfs` is the plotting and extremum-finding path, and it is
+        // not the path a `<number>$$f(-8)</number>` takes — that one
+        // substitutes and evaluates symbolically, and answered correctly even
+        // while this one did not. `nthroot` reached the engine's compiled
+        // evaluator under a name math.js does not have, which is not a compile
+        // error: it threw on every sample, so a `<function>` written that way
+        // drew nothing at all, at any input. Fixed in the engine
+        // (`functionConversions` in `tree-to-mathjs.ts`); asserted here because
+        // this is the surface an author sees.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="fnth">nthroot(x,3)</function>
+  <function name="fcbrt">cbrt(x)</function>
+  <function name="fsqrt">nthroot(x,2)</function>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const numericalf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .numericalfs[0];
+
+        const fnth = await numericalf("fnth");
+        const fcbrt = await numericalf("fcbrt");
+        const fsqrt = await numericalf("fsqrt");
+
+        expect(fnth(8)).eq(2);
+        expect(fsqrt(9)).eq(3);
+        expect(fcbrt(8)).eq(2);
+
+        // Odd roots of negatives read on the real branch here too, so the
+        // curve continues through the origin instead of stopping at it.
+        expect(fnth(-8)).eq(-2);
+        expect(fcbrt(-8)).eq(-2);
+
+        // An even root of a negative has no real value: a gap in the plot,
+        // spelled `NaN`. Not `null` and not a complex object — a consumer that
+        // does arithmetic on the result would turn the first into 0.
+        expect(fsqrt(-9)).to.be.NaN;
     });
 });

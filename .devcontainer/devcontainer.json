@@ -16,6 +16,10 @@
         "ghcr.io/devcontainers-extra/features/apt-packages:1": {
             "packages": "vim libgtk-3-0 xvfb"
         },
+        // wasm32 target + a version-matched wasm-bindgen-cli. `npm run build`
+        // compiles @doenet/math's WASM core from the vendor/math-expressions
+        // submodule, so this is a prerequisite for building the repo at all.
+        "./features/wasm-toolchain": {},
         // Install files needed for WebDriver tests (e.g. doenetml-to-prefigure tests)
         "./features/webdriver-libs": {},
         // Avoid erroneous connections to the host's debug environment.

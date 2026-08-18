@@ -1,9 +1,19 @@
 import me from "math-expressions";
 import type { Tree } from "math-expressions";
 
-import { subsets, vectorOperators, roundForDisplay } from "@doenet/utils";
+import {
+    subsets,
+    vectorOperators,
+    roundForDisplay,
+    isNumericConstant,
+    toNumberOrNaN,
+} from "@doenet/utils";
 
-export { roundForDisplay };
+// `isNumericConstant`/`toNumberOrNaN` live in `@doenet/utils` because
+// `packages/utils` needs them too and imports cannot run that way: this package
+// depends on that one. They are re-exported here so the ~15 call sites in this
+// package keep reading from the module where the rest of this family lives.
+export { roundForDisplay, isNumericConstant, toNumberOrNaN };
 
 export var appliedFunctionSymbolsDefault = [
     "abs",
@@ -203,15 +213,19 @@ export function textToMathFactory({
     splitSymbols?: boolean;
     parseScientificNotation?: boolean;
 } = {}) {
+    // Parses straight to an Expression rather than via `textToAstObj` +
+    // `fromAst`. The AST is JSON, so every number in it is an f64: the trip
+    // through it turned an exact user-typed decimal into the nearest float,
+    // and `35203423.02352343201` came back as `35203423.023523435`. The parser
+    // itself holds the decimal exactly, and skipping the round-trip is what
+    // lets it reach the display path intact.
     return (x: string) =>
-        me.fromAst(
-            new me.converters.textToAstObj({
-                appliedFunctionSymbols,
-                functionSymbols,
-                splitSymbols,
-                parseScientificNotation,
-            }).convert(x),
-        );
+        me.fromText(x, {
+            appliedFunctionSymbols,
+            functionSymbols,
+            splitSymbols,
+            parseScientificNotation,
+        });
 }
 
 export var latexToAst = new me.converters.latexToAstObj({
@@ -230,29 +244,18 @@ export function latexToMathFactory({
     splitSymbols?: boolean;
     parseScientificNotation?: boolean;
 } = {}) {
-    if (splitSymbols) {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(
-                    wrapWordIncludingNumberWithVar(x, parseScientificNotation),
-                ),
-            );
-    } else {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(wrapWordWithVar(x, parseScientificNotation)),
-            );
-    }
+    // Parses straight to an Expression, for the reason given on
+    // `textToMathFactory`: the AST is JSON and would float every decimal.
+    const opts = {
+        appliedFunctionSymbols,
+        functionSymbols,
+        allowedLatexSymbols,
+        parseScientificNotation,
+    };
+    const wrap = splitSymbols
+        ? wrapWordIncludingNumberWithVar
+        : wrapWordWithVar;
+    return (x: string) => me.fromLatex(wrap(x, parseScientificNotation), opts);
 }
 
 export function findFiniteNumericalValue(value: any) {
@@ -277,6 +280,32 @@ export function findFiniteNumericalValue(value: any) {
 
     // couldn't find numerical value
     return null;
+}
+
+/**
+ * `expr.evaluate_to_constant()` as a plain number, with everything that is not
+ * one reported as `NaN`.
+ *
+ * `evaluate_to_constant()` returns `number | Complex`. The `number` arm already
+ * spells "no numeric value" as `NaN`, so this is a pass-through for it; what it
+ * converts is the `Complex` arm, which is a value but not one a real-valued
+ * state variable can hold, and which arrives prototype-stripped on the main
+ * thread anyway.
+ *
+ * The engine briefly answered `null` instead of `NaN` for an expression it
+ * could not evaluate at all, and this function was written for that: `null`
+ * slips past `Number.isNaN` and then coerces to `0`, so a blank input read as
+ * zero. That is fixed at the source (math-expressions#84). Keeping this at the
+ * boundary is still worth it for the complex arm and because a state variable
+ * has exactly one way to say "not a number".
+ *
+ * Code that needs to tell "cannot be evaluated" from "evaluates to NaN" apart
+ * should ask `expr.variables()`, which is where that information now lives.
+ */
+export function evaluateToNumber(expr: {
+    evaluate_to_constant: () => unknown;
+}): number {
+    return toNumberOrNaN(expr.evaluate_to_constant());
 }
 
 export function returnNVariables(n: number, variablesSpecified: any[]) {
@@ -476,6 +505,57 @@ export function normalizeLatexString(
     return latexString;
 }
 
+/**
+ * A complex value as a plain `{re, im}` object.
+ *
+ * `evaluate_to_constant()` hands back a math.js `Complex`, which is right for
+ * callers doing math.js arithmetic with it — but a value on its way into a
+ * *state variable* is about to be structured-cloned to the main thread, where
+ * the prototype does not survive. Storing the class instance promised methods
+ * that only exist on one side of that boundary.
+ *
+ * Anything that is not a complex — a number, `null`, `NaN` — passes through, so
+ * this is safe to wrap around a raw `evaluate_to_constant()` result. Apply it
+ * at every boundary where such a result becomes a state variable; the two that
+ * were missed were `<text>`'s `.number` and `<number>`'s text-child branch,
+ * both `public`, and the second the only branch of its own definition without
+ * it.
+ */
+export function plainComplex(value: any) {
+    if (
+        value &&
+        typeof value === "object" &&
+        typeof value.re === "number" &&
+        typeof value.im === "number"
+    ) {
+        return { re: value.re, im: value.im };
+    }
+    return value;
+}
+
+/** The long-underscore character an unfilled `<mathInput>` slot holds. */
+export const BLANK = "\uFF3F";
+
+/**
+ * Does this tree hold an unfilled slot anywhere?
+ *
+ * Walks the tree rather than asking `variables()`. The legacy library listed
+ * the blank among an expression's variables; the Rust engine does not — it is a
+ * node of its own kind — so `variables().includes(BLANK)` is a guard that
+ * cannot fire, and reads as "no blanks here" for every expression there is.
+ * That is a silent failure in both places this is used: a pattern match stops
+ * rejecting incomplete input, and an extremum search proceeds to differentiate
+ * a formula with a hole in it.
+ */
+export function treeContainsBlank(tree: unknown): boolean {
+    if (Array.isArray(tree)) {
+        // From index 1: index 0 is the operator name, and an operator spelled
+        // with the blank character is not a blank.
+        return tree.slice(1).some(treeContainsBlank);
+    }
+    return tree === BLANK;
+}
+
 export function isValidVariable(expression: {
     tree: any;
     [key: string]: unknown;
@@ -528,7 +608,12 @@ export function mathStateVariableFromNumberStateVariable({
 
             let desiredNumber;
             if (desiredMath instanceof me.class) {
-                desiredNumber = desiredMath.evaluate_to_constant();
+                // The number side of this bridge spells "no value" `NaN`,
+                // which is what `evaluate_to_constant()` answers. A complex
+                // result passes through deliberately: components that accept
+                // one test `re`/`im` themselves, which is why this is not
+                // `toNumberOrNaN`. The `?? NaN` is belt and braces.
+                desiredNumber = desiredMath.evaluate_to_constant() ?? NaN;
             } else if (typeof desiredMath === "number") {
                 desiredNumber = desiredMath;
             } else {
@@ -585,27 +670,71 @@ export function numberToMathExpression(
     return me.fromAst(mathTree);
 }
 
-export function mergeListsWithOtherContainers(tree: any) {
+/**
+ * Flatten a `list` nested directly inside another container:
+ * `["tuple", "a", ["list", "b", "c"]]` becomes `["tuple", "a", "b", "c"]`.
+ *
+ * Only a nested `list` is flattened, which is why the source of one matters:
+ * the parser does not produce it — `(a, (b, c))` reads as a tuple inside a
+ * tuple and is left alone — so the `list` arrives from code substitution, where
+ * a `<math>` whose value is a list is spliced into a container.
+ *
+ * Returns the *same* tree object when there is nothing to flatten, so callers
+ * can tell a no-op apart from a real change. That matters because the only way
+ * to apply the result is `me.fromAst`, and rebuilding an expression from its
+ * tree is lossy: the tree is JSON, so an exact user-typed decimal comes back as
+ * the nearest f64. Skipping the rebuild in the common case keeps the value
+ * exact.
+ */
+function mergeListsWithOtherContainers(tree: any) {
     if (!Array.isArray(tree)) {
         return tree;
     }
 
     let operator = tree[0];
     let operands = tree.slice(1);
+    let changed = false;
 
     if ([...vectorOperators, "list", "set"].includes(operator)) {
-        operands = operands.reduce(
-            (a, c) =>
-                Array.isArray(c) && c[0] === "list"
-                    ? [...a, ...c.slice(1)]
-                    : [...a, c],
-            [],
-        );
+        // Test for a nested list directly, not by comparing lengths before and
+        // after: a one-element nested list splices in one operand for one
+        // operand, so `["tuple", "a", ["list", "b"]]` flattens without changing
+        // the length and a length comparison would report "nothing happened".
+        const isNestedList = (c: any) => Array.isArray(c) && c[0] === "list";
+        if (operands.some(isNestedList)) {
+            operands = operands.reduce(
+                (a: any[], c: any) =>
+                    isNestedList(c) ? [...a, ...c.slice(1)] : [...a, c],
+                [],
+            );
+            changed = true;
+        }
     }
 
-    operands = operands.map((x) => mergeListsWithOtherContainers(x));
+    operands = operands.map((x) => {
+        const merged = mergeListsWithOtherContainers(x);
+        if (merged !== x) {
+            changed = true;
+        }
+        return merged;
+    });
 
-    return [operator, ...operands];
+    return changed ? [operator, ...operands] : tree;
+}
+
+/**
+ * [`mergeListsWithOtherContainers`] applied to an `Expression`, rebuilding it
+ * only if the flattening actually changed something.
+ *
+ * The rebuild has to go through `me.fromAst`, and a tree is JSON: an exact
+ * user-typed decimal comes back as the nearest f64, so `35203423.02352343201`
+ * would reach the display as `35203423.023523435`. Almost nothing has a nested
+ * list to flatten, so almost nothing should pay that.
+ */
+export function mergeListsIfNeeded(value: any): any {
+    const tree = value.tree;
+    const merged = mergeListsWithOtherContainers(tree);
+    return merged === tree ? value : me.fromAst(merged);
 }
 
 function wrapWordWithVar(string: string, parseScientificNotation: boolean) {
@@ -931,6 +1060,86 @@ export function removeFunctionsMathExpressionClass(value: any) {
 }
 
 /**
+ * Marks a vector component that an inverse definition is deliberately leaving
+ * alone, so that `preprocessMathInverseDefinition` can fill it back in from the
+ * workspace or the current value.
+ *
+ * This used to be a hole in the AST array (`["vector", , 9]`), detected with
+ * `tree.includes()`. That only worked because the old JavaScript engine stored
+ * the AST array by reference; the Rust engine round-trips `.tree` through JSON,
+ * where a hole becomes `null` and `from_ast` rejects it outright ("unexpected
+ * value null"), aborting the whole update. A symbol survives the round trip
+ * unchanged.
+ *
+ * Deliberately *not* `＿` (U+FF3F), which already means a blank the student
+ * typed and must keep flowing through untouched.
+ *
+ * The name is prefixed with **U+E000**, the first Private Use Area code point,
+ * so it cannot collide with anything a document can write: a `<math>` with
+ * `splitSymbols="false"` and a variable literally named `unspecifiedComponent`
+ * keeps its own meaning. Nothing renders the prefix, and the marker never
+ * leaves the inverse-definition round trip in any case — but the collision is
+ * cheap to rule out and expensive to debug.
+ *
+ * Note that the prefix is **invisible in most editors and in `git diff`**: the
+ * literal below reads as a bare identifier unless you look at the bytes
+ * (`ee 80 80`). Compare against this constant, never against the string
+ * `"unspecifiedComponent"` typed out again.
+ */
+export const UNSPECIFIED_COMPONENT = "unspecifiedComponent";
+
+/** Whether an AST node marks a component no inverse instruction has set. */
+function isUnspecifiedComponent(value: unknown) {
+    // `undefined` covers holes in trees that never went through the engine.
+    return value === undefined || value === UNSPECIFIED_COMPONENT;
+}
+
+/**
+ * Whether any operand of `tree` is unspecified. Indexed rather than
+ * `.some()`, which skips holes.
+ */
+function hasUnspecifiedComponent(tree: any[]) {
+    for (let ind = 1; ind < tree.length; ind++) {
+        if (isUnspecifiedComponent(tree[ind])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Whether a math expression pulled out of a vector is a component that no
+ * inverse instruction set, and so should be skipped rather than assigned.
+ *
+ * The `undefined` tree is the legacy hole; `UNSPECIFIED_COMPONENT` is the same
+ * thing after a round trip through the engine.
+ */
+export function isUnspecifiedComponentValue(expression: any) {
+    return (
+        expression == null ||
+        expression.tree === undefined ||
+        expression.tree === UNSPECIFIED_COMPONENT
+    );
+}
+
+/**
+ * Replace the unset slots of a vector AST being built component-by-component
+ * with `UNSPECIFIED_COMPONENT`, so it can be handed to `me.fromAst`.
+ *
+ * Operates on operands only — index 0 is the operator. **Mutates `tree` in
+ * place** and returns it, so the caller must own the array; every call site
+ * does, having just built it.
+ */
+export function markUnspecifiedComponents(tree: any[]) {
+    for (let ind = 1; ind < tree.length; ind++) {
+        if (tree[ind] === undefined) {
+            tree[ind] = UNSPECIFIED_COMPONENT;
+        }
+    }
+    return tree;
+}
+
+/**
  * Preprocess the desired value within the inverse definition of a math state variable
  * to fill in any any vector components.
  *
@@ -970,7 +1179,7 @@ export async function preprocessMathInverseDefinition({
 
     if (
         !vectorOperators.includes(desiredValue.tree[0]) ||
-        !desiredValue.tree.includes()
+        !hasUnspecifiedComponent(desiredValue.tree)
     ) {
         return { desiredValue };
     }
@@ -1027,7 +1236,7 @@ export async function preprocessMathInverseDefinition({
         let vectorComponentsNotAffected = [];
         let foundNotAffected = false;
         for (let [ind, value] of desiredValue.tree.entries()) {
-            if (value === undefined) {
+            if (ind > 0 && isUnspecifiedComponent(value)) {
                 foundNotAffected = true;
                 vectorComponentsNotAffected.push(ind);
             } else {
@@ -1052,7 +1261,7 @@ export async function preprocessMathInverseDefinition({
         // fill in with \uff3f
         let desiredOperands = [];
         for (let val of desiredValue.tree.slice(1)) {
-            if (val === undefined) {
+            if (isUnspecifiedComponent(val)) {
                 desiredOperands.push("\uff3f");
             } else {
                 desiredOperands.push(val);

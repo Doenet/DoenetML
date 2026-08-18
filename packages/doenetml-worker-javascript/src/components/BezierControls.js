@@ -1,6 +1,15 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+// Control components are read through `evaluateToNumber`. Each of these
+// readings is handed straight to `me.fromAst`, and the engine used to answer
+// `null` — not `NaN` — for a control vector that is still symbolic.
+// `me.fromAst(null)` throws ("unexpected value null"), which out of a
+// state-variable definition takes the update with it, and `-null` is `-0`.
+// Both the legacy engine and this one answer `NaN`, which `fromAst` accepts;
+// the reading stays guarded because `evaluate_to_constant` can also answer a
+// `Complex`, which `fromAst` does not accept either.
+import { evaluateToNumber } from "../utils/math";
 
 export default class BezierControls extends InlineComponent {
     static componentType = "bezierControls";
@@ -578,7 +587,7 @@ export default class BezierControls extends InlineComponent {
                                     ];
                                 if (value) {
                                     useEssential = false;
-                                    value = value.evaluate_to_constant();
+                                    value = evaluateToNumber(value);
                                     newControlValues[arrayKey] =
                                         me.fromAst(value);
                                 }
@@ -610,7 +619,7 @@ export default class BezierControls extends InlineComponent {
                                         ];
                                     if (value) {
                                         useEssential = false;
-                                        value = value.evaluate_to_constant();
+                                        value = evaluateToNumber(value);
                                         newControlValues[arrayKey] =
                                             me.fromAst(value);
                                     }
@@ -621,7 +630,7 @@ export default class BezierControls extends InlineComponent {
                                         ];
                                     if (value) {
                                         useEssential = false;
-                                        value = value.evaluate_to_constant();
+                                        value = evaluateToNumber(value);
                                         if (direction === "symmetric") {
                                             newControlValues[arrayKey] =
                                                 me.fromAst(-value);
@@ -711,9 +720,11 @@ export default class BezierControls extends InlineComponent {
                                 if (useEssential) {
                                     // make sure essential values are numeric
                                     let desiredValue = me.fromAst(
-                                        desiredStateVariableValues.controls[
-                                            arrayKey
-                                        ].evaluate_to_constant(),
+                                        evaluateToNumber(
+                                            desiredStateVariableValues.controls[
+                                                arrayKey
+                                            ],
+                                        ),
                                     );
                                     if (direction === "symmetric") {
                                         instructions.push({
@@ -774,7 +785,7 @@ export default class BezierControls extends InlineComponent {
                                 if (useEssential) {
                                     // make sure essential values are numeric
                                     desiredValue = me.fromAst(
-                                        desiredValue.evaluate_to_constant(),
+                                        evaluateToNumber(desiredValue),
                                     );
                                     if (direction === "symmetric") {
                                         instructions.push({

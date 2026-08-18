@@ -484,6 +484,32 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
+    it("survives a piecewise function whose pieces have symbolic domains", async () => {
+        // The sugar wraps `$g` in a `<function>`, whose `domain` is an array
+        // state variable of one interval per input. A piecewise function whose
+        // pieces are bounded by a free variable has no numeric domain at all
+        // and reports `domain: null`, which the wrapper's array turned into a
+        // *present but empty* array — and the piecewise extrema search read
+        // `domain[0].tree` off it and threw, taking the document down rather
+        // than drawing a field.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <setup><piecewiseFunction name="g">
+    <function domain="(-infinity, q)">1</function>
+    <function domain="[q, infinity)">2</function>
+  </piecewiseFunction></setup>
+  <graph>
+    <slopeField name="sf">$g</slopeField>
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sf = stateVariables[await resolvePathToNodeIdx("sf")];
+
+        expect(sf.stateValues.haveFunction).eq(true);
+    });
+
     it("vectorField normalize defaults to false and can be set", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

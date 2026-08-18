@@ -23,12 +23,22 @@ doenetGlobalConfig.doenetWorkerUrl = workerBlobUrl;
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
+ *
+ * The raw worker's `terminate` comes back alongside the proxy because Comlink
+ * hides the `Worker` itself, and every caller has to terminate it. A core
+ * worker holds two WASM modules per realm now — the core's and the math
+ * engine's — so one that outlives its use costs an order of magnitude more
+ * memory than it used to; see the "Pre-existing defects, pushed over the edge
+ * by this diff" section of `MATH_EXPRESSIONS_ENGINE_NOTES.md`.
  */
 export function createWrappedCoreWorker() {
     const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
         type: "module",
     });
-    return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
+    return {
+        core: Comlink.wrap(worker) as Comlink.Remote<CoreWorker>,
+        terminate: () => worker.terminate(),
+    };
 }
 
 /**
@@ -48,26 +58,20 @@ function flatDastFilterPositionInfo(
 }
 
 /**
- * Create a worker initialized with empty flags and the source `source`.
- */
-async function workerWithSource(source: string) {
-    const worker = await createWrappedCoreWorker();
-    await worker.setFlags({ flags: {} });
-    await worker.setSource({
-        source,
-        dast: toDast(source),
-    });
-    return worker;
-}
-
-/**
  * Script to be called by `webdriverio` to get the flat DAST.
+ *
+ * One worker per call, terminated in a `finally` — the page this is installed
+ * into outlives every call, so a worker left behind is held for the whole run.
  */
 async function getFlatDast(source: string) {
-    const worker = await workerWithSource(source);
-
-    const flatDast = flatDastFilterPositionInfo(await worker.returnDast());
-    return flatDast;
+    const { core, terminate } = createWrappedCoreWorker();
+    try {
+        await core.setFlags({ flags: {} });
+        await core.setSource({ source, dast: toDast(source) });
+        return flatDastFilterPositionInfo(await core.returnDast());
+    } finally {
+        terminate();
+    }
 }
 
 (globalThis as any).getFlatDast = getFlatDast;

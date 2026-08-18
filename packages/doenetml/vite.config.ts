@@ -13,7 +13,23 @@ import {
 } from "../../scripts/vite-plugins";
 
 // These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = ["react", "react-dom"];
+//
+// `math-expressions` resolves to `@doenet/math`, which inlines the Rust core as
+// ~2.3 MiB of base64. Bundling it here put a private copy in this library *and*
+// in every sibling library, so `doenet-standalone.js` ended up carrying three
+// copies of the same bytes. Externalized, the application bundle resolves it
+// once.
+const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
+
+// `math-expressions` stays in that list, and that is what puts it into the
+// published `dist/package.json`'s `peerDependencies`: the transformer copies
+// this package's declared range verbatim. So the range in `package.json` is the
+// range that ships. It is `file:../math` today, which no npm consumer can
+// resolve — changing it to the range matching the version actually published is
+// Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`, and that document states
+// the order the release has to follow and which range each published version
+// shape needs (`^3.0.0` for a release, `^3.0.0-alpha1` for a prerelease, since
+// npm semver excludes prereleases from `^3.x`).
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

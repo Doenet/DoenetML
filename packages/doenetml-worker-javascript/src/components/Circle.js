@@ -9,6 +9,7 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { evaluateToNumber } from "../utils/math";
 
 export default class Circle extends Curve {
     constructor(args) {
@@ -734,7 +735,7 @@ export default class Circle extends Curve {
                         dependencyValuesByKey[arrayKey].prescribedCenterX;
                     if (prescribedX) {
                         numericalPrescribedCenter[arrayKey] =
-                            prescribedX.evaluate_to_constant();
+                            evaluateToNumber(prescribedX);
                     } else {
                         numericalPrescribedCenter[arrayKey] = NaN;
                     }
@@ -809,7 +810,7 @@ export default class Circle extends Curve {
                 for (let point of dependencyValues.throughPoints) {
                     let numericalPoint = [];
                     for (let dim = 0; dim < 2; dim++) {
-                        let numericalValue = point[dim].evaluate_to_constant();
+                        let numericalValue = evaluateToNumber(point[dim]);
                         if (Number.isFinite(numericalValue)) {
                             numericalPoint.push(numericalValue);
                         } else {
@@ -1223,7 +1224,7 @@ export default class Circle extends Curve {
                     if (dependencyValues.numThroughPoints === 0) {
                         let r = dependencyValues.essentialRadius;
                         if (r instanceof me.class) {
-                            r = r.evaluate_to_constant();
+                            r = evaluateToNumber(r);
                         }
                         return {
                             setValue: { numericalRadius: r },
@@ -1270,7 +1271,7 @@ export default class Circle extends Curve {
                 if (dependencyValues.numThroughPoints < 2) {
                     let r = dependencyValues.essentialRadius;
                     if (r instanceof me.class) {
-                        r = r.evaluate_to_constant();
+                        r = evaluateToNumber(r);
                     }
                     return {
                         setValue: { numericalRadius: r },
@@ -1596,7 +1597,7 @@ export default class Circle extends Curve {
                                     .essentialCenterX;
 
                             if (value instanceof me.class) {
-                                value = value.evaluate_to_constant();
+                                value = evaluateToNumber(value);
                             }
                             numericalCenter[arrayKey] = value;
                         }
@@ -1717,7 +1718,7 @@ export default class Circle extends Curve {
                             dependencyValuesByKey[arrayKey].essentialCenterX;
 
                         if (value instanceof me.class) {
-                            value = value.evaluate_to_constant();
+                            value = evaluateToNumber(value);
                         }
                         numericalCenter[arrayKey] = value;
                     }

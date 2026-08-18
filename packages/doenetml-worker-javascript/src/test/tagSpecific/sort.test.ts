@@ -206,13 +206,7 @@ describe("Sort tag tests @group4", async () => {
   `,
         });
 
-        let sorted_result = [
-            "( -2, 1 )",
-            "( 0, 1 )",
-            "( 3, 1 )",
-            "( 5, 1 )",
-            "( 7, 1 )",
-        ];
+        let sorted_result = ["(-2, 1)", "(0, 1)", "(3, 1)", "(5, 1)", "(7, 1)"];
 
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
@@ -223,13 +217,7 @@ describe("Sort tag tests @group4", async () => {
             core,
         });
 
-        sorted_result = [
-            "( -8, 9 )",
-            "( -2, 1 )",
-            "( 3, 1 )",
-            "( 5, 1 )",
-            "( 7, 1 )",
-        ];
+        sorted_result = ["(-8, 9)", "(-2, 1)", "(3, 1)", "(5, 1)", "(7, 1)"];
 
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
@@ -240,13 +228,7 @@ describe("Sort tag tests @group4", async () => {
             core,
         });
 
-        sorted_result = [
-            "( -8, 9 )",
-            "( 3, 1 )",
-            "( 5, 1 )",
-            "( 7, 1 )",
-            "( 8, -3 )",
-        ];
+        sorted_result = ["(-8, 9)", "(3, 1)", "(5, 1)", "(7, 1)", "(8, -3)"];
 
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
@@ -257,13 +239,7 @@ describe("Sort tag tests @group4", async () => {
             core,
         });
 
-        sorted_result = [
-            "( -8, 9 )",
-            "( 3, 1 )",
-            "( 4, 5 )",
-            "( 5, 1 )",
-            "( 8, -3 )",
-        ];
+        sorted_result = ["(-8, 9)", "(3, 1)", "(4, 5)", "(5, 1)", "(8, -3)"];
 
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
@@ -274,13 +250,7 @@ describe("Sort tag tests @group4", async () => {
             core,
         });
 
-        sorted_result = [
-            "( -9, 0 )",
-            "( -8, 9 )",
-            "( 4, 5 )",
-            "( 5, 1 )",
-            "( 8, -3 )",
-        ];
+        sorted_result = ["(-9, 0)", "(-8, 9)", "(4, 5)", "(5, 1)", "(8, -3)"];
 
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
@@ -291,13 +261,7 @@ describe("Sort tag tests @group4", async () => {
             core,
         });
 
-        sorted_result = [
-            "( -9, 0 )",
-            "( -8, 9 )",
-            "( -2, -1 )",
-            "( 4, 5 )",
-            "( 8, -3 )",
-        ];
+        sorted_result = ["(-9, 0)", "(-8, 9)", "(-2, -1)", "(4, 5)", "(8, -3)"];
 
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });
@@ -319,11 +283,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let sorted_result_c1 = [
-            "( -2, 6 )",
-            "( 0, 5 )",
-            "( 3, 2 )",
-            "( 5, 1 )",
-            "( 7, -3 )",
+            "(-2, 6)",
+            "(0, 5)",
+            "(3, 2)",
+            "(5, 1)",
+            "(7, -3)",
         ];
 
         await test_sort({
@@ -341,11 +305,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let sorted_result_c2 = [
-            "( 7, -3 )",
-            "( 5, 1 )",
-            "( 3, 2 )",
-            "( 0, 5 )",
-            "( -2, 6 )",
+            "(7, -3)",
+            "(5, 1)",
+            "(3, 2)",
+            "(0, 5)",
+            "(-2, 6)",
         ];
 
         await test_sort({
@@ -356,11 +320,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let unsorted_results = [
-            "( 0, 5 )",
-            "( -2, 6 )",
-            "( 7, -3 )",
-            "( 3, 2 )",
-            "( 5, 1 )",
+            "(0, 5)",
+            "(-2, 6)",
+            "(7, -3)",
+            "(3, 2)",
+            "(5, 1)",
         ];
         await test_sort({
             core,
@@ -398,11 +362,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let sorted_result_c1d = [
-            "( -2, 6 )",
-            "( 0, 5 )",
-            "( 3, 2 )",
-            "( 5, 1 )",
-            "( 7, -3 )",
+            "(-2, 6)",
+            "(0, 5)",
+            "(3, 2)",
+            "(5, 1)",
+            "(7, -3)",
         ];
 
         await test_sort({
@@ -431,11 +395,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let sorted_result_c2d = [
-            "( 7, -3 )",
-            "( 5, 1 )",
-            "( 3, 2 )",
-            "( 0, 5 )",
-            "( -2, 6 )",
+            "(7, -3)",
+            "(5, 1)",
+            "(3, 2)",
+            "(0, 5)",
+            "(-2, 6)",
         ];
 
         await test_sort({
@@ -452,11 +416,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let sorted_result_c1t = [
-            "( 7, -3 )",
-            "( 5, 1 )",
-            "( 3, 2 )",
-            "( -2, 6 )",
-            "( 0, 5 )",
+            "(7, -3)",
+            "(5, 1)",
+            "(3, 2)",
+            "(-2, 6)",
+            "(0, 5)",
         ];
 
         await test_sort({
@@ -473,11 +437,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let sorted_result_c2t = [
-            "( 5, 1 )",
-            "( 0, 5 )",
-            "( 7, -3 )",
-            "( 3, 2 )",
-            "( -2, 6 )",
+            "(5, 1)",
+            "(0, 5)",
+            "(7, -3)",
+            "(3, 2)",
+            "(-2, 6)",
         ];
 
         await test_sort({
@@ -488,11 +452,11 @@ describe("Sort tag tests @group4", async () => {
         });
 
         let unsorted_results = [
-            "( 0, 5 )",
-            "( -2, 6 )",
-            "( 7, -3 )",
-            "( 3, 2 )",
-            "( 5, 1 )",
+            "(0, 5)",
+            "(-2, 6)",
+            "(7, -3)",
+            "(3, 2)",
+            "(5, 1)",
         ];
         await test_sort({
             core,
@@ -533,9 +497,9 @@ describe("Sort tag tests @group4", async () => {
         let sorted_result = [
             "x",
             "\uff3f",
-            "( a, b )",
-            "( x, y, z )",
-            "( s, t, u, v )",
+            "(a, b)",
+            "(x, y, z)",
+            "(s, t, u, v)",
         ];
 
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
@@ -548,10 +512,10 @@ describe("Sort tag tests @group4", async () => {
 
         sorted_result = [
             "x",
-            "( a, b )",
-            "( x, y, z )",
-            "( s, t, u, v )",
-            "( a, b, c, d )",
+            "(a, b)",
+            "(x, y, z)",
+            "(s, t, u, v)",
+            "(a, b, c, d)",
         ];
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
 
@@ -563,10 +527,10 @@ describe("Sort tag tests @group4", async () => {
 
         sorted_result = [
             "x",
-            "( a, b )",
-            "( x, y, z )",
-            "( 3, 4, 5 )",
-            "( s, t, u, v )",
+            "(a, b)",
+            "(x, y, z)",
+            "(3, 4, 5)",
+            "(s, t, u, v)",
         ];
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });

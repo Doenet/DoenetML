@@ -32,6 +32,12 @@ jobs:
 
         steps:
             - uses: actions/checkout@v6
+              with:
+                  # `npm run build` builds @doenet/math, which compiles its WASM
+                  # core from this submodule; checkout skips submodules by
+                  # default.
+                  submodules: recursive
+            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:

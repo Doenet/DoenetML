@@ -463,7 +463,7 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         let e_n2 = 6;
 
-        let maths1 = [1, 2, 3].map((n) => `( ${n}, ${e_n2} )`);
+        let maths1 = [1, 2, 3].map((n) => `(${n}, ${e_n2})`);
         let maths2 = [4, 5, 6].map((n) => `sin(${n})`);
         let names1 = ["r1[1].math", "r1[2].math", "r1[3].math"];
         let names2 = ["r2[1].math", "r2[2].math", "r2[3].math"];
@@ -498,7 +498,7 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         for (let b of [1, 2, 3]) {
             for (let a of [...Array(b).keys()].map((v) => v + 1)) {
-                texts.push(`( ${a}, ${b} )`);
+                texts.push(`(${a}, ${b})`);
             }
         }
 
@@ -1606,10 +1606,10 @@ describe("RepeatForSequence tag tests @group3", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("( 1, 1 ), ( 2, 4 ), ( 3, 9 )");
+        ).eq("(1, 1), (2, 4), (3, 9)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq("( 1, 1 ), ( 2, 4 ), ( 3, 9 )");
+        ).eq("(1, 1), (2, 4), (3, 9)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
         ).eq("y = 1, y = 2, y = 3");

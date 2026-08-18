@@ -187,7 +187,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         circleJXG.current!.isDraggable = !fixLocation.current;
 
         attachLabelHoverHighlight({
-            hoverTargetJXG: circleJXG.current,
+            // Non-null by construction: the `createCircle` call above just
+            // assigned it, and the line before this dereferences it the same
+            // way.
+            hoverTargetJXG: circleJXG.current!,
             getLabelJXG: () => circleJXG.current?.label,
             ...computeLabelMaskCssStyle({
                 layer: SVs.layer,

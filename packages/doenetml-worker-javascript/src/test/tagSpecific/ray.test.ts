@@ -3808,33 +3808,33 @@ describe("Ray Tag Tests @group1", function () {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1d")].stateValues.text,
-        ).eqls("( 2.64, 113 )");
+        ).eqls("(2.64, 113)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
-        ).eqls("( 2.58, 510.52 )");
+        ).eqls("(2.58, 510.52)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1h")].stateValues.text,
-        ).eqls("( 5.22, 623.52 )");
+        ).eqls("(5.22, 623.52)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p2d")].stateValues.text,
-        ).eqls("( 2.63535, 113 )");
+        ).eqls("(2.63535, 113)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2t")].stateValues.text,
-        ).eqls("( 2.58107, 510.524 )");
+        ).eqls("(2.58107, 510.524)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2h")].stateValues.text,
-        ).eqls("( 5.21642, 623.523 )");
+        ).eqls("(5.21642, 623.523)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p3d")].stateValues.text,
-        ).eqls("( 3, 113 )");
+        ).eqls("(3, 113)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3t")].stateValues.text,
-        ).eqls("( 3, 511 )");
+        ).eqls("(3, 511)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3h")].stateValues.text,
-        ).eqls("( 5, 624 )");
+        ).eqls("(5, 624)");
     });
 
     it("warnings", async () => {
@@ -3949,5 +3949,35 @@ describe("Ray Tag Tests @group1", function () {
 
         await test_items("light");
         await test_items("dark");
+    });
+
+    it("a symbolic endpoint leaves the numerical endpoint NaN, not null", async () => {
+        // `numericalEndpoint` and `numericalThroughpoint` are `forRenderer`.
+        // `Number(null)` is `0`, so while the engine answered `null` an
+        // endpoint with no numeric value was drawn at the origin rather than
+        // not drawn.
+        //
+        // `r2` is the leg that measures the guard rather than the engine:
+        // `sqrt(-4)` has a value and it is a math.js `Complex`, so
+        // `evaluate_to_constant()` does not answer `NaN` and only
+        // `evaluateToNumber` folds it. A `Complex` reaches the renderer
+        // prototype-stripped, which is not the `number` this array declares.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <ray name="r" endpoint="(q,b)" through="(3,4)" />
+    <ray name="r2" endpoint="(sqrt(-4),1)" through="(3,4)" />
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const ray = stateVariables[await resolvePathToNodeIdx("r")];
+        expect(ray.stateValues.numericalEndpoint).eqls([NaN, NaN]);
+        expect(ray.stateValues.numericalThroughpoint).eqls([3, 4]);
+
+        const ray2 = stateVariables[await resolvePathToNodeIdx("r2")];
+        expect(ray2.stateValues.numericalEndpoint).eqls([NaN, 1]);
+        expect(ray2.stateValues.numericalThroughpoint).eqls([3, 4]);
     });
 });

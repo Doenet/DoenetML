@@ -7,6 +7,7 @@ import { sizeToCSS } from "./utils/css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
+import { toNumberOrNaN } from "@doenet/utils";
 import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,
@@ -517,8 +518,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];

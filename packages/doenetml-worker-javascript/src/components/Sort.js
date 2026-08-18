@@ -3,6 +3,7 @@ import { postProcessCopy } from "../utils/copy";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { isNumericConstant } from "../utils/math";
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
@@ -326,7 +327,7 @@ export default class Sort extends CompositeComponent {
                     ) {
                         let numericalValue =
                             component.stateValues.value.evaluate_to_constant();
-                        if (Number.isNaN(numericalValue)) {
+                        if (!isNumericConstant(numericalValue)) {
                             allAreNumeric = false;
                         }
                         allValues.push({
@@ -348,7 +349,7 @@ export default class Sort extends CompositeComponent {
                         let textValue = "";
                         if (compValue) {
                             numericalValue = compValue.evaluate_to_constant();
-                            if (Number.isNaN(numericalValue)) {
+                            if (!isNumericConstant(numericalValue)) {
                                 allAreNumeric = false;
                             }
                             textValue = compValue.toString();
@@ -383,7 +384,7 @@ export default class Sort extends CompositeComponent {
                         }
                         if (compValue) {
                             numericalValue = compValue.evaluate_to_constant();
-                            if (Number.isNaN(numericalValue)) {
+                            if (!isNumericConstant(numericalValue)) {
                                 allAreNumeric = false;
                             }
                             textValue = compValue.toString();

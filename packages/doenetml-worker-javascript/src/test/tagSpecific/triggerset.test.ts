@@ -1684,10 +1684,14 @@ describe("TriggerSet tag tests @group3", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
+        // Unpadded braces: legacy padded `\frac{ … }{ … }` when an operand was
+        // compound, and this was the only expectation in the suite that still
+        // encoded it — every other compound fraction here is written
+        // `\frac{3 x}{4}`, `\frac{dx}{dt}`. Renders identically.
         expect(
             stateVariables[await resolvePathToNodeIdx("tset")].stateValues
                 .label,
-        ).eq("It is \\(\\frac{ \\partial f }{ \\partial x }\\)");
+        ).eq("It is \\(\\frac{\\partial f}{\\partial x}\\)");
     });
 
     it("triggerSet with label is name", async () => {

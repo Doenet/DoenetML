@@ -47,6 +47,29 @@ export default defineConfig(({ mode }) => {
         },
         test: {
             setupFiles: ["@vitest/web-worker"],
+            // Every test here boots a DoenetML core in a worker and waits for a
+            // document to settle; the whole file takes ~50 s for ~50 tests, so
+            // each one is about 800 ms against vitest's 5 s default. Every
+            // sibling package that drives the core already sets a generous
+            // timeout (`doenetml-worker*` 180 s, `doenetml-print` 300 s,
+            // `@doenet/math` 60 s); this one was left on the default.
+            //
+            // Raising it was *not* what fixed the flake this comment used to
+            // blame on runner load. The last test in `pretext-export.test.ts`
+            // timed out at 5,002 ms in
+            // https://github.com/Doenet/DoenetML/actions/runs/31812092145 and
+            // then again, after the raise, at 60,031 ms in
+            // https://github.com/Doenet/DoenetML/actions/runs/31821055854 —
+            // both times on the same test, which takes 684 ms locally. A number
+            // that moves with the limit is not a slow test; it is a hang.
+            //
+            // The hang was the file leaking one core worker per conversion
+            // until the browser ran the runner out of memory; the fix is
+            // `DoenetMLToPretext.dispose`, see `test/utils/run-through-core.ts`
+            // for the measurements. This stays generous so a genuinely slow
+            // document is not misreported as a hang, and because a wedged
+            // session still costs the round-trip budget plus one retry.
+            testTimeout: 60000,
         },
     };
 });

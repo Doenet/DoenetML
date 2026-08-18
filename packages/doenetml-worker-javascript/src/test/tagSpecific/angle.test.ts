@@ -470,7 +470,15 @@ describe("Angle tag tests @group4", async () => {
             { latex: "4", number: 4 },
             { latex: "3\\pi/2", number: (3 * Math.PI) / 2 },
             { latex: "11\\pi/6", number: (11 * Math.PI) / 6 },
-            { latex: "2\\pi", number: 2 * Math.PI },
+            // `8sin(2pi)` simplifies to exactly 0, so the third point lands
+            // exactly on the ray through the first one and the angle is 0.
+            // (The old expectation of a full turn came from evaluating the
+            // sine numerically: it gave -2.4e-16, putting the point a hair
+            // *below* the axis, which with `chooseReflexAngle="allowed"` reads
+            // as just under 2pi. `sin(2pi + 0.00001)` is positive, so that
+            // input puts the point 0.00001 *above* the axis and reads as
+            // 0.00001; 0 is the consistent value at exactly 2pi.)
+            { latex: "2\\pi", number: 0 },
             { latex: "2\\pi+0.00001", number: 0.00001 },
         ];
 
@@ -697,15 +705,16 @@ describe("Angle tag tests @group4", async () => {
                 await resolvePathToNodeIdx("angle1")
             ].stateValues.points[2].map((x) => x.tree),
         ).eqls(["\uff3f", "\uff3f"]);
-        // TODO: once can simplify fractions, these should be: ["/", ["*", "alpha", "pi"], 90]
+        // The engine reduces the fraction now, which is what the TODO that
+        // used to sit here was waiting for: `2απ/180` is `απ/90`.
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
                 .tree,
-        ).eqls(["/", ["*", 2, "alpha", "pi"], 180]);
+        ).eqls(["/", ["*", "alpha", "pi"], 90]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
                 .tree,
-        ).eqls(["/", ["*", 2, "alpha", "pi"], 180]);
+        ).eqls(["/", ["*", "alpha", "pi"], 90]);
         expect(
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
                 .tree,
@@ -1568,5 +1577,50 @@ describe("Angle tag tests @group4", async () => {
 
         expect(a1Latex).match(/10\^{-12}|10\^\{-12\}/);
         expect(a2Latex).eq("0.000000000007");
+    });
+
+    it("a symbolic through point leaves the derived point NaN", async () => {
+        // With two points given, the third is placed at the default right
+        // angle from them. A symbolic coordinate has no numeric value, and the
+        // engine briefly reported that as `null`: subtracted as `0` it made
+        // `Math.atan2(0, 0)` answer `0`, so the derived point landed on the
+        // unit circle at a real position instead of nowhere.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <angle name="a" through="(q,b) (0,0)" />
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const points =
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.points;
+        expect(points[0].map((v) => v.tree)).eqls(["q", "b"]);
+        expect(points[1].map((v) => v.tree)).eqls([0, 0]);
+        expect(points[2].map((v) => v.tree)).eqls([NaN, NaN]);
+    });
+
+    it("a coordinate with no real value leaves numericalPoints NaN", async () => {
+        // The leg that measures the `numericalPoints` guard rather than the
+        // engine. `sqrt(-4)` *has* a value — `evaluate_to_constant()` answers
+        // a math.js `Complex` — so unlike the symbolic case above, the engine
+        // does not report `NaN` here and only `evaluateToNumber` does.
+        // `numericalPoints` is `forRenderer`, and a `Complex` crosses the
+        // structured clone prototype-stripped into an array JSXGraph reads as
+        // coordinates.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <angle name="a" through="(sqrt(-4),1) (0,0) (1,0)" />
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                .numericalPoints,
+        ).eqls([
+            [NaN, 1],
+            [0, 0],
+            [1, 0],
+        ]);
     });
 });

@@ -19,6 +19,7 @@ import {
     DEFAULT_MATH_INPUT_FUNCTION_NAMES,
     hasCoarsePrimaryPointer,
     subscribeToPrimaryPointerType,
+    toNumberOrNaN,
 } from "@doenet/utils";
 import {
     getVirtualKeyboardTrayElement,
@@ -952,8 +953,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -1368,8 +1369,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
