@@ -521,11 +521,16 @@ registry is still `2.0.0-alpha95` — 3.x is not published as of the twentieth p
    plugin hard-fails if it stops matching. Re-point its `id.startsWith(GENERATED)` guard (line 51)
    if the glue is no longer copied into `src/generated/`.
 
-6. **`packages/math/src/vendored/math-expressions.d.ts`** (1,223 lines) — delete, and re-export
-   from the package in `src/types.ts`. Its 509 declaration lines (comments and blanks stripped) are
-   byte-identical to upstream's `types/math-expressions.d.ts`; upstream carries 21 more, which are
-   exactly `OdeState`, `OdeSolution`, `dopri`, `setWasmModule`, and the `MathExpression` default
-   export the header documents dropping. Two things the re-export is not literal about:
+6. **`packages/math/src/vendored/math-expressions.d.ts`** (1,283 lines) — delete, and re-export
+   from the package in `src/types.ts`. Its 422 declaration lines (comments and blanks stripped)
+   match upstream's `types/math-expressions.d.ts` line for line; upstream carries 23 more, which
+   are exactly `OdeState`, `OdeSolution`, `dopri`, `setWasmModule` and the `MathExpression` default
+   export the header documents dropping (21 lines), plus the 2 that `evaluate_to_constant`'s
+   signature costs by being wrapped across three lines upstream and one here — this copy is
+   Prettier-gated by DoenetML CI and upstream's tree is not, so byte-identity is not achievable in
+   both directions. Re-derive both counts before quoting them; they moved at the twenty-second
+   pass, when both files were narrowed to the members the engine implements. Two things the
+   re-export is not literal about:
 
    - upstream declares `export function dopri(...)`, a *value*; `src/types.ts` (61–68) declares a
      *type alias* `Dopri`. It must become `typeof import("math-expressions").dopri` or the alias

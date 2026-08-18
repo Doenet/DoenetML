@@ -128,12 +128,16 @@ copies of the engine once the seam was externalized everywhere.
 
 ## Conventions the switch established
 
-- **NaN, not null, at every numeric boundary.** The engine reports "cannot evaluate" (`null`
-  crossing to JS) separately from "evaluates to NaN", and `null` coerces to `0` in arithmetic.
-  DoenetML converts at every boundary through the helper family in
+- **NaN, not null, at every numeric boundary.** The engine answers `NaN` for an expression with no
+  numeric value, which is legacy's answer and the only one that poisons arithmetic rather than
+  reading as `0` — it briefly answered `null` instead, and that inversion is where roughly fourteen
+  grading defects came from. It is fixed at the source (math-expressions#84), so this is no longer
+  a rule a call site can break by forgetting. What the boundary helpers in
   `packages/doenetml-worker-javascript/src/utils/math.ts` and `@doenet/utils`
-  (`isNumericConstant`, `toNumberOrNaN`, `evaluateToNumber`, `plainComplex`); a new call site that
-  forgets fails silently, not loudly. See the follow-up below for the unswept remainder.
+  (`isNumericConstant`, `toNumberOrNaN`, `evaluateToNumber`, `plainComplex`) are still for is the
+  other arm: `evaluate_to_constant` returns `number | Complex`, and a `Complex` is a value no
+  `number`-typed state variable can hold and one that orders against numbers in ways JavaScript
+  will invent. Prefer them at any site whose result reaches arithmetic, a grade or a renderer.
 - **Rebuild an expression with an engine method, not from its `.tree`.** The engine holds `5.1`
   exactly, as `51/10`; the JSON AST that `.tree` produces has only f64, so a `fromAst(...)` round
   trip silently makes the expression inexact. Nothing looks different afterwards — the value is
@@ -390,13 +394,20 @@ copies of the engine once the seam was externalized everywhere.
    found for any of them — the attributes are all `createComponentOfType: "point"` — so this is an
    unstated invariant, not a known bug. Closing it means proving the invariant and asserting it
    once, or deciding what a non-container receiver should mean.
-3. **Sweep the remaining raw null-coercions.** `evaluate_to_constant()` is called from **277 sites
-   across 67 files** in `packages/*/src` outside the test trees (`grep -rn "evaluate_to_constant("
-   packages/*/src`, dropping `/test/` and `*.test.*`; re-measured at the twelfth pass and unchanged
-   since the tenth, though it shrinks as passes replace sites with
-   `toNumberOrNaN`/`evaluateToNumber`). That is the *population*, not the defect count, and the
-   distinction is the whole reason this is a follow-up rather than an emergency: most sites hand
-   their result straight to `Number.isFinite`, which rejects `null` correctly. The eighth pass
+3. **Sweep the remaining unguarded `evaluate_to_constant()` reads.** *(Retitled at the
+   twenty-second pass. It read "sweep the remaining raw null-coercions", which was the right task
+   while the engine answered `null`; the twentieth pass fixed that at the source, so what is left
+   to sweep is the `Complex` arm and the general discipline, not a coercion hazard. The history
+   below is kept as written, because what it records is where defects were actually found.)*
+
+   `evaluate_to_constant()` occurs **259 times across 67 files** in `packages/*/src` outside the
+   test trees — 29 of those in comments, so **230 live call sites** (`grep -rn
+   "evaluate_to_constant(" packages/*/src`, dropping `/test/`, `*.test.*` and the vendored
+   declarations; re-derived at the twenty-second pass, down from the eighteenth's 254 live as
+   passes replace sites with `toNumberOrNaN`/`evaluateToNumber`). That is the *population*, not the
+   defect count, and the distinction is the whole reason this is a follow-up rather than an
+   emergency: most sites hand their result straight to `Number.isFinite`, which rejects both a
+   `null` and a `Complex` correctly. The eighth pass
    isolated the **204** that had no immediately following
    `Number.isFinite`/`isNumericConstant`/`null` test, read all 204, and reproduced against a real
    core every one whose result reaches arithmetic or a `number`-typed state variable; **six** were
@@ -431,9 +442,10 @@ copies of the engine once the seam was externalized everywhere.
      Measured: `<angle through="($mi,1) (0,0) (1,0)" />` with an empty input gives
      `numericalPoints = [[null,1],[0,0],[1,0]]` — a real `null`, disambiguated against
      `<curve>`'s `numericalThroughPoints` in the same document, which correctly holds `NaN`.
-     `numericalPoints` is `forRenderer` and not `public`, so no grading path reaches it and this
-     stays a display defect; it is left for the follow-up rather than fixed here because it is a
-     renderer question, not an engine one.
+     `numericalPoints` is `forRenderer` and not `public`, so no grading path reaches it and it was
+     a display defect rather than a grading one. **Fixed at the twentieth pass** — `Angle.js` reads
+     the coordinates through `evaluateToNumber` now — so it is no longer part of this follow-up;
+     the entry stays because the *reasoning* that filed it as safe is what was wrong.
    - *"latent with no consumer (`<line>`'s `numericalCoeff*`)"* — **wrong reason, right verdict.**
      They are consumed, by `Line.js`'s own `nearestPoint`, which guards with `Number.isFinite`.
 
@@ -454,12 +466,22 @@ copies of the engine once the seam was externalized everywhere.
    the value `0` (`[null]` → `[-2,-1,1,2]` where `[NaN]` → `[-2,-1,0,1,2]`). It is one refactor
    from being wrong, which is the general shape of what remains.
 
-   The mechanical rule that would have caught all six of the findings from the last two passes,
-   and roughly a third of the remaining 44: *no bare `evaluate_to_constant()` result may reach
-   `<`, `>`, `-`, `/`, or a `number`-typed `setValue`*. Belongs in its own PR with the count
-   re-measured first. Calibrate against 44/5, not the older 204/6 — and note that two consecutive
-   passes have now each found real defects in the residue after the previous one declared it safe,
-   so the expectation for the next sweep should be that the residue still contains some.
+   The mechanical rule that would have caught all six of the findings from the eighteenth and
+   nineteenth passes, and roughly a third of the remaining 44: *no bare `evaluate_to_constant()`
+   result may reach `<`, `>`, `-`, `/`, or a `number`-typed `setValue`*. Belongs in its own PR with
+   the count re-measured first. Calibrate against 44/5, not the older 204/6 — and note that three
+   consecutive passes each found real defects in the residue after the previous one declared it
+   safe (the eighteenth's two, the nineteenth's three, the twentieth's seven), so the expectation
+   for the next sweep should be that the residue still contains some.
+
+   What the rule is now protecting against has changed, and that changes its urgency rather than
+   its content. With `NaN` at the source, an unguarded read that reaches arithmetic propagates
+   `NaN` and fails loudly; the residue is a `Complex` reaching a real-valued consumer, which is
+   rarer and does not silently read as `0`. The twenty-first pass measured four of the twentieth's
+   seven hardened sites as having been live defects against the previous pin and none against this
+   one. So this is now a hardening sweep, not a bug hunt — but it is still worth doing, because
+   `<` and `>` against a `Complex` are decided by `Object.prototype.valueOf` and answer
+   confidently.
 4. **The extrema search's remaining gaps are the two the exact roots cannot close on their own.**
    Three quarters of this item is now fixed and only the redesign is left. `exactCriticalPointsOf`
    returns the *complete* real root set of `f'` when the derivative is rational, so
@@ -530,11 +552,13 @@ copies of the engine once the seam was externalized everywhere.
    changes not one character. The divergence is between the generator and the worker's list, which
    the generator duplicates instead of importing — so the fix is to make the generator read the
    worker's list (or move that list somewhere both can import), and only then is a freshness check
-   worth adding.7. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (two open
-   items, neither reaching grading — the seventh grading-reaching divergence, `equals` reading a
+   worth adding.
+7. **Engine-level items** live upstream: `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md` here (three open
+   items, none reaching grading — the seventh grading-reaching divergence, `equals` reading a
    determinant as an opaque variable, was fixed at the fifteenth pass) and
    `active-plans/PR84_REVIEW_KNOWN_ISSUES.md` in the math-expressions repo (the full crate/compat
-   ledger).
+   ledger). *(Item 7 had been swallowed into item 6's last line by a missing newline since it was
+   written, so the list read 1–6, 8, 9.)*
 8. **Smaller, all measured during review, none blocking.** CI installs no `binaryen`, so
    `build-wasm.sh`'s `wasm-opt -Oz` is skipped and every published bundle carries the unoptimized
    core *twice* (standalone and the worker) — and a developer who happens to have `wasm-opt` on
@@ -607,6 +631,22 @@ copies of the engine once the seam was externalized everywhere.
     the same PR: `packages/doenetml-worker-rust` declares only `math-expressions` while
     `lib-js-wasm-binding/src/eval-math.ts` imports five names from `@doenet/utils`, one of them
     added on this branch.
+
+11. **A `rigid` polygon with one non-numeric vertex writes `NaN` over the numeric ones when
+    dragged — pre-existing, and not the engine's.** `Polyline.js`'s rotate/dilate inverse reads
+    every reference vertex as a number, so one vertex with no numeric value makes the whole
+    rotation `NaN` and the update writes that back: `<polygon vertices="(1,2) (a,b) (3,4)" rigid
+    rotateAround="vertex" />` comes out `[[NaN,NaN],[NaN,NaN],[NaN,NaN]]`, losing two authored
+    coordinates as well as the symbol. This is what the twentieth pass's guard there *improved* —
+    before it, the symbolic vertex was rotated about the origin and a plausible concrete number
+    written over the symbol, which is worse — and it is loud rather than silent, so it is pinned as
+    the current behaviour in `polygon.test.ts`. But it is not the right answer. The same function
+    already declines an update it cannot compute (`return { success: false }` when the *moved*
+    coordinate is not finite); a reference vertex that is not finite should decline the same way,
+    leaving the document exactly as authored. Not fixed here because it is not something the engine
+    switch caused: legacy's `evaluate_to_constant` answered `NaN` for `(a,b)` too, so this outcome
+    predates the branch. Fixing it means the guard, one test expectation in `polygon.test.ts`, and
+    a check of the `preserveSimilarity` path beside it.
 
 ## What is still riding along, and should not be
 

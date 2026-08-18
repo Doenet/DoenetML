@@ -7,7 +7,14 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — two items
+## Open — three items
+
+1. `substitute_component`/`get_component` validate nothing.
+2. The engine is missing 48 of the legacy surface's members.
+3. Nine declared parameters the engine accepts and ignores.
+
+The declaration side of items 2 and 3 has been settled — the published and vendored `.d.ts` files
+now say what the engine does — so what is open in each is engine work, not documentation.
 
 **`substitute_component` accepts a receiver that is not a container, and answers.** Legacy validated
 the head at each level of the path and the index range, throwing `expected list, tuple, vector, or
@@ -23,38 +30,51 @@ point that indexes the operands of *any* operator — `me.fromText("(x*y, 3)").g
 answers `x` where legacy threw. (`@doenet/math`'s `getComponent` restores the legacy contract for
 the one DoenetML call site that used the throw as a type test; nothing covers the nested path.)
 
-**The vendored type surface is wider than the engine.** 48 of the 114 members
-`packages/math/src/vendored/math-expressions.d.ts` declares on `Expression` are `undefined` at
-runtime on the Rust engine: the elementwise numeric methods (`abs`, `exp`, `log`, `log10`, `sqrt`,
-`sign`, `re`/`im`/`conj`, `factorial`, `gamma`, `erf`, and the whole trig/hyperbolic family
-including `atan2`), the matrix/vector helpers (`perform_matrix_multiplications`,
-`perform_vector_scalar_multiplications`, …), and a handful of one-offs (`clean`,
+**The engine is missing 48 of the members the legacy surface declared.** The elementwise numeric
+applications (`abs`, `exp`, `log`, `log10`, `sqrt`, `sign`, `re`/`im`/`conj`, `factorial`, `gamma`,
+`erf`, and the whole trig/hyperbolic family including `atan2` — 37 of them), the matrix/vector
+helpers (`perform_matrix_multiplications`, `perform_matrix_scalar_multiplications`,
+`perform_vector_scalar_multiplications`), and a handful of one-offs (`clean`,
 `common_denominator`, `substitute_abs`, `log_subscript_to_two_arg_log`,
-`normalize_angle_linesegment_arg_order`, `equalsViaFiniteField`, `toGuppy`, `operators`).
+`normalize_angle_linesegment_arg_order`, `equalsViaFiniteField`, `toGuppy`, `operators`) are
+`undefined` at runtime. **This is the ask: port them.** Nothing in DoenetML calls any of them
+today — re-verified by grepping every one across `packages/*/src` and `packages/*/test`, whose only
+hits are `Math.atan2` and commented-out code — so nothing is broken, but the drop-in is incomplete
+by that much.
 
-Nothing in DoenetML calls any of them today — re-verified by grepping every one of the 48 across
-`packages/*/src` and `packages/*/test`, whose only hits are `Math.atan2` and commented-out code — so
-nothing is broken. But TypeScript accepts `expr.sin()` and it fails at runtime.
+**The declarations no longer claim otherwise.** Until the twenty-second pass the 48 were declared
+on `Expression` and mirrored on `Context`, so TypeScript accepted `expr.sin()` and it failed at
+runtime. They have been removed from both the published
+`types/math-expressions.d.ts` and this repo's vendored copy — 96 declarations, plus `Context`'s own
+`ZmodN` and `parser_parameters`, which are Context-only properties and so fell outside the
+`Expression` audit that measured the 48. A `.d.ts` whose job is to describe a drop-in earns nothing
+by promising members that are not there: keeping them made the failure a compile-time *success* and
+a runtime `TypeError`, which is the worse of the two places to find out. Removing them moves the
+report to `tsc`, names the member, and costs a caller who was going to fail anyway nothing.
 
-That second sentence has only just become true, and for a reason worth recording. Until this pass
-the declarations reached no consumer at all: `vite-plugin-dts` generates a `.d.ts` per `.ts` source
-but does not copy hand-written ones, so `packages/math/dist/types.d.ts` shipped a
-`from "./vendored/math-expressions"` that resolved to nothing, `skipLibCheck` swallowed the
-`TS2307`, and every `import me from "math-expressions"` was typed `any`. TypeScript accepted
-`expr.sin()` because it accepted *everything*. `copyDtsFiles` fixes that, which is what puts the
-width of this surface back in play. Reproduce with:
+What is left is checkable, and was checked against the built package rather than read off the
+source: every member either interface declares — 66 on `Expression`, 87 on `Context` — is present
+at runtime. Reproduce both halves with:
 
 ```bash
 npm run build -w packages/math
 node --input-type=module -e '
 import me from "./packages/math/dist/index.js";
-console.log(me.fromText("x+1").sin);   // undefined
+console.log(me.fromText("x+1").sin);   // undefined — the gap
 '
+npm run typecheck                       # unchanged by the narrowing: nothing called them
 ```
 
-Either port them, or narrow the vendored declarations to what the engine implements. Narrowing is
-the safer half and does not need upstream — but it should be one edit, made deliberately, rather
-than a member quietly disappearing each time the snapshot is refreshed.
+That the declarations reached no consumer at all until recently is worth keeping, because it is why
+this only became visible late: `vite-plugin-dts` generates a `.d.ts` per `.ts` source but does not
+copy hand-written ones, so `packages/math/dist/types.d.ts` shipped a
+`from "./vendored/math-expressions"` that resolved to nothing, `skipLibCheck` swallowed the
+`TS2307`, and every `import me from "math-expressions"` was typed `any`. TypeScript accepted
+`expr.sin()` because it accepted *everything*. `copyDtsFiles` fixed that, which is what put the
+width of this surface in play at all.
+
+The names are enumerated in a comment at the end of `Expression` in both files, and one goes back
+the moment the engine implements it — the list is the gap, not a decision to leave it open.
 
 **A worse class than the missing members: declared parameters the engine ignores.** A missing
 method throws. A parameter that is declared, accepted and dropped compiles, runs, and answers the
@@ -89,15 +109,33 @@ with the same `varName` coercion `critical_points` already used, pinned in
 so a declared-legal `Complex` binding silently became `NaN` and the declared `Complex` *return*
 never occurs — now declared `NumericBindings → number`, with `f()` named as the complex path.
 
-Still open, and filed rather than fixed because each needs a decision about intent rather than an
-edit: `Context.assumptions` is declared as a variable-keyed map and is an object of methods;
-`Context.get_assumptions(string[])` is the one declared input shape that answers `undefined`, and
-its return is a `Tree` rather than the declared `Assumptions`; `solve_linear` returns a frozen
-`ABSENT_EXPRESSION` whose `.tree` is `undefined` where the declaration promises a `Tree`;
-`Context.from` and `create_discrete_infinite_set` can return `undefined`; `Context.class` is
-declared as an AST constructor and takes a wasm handle; and `Expression.match` drops
-`allow_extended_match` where the free `utils.match` honors it, so the two answer differently for
-the same call.
+**A third of the same class, which that pass's sweep missed.** The `add_unit` fix reported having
+swept the remaining string-taking entry points and found them all guarded. `parse_text` and
+`parse_latex` — `me.fromText` and `me.fromLatex`, the two most-used entry points in the package —
+were not: a number, an `Expression` or a plain object was `RuntimeError: memory access out of
+bounds`, and an array tree `arg.charCodeAt is not a function`. The module recovers, so this is a
+bad error rather than a corrupted heap, but it is an engine-internal one, and DoenetML renders the
+parser's complaint into `<mathInput showPreview>`. Fixed at the twenty-second pass with a `TypeError`
+naming the argument type — a throw rather than `add_unit`'s coercion, because `fromText` is declared
+to take a `string` and no other value has a faithful reading, so nothing that used to succeed
+changed. The rest of the sweep was re-run at runtime, entry by entry, and does hold.
+
+Six further divergences were filed at the twenty-first pass because each needed a decision about
+intent rather than an edit. **They were decided at the twenty-second, one verdict each, every one
+measured against the built package first.**
+
+| divergence | verdict |
+| --- | --- |
+| `Context.assumptions` declared a variable-keyed map, is an object of methods | declaration narrowed to the object it is (per-variable facts under `byvar`) |
+| `Context.get_assumptions(string[])` — the one declared shape — answers `undefined`; returns a `Tree`, not an `Assumptions` | declaration corrected: `string \| [string[]] \| Expression \| Tree` → `Tree \| undefined`. The nested list is legacy's own spelling — `slow_assumptions.spec.ts`, which mirrors legacy's suite, queries `[["x"]]` |
+| `Context.from` and `create_discrete_infinite_set` can answer `undefined` | declared `\| undefined`; it is legacy's failure value and callers must check |
+| `Context.class` declared an AST constructor, takes a wasm handle | declared `new (handle: never, …)`, so `new me.class(tree)` is a compile error instead of an object whose every method fails. Use `me.fromAst`. Legacy parity gap, still open |
+| `solve_linear` answers a frozen `ABSENT_EXPRESSION` whose `.tree` is `undefined` | **accepted**, and said so in the declaration: legacy handed back an `Expression` to read `.tree` off, and declaring `\| undefined` would break exactly the callers the stand-in exists for. Test the `.tree`, not the result |
+| `Expression.match` drops `allow_extended_match`, which the free `utils.match` honors | **fixed**, not documented — `Expression.match` now delegates to the shared implementation, which is what its own comment already claimed, and `MatchOptions` declares the option because it now works from both entry points |
+
+The five declaration changes are also in this repo's vendored copy; the two files still differ only
+by the trailing v3 block and one Prettier line wrap, which is the check the vendored header
+describes.
 
 ## Closed
 
@@ -286,14 +324,18 @@ These are behavioral differences, not defects, and the decision belongs to Doene
   guess, DoenetML now says so explicitly: `markUnspecifiedComponents` writes the
   `UNSPECIFIED_COMPONENT` marker into the empty slots, and `preprocessMathInverseDefinition` and
   `EssentialValueWriter` read it back. See `packages/doenetml-worker-javascript/src/utils/math.ts`.
-- **`evaluate_to_constant` answers `null`, not `NaN`, for an expression it cannot evaluate.** Legacy
-  answered `NaN` unless asked for `null` with `{nan_for_non_numeric: false}`; the compat layer
-  always behaves as `false`, and does not read the option. Keeping the two apart is worth having —
-  `NaN` is a value an expression can genuinely evaluate *to* (`0/0`), and DoenetML's undefined-slope
-  grading depends on the difference — but `null` is the more dangerous one to leak into arithmetic,
-  because it coerces to `0` rather than propagating. DoenetML tests for it at every boundary through
-  `isNumericConstant`/`evaluateToNumber` (`src/utils/math.ts`); a new call site that forgets will
-  fail silently, not loudly.
+- ~~**`evaluate_to_constant` answers `null`, not `NaN`, for an expression it cannot evaluate.**~~
+  *Settled the other way at the twentieth pass, and this entry was still stating the old behaviour
+  in the present tense two passes later.* The reasoning was that keeping "cannot evaluate" and
+  "evaluates to `NaN`" apart was worth having. It was not: `null` is *anti*-poisoning in JavaScript
+  (`Number(null)` is `0`, `null + 5` is `5`, `null > -1` is `true`, `Number.isNaN(null)` is
+  `false`), so a value that did not exist behaved like zero in every consumer not individually
+  taught to test for it — roughly fourteen grading defects, found one at a time. The compat layer
+  answers `NaN` now, as legacy did, and the declarations say `number | Complex`.
+  `nan_for_non_numeric` is accepted and ignored; nothing distinguishes the two cases, and code that
+  needs to should ask `expr.variables()`. `isNumericConstant`/`evaluateToNumber`
+  (`src/utils/math.ts`) stay at the boundaries for the `Complex` arm, which a `number`-typed state
+  variable still cannot hold.
 - **Text output no longer pads container delimiters** — `(0, 0)` where the legacy printer wrote
   `( 0, 0 )`. `toLatex` is unchanged (`\left( 1, 2 \right)` keeps its spacing); only the text
   renderer moved. Test expectations were updated to match.

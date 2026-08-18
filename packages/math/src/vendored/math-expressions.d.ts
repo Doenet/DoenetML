@@ -6,10 +6,12 @@
 //
 // WHY THIS IS HERE
 //
-// These declarations are the API contract ~147 DoenetML call sites are written
-// against. They arrived with the legacy JavaScript library, but they were never
-// *about* that library — the Rust compat layer is a drop-in for exactly this
-// shape, so both engines were always typed by it.
+// These declarations are the API contract the DoenetML files that import
+// `math-expressions` are written against. (How many that is is stated in
+// exactly one place, the table in MATH_EXPRESSIONS_ENGINE_NOTES.md, with the
+// command that re-derives it.) They arrived with the legacy JavaScript library,
+// but they were never *about* that library — the Rust compat layer is a drop-in
+// for exactly this shape, so both engines were always typed by it.
 //
 // The legacy package has now been removed as a dependency. It had stopped
 // carrying any runtime code we ship (the Rust bundle imports nothing from it)
@@ -37,10 +39,12 @@
 //
 // HOW MUCH GOES AWAY, MEASURED
 //
-// Everything below this header, and it is all of it: the same 114 `Expression`
-// members and 137 `Context` members upstream's `types/math-expressions.d.ts`
+// Everything below this header, and it is all of it: the same 66 `Expression`
+// members and 87 `Context` members upstream's `types/math-expressions.d.ts`
 // declares at the current pin, with the same types, and nothing here that is
-// not there. Step 6 replaces this file *and* `src/types.ts` with one
+// not there. (It was 114 and 137 until the twenty-second pass narrowed both
+// files to the members the engine actually has — see the note at the end of
+// `Expression`.) Step 6 replaces this file *and* `src/types.ts` with one
 // re-export. Nothing in this directory is DoenetML-specific, which is why it
 // can go in one move rather than being unpicked.
 //
@@ -267,6 +271,16 @@ export interface MatchOptions {
      * matches `x` with `a = 1`, `b = 0`.
      */
     allow_implicit_identities?: string[];
+    /**
+     * Let a `+`/`*` pattern match a *subset* of a larger sum or product,
+     * reporting the operands it did not consume as `_skipped`.
+     *
+     * Handled outside the core matcher — by enumerating operand subsets — so
+     * it was reachable only through `me.utils.match` and was dropped by
+     * `Expression.match`, which called the matcher directly. Both go through
+     * one implementation now, and the option is declared because it works.
+     */
+    allow_extended_match?: boolean;
 }
 
 /**
@@ -349,11 +363,6 @@ export interface Expression {
         assumptions?: Assumptions,
         max_digits?: number,
     ): Expression;
-
-    /**
-     * Clean/flatten the expression tree
-     */
-    clean(): Expression;
 
     /**
      * Collapse unary minus operations
@@ -463,27 +472,6 @@ export interface Expression {
      */
     get_component(component: number | number[]): Expression;
 
-    /**
-     * Perform vector scalar multiplications
-     * @param include_tuples Whether to include tuples
-     */
-    perform_vector_scalar_multiplications(include_tuples?: boolean): Expression;
-
-    /**
-     * Perform matrix scalar multiplications
-     */
-    perform_matrix_scalar_multiplications(): Expression;
-
-    /**
-     * Perform matrix multiplications
-     * @param include_vectors Whether to include vectors
-     * @param include_tuples Whether to include tuples
-     */
-    perform_matrix_multiplications(
-        include_vectors?: boolean,
-        include_tuples?: boolean,
-    ): Expression;
-
     // ========== Normalization methods ==========
 
     /**
@@ -502,11 +490,6 @@ export interface Expression {
     normalize_negative_numbers(): Expression;
 
     /**
-     * Normalize the order of arguments for angles and line segments
-     */
-    normalize_angle_linesegment_arg_order(): Expression;
-
-    /**
      * Apply default ordering to expression
      */
     default_order(): Expression;
@@ -515,12 +498,6 @@ export interface Expression {
      * Convert constants to floating point numbers
      */
     constants_to_floats(): Expression;
-
-    /**
-     * Convert log subscripts to two-argument log function
-     * Converts log_a(b) to log(a, b)
-     */
-    log_subscript_to_two_arg_log(): Expression;
 
     /**
      * Convert subscripts to strings for single variable names
@@ -548,11 +525,6 @@ export interface Expression {
      * Convert alternative vectors to vectors
      */
     altvectors_to_vectors(): Expression;
-
-    /**
-     * Substitute abs function
-     */
-    substitute_abs(): Expression;
 
     // ========== Rounding methods ==========
 
@@ -602,6 +574,15 @@ export interface Expression {
 
     /**
      * Solve linear equation for a variable
+     *
+     * Always an `Expression`, never `undefined` — but when there is no answer
+     * (not linear in `variable`, or a coefficient whose sign or nonzero-ness
+     * the assumptions cannot settle) it is a frozen stand-in whose `.tree` is
+     * `undefined`. That is legacy's own contract and is why it is not declared
+     * `Expression | undefined`: callers read `.tree` off the result
+     * unconditionally, and legacy handed them one to read. Test the `.tree`,
+     * not the result.
+     *
      * @param variable Variable to solve for
      */
     solve_linear(variable: string): Expression;
@@ -610,11 +591,6 @@ export interface Expression {
      * Reduce to rational form (numerator/denominator)
      */
     reduce_rational(): Expression;
-
-    /**
-     * Find common denominator for rational expressions
-     */
-    common_denominator(): Expression;
 
     // ========== Matrix operations ==========
 
@@ -651,11 +627,6 @@ export interface Expression {
     variables(include_subscripts?: boolean): string[];
 
     /**
-     * Get list of operators used in the expression
-     */
-    operators(): string[];
-
-    /**
      * Get list of functions used in the expression
      */
     functions(): string[];
@@ -690,13 +661,6 @@ export interface Expression {
      * @param options @deprecated accepted and ignored — see `equalsViaComplex`
      */
     equalsViaReal(other: Expression, options?: EqualsOptions): boolean;
-
-    /**
-     * Test equality using finite field arithmetic
-     * @param other Expression to compare with
-     * @param options Comparison options
-     */
-    equalsViaFiniteField(other: Expression, options?: EqualsOptions): boolean;
 
     /**
      * Get an evaluator function for this expression
@@ -811,11 +775,6 @@ export interface Expression {
     toGLSL(): string;
 
     /**
-     * Convert to Guppy representation
-     */
-    toGuppy(): string;
-
-    /**
      * Serialize to JSON
      */
     toJSON(): {
@@ -824,46 +783,41 @@ export interface Expression {
         assumptions?: Assumptions;
     };
 
-    // ========== Mathematical function methods ==========
-    // These create function applications and return Expression
-
-    abs(): Expression;
-    exp(): Expression;
-    log(): Expression;
-    log10(): Expression;
-    sign(): Expression;
-    sqrt(): Expression;
-    conj(): Expression;
-    im(): Expression;
-    re(): Expression;
-    factorial(): Expression;
-    gamma(): Expression;
-    erf(): Expression;
-    acos(): Expression;
-    acosh(): Expression;
-    acot(): Expression;
-    acoth(): Expression;
-    acsc(): Expression;
-    acsch(): Expression;
-    asec(): Expression;
-    asech(): Expression;
-    asin(): Expression;
-    asinh(): Expression;
-    atan(): Expression;
-    atanh(): Expression;
-    cos(): Expression;
-    cosh(): Expression;
-    cot(): Expression;
-    coth(): Expression;
-    csc(): Expression;
-    csch(): Expression;
-    sec(): Expression;
-    sech(): Expression;
-    sin(): Expression;
-    sinh(): Expression;
-    tan(): Expression;
-    tanh(): Expression;
-    atan2(other: Expression | Tree): Expression;
+    // ========== Not declared: 48 legacy members this engine does not have ====
+    //
+    // The legacy file declared 114 members here; 48 of them are `undefined` at
+    // runtime on this engine, so calling one is a `TypeError` and not the
+    // documented result. They are no longer declared. A `.d.ts` whose job is to
+    // describe a drop-in earns nothing by promising members that are not there:
+    // keeping them made `expr.sin()` a *compile-time success* and a runtime
+    // failure, which is the worst of the two places to find out. Removing them
+    // moves the report to `tsc`, names the member, and costs a caller who was
+    // going to fail anyway nothing.
+    //
+    // Reinstate a name here the moment the engine implements it — this list is
+    // the gap, not a decision to leave it open, and
+    // MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md tracks it as one of the two open
+    // asks:
+    //
+    //   the elementwise numeric applications — abs, exp, log, log10, sqrt,
+    //     sign, re, im, conj, factorial, gamma, erf, and the whole
+    //     trig/hyperbolic/inverse family including atan2 (37 members);
+    //   the matrix/vector helpers — perform_matrix_multiplications,
+    //     perform_matrix_scalar_multiplications,
+    //     perform_vector_scalar_multiplications;
+    //   and the one-offs — clean, common_denominator, substitute_abs,
+    //     log_subscript_to_two_arg_log, normalize_angle_linesegment_arg_order,
+    //     equalsViaFiniteField, operators, toGuppy.
+    //
+    // Each is mirrored on `Context` (`me.abs(expr)`, …) and is absent there for
+    // the same reason, so 96 declarations went, not 48 — plus `Context`'s own
+    // two, `ZmodN` and `parser_parameters`, which are Context-only properties
+    // and so were outside the `Expression` audit that found the 48. Nothing in
+    // DoenetML calls any of them; re-derive with the audit in the
+    // upstream-requests file before trusting that sentence again.
+    //
+    // What is left is true: every member either interface declares is present
+    // at runtime — 66 on `Expression`, 87 on `Context`.
 }
 
 /**
@@ -928,19 +882,40 @@ export interface Utils {
  */
 export interface Context {
     /**
-     * ZmodN class for finite field arithmetic
+     * The assumption store, as an object of methods.
+     *
+     * Not a variable-keyed map, which is what this was declared to be: legacy
+     * carried the same add/get/remove methods on `me.assumptions` as on `me`
+     * itself, and this port keeps that, forwarding the wasm predicates through
+     * it as well (`lib/assumptions/element_of_sets` reads it as its default
+     * source). The per-variable facts are under `byvar`.
      */
-    ZmodN: any;
-
-    /**
-     * Current assumptions about variables
-     */
-    assumptions: Assumptions;
-
-    /**
-     * Parser parameters
-     */
-    parser_parameters: { [key: string]: any };
+    assumptions: {
+        /** The recorded fact per variable; `undefined` where there is none. */
+        byvar: { [variable: string]: Tree | undefined };
+        /** Facts implied by combining the recorded ones. */
+        derived: { [variable: string]: Tree | undefined };
+        /** The generic assumption, applying to every variable. */
+        generic: Tree | undefined;
+        get_assumptions(
+            variables: string | [string[]] | Expression | Tree,
+            params?: {
+                exclude_variables?: string | string[];
+                omit_derived?: boolean;
+            },
+        ): Tree | undefined;
+        add_assumption(
+            assumption: Expression | Tree,
+            exclude_generic?: boolean,
+        ): void;
+        add_generic_assumption(assumption: Expression | Tree): void;
+        remove_assumption(assumption: Expression | Tree): void;
+        remove_generic_assumption(assumption: Expression | Tree): void;
+        clear_assumptions(): void;
+        set_to_default(): void;
+        /** Three-valued predicates, forwarded to the wasm store. */
+        [predicate: string]: any;
+    };
 
     /**
      * Parse expression from text format
@@ -988,9 +963,15 @@ export interface Context {
 
     /**
      * Parse from any supported format (auto-detect)
+     *
+     * `undefined` for `undefined`/`null` input, which is legacy's answer to
+     * "nothing converts to nothing": callers write `me.from(value)` over a
+     * table whose empty rows mean "no expression". Declared, because a caller
+     * who does not check gets a `TypeError` one line later.
+     *
      * @param input String or tree representation
      */
-    from(input: string | number | Tree): Expression;
+    from(input: string | number | Tree): Expression | undefined;
 
     /**
      * Alias for fromText
@@ -1034,14 +1015,28 @@ export interface Context {
     remove_generic_assumption(assumption: any): void;
 
     /**
-     * Get assumptions for variables
-     * @param variables Variable names or expression
-     * @param params Optional parameters
+     * Everything known about a variable, a list of variables or an expression,
+     * as a tree stating it — `undefined` when nothing is known.
+     *
+     * Three query shapes, and the list one is a *nested* array: `"x"` for one
+     * variable, `[["x", "y"]]` for several, or an expression. A bare
+     * `["x", "y"]` — which this was declared to take — is read as a tree, not
+     * as a list of names, and answers `undefined`. The nesting is legacy's own
+     * spelling; `slow_assumptions.spec.ts`, which mirrors legacy's suite,
+     * queries `[["x"]]`.
+     *
+     * The answer is a `Tree` (`["<", 0, "x"]`), not an `Assumptions` map.
+     *
+     * @param variables A name, a `[names]` list, or an expression
+     * @param params `exclude_variables`, `omit_derived`
      */
     get_assumptions(
-        variables: string[] | Expression,
-        params?: any,
-    ): Assumptions;
+        variables: string | [string[]] | Expression | Tree,
+        params?: {
+            exclude_variables?: string | string[];
+            omit_derived?: boolean;
+        },
+    ): Tree | undefined;
 
     /**
      * Clear all assumptions
@@ -1054,9 +1049,18 @@ export interface Context {
     set_to_default(): void;
 
     /**
-     * The Expression class constructor
+     * The Expression class itself — for `instanceof`, which is what DoenetML
+     * and the spec suite use it for.
+     *
+     * *Not* an AST constructor, though legacy's was and this was declared as
+     * one: this engine's `Expression` wraps a wasm handle, so the first
+     * argument is that handle and `new me.class(["+", 1, "x"])` builds an
+     * object whose every method fails. Use `me.fromAst`. The constructor is
+     * declared as taking `never` so the mistake is a compile error rather than
+     * a runtime one; filed as a legacy-parity gap in
+     * `MATH_EXPRESSIONS_UPSTREAM_REQUESTS.md`.
      */
-    class: new (ast: Tree, context: Context) => Expression;
+    class: new (handle: never, context?: Context) => Expression;
 
     /**
      * Converter objects
@@ -1108,7 +1112,6 @@ export interface Context {
         assumptions?: Assumptions,
         max_digits?: number,
     ): Expression;
-    clean(expr: Expression | Tree): Expression;
     collapse_unary_minus(expr: Expression | Tree): Expression;
     perform_vector_matrix_additions_scalar_multiplications(
         expr: Expression | Tree,
@@ -1151,32 +1154,17 @@ export interface Context {
         expr: Expression | Tree,
         component: number | number[],
     ): Expression;
-    perform_vector_scalar_multiplications(
-        expr: Expression | Tree,
-        include_tuples?: boolean,
-    ): Expression;
-    perform_matrix_scalar_multiplications(expr: Expression | Tree): Expression;
-    perform_matrix_multiplications(
-        expr: Expression | Tree,
-        include_vectors?: boolean,
-        include_tuples?: boolean,
-    ): Expression;
-
     // ========== Normalization methods ==========
     normalize_function_names(expr: Expression | Tree): Expression;
     normalize_applied_functions(expr: Expression | Tree): Expression;
     normalize_negative_numbers(expr: Expression | Tree): Expression;
-    normalize_angle_linesegment_arg_order(expr: Expression | Tree): Expression;
     default_order(expr: Expression | Tree): Expression;
     constants_to_floats(expr: Expression | Tree): Expression;
-    log_subscript_to_two_arg_log(expr: Expression | Tree): Expression;
     subscripts_to_strings(expr: Expression | Tree, force?: boolean): Expression;
     strings_to_subscripts(expr: Expression | Tree): Expression;
     tuples_to_vectors(expr: Expression | Tree): Expression;
     to_intervals(expr: Expression | Tree): Expression;
     altvectors_to_vectors(expr: Expression | Tree): Expression;
-    substitute_abs(expr: Expression | Tree): Expression;
-
     // ========== Rounding methods ==========
     round_numbers_to_precision(
         expr: Expression | Tree,
@@ -1208,7 +1196,6 @@ export interface Context {
     // ========== Solve and Rational methods ==========
     solve_linear(expr: Expression | Tree, variable: string): Expression;
     reduce_rational(expr: Expression | Tree): Expression;
-    common_denominator(expr: Expression | Tree): Expression;
     // ========== Matrix operations ==========
     matrix(entries: Expression[][]): Expression;
     vector_add(expr: Expression | Tree, other: Expression | Tree): Expression;
@@ -1221,16 +1208,22 @@ export interface Context {
     cross_prod(expr: Expression | Tree, other: Expression | Tree): Expression;
 
     // ========== Sets operations ==========
+    /**
+     * A periodic solution set such as `π/4 + nπ`, as the union of one
+     * arithmetic progression per offset.
+     *
+     * `undefined` — legacy's failure value, so declared — when an operand is
+     * missing or the offset and period lists disagree in length.
+     */
     create_discrete_infinite_set(params?: {
         offsets?: Expression | Tree;
         periods?: Expression | Tree;
         min_index?: Expression | Tree;
         max_index?: Expression | Tree;
-    }): Expression;
+    }): Expression | undefined;
 
     // ========== Inspection methods ==========
     variables(expr: Expression | Tree, include_subscripts?: boolean): string[];
-    operators(expr: Expression | Tree): string[];
     functions(expr: Expression | Tree): string[];
     equals(
         expr: Expression,
@@ -1248,11 +1241,6 @@ export interface Context {
         options?: EqualsOptions,
     ): boolean;
     equalsViaReal(
-        expr: Expression,
-        other: Expression,
-        options?: EqualsOptions,
-    ): boolean;
-    equalsViaFiniteField(
         expr: Expression,
         other: Expression,
         options?: EqualsOptions,
@@ -1290,44 +1278,6 @@ export interface Context {
     tex(expr: Expression | Tree, params?: FormatParams): string;
     toXML(expr: Expression | Tree): string;
     toGLSL(expr: Expression | Tree): string;
-    toGuppy(expr: Expression | Tree): string;
-
-    // ========== Mathematical function methods ==========
-    abs(expr: Expression | Tree): Expression;
-    exp(expr: Expression | Tree): Expression;
-    log(expr: Expression | Tree): Expression;
-    log10(expr: Expression | Tree): Expression;
-    sign(expr: Expression | Tree): Expression;
-    sqrt(expr: Expression | Tree): Expression;
-    conj(expr: Expression | Tree): Expression;
-    im(expr: Expression | Tree): Expression;
-    re(expr: Expression | Tree): Expression;
-    factorial(expr: Expression | Tree): Expression;
-    gamma(expr: Expression | Tree): Expression;
-    erf(expr: Expression | Tree): Expression;
-    acos(expr: Expression | Tree): Expression;
-    acosh(expr: Expression | Tree): Expression;
-    acot(expr: Expression | Tree): Expression;
-    acoth(expr: Expression | Tree): Expression;
-    acsc(expr: Expression | Tree): Expression;
-    acsch(expr: Expression | Tree): Expression;
-    asec(expr: Expression | Tree): Expression;
-    asech(expr: Expression | Tree): Expression;
-    asin(expr: Expression | Tree): Expression;
-    asinh(expr: Expression | Tree): Expression;
-    atan(expr: Expression | Tree): Expression;
-    atanh(expr: Expression | Tree): Expression;
-    cos(expr: Expression | Tree): Expression;
-    cosh(expr: Expression | Tree): Expression;
-    cot(expr: Expression | Tree): Expression;
-    coth(expr: Expression | Tree): Expression;
-    csc(expr: Expression | Tree): Expression;
-    csch(expr: Expression | Tree): Expression;
-    sec(expr: Expression | Tree): Expression;
-    sech(expr: Expression | Tree): Expression;
-    sin(expr: Expression | Tree): Expression;
-    sinh(expr: Expression | Tree): Expression;
-    tan(expr: Expression | Tree): Expression;
-    tanh(expr: Expression | Tree): Expression;
-    atan2(expr: Expression | Tree, other: Expression | Tree): Expression;
+    // The expression-first mirror of the 48 members this engine does not
+    // implement is gone with them; see the note at the end of `Expression`.
 }
