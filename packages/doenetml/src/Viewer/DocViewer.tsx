@@ -2179,10 +2179,15 @@ export function DocViewer({
                     // attempt timed out under pressure, say so rather than
                     // presenting an unexplained error.
                     lastFailureWasContended = contended;
+                    // The budget is logged as context, not as elapsed time:
+                    // only a watchdog expiry takes the whole budget, while an
+                    // outright rejection (a worker script that 404s) fails as
+                    // fast as the error arrives. The `err` printed alongside
+                    // says which of the two happened.
                     console.warn(
                         `DocViewer: core worker handshake attempt ${attempt + 1} ` +
-                            `of ${maxAttempts} failed after ${handshakeWatchdogMs}ms ` +
-                            `(${concurrentHandshakes} handshake(s) in flight on ${cores} core(s))` +
+                            `of ${maxAttempts} failed (watchdog ${handshakeWatchdogMs}ms; ` +
+                            `${concurrentHandshakes} handshake(s) in flight on ${cores} core(s))` +
                             (attempt + 1 < maxAttempts
                                 ? "; retrying with a fresh worker."
                                 : "; giving up."),
