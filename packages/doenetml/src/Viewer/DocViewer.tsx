@@ -854,7 +854,28 @@ export function DocViewer({
                         coreCreationInProgress.current = false;
                         loadedInitialRendererState.current = false;
 
-                        processLoadedDocState(e.data.state);
+                        try {
+                            processLoadedDocState(e.data.state);
+                        } catch (err: any) {
+                            // Malformed host-persisted state. Everything from
+                            // the `coreId` re-roll above to here is
+                            // synchronous, so this handler still owns the
+                            // attempt it is failing. The core will never be
+                            // started, so a host holding a boot slot for this
+                            // document has to hear about it (#1709). Report
+                            // just the failure signal, keeping the specific
+                            // message below on screen (`failCoreStart` would
+                            // overwrite it with the generic one).
+                            setIsInErrorState?.(true);
+
+                            let message = "";
+                            if ("message" in err) {
+                                message = err.message;
+                            }
+                            setErrMsg(`Error loading doc state: ${message}`);
+                            reportCoreStartFailed();
+                            return;
+                        }
 
                         if (render) {
                             startCoreSafely();

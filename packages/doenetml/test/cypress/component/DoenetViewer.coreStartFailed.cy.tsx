@@ -74,6 +74,70 @@ describe("DoenetViewer coreStartFailedCallback (#1709)", () => {
         });
     });
 
+    it("fires when host-persisted state arrives malformed over SPLICE", () => {
+        // The state-load counterpart of the handshake failures above: the
+        // viewer asks its host for saved state (`SPLICE.getState`), and the
+        // response carries a `coreInfo` that is not valid JSON. Processing it
+        // throws before a core is ever started for the rebuilt document, so
+        // the host must hear the failure signal or its boot slot stays
+        // pinned. Component tests share the viewer's window, so the spec
+        // itself can play the host on the same `postMessage` channel.
+        const failures: unknown[] = [];
+        let initialized = 0;
+
+        const hostListener = (e: MessageEvent) => {
+            if (
+                typeof e.data === "object" &&
+                e.data?.subject === "SPLICE.getState"
+            ) {
+                window.postMessage({
+                    subject: "SPLICE.getState.response",
+                    message_id: e.data.message_id,
+                    state: {
+                        cid: e.data.cid,
+                        coreInfo: "this is not JSON",
+                        coreState: "{}",
+                    },
+                });
+            }
+        };
+        window.addEventListener("message", hostListener);
+
+        cy.mount(
+            <DoenetViewer
+                doenetML="<p>state never loads</p>"
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+                initializedCallback={() => {
+                    initialized++;
+                }}
+                coreStartFailedCallback={(arg: unknown) => {
+                    failures.push(arg);
+                }}
+            />,
+        );
+
+        // The specific load error stays on screen (not the generic
+        // could-not-be-started message)...
+        cy.contains("Error loading doc state", { timeout: 8000 }).should(
+            "exist",
+        );
+
+        // ...and the host hears exactly one failure and no initialization:
+        // the response re-rolled the document's core id, so the boot the
+        // viewer had already launched no longer speaks for it.
+        cy.wrap(null, { timeout: 4000 }).should(() => {
+            expect(failures.length, "coreStartFailedCallback calls").to.eq(1);
+        });
+        cy.then(() => {
+            expect(
+                initialized,
+                "initializedCallback must not fire for a failed state load",
+            ).to.eq(0);
+            window.removeEventListener("message", hostListener);
+        });
+    });
+
     it("stays silent for a healthy boot", () => {
         let failures = 0;
         let initialized = 0;
