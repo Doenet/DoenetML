@@ -65,15 +65,19 @@ export const doenetGlobalConfig: {
      */
     coreHandshakeWatchdogMs?: number;
     /**
-     * Test-only seam. When set, `DocViewer` awaits this at each core-init
-     * phase: `"handshake"` (covered by the watchdog) and `"generate"` (the
-     * un-watchdogged evaluation). Throwing, rejecting, or returning a
-     * never-resolving promise lets a test deterministically simulate either a
-     * hung/wedged worker handshake or a slow-but-alive evaluation
-     * (Doenet/DoenetApps#2957). Always `undefined` in production.
+     * Test-only seam. When set, `DocViewer` awaits this at each phase of
+     * getting a document on screen: `"stateLoad"` (the saved-state load that
+     * precedes a boot), `"handshake"` (covered by the watchdog) and
+     * `"generate"` (the un-watchdogged evaluation). Throwing, rejecting, or
+     * returning a never-resolving promise lets a test deterministically
+     * simulate a slow or failing load, a hung/wedged worker handshake, or a
+     * slow-but-alive evaluation (Doenet/DoenetApps#2957) — and, by holding a
+     * phase open across a rebuild, the supersession races those waits opened
+     * up (#1714). Always `undefined` in production, where the phase is
+     * therefore never awaited at all.
      */
     __doenetTestCoreInitHook?: (
-        phase: "handshake" | "generate",
+        phase: "stateLoad" | "handshake" | "generate",
         attempt: number,
     ) => void | Promise<void>;
 } = {
