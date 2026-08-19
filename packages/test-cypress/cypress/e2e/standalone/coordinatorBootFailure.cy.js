@@ -123,3 +123,132 @@ describe(
         });
     },
 );
+
+// The `bootFailed` handler's `parking` branch: a failure can land while a
+// park flush is in flight — the coordinator's short boot watchdog promoted a
+// silent boot to `live`, the reader scrolled on, parking began, and only then
+// did the realm give up on its core. The flush will never be answered (its
+// realm is modeled as too wedged to run the flush pipeline — see
+// coordination-activity-parking-race-if.html), so the failure must cancel it:
+// finish the park at once if the activity is off-screen, or keep the `failed`
+// mark if the reader scrolled back. The host page's `flushTimeoutMs` is 90 s,
+// far above every timeout below, so a prompt outcome can only come from the
+// cancellation.
+describe(
+    "standalone coordinator: a boot failure landing mid-flush",
+    { tags: ["@group1"] },
+    () => {
+        /** Poll `doenetCoordinatorStats()` until `check(stats)` passes. */
+        function awaitStats(check, timeout) {
+            cy.window().then((win) => {
+                cy.wrap(null, { timeout }).should(() => {
+                    check(win.doenetCoordinatorStats());
+                });
+            });
+        }
+
+        /**
+         * Drive the page to the racing state: the failing activity boots,
+         * is promoted to `live` by the 1 s boot watchdog, and — once the
+         * reader scrolls to the healthy activity — begins parking, with the
+         * unanswerable flush in flight. Its own 7 s handshake watchdog has
+         * not fired yet, so `bootFailed` is still to come.
+         */
+        function scrollUntilParkingBegins() {
+            awaitStats((stats) => {
+                expect(
+                    stats.byState.live ?? 0,
+                    `promoted to live: ${JSON.stringify(stats)}`,
+                ).to.eq(1);
+            }, 8000);
+
+            cy.get("#actHealthy").scrollIntoView();
+            awaitStats((stats) => {
+                expect(
+                    stats.byState.parking ?? 0,
+                    `parking begun: ${JSON.stringify(stats)}`,
+                ).to.eq(1);
+            }, 8000);
+        }
+
+        it("completes an off-screen park promptly when the failure cancels the doomed flush", () => {
+            cy.viewport(1000, 660);
+            cy.visit("/coordination-parking-race-page.html");
+
+            scrollUntilParkingBegins();
+
+            // `bootFailed` lands mid-flush, several seconds in. The
+            // activity is off-screen, so the coordinator cancels the flush
+            // and detaches the realm right away — well within this timeout,
+            // a fraction of the 90 s the flush would otherwise wait.
+            cy.get("#actSlowFail", { timeout: BOOT_TIMEOUT }).should(
+                ($iframe) => {
+                    expect(
+                        $iframe[0].src,
+                        "detached promptly on the failure",
+                    ).to.contain("about:blank");
+                },
+            );
+
+            // Page health: the healthy activity the reader scrolled to
+            // still renders.
+            cy.get("#actHealthy")
+                .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
+                .should((body) => {
+                    const clone = body.cloneNode(true);
+                    clone.querySelectorAll("script").forEach((s) => s.remove());
+                    expect(clone.textContent ?? "").to.contain(
+                        "Activity two body",
+                    );
+                });
+        });
+
+        it("keeps the failed mark on a scroll-back mid-flush, and the next park skips the flush", () => {
+            cy.viewport(1000, 660);
+            cy.visit("/coordination-parking-race-page.html");
+
+            scrollUntilParkingBegins();
+
+            // Scroll back before the failure lands (it is still ~5 s away).
+            cy.get("#actSlowFail").scrollIntoView();
+
+            // When `bootFailed` lands, the record must come out of the
+            // cancelled flush as `failed` — a visible activity whose flush
+            // concluded normally would be promoted back to live, and that
+            // would lose the failure.
+            awaitStats((stats) => {
+                expect(
+                    stats.byState.failed ?? 0,
+                    `failed after the mid-flush failure: ${JSON.stringify(stats)}`,
+                ).to.eq(1);
+            }, BOOT_TIMEOUT);
+
+            // The realm stays attached, showing the viewer's give-up UI.
+            cy.get("#actSlowFail").should(($iframe) => {
+                expect($iframe[0].src, "still attached").to.not.contain(
+                    "about:blank",
+                );
+            });
+            cy.get("#actSlowFail")
+                .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
+                .should((body) => {
+                    expect(body.textContent ?? "").to.contain(
+                        "could not be started",
+                    );
+                });
+
+            // Scrolling away again parks the `failed` record through the
+            // flush-skip: it detaches promptly instead of waiting out the
+            // 90 s flush timeout with a second doomed flush.
+            cy.get("#actHealthy").scrollIntoView();
+            cy.get("#actSlowFail", { timeout: BOOT_TIMEOUT }).should(
+                ($iframe) => {
+                    expect(
+                        $iframe[0].src,
+                        "failed park skipped the flush",
+                    ).to.contain("about:blank");
+                },
+            );
+        });
+    },
+);
