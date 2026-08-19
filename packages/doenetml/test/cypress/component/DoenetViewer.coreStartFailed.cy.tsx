@@ -153,9 +153,8 @@ describe("DoenetViewer coreStartFailedCallback (#1709)", () => {
         // The transition OUT of the failure state. A failed boot leaves the
         // viewer showing the give-up screen with its stage still parked where
         // the ladder left it and its report latch spent — so a rebuild has to
-        // reach the launch site again, take a boot slot again, and deliver a
-        // document over the error UI. This is
-        // the transition a boot-scheduling host depends on: the
+        // reach the launch site again and deliver a document over the error
+        // UI. This is the transition a boot-scheduling host depends on: the
         // `@doenet/standalone` coordinator marks a failed activity `failed`
         // and skips its state flush at park time, and only a later attempt
         // that actually starts a core clears that mark.

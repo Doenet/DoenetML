@@ -446,8 +446,9 @@ export function initializeDoenetCoordinator(
                     record.parkFlushCleanup?.();
                     record.parkFlushId = null;
                     if (record.visible) {
+                        // The `evaluateBudget` below re-checks the budget now
+                        // that this record rejoins it as "failed".
                         record.state = "failed";
-                        scheduleEvaluate(0);
                     } else {
                         detachRealm(record);
                     }

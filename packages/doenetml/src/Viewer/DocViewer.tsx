@@ -529,11 +529,10 @@ export function DocViewer({
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
     // The `coreId` whose core-start attempt has already been reported to
-    // `coreStartFailedCallback` (#1709). Keyed by id rather than latched with
-    // a boolean because `coreId` is re-rolled for every rebuild of the
-    // document: that is exactly the granularity the callback promises ("once
-    // per core-start attempt"), and it needs no separate reset. See
-    // `reportCoreStartFailed`.
+    // `coreStartFailedCallback` (#1709). `coreId` is re-rolled for every
+    // rebuild of the document, so keying on it gives the callback exactly the
+    // granularity it promises ("once per core-start attempt") and needs no
+    // separate reset. See `reportCoreStartFailed`.
     const coreStartFailureReportedFor = useRef<string | null>(null);
     // Set by the unmount cleanup below. `startCore` waits several times over
     // — on the saved-state load, on each handshake, on the evaluation that
@@ -1800,9 +1799,9 @@ export function DocViewer({
                     setErrMsg(`Error loading doc state: ${message}`);
                     // The core will never be started, so a host holding a boot
                     // slot for this document has to hear about it (#1709).
-                    // Reported directly rather than through `failCoreStart`,
-                    // which would replace the specific message above with the
-                    // generic one.
+                    // Report just the failure signal, keeping the specific
+                    // message above on screen (`failCoreStart` would overwrite
+                    // it with the generic one).
                     reportCoreStartFailed();
                     return;
                 }
