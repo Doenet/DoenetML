@@ -131,6 +131,7 @@ export function DocViewer({
     reportScoreAndStateCallback: specifiedReportScoreAndStateCallback,
     documentStructureCallback,
     initializedCallback,
+    coreStartFailedCallback,
     setIsInErrorState,
     prefixForIds = "",
     doenetViewerUrl,
@@ -176,6 +177,20 @@ export function DocViewer({
     }) => void;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
+    /**
+     * The failure counterpart of `initializedCallback` (#1709): called once
+     * when the core cannot be started and the viewer enters its visible error
+     * state — its handshake retries exhausted, or the boot derailed some other
+     * way (a rejected `generateDast`, a failed state load).
+     *
+     * Hosts that cap boot concurrency release a boot slot on
+     * `initializedCallback`; without this signal a failed boot holds its slot
+     * until their watchdog expires (30–90 s), starving the queue precisely
+     * when a page is already struggling. Called at most once per core-start
+     * attempt, and never for a document that merely reports errors — those
+     * booted fine.
+     */
+    coreStartFailedCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
     doenetViewerUrl?: string;
@@ -513,6 +528,13 @@ export function DocViewer({
     const loadedInitialRendererState = useRef(false);
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
+    // The `coreId` whose core-start attempt has already been reported to
+    // `coreStartFailedCallback` (#1709). Keyed by id rather than latched with
+    // a boolean because `coreId` is re-rolled for every rebuild of the
+    // document: that is exactly the granularity the callback promises ("once
+    // per core-start attempt"), and it needs no separate reset. See
+    // `reportCoreStartFailed`.
+    const coreStartFailureReportedFor = useRef<string | null>(null);
     // Set by the unmount cleanup below. `startCore` waits several times over
     // — on the saved-state load, on each handshake, on the evaluation that
     // follows — and the teardown that runs on unmount cannot cancel those
@@ -1776,6 +1798,12 @@ export function DocViewer({
                         message = e.message;
                     }
                     setErrMsg(`Error loading doc state: ${message}`);
+                    // The core will never be started, so a host holding a boot
+                    // slot for this document has to hear about it (#1709).
+                    // Reported directly rather than through `failCoreStart`,
+                    // which would replace the specific message above with the
+                    // generic one.
+                    reportCoreStartFailed();
                     return;
                 }
             }
@@ -1865,6 +1893,26 @@ export function DocViewer({
             ),
         );
         setHasInitialError(true);
+        reportCoreStartFailed();
+    }
+
+    /**
+     * Tell a boot-scheduling host that this document's core-start attempt is
+     * over and failed (#1709), so it can free the slot it is holding rather
+     * than wait out its own watchdog.
+     *
+     * At most once per attempt: several paths can conclude the same one —
+     * `startCore` reports the failure and returns, and `startCoreSafely`
+     * reports again if that same call also throws — and a host that released
+     * a slot per notification would over-release. A rebuild re-rolls `coreId`,
+     * which is what makes the next attempt reportable again.
+     */
+    function reportCoreStartFailed() {
+        if (coreStartFailureReportedFor.current === coreId.current) {
+            return;
+        }
+        coreStartFailureReportedFor.current = coreId.current;
+        coreStartFailedCallback?.({ activityId, docId });
     }
 
     // The core-worker *handshake*: (re)create the worker and run the cheap,
@@ -1925,7 +1973,8 @@ export function DocViewer({
      * `reinitializeCoreAndTerminateAnimations`, which owns the single
      * `coreWorker` ref) and fail a document that is booting fine; a stale
      * conclusion of either kind puts its message over what the successor has
-     * on screen.
+     * on screen, and spends the successor's single `reportCoreStartFailed`,
+     * which latches on the CURRENT `coreId`.
      *
      * The waits on both paths make that window wide: a load awaits a cid and
      * then IndexedDB, and a boot awaits a handshake per attempt and then the
@@ -2141,8 +2190,9 @@ export function DocViewer({
                 // `reinitializeCoreAndTerminateAnimations` disposed the worker
                 // this ladder was driving, so the rejection is the teardown
                 // being observed from the losing side (#1714). Reporting it
-                // would put the give-up screen over a document the successor
-                // is booting fine.
+                // would put the give-up screen — and a
+                // `coreStartFailedCallback`, which frees a host's boot slot —
+                // over a document the successor is booting fine.
                 await standDown();
                 return;
             }
@@ -2238,10 +2288,11 @@ export function DocViewer({
         runBootLadder(launchedFor).catch((e) => {
             console.warn("DocViewer: startCore failed unexpectedly", e);
             // Only a ladder that still owns the document and has not already
-            // delivered it may raise the give-up screen. A superseded
-            // ladder's throw is no more its to report than its ordinary
-            // outcome is — the same rule `standDown` follows — and the
-            // ladder's very last step is `initializedCallback`, a host
+            // delivered it may raise the give-up screen (and with it a
+            // `coreStartFailedCallback`, which frees a host's boot slot).
+            // A superseded ladder's throw is no more its to report than its
+            // ordinary outcome is — the same rule `standDown` follows — and
+            // the ladder's very last step is `initializedCallback`, a host
             // handler running after the document is already on screen.
             if (!stillSpeaksForDocument(launchedFor) || coreCreated.current) {
                 return;
@@ -2560,8 +2611,9 @@ export function DocViewer({
             // has to become a visible error rather than an unhandled
             // rejection. Only while the load still speaks for the document,
             // though: it waits on a cid and on IndexedDB, so a rebuild can
-            // supersede it, and a stale give-up screen would cover what the
-            // successor is showing — see `stillSpeaksForDocument`.
+            // supersede it, and a stale give-up screen would both cover what
+            // the successor is showing and spend its single
+            // `reportCoreStartFailed` — see `stillSpeaksForDocument`.
             if (stillSpeaksForDocument(loadingFor)) {
                 failCoreStart();
             }

@@ -20,6 +20,7 @@ import type {
 import {
     DoenetViewerProps,
     DoenetEditorProps,
+    BOOT_CONCLUDING_CALLBACKS,
     createHtmlForDoenetViewer,
     createHtmlForDoenetEditor,
     setIframeBodyBackground,
@@ -370,43 +371,61 @@ export function DoenetViewer({
         clearBootWatchdog();
         releaseBootSlot(id);
     }
-    // Stable composed initializedCallback: releases this viewer's boot slot,
-    // then forwards to the host's latest callback. Registered with the
-    // iframe instead of the host's own callback when windowed (the iframe
-    // side sees one stable identity; the host's identity is still what the
+    // Stable composed callbacks: release this viewer's boot slot, then
+    // forward to the host's latest callback of the same name. Registered with
+    // the iframe instead of the host's own when windowed (the iframe side
+    // sees one stable identity; the host's identity is still what the
     // function-prop change detection compares).
-    const composedInitializedCallbackRef = React.useRef<
-        ((arg: unknown) => void) | null
-    >(null);
-    if (composedInitializedCallbackRef.current === null) {
-        composedInitializedCallbackRef.current = (arg: unknown) => {
-            relinquishBootSlot();
-            (doenetViewerPropsRef.current as any).initializedCallback?.(arg);
-        };
+    const composedBootCallbacksRef = React.useRef<Record<
+        string,
+        (arg: unknown) => void
+    > | null>(null);
+    if (composedBootCallbacksRef.current === null) {
+        // Null-prototype: `functionPropToProxy` looks names up in here by
+        // host-supplied key, and an object literal would answer `toString`
+        // (and every other `Object.prototype` member) with a function that is
+        // not a composed callback at all.
+        const composed = Object.create(null) as Record<
+            string,
+            (arg: unknown) => void
+        >;
+        for (const key of BOOT_CONCLUDING_CALLBACKS) {
+            composed[key] = (arg: unknown) => {
+                relinquishBootSlot();
+                (doenetViewerPropsRef.current as any)[key]?.(arg);
+            };
+        }
+        composedBootCallbacksRef.current = composed;
     }
     /** Proxy the composed callback for windowed viewers, the raw one otherwise. */
     function functionPropToProxy(key: string, prop: Function): Function {
-        if (windowed && key === "initializedCallback") {
-            return composedInitializedCallbackRef.current!;
+        const composed = composedBootCallbacksRef.current![key];
+        if (windowed && composed) {
+            return composed;
         }
         return prop;
     }
     /**
-     * Append the composed `initializedCallback` proxy to a Comlink
-     * function-prop argument list when windowed and the host supplied no
-     * `initializedCallback` of its own, so the boot-slot release still
-     * reaches the iframe. `hostFunctions` is the set of function props the
-     * host actually passed (keyed by name).
+     * Append the composed boot-concluding proxies to a Comlink function-prop
+     * argument list when windowed and the host supplied no callback of that
+     * name itself, so the boot-slot release still reaches the iframe.
+     * `hostFunctions` is the set of function props the host actually passed
+     * (keyed by name).
      */
-    function appendComposedInitializedCallback(
+    function appendComposedBootCallbacks(
         proxiedFunctions: (string | Function)[],
         hostFunctions: Record<string, Function>,
     ) {
-        if (windowed && !("initializedCallback" in hostFunctions)) {
-            proxiedFunctions.push("initializedCallback");
-            proxiedFunctions.push(
-                Comlink.proxy(composedInitializedCallbackRef.current!),
-            );
+        if (!windowed) {
+            return;
+        }
+        for (const key of BOOT_CONCLUDING_CALLBACKS) {
+            if (!(key in hostFunctions)) {
+                proxiedFunctions.push(key);
+                proxiedFunctions.push(
+                    Comlink.proxy(composedBootCallbacksRef.current![key]),
+                );
+            }
         }
     }
 
@@ -774,9 +793,9 @@ export function DoenetViewer({
                         }
                     }
                     // Windowed viewers always register the composed
-                    // initializedCallback (it releases the boot slot), even
-                    // when the host passed none.
-                    appendComposedInitializedCallback(
+                    // boot-concluding callbacks (they release the boot slot),
+                    // even when the host passed none.
+                    appendComposedBootCallbacks(
                         proxiedFunctions,
                         registeredFunctions,
                     );
@@ -898,7 +917,7 @@ export function DoenetViewer({
             proxiedFunctions.push(key);
             proxiedFunctions.push(Comlink.proxy(functionPropToProxy(key, val)));
         }
-        appendComposedInitializedCallback(proxiedFunctions, current);
+        appendComposedBootCallbacks(proxiedFunctions, current);
         const action = (remote: ViewerIframeRemote) => {
             remote
                 .updateViewerFunctionProps(...proxiedFunctions)

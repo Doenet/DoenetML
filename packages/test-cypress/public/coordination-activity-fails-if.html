@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- A PreTeXt-style activity page (…-if.html) whose core cannot start.
+
+     The `__doenetTestCoreInitHook` seam hangs every handshake attempt, so
+     `DocViewer` exhausts its (here: single) retry and reports the failure —
+     the path a real reader hits on a machine too slow or too contended to
+     complete the handshake. Used by the coordinator e2e to check that a
+     failed boot frees its boot slot promptly (#1709) instead of holding it
+     until the coordinator's boot watchdog expires.
+
+     The hook is installed in `onload`, by which point the standalone bundle
+     has evaluated and created `window.doenetGlobalConfig`.
+
+     `window.__doenetTestRecover()` lets the spec drive the other half of the
+     story: it lifts the stall and rebuilds the document (a changed source, the
+     same path a locale switch or a recompile takes), so the realm starts a
+     fresh boot ladder that succeeds. That is what a `failed` activity does
+     when its next attempt works, and the coordinator has to notice — an
+     activity left labelled `failed` would have its state flush skipped at park
+     time even though it now has a core holding the reader's work. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script
+            onload="onLoad()"
+            type="module"
+            src="/standalone/doenet-standalone.js"
+        ></script>
+        <script>
+            function onLoad() {
+                const config = window.doenetGlobalConfig;
+                config.coreBootMaxAttempts = 1;
+                config.coreHandshakeWatchdogMs = 500;
+                config.__doenetTestCoreInitHook = function (phase) {
+                    if (phase === "handshake") {
+                        return new Promise(function () {
+                            /* never resolves */
+                        });
+                    }
+                };
+                const container = document.querySelector(".doenetml-applet");
+                window.__doenetTestRecover = function () {
+                    delete config.__doenetTestCoreInitHook;
+                    // The short watchdog goes with the stall. It is what makes
+                    // the first attempt give up quickly, but a *real*
+                    // handshake (worker boot plus WASM compile) needs far
+                    // longer than 500 ms, so leaving it pinned would fail the
+                    // recovery for reasons unrelated to the failed state.
+                    delete config.coreHandshakeWatchdogMs;
+                    // A different source is what makes this a rebuild rather
+                    // than a no-op re-render: the viewer re-rolls its `coreId`
+                    // and runs a new ladder against the (now unstalled) seam.
+                    window.renderDoenetViewerToContainer(
+                        container,
+                        "<p>This activity recovered</p>",
+                    );
+                };
+                window.renderDoenetViewerToContainer(container);
+            }
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>This activity never boots</p>
+            </script>
+        </div>
+    </body>
+</html>

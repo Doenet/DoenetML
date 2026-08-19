@@ -264,10 +264,16 @@ export function renderDoenetViewerToContainer(
 
     // Compose the resize-readiness signal with any caller-supplied
     // `initializedCallback` so we don't clobber it via the `{...config}` spread.
+    // Same for `coreStartFailedCallback`, whose coordinator signal (#1709) is
+    // the failure counterpart of the `bootComplete` below.
     const {
         initializedCallback: configInitializedCallback,
+        coreStartFailedCallback: configCoreStartFailedCallback,
         ...restConfig
-    }: { initializedCallback?: (arg: unknown) => void } = config ?? {};
+    }: {
+        initializedCallback?: (arg: unknown) => void;
+        coreStartFailedCallback?: (arg: unknown) => void;
+    } = config ?? {};
 
     let root = viewerRootsByContainer.get(container);
     if (!root) {
@@ -301,6 +307,16 @@ export function renderDoenetViewerToContainer(
                     postToCoordinator({ type: "bootComplete" });
                 }
                 configInitializedCallback?.(arg);
+            }}
+            coreStartFailedCallback={(arg: unknown) => {
+                // Release the coordinator's boot slot on failure too (#1709).
+                // Without this the slot is held until `bootWatchdogMs` (90 s),
+                // so on a page whose activities are failing, the boot queue
+                // that exists to prevent those failures is starved by them.
+                if (coordinatedMode) {
+                    postToCoordinator({ type: "bootFailed" });
+                }
+                configCoreStartFailedCallback?.(arg);
             }}
             {...restConfig}
         />,
