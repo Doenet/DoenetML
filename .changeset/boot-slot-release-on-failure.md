@@ -2,6 +2,8 @@
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
 ---
 
 Free a boot slot when a document's core fails to start.
