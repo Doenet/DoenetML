@@ -14,6 +14,36 @@ import { doenetGlobalConfig } from "../../../src/global-config";
 // Each case drives the race deterministically through the
 // `__doenetTestCoreInitHook` seam, holding one phase open across a rebuild.
 
+/**
+ * The harness every case mounts: a viewer on "first attempt" plus a rebuild
+ * button that swaps in "rebuilt document" — a source change, so the viewer
+ * re-rolls `coreId` and starts a successor load and ladder while the held-open
+ * phase keeps the original in flight. `onInitialized` is threaded to the
+ * viewer's `initializedCallback` for the cases that count initializations.
+ */
+function Rebuildable({ onInitialized }: { onInitialized?: () => void }) {
+    const [generation, setGeneration] = React.useState(0);
+    return (
+        <div>
+            <button
+                data-test="rebuild"
+                onClick={() => setGeneration((g) => g + 1)}
+            >
+                rebuild
+            </button>
+            <DoenetViewer
+                doenetML={
+                    generation === 0
+                        ? "<p>first attempt</p>"
+                        : "<p>rebuilt document</p>"
+                }
+                addVirtualKeyboard={false}
+                initializedCallback={onInitialized}
+            />
+        </div>
+    );
+}
+
 describe("DoenetViewer boot supersession (#1714)", () => {
     afterEach(() => {
         delete doenetGlobalConfig.__doenetTestCoreInitHook;
@@ -51,28 +81,6 @@ describe("DoenetViewer boot supersession (#1714)", () => {
                 });
             }
         };
-
-        function Rebuildable() {
-            const [generation, setGeneration] = React.useState(0);
-            return (
-                <div>
-                    <button
-                        data-test="rebuild"
-                        onClick={() => setGeneration((g) => g + 1)}
-                    >
-                        rebuild
-                    </button>
-                    <DoenetViewer
-                        doenetML={
-                            generation === 0
-                                ? "<p>first attempt</p>"
-                                : "<p>rebuilt document</p>"
-                        }
-                        addVirtualKeyboard={false}
-                    />
-                </div>
-            );
-        }
 
         cy.mount(<Rebuildable />);
 
@@ -129,32 +137,7 @@ describe("DoenetViewer boot supersession (#1714)", () => {
 
         let initializations = 0;
 
-        function Rebuildable() {
-            const [generation, setGeneration] = React.useState(0);
-            return (
-                <div>
-                    <button
-                        data-test="rebuild"
-                        onClick={() => setGeneration((g) => g + 1)}
-                    >
-                        rebuild
-                    </button>
-                    <DoenetViewer
-                        doenetML={
-                            generation === 0
-                                ? "<p>first attempt</p>"
-                                : "<p>rebuilt document</p>"
-                        }
-                        addVirtualKeyboard={false}
-                        initializedCallback={() => {
-                            initializations++;
-                        }}
-                    />
-                </div>
-            );
-        }
-
-        cy.mount(<Rebuildable />);
+        cy.mount(<Rebuildable onInitialized={() => initializations++} />);
 
         // Rebuild only once the first ladder is demonstrably inside
         // evaluation, so the supersession is real rather than a race.
@@ -212,32 +195,7 @@ describe("DoenetViewer boot supersession (#1714)", () => {
 
         let initializations = 0;
 
-        function Rebuildable() {
-            const [generation, setGeneration] = React.useState(0);
-            return (
-                <div>
-                    <button
-                        data-test="rebuild"
-                        onClick={() => setGeneration((g) => g + 1)}
-                    >
-                        rebuild
-                    </button>
-                    <DoenetViewer
-                        doenetML={
-                            generation === 0
-                                ? "<p>first attempt</p>"
-                                : "<p>rebuilt document</p>"
-                        }
-                        addVirtualKeyboard={false}
-                        initializedCallback={() => {
-                            initializations++;
-                        }}
-                    />
-                </div>
-            );
-        }
-
-        cy.mount(<Rebuildable />);
+        cy.mount(<Rebuildable onInitialized={() => initializations++} />);
 
         // Rebuild only once the first load is demonstrably stalled, so the
         // supersession is real rather than a race.
