@@ -1,5 +1,9 @@
 ---
 "@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
 ---
 
 Deliver a core boot's result only while it still owns the document.
