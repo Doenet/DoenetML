@@ -200,4 +200,9 @@ renderer-load-failed = a renderer failed to load. Please reload the page.
 
 # Shown in place of the document when the core worker could not be started
 # after retries, rather than leaving the pane blank.
-core-start-failed = The document viewer could not be started. Please reload the page.
+core-start-failed = This document could not be started. Please reload the page.
+
+# Replaces `core-start-failed` when several documents on the page were starting
+# at the same time. That is the usual cause on a page embedding many of them,
+# so name it rather than leaving the reader to conclude the service is broken.
+core-start-failed-busy = This document could not be started. The page was starting several documents at once, which can take longer on a slower device. Reloading the page may help once the other documents have finished.

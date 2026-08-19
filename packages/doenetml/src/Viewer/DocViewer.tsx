@@ -43,12 +43,21 @@ import {
 import { renderersLoadComponent } from "./renderersLoadComponent";
 import { doenetGlobalConfig } from "../global-config";
 import {
+    concurrentHandshakesSnapshot,
+    joinHandshakeCensus,
+    refreshHandshakeCensusCount,
+    reportedCores,
+} from "../utils/handshakeCensus";
+import {
     withTimeout,
     disposeCoreWorker,
     DEFAULT_CORE_BOOT_MAX_ATTEMPTS,
-    DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS,
-    CORE_BOOT_RETRY_DELAY_MS,
+    handshakeWatchdogMsFor,
+    isHandshakeTimeout,
+    timeoutLooksLikeContention,
+    retryDelayMs,
     CORE_START_FAILED_MESSAGE,
+    CORE_START_FAILED_BUSY_MESSAGE,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import {
@@ -535,10 +544,10 @@ export function DocViewer({
     // separate reset. See `reportCoreStartFailed`.
     const coreStartFailureReportedFor = useRef<string | null>(null);
     // Set by the unmount cleanup below. `startCore` waits several times over
-    // — on the saved-state load, on each handshake, on the evaluation that
-    // follows — and the teardown that runs on unmount cannot cancel those
-    // waits, so their other side checks this (`bootAbandoned`) rather than
-    // going on booting a worker for a viewer that is gone.
+    // — on the saved-state load, on each handshake, between retries (#1711) —
+    // and the teardown that runs on unmount cannot cancel those waits, so
+    // their other side checks this (`bootAbandoned`) rather than going on
+    // booting a worker for a viewer that is gone.
     const viewerUnmounted = useRef(false);
     // The `coreId` whose boot ladder is running, or null between ladders. One
     // of `startCoreSafely`'s three callers is render-phase code that re-runs
@@ -549,10 +558,10 @@ export function DocViewer({
     // `reinitializeCoreAndTerminateAnimations`, which owns the single
     // `coreWorker` ref — each disposing the other's worker. The window is
     // wide enough to catch an ordinary re-render: a boot spans a saved-state
-    // load, a worker handshake, and the document evaluation that follows. A
-    // *rebuild* re-rolls `coreId`, so the successor ladder it launches is
-    // never the one blocked here — that supersession is `bootAbandoned`'s
-    // job, not this latch's.
+    // load, a worker handshake, a backoff between attempts (#1711), and the
+    // document evaluation that follows. A *rebuild* re-rolls `coreId`, so the
+    // successor ladder it launches is never the one blocked here — that
+    // supersession is `bootAbandoned`'s job, not this latch's.
     const bootLadderCoreId = useRef<string | null>(null);
     const coreId = useRef<string>("");
     const diagnostics = useRef<DiagnosticRecord[]>([]);
@@ -774,12 +783,24 @@ export function DocViewer({
     // core that's being terminated is never reachable mid-teardown; the
     // returned promise settles once `disposeCoreWorker` has finished, for
     // callers that need to await the teardown before swapping in a replacement.
-    function teardownCurrentCoreWorker({ graceful }: { graceful: boolean }) {
+    function teardownCurrentCoreWorker({
+        graceful,
+        suspectWedge,
+    }: {
+        graceful: boolean;
+        /**
+         * Passed through to `disposeCoreWorker`, which otherwise infers the
+         * suspicion from `graceful`. A handshake teardown states it outright
+         * when the timeout that prompted it is better explained by page-wide
+         * CPU contention than by a wedged worker (#1711).
+         */
+        suspectWedge?: boolean;
+    }) {
         const remote = coreWorker.current;
         const kill = coreWorkerKill.current;
         coreWorker.current = null;
         coreWorkerKill.current = null;
-        return disposeCoreWorker(remote, kill, { graceful });
+        return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
     function clearDeferredCoreActions() {
@@ -1902,15 +1923,23 @@ export function DocViewer({
     // Put the viewer into a visible "core failed to start" error state rather
     // than leaving it blank at stage "wait" forever (Doenet/DoenetApps#2957).
     // Shared by every core-start failure path.
-    function failCoreStart() {
+    function failCoreStart({
+        contended = false,
+    }: { contended?: boolean } = {}) {
         coreCreationInProgress.current = false;
         setIsInErrorState?.(true);
         setErrMsg(
-            translate(
-                "core-start-failed",
-                undefined,
-                CORE_START_FAILED_MESSAGE,
-            ),
+            contended
+                ? translate(
+                      "core-start-failed-busy",
+                      undefined,
+                      CORE_START_FAILED_BUSY_MESSAGE,
+                  )
+                : translate(
+                      "core-start-failed",
+                      undefined,
+                      CORE_START_FAILED_MESSAGE,
+                  ),
         );
         setHasInitialError(true);
         reportCoreStartFailed();
@@ -1997,14 +2026,15 @@ export function DocViewer({
      * which latches on the CURRENT `coreId`.
      *
      * The waits on both paths make that window wide: a load awaits a cid and
-     * then IndexedDB, and a boot awaits a handshake per attempt and then the
-     * document evaluation. (The `SPLICE.getState` round trip a load may start
-     * is not one of them: the load never awaits it. It posts the request and
-     * hands straight off to the boot, and the response is picked up later by
-     * the message listener above, matched against the message id and `cid`
-     * current *then* — so it acts for whatever document the viewer is showing
-     * by then, re-rolling `coreId` and launching a ladder of its own, which
-     * is what stands the running one aside.)
+     * then IndexedDB, and a boot awaits a handshake per attempt, backs off
+     * between attempts (#1711), and then evaluates. (The `SPLICE.getState`
+     * round trip a load may start is not one of them: the load never awaits
+     * it. It posts the request and hands straight off to the boot, and the
+     * response is picked up later by the message listener above, matched
+     * against the message id and `cid` current *then* — so it acts for
+     * whatever document the viewer is showing by then, re-rolling `coreId`
+     * and launching a ladder of its own, which is what stands the running one
+     * aside.)
      *
      * Consulted everywhere a losing operation could speak for the document:
      * the staleness checks inside `loadStateAndInitialize` and at its launch
@@ -2046,71 +2076,146 @@ export function DocViewer({
             doenetGlobalConfig.coreBootMaxAttempts ??
                 DEFAULT_CORE_BOOT_MAX_ATTEMPTS,
         );
-        const handshakeWatchdogMs =
-            doenetGlobalConfig.coreHandshakeWatchdogMs ??
-            DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS;
+        // An explicit host override is a statement about that deployment —
+        // notably one using `fetchExternalDoenetML`, whose network expansion
+        // runs inside the handshake — so it wins outright over the
+        // contention-scaled budget below (#1711).
+        const handshakeWatchdogOverride =
+            doenetGlobalConfig.coreHandshakeWatchdogMs;
+        // Absent the hint, assume a single core: a browser that will not say
+        // how many it has is not evidence of a fast machine.
+        const cores = reportedCores() || 1;
 
         // --- Phase 1: handshake — watchdogged and retried ---
         // Only this cheap, size-independent phase is time-boxed. A stall here
         // means a hung/wedged worker (Doenet/DoenetApps#2957), not slow work.
         let thisCoreWorker: Remote<CoreWorker> | null = null;
         let handshakeSucceeded = false;
+        // Whether the attempt that gave up did so on a page contended enough
+        // that the failure is better explained by pressure than by a broken
+        // document (#1711) — which is what `failCoreStart` below turns into
+        // the busy-page wording.
+        let lastFailureWasContended = false;
 
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            if (bootAbandoned()) {
-                // Re-checked before each attempt, because a retry waits too:
-                // creating a worker for a viewer that is gone leaks it, and
-                // racing a newer ladder breaks the document that one is
-                // booting.
-                await standDown();
-                return;
-            }
-            try {
-                thisCoreWorker = await withTimeout(
-                    () => handshakeCore(attempt, coreIdWhenCalled),
-                    handshakeWatchdogMs,
-                    `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
-                );
-                handshakeSucceeded = true;
-                break;
-            } catch (err) {
+        // From here a census seat is held, so every exit — the abandonment
+        // returns below included — runs through the `finally` that frees it.
+        let censusHandle: Promise<{ release: () => void }> | null = null;
+        try {
+            // Join the page-wide handshake count for as long as this ladder is
+            // handshaking, so sibling realms sizing their own watchdogs can
+            // see it (#1711). Released by the `finally` below — at the end of
+            // the handshake phase, not of the ladder, since what the count
+            // measures is handshakes in flight and the evaluation that follows
+            // is not one. Purely observational — shared mode, so it never
+            // blocks.
+            // NOT awaited: joining is bookkeeping, and an await here is a
+            // suspension point in the middle of a boot. See
+            // `concurrentHandshakesSnapshot` for what that cost.
+            // The seat deliberately spans the whole ladder, retry backoff
+            // included: a ladder in backoff is pressure about to return, so
+            // siblings sizing watchdogs against it err long — the safe
+            // direction — and a seat taken and released per attempt would put
+            // extra lock operations next to every handshake for a count that
+            // is already, by documented contract, one refresh behind.
+            censusHandle = joinHandshakeCensus();
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
                 if (bootAbandoned()) {
-                    // Superseded or unmounted while this attempt was in
-                    // flight — often *because* of it: a rebuild disposes the
-                    // worker through
-                    // `reinitializeCoreAndTerminateAnimations`, which is what
-                    // made the attempt fail. So neither the failure nor the
-                    // worker ref is this ladder's any more: it must not
-                    // report an error over a document that is booting fine,
-                    // and must not tear down the successor's worker.
-                    console.warn(
-                        "DocViewer: abandoning a superseded core worker handshake",
-                        err,
-                    );
+                    // Re-checked before each attempt, because a retry waits
+                    // too: creating a worker for a viewer that is gone leaks
+                    // it, and racing a newer ladder breaks the document that
+                    // one is booting.
                     await standDown();
                     return;
                 }
-                console.warn(
-                    `DocViewer: core worker handshake attempt ${attempt + 1} ` +
-                        `of ${maxAttempts} failed` +
-                        (attempt + 1 < maxAttempts
-                            ? "; retrying with a fresh worker."
-                            : "; giving up."),
-                    err,
-                );
-                // The worker may be wedged (a hung round-trip leaves its
-                // serialization queue — and its own terminate() — stuck), so
-                // force-kill it natively and drop the refs; the next attempt
-                // starts from a brand-new Worker.
-                await teardownCurrentCoreWorker({ graceful: false });
-                coreCreated.current = false;
-                coreCreationInProgress.current = false;
-                if (attempt + 1 < maxAttempts) {
-                    await new Promise((resolve) =>
-                        setTimeout(resolve, CORE_BOOT_RETRY_DELAY_MS),
+                // Refresh again each attempt: a page of activities drains as
+                // they finish, so a retry is judged against the pressure it
+                // actually faces rather than the pressure at entry. The
+                // reading taken next is the one the PREVIOUS refresh produced
+                // — the backoff between attempts is what it lands in.
+                refreshHandshakeCensusCount();
+                const concurrentHandshakes = concurrentHandshakesSnapshot();
+                const handshakeWatchdogMs =
+                    handshakeWatchdogOverride ??
+                    handshakeWatchdogMsFor({
+                        concurrentHandshakes,
+                        hardwareConcurrency: cores,
+                    });
+                try {
+                    thisCoreWorker = await withTimeout(
+                        () => handshakeCore(attempt, coreIdWhenCalled),
+                        handshakeWatchdogMs,
+                        `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
                     );
+                    handshakeSucceeded = true;
+                    break;
+                } catch (err) {
+                    if (bootAbandoned()) {
+                        // Superseded or unmounted while this attempt was in
+                        // flight — often *because* of it: a rebuild disposes
+                        // the worker through
+                        // `reinitializeCoreAndTerminateAnimations`, which is
+                        // what made the attempt fail. So neither the failure
+                        // nor the worker ref is this ladder's any more: it
+                        // must not report an error over a document that is
+                        // booting fine, and must not tear down the successor's
+                        // worker.
+                        console.warn(
+                            "DocViewer: abandoning a superseded core worker handshake",
+                            err,
+                        );
+                        await standDown();
+                        return;
+                    }
+                    // Only a watchdog expiry can be blamed on the page; see
+                    // `isHandshakeTimeout` for why an outright rejection must
+                    // not be.
+                    const contended =
+                        isHandshakeTimeout(err) &&
+                        timeoutLooksLikeContention({
+                            concurrentHandshakes,
+                            hardwareConcurrency: cores,
+                        });
+                    // Remembered for the failure wording (#1712): if the last
+                    // attempt timed out under pressure, say so rather than
+                    // presenting an unexplained error.
+                    lastFailureWasContended = contended;
+                    console.warn(
+                        `DocViewer: core worker handshake attempt ${attempt + 1} ` +
+                            `of ${maxAttempts} failed after ${handshakeWatchdogMs}ms ` +
+                            `(${concurrentHandshakes} handshake(s) in flight on ${cores} core(s))` +
+                            (attempt + 1 < maxAttempts
+                                ? "; retrying with a fresh worker."
+                                : "; giving up."),
+                        err,
+                    );
+                    // The worker may be wedged (a hung round-trip leaves its
+                    // serialization queue — and its own terminate() — stuck), so
+                    // force-kill it natively and drop the refs; the next attempt
+                    // starts from a brand-new Worker. On a demonstrably
+                    // contended page the wedge suspicion is withheld — see
+                    // `timeoutLooksLikeContention` for what a false one costs.
+                    await teardownCurrentCoreWorker({
+                        graceful: false,
+                        suspectWedge: !contended,
+                    });
+                    coreCreated.current = false;
+                    coreCreationInProgress.current = false;
+                    if (attempt + 1 < maxAttempts) {
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, retryDelayMs(attempt)),
+                        );
+                    }
                 }
             }
+        } finally {
+            censusHandle
+                ?.then((seat) => seat.release())
+                .catch(() => {
+                    // `joinHandshakeCensus` swallows its own failures and
+                    // resolves to a no-op seat, so there is nothing to handle
+                    // here; the handler only satisfies "no fire-and-forget
+                    // promises".
+                });
         }
 
         if (bootAbandoned()) {
@@ -2127,7 +2232,7 @@ export function DocViewer({
 
         if (!handshakeSucceeded || thisCoreWorker === null) {
             // Every handshake attempt failed.
-            failCoreStart();
+            failCoreStart({ contended: lastFailureWasContended });
             return;
         }
 
