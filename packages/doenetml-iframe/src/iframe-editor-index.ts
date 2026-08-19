@@ -51,7 +51,7 @@ let lastAugmentedProps: Record<string, any> | null = null;
 // `updateEditorFunctionProps` constantly. The old handler re-invoked
 // `renderDoenetEditorToContainer` on each such change; when that churn
 // overlapped the core worker's boot window the worker never finished booting
-// and the editor showed "The document viewer could not be started." Now an
+// and the editor showed "This document could not be started." Now an
 // identity-only change just swaps the entry here — the editor keeps calling the
 // same stable dispatcher, which dereferences the new closure — so no re-render
 // happens and the boot is left undisturbed.
