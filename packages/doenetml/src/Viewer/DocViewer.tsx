@@ -42,6 +42,7 @@ import {
 } from "../state";
 import { renderersLoadComponent } from "./renderersLoadComponent";
 import { doenetGlobalConfig } from "../global-config";
+import { acquireBootSlot, UNGATED_BOOT_SLOT } from "../utils/bootGate";
 import {
     concurrentHandshakesSnapshot,
     joinHandshakeCensus,
@@ -543,12 +544,17 @@ export function DocViewer({
     // granularity it promises ("once per core-start attempt") and needs no
     // separate reset. See `reportCoreStartFailed`.
     const coreStartFailureReportedFor = useRef<string | null>(null);
-    // Set by the unmount cleanup below. `startCore` waits several times over
-    // — on the saved-state load, on each handshake, between retries (#1711) —
-    // and the teardown that runs on unmount cannot cancel those waits, so
-    // their other side checks this (`bootAbandoned`) rather than going on
-    // booting a worker for a viewer that is gone.
+    // Set by the unmount cleanup below. `startCore` may wait — on a boot slot
+    // before it creates anything (#1710), and between retries (#1711) — and
+    // the teardown that runs on unmount cannot cancel those waits, so their
+    // other side checks this (`bootAbandoned`) rather than booting a worker
+    // for a viewer that is gone.
     const viewerUnmounted = useRef(false);
+    // Whether this viewer has ever completed a core boot. Gates only the
+    // first one (see `startCore`): a rebuild replaces the core of a document
+    // already on screen and should not wait behind other documents' first
+    // boots.
+    const hasBootedOnce = useRef(false);
     // The `coreId` whose boot ladder is running, or null between ladders. One
     // of `startCoreSafely`'s three callers is render-phase code that re-runs
     // on every re-render until the ladder moves `stage` off
@@ -556,10 +562,10 @@ export function DocViewer({
     // ladder for the same document. `bootAbandoned` cannot see that one: the
     // `coreId`s match, so neither twin stands aside, and both go through
     // `reinitializeCoreAndTerminateAnimations`, which owns the single
-    // `coreWorker` ref — each disposing the other's worker. The window is
-    // wide enough to catch an ordinary re-render: a boot spans a saved-state
-    // load, a worker handshake, a backoff between attempts (#1711), and the
-    // document evaluation that follows. A *rebuild* re-rolls `coreId`, so the
+    // `coreWorker` ref — each disposing the other's worker. A boot used to be
+    // over in about a second; it can now queue for a page-wide slot (#1710)
+    // and back off between attempts (#1711), so that window is wide enough to
+    // catch any ordinary re-render. A *rebuild* re-rolls `coreId`, so the
     // successor ladder it launches is never the one blocked here — that
     // supersession is `bootAbandoned`'s job, not this latch's.
     const bootLadderCoreId = useRef<string | null>(null);
@@ -788,12 +794,6 @@ export function DocViewer({
         suspectWedge,
     }: {
         graceful: boolean;
-        /**
-         * Passed through to `disposeCoreWorker`, which otherwise infers the
-         * suspicion from `graceful`. A handshake teardown states it outright
-         * when the timeout that prompted it is better explained by page-wide
-         * CPU contention than by a wedged worker (#1711).
-         */
         suspectWedge?: boolean;
     }) {
         const remote = coreWorker.current;
@@ -2026,15 +2026,14 @@ export function DocViewer({
      * which latches on the CURRENT `coreId`.
      *
      * The waits on both paths make that window wide: a load awaits a cid and
-     * then IndexedDB, and a boot awaits a handshake per attempt, backs off
-     * between attempts (#1711), and then evaluates. (The `SPLICE.getState`
-     * round trip a load may start is not one of them: the load never awaits
-     * it. It posts the request and hands straight off to the boot, and the
-     * response is picked up later by the message listener above, matched
-     * against the message id and `cid` current *then* — so it acts for
-     * whatever document the viewer is showing by then, re-rolling `coreId`
-     * and launching a ladder of its own, which is what stands the running one
-     * aside.)
+     * then IndexedDB, and a boot may queue for a page-wide slot (#1710) and
+     * then back off between attempts (#1711). (The `SPLICE.getState` round
+     * trip a load may start is not one of them: the load never awaits it. It
+     * posts the request and hands straight off to the boot, and the response
+     * is picked up later by the message listener above, matched against the
+     * message id and `cid` current *then* — so it acts for whatever document
+     * the viewer is showing by then, re-rolling `coreId` and launching a
+     * ladder of its own, which is what stands the running one aside.)
      *
      * Consulted everywhere a losing operation could speak for the document:
      * the staleness checks inside `loadStateAndInitialize` and at its launch
@@ -2097,10 +2096,54 @@ export function DocViewer({
         // the busy-page wording.
         let lastFailureWasContended = false;
 
-        // From here a census seat is held, so every exit — the abandonment
-        // returns below included — runs through the `finally` that frees it.
+        // On a page no host manager gates, hold one of a few page-wide slots
+        // for the handshake (#1710), so many documents on one page start
+        // their workers a few at a time instead of all at once. Resolves
+        // immediately — with a no-op slot — under a host manager or wherever
+        // the gate cannot apply. Covers the retry ladder too: a retry is
+        // another worker boot, and re-piling those is what turns a contended
+        // page into a failing one.
+        //
+        // Only a document's FIRST boot is gated. The stampede this bounds is
+        // N documents starting at once on page load; a rebuild is one
+        // already-visible document replacing its core, and it does not
+        // multiply with page size the way first boots do. Gating rebuilds
+        // made an on-screen document queue behind other documents' first
+        // boots to show its own update — and an editor, which rebuilds on
+        // every recompile, serialized its whole startup through one slot
+        // (this is what broke `DoenetEditor.diagnosticHoverLocale` and
+        // `DocViewer/i18n` in CI: not a hang, just a queue far longer than
+        // the tests' budget). The tradeoff is that a page-wide rebuild — a
+        // locale switch across many documents — is ungated; the
+        // contention-aware watchdog (#1711) is what keeps that degrading
+        // gracefully rather than failing.
+        //
+        // The census is deliberately NOT primed here. Issuing a
+        // `navigator.locks.query()` immediately before the slot request
+        // reorders work in the lock manager enough to change which boot wins
+        // a rebuild race — `DocViewer/i18n`'s `uiLocale: "es"` diagnostics
+        // went from green to failing on that one line alone, bisected against
+        // three runs per commit. The first attempt's watchdog therefore reads
+        // the count one refresh behind, which is the documented contract of
+        // `concurrentHandshakesSnapshot` and costs only a slightly narrower
+        // budget on a first boot.
+        const bootSlot = hasBootedOnce.current
+            ? UNGATED_BOOT_SLOT
+            : await acquireBootSlot();
+        // From here the slot is held, so every exit — the abandonment returns
+        // below included — runs through the `finally` that frees it; a slot
+        // released only on the success path would be lost for the life of the
+        // realm. The census seat is taken inside that same region for the same
+        // reason.
         let censusHandle: Promise<{ release: () => void }> | null = null;
         try {
+            if (bootAbandoned()) {
+                // Unmounted or superseded while queued for the slot. This
+                // ladder reports nothing either way: the outcome belongs to
+                // the ladder still running, or to no one.
+                await standDown();
+                return;
+            }
             // Join the page-wide handshake count for as long as this ladder is
             // handshaking, so sibling realms sizing their own watchdogs can
             // see it (#1711). Released by the `finally` below — at the end of
@@ -2221,6 +2264,12 @@ export function DocViewer({
                     // here; the handler only satisfies "no fire-and-forget
                     // promises".
                 });
+            // Free the slot once the worker is up (or has definitively
+            // failed), NOT after `generateDast`: evaluation is document work
+            // that can run for minutes, and holding a boot slot through it
+            // would serialize long documents behind each other for no gain.
+            // The handshake is the contended part.
+            bootSlot.release();
         }
 
         if (bootAbandoned()) {
@@ -2383,6 +2432,7 @@ export function DocViewer({
         }
 
         coreCreated.current = true;
+        hasBootedOnce.current = true;
         coreCreationInProgress.current = false;
         preventMoreAnimations.current = false;
         // Snapshot and clear the queue before dispatching so that stale

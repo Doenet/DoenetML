@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- A host page with several DoenetML activities and NO coordinator script —
+     the embedding PreTeXt/Runestone ships today (#1707). Nothing here caps
+     how many activities boot, so the only thing that can stagger them is the
+     in-realm gate inside the bundle (#1710).
+
+     Tallies the handshake reports the activity pages post, so the e2e can
+     assert the peak overlap. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Uncoordinated DoenetML activities</title>
+        <script>
+            window.probe = { live: 0, peak: 0, started: 0, ended: 0 };
+            window.addEventListener("message", function (event) {
+                var type = event.data && event.data.ungatedProbe;
+                if (type === "start") {
+                    window.probe.started++;
+                    window.probe.live++;
+                    window.probe.peak = Math.max(
+                        window.probe.peak,
+                        window.probe.live,
+                    );
+                } else if (type === "end") {
+                    window.probe.ended++;
+                    window.probe.live--;
+                }
+            });
+        </script>
+    </head>
+    <body>
+        <h1>Uncoordinated activities</h1>
+        <iframe id="u1" src="/ungated-activity-if.html" width="600" height="150"></iframe>
+        <iframe id="u2" src="/ungated-activity-if.html" width="600" height="150"></iframe>
+        <iframe id="u3" src="/ungated-activity-if.html" width="600" height="150"></iframe>
+        <iframe id="u4" src="/ungated-activity-if.html" width="600" height="150"></iframe>
+        <iframe id="u5" src="/ungated-activity-if.html" width="600" height="150"></iframe>
+        <iframe id="u6" src="/ungated-activity-if.html" width="600" height="150"></iframe>
+    </body>
+</html>

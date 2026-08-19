@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- A PreTeXt-style activity page (…-if.html) on a host with NO coordinator
+     and no other boot manager — the Runestone situation from #1707.
+
+     It reports its core handshake to the parent so the e2e can measure how
+     many activities are inside that phase at once, which is what the
+     in-realm boot gate (#1710) bounds. The `__doenetTestCoreInitHook` seam
+     both reports and holds the phase open long enough for overlap to be
+     observable; the gate itself is production code and is not stubbed. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script
+            onload="onLoad()"
+            type="module"
+            src="/standalone/doenet-standalone.js"
+        ></script>
+        <script>
+            function report(type) {
+                parent.postMessage({ ungatedProbe: type }, "*");
+            }
+            function onLoad() {
+                const config = window.doenetGlobalConfig;
+                // Pin the cap so the assertion does not depend on the number
+                // of cores the machine running the test happens to report.
+                config.maxConcurrentBoots = 2;
+                config.__doenetTestCoreInitHook = function (phase) {
+                    if (phase !== "handshake") {
+                        return;
+                    }
+                    report("start");
+                    return new Promise(function (resolve) {
+                        setTimeout(function () {
+                            report("end");
+                            resolve();
+                        }, 700);
+                    });
+                };
+                window.renderDoenetViewerToContainer(
+                    document.querySelector(".doenetml-applet"),
+                );
+            }
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>Ungated activity</p>
+            </script>
+        </div>
+    </body>
+</html>

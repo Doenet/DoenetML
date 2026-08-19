@@ -178,6 +178,7 @@ export function createHtmlForDoenetEditor(
     doenetEditorProps: DoenetEditorProps,
     standaloneUrl: string,
     cssUrl: string,
+    bootManagedByHost = false,
 ) {
     const augmentedProps = { width, height: "100vh", ...doenetEditorProps };
 
@@ -197,6 +198,7 @@ export function createHtmlForDoenetEditor(
                 editorId: id,
                 doenetEditorProps: augmentedProps,
                 doenetEditorPropsSpecified,
+                doenetManagedEditor: !!bootManagedByHost,
             },
             editorIframeJsSource,
         )}

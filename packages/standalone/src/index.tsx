@@ -24,6 +24,7 @@ import {
     fetchLocaleLoaders,
     setLocaleLoaders,
     setExternalCoreWorkerUrl,
+    markBootExternallyManaged,
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
@@ -148,6 +149,11 @@ if (pinnedBundleUrl !== import.meta.url) {
 // here report their lifecycle to the parent and (with the `sc` variant)
 // obtain their cores from the coordinator's shared worker pool.
 const coordinatedMode = detectCoordinatedMode();
+if (coordinatedMode) {
+    // The coordinator gates this activity behind a boot slot (#1708), so no
+    // in-realm boot throttle should add a second gate underneath it.
+    markBootExternallyManaged();
+}
 if (coordinatedMode?.sharedCores) {
     installCoordinatorSharedCorePortProvider(pinnedBundleUrl);
 }

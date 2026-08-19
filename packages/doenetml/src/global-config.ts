@@ -41,6 +41,27 @@ export const doenetGlobalConfig: {
         destroy: (suspectWedge?: boolean) => void;
     } | null;
     /**
+     * Set when an embedding layer outside this realm already schedules its
+     * boot — the `@doenet/standalone` parent-page coordinator, or a
+     * `@doenet/doenetml-iframe` viewer/editor whose host caps boot
+     * concurrency (#1708). In-realm boot policy consults it through
+     * `isBootExternallyManaged` (`utils/bootScheduling.ts`), which documents
+     * why the answer is supplied rather than discovered. Unset means
+     * unmanaged.
+     */
+    externallyManagedBoot?: boolean;
+    /**
+     * Cap on how many documents may boot their core at once, when the
+     * in-realm boot gate is in force (#1710) — i.e. when no embedding layer is
+     * scheduling boots itself. The cap is enforced with Web Locks, so it is
+     * shared by every same-origin realm the browser is running: the activity
+     * iframes on a page, and other tabs on the same site, which contend for
+     * the same CPU. Falls back to a value derived from
+     * `navigator.hardwareConcurrency`; see `defaultMaxConcurrentBoots` in
+     * `utils/bootGate.ts`.
+     */
+    maxConcurrentBoots?: number;
+    /**
      * Maximum number of times `DocViewer` will retry the core-worker
      * *handshake* before giving up and surfacing an error. Each handshake
      * that fails to complete within its per-attempt watchdog budget (see

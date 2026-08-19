@@ -195,6 +195,10 @@ export function WindowedEditor({
                     height={height}
                     documentStructureCallback={concludeBoot}
                     coreStartFailedCallback={concludeBoot}
+                    // `editor-mount-manager` above already caps how many
+                    // editors boot at once; tell the editor realm so it does
+                    // not gate itself a second time (#1708).
+                    bootManagedByHost
                     {...versionProps}
                 />
             ) : (

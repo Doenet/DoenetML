@@ -365,6 +365,21 @@ function installSharedCorePortProvider() {
     };
 }
 
+/**
+ * Tell the bundle that the parent already schedules this realm's boot (#1708),
+ * so an in-realm boot throttle does not add a second gate underneath the
+ * wrapper's boot-slot semaphore. Same timing constraint as
+ * `installSharedCorePortProvider`: after the bundle has evaluated (it replaces
+ * `window.doenetGlobalConfig`) and before anything renders a viewer.
+ *
+ * Only windowed viewers are managed. A viewer without a `mountPolicy` boots
+ * the moment it mounts, with nothing capping how many do so at once — exactly
+ * the case an in-realm throttle should cover.
+ */
+function markBootManagedByParent() {
+    window.doenetGlobalConfig.externallyManagedBoot = true;
+}
+
 // Defer `iframeReady` until the standalone bundle has defined
 // `renderDoenetViewerToContainer`. See `waitForStandaloneBundle` above.
 //
@@ -380,6 +395,12 @@ function installSharedCorePortProvider() {
             doenetSharedCoreWorker
         ) {
             installSharedCorePortProvider();
+        }
+        if (
+            typeof doenetWindowedViewer !== "undefined" &&
+            doenetWindowedViewer
+        ) {
+            markBootManagedByParent();
         }
         messageParentFromViewer({
             iframeReady: true,

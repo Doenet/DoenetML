@@ -93,5 +93,13 @@ yourself (same option names, camelCase).
   core clears the mark, so an activity that recovers flushes its state like
   any other. Scrolling away from a failed activity and back reboots it, which
   doubles as a retry.
+- **Without this script**, a recent standalone bundle still staggers its own
+  boots: activity realms on one origin gate each other through the Web Locks
+  API, a few at a time, needing nothing from the host page. That fallback
+  bounds worker creation only — each iframe has already parsed the bundle by
+  the time any of our code runs in it — so it is a safety net, not a
+  substitute for the coordinator, which never loads an activity the reader
+  does not reach. The coordinator's presence turns the fallback off, so the
+  two never nest.
 - The coordinator manages iframes present at initialization
   (DOMContentLoaded); dynamically inserted activities are not yet managed.

@@ -32,6 +32,11 @@ export type {
 
 export { CodeMirror } from "@doenet/codemirror";
 
+// Boot scheduling (#1708). An embedding layer that caps how many documents
+// boot at once calls `markBootExternallyManaged` so in-realm boot policy knows
+// not to add a second, redundant gate of its own.
+export { markBootExternallyManaged } from "./utils/bootScheduling";
+
 // Where a host installs the message catalogs the viewer in *this* bundle reads.
 //
 // The loaders are module-level state, and a bundle can hold more than one

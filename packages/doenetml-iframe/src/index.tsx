@@ -231,6 +231,18 @@ export type DoenetEditorIframeProps = DoenetEditorProps & {
      * The height of the iframe (and the height of the editor-viewer widget)
      */
     height?: string;
+    /**
+     * Set by a host that schedules this editor's boot itself — mounting it
+     * only when needed and capping how many editors boot at once (#1708).
+     * The flag reaches the editor realm so an in-realm boot throttle stands
+     * down rather than gating a second time underneath the host's cap.
+     *
+     * Viewers carry the same signal implicitly via `mountPolicy`; editors
+     * have no built-in windowing, so a host that adds its own (as the docs
+     * site does) has to say so explicitly. Default off — an editor that
+     * mounts immediately is genuinely unmanaged.
+     */
+    bootManagedByHost?: boolean;
 };
 
 type ViewerIframeRemote = Comlink.Remote<{
@@ -1386,6 +1398,10 @@ export const DoenetEditor = React.forwardRef<
         height = "500px",
         autodetectVersion = true,
         onStylePalettes,
+        // Destructured out of the rest: it configures the iframe realm, not
+        // the inner `<DoenetEditor>`, so it must not ride along in the props
+        // bag that is serialized and pushed across the Comlink boundary.
+        bootManagedByHost = false,
         ...doenetEditorProps
     },
     forwardedRef,
@@ -1644,8 +1660,9 @@ export const DoenetEditor = React.forwardRef<
             baseProps,
             standaloneUrl,
             cssUrl,
+            bootManagedByHost,
         );
-    }, [id, standaloneUrl, cssUrl, initialDiagnostics]);
+    }, [id, standaloneUrl, cssUrl, initialDiagnostics, bootManagedByHost]);
 
     // Build the serializable prop snapshot used both for change detection
     // (vs. last sent) and as the baseline of "what the iframe currently

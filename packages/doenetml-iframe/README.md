@@ -69,6 +69,25 @@ latest editor buffer:
 > surface a completion signal or error to the caller — failures from the
 > underlying ComLink RPC are logged to the console rather than thrown.
 
+### Host-scheduled boots (`bootManagedByHost`)
+
+`<DoenetEditor>` has no built-in windowing, so a host that embeds many
+editors on one page (the docs site does) adds its own: mount lazily, cap how
+many boot at once. Set `bootManagedByHost` on such an editor to tell the
+editor's iframe realm that its boot is already scheduled from outside.
+
+```tsx
+<DoenetEditor doenetML="..." bootManagedByHost />
+```
+
+Without it, a recent bundle applies its own page-wide boot throttle inside
+the realm, which would then sit *underneath* the host's cap — two independent
+semaphores compose multiplicatively and serialize a page neither would slow
+on its own. Leave it unset for an editor that mounts immediately: that editor
+really is unmanaged, and the in-realm throttle is what staggers it against
+its neighbours. Windowed `<DoenetViewer>`s carry the same signal implicitly
+via `mountPolicy` and need no prop.
+
 ## DoenetViewer
 
 ### Prop changes and iframe reloads

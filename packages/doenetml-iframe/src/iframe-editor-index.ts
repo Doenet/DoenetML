@@ -13,6 +13,10 @@ import * as Comlink from "comlink";
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
+// Baked into the srcdoc when the host schedules this editor's boot (#1708).
+// Guarded with `typeof` at the use site, like the viewer entry's flags, so
+// this script also works in srcdocs generated without the const.
+declare const doenetManagedEditor: boolean | undefined;
 declare global {
     interface Window {
         renderDoenetEditorToContainer: (
@@ -20,6 +24,7 @@ declare global {
             doenetMLSource?: string,
             config?: object,
         ) => DoenetEditorHandle | void;
+        doenetGlobalConfig: Record<string, any>;
         /**
          * Style-palette discovery, defined by standalone bundles new enough to
          * ship it. Feature-detected so an older bundle reports no palettes.
@@ -339,6 +344,14 @@ function renderWithLastAugmentedProps() {
 // move the user out of the silent-stuck state.
 (async () => {
     if (await waitForStandaloneBundle(60_000)) {
+        if (typeof doenetManagedEditor !== "undefined" && doenetManagedEditor) {
+            // The host caps how many editors boot at once (#1708), so an
+            // in-realm boot throttle must not add a second gate underneath
+            // it. Set after the bundle has evaluated — it replaces
+            // `window.doenetGlobalConfig` — and before the parent is told to
+            // render, which is what starts a core.
+            window.doenetGlobalConfig.externallyManagedBoot = true;
+        }
         messageParentFromEditor({
             iframeReady: true,
             stylePalettes: readStylePalettesFromBundle(),
