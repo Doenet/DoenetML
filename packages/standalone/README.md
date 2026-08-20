@@ -14,7 +14,10 @@ in your webpage. The bundle is code-split: the editor stack and individual
 component renderers load on demand from the `chunks/` directory published
 beside `doenet-standalone.js` (the co-located `doenetml-worker/` and
 `locales/` are fetched the same way), so serve the package directory as-is
-rather than copying the one file. A host that needs a truly single file —
+rather than copying the one file. Served from a CDN under a floating tag
+(`@latest`, or no version), the bundle resolves its chunks — like the worker
+and message catalogs — at the exact release it was built as, so an
+already-cached entry keeps working across releases. A host that needs a truly single file —
 for example one that evaluates the bundle from a Blob or `srcdoc` URL, where
 relative chunk resolution has no base — can use
 `doenet-standalone-inline.js`, which inlines every chunk (it still loads the

@@ -16,12 +16,12 @@
     "files": {
         "dist/doenet-standalone.js": {
             "maxBytes": 50000,
-            "observedBytes": 354,
-            "note": "A re-export facade: its one static import is the chunks/index-*.js below. Megabytes here mean code splitting got switched off."
+            "observedBytes": 2003,
+            "note": "A re-export facade: its one import is the chunks/index-*.js below, awaited through the version-pinning resolver, plus the render-global queueing stubs (scripts/pin-chunk-urls-plugin.ts). Megabytes here mean code splitting got switched off."
         },
         "dist/chunks/index-*.js": {
             "maxBytes": 5050000,
-            "observedBytes": 4687046,
+            "observedBytes": 4689377,
             "note": "The eagerly-parsed payload every embed pays (the facade's static import). The editor stack, the worker, and the lazy renderers must stay out of it. The glob also catches a few small shared chunks named index-*."
         },
         "dist/doenet-standalone-inline.js": {

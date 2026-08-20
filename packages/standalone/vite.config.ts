@@ -10,6 +10,7 @@ import {
     forceEsbuildMinifyPlugin,
     suppressLogPlugin,
 } from "../../scripts/vite-plugins";
+import { pinChunkUrlsPlugin } from "./scripts/pin-chunk-urls-plugin";
 
 const require = createRequire(import.meta.url);
 
@@ -59,6 +60,16 @@ export default defineConfig({
         // single-file `doenet-standalone-inline.js` variant stays free of them
         // too. Same arrangement as the core worker above, for the same reason.
         copyLocaleCatalogsPlugin(),
+        // Pin every emitted chunk reference — the facade's import of the eager
+        // chunk and the lazy imports between chunks — to this exact version at
+        // load time, so a bundle served under a floating CDN tag keeps loading
+        // its own release's chunks across releases. See the chunkFileNames
+        // comment below and scripts/pin-chunk-urls-plugin.ts.
+        pinChunkUrlsPlugin({
+            packageName: "@doenet/standalone",
+            version,
+            facadeFileName: "doenet-standalone.js",
+        }),
         suppressLogPlugin(),
         // Vite's built-in `minify` does not actually minify this lib-mode
         // bundle (see plugin doc). Do it explicitly instead.
@@ -89,15 +100,16 @@ export default defineConfig({
                 // `doenet-standalone-inline.js` built by
                 // `vite.config-inline.ts` instead.
                 //
-                // Chunk names keep their content hash: under a floating CDN
-                // tag, an out-of-date cached entry then fails loudly (404,
-                // retried and surfaced by the renderer-loading path) rather
-                // than silently mixing modules from two releases. Chunks are
-                // not version-pinned the way the worker and catalogs are —
-                // a chunk fetched from a pinned URL would re-resolve its own
-                // static imports against that URL and evaluate a second copy
-                // of the entry module. Exact-version URLs (what
-                // `@doenet/doenetml-iframe` generates) never see a skew.
+                // Chunk names keep their content hash, and every chunk
+                // reference is version-pinned at load time by
+                // `pinChunkUrlsPlugin` above: a bundle fetched under a
+                // floating CDN tag resolves its chunks under its own exact
+                // release, whose URLs are immutable and permanently cacheable
+                // — the same guarantee the co-located worker and catalogs get
+                // from `pinPackageVersion` in `src/index.tsx`. Under every
+                // other URL (self-hosted `dist/`, exact-version CDN URLs like
+                // the ones `@doenet/doenetml-iframe` generates) the pin is a
+                // no-op and chunks resolve relative to the bundle URL.
                 chunkFileNames: "chunks/[name]-[hash].js",
             },
         },

@@ -13,7 +13,17 @@ still fails to load after the retries renders the same inline
 renderer-failed-to-load message the viewer renderers use, keeping the rest of
 the page mounted), `@doenet/standalone` is
 code-split (`doenet-standalone.js` plus lazy `chunks/` resolved relative to
-the bundle URL), and duplicate copies of the component schema are eliminated
+the bundle URL). The split bundle pins its chunk URLs to its own version at
+runtime when served from a floating CDN tag (`@latest`, a version range, or no
+version), so an already-cached entry keeps loading its own release's chunks
+across releases instead of 404ing on the next release's hashes; under any
+other URL (self-hosted, exact-version) chunks resolve relative to the bundle
+URL as before. The `onload` contract of PreTeXt-style pages is preserved:
+`window.renderDoenetViewerToContainer` / `renderDoenetEditorToContainer`
+exist at `load` (queueing until the bundle finishes evaluating), and
+`window.doenetGlobalConfig` values a host sets at `load` are honored —
+`@doenet/doenetml` now adopts a host-created config object instead of
+replacing it. Duplicate copies of the component schema are eliminated
 (five down to two, none of them eagerly loaded). Hosts that evaluate the bundle from a Blob or `srcdoc` URL, where
 relative chunk imports cannot resolve, can use the new single-file
 `doenet-standalone-inline.js` published beside it. The `CodeMirror` component
