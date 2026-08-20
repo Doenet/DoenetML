@@ -12,16 +12,43 @@
         <meta charset="utf-8" />
         <link rel="stylesheet" href="/standalone/style.css" />
         <script type="module">
-            await import("/standalone/doenet-standalone-inline.js?copy=1");
+            const ns1 = await import(
+                "/standalone/doenet-standalone-inline.js?copy=1"
+            );
             const first = {
                 viewer: window.renderDoenetViewerToContainer,
                 editor: window.renderDoenetEditorToContainer,
                 palettes: window.getDoenetStylePalettes,
                 palette: window.getDoenetStylePalette,
-                workerUrl: window.doenetGlobalConfig.doenetWorkerUrl,
             };
-            await import("/standalone/doenet-standalone-inline.js?copy=2");
+            // Mark the first copy's resolved worker URL with a query suffix.
+            // Both copies come from the same file, so the URLs they resolve
+            // are value-equal; only a marked value can show the second copy
+            // left the first copy's write in place. The marked URL stays
+            // live: the boot passes it to `new Worker` as-is, the server
+            // ignores the query, and the worker's own `.wasm` resolves
+            // against the path.
+            const workerUrlSentinel =
+                window.doenetGlobalConfig.doenetWorkerUrl +
+                (window.doenetGlobalConfig.doenetWorkerUrl.includes("?")
+                    ? "&"
+                    : "?") +
+                "firstCopy=1";
+            window.doenetGlobalConfig.doenetWorkerUrl = workerUrlSentinel;
+            const ns2 = await import(
+                "/standalone/doenet-standalone-inline.js?copy=2"
+            );
             window.__twoCopyProbe = {
+                // The module map keys on the full URL including the query,
+                // so the second import is a second evaluation with its own
+                // fresh function objects. Recorded so the test fails loudly
+                // if some cache layer ever collapses the two imports into
+                // one evaluation — every first-copy-wins probe below would
+                // then be vacuously true.
+                secondCopyEvaluated:
+                    typeof ns2.renderDoenetViewerToContainer === "function" &&
+                    ns2.renderDoenetViewerToContainer !==
+                        ns1.renderDoenetViewerToContainer,
                 viewerIsFirstCopys:
                     window.renderDoenetViewerToContainer === first.viewer,
                 editorIsFirstCopys:
@@ -32,7 +59,7 @@
                     window.getDoenetStylePalette === first.palette,
                 workerUrlIsFirstCopys:
                     window.doenetGlobalConfig.doenetWorkerUrl ===
-                    first.workerUrl,
+                    workerUrlSentinel,
             };
             window.renderDoenetViewerToContainer(
                 document.querySelector(".doenetml-applet"),

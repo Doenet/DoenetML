@@ -36,6 +36,7 @@
                 "src/coordinator.ts",
                 "../doenetml-iframe/src/shared-core-pool.ts",
                 "vite.config-coordinator.ts",
+                "../../scripts/vite-plugins.ts",
                 "tsconfig.json"
             ],
             "output": [
