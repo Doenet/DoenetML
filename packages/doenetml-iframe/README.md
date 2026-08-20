@@ -425,6 +425,14 @@ failure to the student instead, respond with
 `{ subject: "SPLICE.getState.response", error: { code, message } }`
 (and no `message_id`).
 
+A request has a single answer: the **first** response carrying state for
+this `cid` is the one the viewer reboots from, and later responses to the
+same `message_id` are ignored. A response with no state — or state for a
+different `cid` — does not count as that answer, so a listener with nothing
+saved cannot shut out one still in flight. Answer once, out of durable
+storage: a host that replies from an in-memory cache first and from storage
+afterwards keeps the cache's answer.
+
 Passing `initialState` yourself (or `initialState: null` for "start
 fresh") skips this request entirely.
 
