@@ -33,17 +33,19 @@ export default defineConfig({
                     // relative to the bundle URL instead of embedding it as an
                     // inline Blob string.
                     //
-                    // Copy only `index.js` (+ its source map). `index.js` is
-                    // fully self-contained at runtime: the WASM is inlined as a
-                    // `data:` URL, and it neither `importScripts()` nor fetches
-                    // any sibling file. The rest of the worker `dist/` (the
-                    // `.esm.js` build variant, the standalone `.wasm`, and the
-                    // `.d.ts` declarations — ~48 MB) is runtime-dead and would
-                    // only bloat the published bundle, working against the very
-                    // memory/size reduction this externalization is for.
+                    // Copy `index.js` (+ its source map) and the WASM it
+                    // fetches at run time from beside itself (#1438 — served
+                    // as its own URL so the browser's machine-code cache
+                    // shares one compilation across workers, iframes, and
+                    // page views; see the loading ladder in the worker's
+                    // src/wasmLoading.ts). The rest of the worker `dist/` (the
+                    // `.esm.js` build variant and the `.d.ts` declarations)
+                    // is runtime-dead and would only bloat the published
+                    // bundle, working against the very memory/size reduction
+                    // this externalization is for.
                     src: path.join(
                         require.resolve("@doenet/doenetml-worker/index.js"),
-                        "../index.js{,.map}",
+                        "../{index.js,index.js.map,lib_doenetml_worker_bg.wasm}",
                     ),
                     dest: "doenetml-worker/",
                 },
