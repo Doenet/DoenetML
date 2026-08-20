@@ -526,12 +526,15 @@ function kebobCaseToCamelCase(str: string) {
 //
 // The installs are guarded (see `installFirstCopyGlobal`): when another copy
 // of this bundle already evaluated on this page, only the facade prologue's
-// queueing stubs are replaced — that hand-off is how calls queued before the
-// eager chunk evaluated reach the real functions — and real functions are
-// left in place. A second copy therefore stays fully inert: its worker-URL
-// write defers to the first copy's (`hostProvidedWorkerUrl` in
-// `@doenet/doenetml`'s global-config.ts) and its globals defer here, so every
-// document pairs one release's UI with that same release's worker.
+// queueing stubs are replaced — a replacement also drains the stub's queued
+// calls through the replacing function, which is how calls queued before any
+// eager chunk settled reach the real functions of the first chunk that does —
+// and real functions are left in place. A later copy therefore stays fully
+// inert: its worker-URL write defers to the first settled copy's
+// (`hostProvidedWorkerUrl` in `@doenet/doenetml`'s global-config.ts) and its
+// globals defer here, so every document pairs one release's UI with that same
+// release's worker, and no queued call is stranded on a copy whose chunk
+// fails to load.
 const globalTarget = window as unknown as Record<string, unknown>;
 installFirstCopyGlobal(
     globalTarget,

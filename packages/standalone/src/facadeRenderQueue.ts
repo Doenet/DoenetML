@@ -32,6 +32,18 @@
  * this exact name, which is why the property is part of the bundle's
  * public surface and must not be renamed casually.
  *
+ * Each stub also carries a `__doenetDrainQueuedRenderCalls(real)` hook, which
+ * replays the stub's queued calls through `real` and empties the queue.
+ * `installFirstCopyGlobal` invokes it when it replaces a pending stub, which
+ * covers two concurrent code-split copies on one page: one copy's prologue
+ * installs the stubs, and whichever copy's eager chunk settles first replaces
+ * them and drains the queues through its own functions — the same release
+ * whose worker URL won the shared-config write, so queued calls stay
+ * version-consistent, and they are delivered even when the stub-owning
+ * copy's own chunk never settles. The two copies can be *different
+ * releases*, so this hook name — like the pending marker above — is part of
+ * the bundle's public surface and must not be renamed casually.
+ *
  * The palette-discovery globals (`getDoenetStylePalettes`,
  * `getDoenetStylePalette`) are not stubbed: they answer with data, which does
  * not exist until the eager chunk evaluates, and their documented contract is
@@ -68,7 +80,11 @@ type RenderGlobals = {
  * *at flush time* — normally the real functions the eager chunk just
  * installed. If a global still holds this installer's own stub (nothing
  * replaced it — the import failed in a way that still reached the flush),
- * its queue is left in place rather than re-entered.
+ * its queue is left in place; a queued call is still delivered if another
+ * copy's chunk later settles and drains the stub. Each queue is emptied by
+ * `splice(0)` in a single drain function shared by the flush and the stub's
+ * `__doenetDrainQueuedRenderCalls` hook, so whichever of the two runs second
+ * finds an empty queue and nothing double-replays.
  */
 export function installFacadeRenderQueue(w: RenderGlobals): () => void {
     type QueuedViewerCall = { args: unknown[] };
@@ -84,6 +100,7 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
         viewerQueue.push({ args });
     }
     viewerStub.__doenetPendingRenderStub = true;
+    viewerStub.__doenetDrainQueuedRenderCalls = drainViewerQueue;
 
     function editorStub(...args: unknown[]) {
         const call: QueuedEditorCall = {
@@ -111,6 +128,7 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
         };
     }
     editorStub.__doenetPendingRenderStub = true;
+    editorStub.__doenetDrainQueuedRenderCalls = drainEditorQueue;
 
     const installedViewer =
         typeof w.renderDoenetViewerToContainer !== "function";
@@ -151,6 +169,46 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
         }
     }
 
+    // The drain functions below are the single place each queue is emptied,
+    // shared by this facade's own flush and by the stubs'
+    // `__doenetDrainQueuedRenderCalls` hooks (invoked by another copy's
+    // `installFirstCopyGlobal` when its eager chunk settles first and
+    // replaces the stub). `splice(0)` empties the queue up front, so
+    // whichever caller runs second finds nothing and replays nothing.
+
+    /** Replay every queued viewer call, in order, through `real`. */
+    function drainViewerQueue(real: (...args: unknown[]) => unknown): void {
+        for (const { args } of viewerQueue.splice(0)) {
+            replay(() => real(...args));
+        }
+    }
+
+    /**
+     * Replay every queued editor call, in order, through `real`, reproducing
+     * the real function's handle contract: the real handle is captured into
+     * the queued call's `realHandle` — so the handle the *stub* returned,
+     * which a host may have cached, forwards its methods to the real handle
+     * from here on — and method calls recorded before the drain are forwarded
+     * to it in order.
+     */
+    function drainEditorQueue(real: (...args: unknown[]) => unknown): void {
+        for (const call of editorQueue.splice(0)) {
+            replay(() => {
+                const handle = real(...call.args) as Record<
+                    string,
+                    (...a: unknown[]) => unknown
+                > | null;
+                if (!handle) {
+                    return;
+                }
+                call.realHandle = handle;
+                for (const { method, args } of call.methodCalls.splice(0)) {
+                    handle[method](...args);
+                }
+            });
+        }
+    }
+
     return function flush(): void {
         const realViewer = w.renderDoenetViewerToContainer;
         if (
@@ -158,9 +216,7 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
             typeof realViewer === "function" &&
             realViewer !== (viewerStub as unknown)
         ) {
-            for (const { args } of viewerQueue.splice(0)) {
-                replay(() => realViewer(...args));
-            }
+            drainViewerQueue(realViewer);
         }
         const realEditor = w.renderDoenetEditorToContainer;
         if (
@@ -168,21 +224,7 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
             typeof realEditor === "function" &&
             realEditor !== (editorStub as unknown)
         ) {
-            for (const call of editorQueue.splice(0)) {
-                replay(() => {
-                    const handle = realEditor(...call.args) as Record<
-                        string,
-                        (...a: unknown[]) => unknown
-                    > | null;
-                    if (!handle) {
-                        return;
-                    }
-                    call.realHandle = handle;
-                    for (const { method, args } of call.methodCalls.splice(0)) {
-                        handle[method](...args);
-                    }
-                });
-            }
+            drainEditorQueue(realEditor);
         }
     };
 }

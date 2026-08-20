@@ -108,12 +108,14 @@ export const doenetGlobalConfig: {
  * evaluated.
  *
  * A URL an earlier-evaluated copy of the bundle resolved counts the same
- * way: a second copy on the page adopts the shared config, sees that URL
- * here, and defers to it — pairing every document with the first copy's
- * worker, the same first-copy-wins convention the render globals follow
- * (enforced in `@doenet/standalone` by the facade prologue,
+ * way: a later copy on the page adopts the shared config, sees that URL
+ * here, and defers to it — pairing every document with the worker of the
+ * first copy to finish loading, the same convention the render globals
+ * follow (enforced in `@doenet/standalone` by the facade prologue,
  * `installFacadeRenderQueue`, and by the entry's guarded installs,
- * `installFirstCopyGlobal`).
+ * `installFirstCopyGlobal`): the first *settled* copy wins the globals and
+ * the worker URL as one surface, and render calls a host queued against
+ * another copy's stubs are drained through that winner, never stranded.
  */
 export const hostProvidedWorkerUrl: boolean =
     typeof doenetGlobalConfig.doenetWorkerUrl === "string";

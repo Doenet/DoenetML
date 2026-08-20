@@ -5,8 +5,9 @@
  * (`getDoenetStylePalettes`, `getDoenetStylePalette`).
  *
  * Two copies of this bundle can share one page — the script tag included
- * twice, possibly at different releases. The first copy to evaluate wins the
- * whole surface: its `global-config.ts` (in `@doenet/doenetml`) writes the
+ * twice, possibly at different releases. The first copy to evaluate (with the
+ * code-split bundle, the first whose eager chunk settles) wins the whole
+ * surface: its `global-config.ts` (in `@doenet/doenetml`) writes the
  * shared `doenetGlobalConfig.doenetWorkerUrl`, and a later copy's worker
  * resolution defers to that value (`hostProvidedWorkerUrl`). The window
  * globals have to follow the same rule, because they and the worker URL must
@@ -18,9 +19,17 @@
  * that is not a function at all), or still holds the facade prologue's
  * queueing stub. Replacing a pending stub — marked
  * `__doenetPendingRenderStub: true`, part of the bundle's public surface (see
- * `facadeRenderQueue.ts`) — is required, not merely allowed: the facade's
- * flush hands the stub's queued calls to whatever the global holds once the
- * eager chunk evaluates, so the stub must yield to the real function.
+ * `facadeRenderQueue.ts`) — is required, not merely allowed: the stub must
+ * yield to the real function, and replacing it also drains the calls it
+ * queued (the stub's `__doenetDrainQueuedRenderCalls` hook, invoked below
+ * with `value`). That drain is what makes the convention hold with two
+ * *concurrent* code-split copies, where one copy's prologue installed the
+ * stubs and either copy's eager chunk can settle first: queued calls run
+ * through whichever release's chunk settles first — the same release whose
+ * functions now own the globals and whose worker URL won the shared-config
+ * write, keeping the outcome version-consistent — and they run even when the
+ * stub-owning copy's own chunk never settles. The stub owner's later flush
+ * finds the queues already empty and replays nothing.
  *
  * @returns whether `value` was installed.
  */
@@ -38,5 +47,19 @@ export function installFirstCopyGlobal(
         return false;
     }
     target[name] = value;
+    // A pending stub has been queueing the calls hosts made since the
+    // facade's `load` event: drain them through the newly installed function.
+    // This runs after the assignment above, so a queued call that re-reads
+    // the global during its replay sees the real function. The hook is
+    // guarded by `typeof`: a stub from a release that predates it is
+    // replaced without a drain, and its own facade's flush delivers its
+    // queue.
+    if (typeof current === "function") {
+        const drain = (current as { __doenetDrainQueuedRenderCalls?: unknown })
+            .__doenetDrainQueuedRenderCalls;
+        if (typeof drain === "function") {
+            drain(value);
+        }
+    }
     return true;
 }
