@@ -14,7 +14,7 @@
  *    @doenet/doenetml's inline-worker entry and the VS Code extension bake
  *    the WASM in as a `data:` URL, which is decoded to bytes here and handed
  *    straight to wasm-bindgen. Fetching data:/blob: URLs is blocked in VS
- *    Code's web extension host (#1375), so a `data:` URL is never fetched.
+ *    Code's web extension host, so a `data:` URL is never fetched.
  *    Any other value is treated as a URL and fetched (the codemirror
  *    component specs pass a pre-fetched `blob:` URL this way).
  * 2. The file beside `self.__doenetWorkerScriptUrl` — set by the same-origin
