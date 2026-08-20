@@ -29,7 +29,8 @@
  *     (already published, or published server-side despite a client error) it
  *     ensures the tag points at the version, retrying transient failures.
  *
- * Configuration (environment variables):
+ * Configuration (environment variables). Each of the publish and any follow-up
+ * dist-tag write gets its own budget of attempts under these settings:
  *   NPM_PUBLISH_MAX_ATTEMPTS    - total attempts before giving up (default 4)
  *   NPM_PUBLISH_RETRY_DELAY_MS  - base backoff delay in ms (default 10000)
  *   NPM_PUBLISH_MAX_DELAY_MS    - backoff delay cap in ms (default 60000)
@@ -282,7 +283,17 @@ function runDistTagAdd() {
  * were all published and correctly tagged.
  */
 async function ensureExplicitDistTag({ appliedByPublish = false } = {}) {
-    if (!explicitPublishTag || appliedByPublish) {
+    if (!explicitPublishTag) {
+        return true;
+    }
+
+    if (appliedByPublish) {
+        // The tag can come from the environment (`npm run publish -- --tag dev`
+        // reaches us as `npm_config_tag`), in which case nothing else in the log
+        // names it. Say so, so the release log still records which tag moved.
+        console.log(
+            `npm publish applied dist-tag ${name}@${explicitPublishTag}; no follow-up tag write needed.`,
+        );
         return true;
     }
 
@@ -324,6 +335,14 @@ async function ensureExplicitDistTag({ appliedByPublish = false } = {}) {
             )}s...`,
         );
         await sleep(delay);
+    }
+
+    // The final attempt gets the same re-check the earlier ones get at the top
+    // of the loop: its write may have landed server-side even though the client
+    // reported an error, and failing a released version over that is exactly
+    // the outcome this script exists to avoid.
+    if (publishedVersionForTag(explicitPublishTag) === version) {
+        return true;
     }
 
     console.error(
