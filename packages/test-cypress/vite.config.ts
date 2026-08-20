@@ -112,6 +112,15 @@ export default defineConfig({
                             "../standalone/dist/doenet-standalone.js",
                         ),
                         path.resolve(__dirname, "../standalone/dist/style.css"),
+                        // The single-file variant, for the two-copies e2e
+                        // (public/two-copy-page.html): unlike the code-split
+                        // bundle — whose shared chunk URLs the module cache
+                        // dedupes — it re-evaluates the whole entry per
+                        // import, so one page can hold two live copies.
+                        path.resolve(
+                            __dirname,
+                            "../standalone/dist/doenet-standalone-inline.js",
+                        ),
                         path.resolve(
                             __dirname,
                             "../standalone/dist/coordinator.js",

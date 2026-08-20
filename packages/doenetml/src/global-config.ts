@@ -111,7 +111,9 @@ export const doenetGlobalConfig: {
  * way: a second copy on the page adopts the shared config, sees that URL
  * here, and defers to it — pairing every document with the first copy's
  * worker, the same first-copy-wins convention the render globals follow
- * (`installFacadeRenderQueue` in `@doenet/standalone`).
+ * (enforced in `@doenet/standalone` by the facade prologue,
+ * `installFacadeRenderQueue`, and by the entry's guarded installs,
+ * `installFirstCopyGlobal`).
  */
 export const hostProvidedWorkerUrl: boolean =
     typeof doenetGlobalConfig.doenetWorkerUrl === "string";

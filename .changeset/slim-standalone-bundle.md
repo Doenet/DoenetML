@@ -25,6 +25,11 @@ exist at `load` (queueing until the bundle finishes evaluating), and
 `@doenet/doenetml` now adopts a host-created config object instead of
 replacing it, and a host-chosen `doenetWorkerUrl` stays in force (the
 bundle's own worker-URL resolution and version pinning defer to it).
+A second copy of the bundle loaded on the same page now stays fully inert
+instead of taking over the render globals: its worker-URL write and its
+`window.renderDoenet*ToContainer` / palette globals both defer to the first
+copy's, so every document pairs one release's UI with that same release's
+worker.
 Duplicate copies of the component schema are eliminated
 (five down to two, none of them eagerly loaded). Hosts that evaluate the bundle from a Blob or `srcdoc` URL, where
 relative chunk imports cannot resolve, can use the new single-file

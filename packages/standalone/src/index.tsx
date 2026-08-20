@@ -30,6 +30,7 @@ import {
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { pinPackageVersion } from "./pinPackageVersion";
+import { installFirstCopyGlobal } from "./installFirstCopyGlobal";
 import { ResizeWatcher } from "./resize-watcher";
 import {
     detectCoordinatedMode,
@@ -516,18 +517,35 @@ function kebobCaseToCamelCase(str: string) {
     return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 }
 
-// Expose renderDoenetViewerToContainer and renderDoenetEditorToContainer on the global object
-// @ts-ignore
-window.renderDoenetViewerToContainer = renderDoenetViewerToContainer;
-// @ts-ignore
-window.renderDoenetEditorToContainer = renderDoenetEditorToContainer;
-
-// Expose style-palette discovery on the global object as well, so a page
-// that loads this bundle from the CDN (rather than importing it) can list
-// the palettes this DoenetML version ships and render swatches for them.
-// The iframe wrapper feature-detects these globals to report the palettes
-// of whichever bundle version it booted.
-// @ts-ignore
-window.getDoenetStylePalettes = getStylePalettes;
-// @ts-ignore
-window.getDoenetStylePalette = getStylePalette;
+// Expose renderDoenetViewerToContainer and renderDoenetEditorToContainer on
+// the global object, and style-palette discovery beside them, so a page that
+// loads this bundle from the CDN (rather than importing it) can render
+// documents and list the palettes this DoenetML version ships. The iframe
+// wrapper feature-detects the palette globals to report the palettes of
+// whichever bundle version it booted.
+//
+// The installs are guarded (see `installFirstCopyGlobal`): when another copy
+// of this bundle already evaluated on this page, only the facade prologue's
+// queueing stubs are replaced — that hand-off is how calls queued before the
+// eager chunk evaluated reach the real functions — and real functions are
+// left in place. A second copy therefore stays fully inert: its worker-URL
+// write defers to the first copy's (`hostProvidedWorkerUrl` in
+// `@doenet/doenetml`'s global-config.ts) and its globals defer here, so every
+// document pairs one release's UI with that same release's worker.
+const globalTarget = window as unknown as Record<string, unknown>;
+installFirstCopyGlobal(
+    globalTarget,
+    "renderDoenetViewerToContainer",
+    renderDoenetViewerToContainer,
+);
+installFirstCopyGlobal(
+    globalTarget,
+    "renderDoenetEditorToContainer",
+    renderDoenetEditorToContainer,
+);
+installFirstCopyGlobal(
+    globalTarget,
+    "getDoenetStylePalettes",
+    getStylePalettes,
+);
+installFirstCopyGlobal(globalTarget, "getDoenetStylePalette", getStylePalette);

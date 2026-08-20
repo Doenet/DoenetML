@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Evaluates the standalone bundle TWICE in one page — the mistake of
+     including the script tag twice — and records whether the second copy
+     stayed inert (first-copy-wins; see installFirstCopyGlobal in
+     @doenet/standalone). Uses the single-file inline variant: the code-split
+     bundle's eager chunk would be deduped by the module cache, but two
+     query-distinguished imports of the inline file each evaluate the full
+     entry, so the page really holds two live copies. Asserted by
+     e2e/standalone/twoCopiesFirstWins.cy.js. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script type="module">
+            await import("/standalone/doenet-standalone-inline.js?copy=1");
+            const first = {
+                viewer: window.renderDoenetViewerToContainer,
+                editor: window.renderDoenetEditorToContainer,
+                palettes: window.getDoenetStylePalettes,
+                palette: window.getDoenetStylePalette,
+                workerUrl: window.doenetGlobalConfig.doenetWorkerUrl,
+            };
+            await import("/standalone/doenet-standalone-inline.js?copy=2");
+            window.__twoCopyProbe = {
+                viewerIsFirstCopys:
+                    window.renderDoenetViewerToContainer === first.viewer,
+                editorIsFirstCopys:
+                    window.renderDoenetEditorToContainer === first.editor,
+                palettesIsFirstCopys:
+                    window.getDoenetStylePalettes === first.palettes,
+                paletteIsFirstCopys:
+                    window.getDoenetStylePalette === first.palette,
+                workerUrlIsFirstCopys:
+                    window.doenetGlobalConfig.doenetWorkerUrl ===
+                    first.workerUrl,
+            };
+            window.renderDoenetViewerToContainer(
+                document.querySelector(".doenetml-applet"),
+            );
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>Two copies loaded: <textInput name="ti" /></p>
+<p>Typed: $ti.value</p>
+            </script>
+        </div>
+    </body>
+</html>
