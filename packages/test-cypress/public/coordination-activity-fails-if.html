@@ -8,8 +8,11 @@
      failed boot frees its boot slot promptly (#1709) instead of holding it
      until the coordinator's boot watchdog expires.
 
-     The hook is installed in `onload`, by which point the standalone bundle
-     has evaluated and created `window.doenetGlobalConfig`.
+     The hook is installed in `onload`, on the `window.doenetGlobalConfig`
+     object the bundle guarantees exists by then: the code-split entry
+     pre-creates it before `load` fires and the eager chunk later adopts the
+     same object, so these writes — and the `config` reference captured
+     below — stay live. (See `facadeRenderQueue.ts` in `@doenet/standalone`.)
 
      `window.__doenetTestRecover()` lets the spec drive the other half of the
      story: it lifts the stall and rebuilds the document (a changed source, the
