@@ -66,6 +66,10 @@ export default defineConfig(({ mode }) => {
                     "doenetml-inline-worker": "./src/doenetml-inline-worker.ts",
                     "doenetml-external-worker":
                         "./src/doenetml-external-worker.ts",
+                    // Direct access to the CodeMirror component without
+                    // routing the editor stack through the main entry — see
+                    // src/codemirror.ts.
+                    codemirror: "./src/codemirror.ts",
                 },
                 formats: ["es"],
                 cssFileName: "style",

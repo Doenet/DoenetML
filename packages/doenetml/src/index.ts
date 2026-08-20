@@ -30,7 +30,11 @@ export type {
     CreativeCommonsVersion,
 } from "@doenet/utils";
 
-export { CodeMirror } from "@doenet/codemirror";
+// `CodeMirror` (and the rest of `@doenet/codemirror`) is exported from its
+// own entry point, `@doenet/doenetml/codemirror.js`, so that importing this
+// one does not statically pull the editor stack into a viewer-only page —
+// the editor loads through the lazy boundary in
+// `EditorViewer/EditorViewerLazy.tsx` instead.
 
 // Where a host installs the message catalogs the viewer in *this* bundle reads.
 //

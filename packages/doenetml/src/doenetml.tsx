@@ -21,7 +21,10 @@ import type {
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
-import { EditorViewer } from "./EditorViewer/EditorViewer.js";
+// The lazy wrapper, not `EditorViewer` itself: this import is what keeps the
+// editor stack (codemirror, LSP worker source, pretty printer, schema) out of
+// the eagerly-parsed bundle for viewer-only pages. See `EditorViewerLazy.tsx`.
+import { EditorViewerLazy } from "./EditorViewer/EditorViewerLazy.js";
 import type {
     DoenetEditorHandle,
     ViewerLocation,
@@ -705,7 +708,7 @@ export const DoenetEditor = React.forwardRef<
     );
 
     const editor = (
-        <EditorViewer
+        <EditorViewerLazy
             ref={ref}
             doenetML={doenetML}
             activityId={activityId}
