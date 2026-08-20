@@ -324,23 +324,25 @@ async function ensureExplicitDistTag({ appliedByPublish = false } = {}) {
             return false;
         }
 
-        if (attempt === maxAttempts) {
-            break;
-        }
-
+        // Back off before looking again — after the final attempt too, whose
+        // only re-check is the one below. Reading the registry the instant a
+        // write fails tells us nothing new: it is the same cached answer the
+        // top of this iteration already saw.
         const delay = Math.min(baseDelayMs * 2 ** (attempt - 1), maxDelayMs);
         console.warn(
-            `⚠ Transient failure updating npm dist-tag ${name}@${explicitPublishTag}; retrying in ${Math.round(
-                delay / 1000,
-            )}s...`,
+            `⚠ Transient failure updating npm dist-tag ${name}@${explicitPublishTag}; ${
+                attempt === maxAttempts ? "re-checking" : "retrying"
+            } in ${Math.round(delay / 1000)}s...`,
         );
         await sleep(delay);
     }
 
-    // The final attempt gets the same re-check the earlier ones get at the top
-    // of the loop: its write may have landed server-side even though the client
-    // reported an error, and failing a released version over that is exactly
-    // the outcome this script exists to avoid.
+    // One last look before failing a released version. Two things can make the
+    // writes above look worse than the state they were trying to reach: one may
+    // have landed server-side even though the client reported an error, and the
+    // tag may have been right the whole time, with every read above served from
+    // a cache predating the publish. Either only becomes visible once that cache
+    // has had time to expire, hence the backoff after the final attempt.
     if (publishedVersionForTag(explicitPublishTag) === version) {
         return true;
     }
