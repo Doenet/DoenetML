@@ -289,6 +289,9 @@ again (parked when off-screen and over budget).
 Notes:
 
 - Eviction is least-recently-visible first.
+- A boot slot is released when the viewer's document initializes *or* when
+  its core cannot be started at all, so a failed activity does not hold a
+  slot until the wrapper's 90 s boot watchdog expires.
 - While parked, a viewer emits no reports (its state was flushed at park
   time). A host `SPLICE.flushState` broadcast is answered by the wrapper on
   the parked viewer's behalf, so pre-navigation flush round-trips don't

@@ -131,6 +131,7 @@ export function DoenetViewer({
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     documentStructureCallback,
     initializedCallback,
+    coreStartFailedCallback,
     setDiagnosticsCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
@@ -178,6 +179,12 @@ export function DoenetViewer({
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
+    /**
+     * The failure counterpart of `initializedCallback` (#1709): called once
+     * when the core could not be started. See `DocViewer` for the full
+     * contract and for why a boot-scheduling host needs it.
+     */
+    coreStartFailedCallback?: Function;
     setDiagnosticsCallback?: (
         diagnostics: DiagnosticRecord[],
         source: string,
@@ -420,6 +427,7 @@ export function DoenetViewer({
             generatedVariantCallback={generatedVariantCallback}
             documentStructureCallback={documentStructureCallback}
             initializedCallback={initializedCallback}
+            coreStartFailedCallback={coreStartFailedCallback}
             setDiagnosticsCallback={effectiveDiagnosticsCallback}
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
@@ -549,6 +557,12 @@ type DoenetEditorProps = {
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
+    /**
+     * The failure counterpart of the embedded viewer's initialization signal
+     * (#1709). A host that caps how many editors boot at once releases the
+     * slot on initialization; this frees it when the core cannot start.
+     */
+    coreStartFailedCallback?: Function;
     diagnosticsSummaryCallback?: (
         diagnosticsSummary: DiagnosticsSummary,
         doenetML: string,
@@ -618,6 +632,7 @@ export const DoenetEditor = React.forwardRef<
         doenetmlChangeCallback,
         immediateDoenetmlChangeCallback,
         documentStructureCallback,
+        coreStartFailedCallback,
         diagnosticsSummaryCallback,
         id,
         readOnly = false,
@@ -711,6 +726,7 @@ export const DoenetEditor = React.forwardRef<
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
             documentStructureCallback={documentStructureCallback}
+            coreStartFailedCallback={coreStartFailedCallback}
             diagnosticsSummaryCallback={diagnosticsSummaryCallback}
             id={id}
             readOnly={readOnly}

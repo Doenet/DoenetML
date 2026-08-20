@@ -71,11 +71,18 @@ export function WindowedEditor({
         }
     }, []);
 
-    // Fires once the editor's document renders — the boot is done, so free the
-    // slot for the next queued editor. Stable identity (only depends on the
-    // stable `id`/`clearWatchdog`) so it is not re-proxied across the iframe
-    // Comlink boundary on every render (which would leak a MessagePort).
-    const onDocumentStructure = React.useCallback(() => {
+    // This editor's boot is over, whichever way it ended: the document
+    // rendered (`documentStructureCallback`), or its core could not be started
+    // at all (`coreStartFailedCallback`, #1709). Either way the slot is free
+    // for the next queued editor — a failing editor that held its slot for the
+    // full `EDITOR_BOOT_WATCHDOG_MS` would delay every editor behind it on a
+    // page that is already struggling. Latched, so the first outcome to land
+    // releases once.
+    //
+    // Stable identity (only depends on the stable `id`/`clearWatchdog`) so it
+    // is not re-proxied across the iframe Comlink boundary on every render
+    // (which would leak a MessagePort).
+    const concludeBoot = React.useCallback(() => {
         if (bootCompleteRef.current) {
             return;
         }
@@ -186,7 +193,8 @@ export function WindowedEditor({
                     showFormatter={showFormatter}
                     viewerLocation={viewerLocation}
                     height={height}
-                    documentStructureCallback={onDocumentStructure}
+                    documentStructureCallback={concludeBoot}
+                    coreStartFailedCallback={concludeBoot}
                     {...versionProps}
                 />
             ) : (
