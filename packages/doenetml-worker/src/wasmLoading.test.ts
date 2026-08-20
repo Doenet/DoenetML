@@ -102,10 +102,13 @@ describe("decodeWasmDataUrl", () => {
 
     it("returns null for a URL that is not base64", () => {
         const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-        expect(decodeWasmDataUrl("data:application/wasm;base64,@@@@")).toBe(
-            null,
-        );
-        warn.mockRestore();
+        try {
+            expect(decodeWasmDataUrl("data:application/wasm;base64,@@@@")).toBe(
+                null,
+            );
+        } finally {
+            warn.mockRestore();
+        }
     });
 });
 
@@ -138,6 +141,47 @@ describe("resolveWasmInput", () => {
         const ok = response(200, "application/octet-stream");
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok));
         await expect(resolveWasmInput()).resolves.toBe(ok);
+    });
+
+    it("falls through to fetching when an injected data: URL cannot be decoded", async () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            vi.stubGlobal(
+                "__doenetWorkerWasmUrl",
+                "data:application/wasm;base64,@@@@",
+            );
+            vi.stubGlobal(
+                "__doenetWorkerScriptUrl",
+                "https://host/doenetml-worker/index.js",
+            );
+            const ok = response(200, "application/wasm");
+            const fetchMock = vi.fn().mockResolvedValue(ok);
+            vi.stubGlobal("fetch", fetchMock);
+            await expect(resolveWasmInput()).resolves.toBe(ok);
+            // The undecodable data: URL is never fetched; the ladder's next
+            // step is.
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            expect(fetchMock).toHaveBeenCalledWith(
+                `https://host/doenetml-worker/${WASM_FILE}`,
+            );
+        } finally {
+            warn.mockRestore();
+        }
+    });
+
+    it("falls through to the next candidate when a fetch rejects", async () => {
+        vi.stubGlobal(
+            "__doenetWorkerScriptUrl",
+            "https://host/doenetml-worker/index.js",
+        );
+        const ok = response(200, "application/wasm");
+        const fetchMock = vi
+            .fn()
+            .mockRejectedValueOnce(new TypeError("NetworkError"))
+            .mockResolvedValueOnce(ok);
+        vi.stubGlobal("fetch", fetchMock);
+        await expect(resolveWasmInput()).resolves.toBe(ok);
+        expect(fetchMock).toHaveBeenNthCalledWith(2, CDN_URL);
     });
 
     it("falls through to the next candidate on a failed status", async () => {
