@@ -7,37 +7,12 @@
 // on one page. These tests pin down that the coordinator does not get in the
 // host's way, and that when the two disagree the reader keeps their work.
 
-const BOOT_TIMEOUT = 60_000;
-
-function assertActivityRenders(selector, text) {
-    cy.get(selector)
-        .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
-        .should((body) => {
-            const clone = body.cloneNode(true);
-            clone.querySelectorAll("script").forEach((s) => s.remove());
-            expect(
-                (clone.textContent ?? "").includes(text),
-                `${selector} rendered "${text}"`,
-            ).to.eq(true);
-        });
-}
-
-function assertParked(selector) {
-    cy.get(selector, { timeout: BOOT_TIMEOUT }).should(($iframe) => {
-        expect($iframe[0].src, `${selector} detached`).to.contain(
-            "about:blank",
-        );
-    });
-}
-
-function typeIntoActivity(selector, text) {
-    cy.get(selector)
-        .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
-        .find("input:not([type=checkbox])", { timeout: BOOT_TIMEOUT })
-        .then(cy.wrap)
-        .clear()
-        .type(`${text}{enter}`);
-}
+import {
+    activityInput,
+    assertActivityRenders,
+    assertParked,
+    typeIntoActivity,
+} from "./utils/coordinator";
 
 /**
  * Wait until the host's durable store actually holds the given text.
@@ -130,8 +105,8 @@ describe(
             // answer has actually been sent. Wait for the host to log it (it
             // also confirms the host really is competing for this request),
             // then give the viewer a moment to have acted on it: adopting it
-            // blanks the document synchronously, so the assertions below
-            // cannot pass by beating the rebuild.
+            // clears the rendered document before rebuilding, so the
+            // assertions below cannot pass by beating the rebuild.
             cy.window().then((win) => {
                 cy.wrap(null, { timeout: 30_000 }).should(() => {
                     expect(
@@ -143,10 +118,7 @@ describe(
             cy.wait(1500);
 
             assertActivityRenders("#act1", "One typed: round two");
-            cy.get("#act1")
-                .its("0.contentDocument.body")
-                .find("input:not([type=checkbox])", { timeout: BOOT_TIMEOUT })
-                .should("have.value", "round two");
+            activityInput("#act1").should("have.value", "round two");
         });
     },
 );

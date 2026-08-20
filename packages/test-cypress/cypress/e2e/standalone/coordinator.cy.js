@@ -5,32 +5,12 @@
 // workers. The child pages know nothing about the coordinator — the
 // standalone bundle they load detects the coordinator's URL-fragment token.
 
-const BOOT_TIMEOUT = 60_000;
-
-/**
- * Assert the activity iframe's document has RENDERED the given text (script
- * tags — which hold the raw doenetml source — are excluded).
- */
-function assertActivityRenders(selector, text) {
-    cy.get(selector)
-        .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
-        .should((body) => {
-            const clone = body.cloneNode(true);
-            clone.querySelectorAll("script").forEach((s) => s.remove());
-            expect(
-                (clone.textContent ?? "").includes(text),
-                `${selector} rendered "${text}"`,
-            ).to.eq(true);
-        });
-}
-
-function assertParked(selector) {
-    cy.get(selector, { timeout: BOOT_TIMEOUT }).should(($iframe) => {
-        expect($iframe[0].src, `${selector} detached`).to.contain(
-            "about:blank",
-        );
-    });
-}
+import {
+    activityInput,
+    assertActivityRenders,
+    assertParked,
+    typeIntoActivity,
+} from "./utils/coordinator";
 
 describe(
     "standalone activity coordinator",
@@ -61,11 +41,7 @@ describe(
             });
 
             // Type into activity 1 and commit with Enter.
-            cy.get("#act1")
-                .its("0.contentDocument.body")
-                .find("input:not([type=checkbox])", { timeout: BOOT_TIMEOUT })
-                .then(cy.wrap)
-                .type("carried across the park{enter}");
+            typeIntoActivity("#act1", "carried across the park");
             assertActivityRenders(
                 "#act1",
                 "One typed: carried across the park",
@@ -86,10 +62,10 @@ describe(
                 "#act1",
                 "One typed: carried across the park",
             );
-            cy.get("#act1")
-                .its("0.contentDocument.body")
-                .find("input:not([type=checkbox])", { timeout: BOOT_TIMEOUT })
-                .should("have.value", "carried across the park");
+            activityInput("#act1").should(
+                "have.value",
+                "carried across the park",
+            );
             assertParked("#act2");
 
             // Steady state: one live activity, one parked, no held boot slots.

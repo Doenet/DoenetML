@@ -88,7 +88,11 @@ yourself (same option names, camelCase).
   warehouse is empty and stays silent, leaving the backend's answer the
   only one, and it restores as usual. An answer with no state does not
   count as the winner, so a backend with nothing saved cannot shut out an
-  answer still in flight.
+  answer still in flight. The rule is purely about order, so a backend
+  that answered **synchronously** out of an in-memory cache would win
+  instead — return the reader's saved state from storage rather than from
+  a page-lifetime cache, and the warehouse's fresher answer keeps its
+  place.
 - Activities running a standalone bundle older than the coordinator
   protocol boot normally but are managed conservatively (the boot watchdog
   stands in for their missing boot-complete signal, and their state cannot

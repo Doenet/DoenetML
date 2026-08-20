@@ -859,24 +859,27 @@ export function DocViewer({
             if (e.data.subject === "SPLICE.getState.response") {
                 if (messageIdFromGetState.current === e.data.message_id) {
                     if (e.data.state && e.data.state.cid === cid.current) {
-                        // One request, one answer. A page can hold more than
-                        // one listener willing to answer: under the standalone
-                        // coordinator, the in-page warehouse answers a
-                        // restored activity, while a persistence host
-                        // (Runestone, a SCORM package) answers the same
-                        // request out of durable storage. Both used to be
-                        // processed, so the document was rebuilt from
-                        // whichever answer happened to land LAST — and the
-                        // durable one, arriving later, could carry older work
-                        // than the reader had just done. Consume the request
-                        // here so the first usable answer is the one that
-                        // counts; the coordinator's is both first and the
-                        // fresher of the two within a page load.
+                        // One request, one answer. A page can hold several
+                        // listeners willing to answer: under the standalone
+                        // coordinator the in-page warehouse answers a restored
+                        // activity, while a persistence host (Runestone, a
+                        // SCORM package) answers the same request out of
+                        // durable storage. Processing every answer rebuilt the
+                        // document from whichever landed LAST — and the
+                        // durable one, a round trip to storage, lands second
+                        // while possibly carrying older work than the reader
+                        // has just done. Consuming the request here makes the
+                        // first usable answer the one that counts.
                         //
                         // Only a usable answer consumes it: one carrying no
                         // state (a host with nothing saved for this activity)
                         // or state for a different `cid` must not shut out a
                         // better one still to come.
+                        //
+                        // A rebuild that then fails below keeps the request
+                        // consumed on purpose: the failure is reported to the
+                        // host (`reportCoreStartFailed`), so a later answer
+                        // must not quietly start a core after that.
                         messageIdFromGetState.current = null;
 
                         // Reset error messages, core.
@@ -931,10 +934,11 @@ export function DocViewer({
                     // An error is only worth surfacing while this viewer is
                     // still waiting for state. Once an answer has been adopted
                     // above, the request is closed and `messageIdFromGetState`
-                    // is null: a second answerer reporting that IT has nothing
-                    // (the persistence host on a page where the coordinator
-                    // answered first) must not replace the document that was
-                    // just restored with an error screen.
+                    // is null — and a null id can never match, so every later
+                    // answer reaches this branch. A second answerer reporting
+                    // that IT has nothing (the persistence host on a page
+                    // where the coordinator answered first) must not replace
+                    // the document just restored with an error screen.
                     const error = e.data.error;
                     setIsInErrorState?.(true);
                     if (

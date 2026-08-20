@@ -104,8 +104,8 @@ function answerGetStateTwice(
  * Wait until the second answer has been sent and the viewer has had time to
  * act on it.
  *
- * Adopting an answer blanks the document synchronously (`setDocumentRenderer`
- * is nulled before the rebuild), so once this returns, a viewer that took the
+ * Adopting an answer clears the rendered document before rebuilding
+ * (`setDocumentRenderer(null)`), so once this returns, a viewer that took the
  * second answer cannot still be showing the first one's document — which is
  * what keeps the assertions from passing by beating the rebuild.
  */
