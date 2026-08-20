@@ -35,7 +35,7 @@ export default defineConfig({
             // consuming build, the same way `@doenet/lsp-tools` and
             // `@doenet/codemirror` do. Every consumer bundles this package
             // together with other users of the schema, so resolving it there
-            // means one shared copy of the ~0.5 MB compressed schema module
+            // means one shared copy of the ~230 KB compressed schema literal
             // instead of a private copy baked into `pretty-printer.js`.
             external: [/@doenet\/static-assets/],
         },

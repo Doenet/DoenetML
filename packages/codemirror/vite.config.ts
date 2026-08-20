@@ -23,9 +23,9 @@ export default defineConfig({
                 // completion snippets) to the consuming build, the same way
                 // `@doenet/lsp-tools` does. Every consumer bundles this
                 // package together with other users of the schema, so
-                // resolving it there means one shared copy of the ~5 MB
-                // schema module instead of a private copy baked into this
-                // dist.
+                // resolving it there means one shared copy of the ~230 KB
+                // compressed schema literal instead of a private copy baked
+                // into this dist.
                 /@doenet\/static-assets/,
             ],
         },
