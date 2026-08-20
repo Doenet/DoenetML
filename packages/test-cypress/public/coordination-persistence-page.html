@@ -38,9 +38,6 @@
                 // Frozen: the store stops accepting saves, so what it answers
                 // with goes stale while the reader keeps working.
                 window.__hostFrozen = false;
-                // Silent: the host does not answer at all, leaving the
-                // coordinator as the only answerer.
-                window.__hostSilent = false;
                 window.__hostLog = [];
                 window.__hostStore = read;
 
@@ -93,10 +90,6 @@
                         return;
                     }
                     if (data.subject === "SPLICE.getState") {
-                        if (window.__hostSilent) {
-                            window.__hostLog.push(`getState:${id}:silent`);
-                            return;
-                        }
                         const state = read()[id] ?? null;
                         window.__hostLog.push(
                             `getState:${id}:${state ? "hit" : "miss"}`,

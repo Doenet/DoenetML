@@ -125,20 +125,28 @@ describe(
             cy.get("#act1").scrollIntoView();
             assertActivityRenders("#act1", "One typed:");
 
-            // Let the host's delayed answer land before believing the screen.
-            cy.wait(3000);
+            // The host's stale answer is the one that used to overwrite the
+            // coordinator's, so the screen only means anything once that
+            // answer has actually been sent. Wait for the host to log it (it
+            // also confirms the host really is competing for this request),
+            // then give the viewer a moment to have acted on it: adopting it
+            // blanks the document synchronously, so the assertions below
+            // cannot pass by beating the rebuild.
+            cy.window().then((win) => {
+                cy.wrap(null, { timeout: 30_000 }).should(() => {
+                    expect(
+                        win.__hostLog.some((e) => e === "answered:act1:state"),
+                        `the host answered too: ${JSON.stringify(win.__hostLog)}`,
+                    ).to.eq(true);
+                });
+            });
+            cy.wait(1500);
+
             assertActivityRenders("#act1", "One typed: round two");
             cy.get("#act1")
                 .its("0.contentDocument.body")
                 .find("input:not([type=checkbox])", { timeout: BOOT_TIMEOUT })
                 .should("have.value", "round two");
-
-            cy.window().then((win) => {
-                expect(
-                    win.__hostLog.some((e) => e === "answered:act1:state"),
-                    `the host did answer too: ${JSON.stringify(win.__hostLog)}`,
-                ).to.eq(true);
-            });
         });
     },
 );

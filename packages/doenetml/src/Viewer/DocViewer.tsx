@@ -873,9 +873,10 @@ export function DocViewer({
                         // counts; the coordinator's is both first and the
                         // fresher of the two within a page load.
                         //
-                        // Only a usable answer consumes it: an answer with no
+                        // Only a usable answer consumes it: one carrying no
                         // state (a host with nothing saved for this activity)
-                        // must not shut out a better one still to come.
+                        // or state for a different `cid` must not shut out a
+                        // better one still to come.
                         messageIdFromGetState.current = null;
 
                         // Reset error messages, core.
@@ -923,7 +924,17 @@ export function DocViewer({
                             setStage("readyToCreateCore");
                         }
                     }
-                } else if (e.data.error) {
+                } else if (
+                    messageIdFromGetState.current !== null &&
+                    e.data.error
+                ) {
+                    // An error is only worth surfacing while this viewer is
+                    // still waiting for state. Once an answer has been adopted
+                    // above, the request is closed and `messageIdFromGetState`
+                    // is null: a second answerer reporting that IT has nothing
+                    // (the persistence host on a page where the coordinator
+                    // answered first) must not replace the document that was
+                    // just restored with an error screen.
                     const error = e.data.error;
                     setIsInErrorState?.(true);
                     if (

@@ -80,6 +80,15 @@ yourself (same option names, camelCase).
   etc.) if state must survive navigation; the coordinator's flushes ride
   the normal `SPLICE.reportScoreAndState` channel such a backend already
   consumes.
+- On such a page the warehouse and the backend both answer a restoring
+  activity's `SPLICE.getState`. The **first answer carrying state wins**:
+  the warehouse answers at once and holds the reader's most recent work, so
+  the backend's later answer — a round trip to storage, and possibly behind
+  what the reader has just done — is ignored. On a fresh page load the
+  warehouse is empty and stays silent, leaving the backend's answer the
+  only one, and it restores as usual. An answer with no state does not
+  count as the winner, so a backend with nothing saved cannot shut out an
+  answer still in flight.
 - Activities running a standalone bundle older than the coordinator
   protocol boot normally but are managed conservatively (the boot watchdog
   stands in for their missing boot-complete signal, and their state cannot
