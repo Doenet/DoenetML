@@ -52,12 +52,12 @@ export default defineConfig({
             ],
         }),
         // Serve the message catalogs beside the bundle rather than inside it.
-        // `inlineDynamicImports` folds every dynamic import into the one output
-        // file, so the code-splitting that keeps catalogs out of the library
-        // build cannot work here — `__DOENET_CODE_SPLIT_CATALOGS__` switches it
-        // off below, and `index.tsx` points the viewer's loaders at this copy
-        // instead. Same arrangement as the core worker above, for the same
-        // reason.
+        // Catalogs stay runtime-fetched files (`__DOENET_CODE_SPLIT_CATALOGS__`
+        // switches the library build's code-split path off below, and
+        // `index.tsx` points the viewer's loaders at this copy): as plain
+        // assets they can be version-pinned per `pinPackageVersion`, and the
+        // single-file `doenet-standalone-inline.js` variant stays free of them
+        // too. Same arrangement as the core worker above, for the same reason.
         copyLocaleCatalogsPlugin(),
         suppressLogPlugin(),
         // Vite's built-in `minify` does not actually minify this lib-mode
@@ -78,8 +78,27 @@ export default defineConfig({
         },
         rollupOptions: {
             output: {
-                // Make sure everything is bundled as a single file
-                inlineDynamicImports: true,
+                // Code-split output: the editor stack and the individual
+                // viewer renderers load on demand as sibling chunks, resolved
+                // relative to the bundle's own URL (`import.meta.url`). That
+                // works from jsDelivr and from any host that serves `dist/`
+                // as a directory — the same arrangement the co-located core
+                // worker and `locales/` already rely on. A host that
+                // evaluates the bundle from a Blob/srcdoc URL has no base to
+                // resolve chunks against; it uses the single-file
+                // `doenet-standalone-inline.js` built by
+                // `vite.config-inline.ts` instead.
+                //
+                // Chunk names keep their content hash: under a floating CDN
+                // tag, an out-of-date cached entry then fails loudly (404,
+                // retried and surfaced by the renderer-loading path) rather
+                // than silently mixing modules from two releases. Chunks are
+                // not version-pinned the way the worker and catalogs are —
+                // a chunk fetched from a pinned URL would re-resolve its own
+                // static imports against that URL and evaluate a second copy
+                // of the entry module. Exact-version URLs (what
+                // `@doenet/doenetml-iframe` generates) never see a skew.
+                chunkFileNames: "chunks/[name]-[hash].js",
             },
         },
     },
@@ -91,10 +110,17 @@ export default defineConfig({
         // previous release's assets. Hence `package.json` among this build's
         // declared wireit inputs — a version bump has to rebuild.
         STANDALONE_VERSION: JSON.stringify(version),
-        // See the `locales/` copy target above: this bundle is one file, so
-        // the catalogs have to be served beside it rather than split out of
-        // it. Switching this off makes `@doenet/i18n`'s lazy-catalog glob dead
-        // code, so none of `locales/` is inlined here.
+        // This build code-splits, so `src/index.tsx`'s module body evaluates
+        // from a chunk under `chunks/` — one level below the bundle root where
+        // `doenetml-worker/` and `locales/` are served. See the declaration in
+        // `src/index.tsx`; the inline build defines it as `"."`.
+        __DOENET_STANDALONE_BUNDLE_ROOT__: '".."',
+        // See the `locales/` copy target above: the catalogs are served
+        // beside this bundle rather than split out of it. Switching this off
+        // makes `@doenet/i18n`'s lazy-catalog glob dead code, so none of
+        // `locales/` is inlined here — in either the code-split bundle or the
+        // single-file inline variant, which shares this define via
+        // `vite.config-inline.ts`.
         __DOENET_CODE_SPLIT_CATALOGS__: "false",
     },
 });

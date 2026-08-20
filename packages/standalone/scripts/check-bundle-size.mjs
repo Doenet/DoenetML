@@ -449,6 +449,33 @@ function blobPlacementProblem(relative, emitted, expected) {
 }
 
 /**
+ * The emitted scripts a budget key covers.
+ *
+ * A key is an exact `dist/`-relative path, except that `*` matches any run of
+ * characters other than `/` — which is how a budget pins down a code-split
+ * chunk whose emitted name carries a content hash
+ * (`dist/chunks/index-*.js`). Each matching script is held to the budget's
+ * `maxBytes` individually.
+ *
+ * @returns `[relativePath, emitted]` pairs.
+ */
+export function scriptsForBudget(relative, scripts) {
+    if (!relative.includes("*")) {
+        const emitted = scripts.get(relative);
+        return emitted ? [[relative, emitted]] : [];
+    }
+    const pattern = new RegExp(
+        "^" +
+            relative
+                .split("*")
+                .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+                .join("[^/]*") +
+            "$",
+    );
+    return [...scripts].filter(([name]) => pattern.test(name));
+}
+
+/**
  * Compare the emitted scripts against the budgets, without touching the disk
  * or the process.
  *
@@ -462,10 +489,11 @@ function blobPlacementProblem(relative, emitted, expected) {
 export function findProblems(budgets, scripts) {
     const problems = [];
     const report = [];
+    const budgeted = new Set();
 
     for (const [relative, budget] of budgets) {
-        const emitted = scripts.get(relative);
-        if (!emitted) {
+        const matches = scriptsForBudget(relative, scripts);
+        if (matches.length === 0) {
             // "Build the package" is the right advice only when there is no
             // build. If other scripts were emitted and the core-carrying one
             // was not, the build ran and the file moved — say that once, in
@@ -479,22 +507,25 @@ export function findProblems(budgets, scripts) {
             continue;
         }
 
-        report.push(
-            `  ${relative}\n` +
-                `      ${mib(emitted.size)} of ${mib(budget.maxBytes)} budget` +
-                `  (${((emitted.size / budget.maxBytes) * 100).toFixed(1)}%)` +
-                `, ${emitted.wasmUris} wasm URI(s), ${emitted.bigBlobs} inlined blob(s)`,
-        );
-
-        if (emitted.size > budget.maxBytes) {
-            problems.push(
-                `${relative} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
-                    `${mib(budget.maxBytes)} budget by ${mib(emitted.size - budget.maxBytes)}.\n` +
-                    `    If the growth is intended, raise "maxBytes" for this file in\n` +
-                    `    packages/standalone/bundle-budgets.json in the same commit, so the\n` +
-                    `    increase is visible in review. If it is not intended, something was\n` +
-                    `    pulled in twice — compare against the previous build before raising it.`,
+        for (const [name, emitted] of matches) {
+            budgeted.add(name);
+            report.push(
+                `  ${name}\n` +
+                    `      ${mib(emitted.size)} of ${mib(budget.maxBytes)} budget` +
+                    `  (${((emitted.size / budget.maxBytes) * 100).toFixed(1)}%)` +
+                    `, ${emitted.wasmUris} wasm URI(s), ${emitted.bigBlobs} inlined blob(s)`,
             );
+
+            if (emitted.size > budget.maxBytes) {
+                problems.push(
+                    `${name} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
+                        `${mib(budget.maxBytes)} budget by ${mib(emitted.size - budget.maxBytes)}.\n` +
+                        `    If the growth is intended, raise "maxBytes" for this file in\n` +
+                        `    packages/standalone/bundle-budgets.json in the same commit, so the\n` +
+                        `    increase is visible in review. If it is not intended, something was\n` +
+                        `    pulled in twice — compare against the previous build before raising it.`,
+                );
+            }
         }
     }
 
@@ -502,7 +533,6 @@ export function findProblems(budgets, scripts) {
     // is a normal thing for the bundler to do — but it is listed so that a
     // chunk quietly growing into a second multi-megabyte payload is visible,
     // and so somebody can decide whether it deserves a budget.
-    const budgeted = new Set(budgets.map(([relative]) => relative));
     for (const [relative, emitted] of scripts) {
         if (!budgeted.has(relative)) {
             report.push(

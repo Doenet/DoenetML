@@ -43,7 +43,26 @@
                 "dist/coordinator.js.map"
             ],
             "dependencies": [
-                "build:main"
+                "build:main",
+                "build:inline"
+            ]
+        },
+        "build:inline": {
+            "command": "vite -c vite.config-inline.ts build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "tsconfig.json",
+                "vite.config-inline.ts",
+                "package.json",
+                "../i18n/locales/**/*.ftl"
+            ],
+            "output": [
+                "dist/doenet-standalone-inline.js"
+            ],
+            "dependencies": [
+                "build:main",
+                "../doenetml:build"
             ]
         },
         "build:main": {
@@ -59,8 +78,10 @@
             "output": [
                 "dist/**/*.js",
                 "!dist/coordinator.js",
+                "!dist/doenet-standalone-inline.js",
                 "dist/**/*.map",
                 "!dist/coordinator.js.map",
+                "!dist/doenet-standalone-inline.js.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
                 "dist/**/*.css",

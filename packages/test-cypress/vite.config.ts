@@ -46,6 +46,11 @@ export default defineConfig({
                             __dirname,
                             "../standalone/dist/coordinator.js",
                         ),
+                        // The bundle is code-split: renderers and the editor
+                        // stack live in lazy chunks resolved relative to
+                        // doenet-standalone.js, so they must be served beside
+                        // it just as a CDN would.
+                        path.resolve(__dirname, "../standalone/dist/chunks"),
                     ],
                     dest: "standalone/",
                     overwrite: false,
