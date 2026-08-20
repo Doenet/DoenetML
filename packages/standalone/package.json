@@ -54,6 +54,7 @@
                 "src/**/*.tsx",
                 "tsconfig.json",
                 "vite.config-inline.ts",
+                "../../scripts/vite-plugins.ts",
                 "package.json",
                 "../i18n/locales/**/*.ftl"
             ],
@@ -72,6 +73,9 @@
                 "src/**/*.tsx",
                 "tsconfig.json",
                 "vite.config.ts",
+                "../../scripts/transform-package-json.ts",
+                "../../scripts/vite-plugins.ts",
+                "scripts/pin-chunk-urls-plugin.ts",
                 "package.json",
                 "../i18n/locales/**/*.ftl"
             ],
