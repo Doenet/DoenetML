@@ -83,8 +83,10 @@
             ]
         },
         "build:doenetml-worker": {
-            "command": "node -e \"const {mkdirSync,copyFileSync}=require('fs');mkdirSync('extension/build/doenetml-worker',{recursive:true});copyFileSync('../doenetml-worker/dist/index.js','extension/build/doenetml-worker/index.js')\"",
-            "files": [],
+            "command": "node scripts/build-doenetml-worker.mjs",
+            "files": [
+                "scripts/build-doenetml-worker.mjs"
+            ],
             "output": [
                 "extension/build/doenetml-worker/**/*"
             ],

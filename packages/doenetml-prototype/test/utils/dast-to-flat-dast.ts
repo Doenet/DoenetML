@@ -9,11 +9,33 @@ import { doenetGlobalConfig } from "../../src/global-config";
 
 // @ts-ignore
 import workerSource from "@doenet/doenetml-worker/index.js?raw";
+// The worker locates its WASM at run time; a blob-URL worker cannot, so
+// supply it up front via `self.__doenetWorkerWasmUrl` — see
+// `src/index-inline-worker.ts`, which this mirrors.
+// @ts-ignore
+import wasmUrl from "@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?url";
+
+function absoluteWasmUrl(): string {
+    if (wasmUrl.startsWith("data:")) {
+        return wasmUrl;
+    }
+    try {
+        return new URL(wasmUrl, globalThis.location?.href).href;
+    } catch {
+        return wasmUrl;
+    }
+}
 
 // We make a blob URL directly from the source code of the worker. This way we don't
 // need to load any other files
 const workerBlobUrl = URL.createObjectURL(
-    new Blob([workerSource], { type: "application/javascript" }),
+    new Blob(
+        [
+            `self.__doenetWorkerWasmUrl = ${JSON.stringify(absoluteWasmUrl())};\n`,
+            workerSource,
+        ],
+        { type: "application/javascript" },
+    ),
 );
 doenetGlobalConfig.doenetWorkerUrl = workerBlobUrl;
 

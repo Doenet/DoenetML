@@ -38,7 +38,8 @@
                 "tsconfig.json",
                 "tsconfig.json",
                 "vite.config.ts",
-                "vite.esm.config.ts"
+                "vite.esm.config.ts",
+                "../standalone/package.json"
             ],
             "output": [
                 "dist/**/*.js",

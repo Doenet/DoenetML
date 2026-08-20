@@ -35,12 +35,6 @@ import {
     UpdateRenderersCallback,
 } from "@doenet/doenetml-worker-javascript";
 
-// 2025-05-14
-// There is some weirdness with CORS/Firefox/Data URLs that makes it so that
-// the bundled WASM cannot actually be loaded. To work around this,
-// we import it as a string and create a blob URL from it.
-// @ts-ignore
-import WASM_BYTES_DATA_URL from "@doenet/doenetml-worker-rust/lib_doenetml_worker_bg.wasm?url";
 import { flatDastFromJS } from "./flatDastFromJS";
 import type { UpdateInstruction } from "./flatDastFromJS";
 import {
@@ -51,34 +45,138 @@ import {
 } from "./flatDastUpdateFromJS";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 import { translateJsCoreActionName } from "./jsCoreActionNames";
-// The wasm-bindgen `init` function accepts a `BufferSource` (ArrayBuffer)
-// directly — passing the decoded bytes avoids any `fetch()` round-trip and
-// works in all environments including VS Code's web-worker extension host
-// where `fetch()` is blocked for blob/data URLs (issue #1375).
-// Previously, the data URL was converted to a blob URL first (to work around
-// CORS/Firefox issues with data URLs), but fetching that blob URL is also
-// blocked in VS Code.  Passing the ArrayBuffer directly uses
-// `WebAssembly.instantiate(buffer, imports)` inside wasm-bindgen, which
-// requires no network access at all.
-let wasmInitInput: string | ArrayBuffer = WASM_BYTES_DATA_URL;
-if (
-    typeof wasmInitInput === "string" &&
-    wasmInitInput.match(/^data:.*;base64,/)
-) {
+
+// ---------------------------------------------------------------------------
+// Locating the core WASM (#1438).
+//
+// The WASM is no longer inlined into this bundle. It is published as
+// `lib_doenetml_worker_bg.wasm` beside this script and fetched at run time,
+// so the browser's machine-code cache — keyed by URL for streaming
+// compilation — lets every worker, iframe, and repeat page view on a host
+// share one compilation instead of each decoding and compiling its own
+// ~4 MB copy. Which source is used depends on how this worker was started;
+// the first available step of this ladder wins:
+//
+// 1. `self.__doenetWorkerWasmUrl` — set (before this script runs) by
+//    consumers that need a single-file worker with no network access:
+//    @doenet/doenetml's inline-worker entry and the VS Code extension bake
+//    the WASM in as a `data:` URL, which is decoded to bytes here and handed
+//    straight to wasm-bindgen. Fetching data:/blob: URLs is blocked in VS
+//    Code's web extension host (#1375), so a `data:` URL is never fetched.
+//    Dev servers set it to a served asset URL instead, which is fetched.
+// 2. The file beside `self.__doenetWorkerScriptUrl` — set by the same-origin
+//    bootstrap blobs that `importScripts()` a cross-origin worker
+//    (@doenet/doenetml's external-worker entry, @doenet/doenetml-iframe's
+//    shared pool). Such a worker runs from a `blob:` URL that nothing can be
+//    resolved against, so the bootstrap records the real script URL.
+// 3. The file beside `location.href` — a worker started directly from a real
+//    URL (e.g. a same-origin `/doenetml-worker/index.js`, as local dev
+//    servers and the Cypress previews serve it).
+// 4. A jsDelivr URL pinned to the `@doenet/standalone` release this worker
+//    was built as (the published packages version together, and that package
+//    carries the deployed copy of this directory). This is the last resort
+//    for a worker with no usable URL of its own; jsDelivr serves the CORS
+//    headers a cross-origin fetch needs. Steps 1–3 cover local dev, CI, and
+//    every packaged consumer, so no test or offline environment reaches it.
+//
+// A fetched `Response` is handed to wasm-bindgen's `init`, which compiles it
+// with `WebAssembly.instantiateStreaming` and falls back to compiling the
+// raw bytes when the server serves the file without the `application/wasm`
+// MIME type that streaming compilation requires (Firefox enforces this).
+
+const WASM_FILE_NAME = "lib_doenetml_worker_bg.wasm";
+
+// Injected by the vite configs from `packages/standalone/package.json`.
+declare const __DOENET_STANDALONE_VERSION__: string;
+
+/** Read a global set by the code that started this worker, if any. */
+function injectedGlobal(name: string): string | undefined {
+    const value = (globalThis as Record<string, unknown>)[name];
+    return typeof value === "string" ? value : undefined;
+}
+
+/** Decode a base64 `data:` URL to bytes, or `null` if it cannot be decoded. */
+function decodeWasmDataUrl(dataUrl: string): ArrayBuffer | null {
     try {
-        const base64 = wasmInitInput.split(",")[1];
+        const base64 = dataUrl.split(",")[1];
         const byteCharacters = atob(base64);
         const wasmBytes = new Uint8Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
             wasmBytes[i] = byteCharacters.charCodeAt(i);
         }
-        wasmInitInput = wasmBytes.buffer;
+        return wasmBytes.buffer;
     } catch (e) {
-        console.warn(
-            "Error while decoding WASM data URL, falling back to URL (fetch may fail):",
-            e,
-        );
+        console.warn("Error while decoding the WASM data URL:", e);
+        return null;
     }
+}
+
+/**
+ * The URLs to try fetching the WASM from, in order — the ladder above, minus
+ * the decoded-bytes case handled in `resolveWasmInput`.
+ */
+function wasmUrlCandidates(): string[] {
+    const candidates: string[] = [];
+    function push(url: string) {
+        if (!candidates.includes(url)) {
+            candidates.push(url);
+        }
+    }
+    const provided = injectedGlobal("__doenetWorkerWasmUrl");
+    if (provided !== undefined) {
+        push(provided);
+    }
+    const bases = [
+        injectedGlobal("__doenetWorkerScriptUrl"),
+        typeof location !== "undefined" ? location.href : undefined,
+    ];
+    for (const base of bases) {
+        if (base === undefined) {
+            continue;
+        }
+        try {
+            push(new URL(WASM_FILE_NAME, base).href);
+        } catch {
+            // An opaque base (`blob:`, `data:`) has no "beside it".
+        }
+    }
+    push(
+        `https://cdn.jsdelivr.net/npm/@doenet/standalone@${__DOENET_STANDALONE_VERSION__}/doenetml-worker/${WASM_FILE_NAME}`,
+    );
+    return candidates;
+}
+
+/**
+ * Resolve the WASM to initialize wasm-bindgen with: decoded bytes when an
+ * inlined `data:` URL was supplied, otherwise the response of the first
+ * candidate URL that fetches successfully.
+ */
+async function resolveWasmInput(): Promise<ArrayBuffer | Response> {
+    const provided = injectedGlobal("__doenetWorkerWasmUrl");
+    if (provided !== undefined && /^data:.*;base64,/.test(provided)) {
+        const bytes = decodeWasmDataUrl(provided);
+        if (bytes) {
+            return bytes;
+        }
+        // An undecodable data URL cannot be fetched either; let the ladder
+        // try the URL-based candidates.
+    }
+    let lastError: unknown = undefined;
+    for (const url of wasmUrlCandidates()) {
+        if (url.startsWith("data:")) {
+            continue;
+        }
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw Error(`HTTP ${response.status} fetching ${url}`);
+            }
+            return response;
+        } catch (e) {
+            lastError = e;
+        }
+    }
+    throw lastError ?? Error("No URL to load the core WASM from");
 }
 
 /**
@@ -124,10 +222,14 @@ let wasmInitPromise: Promise<unknown> | null = null;
 function ensureWasmInitialized(): Promise<unknown> {
     if (!wasmInitPromise) {
         // Clear the cached promise on failure so a later core can retry the
-        // init rather than every future caller inheriting one rejected
-        // promise forever. Concurrent in-flight callers still share (and all
-        // observe the rejection of) the single attempt.
-        wasmInitPromise = init({ module_or_path: wasmInitInput }).catch((e) => {
+        // init (including a fresh fetch) rather than every future caller
+        // inheriting one rejected promise forever. Concurrent in-flight
+        // callers still share (and all observe the rejection of) the single
+        // attempt.
+        wasmInitPromise = (async () => {
+            const wasmInput = await resolveWasmInput();
+            return await init({ module_or_path: wasmInput });
+        })().catch((e) => {
             wasmInitPromise = null;
             throw e;
         });
