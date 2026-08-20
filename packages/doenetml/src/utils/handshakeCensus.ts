@@ -111,6 +111,21 @@ export function joinHandshakeCensus(): Promise<{ release: () => void }> {
                             release: () => {
                                 released = true;
                                 release();
+                                // Refresh the cached count as the wave
+                                // drains, so it decays with the seats rather
+                                // than holding its high-water mark until the
+                                // next boot's own refresh lands (a boot after
+                                // a busy wave would otherwise size — and
+                                // attribute — its first attempt against
+                                // pressure that no longer exists). Deferred a
+                                // task because the browser frees the lock
+                                // when the callback's promise settles, a
+                                // microtask after this call: querying then
+                                // observes the seat already dropped.
+                                setTimeout(
+                                    () => refreshHandshakeCensusCount(),
+                                    0,
+                                );
                             },
                         });
                     });
@@ -203,9 +218,13 @@ export function concurrentHandshakesSnapshot(): number {
  *
  * Because the update lands a turn or more later, the reading a caller gets
  * from `concurrentHandshakesSnapshot` is always the one *before* its own
- * refresh. A boot refreshes once per handshake attempt and nowhere earlier,
- * so each read is answered by the previous attempt's refresh, and a first
- * attempt reads the count one refresh behind.
+ * refresh. A boot refreshes once per handshake attempt, and every released
+ * census seat refreshes as it drops, so each attempt's read is answered by
+ * the previous attempt's refresh and a first attempt reads the count as of
+ * the last attempt — or last drained seat — in this realm. A wave in
+ * another tab's realm drains invisibly (its releases refresh its own cache,
+ * not this one), so the first attempt after one can still read high; the
+ * attempt's own refresh corrects the reading for every attempt after it.
  */
 export function refreshHandshakeCensusCount(): void {
     countConcurrentHandshakes()

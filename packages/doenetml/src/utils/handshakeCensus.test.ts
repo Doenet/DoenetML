@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
+    concurrentHandshakesSnapshot,
     countConcurrentHandshakes,
     joinHandshakeCensus,
+    refreshHandshakeCensusCount,
 } from "./handshakeCensus";
 
 // Unit coverage for the handshake census (#1711) — the page-wide count of
@@ -78,6 +80,29 @@ describe("handshake census (#1711)", () => {
             query: () => Promise.reject(new Error("unavailable")),
         });
         expect(await countConcurrentHandshakes()).toBe(1);
+    });
+
+    it("decays the cached count as seats release, without a caller refresh", async () => {
+        // The cached snapshot must not hold a busy wave's high-water mark
+        // after the wave drains: the next boot sizes and attributes its
+        // first attempt against this number before its own refresh lands.
+        installLocks(fakeSharedLocks());
+
+        const seats = await Promise.all([
+            joinHandshakeCensus(),
+            joinHandshakeCensus(),
+            joinHandshakeCensus(),
+        ]);
+        refreshHandshakeCensusCount();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(concurrentHandshakesSnapshot()).toBe(3);
+
+        seats.forEach((seat) => seat.release());
+        // The release-triggered refreshes are deferred a task; give them (and
+        // the lock drops they observe) time to land.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(concurrentHandshakesSnapshot()).toBe(1);
     });
 
     it("joins as the no-op seat when the lock request throws", async () => {
