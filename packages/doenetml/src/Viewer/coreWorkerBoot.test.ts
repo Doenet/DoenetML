@@ -154,7 +154,7 @@ describe("retryDelayMs (#1711)", () => {
         for (let attempt = 0; attempt < 4; attempt++) {
             const base = Math.min(
                 CORE_BOOT_RETRY_DELAY_MS * 2 ** attempt,
-                MAX_CORE_BOOT_RETRY_DELAY_MS,
+                MAX_CORE_BOOT_RETRY_DELAY_MS / 2,
             );
             for (let i = 0; i < 50; i++) {
                 const delay = retryDelayMs(attempt);
@@ -173,11 +173,20 @@ describe("retryDelayMs (#1711)", () => {
         }
     });
 
-    it("stays bounded so a retry is never postponed indefinitely", () => {
-        for (let i = 0; i < 50; i++) {
-            expect(retryDelayMs(20)).toBeLessThan(
-                MAX_CORE_BOOT_RETRY_DELAY_MS * 2,
-            );
+    it("keeps every jittered delay under the advertised cap", () => {
+        // The cap applies to the delay actually slept, jitter included: the
+        // pre-jitter value is capped at half the max, so even a doubled
+        // jitter draw lands below `MAX_CORE_BOOT_RETRY_DELAY_MS` — while a
+        // capped attempt still spans the jitter's full [1, 2) spread rather
+        // than collapsing onto a single value every sibling shares.
+        for (const attempt of [4, 10, 20, 40]) {
+            for (let i = 0; i < 50; i++) {
+                const delay = retryDelayMs(attempt);
+                expect(delay).toBeLessThan(MAX_CORE_BOOT_RETRY_DELAY_MS);
+                expect(delay).toBeGreaterThanOrEqual(
+                    MAX_CORE_BOOT_RETRY_DELAY_MS / 2,
+                );
+            }
         }
     });
 });

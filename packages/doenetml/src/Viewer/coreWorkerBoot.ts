@@ -151,12 +151,16 @@ const GRACEFUL_TERMINATE_TIMEOUT_MS = 2_000;
  * exactly when it can least be afforded. Backing off exponentially gives the
  * contention that caused the timeout a chance to drain first. The jitter (a
  * [1, 2) multiplier) keeps a page full of activities that all timed out
- * together from retrying in lockstep.
+ * together from retrying in lockstep. The exponential value is capped at
+ * half of `MAX_CORE_BOOT_RETRY_DELAY_MS` before the jitter applies, so the
+ * delay genuinely stays under the max while capped retries keep the jitter's
+ * full spread.
  */
 export function retryDelayMs(attempt: number): number {
     const backoff = CORE_BOOT_RETRY_DELAY_MS * 2 ** attempt;
     return (
-        Math.min(backoff, MAX_CORE_BOOT_RETRY_DELAY_MS) * (1 + Math.random())
+        Math.min(backoff, MAX_CORE_BOOT_RETRY_DELAY_MS / 2) *
+        (1 + Math.random())
     );
 }
 
