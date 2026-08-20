@@ -45,7 +45,8 @@
                 "dist-dev/**/*.map",
                 "dist-dev/**/*.css",
                 "dist-dev/**/*.d.ts",
-                "dist-dev/**/*.json"
+                "dist-dev/**/*.json",
+                "dist-dev/**/*.wasm*"
             ],
             "dependencies": [
                 "build"
@@ -68,6 +69,7 @@
                 "dist/**/*.d.ts",
                 "dist/**/*.css",
                 "dist/**/*.json",
+                "dist/**/*.wasm*",
                 "dist/fonts/**/*"
             ],
             "dependencies": [
