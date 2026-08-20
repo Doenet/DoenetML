@@ -91,11 +91,38 @@ export const doenetGlobalConfig: {
         phase: "stateLoad" | "handshake" | "generate",
         attempt: number,
     ) => void | Promise<void>;
-} = {
-    doenetWorkerUrl: getWorkerUrl(),
-};
+} = adoptExistingGlobalConfig();
+if (typeof doenetGlobalConfig.doenetWorkerUrl !== "string") {
+    doenetGlobalConfig.doenetWorkerUrl = getWorkerUrl();
+}
 // We want this to be available in the global scope
 (window as any).doenetGlobalConfig = doenetGlobalConfig;
+
+/**
+ * The config object this module adopts: `window.doenetGlobalConfig` when a
+ * host already created one, a fresh object otherwise.
+ *
+ * Adopting the existing object — same identity, defaults filled in above only
+ * where a key is absent — is what keeps host configuration working when this
+ * module evaluates *after* the host's setup code ran. `@doenet/standalone`'s
+ * code-split bundle is the live case: its entry facade awaits the chunk that
+ * carries this module, the facade's script `load` event fires at that first
+ * `await`, and PreTeXt-style pages configure `window.doenetGlobalConfig` (an
+ * empty object the facade pre-created; see `facadeRenderQueue.ts` there) from
+ * exactly that event. Values those hosts set this way are live here, and the
+ * references they captured stay current.
+ *
+ * (Typed `any` because the return feeds `doenetGlobalConfig`'s own
+ * initializer — naming that type here would be circular. The export's
+ * annotation above is what checks every use.)
+ */
+function adoptExistingGlobalConfig(): any {
+    const existing = (window as any).doenetGlobalConfig;
+    if (typeof existing === "object" && existing !== null) {
+        return existing;
+    }
+    return {};
+}
 
 /**
  * Attempt to resolve the URL of the doenet worker. This function falls back
