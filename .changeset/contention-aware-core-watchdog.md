@@ -16,4 +16,4 @@ Retries back off exponentially with jitter instead of re-piling a fresh multi-MB
 
 A timeout on a demonstrably contended page no longer reports the worker as wedged. In shared-core mode that suspicion quarantines the host worker, killing cores that belong to other documents which were merely slow.
 
-A failure attributable to contention now says so — that the page was starting several documents at once, and may take longer on a slower device — instead of presenting an unexplained error. The general failure message is reworded to match: "This document could not be started", where it said "The document viewer could not be started".
+A failure attributable to contention now says so — that several documents were starting at once, and may take longer on a slower device — instead of presenting an unexplained error. The general failure message is reworded to match: "This document could not be started", where it said "The document viewer could not be started".

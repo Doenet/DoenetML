@@ -178,9 +178,9 @@ export const CORE_START_FAILED_MESSAGE =
  * failure is attributable to several documents starting at once (#1712).
  */
 export const CORE_START_FAILED_BUSY_MESSAGE =
-    "This document could not be started. The page was starting several " +
-    "documents at once, which can take longer on a slower device. " +
-    "Reloading the page may help once the other documents have finished.";
+    "This document could not be started. Several documents were starting " +
+    "at once, which can take longer on a slower device. Reloading the page " +
+    "may help once the other documents have finished.";
 
 /**
  * Resolve/reject with `task()`, but reject with a timeout error if it does
