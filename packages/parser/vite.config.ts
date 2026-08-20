@@ -29,6 +29,16 @@ export default defineConfig({
             },
             formats: ["es"],
         },
+        rollupOptions: {
+            // Leave `@doenet/static-assets` (the component schema the
+            // pretty-printer's layout table reads, and the entity map) to the
+            // consuming build, the same way `@doenet/lsp-tools` and
+            // `@doenet/codemirror` do. Every consumer bundles this package
+            // together with other users of the schema, so resolving it there
+            // means one shared copy of the ~0.5 MB compressed schema module
+            // instead of a private copy baked into `pretty-printer.js`.
+            external: [/@doenet\/static-assets/],
+        },
     },
 });
 
