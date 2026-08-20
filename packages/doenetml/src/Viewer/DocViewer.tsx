@@ -885,10 +885,19 @@ export function DocViewer({
                         // Reset error messages, core.
                         // Then process loaded state and initialize
 
-                        if (errMsg !== null) {
-                            setErrMsg(null);
-                            setIsInErrorState?.(false);
-                        }
+                        // Clear unconditionally rather than when `errMsg` is
+                        // set: this listener is installed once, with an empty
+                        // dependency array, so the `errMsg` it closes over is
+                        // forever the initial `null` and a guard reading it
+                        // could never fire. That mattered once a page could
+                        // hold more than one answerer — an error carries no
+                        // `message_id`, so it does not answer the request, and
+                        // a listener reporting one before another returns
+                        // usable state left the restored document behind an
+                        // error screen it could not clear. Both setters are
+                        // idempotent.
+                        setErrMsg(null);
+                        setIsInErrorState?.(false);
 
                         coreId.current = nanoid();
                         initialCoreData.current = null;

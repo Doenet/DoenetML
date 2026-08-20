@@ -62,9 +62,12 @@ function saveStateAfterTyping(reports: any[], text: string, flushId: string) {
  * Play two competing answerers for the next `SPLICE.getState`: reply at once
  * with `first`, then — once the request is out of the way — with `second`.
  *
- * Both replies carry the request's own `message_id`, which is what makes them
- * answers to the *same* request rather than stale traffic. Resolves with a
- * flag object whose `sent` turns true when the second reply has gone out.
+ * A reply carries the request's own `message_id`, which is what makes it an
+ * answer to the *same* request rather than stale traffic — unless it sets
+ * `omitMessageId`, since the protocol specifies an error response as carrying
+ * none (see the `SPLICE.getState` section of `@doenet/standalone`'s README).
+ * Resolves with a flag object whose `sent` turns true when the second reply
+ * has gone out.
  */
 function answerGetStateTwice(
     first: Record<string, unknown>,
@@ -79,19 +82,18 @@ function answerGetStateTwice(
             // Answer one request; a rebuild would ask again.
             win.removeEventListener("message", listener);
             const message_id = e.data.message_id;
-            win.postMessage(
-                { subject: "SPLICE.getState.response", message_id, ...first },
-                "*",
-            );
-            setTimeout(() => {
+            const send = ({ omitMessageId, ...reply }: any) =>
                 win.postMessage(
                     {
                         subject: "SPLICE.getState.response",
-                        message_id,
-                        ...second,
+                        ...(omitMessageId ? {} : { message_id }),
+                        ...reply,
                     },
                     "*",
                 );
+            send(first);
+            setTimeout(() => {
+                send(second);
                 secondAnswer.sent = true;
             }, SECOND_ANSWER_DELAY);
         };
@@ -191,6 +193,38 @@ describe("DoenetViewer SPLICE.getState with more than one answerer", () => {
             afterSecondAnswer(secondAnswer);
 
             cy.contains("no state for this activity").should("not.exist");
+            cy.get(TEXT_INPUT).should("have.value", "round two");
+        });
+    });
+
+    it("clears an earlier answerer's error once a later answer restores the document", function () {
+        // The reverse order. A protocol error carries no `message_id`, so it
+        // never answers the request — it only puts the failure on screen,
+        // leaving the request open for someone who does have state. When that
+        // answer arrives the restored document has to replace the error
+        // screen; the error is not this document's outcome, it was one
+        // listener's.
+        answerGetStateTwice(
+            {
+                error: { code: 500, message: "storage unavailable" },
+                omitMessageId: true,
+            },
+            { state: this.freshState },
+        ).then((secondAnswer) => {
+            cy.mount(
+                <DoenetViewer
+                    doenetML={DOC}
+                    addVirtualKeyboard={false}
+                    flags={{ allowLoadState: true }}
+                />,
+            );
+
+            afterSecondAnswer(secondAnswer);
+
+            cy.contains("storage unavailable").should("not.exist");
+            cy.contains("You typed: round two", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
             cy.get(TEXT_INPUT).should("have.value", "round two");
         });
     });
