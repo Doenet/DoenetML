@@ -29,7 +29,11 @@ A second copy of the bundle loaded on the same page now stays fully inert
 instead of taking over the render globals: its worker-URL write and its
 `window.renderDoenet*ToContainer` / palette globals both defer to the first
 copy's, so every document pairs one release's UI with that same release's
-worker.
+worker. When two copies load concurrently, render calls a host queued against
+one copy's `onload` stubs replay through the first copy that finishes
+loading — never stranded, even if the copy that installed the stubs fails to
+finish loading — and editor handles captured from a stub keep working after
+that hand-off.
 Duplicate copies of the component schema are eliminated
 (five down to two, none of them eagerly loaded). Hosts that evaluate the bundle from a Blob or `srcdoc` URL, where
 relative chunk imports cannot resolve, can use the new single-file

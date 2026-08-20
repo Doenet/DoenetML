@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- Starts TWO imports of the CODE-SPLIT standalone bundle concurrently —
+     query-distinguished facades, neither awaited before the other begins —
+     and queues a render call against the prologue's stubs before any eager
+     chunk settles. The first facade to evaluate installs the queueing stubs
+     (installFacadeRenderQueue in @doenet/standalone); the other leaves them
+     alone. Both facades await the same eager-chunk URL (relative resolution
+     drops the facade's query), so the module cache shares one chunk between
+     them: when it settles, the entry's installFirstCopyGlobal replaces the
+     stubs and drains the queued call through the real function it just
+     installed. The probe records that the call really went through a pending
+     stub, that the stub was replaced, and that the call replayed exactly
+     once (the stub-owning facade's own flush finds the queue already empty).
+     Asserted by e2e/standalone/twoCopiesConcurrent.cy.js. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script type="module">
+            // Neither import is awaited before the other starts.
+            const p1 = import("/standalone/doenet-standalone.js?copy=1");
+            const p2 = import("/standalone/doenet-standalone.js?copy=2");
+
+            // Wait for a facade prologue to install its stub — the facades
+            // are small, so this resolves long before the multi-megabyte
+            // eager chunk settles.
+            const stubbed = await new Promise((resolve) => {
+                (function poll() {
+                    const fn = window.renderDoenetViewerToContainer;
+                    if (typeof fn === "function") {
+                        resolve(fn);
+                    } else {
+                        setTimeout(poll, 0);
+                    }
+                })();
+            });
+
+            // Count how many times the queued render call actually executes:
+            // with no source argument, each execution of the real
+            // renderDoenetViewerToContainer reads the container's
+            // <script type="text/doenetml"> child through querySelector with
+            // exactly this selector.
+            const container = document.querySelector(".doenetml-applet");
+            let sourceReads = 0;
+            const originalQuerySelector =
+                container.querySelector.bind(container);
+            container.querySelector = (selector) => {
+                if (selector === 'script[type="text/doenetml"]') {
+                    sourceReads += 1;
+                }
+                return originalQuerySelector(selector);
+            };
+
+            const calledThroughStub =
+                stubbed.__doenetPendingRenderStub === true;
+            window.renderDoenetViewerToContainer(container);
+
+            await Promise.all([p1, p2]);
+            // Both facades have finished evaluating: the shared chunk's
+            // entry replaced the stub (draining the queue), and both flushes
+            // have run.
+            window.__twoCopyConcurrentProbe = {
+                // Guards the queueing path against vacuity: the render call
+                // above must have landed on a pending stub, before any chunk
+                // settled.
+                calledThroughStub,
+                stubReplaced:
+                    window.renderDoenetViewerToContainer
+                        .__doenetPendingRenderStub !== true,
+                // Exactly one replay: the drain-on-replacement delivered the
+                // call and the stub owner's flush found an empty queue.
+                renderedExactlyOnce: sourceReads === 1,
+            };
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>Concurrent copies loaded: <textInput name="ti" /></p>
+<p>Typed: $ti.value</p>
+            </script>
+        </div>
+    </body>
+</html>
