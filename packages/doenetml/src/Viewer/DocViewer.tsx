@@ -859,6 +859,25 @@ export function DocViewer({
             if (e.data.subject === "SPLICE.getState.response") {
                 if (messageIdFromGetState.current === e.data.message_id) {
                     if (e.data.state && e.data.state.cid === cid.current) {
+                        // One request, one answer. A page can hold more than
+                        // one listener willing to answer: under the standalone
+                        // coordinator, the in-page warehouse answers a
+                        // restored activity, while a persistence host
+                        // (Runestone, a SCORM package) answers the same
+                        // request out of durable storage. Both used to be
+                        // processed, so the document was rebuilt from
+                        // whichever answer happened to land LAST — and the
+                        // durable one, arriving later, could carry older work
+                        // than the reader had just done. Consume the request
+                        // here so the first usable answer is the one that
+                        // counts; the coordinator's is both first and the
+                        // fresher of the two within a page load.
+                        //
+                        // Only a usable answer consumes it: an answer with no
+                        // state (a host with nothing saved for this activity)
+                        // must not shut out a better one still to come.
+                        messageIdFromGetState.current = null;
+
                         // Reset error messages, core.
                         // Then process loaded state and initialize
 
