@@ -54,7 +54,7 @@ import { translateJsCoreActionName } from "./jsCoreActionNames";
 // so the browser's machine-code cache — keyed by URL for streaming
 // compilation — lets every worker, iframe, and repeat page view on a host
 // share one compilation instead of each decoding and compiling its own
-// ~4 MB copy. Which source is used depends on how this worker was started;
+// ~6.5 MB copy. Which source is used depends on how this worker was started;
 // the first available step of this ladder wins:
 //
 // 1. `self.__doenetWorkerWasmUrl` — set (before this script runs) by
