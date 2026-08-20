@@ -43,9 +43,11 @@ export const doenetGlobalConfig: {
     /**
      * Maximum number of times `DocViewer` will retry the core-worker
      * *handshake* before giving up and surfacing an error. Each handshake
-     * that fails to complete within `coreHandshakeWatchdogMs` is abandoned
-     * and retried with a fresh worker. Falls back to a built-in default when
-     * unset.
+     * that fails to complete within its per-attempt watchdog budget (see
+     * `coreHandshakeWatchdogMs`) is abandoned and retried with a fresh
+     * worker, after an exponential backoff with jitter (#1711) so a page of
+     * documents that timed out together does not retry in lockstep. Falls
+     * back to a built-in default when unset.
      */
     coreBootMaxAttempts?: number;
     /**
@@ -61,7 +63,16 @@ export const doenetGlobalConfig: {
      * (seconds to minutes on complex documents). Time-boxing that phase would
      * make large documents unloadable, so once the handshake completes — the
      * worker having proven it is alive — the evaluation runs to completion
-     * however long it takes. Falls back to a built-in default when unset.
+     * however long it takes.
+     *
+     * When unset, each attempt's budget is sized to the contention the
+     * handshake actually faces (#1711): a built-in base, widened with the
+     * page-wide count of concurrent handshakes per core and capped — see
+     * `handshakeWatchdogMsFor` in `Viewer/coreWorkerBoot.ts`. Setting this is
+     * a statement about the deployment — one using `fetchExternalDoenetML`,
+     * say, whose handshake is slow for reasons contention cannot explain —
+     * so an explicit value wins outright: it is used as-is for every attempt,
+     * never scaled.
      */
     coreHandshakeWatchdogMs?: number;
     /**

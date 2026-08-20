@@ -69,6 +69,7 @@ export type MessageKey =
     | "something-went-wrong"
     | "renderer-load-failed"
     | "core-start-failed"
+    | "core-start-failed-busy"
     | "color.black"
     | "color.white"
     | "color.gray"
@@ -639,6 +640,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "something-went-wrong",
     "renderer-load-failed",
     "core-start-failed",
+    "core-start-failed-busy",
     "color.black",
     "color.white",
     "color.gray",
