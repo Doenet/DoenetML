@@ -1,6 +1,9 @@
 import React, { Suspense } from "react";
 import type { EditorViewer } from "./EditorViewer";
-import { importRendererWithRetry } from "../Viewer/renderersLoadComponent";
+import {
+    ChunkLoadErrorBoundary,
+    importRendererWithRetry,
+} from "../Viewer/renderersLoadComponent";
 
 type EditorViewerProps = React.ComponentPropsWithoutRef<typeof EditorViewer>;
 type EditorViewerHandle = React.ComponentRef<typeof EditorViewer>;
@@ -17,7 +20,11 @@ type EditorViewerHandle = React.ComponentRef<typeof EditorViewer>;
  * `doenetml.tsx`, and the `<codeEditor>` renderer.
  *
  * The chunk fetch is wrapped in the same transient-failure retry the viewer
- * renderer chunks use (see `renderersLoadComponent.tsx`).
+ * renderer chunks use, and a fetch that still fails after the retries renders
+ * the same `RendererLoadFailed` placeholder they substitute (see
+ * `renderersLoadComponent.tsx`) — without a boundary here, React would
+ * instead unwind to whatever boundary surrounds the editor: none at all under
+ * `DoenetEditor`, the whole-document one under a `<codeEditor>`.
  */
 const LazyInner = React.lazy(async () => {
     const module = await importRendererWithRetry(
@@ -39,8 +46,10 @@ export const EditorViewerLazy = React.forwardRef<
     EditorViewerProps
 >(function EditorViewerLazy(props, ref) {
     return (
-        <Suspense fallback={null}>
-            <LazyInner ref={ref} {...props} />
-        </Suspense>
+        <ChunkLoadErrorBoundary>
+            <Suspense fallback={null}>
+                <LazyInner ref={ref} {...props} />
+            </Suspense>
+        </ChunkLoadErrorBoundary>
     );
 });

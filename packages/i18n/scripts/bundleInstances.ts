@@ -177,7 +177,7 @@ export function instanceProblems(scanned: ScannedScript[]): string[] {
             file === SINGLE_INSTANCE_SCRIPT ||
             file.startsWith(SINGLE_INSTANCE_CHUNKS_PREFIX),
     );
-    const entryBuilt = scanned.some(
+    const entryBuilt = graph.some(
         ({ file }) => file === SINGLE_INSTANCE_SCRIPT,
     );
     if (entryBuilt) {

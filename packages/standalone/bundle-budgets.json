@@ -21,12 +21,12 @@
         },
         "dist/chunks/index-*.js": {
             "maxBytes": 5050000,
-            "observedBytes": 4686606,
+            "observedBytes": 4687046,
             "note": "The eagerly-parsed payload every embed pays (the facade's static import). The editor stack, the worker, and the lazy renderers must stay out of it. The glob also catches a few small shared chunks named index-*."
         },
         "dist/doenet-standalone-inline.js": {
             "maxBytes": 12450000,
-            "observedBytes": 11539981,
+            "observedBytes": 11540431,
             "note": "The single-file variant for Blob/srcdoc hosts: every chunk inlined. Doubles as the total-weight ceiling for the code-split build."
         },
         "dist/doenetml-worker/index.js": {

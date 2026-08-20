@@ -1,6 +1,7 @@
 /*
- * This file is for running a dev test of the codemirror component.
- * It does not show up in the bundled package.
+ * The entry module for the standalone bundles: the code-split
+ * `doenet-standalone.js` and the single-file `doenet-standalone-inline.js`
+ * are both built from this file (vite.config.ts / vite.config-inline.ts).
  */
 
 import React from "react";
