@@ -7,7 +7,7 @@ import { CodeMirror } from "../../../src/CodeMirror";
 import coreWorkerSource from "@doenet/doenetml-worker/index.js?raw";
 // The worker locates its WASM at run time; a blob-URL worker cannot, so
 // supply it up front via `self.__doenetWorkerWasmUrl` (see the loading
-// ladder in @doenet/doenetml-worker's CoreWorker.ts). Fetched ONCE here and
+// ladder in @doenet/doenetml-worker's src/wasmLoading.ts). Fetched ONCE here and
 // re-shared as a blob: URL: this spec boots a fresh core sub-worker per
 // mounted document, and having every one of those pull its own multi-MB
 // copy from the component dev server makes the later tests miss their

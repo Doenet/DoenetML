@@ -68,7 +68,7 @@ function resolveWorkerUrl(standaloneUrl: string): string | null {
  * As there, the bootstrap records the real script URL in
  * `self.__doenetWorkerScriptUrl`: the worker fetches its WASM from beside its
  * own script (see the loading ladder in @doenet/doenetml-worker's
- * CoreWorker.ts), and a worker booted from a blob URL has only the blob to
+ * src/wasmLoading.ts), and a worker booted from a blob URL has only the blob to
  * resolve against.
  */
 function workerCreationUrl(workerUrl: string): string {

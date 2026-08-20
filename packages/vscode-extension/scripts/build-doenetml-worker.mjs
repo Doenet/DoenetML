@@ -4,7 +4,7 @@
  *
  * The built worker in `@doenet/doenetml-worker` no longer carries its WASM —
  * it locates it at run time (see the loading ladder in that package's
- * `CoreWorker.ts`). The extension's copy must work with no network access at
+ * `src/wasmLoading.ts`). The extension's copy must work with no network access at
  * all: the LSP boots it from a blob URL inside VS Code's web extension host,
  * where fetching is blocked. So this script bakes the WASM back in, as a
  * `data:` URL assigned to `self.__doenetWorkerWasmUrl` ahead of the worker

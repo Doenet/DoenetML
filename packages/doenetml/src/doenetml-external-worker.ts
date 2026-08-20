@@ -75,7 +75,7 @@ export function setExternalCoreWorkerUrl(workerUrl: string) {
     // The bootstrap also records the real script URL in
     // `self.__doenetWorkerScriptUrl`: the worker fetches its WASM from beside
     // its own script (see the loading ladder in @doenet/doenetml-worker's
-    // CoreWorker.ts), and a worker booted from this blob URL has only the
+    // src/wasmLoading.ts), and a worker booted from this blob URL has only the
     // blob to resolve against.
     const bootstrapUrl = isSameOrigin(workerUrl)
         ? null

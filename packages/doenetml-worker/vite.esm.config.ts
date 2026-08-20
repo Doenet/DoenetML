@@ -6,7 +6,7 @@ import { version as standaloneVersion } from "../standalone/package.json";
 // This is required for type: "module" web workers (e.g. Deno) as opposed to
 // the IIFE build (index.js) used by classic workers. Like that build, this
 // one does not carry the WASM: the worker locates it at run time (see the
-// loading ladder in `src/CoreWorker.ts`), and a consumer that boots this file
+// loading ladder in `src/wasmLoading.ts`), and a consumer that boots this file
 // from a blob URL supplies it via `self.__doenetWorkerWasmUrl`.
 //
 // The entry is src/CoreWorker.ts rather than src/index.ts so that Rollup

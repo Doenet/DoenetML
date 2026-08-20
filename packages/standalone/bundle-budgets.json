@@ -19,7 +19,7 @@
         },
         "dist/doenetml-worker/index.js": {
             "maxBytes": 6730000,
-            "observedBytes": 6264020,
+            "observedBytes": 6264176,
             "note": "Carries no inlined binary: the Rust core is served as the sibling lib_doenetml_worker_bg.wasm, which the worker fetches at run time."
         }
     }

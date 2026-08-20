@@ -37,7 +37,7 @@ export default defineConfig({
                     // as its own URL so the browser's machine-code cache
                     // shares one compilation across workers, iframes, and
                     // page views; see the loading ladder in the worker's
-                    // CoreWorker.ts). The rest of the worker `dist/` (the
+                    // src/wasmLoading.ts). The rest of the worker `dist/` (the
                     // `.esm.js` build variant and the `.d.ts` declarations)
                     // is runtime-dead and would only bloat the published
                     // bundle, working against the very memory/size reduction

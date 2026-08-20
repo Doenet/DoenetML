@@ -5,7 +5,7 @@ import workerSource from "@doenet/doenetml-worker/index.esm.js?raw";
 // The worker locates its WASM at run time, but a worker booted from a blob
 // URL has no URL to locate anything against — so this single-file entry
 // supplies it up front via `self.__doenetWorkerWasmUrl` (see the loading
-// ladder in @doenet/doenetml-worker's CoreWorker.ts). In the library build
+// ladder in @doenet/doenetml-worker's src/wasmLoading.ts). In the library build
 // Vite inlines the asset as a `data:` URL; on a dev server it is the served
 // asset URL, which the worker fetches same-origin.
 // @ts-ignore

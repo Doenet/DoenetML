@@ -19,7 +19,7 @@ export default defineConfig({
                     // beside `index.js` rather than inlined into it (#1438),
                     // so the browser's URL-keyed machine-code cache shares
                     // one compilation across workers, iframes, and page
-                    // views. See the loading ladder in `src/CoreWorker.ts`.
+                    // views. See the loading ladder in `src/wasmLoading.ts`.
                     src: "../doenetml-worker-rust/lib-js-wasm-binding/pkg/lib_doenetml_worker_bg.wasm*",
                     dest: "./",
                 },
@@ -31,7 +31,7 @@ export default defineConfig({
         // The worker's last-resort WASM URL names the @doenet/standalone
         // release it was built as — that package carries the deployed copy of
         // the worker directory, and the published packages version together.
-        // See the loading ladder in `src/CoreWorker.ts`.
+        // See the loading ladder in `src/wasmLoading.ts`.
         __DOENET_STANDALONE_VERSION__: JSON.stringify(standaloneVersion),
         // The worker is one file — an IIFE started from a blob URL in some
         // variants — so it can neither code-split nor fetch. It never needs

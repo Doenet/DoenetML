@@ -3,7 +3,7 @@ import { doenetGlobalConfig } from "./global-config";
 // @ts-ignore
 import workerSource from "@doenet/doenetml-worker/index.js?raw";
 // The worker locates its WASM at run time (see the loading ladder in
-// @doenet/doenetml-worker's CoreWorker.ts), but a worker booted from a blob
+// @doenet/doenetml-worker's src/wasmLoading.ts), but a worker booted from a blob
 // URL has no URL to locate anything against — so this single-file entry
 // supplies the WASM up front via `self.__doenetWorkerWasmUrl`. In the library
 // build Vite inlines the asset as a `data:` URL, which the worker decodes to
