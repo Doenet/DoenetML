@@ -15,7 +15,8 @@
  *    the WASM in as a `data:` URL, which is decoded to bytes here and handed
  *    straight to wasm-bindgen. Fetching data:/blob: URLs is blocked in VS
  *    Code's web extension host (#1375), so a `data:` URL is never fetched.
- *    Dev servers set it to a served asset URL instead, which is fetched.
+ *    Any other value is treated as a URL and fetched (the codemirror
+ *    component specs pass a pre-fetched `blob:` URL this way).
  * 2. The file beside `self.__doenetWorkerScriptUrl` — set by the same-origin
  *    bootstrap blobs that `importScripts()` a cross-origin worker
  *    (@doenet/doenetml's external-worker entry, @doenet/doenetml-iframe's
