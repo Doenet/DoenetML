@@ -18,9 +18,9 @@
             "note": "No WebAssembly belongs in this bundle; the worker owns it."
         },
         "dist/doenetml-worker/index.js": {
-            "maxBytes": 15950000,
-            "observedBytes": 14889393,
-            "note": "Carries the Rust core as a single inlined base64 wasm blob (~8.3 MiB)."
+            "maxBytes": 6730000,
+            "observedBytes": 6264020,
+            "note": "Carries no inlined binary: the Rust core is served as the sibling lib_doenetml_worker_bg.wasm, which the worker fetches at run time."
         }
     }
 }
