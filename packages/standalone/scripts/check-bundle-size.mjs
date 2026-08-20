@@ -552,13 +552,14 @@ export function findProblems(budgets, scripts) {
             problems.push(blobPlacementProblem(relative, emitted, expected));
         }
     }
-    // Catalogs this bundle is supposed to serve, not carry. Being one file, it
-    // cannot code-split them the way the library build does, so it switches
-    // `__DOENET_CODE_SPLIT_CATALOGS__` off and fetches `dist/locales/` at
-    // runtime instead. Anything that makes the glob reachable again — a define
-    // that stops being applied, a new eager import of a catalog — puts every
-    // translation back in here, and the size budget alone would absorb it for
-    // a long time.
+    // Catalogs these bundles are supposed to serve, not carry. The build keeps
+    // them as plain runtime-fetched files in `dist/locales/` — version-pinnable
+    // there, and out of the single-file inline variant — by switching
+    // `__DOENET_CODE_SPLIT_CATALOGS__` off instead of code-splitting them the
+    // way the library build does. Anything that makes the glob reachable again
+    // — a define that stops being applied, a new eager import of a catalog —
+    // puts every translation back in here, and the size budget alone would
+    // absorb it for a long time.
     for (const [relative, emitted] of scripts) {
         const leaked = emitted.inlinedCatalogs;
         if (leaked.length > 0) {

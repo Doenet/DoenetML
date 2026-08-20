@@ -1587,12 +1587,16 @@ rather than cosmetic:
 | `@doenet/doenetml-worker` | Neither: it is handed `LocaleData.resources`           |
 | `@doenet/doenetml-iframe` | Neither: what renders inside its iframe is a standalone bundle, which loads its own |
 
-The glob is what makes adding a language cost a directory. It is also why the
-two single-file builds need a different answer: `inlineDynamicImports` folds
-every dynamic import back into the one output file, so code-splitting cannot
-keep catalogs out of them — and *being reachable is enough*, whether or not
-anything calls it. Both therefore define `__DOENET_CODE_SPLIT_CATALOGS__`
-false, which makes the glob dead code. The standalone build then copies
+The glob is what makes adding a language cost a directory. It is also why two
+builds need a different answer. The worker is one file — an IIFE started from
+a blob URL in some variants — so it cannot code-split, and *being reachable is
+enough*, whether or not anything calls it, to fold every catalog in. The
+standalone build is code-split, but serves its catalogs as plain
+runtime-fetched files all the same: as served assets they can be
+version-pinned, and the single-file `doenet-standalone-inline.js` variant
+published beside it stays free of them too. Both therefore define
+`__DOENET_CODE_SPLIT_CATALOGS__` false, which makes the glob dead code. The
+standalone build then copies
 `locales/` into `dist/` (`copyLocaleCatalogsPlugin`) and installs
 `fetchLocaleLoaders` against it in `src/index.tsx`; the worker needs no
 replacement at all, because the main thread loads its catalog and passes it
@@ -1609,8 +1613,10 @@ on an instance the viewer never reads, sees an empty registry, and falls back to
 English in silence. Every built `packages/*/dist/` is scanned, not only the
 bundle that has been bitten, because any build combining a prebuilt `@doenet/doenetml`
 with a source build of this package can hit it — counted per emitted script,
-since a script is what shares a module registry, and a package that emits both a
-bundle and a worker holds a copy in each quite correctly.
+since a script is what shares a module registry: a package that emits both a
+bundle and a worker holds a copy in each quite correctly, while the code-split
+standalone bundle is judged over its entry and `chunks/` together, because
+those load into one registry.
 
 Two lists have to agree for any of this to hold, and `lint:i18n` checks that
 they do: the locales excluded from the glob in `load.ts` are exactly
