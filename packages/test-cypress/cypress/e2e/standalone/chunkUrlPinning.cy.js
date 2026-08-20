@@ -5,7 +5,8 @@
 // public/pinned-cdn-page.html loads `doenet-standalone.js` from a
 // jsDelivr-style floating-tag URL. The serving side (standaloneCdnPathsPlugin
 // in vite.config.ts) answers floating-specifier requests for the entry ONLY:
-// chunks, the worker — everything the entry goes on to load — exist solely
+// chunks, the worker, the core `.wasm` the worker fetches from beside its own
+// script — everything the entry goes on to load — exist solely
 // under the exact-version path, exactly like a CDN edge that already resolves
 // the floating tag to a newer release than the cached entry came from. So the
 // two assertions back each other up: the document can only render if every
@@ -32,7 +33,8 @@ describe(
             // The document renders: the eager chunk and the lazy renderer
             // chunks all loaded even though only the entry exists under the
             // floating tag. (Interaction, not just static text, so the core
-            // worker — resolved through the same pinned root — is proven too.)
+            // worker and its `.wasm` — both resolved through the same pinned
+            // root — are proven too.)
             cy.get(".doenetml-applet input").first().type("pinned{enter}");
             cy.get(".doenetml-applet").should("contain.text", "Typed: pinned");
 
@@ -48,6 +50,16 @@ describe(
                     (p) =>
                         EXACT_VERSION_PATH.test(p) &&
                         p.endsWith("/doenetml-worker/index.js"),
+                );
+                // The core `.wasm` is fetched from inside the worker, beside
+                // the worker's own (pinned) script URL — see the loading
+                // ladder in @doenet/doenetml-worker's src/wasmLoading.ts.
+                const pinnedWasm = requested.filter(
+                    (p) =>
+                        EXACT_VERSION_PATH.test(p) &&
+                        p.endsWith(
+                            "/doenetml-worker/lib_doenetml_worker_bg.wasm",
+                        ),
                 );
                 // The floating tag served the entry and nothing else.
                 expect(
@@ -66,6 +78,7 @@ describe(
                     `pinned chunk requests (${JSON.stringify(requested)})`,
                 ).to.be.gte(2);
                 expect(pinnedWorker.length, "pinned worker requests").to.eq(1);
+                expect(pinnedWasm.length, "pinned core wasm requests").to.eq(1);
             });
         });
     },
