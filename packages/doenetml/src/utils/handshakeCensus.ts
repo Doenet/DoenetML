@@ -100,26 +100,38 @@ export function joinHandshakeCensus(): Promise<{ release: () => void }> {
             }
             resolve(handle);
         }
-        locks
-            .request(HANDSHAKE_CENSUS_LOCK, { mode: "shared" }, () => {
-                if (released) {
-                    return Promise.resolve();
-                }
-                return new Promise<void>((release) => {
-                    settle({
-                        release: () => {
-                            released = true;
-                            release();
-                        },
+        try {
+            locks
+                .request(HANDSHAKE_CENSUS_LOCK, { mode: "shared" }, () => {
+                    if (released) {
+                        return Promise.resolve();
+                    }
+                    return new Promise<void>((release) => {
+                        settle({
+                            release: () => {
+                                released = true;
+                                release();
+                            },
+                        });
                     });
+                })
+                .catch(() => {
+                    // Counting is best-effort: a census we cannot join just
+                    // means this realm's handshake is invisible to its
+                    // siblings, which degrades the watchdog to its fixed
+                    // base.
+                    settle(NO_CENSUS_SEAT);
                 });
-            })
-            .catch(() => {
-                // Counting is best-effort: a census we cannot join just means
-                // this realm's handshake is invisible to its siblings, which
-                // degrades the watchdog to its fixed base.
-                settle(NO_CENSUS_SEAT);
-            });
+        } catch {
+            // A lock manager can also fail synchronously (a restricted
+            // embedding's SecurityError, say), and a throw inside this
+            // promise's executor would reject the join. The join never
+            // rejects — its callers attach handlers late, and a census that
+            // cannot be joined reads as "no visible contention" — so a
+            // synchronous failure settles the same way an asynchronous one
+            // does.
+            settle(NO_CENSUS_SEAT);
+        }
         if (!settled) {
             // Shared locks are granted immediately in practice; this guards
             // the pathological case rather than any expected one. Marking it

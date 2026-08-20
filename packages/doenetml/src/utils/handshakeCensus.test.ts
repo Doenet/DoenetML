@@ -79,4 +79,19 @@ describe("handshake census (#1711)", () => {
         });
         expect(await countConcurrentHandshakes()).toBe(1);
     });
+
+    it("joins as the no-op seat when the lock request throws", async () => {
+        // A synchronous throw, distinct from the rejected promise above: the
+        // join must resolve to the no-op seat either way, never reject —
+        // callers attach their handlers after the boot is already underway.
+        installLocks({
+            request: () => {
+                throw new Error("locks unavailable in this context");
+            },
+        });
+
+        const seat = await joinHandshakeCensus();
+        expect(seat).toBeDefined();
+        seat.release();
+    });
 });
