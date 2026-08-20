@@ -23,7 +23,9 @@ URL as before. The `onload` contract of PreTeXt-style pages is preserved:
 exist at `load` (queueing until the bundle finishes evaluating), and
 `window.doenetGlobalConfig` values a host sets at `load` are honored —
 `@doenet/doenetml` now adopts a host-created config object instead of
-replacing it. Duplicate copies of the component schema are eliminated
+replacing it, and a host-chosen `doenetWorkerUrl` stays in force (the
+bundle's own worker-URL resolution and version pinning defer to it).
+Duplicate copies of the component schema are eliminated
 (five down to two, none of them eagerly loaded). Hosts that evaluate the bundle from a Blob or `srcdoc` URL, where
 relative chunk imports cannot resolve, can use the new single-file
 `doenet-standalone-inline.js` published beside it. The `CodeMirror` component

@@ -98,6 +98,33 @@ describe("installFacadeRenderQueue", () => {
         expect(real).toHaveBeenCalledTimes(1);
     });
 
+    it("replays the rest of the queue when one queued call throws, rethrowing asynchronously", () => {
+        vi.useFakeTimers();
+        try {
+            const w: Globals = {};
+            const flush = installFacadeRenderQueue(w);
+            w.renderDoenetViewerToContainer!("bad");
+            w.renderDoenetViewerToContainer!("good");
+            const rendered: unknown[] = [];
+            w.renderDoenetViewerToContainer = (...args: unknown[]) => {
+                if (args[0] === "bad") {
+                    throw new Error("no container");
+                }
+                rendered.push(args[0]);
+            };
+            // The flush itself must not throw (it runs inside the facade's
+            // module evaluation), and the throwing call must not take the
+            // queued calls after it down with it.
+            expect(() => flush()).not.toThrow();
+            expect(rendered).toEqual(["good"]);
+            // The error still surfaces as an uncaught (async) error, as it
+            // would have from the host's own onload handler.
+            expect(() => vi.runAllTimers()).toThrow("no container");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("pre-creates doenetGlobalConfig so onload-time writes have a target", () => {
         const w: Globals & { doenetGlobalConfig?: object } = {};
         installFacadeRenderQueue(w);

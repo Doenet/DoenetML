@@ -356,8 +356,9 @@ function renderWithLastAugmentedProps() {
  * creation stays synchronous here. `destroy` notifies the parent to release
  * the core (forwarding wedge suspicion for host quarantine).
  *
- * Must run after the standalone bundle has evaluated — the bundle replaces
- * `window.doenetGlobalConfig` — and before anything renders a viewer.
+ * Must run after the standalone bundle has evaluated — so that
+ * `window.doenetGlobalConfig` exists (the bundle creates or adopts it) —
+ * and before anything renders a viewer.
  */
 function installSharedCorePortProvider() {
     let coreCounter = 0;

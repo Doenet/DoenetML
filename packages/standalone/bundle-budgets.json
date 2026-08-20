@@ -16,17 +16,17 @@
     "files": {
         "dist/doenet-standalone.js": {
             "maxBytes": 50000,
-            "observedBytes": 2003,
+            "observedBytes": 2075,
             "note": "A re-export facade: its one import is the chunks/index-*.js below, awaited through the version-pinning resolver, plus the render-global queueing stubs (scripts/pin-chunk-urls-plugin.ts). Megabytes here mean code splitting got switched off."
         },
         "dist/chunks/index-*.js": {
             "maxBytes": 5050000,
-            "observedBytes": 4689377,
+            "observedBytes": 4689685,
             "note": "The eagerly-parsed payload every embed pays (the facade's static import). The editor stack, the worker, and the lazy renderers must stay out of it. The glob also catches a few small shared chunks named index-*."
         },
         "dist/doenet-standalone-inline.js": {
             "maxBytes": 12450000,
-            "observedBytes": 11540431,
+            "observedBytes": 11540718,
             "note": "The single-file variant for Blob/srcdoc hosts: every chunk inlined. Doubles as the total-weight ceiling for the code-split build."
         },
         "dist/doenetml-worker/index.js": {

@@ -92,7 +92,24 @@ export const doenetGlobalConfig: {
         attempt: number,
     ) => void | Promise<void>;
 } = adoptExistingGlobalConfig();
-if (typeof doenetGlobalConfig.doenetWorkerUrl !== "string") {
+
+/**
+ * Whether the adopted config already carried a `doenetWorkerUrl` when this
+ * module evaluated — i.e. the host chose the worker URL itself, before or
+ * while the bundle loaded (with the code-split `@doenet/standalone` bundle,
+ * a script `onload` handler runs before this module does; see
+ * `adoptExistingGlobalConfig`).
+ *
+ * The module-evaluation-time worker resolution defers to that choice: the
+ * externalized-worker entry (`doenetml-external-worker.ts`) and the
+ * version-pinning re-point in `@doenet/standalone`'s entry both skip their
+ * writes when this is set, so an explicit host URL survives bundle
+ * evaluation just as it does when the host writes it after the bundle has
+ * evaluated.
+ */
+export const hostProvidedWorkerUrl: boolean =
+    typeof doenetGlobalConfig.doenetWorkerUrl === "string";
+if (!hostProvidedWorkerUrl) {
     doenetGlobalConfig.doenetWorkerUrl = getWorkerUrl();
 }
 // We want this to be available in the global scope

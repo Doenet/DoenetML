@@ -25,6 +25,7 @@ import {
     fetchLocaleLoaders,
     setLocaleLoaders,
     setExternalCoreWorkerUrl,
+    hostProvidedWorkerUrl,
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
@@ -162,7 +163,13 @@ if (localeCatalogsBase) {
 // Skipped where no root resolved (a Blob URL): the entry's own fallbacks for
 // bases nothing can be resolved against — the page origin's
 // `/doenetml-worker/index.js` — are then already the right answer.
-if (pinnedBundleRootUrl !== null) {
+//
+// Also skipped when the host chose the worker URL itself
+// (`hostProvidedWorkerUrl`): a `doenetGlobalConfig.doenetWorkerUrl` written
+// before this chunk evaluated — which, in the code-split build, includes a
+// script `onload` handler, since `load` fires while the facade awaits this
+// chunk — is an explicit deployment choice the pin must not override.
+if (!hostProvidedWorkerUrl && pinnedBundleRootUrl !== null) {
     try {
         setExternalCoreWorkerUrl(
             new URL(WORKER_BESIDE_BUNDLE, pinnedBundleRootUrl).href,

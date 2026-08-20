@@ -110,7 +110,7 @@ const FACADE_STATEMENTS: {
             if (m[1]) {
                 bindings.push(`default: ${m[1]}`);
             }
-            bindings.push(...parseBindingList(m[2] ?? "", ":"));
+            bindings.push(...parseBindingList(m[2] ?? ""));
             return `const { ${bindings.join(", ")} } = await import(${PIN_HELPER_NAME}(${quoted(m[4])}));`;
         },
     },
@@ -177,7 +177,7 @@ function splitBindingList(list: string): string[] {
  * (`a: b, c`). String-literal binding names would need different handling and
  * do not occur in this build's facade, so they fail the strict match below.
  */
-function parseBindingList(list: string, separator: ":"): string[] {
+function parseBindingList(list: string): string[] {
     return splitBindingList(list).map((entry) => {
         const m = /^([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/.exec(
             entry,
@@ -188,7 +188,7 @@ function parseBindingList(list: string, separator: ":"): string[] {
                     `in the facade; revisit scripts/pin-chunk-urls-plugin.ts.`,
             );
         }
-        return m[2] ? `${m[1]}${separator} ${m[2]}` : m[1];
+        return m[2] ? `${m[1]}: ${m[2]}` : m[1];
     });
 }
 

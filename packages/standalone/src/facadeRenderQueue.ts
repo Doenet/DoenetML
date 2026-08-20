@@ -134,6 +134,23 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
         w.doenetGlobalConfig = {};
     }
 
+    // Replay one queued call with the same error visibility it would have had
+    // pre-queueing, when the host's `onload` handler called the real function
+    // directly: a throw surfaces as an uncaught error (`window.onerror`,
+    // console). Catching it here keeps one bad call — a null container, say —
+    // from skipping every call queued after it, and keeps the flush from
+    // throwing inside the facade's module evaluation, which would fail the
+    // module for `import` consumers even though the render globals are fine.
+    function replay(call: () => void): void {
+        try {
+            call();
+        } catch (e) {
+            setTimeout(() => {
+                throw e;
+            });
+        }
+    }
+
     return function flush(): void {
         const realViewer = w.renderDoenetViewerToContainer;
         if (
@@ -142,7 +159,7 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
             realViewer !== (viewerStub as unknown)
         ) {
             for (const { args } of viewerQueue.splice(0)) {
-                realViewer(...args);
+                replay(() => realViewer(...args));
             }
         }
         const realEditor = w.renderDoenetEditorToContainer;
@@ -152,17 +169,19 @@ export function installFacadeRenderQueue(w: RenderGlobals): () => void {
             realEditor !== (editorStub as unknown)
         ) {
             for (const call of editorQueue.splice(0)) {
-                const handle = realEditor(...call.args) as Record<
-                    string,
-                    (...a: unknown[]) => unknown
-                > | null;
-                if (!handle) {
-                    continue;
-                }
-                call.realHandle = handle;
-                for (const { method, args } of call.methodCalls.splice(0)) {
-                    handle[method](...args);
-                }
+                replay(() => {
+                    const handle = realEditor(...call.args) as Record<
+                        string,
+                        (...a: unknown[]) => unknown
+                    > | null;
+                    if (!handle) {
+                        return;
+                    }
+                    call.realHandle = handle;
+                    for (const { method, args } of call.methodCalls.splice(0)) {
+                        handle[method](...args);
+                    }
+                });
             }
         }
     };
