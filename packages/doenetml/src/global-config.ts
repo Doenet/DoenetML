@@ -106,6 +106,12 @@ export const doenetGlobalConfig: {
  * writes when this is set, so an explicit host URL survives bundle
  * evaluation just as it does when the host writes it after the bundle has
  * evaluated.
+ *
+ * A URL an earlier-evaluated copy of the bundle resolved counts the same
+ * way: a second copy on the page adopts the shared config, sees that URL
+ * here, and defers to it — pairing every document with the first copy's
+ * worker, the same first-copy-wins convention the render globals follow
+ * (`installFacadeRenderQueue` in `@doenet/standalone`).
  */
 export const hostProvidedWorkerUrl: boolean =
     typeof doenetGlobalConfig.doenetWorkerUrl === "string";
