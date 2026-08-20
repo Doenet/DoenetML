@@ -127,7 +127,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" color="currentColor" label-location="0.95" alignment="s">A</line></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -1083,7 +1083,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates><annotations></annotations></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#1f5dff" thickness="4" fill="#1f5dff" fill-opacity="0.3" stroke-opacity="0.7" /><label p="(2.85,2.85)" alignment="north" color="currentColor">V</label></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -1106,10 +1106,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(
-            `<label p="(2.85,2.85)" alignment="north">UR</label>`,
+            `<label p="(2.85,2.85)" alignment="north" color="currentColor">UR</label>`,
         );
         expect(prefigureXML).toContain(
-            `<label p="(0.15,0.15)" alignment="north">LL</label>`,
+            `<label p="(0.15,0.15)" alignment="north" color="currentColor">LL</label>`,
         );
     });
 

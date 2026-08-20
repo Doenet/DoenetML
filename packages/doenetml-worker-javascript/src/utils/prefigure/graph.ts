@@ -5,7 +5,7 @@ import {
     pushWarning,
     warningSubjectForDescendant,
 } from "./common";
-import { labelMarkup } from "./label";
+import { labelMarkup, THEME_AWARE_LABEL_COLOR_ATTR } from "./label";
 import { gridElementFromGrid } from "./grid";
 import { convertGraphicalDescendantToPrefigure } from "./descendant";
 import { convertDoenetMLAnnotationsToPreFigureXml } from "./annotations";
@@ -87,7 +87,9 @@ function axesElementFromLabels({
         labelHasLatex: dependencyValues.xLabelHasLatex,
     });
     if (xLabel && dependencyValues.displayXAxis) {
-        axisLabelElements.push(`<xlabel alignment="nw">${xLabel}</xlabel>`);
+        axisLabelElements.push(
+            `<xlabel alignment="nw" ${THEME_AWARE_LABEL_COLOR_ATTR}>${xLabel}</xlabel>`,
+        );
     }
 
     const yLabel = labelMarkup({
@@ -95,7 +97,9 @@ function axesElementFromLabels({
         labelHasLatex: dependencyValues.yLabelHasLatex,
     });
     if (yLabel && dependencyValues.displayYAxis) {
-        axisLabelElements.push(`<ylabel alignment="se">${yLabel}</ylabel>`);
+        axisLabelElements.push(
+            `<ylabel alignment="se" ${THEME_AWARE_LABEL_COLOR_ATTR}>${yLabel}</ylabel>`,
+        );
     }
 
     const strokeAttr = darkMode ? ` stroke="${PREFIGURE_DARK_AXIS_COLOR}"` : "";

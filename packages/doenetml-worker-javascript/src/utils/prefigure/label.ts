@@ -45,6 +45,24 @@ function normalizeKey(value: unknown): string {
         .replace(/[^a-z0-9]+/g, "");
 }
 
+/**
+ * PreFigure only sets a label `<text>`'s `fill` when the source XML carries
+ * an explicit `color` attribute (true of both the Python `prefig` compiler
+ * and the Rust `prefig-wasm` port — see their respective `label.py`/
+ * `label.rs`). Without it, `fill` is left unset, which per the SVG spec
+ * defaults to opaque black — not "inherit the page's CSS color" — so
+ * plain-text labels can be invisible against a dark canvas.
+ *
+ * Math/LaTeX labels are rendered via MathJax, whose own SVG output already
+ * conventionally uses `currentColor`, so they're unaffected by this gap.
+ * Emitting this attribute unconditionally (not only in dark mode) is
+ * simplest and correct in both themes, and matches what MathJax already
+ * does for math labels — see `PREFIGURE_DARK_AXIS_COLOR` in `graph.ts` for
+ * the analogous (but darkMode-conditional, since it recolors an already-
+ * visible-by-default stroke) fix for axis lines.
+ */
+export const THEME_AWARE_LABEL_COLOR_ATTR = 'color="currentColor"';
+
 // Reserved inset used during label overflow scoring to reduce visible clipping
 // at graph bounds. Shared by point and line-family label placement.
 const LABEL_EDGE_PADDING_RATIO = 0.02;
@@ -776,7 +794,7 @@ export function pointLabelAttributes({
         return null;
     }
 
-    const attrs = [];
+    const attrs = [THEME_AWARE_LABEL_COLOR_ATTR];
     const rawPosition = stateValues?.labelPosition;
     if (rawPosition) {
         const rawXs = stateValues?.numericalXs;
@@ -1031,7 +1049,7 @@ export function getLabelForLine({
         };
     }
 
-    const labelAttrs = [];
+    const labelAttrs = [THEME_AWARE_LABEL_COLOR_ATTR];
     const rawPosition = stateValues?.labelPosition;
     const normalizedPosition = normalizeKey(rawPosition ?? "");
 
