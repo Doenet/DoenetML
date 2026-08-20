@@ -1269,6 +1269,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`thickness="4"`);
         expect(prefigureXML).toContain(`fill="#1f5dff"`);
         expect(prefigureXML).toContain(`<label anchor="`);
+        expect(prefigureXML).toContain(`color="currentColor"`);
         expect(prefigureXML).toContain(`\\theta`);
     });
 
@@ -1813,6 +1814,14 @@ describe("point label alignment overflow @group4", () => {
             labelPosition: "upperright",
         });
         expect(prefigureXML).toContain(`alignment="ne"`);
+    });
+
+    it("point label is emitted with a theme-aware color so it stays visible in dark mode", async () => {
+        const prefigureXML = await pointLabelXml({
+            xs: "0 0",
+            labelPosition: "upperright",
+        });
+        expect(prefigureXML).toContain(`color="currentColor"`);
     });
 
     it("near top-right — primary ne overflows, fallback used", async () => {
