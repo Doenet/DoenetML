@@ -14,6 +14,6 @@ The budget now scales with handshakes-per-core, read page-wide from a shared Web
 
 Retries back off exponentially with jitter instead of re-piling a fresh multi-MB worker 250 ms after one just failed, which was positive feedback exactly when the machine could least afford it.
 
-A timeout on a demonstrably contended page no longer reports the worker as wedged. In shared-core mode that suspicion quarantines the host worker, killing cores that belong to other documents which were merely slow.
+A timeout on a demonstrably contended page no longer reports the worker as wedged. In shared-core mode that suspicion quarantines the host worker: the suspected core is killed and retried, no new cores join the host, and the retried and new cores land on a replacement worker whose multi-MB bundle must spawn and compile under the very contention that produced the false alarm.
 
 A failure attributable to contention now says so — that several documents were starting at once, and may take longer on a slower device — instead of presenting an unexplained error. The general failure message is reworded to match: "This document could not be started", where it said "The document viewer could not be started".

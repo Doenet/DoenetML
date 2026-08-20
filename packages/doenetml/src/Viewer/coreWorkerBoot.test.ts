@@ -107,7 +107,8 @@ describe("timeoutLooksLikeContention (#1711)", () => {
 
     it("is true once handshakes outnumber cores", () => {
         // This is what stops a shared core-worker host from being quarantined
-        // — and its other, healthy documents killed — over CPU pressure.
+        // — and retries pushed onto a cold replacement host — over CPU
+        // pressure.
         expect(
             timeoutLooksLikeContention({
                 concurrentHandshakes: 6,

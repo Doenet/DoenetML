@@ -120,8 +120,10 @@ export function isHandshakeTimeout(err: unknown): boolean {
  *
  * The distinction matters beyond this document. A timeout normally tears the
  * worker down with `suspectWedge`, which in shared-core mode quarantines the
- * whole host worker — killing cores belonging to OTHER, healthy documents and
- * forcing them to re-boot, under contention. `docUtils` already concedes the
+ * whole host worker: its live cores run on, but it takes no new ones, so the
+ * killed-and-retried core — and every core boot after it — lands on a
+ * replacement host whose multi-MB worker must spawn and compile under the
+ * very contention that produced the timeout. `docUtils` already concedes the
  * suspicion "may be a false positive (CPU contention)"; this is what lets the
  * caller act on that rather than only comment on it.
  *
