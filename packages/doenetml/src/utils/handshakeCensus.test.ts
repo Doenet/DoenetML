@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+    HANDSHAKE_CENSUS_LOCK,
     concurrentHandshakesSnapshot,
     countConcurrentHandshakes,
     joinHandshakeCensus,
@@ -43,6 +44,16 @@ function fakeSharedLocks() {
     };
 }
 
+/**
+ * Let the refreshes a released seat defers by a task run, and the queries they
+ * issue settle, so the cached count reflects the seats that have dropped
+ * before the next assertion — or the next test — reads it.
+ */
+async function drainDeferredRefreshes() {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe("handshake census (#1711)", () => {
     it("counts concurrent handshakes across realms and drops them on release", async () => {
         installLocks(fakeSharedLocks());
@@ -74,19 +85,51 @@ describe("handshake census (#1711)", () => {
         installLocks(fakeSharedLocks());
 
         const first = await joinHandshakeCensus();
-        expect(first.count).toBe(1);
+        expect(await first.count).toBe(1);
         const second = await joinHandshakeCensus();
-        expect(second.count).toBe(2);
+        expect(await second.count).toBe(2);
         // Taking a seat is also the cache's earliest possible refresh, so a
         // retry does not have to wait for one of its own either.
         expect(concurrentHandshakesSnapshot()).toBe(2);
 
         first.release();
         second.release();
-        // Let the release-triggered refreshes land, so the next test starts
-        // from the neutral count.
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await drainDeferredRefreshes();
+    });
+
+    it("hands the seat over before its count is known", async () => {
+        // The count must never be something the join waits for: a query that
+        // is slow — on exactly the loaded machine this census exists for —
+        // would otherwise run the join past `CENSUS_JOIN_TIMEOUT_MS` and cost
+        // the realm its seat, leaving it invisible to the siblings sizing
+        // watchdogs against it.
+        let answerQuery: (state: {
+            held: { name: string }[];
+        }) => void = () => {};
+        installLocks({
+            request: (
+                _name: string,
+                _options: unknown,
+                callback: (lock: unknown) => Promise<void>,
+            ) => Promise.resolve(callback({})),
+            query: () =>
+                new Promise((resolve) => {
+                    answerQuery = resolve;
+                }),
+        });
+
+        // Reached at all only because the join did not wait for the query;
+        // the answer follows, and the seat still reports it.
+        const seat = await joinHandshakeCensus();
+        answerQuery({
+            held: [
+                { name: HANDSHAKE_CENSUS_LOCK },
+                { name: HANDSHAKE_CENSUS_LOCK },
+            ],
+        });
+        expect(await seat.count).toBe(2);
+        seat.release();
+        await drainDeferredRefreshes();
     });
 
     it("reports a neutral 1 when the browser cannot answer", async () => {
@@ -96,7 +139,7 @@ describe("handshake census (#1711)", () => {
         installLocks(undefined);
         expect(await countConcurrentHandshakes()).toBe(1);
         const noop = await joinHandshakeCensus();
-        expect(noop.count).toBe(1);
+        expect(await noop.count).toBe(1);
         noop.release();
 
         installLocks({
@@ -122,10 +165,7 @@ describe("handshake census (#1711)", () => {
         expect(concurrentHandshakesSnapshot()).toBe(3);
 
         seats.forEach((seat) => seat.release());
-        // The release-triggered refreshes are deferred a task; give them (and
-        // the lock drops they observe) time to land.
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await drainDeferredRefreshes();
         expect(concurrentHandshakesSnapshot()).toBe(1);
     });
 
@@ -140,7 +180,7 @@ describe("handshake census (#1711)", () => {
         });
 
         const seat = await joinHandshakeCensus();
-        expect(seat.count).toBe(1);
+        expect(await seat.count).toBe(1);
         seat.release();
     });
 });

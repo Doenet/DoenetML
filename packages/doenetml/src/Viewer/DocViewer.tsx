@@ -2129,6 +2129,20 @@ export function DocViewer({
         // Absent the hint, assume a single core: a browser that will not say
         // how many it has is not evidence of a fast machine.
         const cores = reportedCores() || 1;
+        /**
+         * The watchdog budget for a given contention reading. One place, so
+         * that the override's precedence holds identically for the reading an
+         * attempt opens with and for the one its census seat brings back.
+         */
+        function budgetMsFor(concurrentHandshakes: number): number {
+            return (
+                handshakeWatchdogOverride ??
+                handshakeWatchdogMsFor({
+                    concurrentHandshakes,
+                    hardwareConcurrency: cores,
+                })
+            );
+        }
 
         // --- Phase 1: handshake — watchdogged and retried ---
         // Only this cheap, size-independent phase is time-boxed. A stall here
@@ -2155,9 +2169,8 @@ export function DocViewer({
             // NOT awaited: joining is bookkeeping, and an await here is a
             // suspension point in the middle of a boot. See
             // `concurrentHandshakesSnapshot` for what that cost. The seat
-            // still reports the count it was granted against, which is what
-            // gives the first attempt below a reading of its own (#1718); it
-            // is consumed where it lands rather than waited for.
+            // reports the count it was granted against, which is the only
+            // reading the first attempt below can have of its own (#1718).
             // The seat deliberately spans the whole ladder, retry backoff
             // included: a ladder in backoff is pressure about to return, so
             // siblings sizing watchdogs against it err long — the safe
@@ -2184,22 +2197,18 @@ export function DocViewer({
                 // mid-attempt below, is what the budget and the failure
                 // wording end up using.
                 let concurrentHandshakes = concurrentHandshakesSnapshot();
-                let handshakeWatchdogMs =
-                    handshakeWatchdogOverride ??
-                    handshakeWatchdogMsFor({
-                        concurrentHandshakes,
-                        hardwareConcurrency: cores,
-                    });
+                let handshakeWatchdogMs = budgetMsFor(concurrentHandshakes);
                 // The first attempt reads a cache that nothing in this realm
                 // has refreshed yet, so a first boot sizes itself as the only
                 // one on the page — and a fresh PreTeXt iframe, the very case
                 // #1711 exists for, is exactly that boot (#1718). The seat
                 // this ladder is already taking counted the page as it was
-                // granted, and that answer arrives a lock grant and a query
-                // after the handshake starts — far inside even the base
-                // budget — so the deadline is widened in flight rather than
-                // waited for. Nothing here suspends `startCore`: an await for
-                // this count is what raced a rebuild in #1713.
+                // granted, so the first attempt takes its reading from there.
+                // Consumed where it lands, never awaited: it arrives a lock
+                // grant and a query after the handshake started — far inside
+                // even the base budget — so it widens a deadline already
+                // running, and `startCore` gains no suspension point. An
+                // await for this count is what raced a rebuild in #1713.
                 //
                 // Only the first attempt: from the second on, the seat's
                 // reading is the pressure at the ladder's entry, while the
@@ -2208,23 +2217,19 @@ export function DocViewer({
                 //
                 // Widening only, never narrowing — a seat that saw a quieter
                 // page than the cache leaves the budget alone, erring long as
-                // everywhere else in this ladder. An explicit host override
-                // wins outright, so it takes the seat's count for the wording
-                // and leaves the budget where the host put it.
+                // everywhere else in this ladder. Where a host override fixes
+                // the budget, `budgetMsFor` returns it unchanged, so the seat
+                // moves only the count the failure wording reads.
                 const widenedWatchdogMs =
                     attempt === 0
-                        ? censusHandle?.then((seat) => {
+                        ? censusHandle.then(async (seat) => {
                               concurrentHandshakes = Math.max(
                                   concurrentHandshakes,
-                                  seat.count,
+                                  await seat.count,
                               );
                               handshakeWatchdogMs = Math.max(
                                   handshakeWatchdogMs,
-                                  handshakeWatchdogOverride ??
-                                      handshakeWatchdogMsFor({
-                                          concurrentHandshakes,
-                                          hardwareConcurrency: cores,
-                                      }),
+                                  budgetMsFor(concurrentHandshakes),
                               );
                               return handshakeWatchdogMs;
                           })
