@@ -216,8 +216,9 @@ const TARBALL_FILE_LINE = /^npm notice \d+(\.\d+)?[kMGT]?B .+$/;
  * follows the listing carries the part worth keeping (package size, unpacked
  * size, file count, shasum, integrity), and npm has no log level that separates
  * the two: `--loglevel=warn` would drop the summary along with the listing. The
- * registry keeps the full file list permanently — `npm view <spec>` — so the
- * copy in an expiring CI log is redundant as well as noisy.
+ * published tarball keeps the full file list permanently, and
+ * `npm pack <spec> --dry-run` reprints exactly this listing from it, so the copy
+ * in an expiring CI log is redundant as well as noisy.
  *
  * Filtering is display-only: `combinedOutput` still classifies the untouched
  * text, so the retry and already-published patterns see everything npm said.
@@ -254,7 +255,7 @@ function writeCommandOutput(result, commandName) {
     }
     if (suppressed > 0) {
         console.log(
-            `(${suppressed} tarball file lines hidden; \`npm view ${spec}\` lists the published files, or set NPM_PUBLISH_SHOW_FILE_LIST=1)`,
+            `(${suppressed} tarball file lines hidden; \`npm pack ${spec} --dry-run\` lists the published files, or set NPM_PUBLISH_SHOW_FILE_LIST=1)`,
         );
     }
     if (result.error) {
