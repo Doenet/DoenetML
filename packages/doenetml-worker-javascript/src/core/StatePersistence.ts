@@ -8,6 +8,13 @@ import { reportTimerError, TimerLabels } from "../utils/timerErrors";
 import type Core from "../Core";
 
 /**
+ * How many times a real report will resolve `creditAchieved` again after a
+ * concurrent report lands while it is suspended — see
+ * `StatePersistence._reportStateToMainRealm`.
+ */
+const MAX_REPORT_REREADS = 3;
+
+/**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
  * instance, including throttle timers and the debounced save scheduler.
  *
@@ -215,45 +222,65 @@ export class StatePersistence {
      * `saveImmediately` in `terminate`) carries the same or newer state and
      * supersedes it.
      *
-     * The score is resolved *before* the payload is read so that a report can
-     * never carry state older than one already sent: awaiting `creditAchieved`
-     * yields, and a concurrent save (a submission overriding the throttle, say)
-     * can report in that gap. Reading the buffer afterwards makes whatever this
-     * call delivers at least as new as that report.
+     * Awaiting `creditAchieved` yields, so a concurrent save — a submission
+     * overriding the throttle, say — can report in that gap, and the score and
+     * the payload would then come from either side of it. Only one of the two
+     * can be read last, so neither order is safe on its own: reading the
+     * payload first risks putting a reader's older work over their newer, and
+     * reading the score first risks tagging their newer work with the credit
+     * they had before it. The payload is read last and the pairing is then
+     * *checked* — `_lastReportedSequence` says whether anything reported while
+     * this call was suspended — so a report only goes out when its two halves
+     * describe the same moment.
      *
-     * That same yield is why a *mirror* that lost the race is dropped rather
-     * than delivered. The score it captured is the one from before the
-     * concurrent report, but the payload it would read afterwards is the one
-     * from after — so delivering it would re-arm the main realm's buffer with
-     * a real report's state paired with a pre-report score, and a later page
-     * hide would hand that mismatched pair to the host as the reader's record.
-     * A real report is never dropped: it is the one the host must receive, and
-     * a mirror emitted just before it is superseded on arrival anyway.
+     * What a call that lost the race does about it depends on which kind it
+     * is. A mirror is dropped: the report that overtook it is real, so the
+     * main realm has that state already and there is nothing left to hold. A
+     * real report is the one the host is waiting for and cannot be dropped, so
+     * it resolves the score again — by then the value that goes with the
+     * payload it will read — and tries once more.
      */
     async _reportStateToMainRealm(pending: boolean): Promise<void> {
-        const sequence = ++this._reportSequence;
-        const score = await this.core.document.stateValues.creditAchieved;
-        const payload = this.docStateToBeSavedToDatabase;
-        if (!payload) {
-            // `reset()` cleared the buffer while the score resolved: the
-            // document this payload belonged to is gone, and reporting `{}`
-            // over the host's record would be worse than reporting nothing.
+        // Each pass re-reads a score a concurrent report has already made
+        // stale, so a pass past the first needs a *further* report to have
+        // landed in the microtask the re-read takes. Saves are throttled and
+        // debounced, which makes a second pass unlikely and a third all but
+        // unreachable; the cap is only here so this cannot spin.
+        for (let attempt = 0; ; attempt++) {
+            const sequence = ++this._reportSequence;
+            const score = await this.core.document.stateValues.creditAchieved;
+            const payload = this.docStateToBeSavedToDatabase;
+            if (!payload) {
+                // `reset()` cleared the buffer while the score resolved: the
+                // document this payload belonged to is gone, and reporting
+                // `{}` over the host's record would be worse than reporting
+                // nothing.
+                return;
+            }
+
+            if (sequence < this._lastReportedSequence) {
+                if (pending) {
+                    return;
+                }
+                if (attempt < MAX_REPORT_REREADS) {
+                    continue;
+                }
+                // Out of re-reads. A real report reaching the host late with
+                // a score that may trail its state still beats not reaching
+                // the host at all, and the next report corrects it.
+            }
+
+            this._lastReportedSequence = Math.max(
+                this._lastReportedSequence,
+                sequence,
+            );
+            this.core.reportScoreAndStateCallback({
+                state: { ...payload },
+                score,
+                pending,
+            });
             return;
         }
-        if (pending && sequence < this._lastReportedSequence) {
-            // A report that started later has already gone out, so this
-            // mirror's score predates state the main realm has already seen.
-            return;
-        }
-        this._lastReportedSequence = Math.max(
-            this._lastReportedSequence,
-            sequence,
-        );
-        this.core.reportScoreAndStateCallback({
-            state: { ...payload },
-            score,
-            pending,
-        });
     }
 
     async saveChangesToDatabase(overrideThrottle = false): Promise<void> {
