@@ -9,6 +9,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const codemirrorSrc = path.resolve(__dirname, "../codemirror/src/index.ts");
 
 export default defineConfig({
+    // Match the policy `@doenet/test-cypress`, `@doenet/docs-cypress` and
+    // `@doenet/doenetml-iframe` already set: retry twice in CI (runMode), never
+    // when iterating locally (openMode). Without it a single flake failed the
+    // whole `doenetml-cypress` job — which is how both #1612 (a hover
+    // re-dispatch race) and #1719 (a viewer that never renders inside the
+    // test's wait on a cold 2-core runner) took CI down. Neither looks like a
+    // wrong assertion: both fail all-or-nothing at the full timeout, and
+    // neither reproduces locally. Retrying is a safety net, not a diagnosis:
+    // a spec that fails every attempt still fails the job, and the
+    // `printAppConsole` task below is what says why.
+    retries: {
+        runMode: 2,
+        openMode: 0,
+    },
     component: {
         devServer: {
             framework: "react",
@@ -126,6 +140,43 @@ export default defineConfig({
         indexHtmlFile: "test/cypress/support/component-index.html",
         setupNodeEvents(on) {
             on("file:preprocessor", vitePreprocessor());
+            on("task", {
+                /**
+                 * Print the app's console warnings and errors from a failing
+                 * test into the runner's own output (#1719) — nothing the
+                 * browser logs reaches the terminal under `cypress run`, so a
+                 * boot-timing flake otherwise arrives on CI as a bare
+                 * "expected to find content ... but never did".
+                 *
+                 * This is the printing half; the collecting half is
+                 * `test/cypress/support/component.ts`, which calls this from a
+                 * root `afterEach` and carries the reasoning.
+                 */
+                printAppConsole({
+                    title,
+                    attempt,
+                    messages,
+                }: {
+                    title: string;
+                    attempt: number;
+                    messages: string[];
+                }) {
+                    console.log(
+                        `\n--- app console during failing test (attempt ${attempt}): ${title}`,
+                    );
+                    if (messages.length === 0) {
+                        // Said out loud rather than left as a missing block —
+                        // see `component.ts`: silence is itself the answer to
+                        // the question #1719 turns on.
+                        console.log("    (the app logged nothing)");
+                    }
+                    for (const message of messages) {
+                        console.log(`    ${message}`);
+                    }
+                    console.log("--- end app console\n");
+                    return null;
+                },
+            });
         },
     },
 });
