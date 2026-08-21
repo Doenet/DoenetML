@@ -182,6 +182,28 @@ export class StatePersistence {
         return true;
     }
 
+    /**
+     * Mirror the payload the 60-second throttle is holding back into the main
+     * realm (Doenet/DoenetML#1726). A page can go away without the viewer
+     * unmounting — the tab is closed, a new URL is typed, a backgrounded
+     * mobile tab is discarded — and `pagehide` offers no budget for a Comlink
+     * round-trip into this worker, so the payload has to already be over
+     * there. `DocViewer` buffers a `pending` report rather than handing it to
+     * the host, and delivers it as an ordinary report when the page hides.
+     *
+     * Sent on every throttled save, so the mirror is never further behind the
+     * screen than the one-second save debounce. Any real report that follows
+     * (throttle expiry, submission, the unmount flush, `SPLICE.flushState`)
+     * carries the same or newer state and supersedes it.
+     */
+    async reportPendingState(): Promise<void> {
+        this.core.reportScoreAndStateCallback({
+            state: { ...this.docStateToBeSavedToDatabase },
+            score: await this.core.document.stateValues.creditAchieved,
+            pending: true,
+        });
+    }
+
     async saveChangesToDatabase(overrideThrottle = false): Promise<void> {
         // throttle save to database at 60 seconds
 
@@ -193,6 +215,7 @@ export class StatePersistence {
             if (overrideThrottle) {
                 clearTimeout(this.saveStateToDBTimerId);
             } else {
+                await this.reportPendingState();
                 return;
             }
         }

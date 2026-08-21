@@ -759,6 +759,81 @@ export function DocViewer({
         }
     }, [formatDiagnostic]);
 
+    // The most recent state payload the core's 60-second database throttle is
+    // holding back, mirrored here by `reportPendingState` (#1726). A page can
+    // go away without the viewer unmounting — the tab is closed, a new URL is
+    // typed, an external link is followed, a backgrounded mobile tab is
+    // discarded — and the unmount flush that covers in-app navigation does not
+    // run for any of those. Keeping the payload in this realm is what lets
+    // `flushPendingStateReport` hand it to the host without a round-trip into
+    // the worker, which `pagehide` has no budget for.
+    const pendingStateReport = useRef<{
+        score: number;
+        state: unknown;
+    } | null>(null);
+
+    // Report whatever the throttle is holding back, right now. Safe to call
+    // repeatedly and safe to interleave with the unmount flush: the buffer is
+    // taken before it is reported, and any real report clears it, so a given
+    // payload goes out at most once from here.
+    //
+    // Delivery is synchronous, which routine reporting does not have to be. A
+    // host callback is a plain call and always was. The `SPLICE` message
+    // channel is the part that needs care: `postMessage` queues a task, and a
+    // document being unloaded is torn down without its task queue ever being
+    // drained — so a report posted from `pagehide` is silently dropped, which
+    // is precisely the loss this exists to prevent. Dispatching the same
+    // `message` event by hand runs the host's listeners inline instead. What
+    // the host receives is the message a `postMessage` would have delivered,
+    // down to `origin` and `source`; only the timing differs (and
+    // `isTrusted`, which nothing on this channel reads).
+    function flushPendingStateReport() {
+        const pending = pendingStateReport.current;
+        if (!pending) {
+            return;
+        }
+        pendingStateReport.current = null;
+
+        if (specifiedReportScoreAndStateCallback) {
+            specifiedReportScoreAndStateCallback({
+                ...pending,
+                activityId,
+                docId,
+            });
+            return;
+        }
+
+        const { target, message } = buildStateReport(pending);
+        try {
+            target.dispatchEvent(
+                new MessageEvent("message", {
+                    data: message,
+                    origin: window.location.origin,
+                    source: window,
+                }),
+            );
+        } catch (err) {
+            // A target that turns out not to be reachable this way (an origin
+            // change since mount, a window already gone). Fall back to the
+            // ordinary post: it may still land, and on the `visibilitychange`
+            // path — where the page is fully alive — it reliably does.
+            console.warn("DocViewer: synchronous state flush failed", err);
+            try {
+                target.postMessage(message);
+            } catch (postErr) {
+                console.warn("DocViewer: state flush failed", postErr);
+            }
+        }
+    }
+
+    // Latest identity of the flush, for the mount-once listeners below to call
+    // through — it closes over props (the host's own report callback among
+    // them) whose identity can change between renders.
+    const flushPendingStateReportRef = useRef(flushPendingStateReport);
+    useEffect(() => {
+        flushPendingStateReportRef.current = flushPendingStateReport;
+    });
+
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
     // core can be force-released even when its Comlink `terminate()` would
@@ -801,6 +876,12 @@ export function DocViewer({
         const kill = coreWorkerKill.current;
         coreWorker.current = null;
         coreWorkerKill.current = null;
+        // Drop the throttled payload along with the core that produced it
+        // (#1726). A graceful teardown flushes it through the core anyway, and
+        // a rebuild replaces the document it belongs to — reporting it after
+        // the successor has reported would put stale state, under a stale
+        // `cid`, over the host's newer record.
+        pendingStateReport.current = null;
         return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
@@ -1149,6 +1230,40 @@ export function DocViewer({
                 cancelAnimationFrame(id);
             }
             animationInfo.current = {};
+        };
+    }, []);
+
+    // Hand the host whatever the core's database throttle is holding back
+    // before this document can be discarded (#1726).
+    //
+    // `pagehide` covers a real teardown — tab closed, URL typed, external link
+    // followed. `visibilitychange` → hidden covers the rest: a backgrounded
+    // tab can be discarded without firing anything else, and on desktop it
+    // fires while the page is still fully alive, which is the one moment a
+    // postMessage-delivered report is certain to be processed.
+    //
+    // Neither event tears anything down, so a bfcache `pagehide`
+    // (`persisted: true`) needs no special case — the core stays alive, the
+    // page can come back, and the reader's work simply reached the host early.
+    useEffect(() => {
+        function flush() {
+            flushPendingStateReportRef.current();
+        }
+        function visibilityFlushListener() {
+            if (document.visibilityState === "hidden") {
+                flush();
+            }
+        }
+
+        window.addEventListener("pagehide", flush);
+        document.addEventListener("visibilitychange", visibilityFlushListener);
+
+        return () => {
+            window.removeEventListener("pagehide", flush);
+            document.removeEventListener(
+                "visibilitychange",
+                visibilityFlushListener,
+            );
         };
     }, []);
 
@@ -1770,10 +1885,29 @@ export function DocViewer({
     function reportScoreAndStateCallback({
         score,
         state,
+        pending = false,
     }: {
         score: number;
         state: unknown;
+        /**
+         * Set by the core's `reportPendingState` (#1726): this is a mirror of
+         * the payload the core's 60-second database throttle is holding back,
+         * not a report the host should save yet. Buffer it here in the main
+         * realm so `flushPendingStateReport` can hand it over synchronously
+         * when the page hides — by then there is no budget for the Comlink
+         * round-trip that would otherwise be needed to fetch it.
+         */
+        pending?: boolean;
     }) {
+        if (pending) {
+            pendingStateReport.current = { score, state };
+            return;
+        }
+
+        // A real report carries the same or newer state than anything the
+        // core was holding back, so the buffer is now superseded.
+        pendingStateReport.current = null;
+
         if (specifiedReportScoreAndStateCallback) {
             specifiedReportScoreAndStateCallback({
                 score,
@@ -1782,22 +1916,31 @@ export function DocViewer({
                 docId,
             });
         } else {
-            let messageId = nanoid();
-            const message = {
+            const { target, message } = buildStateReport({ score, state });
+            target.postMessage(message);
+        }
+    }
+
+    /** The `SPLICE.reportScoreAndState` message for a report, and the window it goes to. */
+    function buildStateReport({
+        score,
+        state,
+    }: {
+        score: number;
+        state: unknown;
+    }) {
+        return {
+            target:
+                flags.messageParent && window.parent ? window.parent : window,
+            message: {
                 score,
                 state,
                 subject: "SPLICE.reportScoreAndState",
                 activity_id: activityId,
                 doc_id: docId,
-                message_id: messageId,
-            };
-
-            if (flags.messageParent && window.parent) {
-                window.parent.postMessage(message);
-            } else {
-                window.postMessage(message);
-            }
-        }
+                message_id: nanoid(),
+            },
+        };
     }
 
     /**
