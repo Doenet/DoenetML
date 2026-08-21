@@ -36,19 +36,24 @@ describe("DoenetViewer first-attempt handshake census (#1718)", () => {
      * not, since a seat refreshes the cache as it is taken.
      *
      * Resolves once the lock is granted, so seats are held (not merely
-     * requested) before the boot under test reads the page.
+     * requested) before the boot under test reads the page. A request that
+     * fails outright rejects here instead: the grant is what resolves this,
+     * so an unforwarded failure would leave it pending and spend the test's
+     * whole timeout saying nothing about why.
      */
     function holdCensusSeat(): Promise<void> {
-        return new Promise<void>((granted) => {
-            void navigator.locks.request(
-                HANDSHAKE_CENSUS_LOCK,
-                { mode: "shared" },
-                () =>
-                    new Promise<void>((release) => {
-                        seatReleases.push(release);
-                        granted();
-                    }),
-            );
+        return new Promise<void>((granted, failed) => {
+            navigator.locks
+                .request(
+                    HANDSHAKE_CENSUS_LOCK,
+                    { mode: "shared" },
+                    () =>
+                        new Promise<void>((release) => {
+                            seatReleases.push(release);
+                            granted();
+                        }),
+                )
+                .catch(failed);
         });
     }
 
