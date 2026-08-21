@@ -305,6 +305,7 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Publish production release
+              id: publish-npm
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
               run: npm run publish
               env:
@@ -336,12 +337,21 @@ jobs:
             # processing the publish before it fires, which takes minutes rather
             # than seconds (see `jsdelivr-purge-lib.sh`), and it now fails the
             # job when the tag will not move. Neither should stand between a
-            # published npm release and the extension registries: everything
-            # above is independent of the CDN, and a purge that has to be re-run
-            # should not take the Marketplace publish with it. `timeout-minutes`
-            # is the backstop on the script's own bounded waiting, so a wedged
-            # request cannot hold the runner.
+            # published npm release and the extension registries: those do not
+            # depend on the CDN, and a purge that has to be re-run should not
+            # take the Marketplace publish with it.
+            #
+            # The condition is what keeps that from cutting the other way. Being
+            # last, this step would otherwise be skipped whenever a step above
+            # failed — leaving `latest` on the CDN a release behind for 12 hours
+            # because an extension registry was down. `!cancelled()` runs it
+            # anyway, and it is tied to the npm publish instead: with nothing
+            # published there is nothing to wait for. That also covers the dry
+            # run, in which the publish step is skipped rather than successful.
+            #
+            # `timeout-minutes` is the backstop on the script's own bounded
+            # waiting, so a wedged request cannot hold the runner.
             - name: Purge jsDelivr cache
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              if: ${{ !cancelled() && steps.publish-npm.outcome == 'success' }}
               timeout-minutes: 30
               run: bash .github/scripts/purge-jsdelivr.sh latest

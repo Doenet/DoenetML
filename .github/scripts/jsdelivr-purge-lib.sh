@@ -100,9 +100,16 @@ _purge_url() {
     return 1
 }
 
+# Fetch one CDN file into `${2}`. Names the URL when it cannot: the caller
+# fetches a floating and a pinned URL, and which of the two failed is the
+# difference between the tag being unreachable and the release genuinely not
+# containing the file — curl's own message says only which error, not which URL.
 _fetch_cdn() {
-    curl -fsS --retry 3 --retry-delay 2 --max-time 120 \
-        "https://cdn.jsdelivr.net/npm/${1}" -o "${2}"
+    local url="https://cdn.jsdelivr.net/npm/${1}"
+    if ! curl -fsS --retry 3 --retry-delay 2 --max-time 120 "${url}" -o "${2}"; then
+        echo "  FAILED  fetch ${url}" >&2
+        return 1
+    fi
 }
 
 # Whether the floating tag now serves the same bytes as the immutable pinned
