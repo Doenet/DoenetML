@@ -420,15 +420,23 @@ respond:
 { subject: "SPLICE.getState.response", message_id, state }
 ```
 
+Quote the `message_id`: a response carrying state is only read by the viewer
+whose request it names. Replies reach every viewer in the window, and `cid`
+cannot tell two of them apart — it hashes the DoenetML text alone, so a
+second attempt at the same document, or that document opened twice on a
+page, carries the identical `cid`. An unaddressed answer would be restored
+by all of them.
+
 If there is no saved state, no response is needed. To surface a load
 failure to the student instead, respond with
 `{ subject: "SPLICE.getState.response", error: { code, message } }`,
-either quoting the request's `message_id` or leaving it out — both answer
-the request the viewer has open. Prefer quoting it: an error carrying no id
-is taken by whichever request is open when it lands, on every viewer on the
-page, including one a rebuild opened after the error was sent. A reply
-quoting a *different* id is ignored, since that id belongs to some other
-request.
+either quoting the request's `message_id` or leaving it out — an error is
+the one reply the viewer will take unaddressed, since the worst it costs is
+a message the next usable answer clears. Prefer quoting it even so: an
+unaddressed error is taken by whichever request is open when it lands, on
+every viewer on the page, including one a rebuild opened after the error was
+sent. A reply quoting a *different* id is ignored, since that id belongs to
+some other request.
 
 A request has a single answer: the **first** response carrying state for
 this `cid` is the one the viewer reboots from, and every response after

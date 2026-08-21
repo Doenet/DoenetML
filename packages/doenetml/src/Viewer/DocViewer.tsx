@@ -863,26 +863,40 @@ export function DocViewer({
                 // `initialState`, or one not allowed to load state at all) or
                 // an answer has already been adopted below.
                 const openRequestId = messageIdFromGetState.current;
-                // Whether this reply answers that request is all the id
-                // decides here; the payload below decides what the reply is.
+                // A reply quoting the open request's id is this viewer's,
+                // whatever it carries. A reply quoting a DIFFERENT id is not:
+                // that id belongs to another request — one some rebuild has
+                // replaced, or a second viewer's in the same window.
+                const quotesOpenRequest =
+                    openRequestId !== null &&
+                    e.data.message_id === openRequestId;
+                // An error may quote no id at all: the protocol asks for
+                // exactly that shape (see `SPLICE.getState` in
+                // `packages/standalone/README.md`), and `message_id: null`
+                // spells the absence out. Such a reply addresses whatever
+                // request is open, which is what this viewer's is.
                 //
-                // A reply quotes the id it answers. The protocol specifies an
-                // error response as carrying none instead (see
-                // `SPLICE.getState` in `packages/standalone/README.md`), and
-                // `message_id: null` spells that absence out — but a host that
-                // quotes the id there anyway, the natural thing to do, is
-                // addressing this request just as plainly. Only one request is
-                // ever open, so all three reach it, whatever they carry. What
-                // does not is a reply quoting a DIFFERENT id: it belongs to
-                // another request — one some rebuild has replaced, or a second
-                // viewer's in the same window.
-                const answersOpenRequest =
+                // Only an error is read that way. Host replies are broadcast
+                // to every viewer in the window, and `cid` cannot tell them
+                // apart — it hashes the DoenetML text alone, so a second
+                // attempt at the same document, or the same document opened
+                // twice on a page, carries the identical `cid` under a
+                // different `activity_id`/`doc_id`/`attempt_number`. An
+                // unaddressed answer carrying STATE would be restored by all
+                // of them, putting one reader's saved work into another's
+                // document. An unaddressed error costs an error screen the
+                // next usable answer clears.
+                const isUnaddressedError =
                     openRequestId !== null &&
                     (e.data.message_id === undefined ||
-                        e.data.message_id === null ||
-                        e.data.message_id === openRequestId);
-                if (answersOpenRequest) {
-                    if (e.data.state && e.data.state.cid === cid.current) {
+                        e.data.message_id === null) &&
+                    Boolean(e.data.error);
+                if (quotesOpenRequest || isUnaddressedError) {
+                    if (
+                        quotesOpenRequest &&
+                        e.data.state &&
+                        e.data.state.cid === cid.current
+                    ) {
                         // One request, one answer. A page can hold several
                         // listeners willing to answer: under the standalone
                         // coordinator the in-page warehouse answers a restored

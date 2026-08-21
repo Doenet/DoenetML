@@ -173,17 +173,19 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
         });
     });
 
-    it("reads state from a reply that carries no `message_id`", () => {
-        // The relaxation is payload-blind on purpose: the id says whether a
-        // reply is this viewer's, and nothing more. So an answer carrying
-        // state without an id — which the protocol does not ask any host to
-        // send, and which the viewer used to drop — is now read like any
-        // other. It is harmless, because the `cid` test below it still has to
-        // pass for the state to be used at all; it is pinned here so that
-        // tightening it later is a decision someone makes rather than a
-        // behavior that slips.
+    it("ignores state that carries no `message_id`", () => {
+        // Answering with no id is a shape reserved for errors. State has to
+        // be placed on the request that asked for it, and an unaddressed
+        // reply cannot be: host replies reach every viewer in the window, and
+        // `cid` cannot tell them apart — it hashes the DoenetML text alone,
+        // so a second attempt at the same document, or the same document
+        // opened twice on a page, carries the identical `cid`. Restoring an
+        // unaddressed answer would put one reader's saved work into another's
+        // document.
         //
-        // Unusable state again, for the reason the case below gives.
+        // Both halves matter, so both are asserted: the same payload is
+        // ignored without the id and read with it, which leaves the id as the
+        // only thing that decided.
         interceptGetState().then(({ win, request }) => {
             mountViewer();
             afterGetStateRequest(request);
@@ -192,6 +194,18 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
                 answer(win, { state: { cid: request.cid! } });
             });
 
+            cy.contains("the document itself", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+            cy.wait(SETTLE);
+            cy.contains("Error loading doc state").should("not.exist");
+
+            cy.then(() => {
+                answer(win, {
+                    messageId: request.id!,
+                    state: { cid: request.cid! },
+                });
+            });
             cy.contains("Error loading doc state", {
                 timeout: VIEWER_TIMEOUT,
             }).should("exist");
@@ -200,8 +214,8 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
 
     it("treats a reply carrying both state and an error as state", () => {
         // A host that produced state for this document has answered the
-        // request, whatever else it also reported, so the state is read and
-        // the error is not put on screen. Only the order of the two payload
+        // request it quotes, whatever else it also reported, so the state is
+        // read and the error is not put on screen. Only the order of the two payload
         // tests decides that, and reversing them would fail a document whose
         // state had arrived.
         //
