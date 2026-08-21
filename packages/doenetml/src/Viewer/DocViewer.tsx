@@ -858,7 +858,26 @@ export function DocViewer({
                 return;
             }
             if (e.data.subject === "SPLICE.getState.response") {
-                if (messageIdFromGetState.current === e.data.message_id) {
+                // The request this viewer is still waiting on — or null once
+                // an answer has been adopted below, which is what makes every
+                // later reply, error or otherwise, none of this document's
+                // business.
+                const openRequestId = messageIdFromGetState.current;
+                // Does this reply answer that request? A reply quotes the id
+                // it answers, but the protocol specifies an error response as
+                // carrying none (see `SPLICE.getState` in
+                // `packages/standalone/README.md`), and a host that echoes the
+                // id there anyway — the natural thing to do, and what its own
+                // answers carrying state already do — is addressing this
+                // request just as plainly. Only one is ever open, so both
+                // reach it. What does not is a reply quoting a DIFFERENT id:
+                // a stale answer to a request some rebuild has replaced.
+                const answersOpenRequest =
+                    openRequestId !== null &&
+                    (e.data.message_id === undefined ||
+                        e.data.message_id === null ||
+                        e.data.message_id === openRequestId);
+                if (answersOpenRequest) {
                     if (e.data.state && e.data.state.cid === cid.current) {
                         // One request, one answer. A page can hold several
                         // listeners willing to answer: under the standalone
@@ -891,12 +910,11 @@ export function DocViewer({
                         // dependency array, so the `errMsg` it closes over is
                         // forever the initial `null` and a guard reading it
                         // could never fire. That mattered once a page could
-                        // hold more than one answerer — an error carries no
-                        // `message_id`, so it does not answer the request, and
-                        // a listener reporting one before another returns
-                        // usable state left the restored document behind an
-                        // error screen it could not clear. Both setters are
-                        // idempotent.
+                        // hold more than one answerer — an error leaves the
+                        // request open, so a listener reporting one before
+                        // another returned usable state left the restored
+                        // document behind an error screen it could not clear.
+                        // Both setters are idempotent.
                         setErrMsg(null);
                         setIsInErrorState?.(false);
 
@@ -936,33 +954,34 @@ export function DocViewer({
                         } else {
                             setStage("readyToCreateCore");
                         }
+                    } else if (e.data.error) {
+                        // The host cannot produce this document's saved
+                        // state and says why. Putting that on screen is all
+                        // this does: the request stays open, because only
+                        // usable state closes it, so an answerer reporting
+                        // that IT has nothing cannot shut out one still to
+                        // come — and when that one arrives, the restored
+                        // document clears this screen.
+                        const error = e.data.error;
+                        setIsInErrorState?.(true);
+                        if (
+                            typeof error === "object" &&
+                            "code" in error &&
+                            "message" in error
+                        ) {
+                            console.log(
+                                `error ${error.code} getting state: ${error.message}`,
+                            );
+                            setErrMsg(error.message);
+                        } else {
+                            setErrMsg("Invalid response to getState");
+                        }
                     }
-                } else if (
-                    messageIdFromGetState.current !== null &&
-                    e.data.error
-                ) {
-                    // An error is only worth surfacing while this viewer is
-                    // still waiting for state. Once an answer has been adopted
-                    // above, the request is closed and `messageIdFromGetState`
-                    // is null — and a null id can never match, so every later
-                    // answer reaches this branch. A second answerer reporting
-                    // that IT has nothing (the persistence host on a page
-                    // where the coordinator answered first) must not replace
-                    // the document just restored with an error screen.
-                    const error = e.data.error;
-                    setIsInErrorState?.(true);
-                    if (
-                        typeof error === "object" &&
-                        "code" in error &&
-                        "message" in error
-                    ) {
-                        console.log(
-                            `error ${error.code} getting state: ${error.message}`,
-                        );
-                        setErrMsg(error.message);
-                    } else {
-                        setErrMsg("Invalid response to getState");
-                    }
+                    // An answer with nothing this document can use in it — no
+                    // state, state for another `cid`, no error either — is a
+                    // host saying it has nothing saved. It neither restores
+                    // the document nor fails it, and it leaves the request
+                    // open for an answerer that does have something.
                 }
             } else if (
                 e.data.subject === "SPLICE.requestSolutionView.response"
