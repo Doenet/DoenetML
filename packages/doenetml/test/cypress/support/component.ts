@@ -15,16 +15,27 @@ Cypress.Commands.add("mount", mount);
 //
 // Most of what these specs wait on is the viewer putting content on screen,
 // which means booting a core worker: spawning it, compiling the WASM, and
-// running the init round-trips that the boot ladder time-boxes. When that is
-// slower than the wait — a cold 2-core CI runner is the case on record — the
-// failure says only that the content never appeared. The ladder itself has
-// already explained what happened, through `console.warn`, in the browser;
-// `cypress run` just never shows it.
+// running the init round-trips that the boot ladder time-boxes. When one of
+// those waits runs out, the failure Cypress reports says only that the content
+// never appeared — never why. #1719's leading explanation is that the boot
+// ladder tripped its handshake watchdog and was still recovering when the wait
+// expired, but that stays a hypothesis: no failing run on record carries any
+// boot telemetry to check it against, because nothing the browser logs reaches
+// the terminal under `cypress run`.
 //
 // So buffer the app's warnings and errors as each test runs and, when the test
-// fails, hand them to the `printAppConsole` task, which prints them from the
-// runner process where CI logs can pick them up. Passing tests print nothing,
-// and nothing here can fail a test that would otherwise have passed.
+// fails, hand them to the `printAppConsole` task in `cypress.config.ts`, which
+// prints them from the runner process where CI logs pick them up.
+//
+// A failing test prints its transcript even when that transcript is empty. A
+// watchdog that fires says so through `console.warn`, so a failing boot that
+// logged nothing means it never fired — which is the observation that would
+// kill the hypothesis rather than the absence of one. Printed as an explicit
+// "logged nothing", that reads as an answer; printed as no block at all it
+// would be indistinguishable from diagnostics that never ran.
+//
+// Passing tests print nothing at all, and the task is only ever reached from a
+// test that has already failed, so it cannot turn a passing test red.
 
 /** Enough for a full boot ladder's narration without flooding the log. */
 const MAX_BUFFERED_MESSAGES = 100;
@@ -92,6 +103,12 @@ for (const level of ["warn", "error"] as const) {
     };
 }
 
+// Root-level on purpose: Mocha unwinds `afterEach` hooks innermost-first, so
+// this runs after whatever cleanup a spec declares of its own and buffers
+// anything those hooks log too. It also runs — with `this.currentTest.state`
+// already `"failed"` — when the failure came from a spec's `beforeEach` rather
+// than from the test body, which is what covers the specs that mount inside a
+// hook (`DoenetEditor.diagnosticsPanelInset`).
 afterEach(function () {
     const messages = bufferedMessages;
     const dropped = droppedMessageCount;
@@ -105,7 +122,7 @@ afterEach(function () {
     // `retries` configured, a flake that passes on a later attempt still
     // prints the failed attempt's messages, which is exactly the run worth
     // reading.
-    if (this.currentTest?.state !== "failed" || messages.length === 0) {
+    if (this.currentTest?.state !== "failed") {
         return;
     }
     if (dropped > 0) {
