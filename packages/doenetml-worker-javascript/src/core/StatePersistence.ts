@@ -26,6 +26,18 @@ export class StatePersistence {
     saveDocStateTimeoutID: TimerHandle;
     docStateToBeSavedToDatabase: any;
     changesToBeSaved: boolean;
+    /**
+     * Ticket dispenser for `_reportStateToMainRealm`, and the highest ticket
+     * that has actually been handed to the main realm. Reports overlap — a
+     * submission's save is deliberately fire-and-forget and the debounced save
+     * runs off a timer, so two calls can be suspended on `creditAchieved` at
+     * once — and the pair lets a mirror that lost that race be dropped rather
+     * than delivered stale. Monotonic for the life of the instance; `reset()`
+     * deliberately leaves them alone, so a call still in flight across a
+     * regenerated document stays superseded.
+     */
+    _reportSequence: number;
+    _lastReportedSequence: number;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -33,6 +45,8 @@ export class StatePersistence {
         this.saveDocStateTimeoutID = null;
         this.docStateToBeSavedToDatabase = null;
         this.changesToBeSaved = false;
+        this._reportSequence = 0;
+        this._lastReportedSequence = 0;
     }
 
     /**
@@ -206,8 +220,18 @@ export class StatePersistence {
      * yields, and a concurrent save (a submission overriding the throttle, say)
      * can report in that gap. Reading the buffer afterwards makes whatever this
      * call delivers at least as new as that report.
+     *
+     * That same yield is why a *mirror* that lost the race is dropped rather
+     * than delivered. The score it captured is the one from before the
+     * concurrent report, but the payload it would read afterwards is the one
+     * from after — so delivering it would re-arm the main realm's buffer with
+     * a real report's state paired with a pre-report score, and a later page
+     * hide would hand that mismatched pair to the host as the reader's record.
+     * A real report is never dropped: it is the one the host must receive, and
+     * a mirror emitted just before it is superseded on arrival anyway.
      */
     async _reportStateToMainRealm(pending: boolean): Promise<void> {
+        const sequence = ++this._reportSequence;
         const score = await this.core.document.stateValues.creditAchieved;
         const payload = this.docStateToBeSavedToDatabase;
         if (!payload) {
@@ -216,6 +240,15 @@ export class StatePersistence {
             // over the host's record would be worse than reporting nothing.
             return;
         }
+        if (pending && sequence < this._lastReportedSequence) {
+            // A report that started later has already gone out, so this
+            // mirror's score predates state the main realm has already seen.
+            return;
+        }
+        this._lastReportedSequence = Math.max(
+            this._lastReportedSequence,
+            sequence,
+        );
         this.core.reportScoreAndStateCallback({
             state: { ...payload },
             score,

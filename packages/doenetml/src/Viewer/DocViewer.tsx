@@ -783,8 +783,9 @@ export function DocViewer({
 
     // Report whatever the throttle is holding back, right now. Safe to call
     // repeatedly and safe to interleave with the core's own reports: the
-    // buffer is taken before it is reported, and any real report clears it, so
-    // a given payload goes out at most once from here. Must stay synchronous
+    // buffer is taken before it is reported, so a given payload goes out at
+    // most once from here, and the worst a race with a real report can produce
+    // is a second copy of state the host already has. Must stay synchronous
     // throughout — see `deliverStateReport`.
     function flushPendingStateReport() {
         const pending = pendingStateReport.current;
@@ -1906,10 +1907,36 @@ export function DocViewer({
         }
 
         // A real report carries the same or newer state than anything the
-        // core was holding back, so the buffer is now superseded.
-        pendingStateReport.current = null;
-
+        // core was holding back, so it supersedes the buffer — but only once
+        // it has actually reached the host, and on the message channel
+        // `deliverStateReport` merely queues a task. Hold the report in the
+        // buffer until that task has had its turn: a hide landing in between
+        // then still hands the work over synchronously, rather than finding
+        // an empty buffer while the queued report dies with the document.
+        pendingStateReport.current = report;
         deliverStateReport(report);
+        retireDeliveredStateReport(report);
+    }
+
+    /**
+     * Drop `report` from the buffer once the task `deliverStateReport` queued
+     * has had its turn, leaving anything newer alone.
+     *
+     * A timer is a heuristic, not a guarantee: posted messages and timer
+     * callbacks are separate task sources, so nothing promises the report is
+     * delivered first. It is the safe direction to be wrong in — clearing
+     * early is exactly what this viewer did before, and clearing late costs at
+     * most one duplicate report of state the host already has. What it buys is
+     * that the ordinary case, where the report is delivered on the very next
+     * turn, no longer has a window in which the buffer is empty and the
+     * report is still in flight.
+     */
+    function retireDeliveredStateReport(report: StateReport) {
+        setTimeout(() => {
+            if (pendingStateReport.current === report) {
+                pendingStateReport.current = null;
+            }
+        }, 0);
     }
 
     /**
