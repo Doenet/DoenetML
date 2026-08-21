@@ -9,11 +9,12 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 // without their saved work, with nothing on screen to say why, while the host
 // believes it reported a failure (Doenet/DoenetML#1716).
 //
-// The protocol asks a host to send its error with no `message_id`
-// (`packages/standalone/README.md`), and that shape has always been handled.
-// A host that quotes the request's id instead — the natural thing to do, and
-// what its own answers carrying state already do — used to be ignored, because
-// the error branch hung off the id NOT matching.
+// The shape the protocol originally specified — an error carrying no
+// `message_id` — has always been handled. A host that quotes the request's id
+// instead, the natural thing to do and what its own answers carrying state
+// already do, used to be ignored, because the error branch hung off the id NOT
+// matching. Both are answers now, and `packages/standalone/README.md` asks for
+// the id where a host can send it.
 //
 // Every reply here carries an error. What an error leaves possible for an
 // answerer that does have state — restoring the document over the error

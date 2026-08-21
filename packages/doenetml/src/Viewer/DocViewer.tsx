@@ -870,11 +870,14 @@ export function DocViewer({
                 const quotesOpenRequest =
                     openRequestId !== null &&
                     e.data.message_id === openRequestId;
-                // An error may quote no id at all: the protocol asks for
-                // exactly that shape (see `SPLICE.getState` in
-                // `packages/standalone/README.md`), and `message_id: null`
-                // spells the absence out. Such a reply addresses whatever
-                // request is open, which is what this viewer's is.
+                // An error may quote no id at all, and `message_id: null`
+                // spells that absence out. It is the shape the protocol
+                // originally specified, so hosts written against it send
+                // exactly that and it has to keep working; the docs now
+                // accept either and ask for the id where a host can send it
+                // (see `SPLICE.getState` in `packages/standalone/README.md`).
+                // An unaddressed reply addresses whatever request is open,
+                // which is what this viewer's is.
                 //
                 // Only an error is read that way. Host replies are broadcast
                 // to every viewer in the window, and `cid` cannot tell them
