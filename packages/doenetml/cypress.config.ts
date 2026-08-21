@@ -9,6 +9,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const codemirrorSrc = path.resolve(__dirname, "../codemirror/src/index.ts");
 
 export default defineConfig({
+    // Match the policy `@doenet/test-cypress`, `@doenet/docs-cypress` and
+    // `@doenet/doenetml-iframe` already set: retry twice in CI (runMode), never
+    // when iterating locally (openMode). This package was the odd one out, so a
+    // single flake failed the whole `doenetml-cypress` job — which is how both
+    // #1612 (a hover re-dispatch race) and #1719 (a viewer that boots slower
+    // than the test's wait on a cold 2-core runner) took CI down. Retrying is a
+    // safety net, not a diagnosis: a spec that fails every attempt still fails
+    // the job, and the `printAppConsole` task below is what says why.
+    retries: {
+        runMode: 2,
+        openMode: 0,
+    },
     component: {
         devServer: {
             framework: "react",
@@ -126,6 +138,38 @@ export default defineConfig({
         indexHtmlFile: "test/cypress/support/component-index.html",
         setupNodeEvents(on) {
             on("file:preprocessor", vitePreprocessor());
+            on("task", {
+                /**
+                 * Print the app's console warnings and errors from a failing
+                 * test into the runner's own output (#1719).
+                 *
+                 * The viewer's boot ladder narrates itself through
+                 * `console.warn` — which handshake attempt failed, the watchdog
+                 * budget it had, and how many handshakes were in flight on how
+                 * many cores — but in `cypress run` none of that reaches the
+                 * terminal. A boot-timing flake therefore arrives on CI as a
+                 * bare "expected to find content ... but never did", with
+                 * nothing to say whether the worker was slow, retried, or never
+                 * started at all. `test/cypress/support/component.ts` buffers
+                 * the messages and hands them here when a test fails.
+                 */
+                printAppConsole({
+                    title,
+                    messages,
+                }: {
+                    title: string;
+                    messages: string[];
+                }) {
+                    console.log(
+                        `\n--- app console during failing test: ${title}`,
+                    );
+                    for (const message of messages) {
+                        console.log(`    ${message}`);
+                    }
+                    console.log("--- end app console\n");
+                    return null;
+                },
+            });
         },
     },
 });

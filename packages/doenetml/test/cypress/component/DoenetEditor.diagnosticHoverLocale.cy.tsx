@@ -1,5 +1,9 @@
 import React from "react";
 import { DoenetEditor } from "../../../src/doenetml-inline-worker";
+import {
+    DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS,
+    MAX_CORE_BOOT_RETRY_DELAY_MS,
+} from "../../../src/Viewer/coreWorkerBoot";
 
 // The tooltip over a squiggle in the editor is the last place a diagnostic
 // was still English regardless of who was reading (Doenet/DoenetML#1569's
@@ -14,6 +18,25 @@ import { DoenetEditor } from "../../../src/doenetml-inline-worker";
 
 /** Long enough for the language server to start and answer the first check. */
 const EDITOR_TIMEOUT = 15_000;
+
+/**
+ * Long enough for the *viewer* to put its first content on screen, which is a
+ * different and much larger job than the language server's first check: spawn
+ * the core worker, compile its WASM, run the init handshake, evaluate, render.
+ *
+ * Sized to a full trip around the boot ladder rather than to a single healthy
+ * boot (#1719). `EDITOR_TIMEOUT` is exactly one watchdog period, so a first
+ * handshake slow enough to trip the watchdog — which a cold two-core CI runner
+ * is — could never be beaten by it, however promptly the retry then succeeded.
+ * This budgets for that: a watchdogged first attempt, the backoff, a second
+ * handshake that gets the same budget, and the evaluation and render that
+ * follow it. Derived from the ladder's own constants so it keeps meaning that
+ * if they move.
+ */
+const VIEWER_BOOT_TIMEOUT =
+    2 * DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS +
+    MAX_CORE_BOOT_RETRY_DELAY_MS +
+    10_000;
 
 function Editor({
     uiLocale,
@@ -129,7 +152,7 @@ describe("the editor's diagnostic tooltip follows the reader's language", () => 
         // closes any tooltip open at the time — the same as any other edit
         // does. Its red error box is the signal that it has resolved Spanish.
         cy.contains("[style*='mainRed']", "Tipo de componente no válido", {
-            timeout: EDITOR_TIMEOUT,
+            timeout: VIEWER_BOOT_TIMEOUT,
         });
 
         hoverFirstSquiggle().should(
