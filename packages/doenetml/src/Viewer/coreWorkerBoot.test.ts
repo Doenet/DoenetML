@@ -204,7 +204,8 @@ describe("withTimeout widening (#1718)", () => {
 
     it("keeps its deadline when the budget never arrives", async () => {
         // The census is best-effort everywhere else; a reading that fails to
-        // materialize leaves the attempt exactly as it was.
+        // materialize leaves the attempt exactly as it was — same deadline,
+        // and a message still naming the budget it opened with.
         const err = await withTimeout(
             () => new Promise<void>(() => {}),
             1,
@@ -212,6 +213,7 @@ describe("withTimeout widening (#1718)", () => {
             Promise.reject(new Error("no census")),
         ).catch((e) => e);
         expect(isHandshakeTimeout(err)).toBe(true);
+        expect(String((err as Error).message)).toContain("1ms");
     });
 });
 
