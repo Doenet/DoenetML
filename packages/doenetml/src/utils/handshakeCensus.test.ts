@@ -74,6 +74,7 @@ describe("handshake census (#1711)", () => {
         expect(await countConcurrentHandshakes()).toBe(1);
 
         c.release();
+        await drainDeferredRefreshes();
     });
 
     it("reports the count its own seat was granted against", async () => {
@@ -118,8 +119,11 @@ describe("handshake census (#1711)", () => {
                 }),
         });
 
-        // Reached at all only because the join did not wait for the query;
-        // the answer follows, and the seat still reports it.
+        // The seat is handed over with the grant, so this resolves while the
+        // query is still outstanding — nothing answers it until the line
+        // below. A join that waited for the count would instead run out
+        // `CENSUS_JOIN_TIMEOUT_MS` and settle to the uncounted no-op seat,
+        // whose neutral 1 is what the assertion below would then read.
         const seat = await joinHandshakeCensus();
         answerQuery({
             held: [

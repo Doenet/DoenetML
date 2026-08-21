@@ -2198,17 +2198,20 @@ export function DocViewer({
                 // wording end up using.
                 let concurrentHandshakes = concurrentHandshakesSnapshot();
                 let handshakeWatchdogMs = budgetMsFor(concurrentHandshakes);
-                // The first attempt reads a cache that nothing in this realm
-                // has refreshed yet, so a first boot sizes itself as the only
-                // one on the page — and a fresh PreTeXt iframe, the very case
-                // #1711 exists for, is exactly that boot (#1718). The seat
-                // this ladder is already taking counted the page as it was
-                // granted, so the first attempt takes its reading from there.
-                // Consumed where it lands, never awaited: it arrives a lock
-                // grant and a query after the handshake started — far inside
-                // even the base budget — so it widens a deadline already
-                // running, and `startCore` gains no suspension point. An
-                // await for this count is what raced a rebuild in #1713.
+                // A realm's first attempt reads a cache no boot has refreshed
+                // yet, so it sizes — and attributes — itself as the only boot
+                // on the page, and a fresh PreTeXt iframe, the very case #1711
+                // exists for, is exactly that boot (#1718). The seat this
+                // ladder is already taking counted the page as it was granted,
+                // so the first attempt takes its reading from there. Consumed
+                // where it lands, never awaited: it arrives a lock grant and a
+                // query after the handshake started — far inside even the base
+                // budget — so it widens a deadline already running, and
+                // `startCore` gains neither a suspension point nor a lock
+                // operation of its own. Both matter, and for different
+                // reasons: see `concurrentHandshakesSnapshot` for what an
+                // await here cost, and `joinHandshakeCensus` for why a query
+                // must not sit immediately ahead of a lock request (#1713).
                 //
                 // Only the first attempt: from the second on, the seat's
                 // reading is the pressure at the ladder's entry, while the

@@ -151,9 +151,11 @@ describe("isHandshakeTimeout (#1711)", () => {
 describe("withTimeout widening (#1718)", () => {
     // A realm's first handshake has no cached census reading to size itself
     // against, and the one its own seat brings back arrives after the
-    // handshake has started. Rather than make the boot wait for it — an await
-    // there is what raced a rebuild in #1713 — the budget starts at the
-    // uncontended base and moves out when the count lands.
+    // handshake has started. Rather than make the boot wait for it — extra
+    // awaits in `startCore` are what let a catalog-driven rebuild overlap the
+    // ladder already running, which is why the count is cached rather than
+    // asked for — the budget starts at the uncontended base and moves out when
+    // the count lands.
 
     it("extends a running deadline when the wider budget arrives", async () => {
         // The task outlives the budget it started with, and finishes well
