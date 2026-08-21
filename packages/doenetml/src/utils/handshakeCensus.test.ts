@@ -45,9 +45,10 @@ function fakeSharedLocks() {
 }
 
 /**
- * Let the refreshes a released seat defers by a task run, and the queries they
- * issue settle, so the cached count reflects the seats that have dropped
- * before the next assertion — or the next test — reads it.
+ * Let the cache refreshes a census seat sets going — a query on the way in,
+ * and one deferred a task on release — run to completion, so the cached count
+ * reflects the seats that have come and gone before the next assertion, or the
+ * next test, reads it.
  */
 async function drainDeferredRefreshes() {
     await new Promise((resolve) => setTimeout(resolve, 0));

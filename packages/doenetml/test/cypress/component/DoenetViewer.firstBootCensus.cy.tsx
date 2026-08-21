@@ -11,21 +11,46 @@ import {
 //
 // The census count a boot reads is cached and refreshed only in the
 // background, so every reading is answered by the refresh before it — and a
-// realm's first attempt has none. Left there, attempt 0 is sized and
+// realm's first attempt has none before it. Left there, attempt 0 is sized and
 // attributed as though it were the only boot on the page, which is precisely
 // the boot #1711 exists for: a fresh PreTeXt iframe on a page where every
-// activity is booting at once. The seat the ladder already takes now reports
-// the count it was granted against, so the first attempt has a reading of its
-// own.
+// activity is starting at once.
 //
-// Observed through the busy-page failure wording (#1712), which is driven by
-// the same `concurrentHandshakes` figure that sizes the budget: a first
-// attempt that hangs on a demonstrably contended page must come back with it.
-// Reading "just me", it would report the plain message instead.
+// What this pins is that the first attempt gets a count of its own, taken from
+// the census seat the ladder is already holding. It is observed through the
+// busy-page failure wording (#1712), which is driven by the same
+// `concurrentHandshakes` figure that sizes the budget — so a first attempt
+// that hangs on a demonstrably contended page must come back with it, where
+// one reading "just me" would report the plain message. (That the widened
+// figure also moves a deadline already running is `withTimeout`'s half, and is
+// pinned in `coreWorkerBoot.test.ts`.)
 
 describe("DoenetViewer first-attempt handshake census (#1718)", () => {
     /** Releases for the census seats standing in for other realms' boots. */
     const seatReleases: (() => void)[] = [];
+
+    /**
+     * Take one census seat straight through the lock manager, the way another
+     * realm's handshake appears from here: visible to a query, but leaving
+     * this realm's cached count untouched — which `joinHandshakeCensus` would
+     * not, since a seat refreshes the cache as it is taken.
+     *
+     * Resolves once the lock is granted, so seats are held (not merely
+     * requested) before the boot under test reads the page.
+     */
+    function holdCensusSeat(): Promise<void> {
+        return new Promise<void>((granted) => {
+            void navigator.locks.request(
+                HANDSHAKE_CENSUS_LOCK,
+                { mode: "shared" },
+                () =>
+                    new Promise<void>((release) => {
+                        seatReleases.push(release);
+                        granted();
+                    }),
+            );
+        });
+    }
 
     afterEach(() => {
         delete doenetGlobalConfig.__doenetTestCoreInitHook;
@@ -52,25 +77,12 @@ describe("DoenetViewer first-attempt handshake census (#1718)", () => {
             }
         };
 
-        // Seats held straight through the lock manager, the way another
-        // realm's handshakes appear: visible to a query, invisible to this
-        // realm's cache. `DocViewer` substitutes 1 where the core hint is
-        // withheld, so this exceeds whatever core count the boot compares
-        // against.
+        // `DocViewer` substitutes 1 where the core hint is withheld, so this
+        // exceeds whatever core count the boot compares its reading against.
         const seatTarget = (navigator.hardwareConcurrency || 1) + 4;
         cy.then(async () => {
             for (let i = 0; i < seatTarget; i++) {
-                await new Promise<void>((granted) => {
-                    void navigator.locks.request(
-                        HANDSHAKE_CENSUS_LOCK,
-                        { mode: "shared" },
-                        () =>
-                            new Promise<void>((release) => {
-                                seatReleases.push(release);
-                                granted();
-                            }),
-                    );
-                });
+                await holdCensusSeat();
             }
         });
 

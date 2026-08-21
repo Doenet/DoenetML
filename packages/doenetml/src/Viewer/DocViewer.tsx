@@ -2132,7 +2132,10 @@ export function DocViewer({
         /**
          * The watchdog budget for a given contention reading. One place, so
          * that the override's precedence holds identically for the reading an
-         * attempt opens with and for the one its census seat brings back.
+         * attempt opens with and for the one its census seat brings back —
+         * and monotonic in that reading (both `handshakeWatchdogMsFor` and a
+         * fixed override are), so re-deriving a budget from a count that has
+         * since risen can only ever give a wider one.
          */
         function budgetMsFor(concurrentHandshakes: number): number {
             return (
@@ -2168,9 +2171,8 @@ export function DocViewer({
             // blocks.
             // NOT awaited: joining is bookkeeping, and an await here is a
             // suspension point in the middle of a boot. See
-            // `concurrentHandshakesSnapshot` for what that cost. The seat
-            // reports the count it was granted against, which is the only
-            // reading the first attempt below can have of its own (#1718).
+            // `concurrentHandshakesSnapshot` for what that cost. The count
+            // the seat carries is consumed by the first attempt below (#1718).
             // The seat deliberately spans the whole ladder, retry backoff
             // included: a ladder in backoff is pressure about to return, so
             // siblings sizing watchdogs against it err long — the safe
@@ -2193,56 +2195,58 @@ export function DocViewer({
                 // reading taken next is the one the PREVIOUS refresh produced
                 // — the backoff between attempts is what it lands in.
                 refreshHandshakeCensusCount();
-                // Both stay mutable so the seat's own reading, which arrives
-                // mid-attempt below, is what the budget and the failure
-                // wording end up using.
+                // The contention this attempt is judged against — its budget
+                // and, if it fails, its wording. Mutable, because attempt 0's
+                // own census seat can raise it while the attempt is running
+                // (below); since `budgetMsFor` is monotonic in it, re-deriving
+                // a budget from it gives whichever one is in force by then.
                 let concurrentHandshakes = concurrentHandshakesSnapshot();
-                let handshakeWatchdogMs = budgetMsFor(concurrentHandshakes);
+                const openingWatchdogMs = budgetMsFor(concurrentHandshakes);
                 // A realm's first attempt reads a cache no boot has refreshed
                 // yet, so it sizes — and attributes — itself as the only boot
-                // on the page, and a fresh PreTeXt iframe, the very case #1711
+                // on the page; a fresh PreTeXt iframe, the very case #1711
                 // exists for, is exactly that boot (#1718). The seat this
-                // ladder is already taking counted the page as it was granted,
-                // so the first attempt takes its reading from there. Consumed
-                // where it lands, never awaited: it arrives a lock grant and a
-                // query after the handshake started — far inside even the base
-                // budget — so it widens a deadline already running, and
-                // `startCore` gains neither a suspension point nor a lock
-                // operation of its own. Both matter, and for different
-                // reasons: see `concurrentHandshakesSnapshot` for what an
-                // await here cost, and `joinHandshakeCensus` for why a query
-                // must not sit immediately ahead of a lock request (#1713).
+                // ladder is already taking counted the page from inside its
+                // grant, so that is where the first attempt's reading comes
+                // from instead.
                 //
-                // Only the first attempt: from the second on, the seat's
-                // reading is the pressure at the ladder's entry, while the
-                // cache has been refreshed by the attempt before and
-                // describes the page the retry actually faces.
+                // Never awaited, and consumed wherever it lands: the count
+                // arrives a lock grant and a query after the handshake
+                // started — far inside even the base budget — so it widens a
+                // deadline already running, and `startCore` gains neither a
+                // suspension point nor a lock operation of its own. Both of
+                // those constraints are real and separate:
+                // `concurrentHandshakesSnapshot` records what an await here
+                // cost, and `joinHandshakeCensus` why a query must not sit
+                // immediately ahead of a lock request (#1713).
                 //
-                // Widening only, never narrowing — a seat that saw a quieter
-                // page than the cache leaves the budget alone, erring long as
-                // everywhere else in this ladder. Where a host override fixes
-                // the budget, `budgetMsFor` returns it unchanged, so the seat
-                // moves only the count the failure wording reads.
-                const widenedWatchdogMs =
+                // Attempt 0 only. A later attempt is answered by the refresh
+                // above from the attempt before it, which describes the page
+                // the retry actually faces, whereas the seat's reading is
+                // only ever the pressure at the ladder's entry.
+                //
+                // It can only ever grant more time: `withTimeout` ignores a
+                // later budget below the one in force, so a seat that saw a
+                // quieter page than the cache leaves the deadline alone. And
+                // where a host override fixes the budget, `budgetMsFor`
+                // returns it unchanged — the seat then moves only the count
+                // the failure wording reads.
+                const seatWidenedWatchdogMs =
                     attempt === 0
                         ? censusHandle.then(async (seat) => {
                               concurrentHandshakes = Math.max(
                                   concurrentHandshakes,
                                   await seat.count,
                               );
-                              handshakeWatchdogMs = Math.max(
-                                  handshakeWatchdogMs,
-                                  budgetMsFor(concurrentHandshakes),
-                              );
-                              return handshakeWatchdogMs;
+                              return budgetMsFor(concurrentHandshakes);
                           })
                         : null;
                 try {
                     thisCoreWorker = await withTimeout(
                         () => handshakeCore(attempt, coreIdWhenCalled),
-                        handshakeWatchdogMs,
+                        openingWatchdogMs,
                         `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
-                        widenedWatchdogMs,
+                        seatWidenedWatchdogMs,
                     );
                     handshakeSucceeded = true;
                     break;
@@ -2281,10 +2285,12 @@ export function DocViewer({
                     // only a watchdog expiry takes the whole budget, while an
                     // outright rejection (a worker script that 404s) fails as
                     // fast as the error arrives. The `err` printed alongside
-                    // says which of the two happened.
+                    // says which of the two happened. Re-derived rather than
+                    // read from `openingWatchdogMs`, so a seat that widened
+                    // this attempt is reported as having done so.
                     console.warn(
                         `DocViewer: core worker handshake attempt ${attempt + 1} ` +
-                            `of ${maxAttempts} failed (watchdog ${handshakeWatchdogMs}ms; ` +
+                            `of ${maxAttempts} failed (watchdog ${budgetMsFor(concurrentHandshakes)}ms; ` +
                             `${concurrentHandshakes} handshake(s) in flight on ${cores} core(s))` +
                             (attempt + 1 < maxAttempts
                                 ? "; retrying with a fresh worker."

@@ -110,12 +110,10 @@ export function reportedCores(): number {
  * handshake concludes; if they do not, the browser still drops it when the
  * realm goes away, so a crashed realm cannot inflate the count forever.
  *
- * The seat reports the count it observed as it was granted, which is the only
- * census reading a first handshake can have (#1718): the cached snapshot
- * answers with the reading before the caller's own refresh, and a realm's
- * first boot has none before it. That figure is a promise on the handle
- * rather than something the join waits for, so taking a seat still resolves
- * as soon as the lock is granted.
+ * The handle carries the count the seat was granted against — see
+ * `HandshakeCensusSeat.count` for why a first handshake has nowhere else to
+ * get one (#1718). It is a promise, so taking a seat still resolves as soon as
+ * the lock is granted.
  *
  * Resolves to a no-op handle wherever Web Locks are unavailable — the count
  * then reads as "no visible contention", which is the pre-#1711 behavior.
@@ -269,11 +267,10 @@ let lastKnownConcurrentHandshakes = 1;
  * count one boot out of date is a perfectly good input to a timeout; a boot
  * that races itself is not.
  *
- * What that costs is a first reading: an attempt is answered by the refresh
- * before it, and a realm's first handshake has none. `HandshakeCensusSeat`'s
- * `count` is where that reading comes from instead (#1718) — it arrives while
- * the handshake is already running, so it widens a budget in flight rather
- * than gating one.
+ * What a cache costs is a first reading, since a realm's first handshake has
+ * no refresh before it. `HandshakeCensusSeat.count` is where that one reading
+ * comes from instead (#1718), and it stays off the boot path the same way:
+ * arriving mid-handshake, it widens a budget in flight rather than gating one.
  */
 export function concurrentHandshakesSnapshot(): number {
     return lastKnownConcurrentHandshakes;
@@ -286,14 +283,14 @@ export function concurrentHandshakesSnapshot(): number {
  *
  * Because the update lands a turn or more later, the reading a caller gets
  * from `concurrentHandshakesSnapshot` is always the one *before* its own
- * refresh. A boot refreshes once per handshake attempt, every taken census
- * seat records the count it was granted against, and every released one
- * refreshes as it drops — so each attempt's read is answered by the previous
- * attempt's refresh, and a first attempt reads the count as of the last
- * attempt, seat, or drained seat in this realm. A wave in another tab's realm
- * drains invisibly (its releases refresh its own cache, not this one), so the
- * first attempt after one can still read high; the attempt's own refresh
- * corrects the reading for every attempt after it.
+ * refresh. A boot refreshes once per handshake attempt, and a census seat
+ * refreshes both as it is taken and as it drops — so each attempt's read is
+ * answered by the previous attempt's refresh, and a first attempt reads the
+ * count as of the last attempt, or the last seat taken or dropped, in this
+ * realm. A wave in another tab's realm drains invisibly (its releases refresh
+ * its own cache, not this one), so the first attempt after one can still read
+ * high; the attempt's own refresh corrects the reading for every attempt
+ * after it.
  */
 export function refreshHandshakeCensusCount(): void {
     countConcurrentHandshakes()
