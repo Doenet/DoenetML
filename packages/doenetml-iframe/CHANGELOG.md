@@ -1,5 +1,243 @@
 # @doenet/doenetml
 
+## 0.7.25
+
+### Patch Changes
+
+- 2086cb3: Offer the values of `renderMode`, `marker`, and `grid` in autocomplete and context help, and check them when a document runs. `<odeSystem renderMode>` is deprecated in the process.
+
+    Each of these attributes accepted a fixed set of words that lived only in the
+    renderer's `if`/`else` chain, so the schema surfaced them as free text and an
+    author had no way to discover or check what to write.
+
+    - `<math renderMode>` now declares `inline` and `display` and matches them
+      case-insensitively; an unrecognized value falls back to `inline` with a
+      diagnostic instead of silently rendering inline. The renderer's other two
+      modes are deliberately not offered on `<math>`: `numbered` needs an equation
+      tag that only `<me>`, `<men>`, and `<odeSystem>` supply, and `align` needs `&`
+      markers that a `<math>` expression cannot carry — use `<md>` for that.
+    - `<odeSystem renderMode>` is deprecated and removed. `align` was always its
+      only workable value — the rendered LaTeX carries `&` markers and its own
+      `\tag`, which no other mode's delimiters can hold — so the mode is now fixed
+      by the component. The attribute is dropped during DAST normalization with a
+      deprecation warning, so existing documents keep working and render as before
+      rather than failing on an unknown attribute. (Since the mode is no longer an
+      attribute, `$theOdeSystem.renderMode` is no longer available as a public
+      reference.)
+    - `marker` is split per tag, since the two sets do not cross. `<ul>` declares
+      `disc`, `circle`, and `square` and enforces them: they are the complete set,
+      so they now match case-insensitively and an unusable value is reported
+      instead of silently reverting to the level default. `<ol>` offers `1`, `a`,
+      `A`, `i`, and `I` as suggestions only, because the renderer matches on the
+      first character and decorated forms like `1.` or `a)` are legitimate.
+    - `<graph grid>` lists its values as suggestions too, since it also accepts
+      two numbers for the spacing, and now offers `1 1` and `2 2` alongside the
+      named spacings so the numeric form stays discoverable.
+
+    `<summaryStatistics statisticsToDisplay>` gains the same list, but only as
+    runtime validation: the component is experimental and excluded from the schema,
+    so the values do not reach autocomplete yet. An unrecognized statistic is now
+    dropped with an info diagnostic instead of being ignored in silence.
+
+- fbb802c: Free a boot slot when a document's core fails to start.
+
+    Hosts that cap how many documents boot at once released a slot only from `initializedCallback`, so a failed boot held one until the manager's own watchdog expired: 90 s for the `@doenet/standalone` coordinator and for windowed `@doenet/doenetml-iframe` viewers, 30 s for the docs site's editors. The queue that exists to keep a page from overloading was starved by the failures themselves.
+
+    `DoenetViewer` and `DoenetEditor` gain **`coreStartFailedCallback`**, the failure counterpart of `initializedCallback`. It fires once per core-start attempt and covers every way a start can end without a core: handshake retries exhausted, a rejected evaluation, or a document-state load that failed. A windowed `@doenet/doenetml-iframe` viewer releases its slot on the signal whether or not the host passed a callback of its own, and the docs site's editors release theirs the same way.
+
+    The standalone bundle posts `bootFailed` to a parent-page coordinator, which frees the slot and marks the activity `failed` — still budgeted and still parkable, but parking skips the state flush, since a failed realm has no core to answer one and whatever it last reported is already warehoused. A later attempt in that realm that does start a core clears the mark, so an activity that recovers flushes its state like any other. A failure that lands while the activity is already parking is not lost either: the flush in flight will never be answered, so the coordinator stops waiting for it — detaching at once off-screen, and keeping the `failed` mark if the reader scrolled back mid-flush.
+
+    The coordinator script also accepts `data-boot-watchdog-ms`, the one option that had no data attribute.
+
+- ca59f06: Deliver a core boot's result only while it still owns the document.
+
+    Getting a document on screen is a chain of waits — hash the source, read any saved state from IndexedDB, hand shake with a fresh worker, evaluate — and a rebuild during any of them (a locale switch, an editor recompile, new source from the host) leaves the previous boot still running. Both boots drive the same core worker, so the older one's result is no longer its to deliver: whichever way its evaluation ends, it now stands aside rather than rendering a superseded document over the new one or putting the "could not be started" screen over a document that booted fine.
+
+    The rule covers what a boot delivers _while_ running, not only its final result: a superseded initialization no longer announces the old document's structure or resolved language, and a superseded core's mid-evaluation deliveries — renderer updates, diagnostics, score reports, clipboard writes, host events, solution-view requests, and the async renderer-chunk loads that commit the document's React tree — are dropped rather than written under the identity of the document that replaced it. Only a boot whose viewer has gone away disposes what it created; after a rebuild there is a successor that has already inherited it. The safety net that turns an unexpected throw during a boot into a visible error follows the same rule, and additionally stays quiet once the boot has already put its document on screen — the last thing a boot does is call `initializedCallback`, and a host handler that throws there must not replace the document it was told about. The state load that _precedes_ a boot obeys the same rule: a load that has been overtaken now stops, rather than seeding the successor's core with the state saved for the document it replaced or reporting its own failure as that document's.
+
+    At most one boot runs per document at a time. A viewer brought back after being prepared off-screen restarted its boot on every re-render until that boot finished, and the two then tore down each other's worker — on that path aborting the render outright and leaving the viewer dead.
+
+- fd13acc: Put a held-back cascade step's message on the same row as its number.
+
+    A `<problem>`/`<task>`/`<part>` that a `<cascade>` is holding back shows one thing — the `<cascadeMessage>` telling the reader what to finish first — and its number was drawn a line above that message rather than beside it. A list item lines its number up with the first child that renders something, and a held-back step was treated as rendering nothing at all, so the message led nothing: the item dropped out of the numbering layout it uses for every other item and the message kept the top margin that pushed it onto a second row.
+
+    This also qualifies the previous release's "a `<cascadeMessage>` no longer takes the lead", which was true only of a hidden one: while the step is held back the message is the one thing on screen, and it does take the lead there.
+
+    The message is now the child such a step lines its number up with, which is what it always was on the screen. Nothing changes once the step is revealed: the message is hidden then, and the content behind it leads as before. Nothing changes for a step with a title or a box of its own either — those draw their number in a heading, with the message below it, exactly as they did.
+
+- 5cee7e9: Make a `<codeEditor>` inside a dark-mode document use the dark editor theme.
+
+    The `<codeEditor>` renderer mounts the same `EditorViewer` the authoring editor
+    does, but never told it which theme to use, so it fell back to the light-mode
+    default. Inside a dark-mode document that left light syntax colors — chosen for
+    contrast on a white canvas — painted on the dark canvas, and plain text content
+    in particular came out nearly invisible. The renderer now reads the document's
+    resolved theme from context and passes it down, so the embedded editor's
+    canvas, gutters, and syntax highlighting follow the surrounding document.
+
+- 3b70595: Size the core-worker watchdog to the contention it actually faces.
+
+    An Active Calculus reader on a 2020 dual-core MacBook Air saw every Doenet activity in a Runestone section fail with "The document viewer could not be started". The handshake budget was a fixed 15 s, measured on developer hardware where the handshake "stays bounded under CPU pressure". On that machine it is not bounded: a page starting many documents at once pushes a perfectly healthy handshake past 15 s, and the watchdog then makes the document unloadable on exactly the contended machines the guard exists for.
+
+    The budget now scales with handshakes-per-core, read page-wide from a shared Web Lock that every realm mid-handshake holds, and is capped so a genuine hang is still recovered from. The census gates nothing and is independent of any boot scheduling, so it works on pages whose host schedules boots itself — which is where cores can share a worker thread and contention matters most. `doenetGlobalConfig.coreHandshakeWatchdogMs` still overrides the budget outright, for a deployment whose handshake is slow for reasons contention cannot explain (one using `fetchExternalDoenetML`, say).
+
+    Retries back off exponentially with jitter instead of re-piling a fresh multi-MB worker 250 ms after one just failed, which was positive feedback exactly when the machine could least afford it.
+
+    A timeout on a demonstrably contended page no longer reports the worker as wedged. In shared-core mode that suspicion quarantines the host worker: the suspected core is killed and retried, no new cores join the host, and the retried and new cores land on a replacement worker whose multi-MB bundle must spawn and compile under the very contention that produced the false alarm.
+
+    A failure attributable to contention now says so — that several documents were starting at once, and may take longer on a slower device — instead of presenting an unexplained error. The general failure message is reworded to match: "This document could not be started", where it said "The document viewer could not be started".
+
+- ced96e0: Let the contention-aware watchdog reach a document's first boot attempt.
+
+    The page-wide handshake count is cached and refreshed in the background, so every reading is answered by the refresh before it — and a realm's first handshake has none. Its first attempt therefore sized itself as though it were the only boot on the page, and the contention-scaled budget only took effect from the first retry. That inverts the intent: the widening exists for a page where many activities boot at once, and a fresh iframe on such a page is exactly the attempt it never reached.
+
+    The census seat a boot already takes now reports the count it was granted against, counted from inside the grant — the boot path gains no suspension point, and the count rides on a lock operation that was happening anyway. Taking a seat is as quick as it ever was; the figure follows a moment later and moves a deadline that is already running, so nothing waits for it. A later reading only ever grants more time, never less, and an explicit `doenetGlobalConfig.coreHandshakeWatchdogMs` still wins outright. A timeout on that first attempt is now attributed to the page it actually ran on, so it comes back with the busy-page wording rather than an unexplained error.
+
+- 38b92ca: Let the first usable answer to a document's `SPLICE.getState` be the one that counts.
+
+    A page can hold more than one listener willing to answer that request. On a Runestone or SCORM page running the standalone coordinator there are two: the coordinator, which answers a restored activity out of the in-page warehouse it filled when it parked the activity, and the book's own persistence layer, which answers out of durable storage. Both answers were processed, so the document was rebuilt from whichever one happened to arrive last — and the durable one, being a round trip to storage, generally arrives second while carrying older work than the reader had just done. A reader who typed something, scrolled past the activity, and scrolled back could find the answer they gave before that reverted to an earlier one.
+
+    A request now has a single answer: the first that carries state for this document wins, and later answers to it are ignored. Within a page load the coordinator's warehouse is the fresher of the two and answers first, so the reader keeps their work; on a boot the warehouse cannot answer — the first visit of a session, say — the persistence layer is the only answerer and restores as before. An answer with no state does not consume the request, so a host with nothing saved for an activity cannot shut out a better answer still on its way.
+
+    Each answer also rebuilt the document from scratch, so on such a page every restore paid for a full core start whose result was immediately thrown away. Only the winning answer rebuilds now.
+
+    An error from one listener no longer hides the document another restores. A listener with nothing to offer can report a failure rather than stay silent, and a failure carries no `message_id`, so it leaves the request open for a listener that does have state — but the error it put on screen was never cleared when that state arrived, leaving the reader looking at a load failure with their restored work behind it.
+
+- 85caf7c: Save a reader's most recent work when the page goes away or the viewer is taken down, not only when a host asks for it.
+
+    The core throttles its state reports to a host at sixty seconds, so a host's copy of a reader's work can be a minute behind what is on screen. Only an explicit flush request from the host — or the reader submitting an answer — closed that window, and a document can go away with neither: the tab is closed, a new URL is typed, an external link is followed, a backgrounded mobile tab is discarded, or an app navigates in place and unmounts the viewer. Up to a minute of answers could be lost. Documents that keep no local copy — the default for embeds, and what a graded assignment on doenet.org uses — had nothing to fall back on.
+
+    The viewer now flushes whatever the throttle is holding back when the page hides, on both `pagehide` and a `visibilitychange` to hidden (a backgrounded tab can be discarded without firing anything else), and when the viewer itself unmounts. The work reaches the host through the ordinary state-report channel, so a host saves it exactly as it saves a routine autosave.
+
+    Getting the payload out in time is the whole difficulty: `pagehide` can end the document as soon as the handler returns. That is no budget for a round trip into the worker that holds the state, so the core now mirrors each throttled payload out to the page as it is built and the viewer keeps it in hand. Nor is it budget for a posted message, which only queues work an unloading document is destroyed before it does; the report is delivered to a host's listeners directly instead, in the same shape a posted one arrives in. Nothing is torn down on the way, so a page that comes back — returning to a backgrounded tab, or a back/forward-cache restore — carries on with its core intact and its work already saved.
+
+    A host has to hold up its end of that for the last moment to count, and the READMEs now say so: the listener receiving the report must write synchronously — `navigator.sendBeacon`, or a synchronous store — because a listener that defers to a `fetch` or a timer is discarded along with the document. For the same reason a `@doenet/doenetml-iframe` host that consumes reports through the `reportScoreAndStateCallback` prop instead of the message keeps its old exposure on an unload: that call crosses the frame boundary as a posted message.
+
+- d5dfb21: Show a reader the load failure their host reported, even when the host quotes the request's `message_id`.
+
+    A viewer asks its host for saved state with `SPLICE.getState`, and a host that cannot produce it answers with an error. The shape the protocol originally specified — an error carrying no `message_id` — was handled, but the branch that handled it hung off the id _not_ matching, so a host that quoted the request's id instead had its error dropped. Quoting it is the natural thing for a host to do: it is what its own answers carrying state do, and what every other request/response pair in the protocol does.
+
+    Nothing hung as a result, because the viewer never waits for this answer — it boots fresh and reboots seeded with whatever state arrives. The failure was quieter than that. The reader carried on in a document started without the work they had saved, with nothing on screen to say why, while the host believed it had reported the problem.
+
+    An error is now surfaced whether it quotes the open request's id or carries none, and one quoting a different id is ignored, since that id belongs to another request — one some rebuild has already replaced, or another viewer's on the page. A response carrying state is unchanged: it is read only when it quotes the request it answers, because replies reach every viewer in the window and `cid` alone cannot tell two of them apart. An error still does not close the request, so a page holding a second listener — the `@doenet/standalone` coordinator beside a book's own persistence layer — can still restore the document after the first answerer has failed.
+
+- 5231472: Viewer: size the virtual keyboard's controls for a fingertip on touch devices.
+
+    Every control in the keyboard tray was built for a mouse pointer. On a phone or
+    tablet the tab that opens the tray was 48x24, the button that closes it 24x24,
+    the layout tabs (`123`, `f(x)`, `ABC`, `αβγ`, `$%∞`) 30x25, and the keys
+    themselves 39x40 — all under the 44px minimum a fingertip needs, which is the
+    figure in both Apple's HIG and WCAG 2.5.5. The tab that opens the tray was the
+    worst of them, since it is the only way in and had to be found before anything
+    else could be tapped.
+
+    On a device whose primary pointing device is coarse, those controls are now at
+    least 44px in the direction that was short: the open tab is 64x44, the close
+    button 44x44, and the layout tabs and keys are 44px tall. Key width is left to
+    the row layout, which shares the row out evenly — a phone cannot fit twelve
+    44px-wide keys across, and forcing it would only cause an overflow. What the
+    extra room buys on a tablet is wider keys: the keyboard may now spread to 48rem
+    rather than 42rem, so a key grows to 48px there instead of staying at 40px in
+    the middle of an empty row.
+
+    The tray also stops short of the height that would carry its own tab off the
+    top of the screen — floor as well as ceiling, so a window shorter than the
+    tray's usual 280px no longer pushes the tab out of reach either. It hangs the
+    tab exactly its own height above the tray, so a taller tab needs a taller gap;
+    on a phone held sideways, where the tray is tall enough to reach that limit,
+    the tab was being clipped.
+
+    Where the tray has no room for the whole keyboard — the same phone held
+    sideways, or any short window — the keyboard now scrolls inside the tray
+    instead of running off the bottom of the screen, so the rows that were cut off,
+    the number pad among them, can be reached. Taller keys would have cut off more.
+    The tab and the close button stay where they are while it scrolls, and the tray
+    opens onto the top of the keyboard however far it was scrolled last time, so the
+    layout tabs are in view whenever it opens.
+
+    Nothing else changes for a reader with a mouse, including on a narrow window:
+    the sizing is keyed on the primary pointer being coarse, which is the same test
+    the viewer already uses to decide whether to suppress the device's own
+    on-screen keyboard. The scrolling is the exception, and deliberately so — a
+    window too short for the keyboard cut it off whatever was pointing at it.
+
+    Closes #449.
+
+- 35acd91: Fix matrix, vector, and tuple arithmetic losing an entry whose value works out to one.
+
+    Subtracting a matrix that has an entry of `-1`, as in `<math simplify>$A + $B - $C</math>`, gave a wrong answer or no answer at all. Distributing the minus sign over the entries turned that entry into the product `(-1)(-1)`, which simplified to an empty product rather than to `1`, so the entry dropped out of the sum. Where the rest of that entry's sum was negative, the entry silently came out one too small; where it was positive, evaluating the expression failed outright and the document reported an internal error. Subtracting tuples and vectors with an entry of `-1` behaved the same way.
+
+- 10fea3d: Show one `<cascadeMessage>` at a time in a `<cascade>`.
+
+    A `<cascadeMessage>` nested inside a section was shown by every held-back
+    section at once, so a cascade of three problems displayed "finish problem 1"
+    and "finish problem 2" simultaneously — one of them describing a step the
+    learner cannot see the point of yet. A message now shows only while its section
+    is the _next_ one, the one that becomes visible as soon as the current section
+    is completed; sections further down show only their number and title, as a
+    held-back section with no message of its own already did.
+
+    Where an author has put messages in both places, the two placements now
+    negotiate rather than both appear: a section's own message is the more specific
+    of the two, so when the next section has one, it is shown and the `<cascade>`'s
+    own `<cascadeMessage>` children stay hidden for as long as it is. A cascade's
+    own message continues to serve every gap that the next section does not cover
+    itself.
+
+    A `<cascade>` nested inside another waits its turn the same way: its own
+    `<cascadeMessage>` children used to be shown while it was still several steps
+    away, so a cascade of cascades spoke from every level at once. Each cascade now
+    shows at most one message, and only once it is the next step.
+
+- 2155e94: Fix plain-text labels being invisible in dark mode on prefigure-rendered graphs.
+
+    Point, line/vector, and angle labels without LaTeX, along with graph axis
+    titles, are rendered by PreFigure as native SVG `<text>` elements. Without an
+    explicit color, PreFigure leaves these unstyled, which defaults to opaque
+    black and disappears against a dark canvas. Math/LaTeX labels were unaffected
+    since they render through MathJax, which already uses the page's text color.
+    Plain-text labels now carry an explicit color that follows the page's
+    light/dark theme.
+
+- 5c94445: Shrink the eagerly-parsed standalone bundle by lazy-loading the editor stack
+  (#1437). The `EditorViewer` behind both `DoenetEditor` and the `<codeEditor>`
+  renderer now loads through a `React.lazy` boundary (an editor chunk that
+  still fails to load after the retries renders the same inline
+  renderer-failed-to-load message the viewer renderers use, keeping the rest of
+  the page mounted), `@doenet/standalone` is
+  code-split (`doenet-standalone.js` plus lazy `chunks/` resolved relative to
+  the bundle URL). The split bundle pins its chunk URLs to its own version at
+  runtime when served from a floating CDN tag (`@latest`, a version range, or no
+  version), so an already-cached entry keeps loading its own release's chunks
+  across releases instead of 404ing on the next release's hashes; under any
+  other URL (self-hosted, exact-version) chunks resolve relative to the bundle
+  URL as before. The `onload` contract of PreTeXt-style pages is preserved:
+  `window.renderDoenetViewerToContainer` / `renderDoenetEditorToContainer`
+  exist at `load` (queueing until the bundle finishes evaluating), and
+  `window.doenetGlobalConfig` values a host sets at `load` are honored —
+  `@doenet/doenetml` now adopts a host-created config object instead of
+  replacing it, and a host-chosen `doenetWorkerUrl` stays in force (the
+  bundle's own worker-URL resolution and version pinning defer to it).
+  A second copy of the bundle loaded on the same page now stays fully inert
+  instead of taking over the render globals: its worker-URL write and its
+  `window.renderDoenet*ToContainer` / palette globals both defer to the first
+  copy's, so every document pairs one release's UI with that same release's
+  worker. When two copies load concurrently, render calls a host queued against
+  one copy's `onload` stubs replay through the first copy that finishes
+  loading — never stranded, even if the copy that installed the stubs fails to
+  finish loading — and editor handles captured from a stub keep working after
+  that hand-off.
+  Duplicate copies of the component schema are eliminated
+  (five down to two, none of them eagerly loaded). Hosts that evaluate the bundle from a Blob or `srcdoc` URL, where
+  relative chunk imports cannot resolve, can use the new single-file
+  `doenet-standalone-inline.js` published beside it. The `CodeMirror` component
+  is now exported from `@doenet/doenetml/codemirror.js` instead of the main
+  `@doenet/doenetml` entry, so importing the viewer no longer parses the editor
+  stack.
+- 37c99b6: Serve the core WASM as its own file beside the worker script instead of inlining it into the worker bundle as a base64 data URL. The worker fetches it at run time (from beside its own script, or from a jsDelivr URL pinned to the built release as a last resort) and hands the response to streaming compilation, so the browser's URL-keyed machine-code cache shares one compilation across all workers, iframes, and repeat page views — and the worker bundle shrinks from ~15 MB to ~6.3 MB. Single-file consumers (the inline-worker entry, the VS Code extension) still work with no network access: they bake the WASM in as a `data:` URL the worker decodes without fetching.
+
+    Closes #1438.
+
 ## 0.7.24
 
 ### Patch Changes
