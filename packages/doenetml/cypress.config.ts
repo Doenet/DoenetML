@@ -14,14 +14,14 @@ export default defineConfig({
     // when iterating locally (openMode). Without it a single flake failed the
     // whole `doenetml-cypress` job — which is how both #1612 (a hover
     // re-dispatch race) and #1719 (a viewer that boots slower than the test's
-    // wait on a cold 2-core runner) took CI down. These specs need it most:
-    // they are the ones that boot a real core worker, so their flakes are
-    // boot-cost flakes rather than logic flakes, and a second attempt against
-    // a warm cache almost always passes. (`@doenet/codemirror` has no retries
-    // either — #1612 lists it too — but its component specs drive the editor
-    // alone and are left alone here.) Retrying is a safety net, not a
-    // diagnosis: a spec that fails every attempt still fails the job, and the
-    // `printAppConsole` task below is what says why.
+    // wait on a cold 2-core runner) took CI down. Both are timing races on a
+    // contended runner rather than wrong assertions, and these are the specs
+    // that boot a real core worker, so a second attempt against a warm cache
+    // almost always passes. (`@doenet/codemirror` has no retries either —
+    // #1612 lists it too — but its component specs drive the editor alone and
+    // are left alone here.) Retrying is a safety net, not a diagnosis: a spec
+    // that fails every attempt still fails the job, and the `printAppConsole`
+    // task below is what says why.
     retries: {
         runMode: 2,
         openMode: 0,
@@ -148,25 +148,24 @@ export default defineConfig({
                  * Print the app's console warnings and errors from a failing
                  * test into the runner's own output (#1719).
                  *
-                 * The viewer's boot ladder narrates itself through
-                 * `console.warn` — which handshake attempt failed, the watchdog
-                 * budget it had, and how many handshakes were in flight on how
-                 * many cores — but in `cypress run` none of that reaches the
-                 * terminal. A boot-timing flake therefore arrives on CI as a
-                 * bare "expected to find content ... but never did", with
-                 * nothing to say whether the worker was slow, retried, or never
-                 * started at all. `test/cypress/support/component.ts` buffers
-                 * the messages and hands them here when a test fails.
+                 * Nothing the browser logs reaches the terminal under `cypress
+                 * run`, so a boot-timing flake arrives on CI as a bare
+                 * "expected to find content ... but never did" even though the
+                 * boot ladder has already said what went wrong. This is the
+                 * printing half of that fix; `test/cypress/support/component.ts`
+                 * is the collecting half, and carries the reasoning.
                  */
                 printAppConsole({
                     title,
+                    attempt,
                     messages,
                 }: {
                     title: string;
+                    attempt: number;
                     messages: string[];
                 }) {
                     console.log(
-                        `\n--- app console during failing test: ${title}`,
+                        `\n--- app console during failing test (attempt ${attempt}): ${title}`,
                     );
                     for (const message of messages) {
                         console.log(`    ${message}`);

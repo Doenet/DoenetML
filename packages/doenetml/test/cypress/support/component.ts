@@ -15,11 +15,11 @@ Cypress.Commands.add("mount", mount);
 //
 // Most of what these specs wait on is the viewer putting content on screen,
 // which means booting a core worker: spawning it, compiling the WASM, and
-// running the init round-trips the boot ladder watchdogs. When that is slower
-// than the wait — a cold 2-core CI runner is the case on record — the failure
-// says only that the content never appeared. The ladder itself has already
-// explained what happened, through `console.warn`, in the browser; `cypress
-// run` just never shows it.
+// running the init round-trips that the boot ladder time-boxes. When that is
+// slower than the wait — a cold 2-core CI runner is the case on record — the
+// failure says only that the content never appeared. The ladder itself has
+// already explained what happened, through `console.warn`, in the browser;
+// `cypress run` just never shows it.
 //
 // So buffer the app's warnings and errors as each test runs and, when the test
 // fails, hand them to the `printAppConsole` task, which prints them from the
@@ -113,7 +113,15 @@ afterEach(function () {
     }
     cy.task(
         "printAppConsole",
-        { title: this.currentTest.fullTitle(), messages },
+        {
+            title: this.currentTest.fullTitle(),
+            // Retries mean the same title can print up to three times in one
+            // run; number the attempts so the transcripts can be told apart —
+            // and so "attempt 1 timed out, attempt 2 never started a worker"
+            // is readable as such rather than as one confused log.
+            attempt: Cypress.currentRetry + 1,
+            messages,
+        },
         { log: false },
     );
 });
