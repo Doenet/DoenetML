@@ -148,6 +148,75 @@ describe("isHandshakeTimeout (#1711)", () => {
     });
 });
 
+describe("withTimeout widening (#1718)", () => {
+    // A realm's first handshake has no cached census reading to size itself
+    // against, and the one its own seat brings back arrives after the
+    // handshake has started. Rather than make the boot wait for it — extra
+    // awaits in `startCore` are what let a catalog-driven rebuild overlap the
+    // ladder already running, which is why the count is cached rather than
+    // asked for — the budget starts at the uncontended base and moves out when
+    // the count lands.
+
+    it("extends a running deadline when the wider budget arrives", async () => {
+        // The task outlives the budget it started with, and finishes well
+        // inside the one that arrives a microtask later.
+        const value = await withTimeout(
+            () =>
+                new Promise<string>((resolve) =>
+                    setTimeout(() => resolve("handshook"), 120),
+                ),
+            30,
+            "widened while running",
+            Promise.resolve(5_000),
+        );
+        expect(value).toBe("handshook");
+    });
+
+    it("never narrows a deadline already granted", async () => {
+        // A seat that saw a quieter page than the cache did must leave the
+        // budget alone: erring long is the deliberate bias throughout the
+        // ladder, and a late answer must not cut a healthy handshake short.
+        const value = await withTimeout(
+            () =>
+                new Promise<string>((resolve) =>
+                    setTimeout(() => resolve("handshook"), 60),
+                ),
+            5_000,
+            "not narrowed",
+            Promise.resolve(1),
+        );
+        expect(value).toBe("handshook");
+    });
+
+    it("reports the budget that actually expired", async () => {
+        // The message is what a reader gets in the console alongside the
+        // failure, so it has to name the widened deadline, not the one the
+        // attempt opened with.
+        const err = await withTimeout(
+            () => new Promise<void>(() => {}),
+            1,
+            "hangs",
+            Promise.resolve(40),
+        ).catch((e) => e);
+        expect(isHandshakeTimeout(err)).toBe(true);
+        expect(String((err as Error).message)).toContain("40ms");
+    });
+
+    it("keeps its deadline when the budget never arrives", async () => {
+        // The census is best-effort everywhere else; a reading that fails to
+        // materialize leaves the attempt exactly as it was — same deadline,
+        // and a message still naming the budget it opened with.
+        const err = await withTimeout(
+            () => new Promise<void>(() => {}),
+            1,
+            "hangs",
+            Promise.reject(new Error("no census")),
+        ).catch((e) => e);
+        expect(isHandshakeTimeout(err)).toBe(true);
+        expect(String((err as Error).message)).toContain("1ms");
+    });
+});
+
 describe("retryDelayMs (#1711)", () => {
     it("backs off exponentially instead of re-piling after a flat delay", () => {
         // Jitter is a [1, 2) multiplier, so compare against the floor of each

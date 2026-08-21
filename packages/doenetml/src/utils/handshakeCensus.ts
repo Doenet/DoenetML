@@ -30,8 +30,13 @@ import { lockManager } from "./webLocks";
 /**
  * Lock name held — in `shared` mode, so every holder is granted at once — for
  * the duration of a core handshake.
+ *
+ * Exported so tests can drive the census the way other realms do: seats taken
+ * through the lock manager directly are visible to a query but leave this
+ * realm's cached count untouched, which is the state a first boot is really
+ * in (#1718).
  */
-const HANDSHAKE_CENSUS_LOCK = "doenet-handshake-census";
+export const HANDSHAKE_CENSUS_LOCK = "doenet-handshake-census";
 
 /**
  * How long to wait for the (shared, therefore immediately grantable) census
@@ -41,10 +46,38 @@ const HANDSHAKE_CENSUS_LOCK = "doenet-handshake-census";
 const CENSUS_JOIN_TIMEOUT_MS = 1_000;
 
 /**
- * The handle a handshake holds when it could not take a seat: releasing it
- * frees nothing, because nothing was taken. Shared, since it carries no state.
+ * A realm's place in the census, for as long as it holds the handle.
  */
-const NO_CENSUS_SEAT = { release: () => {} };
+export type HandshakeCensusSeat = {
+    /** Leave the census. */
+    release: () => void;
+    /**
+     * How many handshakes were in flight — this one included — when the seat
+     * was granted, or the neutral 1 wherever the census could not be joined
+     * or queried.
+     *
+     * Counted from inside the grant, which is what makes it usable on a first
+     * boot: `concurrentHandshakesSnapshot` answers with the reading before
+     * the caller's own refresh, and a realm's first handshake has no reading
+     * before it (#1718).
+     *
+     * A promise, because the count is deliberately NOT what the seat waits
+     * for: the handle resolves the moment the lock is granted, and the figure
+     * follows a query later. A caller that has already started its handshake
+     * consumes it where it lands.
+     */
+    count: Promise<number>;
+};
+
+/**
+ * The handle a handshake holds when it could not take a seat: releasing it
+ * frees nothing, because nothing was taken, and it reports the neutral "just
+ * me" count. Shared, since it carries no state.
+ */
+const NO_CENSUS_SEAT: HandshakeCensusSeat = {
+    release: () => {},
+    count: Promise.resolve(1),
+};
 
 /**
  * How many logical cores the browser admits to, or 0 where the hint is
@@ -77,10 +110,15 @@ export function reportedCores(): number {
  * handshake concludes; if they do not, the browser still drops it when the
  * realm goes away, so a crashed realm cannot inflate the count forever.
  *
+ * The handle carries the count the seat was granted against — see
+ * `HandshakeCensusSeat.count` for why a first handshake has nowhere else to
+ * get one (#1718). It is a promise, so taking a seat still resolves as soon as
+ * the lock is granted.
+ *
  * Resolves to a no-op handle wherever Web Locks are unavailable — the count
  * then reads as "no visible contention", which is the pre-#1711 behavior.
  */
-export function joinHandshakeCensus(): Promise<{ release: () => void }> {
+export function joinHandshakeCensus(): Promise<HandshakeCensusSeat> {
     const locks = lockManager();
     if (!locks) {
         return Promise.resolve(NO_CENSUS_SEAT);
@@ -89,7 +127,7 @@ export function joinHandshakeCensus(): Promise<{ release: () => void }> {
         let released = false;
         let giveUp: ReturnType<typeof setTimeout> | null = null;
         let settled = false;
-        function settle(handle: { release: () => void }) {
+        function settle(handle: HandshakeCensusSeat) {
             if (settled) {
                 return;
             }
@@ -106,8 +144,30 @@ export function joinHandshakeCensus(): Promise<{ release: () => void }> {
                     if (released) {
                         return Promise.resolve();
                     }
+                    // Count from inside the grant, so the reading includes
+                    // this seat and describes the page the handshake about
+                    // to start will actually run on. The query is issued
+                    // AFTER a grant, never ahead of a request: a query
+                    // immediately before `locks.request` reorders the lock
+                    // manager's work and changes which boot wins a rebuild
+                    // race (#1713), which is why the count is taken here
+                    // rather than beside the caller's own lock operations.
+                    // Not awaited before settling below: the seat is handed
+                    // over the moment it is granted, exactly as it was
+                    // before it carried a count, so a slow query costs the
+                    // reading and never the seat.
+                    const count = countConcurrentHandshakes().then(
+                        (inFlight) => {
+                            // The earliest possible refresh of the cache
+                            // every later reader consults, taken on a lock
+                            // operation that was happening anyway.
+                            lastKnownConcurrentHandshakes = inFlight;
+                            return inFlight;
+                        },
+                    );
                     return new Promise<void>((release) => {
                         settle({
+                            count,
                             release: () => {
                                 released = true;
                                 release();
@@ -206,6 +266,11 @@ let lastKnownConcurrentHandshakes = 1;
  * at all — a `DocViewer/i18n` CI failure bisected to exactly that change. A
  * count one boot out of date is a perfectly good input to a timeout; a boot
  * that races itself is not.
+ *
+ * What a cache costs is a first reading, since a realm's first handshake has
+ * no refresh before it. `HandshakeCensusSeat.count` is where that one reading
+ * comes from instead (#1718), and it stays off the boot path the same way:
+ * arriving mid-handshake, it widens a budget in flight rather than gating one.
  */
 export function concurrentHandshakesSnapshot(): number {
     return lastKnownConcurrentHandshakes;
@@ -218,13 +283,14 @@ export function concurrentHandshakesSnapshot(): number {
  *
  * Because the update lands a turn or more later, the reading a caller gets
  * from `concurrentHandshakesSnapshot` is always the one *before* its own
- * refresh. A boot refreshes once per handshake attempt, and every released
- * census seat refreshes as it drops, so each attempt's read is answered by
- * the previous attempt's refresh and a first attempt reads the count as of
- * the last attempt — or last drained seat — in this realm. A wave in
- * another tab's realm drains invisibly (its releases refresh its own cache,
- * not this one), so the first attempt after one can still read high; the
- * attempt's own refresh corrects the reading for every attempt after it.
+ * refresh. A boot refreshes once per handshake attempt, and a census seat
+ * refreshes both as it is taken and as it drops — so each attempt's read is
+ * answered by the previous attempt's refresh, and a first attempt reads the
+ * count as of the last attempt, or the last seat taken or dropped, in this
+ * realm. A wave in another tab's realm drains invisibly (its releases refresh
+ * its own cache, not this one), so the first attempt after one can still read
+ * high; the attempt's own refresh corrects the reading for every attempt
+ * after it.
  */
 export function refreshHandshakeCensusCount(): void {
     countConcurrentHandshakes()

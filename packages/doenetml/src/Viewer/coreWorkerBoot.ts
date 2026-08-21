@@ -193,24 +193,60 @@ export const CORE_START_FAILED_BUSY_MESSAGE =
  *
  * The timeout rejection is tagged so callers can recognize it with
  * `isHandshakeTimeout` instead of matching on the message text.
+ *
+ * `widenedMs` is for a budget that can only be known once the clock is already
+ * running: the census reading a handshake's seat brings back arrives after the
+ * handshake it describes has started (#1718). Resolving it to more than `ms`
+ * moves the deadline out to it, measured from the same start; a smaller value
+ * (or a rejection) leaves the original deadline alone. Widening only ever
+ * grants more time, so a task can never be cut short by an answer that arrives
+ * late.
  */
 export function withTimeout<T>(
     task: () => Promise<T>,
     ms: number,
     label: string,
+    widenedMs?: Promise<number> | null,
 ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         let settled = false;
-        const timer = setTimeout(() => {
+        const startedAt = Date.now();
+        // The budget currently in force — reported in the timeout message, so
+        // a reader sees the deadline that actually expired rather than the one
+        // the attempt started with.
+        let budgetMs = ms;
+        function expire() {
             if (!settled) {
                 settled = true;
-                const err = new Error(`${label} timed out after ${ms}ms`);
+                const err = new Error(`${label} timed out after ${budgetMs}ms`);
                 (err as unknown as Record<string, unknown>)[
                     TIMEOUT_ERROR_FLAG
                 ] = true;
                 reject(err);
             }
-        }, ms);
+        }
+        let timer = setTimeout(expire, ms);
+        widenedMs
+            ?.then((wider) => {
+                if (settled || !(wider > budgetMs)) {
+                    return;
+                }
+                budgetMs = wider;
+                clearTimeout(timer);
+                // Measured from the original start, not from now: the wider
+                // budget is what this attempt should have had all along, and
+                // restarting the clock would hand it the time already spent
+                // twice over.
+                timer = setTimeout(
+                    expire,
+                    Math.max(0, startedAt + wider - Date.now()),
+                );
+            })
+            .catch(() => {
+                // A budget that never arrives just leaves the deadline as it
+                // was; the handler only satisfies "no fire-and-forget
+                // promises".
+            });
         task().then(
             (value) => {
                 if (!settled) {
