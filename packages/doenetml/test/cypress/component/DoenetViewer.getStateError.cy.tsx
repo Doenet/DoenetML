@@ -173,6 +173,31 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
         });
     });
 
+    it("reads state from a reply that carries no `message_id`", () => {
+        // The relaxation is payload-blind on purpose: the id says whether a
+        // reply is this viewer's, and nothing more. So an answer carrying
+        // state without an id — which the protocol does not ask any host to
+        // send, and which the viewer used to drop — is now read like any
+        // other. It is harmless, because the `cid` test below it still has to
+        // pass for the state to be used at all; it is pinned here so that
+        // tightening it later is a decision someone makes rather than a
+        // behavior that slips.
+        //
+        // Unusable state again, for the reason the case below gives.
+        interceptGetState().then(({ win, request }) => {
+            mountViewer();
+            afterGetStateRequest(request);
+
+            cy.then(() => {
+                answer(win, { state: { cid: request.cid! } });
+            });
+
+            cy.contains("Error loading doc state", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+        });
+    });
+
     it("treats a reply carrying both state and an error as state", () => {
         // A host that produced state for this document has answered the
         // request, whatever else it also reported, so the state is read and
