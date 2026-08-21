@@ -20,6 +20,7 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 // screen — is `DoenetViewer.getStateFirstAnswerWins.cy.tsx`.
 
 const DOC = `<p>the document itself</p>`;
+const REBUILT_DOC = `<p>the document that replaced it</p>`;
 
 const VIEWER_TIMEOUT = 30_000;
 
@@ -76,6 +77,29 @@ function answer(win: Window, reply: Reply & { messageId?: string | null }) {
             ...body,
         },
         "*",
+    );
+}
+
+/**
+ * A viewer whose source changes on demand, so a test can rebuild the document
+ * under an answer still owed to the old one. The successor is handed
+ * `initialState: null` — "start fresh" — which is one of the ways a rebuilt
+ * document asks its host for nothing, and so never issues an id of its own.
+ */
+function ViewerWithRebuild() {
+    const [rebuilt, setRebuilt] = React.useState(false);
+    return (
+        <div>
+            <button data-cy="rebuild" onClick={() => setRebuilt(true)}>
+                rebuild
+            </button>
+            <DoenetViewer
+                doenetML={rebuilt ? REBUILT_DOC : DOC}
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+                initialState={rebuilt ? null : undefined}
+            />
+        </div>
     );
 }
 
@@ -240,6 +264,38 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
                 timeout: VIEWER_TIMEOUT,
             }).should("exist");
             cy.contains("storage unavailable").should("not.exist");
+        });
+    });
+
+    it("ignores an error owed to a document that has been rebuilt", () => {
+        // A rebuild retires the request the old document made. Nothing else
+        // does: the id is replaced only when a successor asks for itself, and
+        // one restoring from local state or handed `initialState` never asks.
+        // Left standing, that id would still match — and the late error would
+        // land on a document it says nothing about.
+        interceptGetState().then(({ win, request }) => {
+            cy.mount(<ViewerWithRebuild />);
+            afterGetStateRequest(request);
+            cy.contains("the document itself", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+
+            cy.get("[data-cy=rebuild]").click();
+            cy.contains("the document that replaced it", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+
+            // The id the FIRST document asked under, answered too late.
+            cy.then(() => {
+                answer(win, {
+                    messageId: request.id!,
+                    error: { code: 500, message: "storage unavailable" },
+                });
+            });
+
+            cy.wait(SETTLE);
+            cy.contains("storage unavailable").should("not.exist");
+            cy.contains("the document that replaced it").should("exist");
         });
     });
 

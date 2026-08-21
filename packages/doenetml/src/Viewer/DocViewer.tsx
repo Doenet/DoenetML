@@ -2862,6 +2862,15 @@ export function DocViewer({
         }
 
         coreId.current = nanoid();
+        // A request the previous document made is not this one's to have
+        // answered. Nothing else retires it: `requestStateViaSplice` replaces
+        // the id only after the load's awaits, and a successor restoring from
+        // local state or handed `initialState` never asks at all, so the old
+        // id would stay current indefinitely — long enough for a late reply
+        // to it to be read as an answer to this document, putting an error
+        // over a document it never described, or state that was saved for
+        // another attempt at the same source into this one.
+        messageIdFromGetState.current = null;
         initialCoreData.current = null;
         coreInfo.current = null;
         setDocumentRenderer(null);
