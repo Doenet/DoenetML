@@ -42,6 +42,15 @@ const MAX_BUFFERED_MESSAGES = 100;
 
 let bufferedMessages: string[] = [];
 /**
+ * When the current buffer started, so each line can carry the elapsed time
+ * since (roughly) the start of the test. #1719 is a question about *when*: a
+ * watchdog fire 15 s in with a retry still running when the wait expired is
+ * the hypothesis, while a ladder that failed 200 ms in never waited on
+ * anything. The messages themselves quote the watchdog's budget, not the
+ * clock, so without this the transcript cannot tell those apart.
+ */
+let bufferStartedAt = Date.now();
+/**
  * How many messages the cap turned away since the last flush. Counted rather
  * than discarded silently: a boot that retried its way through the whole
  * ladder is exactly the failure most likely to hit the cap, and a truncated
@@ -94,7 +103,8 @@ for (const level of ["warn", "error"] as const) {
     window.console[level] = (...args: unknown[]) => {
         if (bufferedMessages.length < MAX_BUFFERED_MESSAGES) {
             bufferedMessages.push(
-                `[${level}] ${args.map(formatConsoleArg).join(" ")}`,
+                `+${Date.now() - bufferStartedAt}ms [${level}] ` +
+                    args.map(formatConsoleArg).join(" "),
             );
         } else {
             droppedMessageCount++;
@@ -115,9 +125,11 @@ afterEach(function () {
     // Emptied on the way out rather than on the way in, so that a boot still
     // talking after its test ended is attributed to the next test — the one
     // whose failure it may well be about — instead of being thrown away in a
-    // `beforeEach` no one would see.
+    // `beforeEach` no one would see. The elapsed-time origin restarts here for
+    // the same reason: it is the last moment before the next test begins.
     bufferedMessages = [];
     droppedMessageCount = 0;
+    bufferStartedAt = Date.now();
     // `this.currentTest` is why this is a `function` and not an arrow. With
     // `retries` configured, a flake that passes on a later attempt still
     // prints the failed attempt's messages, which is exactly the run worth

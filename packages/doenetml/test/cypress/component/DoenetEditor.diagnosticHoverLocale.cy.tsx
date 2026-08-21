@@ -28,26 +28,23 @@ const EDITOR_TIMEOUT = 15_000;
  * single healthy boot (#1719). `EDITOR_TIMEOUT` is exactly one watchdog
  * period, so a first handshake slow enough to trip the watchdog — which a cold
  * two-core CI runner can produce — could never be beaten by it, however
- * promptly the retry then succeeded. This budgets for that recovery, term by
- * term below, and is derived from the ladder's own constants so it keeps that
- * meaning if they move.
+ * promptly the retry then succeeded. Derived from the ladder's own constants
+ * so it keeps that meaning if they move.
  *
  * Deliberately *not* a budget for every attempt the ladder will make
  * (`DEFAULT_CORE_BOOT_MAX_ATTEMPTS` is 3). One watchdog fire is a slow runner;
  * needing the last attempt is a boot in real trouble, and waiting a third
  * watchdog period only makes that failure slower to report — three times over,
  * now that the job retries.
- *
- * `MAX_CORE_BOOT_RETRY_DELAY_MS` is the ladder's backoff *ceiling*, not what
- * the first retry actually waits (`retryDelayMs(0)` is a few hundred ms). The
- * ceiling is budgeted anyway because it costs nothing here and stays correct
- * if the retry schedule is ever made more patient.
  */
 const VIEWER_BOOT_TIMEOUT =
     // A first handshake that runs out its watchdog, plus a second that gets
     // the same budget.
     2 * DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS +
-    // The backoff between the two.
+    // The backoff between the two. This is the ladder's *ceiling*, not what
+    // the first retry actually waits (`retryDelayMs(0)` is a few hundred ms);
+    // budgeted anyway because it costs nothing here and stays correct if the
+    // retry schedule is ever made more patient.
     MAX_CORE_BOOT_RETRY_DELAY_MS +
     // Evaluating the document and rendering the result, which the watchdog
     // deliberately does not cover — see `coreWorkerBoot`'s header on why only

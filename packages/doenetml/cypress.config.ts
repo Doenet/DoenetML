@@ -15,15 +15,10 @@ export default defineConfig({
     // whole `doenetml-cypress` job — which is how both #1612 (a hover
     // re-dispatch race) and #1719 (a viewer that never renders inside the
     // test's wait on a cold 2-core runner) took CI down. Neither looks like a
-    // wrong assertion: #1719 fails all-or-nothing at the full timeout, has
-    // never been reproduced locally, and a re-run of one identical commit
-    // passed. These are also the specs that boot a real core worker, so a
-    // second attempt against a warm cache starts from a much better position
-    // than the first. (`@doenet/codemirror` has no retries either —
-    // #1612 lists it too — but its component specs drive the editor alone and
-    // are left alone here.) Retrying is a safety net, not a diagnosis: a spec
-    // that fails every attempt still fails the job, and the `printAppConsole`
-    // task below is what says why.
+    // wrong assertion: both fail all-or-nothing at the full timeout, and
+    // neither reproduces locally. Retrying is a safety net, not a diagnosis:
+    // a spec that fails every attempt still fails the job, and the
+    // `printAppConsole` task below is what says why.
     retries: {
         runMode: 2,
         openMode: 0,
@@ -148,16 +143,14 @@ export default defineConfig({
             on("task", {
                 /**
                  * Print the app's console warnings and errors from a failing
-                 * test into the runner's own output (#1719).
+                 * test into the runner's own output (#1719) — nothing the
+                 * browser logs reaches the terminal under `cypress run`, so a
+                 * boot-timing flake otherwise arrives on CI as a bare
+                 * "expected to find content ... but never did".
                  *
-                 * Nothing the browser logs reaches the terminal under `cypress
-                 * run`, so a boot-timing flake arrives on CI as a bare
-                 * "expected to find content ... but never did", with no way to
-                 * tell whether the boot ladder had anything to say about it.
-                 * This is the printing half of that fix;
-                 * `test/cypress/support/component.ts` is the collecting half —
-                 * it calls this from a root `afterEach` — and carries the
-                 * reasoning.
+                 * This is the printing half; the collecting half is
+                 * `test/cypress/support/component.ts`, which calls this from a
+                 * root `afterEach` and carries the reasoning.
                  */
                 printAppConsole({
                     title,
@@ -172,10 +165,9 @@ export default defineConfig({
                         `\n--- app console during failing test (attempt ${attempt}): ${title}`,
                     );
                     if (messages.length === 0) {
-                        // Said out loud rather than left as a missing block: a
-                        // failing boot that logged nothing is evidence that
-                        // the ladder never tripped its watchdog, and #1719
-                        // turns on exactly that question.
+                        // Said out loud rather than left as a missing block —
+                        // see `component.ts`: silence is itself the answer to
+                        // the question #1719 turns on.
                         console.log("    (the app logged nothing)");
                     }
                     for (const message of messages) {
