@@ -8,13 +8,6 @@ import { reportTimerError, TimerLabels } from "../utils/timerErrors";
 import type Core from "../Core";
 
 /**
- * How many times a real report will resolve `creditAchieved` again after a
- * concurrent report lands while it is suspended — see
- * `StatePersistence._reportStateToMainRealm`.
- */
-const MAX_REPORT_REREADS = 3;
-
-/**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
  * instance, including throttle timers and the debounced save scheduler.
  *
@@ -34,17 +27,27 @@ export class StatePersistence {
     docStateToBeSavedToDatabase: any;
     changesToBeSaved: boolean;
     /**
-     * Ticket dispenser for `_reportStateToMainRealm`, and the highest ticket
-     * that has actually been handed to the main realm. Reports overlap — a
-     * submission's save is deliberately fire-and-forget and the debounced save
-     * runs off a timer, so two calls can be suspended on `creditAchieved` at
-     * once — and the pair lets a mirror that lost that race be dropped rather
-     * than delivered stale. Monotonic for the life of the instance; `reset()`
-     * deliberately leaves them alone, so a call still in flight across a
-     * regenerated document stays superseded.
+     * The credit that goes with `docStateToBeSavedToDatabase`, captured by the
+     * same `saveState` that built it. A report needs both halves, and resolving
+     * the score at report time would let them come from either side of a
+     * concurrent save — a reader's newest work tagged with the credit from
+     * before it, say, which a page hide would then hand to the host as their
+     * record. Captured together, they cannot disagree.
      */
-    _reportSequence: number;
-    _lastReportedSequence: number;
+    scoreToBeSavedToDatabase: number;
+    /**
+     * Ticket dispenser for `saveState`, and the ticket belonging to the pair
+     * currently stored above. Saves overlap — a submission's save is
+     * deliberately fire-and-forget, the debounced save runs off a timer, and
+     * every save awaits (`creditAchieved`, and `idb_set` when local state is
+     * on) between building its pair and storing it — so an older save can
+     * reach the store last. Comparing tickets is what keeps it from putting
+     * its pair over a newer one. Monotonic for the life of the instance:
+     * `reset()` takes a ticket of its own rather than starting over, which is
+     * what invalidates a save still in flight from the document being replaced.
+     */
+    _saveSequence: number;
+    _storedSequence: number;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -52,8 +55,9 @@ export class StatePersistence {
         this.saveDocStateTimeoutID = null;
         this.docStateToBeSavedToDatabase = null;
         this.changesToBeSaved = false;
-        this._reportSequence = 0;
-        this._lastReportedSequence = 0;
+        this.scoreToBeSavedToDatabase = 0;
+        this._saveSequence = 0;
+        this._storedSequence = 0;
     }
 
     /**
@@ -71,7 +75,12 @@ export class StatePersistence {
             this.saveDocStateTimeoutID = null;
         }
         this.docStateToBeSavedToDatabase = null;
+        this.scoreToBeSavedToDatabase = 0;
         this.changesToBeSaved = false;
+        // Every ticket issued so far now counts as superseded, so a save
+        // still resolving its score for the previous document cannot store
+        // that document's work against the new one.
+        this._storedSequence = ++this._saveSequence;
     }
 
     /**
@@ -153,8 +162,17 @@ export class StatePersistence {
             return;
         }
 
+        const sequence = ++this._saveSequence;
+
         const { payload, coreStateString, rendererStateString } =
             this.buildDocStatePayload(onSubmission);
+
+        // The credit that goes with this payload, resolved here so the pair
+        // travels together from here on. Skipped when there is no host to
+        // report to, since nothing then reads it.
+        const score = core.flags.allowSaveState
+            ? await core.document.stateValues.creditAchieved
+            : 0;
 
         if (core.flags.allowLocalState) {
             await idb_set(
@@ -172,7 +190,17 @@ export class StatePersistence {
             return;
         }
 
+        if (sequence < this._storedSequence) {
+            // A save that started later has already stored its pair. This one
+            // was built before that and would put the reader's work back a
+            // step; the save that overtook it has already marked the change
+            // and driven `saveChangesToDatabase`, so there is nothing left
+            // here to do.
+            return;
+        }
+        this._storedSequence = sequence;
         this.docStateToBeSavedToDatabase = payload;
+        this.scoreToBeSavedToDatabase = score;
 
         // mark presence of changes
         // so that next call to saveChangesToDatabase will save changes
@@ -222,65 +250,24 @@ export class StatePersistence {
      * `saveImmediately` in `terminate`) carries the same or newer state and
      * supersedes it.
      *
-     * Awaiting `creditAchieved` yields, so a concurrent save — a submission
-     * overriding the throttle, say — can report in that gap, and the score and
-     * the payload would then come from either side of it. Only one of the two
-     * can be read last, so neither order is safe on its own: reading the
-     * payload first risks putting a reader's older work over their newer, and
-     * reading the score first risks tagging their newer work with the credit
-     * they had before it. The payload is read last and the pairing is then
-     * *checked* — `_lastReportedSequence` says whether anything reported while
-     * this call was suspended — so a report only goes out when its two halves
-     * describe the same moment.
-     *
-     * What a call that lost the race does about it depends on which kind it
-     * is. A mirror is dropped: the report that overtook it is real, so the
-     * main realm has that state already and there is nothing left to hold. A
-     * real report is the one the host is waiting for and cannot be dropped, so
-     * it resolves the score again — by then the value that goes with the
-     * payload it will read — and tries once more.
+     * The pair it sends was captured together by the `saveState` that built
+     * it, so this needs no `await` and cannot interleave with anything: the
+     * score always belongs to the payload beside it, and a page hide is never
+     * handed a reader's state under a credit from the wrong side of it.
      */
-    async _reportStateToMainRealm(pending: boolean): Promise<void> {
-        // Each pass re-reads a score a concurrent report has already made
-        // stale, so a pass past the first needs a *further* report to have
-        // landed in the microtask the re-read takes. Saves are throttled and
-        // debounced, which makes a second pass unlikely and a third all but
-        // unreachable; the cap is only here so this cannot spin.
-        for (let attempt = 0; ; attempt++) {
-            const sequence = ++this._reportSequence;
-            const score = await this.core.document.stateValues.creditAchieved;
-            const payload = this.docStateToBeSavedToDatabase;
-            if (!payload) {
-                // `reset()` cleared the buffer while the score resolved: the
-                // document this payload belonged to is gone, and reporting
-                // `{}` over the host's record would be worse than reporting
-                // nothing.
-                return;
-            }
-
-            if (sequence < this._lastReportedSequence) {
-                if (pending) {
-                    return;
-                }
-                if (attempt < MAX_REPORT_REREADS) {
-                    continue;
-                }
-                // Out of re-reads. A real report reaching the host late with
-                // a score that may trail its state still beats not reaching
-                // the host at all, and the next report corrects it.
-            }
-
-            this._lastReportedSequence = Math.max(
-                this._lastReportedSequence,
-                sequence,
-            );
-            this.core.reportScoreAndStateCallback({
-                state: { ...payload },
-                score,
-                pending,
-            });
+    _reportStateToMainRealm(pending: boolean): void {
+        const payload = this.docStateToBeSavedToDatabase;
+        if (!payload) {
+            // `reset()` ran between the save and this report: the document
+            // this payload belonged to is gone, and reporting `{}` over the
+            // host's record would be worse than reporting nothing.
             return;
         }
+        this.core.reportScoreAndStateCallback({
+            state: { ...payload },
+            score: this.scoreToBeSavedToDatabase,
+            pending,
+        });
     }
 
     async saveChangesToDatabase(overrideThrottle = false): Promise<void> {
@@ -296,7 +283,7 @@ export class StatePersistence {
             } else {
                 // Held back by the throttle: mirror the payload into the main
                 // realm so a page hide can still deliver it (#1726).
-                await this._reportStateToMainRealm(true);
+                this._reportStateToMainRealm(true);
                 return;
             }
         }
@@ -311,6 +298,6 @@ export class StatePersistence {
             );
         }, 60000);
 
-        await this._reportStateToMainRealm(false);
+        this._reportStateToMainRealm(false);
     }
 }
