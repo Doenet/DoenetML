@@ -84,6 +84,21 @@ export type SourcePosition = {
     end: { line: number; column: number; offset: number };
 };
 
+/**
+ * One score/state report on its way to whoever persists it, carrying the
+ * identity of the document it describes. The ids travel *with* the report
+ * rather than being read at delivery time, because a report can be buffered
+ * (see `pendingStateReport`) and handed over later, by which point the props
+ * may name a successor document — and state saved under the wrong
+ * `activityId`/`docId` is worse than state not saved at all.
+ */
+export type StateReport = {
+    score: number;
+    state: unknown;
+    activityId: string;
+    docId: string;
+};
+
 /** Whether `inner`'s source range lies entirely within `outer`'s. */
 function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
     return (
@@ -179,12 +194,7 @@ export function DocViewer({
         diagnostics: DiagnosticRecord[],
         source: string,
     ) => void;
-    reportScoreAndStateCallback?: (data: {
-        score: number;
-        state: unknown;
-        activityId: string;
-        docId: string;
-    }) => void;
+    reportScoreAndStateCallback?: (data: StateReport) => void;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
     /**
@@ -759,6 +769,54 @@ export function DocViewer({
         }
     }, [formatDiagnostic]);
 
+    // The most recent state payload the core's 60-second database throttle is
+    // holding back, mirrored here by `StatePersistence` as a report marked
+    // `pending` (#1726). A page can go away without the viewer unmounting —
+    // the tab is closed, a new URL is typed, an external link is followed, a
+    // backgrounded mobile tab is discarded — and a React effect cleanup runs
+    // for none of those. Keeping the payload in this realm is what lets
+    // `flushPendingStateReport` hand it to the host without a round-trip into
+    // the worker, which `pagehide` has no budget for. It is also what the
+    // unmount cleanup delivers, the core's own teardown report being
+    // suppressed by then — see that cleanup below.
+    const pendingStateReport = useRef<StateReport | null>(null);
+
+    // Report whatever the throttle is holding back, right now. Safe to call
+    // repeatedly and safe to interleave with the core's own reports: the
+    // buffer is taken before it is reported, so a given payload goes out at
+    // most once from here, and the worst a race with a real report can produce
+    // is a second copy of state the host already has. Must stay synchronous
+    // throughout — see `deliverStateReport`.
+    function flushPendingStateReport() {
+        const pending = pendingStateReport.current;
+        if (!pending) {
+            return;
+        }
+        pendingStateReport.current = null;
+        try {
+            deliverStateReport(pending, { synchronous: true });
+        } catch (err) {
+            // Delivery runs host code — `reportScoreAndStateCallback` is a
+            // plain synchronous call — and one of the callers is the unmount
+            // cleanup, where a throw would skip the core-worker teardown that
+            // follows and leak the worker. The buffer has already been taken
+            // and there is nothing left to retry, so report the failure and
+            // let the caller carry on.
+            console.warn(
+                "DocViewer: could not deliver the pending state report",
+                err,
+            );
+        }
+    }
+
+    // Latest identity of the flush, for the mount-once listeners below to call
+    // through — it closes over props (the host's own report callback among
+    // them) whose identity can change between renders.
+    const flushPendingStateReportRef = useRef(flushPendingStateReport);
+    useEffect(() => {
+        flushPendingStateReportRef.current = flushPendingStateReport;
+    });
+
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
     // core can be force-released even when its Comlink `terminate()` would
@@ -801,6 +859,13 @@ export function DocViewer({
         const kill = coreWorkerKill.current;
         coreWorker.current = null;
         coreWorkerKill.current = null;
+        // Drop the throttled payload along with the core that produced it
+        // (#1726). A rebuild replaces the document the payload belongs to, so
+        // reporting it after the successor has reported would put stale state,
+        // under a stale `cid`, over the host's newer record. The other caller
+        // is the unmount cleanup below, which delivers the payload first —
+        // there being no successor to overwrite.
+        pendingStateReport.current = null;
         return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
@@ -832,6 +897,15 @@ export function DocViewer({
         viewerUnmounted.current = false;
         return () => {
             viewerUnmounted.current = true;
+            // Hand the host whatever the throttle was holding back before the
+            // teardown below drops it (#1726). The core's own teardown flush
+            // does not cover this: `Core.terminate()` does report, but that
+            // report arrives through `speakingFor`, which suppresses every
+            // delivery once `viewerUnmounted` is set — so on an in-app
+            // navigation the last minute of work reached nobody. The buffered
+            // payload is up to one save-debounce older than what the core
+            // would have built, and it is what actually gets out.
+            flushPendingStateReportRef.current();
             // Best-effort graceful terminate, but always guarantee a native
             // kill so a wedged worker (whose Comlink terminate would hang) is
             // still released on unmount (Doenet/DoenetApps#2957).
@@ -1149,6 +1223,44 @@ export function DocViewer({
                 cancelAnimationFrame(id);
             }
             animationInfo.current = {};
+        };
+    }, []);
+
+    // Hand the host whatever the core's database throttle is holding back
+    // before this document can be discarded (#1726).
+    //
+    // `pagehide` covers a real teardown — tab closed, URL typed, external link
+    // followed. `visibilitychange` → hidden covers what that misses: a
+    // backgrounded tab can be discarded without firing anything else. The two
+    // overlap on an ordinary unload, which costs nothing — the buffer is taken
+    // by whichever fires first, so the second finds it empty.
+    //
+    // Neither event tears anything down, so a bfcache `pagehide`
+    // (`persisted: true`) needs no special case — the core stays alive, the
+    // page can come back, and the reader's work simply reached the host early.
+    //
+    // Deliberately separate from the visibility-measuring listener below,
+    // which is keyed to the core's lifetime: flushing has to be armed from
+    // mount, before (and after) there is a core to talk to.
+    useEffect(() => {
+        function flush() {
+            flushPendingStateReportRef.current();
+        }
+        function visibilityFlushListener() {
+            if (document.visibilityState === "hidden") {
+                flush();
+            }
+        }
+
+        window.addEventListener("pagehide", flush);
+        document.addEventListener("visibilitychange", visibilityFlushListener);
+
+        return () => {
+            window.removeEventListener("pagehide", flush);
+            document.removeEventListener(
+                "visibilitychange",
+                visibilityFlushListener,
+            );
         };
     }, []);
 
@@ -1770,34 +1882,136 @@ export function DocViewer({
     function reportScoreAndStateCallback({
         score,
         state,
+        pending = false,
     }: {
         score: number;
         state: unknown;
+        /**
+         * Set by the core's `StatePersistence` (#1726): this is a mirror of
+         * the payload the core's 60-second database throttle is holding back,
+         * not a report the host should save yet. Buffer it here in the main
+         * realm so `flushPendingStateReport` can hand it over synchronously
+         * when the page hides — by then there is no budget for the Comlink
+         * round-trip that would otherwise be needed to fetch it.
+         */
+        pending?: boolean;
     }) {
-        if (specifiedReportScoreAndStateCallback) {
-            specifiedReportScoreAndStateCallback({
-                score,
-                state,
-                activityId,
-                docId,
-            });
-        } else {
-            let messageId = nanoid();
-            const message = {
-                score,
-                state,
-                subject: "SPLICE.reportScoreAndState",
-                activity_id: activityId,
-                doc_id: docId,
-                message_id: messageId,
-            };
+        // The ids come from this closure, which the core was handed at
+        // initialization, so they are the ids of the document that produced
+        // the report — not whatever the props name by the time it goes out.
+        const report: StateReport = { score, state, activityId, docId };
 
-            if (flags.messageParent && window.parent) {
-                window.parent.postMessage(message);
-            } else {
-                window.postMessage(message);
+        if (pending) {
+            pendingStateReport.current = report;
+            return;
+        }
+
+        // A real report carries the same or newer state than anything the
+        // core was holding back, so it supersedes the buffer — but only once
+        // it has actually reached the host, and on the message channel
+        // `deliverStateReport` merely queues a task. Hold the report in the
+        // buffer until that task has had its turn: a hide landing in between
+        // then still hands the work over synchronously, rather than finding
+        // an empty buffer while the queued report dies with the document.
+        pendingStateReport.current = report;
+        deliverStateReport(report);
+        retireDeliveredStateReport(report);
+    }
+
+    /**
+     * Drop `report` from the buffer once the task `deliverStateReport` queued
+     * has had its turn, leaving anything newer alone.
+     *
+     * A timer is a heuristic, not a guarantee: posted messages and timer
+     * callbacks are separate task sources, so nothing promises the report is
+     * delivered first. It is the safe direction to be wrong in — clearing
+     * early is exactly what this viewer did before, and clearing late costs at
+     * most one duplicate report of state the host already has. What it buys is
+     * that the ordinary case, where the report is delivered on the very next
+     * turn, no longer has a window in which the buffer is empty and the
+     * report is still in flight.
+     */
+    function retireDeliveredStateReport(report: StateReport) {
+        setTimeout(() => {
+            if (pendingStateReport.current === report) {
+                pendingStateReport.current = null;
+            }
+        }, 0);
+    }
+
+    /**
+     * Hand a state report to whoever is listening for one: the host's
+     * `reportScoreAndStateCallback` when it passed one, otherwise the
+     * `SPLICE.reportScoreAndState` message channel (to the parent window when
+     * `flags.messageParent` is set, else to this one).
+     *
+     * `synchronous` is for the page-hide flush (#1726), and only affects the
+     * message channel — a host callback is a plain call and always was.
+     * `postMessage` merely queues a task, and a document being unloaded is
+     * torn down without its task queue ever being drained, so a report posted
+     * from `pagehide` is silently dropped — precisely the loss this exists to
+     * prevent. Dispatching the same `message` event by hand runs the host's
+     * listeners inline instead. The host sees the message a `postMessage`
+     * would have delivered: same `data`, same `origin`, same `source` — the
+     * last of which has to hold, since the standalone coordinator identifies
+     * the reporting viewer by `event.source`. What differs is the timing,
+     * `isTrusted` (nothing on this channel reads it), and that `data` is
+     * passed by reference rather than structured-cloned (hosts consume it
+     * where they receive it).
+     *
+     * Synchronous delivery only buys time if what receives it is synchronous
+     * too. Two known places where it is not, both documented as gaps on
+     * Doenet/DoenetML#1726: a host whose `message` listener persists by
+     * deferring (a `fetch`, a `setTimeout`) rather than by `sendBeacon` or
+     * synchronous storage, and a viewer running inside `@doenet/doenetml-iframe`
+     * whose host passed `reportScoreAndStateCallback` — that callback is a
+     * Comlink proxy across the iframe boundary, so calling it only posts.
+     */
+    function deliverStateReport(
+        report: StateReport,
+        { synchronous = false }: { synchronous?: boolean } = {},
+    ) {
+        if (specifiedReportScoreAndStateCallback) {
+            specifiedReportScoreAndStateCallback(report);
+            return;
+        }
+
+        const target =
+            flags.messageParent && window.parent ? window.parent : window;
+        const message = {
+            score: report.score,
+            state: report.state,
+            subject: "SPLICE.reportScoreAndState",
+            activity_id: report.activityId,
+            doc_id: report.docId,
+            message_id: nanoid(),
+        };
+
+        if (synchronous) {
+            try {
+                target.dispatchEvent(
+                    new MessageEvent("message", {
+                        data: message,
+                        origin: window.origin,
+                        source: window,
+                    }),
+                );
+                return;
+            } catch (err) {
+                // A cross-origin parent is the expected way to land here: such
+                // a window exposes `postMessage` and little else. That embed
+                // was never served by this channel anyway — the post below has
+                // no `targetOrigin`, which defaults to same-origin — so the
+                // fallback preserves existing behavior rather than rescuing
+                // it. Warn so the silence is at least visible.
+                console.warn(
+                    "DocViewer: could not deliver the state report synchronously; falling back to postMessage",
+                    err,
+                );
             }
         }
+
+        target.postMessage(message);
     }
 
     /**

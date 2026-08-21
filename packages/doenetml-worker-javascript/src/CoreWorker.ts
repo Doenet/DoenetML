@@ -30,6 +30,15 @@ export type UpdateRenderersCallback = (arg: {
 export type ReportScoreAndStateCallback = (data: {
     score: number;
     state: unknown;
+    /**
+     * A mirror of the payload the 60-second database throttle is currently
+     * holding back, not a report to hand to the host (Doenet/DoenetML#1726).
+     * `DocViewer` buffers it and delivers it as a real report if the page
+     * goes away — or the viewer unmounts — before the throttle expires. A
+     * subsequent real report supersedes the buffered copy; a core rebuild
+     * discards it along with the document it describes.
+     */
+    pending?: boolean;
 }) => void;
 export type RequestAnimationFrame = (args: {
     action: { actionName: string; componentIdx?: string };
