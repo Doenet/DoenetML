@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { StatePersistence } from "../../core/StatePersistence";
 import type Core from "../../Core";
+
+/** Every local-state write, in the order IndexedDB committed it. */
+const localWrites: { key: string; coreState: string }[] = [];
+vi.mock("idb-keyval", () => ({
+    set: async (key: string, value: { coreState: string }) => {
+        localWrites.push({ key, coreState: value.coreState });
+    },
+}));
 
 // Overlapping saves in `StatePersistence` (Doenet/DoenetML#1726).
 //
@@ -65,6 +73,7 @@ function makePersistence() {
     } as unknown as Core;
 
     const persistence = new StatePersistence({ core });
+    localWrites.length = 0;
 
     /** Begin a save of `work`, as a change to the document would. */
     function saveWork(work: string, overrideThrottle = false) {
@@ -74,11 +83,34 @@ function makePersistence() {
         });
     }
 
+    /** Begin the save a graded answer makes: urgent, and marked as such. */
+    function submitWork(work: string) {
+        core.cumulativeStateVariableChanges = { work };
+        return persistence.saveState(true, true).catch(() => {
+            expect.fail(`the submission save of "${work}" rejected`);
+        });
+    }
+
+    /** Put the 60-second throttle in the state a recent report leaves it in. */
+    function armThrottle() {
+        persistence.saveStateToDBTimerId = setTimeout(() => {}, 60000);
+    }
+
     function storedWork() {
         return String(persistence.docStateToBeSavedToDatabase?.coreState ?? "");
     }
 
-    return { core, persistence, reports, scoreReads, saveWork, storedWork };
+    return {
+        core,
+        persistence,
+        reports,
+        scoreReads,
+        saveWork,
+        submitWork,
+        armThrottle,
+        storedWork,
+        localWrites,
+    };
 }
 
 describe("overlapping saves (#1726) @group4", () => {
@@ -150,6 +182,66 @@ describe("overlapping saves (#1726) @group4", () => {
         // The reader's latest work, under its own credit, is what is left
         // standing for a page hide to hand over.
         expect(persistence.scoreToBeSavedToDatabase).toBe(creditFor.second);
+    });
+
+    it("keeps an older save out of local storage as well as out of the pair", async () => {
+        // The local write is an await of its own, so a check on its far side
+        // would let an older save land in IndexedDB and only then discover it
+        // should not have — leaving the reader's work a step back on the next
+        // visit, where nothing corrects it.
+        const { core, scoreReads, saveWork, localWrites } = makePersistence();
+        (core.flags as any).allowLocalState = true;
+
+        const older = saveWork("first");
+        const newer = saveWork("second");
+
+        scoreReads[1].resolve(1);
+        await newer;
+        scoreReads[0].resolve(0);
+        await older;
+
+        expect(
+            localWrites.map((w) => w.coreState),
+            "an older save wrote over newer local state",
+        ).toEqual([expect.stringContaining("second")]);
+    });
+
+    it("still reports a submission that an ordinary save overtook", async () => {
+        // A submission's save is fire-and-forget, so an ordinary debounced
+        // save can store first. What it cannot do is speak for the
+        // submission: it neither marks the report as one nor overrides the
+        // throttle, so a graded answer would sit behind the throttle as an
+        // unreported mirror.
+        const {
+            persistence,
+            reports,
+            scoreReads,
+            saveWork,
+            submitWork,
+            armThrottle,
+        } = makePersistence();
+        armThrottle();
+
+        const submission = submitWork("answered");
+        const ordinary = saveWork("kept typing");
+
+        scoreReads[1].resolve(1);
+        await ordinary;
+
+        // Throttled, so all the ordinary save could do was mirror.
+        expect(reports.map((r) => r.pending === true)).toEqual([true]);
+
+        scoreReads[0].resolve(1);
+        await submission;
+
+        const real = reports.filter((r) => r.pending !== true);
+        expect(real, "the submission never reached the host").toHaveLength(1);
+        expect(
+            real[0].state.onSubmission,
+            "the report did not say a submission had happened",
+        ).toBe(true);
+        expect(real[0].state.coreState).toContain("kept typing");
+        expect(persistence.docStateToBeSavedToDatabase.onSubmission).toBe(true);
     });
 
     it("stores nothing for a document that has been replaced", async () => {

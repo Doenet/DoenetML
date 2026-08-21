@@ -174,7 +174,35 @@ export class StatePersistence {
             ? await core.document.stateValues.creditAchieved
             : 0;
 
+        // Claim the save, or stand down. Everything below writes the reader's
+        // work somewhere — the pair a report is built from, and IndexedDB —
+        // and a save that has been overtaken while it resolved its score would
+        // put that work back a step in both. The claim comes before the local
+        // write, not after: `idb_set` is itself an await, so a check on the
+        // far side of it would let an older save land in IndexedDB and only
+        // then discover it should not have.
+        if (sequence < this._storedSequence) {
+            await this._standDownSupersededSave(overrideThrottle, onSubmission);
+            return;
+        }
+        this._storedSequence = sequence;
+
+        // Claim and store together, with nothing awaited in between, so the
+        // stored pair always belongs to the save holding the claim.
+        if (core.flags.allowSaveState) {
+            this.docStateToBeSavedToDatabase = payload;
+            this.scoreToBeSavedToDatabase = score;
+
+            // mark presence of changes
+            // so that next call to saveChangesToDatabase will save changes
+            this.changesToBeSaved = true;
+        }
+
         if (core.flags.allowLocalState) {
+            // Saves that still hold their claim reach here in ticket order,
+            // and IndexedDB runs overlapping read-write transactions in the
+            // order they were created, so the newest work is what is left in
+            // the store.
             await idb_set(
                 `${core.activityId}|${core.docId}|${core.attemptNumber}|${core.cid}`,
                 {
@@ -190,23 +218,40 @@ export class StatePersistence {
             return;
         }
 
-        if (sequence < this._storedSequence) {
-            // A save that started later has already stored its pair. This one
-            // was built before that and would put the reader's work back a
-            // step; the save that overtook it has already marked the change
-            // and driven `saveChangesToDatabase`, so there is nothing left
-            // here to do.
+        // if not currently in throttle, save changes to database
+        await this.saveChangesToDatabase(overrideThrottle);
+    }
+
+    /**
+     * Give up on a save that a later one overtook while it resolved its score,
+     * without giving up what only *this* save knew.
+     *
+     * The work itself is not lost: the save that overtook it was built later,
+     * so the pair now stored holds at least as much. What does not survive the
+     * hand-off is why this save was made. A submission's save says a
+     * submission happened and overrides the 60-second throttle so the host
+     * hears about it now; an ordinary save that overtook it does neither, and
+     * simply returning here would leave a graded answer sitting behind the
+     * throttle as an unreported mirror.
+     */
+    async _standDownSupersededSave(
+        overrideThrottle: boolean,
+        onSubmission: boolean,
+    ): Promise<void> {
+        if (!this.docStateToBeSavedToDatabase) {
+            // `reset()` was what overtook it: the document this save belongs
+            // to is gone, and there is no pair left to speak for.
             return;
         }
-        this._storedSequence = sequence;
-        this.docStateToBeSavedToDatabase = payload;
-        this.scoreToBeSavedToDatabase = score;
-
-        // mark presence of changes
-        // so that next call to saveChangesToDatabase will save changes
+        if (onSubmission) {
+            this.docStateToBeSavedToDatabase.onSubmission = true;
+        }
+        if (!overrideThrottle && !onSubmission) {
+            // Nothing this save knew is missing from the pair that replaced
+            // it, and the save that stored it has already driven the report.
+            return;
+        }
         this.changesToBeSaved = true;
-
-        // if not currently in throttle, save changes to database
         await this.saveChangesToDatabase(overrideThrottle);
     }
 
