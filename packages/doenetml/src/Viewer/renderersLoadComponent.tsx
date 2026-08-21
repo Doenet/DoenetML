@@ -88,6 +88,40 @@ export function RendererLoadFailed(props: {
     );
 }
 
+type ChunkLoadErrorBoundaryState = { caught: boolean; error: unknown };
+
+/**
+ * Error boundary for a `React.lazy` seam whose chunk ultimately failed to
+ * load (after `importRendererWithRetry` gave up): the rejection re-thrown by
+ * React during render is caught here and replaced with the same
+ * `RendererLoadFailed` placeholder the viewer renderers substitute, keeping
+ * the surrounding tree mounted. Any other error is re-thrown to the next
+ * boundary up, so a bug inside the loaded component still fails the way it
+ * did before the lazy seam existed.
+ */
+export class ChunkLoadErrorBoundary extends React.Component<
+    { children: React.ReactNode },
+    ChunkLoadErrorBoundaryState
+> {
+    state: ChunkLoadErrorBoundaryState = { caught: false, error: undefined };
+
+    static getDerivedStateFromError(
+        error: unknown,
+    ): ChunkLoadErrorBoundaryState {
+        return { caught: true, error };
+    }
+
+    render() {
+        if (this.state.caught) {
+            if (!isTransientDynamicImportError(this.state.error)) {
+                throw this.state.error;
+            }
+            return <RendererLoadFailed />;
+        }
+        return this.props.children;
+    }
+}
+
 export type RenderersLoadResult = {
     rendererClasses: Record<string, any>;
     /** Names of renderers whose loader rejected (a placeholder was substituted). */

@@ -17,12 +17,29 @@ export const PACKAGES_DIR = path.resolve(I18N_ROOT, "..");
 export const LOAD_MODULE_FILE = path.join(I18N_ROOT, "src", "load.ts");
 
 /**
- * The script that installs the locale loaders and renders the viewer that
+ * The bundle that installs the locale loaders and renders the viewer that
  * reads them, and so must hold exactly one instance rather than at most one.
  * The one bundle where a second copy is not merely wasteful but breaking.
+ *
+ * The bundle is code-split: this entry and the chunks under
+ * {@link SINGLE_INSTANCE_CHUNKS_PREFIX} come out of one Rollup build and share
+ * one module registry in the realm that loads them, so the exactly-one rule is
+ * judged over their combined total — the entry itself is a re-export facade
+ * that holds no module bodies at all.
  */
 export const SINGLE_INSTANCE_SCRIPT =
     "packages/standalone/dist/doenet-standalone.js";
+
+/** Where {@link SINGLE_INSTANCE_SCRIPT}'s build emits its chunks. */
+export const SINGLE_INSTANCE_CHUNKS_PREFIX = "packages/standalone/dist/chunks/";
+
+/**
+ * The single-file variant of the same entry, built for hosts that evaluate
+ * the bundle from a Blob/srcdoc URL. Its own realm, its own registry: it is
+ * held to exactly one instance on its own.
+ */
+export const SINGLE_INSTANCE_INLINE_SCRIPT =
+    "packages/standalone/dist/doenet-standalone-inline.js";
 
 /** Emitted JavaScript, in any extension a bundler might choose. */
 const SCRIPT_EXTENSION = /\.[cm]?js$/;
@@ -131,9 +148,15 @@ export function collectDistScripts(
  * holds a copy in each, correctly: the worker is its own realm and resolves its
  * own catalogs.
  *
- * {@link SINGLE_INSTANCE_SCRIPT} is held to exactly one rather than at most
- * one — zero would mean the loader machinery had been tree-shaken out of the
- * one bundle whose whole locale story runs through it.
+ * The standalone bundle is held to exactly one rather than at most one — zero
+ * would mean the loader machinery had been tree-shaken out of the one bundle
+ * whose whole locale story runs through it. It is judged over
+ * {@link SINGLE_INSTANCE_SCRIPT} and its `chunks/` together: those files come
+ * out of one Rollup build and share one module registry at runtime, so a copy
+ * in a chunk is *the* copy — but a copy in two different chunks is the same
+ * split-registry failure as two copies in one file, surfacing once both
+ * chunks load. The single-file {@link SINGLE_INSTANCE_INLINE_SCRIPT} is its
+ * own realm and is held to exactly one on its own.
  *
  * @param scanned emitted scripts, from {@link collectDistScripts}.
  */
@@ -148,13 +171,52 @@ export function instanceProblems(scanned: ScannedScript[]): string[] {
                 `@doenet/doenetml entry point the viewer comes from rather than from ` +
                 `@doenet/i18n.`,
         );
-    const single = scanned.find(({ file }) => file === SINGLE_INSTANCE_SCRIPT);
-    if (single && single.instances === 0) {
+
+    const graph = scanned.filter(
+        ({ file }) =>
+            file === SINGLE_INSTANCE_SCRIPT ||
+            file.startsWith(SINGLE_INSTANCE_CHUNKS_PREFIX),
+    );
+    const entryBuilt = graph.some(
+        ({ file }) => file === SINGLE_INSTANCE_SCRIPT,
+    );
+    if (entryBuilt) {
+        const total = graph.reduce((sum, { instances }) => sum + instances, 0);
+        if (total === 0) {
+            problems.push(
+                `${SINGLE_INSTANCE_SCRIPT} and its chunks/ hold no copy of @doenet/i18n at ` +
+                    `all, so either the loader machinery was tree-shaken out of the one ` +
+                    `bundle that installs it, or the marker this is counted with stopped ` +
+                    `surviving minification. Either way the count means nothing until it is ` +
+                    `understood.`,
+            );
+        } else if (
+            total > 1 &&
+            graph.every(({ instances }) => instances <= 1)
+        ) {
+            // Each offending file with 2+ copies is already reported above;
+            // this catches the copies being spread across different chunks,
+            // which no per-file count can see.
+            problems.push(
+                `${SINGLE_INSTANCE_SCRIPT} and its chunks/ together hold ${total} copies of ` +
+                    `@doenet/i18n in different files of one bundle. Once both load, the ` +
+                    `realm has two loader registries — the same silent English fallback as ` +
+                    `two copies in one file. Import setLocaleLoaders from the same ` +
+                    `@doenet/doenetml entry point the viewer comes from rather than from ` +
+                    `@doenet/i18n.`,
+            );
+        }
+    }
+
+    const inline = scanned.find(
+        ({ file }) => file === SINGLE_INSTANCE_INLINE_SCRIPT,
+    );
+    if (inline && inline.instances === 0) {
         problems.push(
-            `${SINGLE_INSTANCE_SCRIPT} holds no copy of @doenet/i18n at all, so either the ` +
-                `loader machinery was tree-shaken out of the one bundle that installs it, or ` +
-                `the marker this is counted with stopped surviving minification. Either way ` +
-                `the count means nothing until it is understood.`,
+            `${SINGLE_INSTANCE_INLINE_SCRIPT} holds no copy of @doenet/i18n at all, so ` +
+                `either the loader machinery was tree-shaken out of it, or the marker this ` +
+                `is counted with stopped surviving minification. Either way the count ` +
+                `means nothing until it is understood.`,
         );
     }
     return problems;

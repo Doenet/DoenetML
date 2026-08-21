@@ -177,13 +177,31 @@ function resolveInitialDoenetMLSource(root: Element): string {
 // in a fresh iframe, so this ceiling only needs to cover one boot, not
 // a sum across retries.
 async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
-    if (typeof window.renderDoenetEditorToContainer === "function") {
+    // A code-split bundle's entry facade installs a queueing *stub* at this
+    // global before the bundle's eager chunk has evaluated, marked with
+    // `__doenetPendingRenderStub` (see `facadeRenderQueue.ts` in
+    // `@doenet/standalone`, which names this property as part of the bundle's
+    // surface). Waiting the stub out keeps the `iframeReady` handshake — and
+    // the style palettes reported with it — tied to the fully evaluated
+    // bundle, and means the handle returned by
+    // `renderDoenetEditorToContainer` below is always the real one.
+    function bundleReady(): boolean {
+        const render = window.renderDoenetEditorToContainer as
+            | (((...args: unknown[]) => unknown) & {
+                  __doenetPendingRenderStub?: boolean;
+              })
+            | undefined;
+        return (
+            typeof render === "function" && !render.__doenetPendingRenderStub
+        );
+    }
+    if (bundleReady()) {
         return true;
     }
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 50));
-        if (typeof window.renderDoenetEditorToContainer === "function") {
+        if (bundleReady()) {
             return true;
         }
     }

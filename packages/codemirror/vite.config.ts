@@ -15,7 +15,19 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["react", "react-dom", "react-dom/server"],
+            external: [
+                "react",
+                "react-dom",
+                "react-dom/server",
+                // Leave `@doenet/static-assets` (the component schema and
+                // completion snippets) to the consuming build, the same way
+                // `@doenet/lsp-tools` does. Every consumer bundles this
+                // package together with other users of the schema, so
+                // resolving it there means one shared copy of the ~230 KB
+                // compressed schema literal instead of a private copy baked
+                // into this dist.
+                /@doenet\/static-assets/,
+            ],
         },
     },
     // The LSP bundle is a large IIFE with inlined WASM (≈7 MB).  It is

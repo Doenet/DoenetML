@@ -14,6 +14,7 @@
     "exclude": [
         "vite.config.ts",
         "vite.config-coordinator.ts",
+        "vite.config-inline.ts",
         "vitest.config.ts",
         "node_modules",
         "runner-results",

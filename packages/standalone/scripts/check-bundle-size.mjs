@@ -40,8 +40,9 @@
  * Run via `npm run check:size -w packages/standalone`. Exits non-zero, and
  * prints every problem it found rather than just the first, when a bundle is
  * over budget, when a budgeted file is missing, when `bundle-budgets.json` is
- * unusable, when the core is not inlined exactly once in the right script, or
- * when a served catalog is in the wrong place or missing.
+ * unusable, when the core is inlined into any script or its served `.wasm` is
+ * missing or corrupt, or when a served catalog is in the wrong place or
+ * missing.
  *
  * A third way the catalogs can fail to arrive — served, and nothing reading
  * them, because a bundle holds two copies of the module that decides what is
@@ -444,6 +445,33 @@ function blobPlacementProblem(relative, emitted) {
 }
 
 /**
+ * The emitted scripts a budget key covers.
+ *
+ * A key is an exact `dist/`-relative path, except that `*` matches any run of
+ * characters other than `/` — which is how a budget pins down a code-split
+ * chunk whose emitted name carries a content hash
+ * (`dist/chunks/index-*.js`). Each matching script is held to the budget's
+ * `maxBytes` individually.
+ *
+ * @returns `[relativePath, emitted]` pairs.
+ */
+export function scriptsForBudget(relative, scripts) {
+    if (!relative.includes("*")) {
+        const emitted = scripts.get(relative);
+        return emitted ? [[relative, emitted]] : [];
+    }
+    const pattern = new RegExp(
+        "^" +
+            relative
+                .split("*")
+                .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+                .join("[^/]*") +
+            "$",
+    );
+    return [...scripts].filter(([name]) => pattern.test(name));
+}
+
+/**
  * How the emitted core `.wasm` looks on disk: `null` if it was not emitted,
  * otherwise its size and whether it starts with WebAssembly's magic bytes
  * (`\0asm` — what separates a real module from, say, an HTML error page saved
@@ -506,10 +534,11 @@ export function coreWasmProblems(coreWasm) {
 export function findProblems(budgets, scripts) {
     const problems = [];
     const report = [];
+    const budgeted = new Set();
 
     for (const [relative, budget] of budgets) {
-        const emitted = scripts.get(relative);
-        if (!emitted) {
+        const matches = scriptsForBudget(relative, scripts);
+        if (matches.length === 0) {
             problems.push(
                 `${relative} does not exist — build the package before checking its size ` +
                     `(\`npm run build -w packages/standalone\`).`,
@@ -517,22 +546,25 @@ export function findProblems(budgets, scripts) {
             continue;
         }
 
-        report.push(
-            `  ${relative}\n` +
-                `      ${mib(emitted.size)} of ${mib(budget.maxBytes)} budget` +
-                `  (${((emitted.size / budget.maxBytes) * 100).toFixed(1)}%)` +
-                `, ${emitted.wasmUris} wasm URI(s), ${emitted.bigBlobs} inlined blob(s)`,
-        );
-
-        if (emitted.size > budget.maxBytes) {
-            problems.push(
-                `${relative} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
-                    `${mib(budget.maxBytes)} budget by ${mib(emitted.size - budget.maxBytes)}.\n` +
-                    `    If the growth is intended, raise "maxBytes" for this file in\n` +
-                    `    packages/standalone/bundle-budgets.json in the same commit, so the\n` +
-                    `    increase is visible in review. If it is not intended, something was\n` +
-                    `    pulled in twice — compare against the previous build before raising it.`,
+        for (const [name, emitted] of matches) {
+            budgeted.add(name);
+            report.push(
+                `  ${name}\n` +
+                    `      ${mib(emitted.size)} of ${mib(budget.maxBytes)} budget` +
+                    `  (${((emitted.size / budget.maxBytes) * 100).toFixed(1)}%)` +
+                    `, ${emitted.wasmUris} wasm URI(s), ${emitted.bigBlobs} inlined blob(s)`,
             );
+
+            if (emitted.size > budget.maxBytes) {
+                problems.push(
+                    `${name} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
+                        `${mib(budget.maxBytes)} budget by ${mib(emitted.size - budget.maxBytes)}.\n` +
+                        `    If the growth is intended, raise "maxBytes" for this file in\n` +
+                        `    packages/standalone/bundle-budgets.json in the same commit, so the\n` +
+                        `    increase is visible in review. If it is not intended, something was\n` +
+                        `    pulled in twice — compare against the previous build before raising it.`,
+                );
+            }
         }
     }
 
@@ -540,7 +572,6 @@ export function findProblems(budgets, scripts) {
     // is a normal thing for the bundler to do — but it is listed so that a
     // chunk quietly growing into a second multi-megabyte payload is visible,
     // and so somebody can decide whether it deserves a budget.
-    const budgeted = new Set(budgets.map(([relative]) => relative));
     for (const [relative, emitted] of scripts) {
         if (!budgeted.has(relative)) {
             report.push(
@@ -559,13 +590,14 @@ export function findProblems(budgets, scripts) {
             problems.push(blobPlacementProblem(relative, emitted));
         }
     }
-    // Catalogs this bundle is supposed to serve, not carry. Being one file, it
-    // cannot code-split them the way the library build does, so it switches
-    // `__DOENET_CODE_SPLIT_CATALOGS__` off and fetches `dist/locales/` at
-    // runtime instead. Anything that makes the glob reachable again — a define
-    // that stops being applied, a new eager import of a catalog — puts every
-    // translation back in here, and the size budget alone would absorb it for
-    // a long time.
+    // Catalogs these bundles are supposed to serve, not carry. The build keeps
+    // them as plain runtime-fetched files in `dist/locales/` — version-pinnable
+    // there, and out of the single-file inline variant — by switching
+    // `__DOENET_CODE_SPLIT_CATALOGS__` off instead of code-splitting them the
+    // way the library build does. Anything that makes the glob reachable again
+    // — a define that stops being applied, a new eager import of a catalog —
+    // puts every translation back in here, and the size budget alone would
+    // absorb it for a long time.
     for (const [relative, emitted] of scripts) {
         const leaked = emitted.inlinedCatalogs;
         if (leaked.length > 0) {

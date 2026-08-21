@@ -7,8 +7,11 @@ import {
     CONTENT_TIMEOUT,
 } from "./helpers";
 
+// The inline variant, for the same reason as `helpers.ts`: this source is
+// evaluated from a Blob URL, where the code-split bundle's relative chunk
+// imports cannot resolve.
 // @ts-ignore - `?raw` returns a string; we don't ship types for it.
-import STANDALONE_SOURCE from "@doenet/standalone/doenet-standalone.js?raw";
+import STANDALONE_SOURCE from "@doenet/standalone/doenet-standalone-inline.js?raw";
 
 // Boot-slot release on core-start failure (#1709), across the Comlink
 // boundary: a windowed viewer whose embedded core cannot start reports

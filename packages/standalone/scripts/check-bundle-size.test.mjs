@@ -136,6 +136,39 @@ describe("findProblems", () => {
         ]);
     });
 
+    it("applies a `*` budget to each chunk whose hashed name matches it", () => {
+        const scripts = healthyBuild();
+        scripts.set("dist/chunks/index-DEADBEEF.js", script(500));
+        scripts.set("dist/chunks/index-CAFEF00D.js", script(1001));
+        const budgets = [
+            ...BUDGETS,
+            ["dist/chunks/index-*.js", { maxBytes: 1000 }],
+        ];
+        const { report, problems } = findProblems(budgets, scripts);
+        expect(problems).toEqual([
+            expect.stringContaining("dist/chunks/index-CAFEF00D.js is"),
+        ]);
+        // Both matches are reported under the budget, not as unbudgeted.
+        expect(report.join("\n")).toContain(
+            "dist/chunks/index-DEADBEEF.js\n      0.00 MiB of 0.00 MiB budget",
+        );
+    });
+
+    it("does not let a `*` cross a directory separator", () => {
+        const scripts = healthyBuild();
+        scripts.set("dist/chunks/deep/index-DEADBEEF.js", script(1001));
+        const budgets = [
+            ...BUDGETS,
+            ["dist/chunks/index-*.js", { maxBytes: 1000 }],
+        ];
+        const { problems } = findProblems(budgets, scripts);
+        // The nested chunk is unbudgeted, so nothing fails; the glob budget
+        // itself reports its key as missing.
+        expect(problems).toEqual([
+            expect.stringContaining("dist/chunks/index-*.js does not exist"),
+        ]);
+    });
+
     it("lists an unbudgeted chunk without failing on it", () => {
         const scripts = healthyBuild();
         scripts.set("dist/coordinator.js", script(11_000));

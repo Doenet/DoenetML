@@ -1,5 +1,9 @@
 export * from "./index";
-import { doenetGlobalConfig } from "./global-config";
+import { doenetGlobalConfig, hostProvidedWorkerUrl } from "./global-config";
+// Re-exported beside `setExternalCoreWorkerUrl` so `@doenet/standalone` can
+// make its worker re-point defer to a host-chosen URL the same way the
+// resolution at the bottom of this module does.
+export { hostProvidedWorkerUrl } from "./global-config";
 
 // Externalized-worker entry point (counterpart to `doenetml-inline-worker.ts`).
 //
@@ -116,11 +120,15 @@ function isSameOrigin(url: string): boolean {
 }
 
 try {
-    const workerUrl = resolveWorkerUrl();
-    if (workerUrl !== null) {
-        setExternalCoreWorkerUrl(workerUrl);
+    // A worker URL the host set before this module evaluated is an explicit
+    // deployment choice; leave it in force rather than re-resolving.
+    if (!hostProvidedWorkerUrl) {
+        const workerUrl = resolveWorkerUrl();
+        if (workerUrl !== null) {
+            setExternalCoreWorkerUrl(workerUrl);
+        }
+        // workerUrl === null: keep the default from global-config.ts.
     }
-    // workerUrl === null: keep the default from global-config.ts.
 } catch (e) {
     // Never let worker-URL resolution break evaluation of the whole bundle —
     // the default from global-config.ts remains in effect.

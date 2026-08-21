@@ -4,10 +4,12 @@
 // the same trick used by `src/test-main.tsx` so the iframe loads the
 // locally-built version of @doenet/standalone instead of the CDN. (The
 // `raw-large-bundle` plugin in cypress.config.ts handles the multi-MB string
-// literal decoding.)
+// literal decoding.) It has to be the single-file inline variant: the regular
+// `doenet-standalone.js` is code-split, and a bundle evaluated from a Blob URL
+// has no base to resolve its relative chunk imports against.
 
 // @ts-ignore - `?raw` returns a string; we don't ship types for it.
-import STANDALONE_SOURCE from "@doenet/standalone/doenet-standalone.js?raw";
+import STANDALONE_SOURCE from "@doenet/standalone/doenet-standalone-inline.js?raw";
 // @ts-ignore
 import STANDALONE_CSS from "@doenet/standalone/style.css?raw";
 

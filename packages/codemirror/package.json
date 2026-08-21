@@ -50,6 +50,7 @@
                 "../parser:build",
                 "../lsp:build",
                 "../lsp-tools:build",
+                "../static-assets:build",
                 "../utils:build"
             ]
         }

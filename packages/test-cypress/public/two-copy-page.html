@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- Evaluates the standalone bundle TWICE in one page — the mistake of
+     including the script tag twice — and records whether the second copy
+     stayed inert (first-copy-wins; see installFirstCopyGlobal in
+     @doenet/standalone). Uses the single-file inline variant: the code-split
+     bundle's eager chunk would be deduped by the module cache, but two
+     query-distinguished imports of the inline file each evaluate the full
+     entry, so the page really holds two live copies. Asserted by
+     e2e/standalone/twoCopiesFirstWins.cy.js. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script type="module">
+            const ns1 = await import(
+                "/standalone/doenet-standalone-inline.js?copy=1"
+            );
+            const first = {
+                viewer: window.renderDoenetViewerToContainer,
+                editor: window.renderDoenetEditorToContainer,
+                palettes: window.getDoenetStylePalettes,
+                palette: window.getDoenetStylePalette,
+            };
+            // Mark the first copy's resolved worker URL with a query suffix.
+            // Both copies come from the same file, so the URLs they resolve
+            // are value-equal; only a marked value can show the second copy
+            // left the first copy's write in place. The marked URL stays
+            // live: the boot passes it to `new Worker` as-is, the server
+            // ignores the query, and the worker's own `.wasm` resolves
+            // against the path.
+            const workerUrlSentinel =
+                window.doenetGlobalConfig.doenetWorkerUrl +
+                (window.doenetGlobalConfig.doenetWorkerUrl.includes("?")
+                    ? "&"
+                    : "?") +
+                "firstCopy=1";
+            window.doenetGlobalConfig.doenetWorkerUrl = workerUrlSentinel;
+            const ns2 = await import(
+                "/standalone/doenet-standalone-inline.js?copy=2"
+            );
+            window.__twoCopyProbe = {
+                // The module map keys on the full URL including the query,
+                // so the second import is a second evaluation with its own
+                // fresh function objects. Recorded so the test fails loudly
+                // if some cache layer ever collapses the two imports into
+                // one evaluation — every first-copy-wins probe below would
+                // then be vacuously true.
+                secondCopyEvaluated:
+                    typeof ns2.renderDoenetViewerToContainer === "function" &&
+                    ns2.renderDoenetViewerToContainer !==
+                        ns1.renderDoenetViewerToContainer,
+                viewerIsFirstCopys:
+                    window.renderDoenetViewerToContainer === first.viewer,
+                editorIsFirstCopys:
+                    window.renderDoenetEditorToContainer === first.editor,
+                palettesIsFirstCopys:
+                    window.getDoenetStylePalettes === first.palettes,
+                paletteIsFirstCopys:
+                    window.getDoenetStylePalette === first.palette,
+                workerUrlIsFirstCopys:
+                    window.doenetGlobalConfig.doenetWorkerUrl ===
+                    workerUrlSentinel,
+            };
+            window.renderDoenetViewerToContainer(
+                document.querySelector(".doenetml-applet"),
+            );
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>Two copies loaded: <textInput name="ti" /></p>
+<p>Typed: $ti.value</p>
+            </script>
+        </div>
+    </body>
+</html>

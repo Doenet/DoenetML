@@ -1,6 +1,7 @@
 /*
- * This file is for running a dev test of the codemirror component.
- * It does not show up in the bundled package.
+ * The entry module for the standalone bundles: the code-split
+ * `doenet-standalone.js` and the single-file `doenet-standalone-inline.js`
+ * are both built from this file (vite.config.ts / vite.config-inline.ts).
  */
 
 import React from "react";
@@ -24,10 +25,12 @@ import {
     fetchLocaleLoaders,
     setLocaleLoaders,
     setExternalCoreWorkerUrl,
+    hostProvidedWorkerUrl,
 } from "@doenet/doenetml/doenetml-external-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { pinPackageVersion } from "./pinPackageVersion";
+import { installFirstCopyGlobal } from "./installFirstCopyGlobal";
 import { ResizeWatcher } from "./resize-watcher";
 import {
     detectCoordinatedMode,
@@ -46,11 +49,12 @@ export type { StylePaletteInfo };
 export const version: string = STANDALONE_VERSION;
 
 // Message catalogs beyond the bundled ones are served next to this file, not
-// inside it: a single-file bundle inlines every dynamic import, so the
-// code-splitting the library build relies on would put all of `locales/` in
-// here. The build copies `locales/` into `dist/` and switches the code-split
-// path off (`__DOENET_CODE_SPLIT_CATALOGS__`); this points the viewer at that
-// copy, resolved against the bundle's own URL the same way the core worker is.
+// inside it: as plain runtime-fetched assets they can be version-pinned (see
+// below), and the single-file `doenet-standalone-inline.js` variant of this
+// entry stays free of them too. The build copies `locales/` into `dist/` and
+// switches the library build's code-split path off
+// (`__DOENET_CODE_SPLIT_CATALOGS__`); this points the viewer at that copy,
+// resolved against the bundle root the same way the core worker is.
 //
 // A host that serves this bundle without `locales/` beside it loses nothing it
 // has today: those fetches fail quietly and every locale falls back to English.
@@ -86,17 +90,42 @@ const pinnedBundleUrl = pinPackageVersion(
 );
 
 /**
+ * Relative path from *this module's* URL to the bundle root — the directory
+ * where `doenet-standalone.js`, `doenetml-worker/`, and `locales/` sit.
+ *
+ * A build-time constant (`define` in the vite configs) because the two builds
+ * of this entry lay their output out differently: in the code-split build this
+ * module's body lands in a chunk under `chunks/`, one level below the root,
+ * while the single-file `doenet-standalone-inline.js` build sits at the root
+ * itself. Everything served beside the bundle has to be resolved against the
+ * root, not against whichever file this module happens to be in.
+ */
+declare const __DOENET_STANDALONE_BUNDLE_ROOT__: string;
+
+/**
+ * The bundle root as a URL, version-pinned, or `null` where no root can be
+ * resolved (a Blob/`data:` base is opaque — nothing is "beside" it).
+ */
+const pinnedBundleRootUrl: string | null = (() => {
+    try {
+        return new URL(__DOENET_STANDALONE_BUNDLE_ROOT__, pinnedBundleUrl).href;
+    } catch {
+        return null;
+    }
+})();
+
+/**
  * Where to fetch the message catalogs from, or `null` if nowhere can be worked
  * out.
  *
  * Beside the bundle is the right answer and the one the build arranges — an
  * embed loading this file from the CDN gets the `locales/` published beside it.
- * But `import.meta.url` is not always a base a URL can be resolved against:
+ * But there is not always a resolvable bundle root:
  * `@doenet/doenetml-iframe`'s dev harness and Cypress component tests boot a
  * locally built copy of this bundle from a Blob URL, and `blob:` is opaque, so
- * `new URL` throws on it. Nothing is "beside" a blob, so that case tries the
- * page's own origin instead — where `getWorkerUrl` in `@doenet/doenetml` looks
- * for the core worker.
+ * `pinnedBundleRootUrl` is `null`. Nothing is "beside" a blob, so that case
+ * tries the page's own origin instead — where `getWorkerUrl` in
+ * `@doenet/doenetml` looks for the core worker.
  *
  * Returning `null` is a normal outcome, not an error: every locale then falls
  * back to English, exactly as it does when the catalogs are simply not served.
@@ -105,9 +134,12 @@ const pinnedBundleUrl = pinPackageVersion(
  */
 function localeCatalogsUrl(): string | null {
     for (const [path, base] of [
-        [CATALOGS_BESIDE_BUNDLE, pinnedBundleUrl],
+        [CATALOGS_BESIDE_BUNDLE, pinnedBundleRootUrl],
         [CATALOGS_AT_ORIGIN, globalThis.window?.location?.href],
     ] as const) {
+        if (!base) {
+            continue;
+        }
         try {
             return new URL(path, base).href;
         } catch {
@@ -122,18 +154,26 @@ if (localeCatalogsBase) {
     setLocaleLoaders(fetchLocaleLoaders(localeCatalogsBase));
 }
 
-// Re-point the core worker at the pinned copy, for the same reason as the
-// catalogs above. The externalized-worker entry has already resolved it against
-// this file's *own* URL — its module body runs at import time, before anything
-// here — so this runs after and replaces that answer.
+// Re-point the core worker at the bundle root's pinned copy. The
+// externalized-worker entry has already resolved it against *its own* module
+// URL — its module body runs at import time, before anything here — which in
+// the code-split build is a chunk under `chunks/`, where no worker sits. This
+// runs after and replaces that answer with the root-anchored (and
+// version-pinned) one.
 //
-// Skipped where pinning changed nothing (a self-hosted bundle, a Blob URL): the
-// entry's own resolution, including its fallbacks for bases nothing can be
-// resolved against, is then already the right answer.
-if (pinnedBundleUrl !== import.meta.url) {
+// Skipped where no root resolved (a Blob URL): the entry's own fallbacks for
+// bases nothing can be resolved against — the page origin's
+// `/doenetml-worker/index.js` — are then already the right answer.
+//
+// Also skipped when the host chose the worker URL itself
+// (`hostProvidedWorkerUrl`): a `doenetGlobalConfig.doenetWorkerUrl` written
+// before this chunk evaluated — which, in the code-split build, includes a
+// script `onload` handler, since `load` fires while the facade awaits this
+// chunk — is an explicit deployment choice the pin must not override.
+if (!hostProvidedWorkerUrl && pinnedBundleRootUrl !== null) {
     try {
         setExternalCoreWorkerUrl(
-            new URL(WORKER_BESIDE_BUNDLE, pinnedBundleUrl).href,
+            new URL(WORKER_BESIDE_BUNDLE, pinnedBundleRootUrl).href,
         );
     } catch (e) {
         // Leave whatever the entry resolved in place: a worker under a floating
@@ -146,10 +186,15 @@ if (pinnedBundleUrl !== import.meta.url) {
 // Parent-page coordinator support (see coordinated-mode.ts): when this
 // page's URL carries the coordinator's fragment token, viewers rendered
 // here report their lifecycle to the parent and (with the `sc` variant)
-// obtain their cores from the coordinator's shared worker pool.
+// obtain their cores from the coordinator's shared worker pool. The pool
+// resolves `./doenetml-worker/index.js` against the URL it is handed, so it
+// gets the bundle root where one resolved, and this module's URL (whose
+// opaque-base fallback the pool shares) otherwise.
 const coordinatedMode = detectCoordinatedMode();
 if (coordinatedMode?.sharedCores) {
-    installCoordinatorSharedCorePortProvider(pinnedBundleUrl);
+    installCoordinatorSharedCorePortProvider(
+        pinnedBundleRootUrl ?? pinnedBundleUrl,
+    );
 }
 
 // Cache React roots per container so repeat calls to
@@ -472,18 +517,38 @@ function kebobCaseToCamelCase(str: string) {
     return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 }
 
-// Expose renderDoenetViewerToContainer and renderDoenetEditorToContainer on the global object
-// @ts-ignore
-window.renderDoenetViewerToContainer = renderDoenetViewerToContainer;
-// @ts-ignore
-window.renderDoenetEditorToContainer = renderDoenetEditorToContainer;
-
-// Expose style-palette discovery on the global object as well, so a page
-// that loads this bundle from the CDN (rather than importing it) can list
-// the palettes this DoenetML version ships and render swatches for them.
-// The iframe wrapper feature-detects these globals to report the palettes
-// of whichever bundle version it booted.
-// @ts-ignore
-window.getDoenetStylePalettes = getStylePalettes;
-// @ts-ignore
-window.getDoenetStylePalette = getStylePalette;
+// Expose renderDoenetViewerToContainer and renderDoenetEditorToContainer on
+// the global object, and style-palette discovery beside them, so a page that
+// loads this bundle from the CDN (rather than importing it) can render
+// documents and list the palettes this DoenetML version ships. The iframe
+// wrapper feature-detects the palette globals to report the palettes of
+// whichever bundle version it booted.
+//
+// The installs are guarded (see `installFirstCopyGlobal`): when another copy
+// of this bundle already evaluated on this page, only the facade prologue's
+// queueing stubs are replaced — a replacement also drains the stub's queued
+// calls through the replacing function, which is how calls queued before any
+// eager chunk settled reach the real functions of the first chunk that does —
+// and real functions are left in place. A later copy therefore stays fully
+// inert: its worker-URL write defers to the first settled copy's
+// (`hostProvidedWorkerUrl` in `@doenet/doenetml`'s global-config.ts) and its
+// globals defer here, so every document pairs one release's UI with that same
+// release's worker, and no queued call is stranded on a copy whose chunk
+// fails to load.
+const globalTarget = window as unknown as Record<string, unknown>;
+installFirstCopyGlobal(
+    globalTarget,
+    "renderDoenetViewerToContainer",
+    renderDoenetViewerToContainer,
+);
+installFirstCopyGlobal(
+    globalTarget,
+    "renderDoenetEditorToContainer",
+    renderDoenetEditorToContainer,
+);
+installFirstCopyGlobal(
+    globalTarget,
+    "getDoenetStylePalettes",
+    getStylePalettes,
+);
+installFirstCopyGlobal(globalTarget, "getDoenetStylePalette", getStylePalette);
