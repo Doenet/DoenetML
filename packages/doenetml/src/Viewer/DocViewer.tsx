@@ -84,6 +84,21 @@ export type SourcePosition = {
     end: { line: number; column: number; offset: number };
 };
 
+/**
+ * One score/state report on its way to whoever persists it, carrying the
+ * identity of the document it describes. The ids travel *with* the report
+ * rather than being read at delivery time, because a report can be buffered
+ * (see `pendingStateReport`) and handed over later, by which point the props
+ * may name a successor document — and state saved under the wrong
+ * `activityId`/`docId` is worse than state not saved at all.
+ */
+export type StateReport = {
+    score: number;
+    state: unknown;
+    activityId: string;
+    docId: string;
+};
+
 /** Whether `inner`'s source range lies entirely within `outer`'s. */
 function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
     return (
@@ -179,12 +194,7 @@ export function DocViewer({
         diagnostics: DiagnosticRecord[],
         source: string,
     ) => void;
-    reportScoreAndStateCallback?: (data: {
-        score: number;
-        state: unknown;
-        activityId: string;
-        docId: string;
-    }) => void;
+    reportScoreAndStateCallback?: (data: StateReport) => void;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
     /**
@@ -761,22 +771,19 @@ export function DocViewer({
 
     // The most recent state payload the core's 60-second database throttle is
     // holding back, mirrored here by `StatePersistence` as a report marked
-    // `pending` (#1726). A page can
-    // go away without the viewer unmounting — the tab is closed, a new URL is
-    // typed, an external link is followed, a backgrounded mobile tab is
-    // discarded — and the unmount flush that covers in-app navigation does not
-    // run for any of those. Keeping the payload in this realm is what lets
-    // `flushPendingStateReport` hand it to the host without a round-trip into
-    // the worker, which `pagehide` has no budget for.
-    const pendingStateReport = useRef<{
-        score: number;
-        state: unknown;
-    } | null>(null);
+    // `pending` (#1726). A page can go away without the viewer unmounting —
+    // the tab is closed, a new URL is typed, an external link is followed, a
+    // backgrounded mobile tab is discarded — and the unmount flush that covers
+    // in-app navigation does not run for any of those. Keeping the payload in
+    // this realm is what lets `flushPendingStateReport` hand it to the host
+    // without a round-trip into the worker, which `pagehide` has no budget for.
+    const pendingStateReport = useRef<StateReport | null>(null);
 
     // Report whatever the throttle is holding back, right now. Safe to call
     // repeatedly and safe to interleave with the unmount flush: the buffer is
     // taken before it is reported, and any real report clears it, so a given
-    // payload goes out at most once from here.
+    // payload goes out at most once from here. Must stay synchronous
+    // throughout — see `deliverStateReport`.
     function flushPendingStateReport() {
         const pending = pendingStateReport.current;
         if (!pending) {
@@ -1197,10 +1204,10 @@ export function DocViewer({
     // before this document can be discarded (#1726).
     //
     // `pagehide` covers a real teardown — tab closed, URL typed, external link
-    // followed. `visibilitychange` → hidden covers the rest: a backgrounded
-    // tab can be discarded without firing anything else, and on desktop it
-    // fires while the page is still fully alive, which is the one moment a
-    // postMessage-delivered report is certain to be processed.
+    // followed. `visibilitychange` → hidden covers what that misses: a
+    // backgrounded tab can be discarded without firing anything else. The two
+    // overlap on an ordinary unload, which costs nothing — the buffer is taken
+    // by whichever fires first, so the second finds it empty.
     //
     // Neither event tears anything down, so a bfcache `pagehide`
     // (`persisted: true`) needs no special case — the core stays alive, the
@@ -1863,8 +1870,13 @@ export function DocViewer({
          */
         pending?: boolean;
     }) {
+        // The ids come from this closure, which the core was handed at
+        // initialization, so they are the ids of the document that produced
+        // the report — not whatever the props name by the time it goes out.
+        const report: StateReport = { score, state, activityId, docId };
+
         if (pending) {
-            pendingStateReport.current = { score, state };
+            pendingStateReport.current = report;
             return;
         }
 
@@ -1872,7 +1884,7 @@ export function DocViewer({
         // core was holding back, so the buffer is now superseded.
         pendingStateReport.current = null;
 
-        deliverStateReport({ score, state });
+        deliverStateReport(report);
     }
 
     /**
@@ -1892,27 +1904,32 @@ export function DocViewer({
      * is the timing, `isTrusted`, and that `data` is passed by reference
      * rather than structured-cloned (nothing on this channel reads the first
      * two, and hosts consume `data` where they receive it).
+     *
+     * Synchronous delivery only buys time if what receives it is synchronous
+     * too. Two known places where it is not, both documented as gaps on
+     * Doenet/DoenetML#1726: a host whose `message` listener persists by
+     * deferring (a `fetch`, a `setTimeout`) rather than by `sendBeacon` or
+     * synchronous storage, and a viewer running inside `@doenet/doenetml-iframe`
+     * whose host passed `reportScoreAndStateCallback` — that callback is a
+     * Comlink proxy across the iframe boundary, so calling it only posts.
      */
     function deliverStateReport(
-        report: { score: number; state: unknown },
+        report: StateReport,
         { synchronous = false }: { synchronous?: boolean } = {},
     ) {
         if (specifiedReportScoreAndStateCallback) {
-            specifiedReportScoreAndStateCallback({
-                ...report,
-                activityId,
-                docId,
-            });
+            specifiedReportScoreAndStateCallback(report);
             return;
         }
 
         const target =
             flags.messageParent && window.parent ? window.parent : window;
         const message = {
-            ...report,
+            score: report.score,
+            state: report.state,
             subject: "SPLICE.reportScoreAndState",
-            activity_id: activityId,
-            doc_id: docId,
+            activity_id: report.activityId,
+            doc_id: report.docId,
             message_id: nanoid(),
         };
 

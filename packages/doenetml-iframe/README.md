@@ -395,6 +395,33 @@ booted yet) — equally safe to unmount.
 > safe. Every viewer on the page receives a broadcast request and responds
 > (correlate by `activity_id`/`doc_id`/`message_id`).
 
+#### The page going away flushes on its own
+
+A host need not send `flushState` for an ordinary departure. The viewer
+flushes whatever the throttle is holding back when the page hides — on
+`pagehide` and on a `visibilitychange` to `hidden` — so closing the tab,
+typing a new URL, following an external link, or backgrounding a tab on a
+phone no longer strands up to a minute of work. The flushed work arrives on
+your window as an ordinary `SPLICE.reportScoreAndState` message, so a host
+that already persists those saves it with no extra code. Nothing is torn
+down on the way, so a page that comes back — a re-foregrounded tab, a
+back/forward-cache restore — carries on with its state already saved.
+
+> **Important:** for this to survive a real unload, your listener has to
+> persist **synchronously**. The report is handed over by dispatching the
+> message event directly rather than posting it, because a document being
+> unloaded is destroyed before a posted message is ever delivered — but a
+> listener that defers its own write (a `fetch`, a `setTimeout`, an `await`)
+> is destroyed just the same. Write from the listener itself, with
+> `navigator.sendBeacon` or a synchronous store such as `localStorage`.
+>
+> The `reportScoreAndStateCallback` prop does not get this guarantee here:
+> the viewer runs inside the iframe, so calling your callback crosses the
+> frame boundary as a posted message, which an unloading page will not
+> deliver. Listen for `SPLICE.reportScoreAndState` on your window if
+> surviving an unload matters. (Everything else — routine reports, and
+> flushes you requested yourself — reaches the callback as before.)
+
 ### Loading saved state at boot (`SPLICE.getState`)
 
 With `flags: { allowLoadState: true }` and no `initialState` prop, the
