@@ -858,8 +858,48 @@ export function DocViewer({
                 return;
             }
             if (e.data.subject === "SPLICE.getState.response") {
-                if (messageIdFromGetState.current === e.data.message_id) {
-                    if (e.data.state && e.data.state.cid === cid.current) {
+                // The request this viewer is waiting on, or null when it is
+                // waiting on none: either none was ever made (a viewer handed
+                // `initialState`, or one not allowed to load state at all) or
+                // an answer has already been adopted below.
+                const openRequestId = messageIdFromGetState.current;
+                // A reply quoting the open request's id is this viewer's,
+                // whatever it carries. A reply quoting a DIFFERENT id is not:
+                // that id belongs to another request — one some rebuild has
+                // replaced, or a second viewer's in the same window.
+                const quotesOpenRequest =
+                    openRequestId !== null &&
+                    e.data.message_id === openRequestId;
+                // An error may quote no id at all, and `message_id: null`
+                // spells that absence out. It is the shape the protocol
+                // originally specified, so hosts written against it send
+                // exactly that and it has to keep working; the docs now
+                // accept either and ask for the id where a host can send it
+                // (see `SPLICE.getState` in `packages/standalone/README.md`).
+                // An unaddressed reply addresses whatever request is open,
+                // which is what this viewer's is.
+                //
+                // Only an error is read that way. Host replies are broadcast
+                // to every viewer in the window, and `cid` cannot tell them
+                // apart — it hashes the DoenetML text alone, so a second
+                // attempt at the same document, or the same document opened
+                // twice on a page, carries the identical `cid` under a
+                // different `activity_id`/`doc_id`/`attempt_number`. An
+                // unaddressed answer carrying STATE would be restored by all
+                // of them, putting one reader's saved work into another's
+                // document. An unaddressed error costs an error screen the
+                // next usable answer clears.
+                const isUnaddressedError =
+                    openRequestId !== null &&
+                    (e.data.message_id === undefined ||
+                        e.data.message_id === null) &&
+                    Boolean(e.data.error);
+                if (quotesOpenRequest || isUnaddressedError) {
+                    if (
+                        quotesOpenRequest &&
+                        e.data.state &&
+                        e.data.state.cid === cid.current
+                    ) {
                         // One request, one answer. A page can hold several
                         // listeners willing to answer: under the standalone
                         // coordinator the in-page warehouse answers a restored
@@ -891,12 +931,11 @@ export function DocViewer({
                         // dependency array, so the `errMsg` it closes over is
                         // forever the initial `null` and a guard reading it
                         // could never fire. That mattered once a page could
-                        // hold more than one answerer — an error carries no
-                        // `message_id`, so it does not answer the request, and
-                        // a listener reporting one before another returns
-                        // usable state left the restored document behind an
-                        // error screen it could not clear. Both setters are
-                        // idempotent.
+                        // hold more than one answerer — an error leaves the
+                        // request open, so a listener reporting one before
+                        // another returned usable state left the restored
+                        // document behind an error screen it could not clear.
+                        // Both setters are idempotent.
                         setErrMsg(null);
                         setIsInErrorState?.(false);
 
@@ -936,33 +975,36 @@ export function DocViewer({
                         } else {
                             setStage("readyToCreateCore");
                         }
+                    } else if (e.data.error) {
+                        // The host cannot produce this document's saved state
+                        // and says why. Putting that on screen is all this
+                        // does — the request is left open (see above), so a
+                        // second answerer that does have state can still
+                        // restore the document and clear this screen.
+                        //
+                        // Reached only after the state test above, so a reply
+                        // carrying both is read as state: a host that produced
+                        // usable state has answered, whatever else it also
+                        // reported.
+                        const error = e.data.error;
+                        setIsInErrorState?.(true);
+                        if (
+                            typeof error === "object" &&
+                            "code" in error &&
+                            "message" in error
+                        ) {
+                            console.log(
+                                `error ${error.code} getting state: ${error.message}`,
+                            );
+                            setErrMsg(error.message);
+                        } else {
+                            setErrMsg("Invalid response to getState");
+                        }
                     }
-                } else if (
-                    messageIdFromGetState.current !== null &&
-                    e.data.error
-                ) {
-                    // An error is only worth surfacing while this viewer is
-                    // still waiting for state. Once an answer has been adopted
-                    // above, the request is closed and `messageIdFromGetState`
-                    // is null — and a null id can never match, so every later
-                    // answer reaches this branch. A second answerer reporting
-                    // that IT has nothing (the persistence host on a page
-                    // where the coordinator answered first) must not replace
-                    // the document just restored with an error screen.
-                    const error = e.data.error;
-                    setIsInErrorState?.(true);
-                    if (
-                        typeof error === "object" &&
-                        "code" in error &&
-                        "message" in error
-                    ) {
-                        console.log(
-                            `error ${error.code} getting state: ${error.message}`,
-                        );
-                        setErrMsg(error.message);
-                    } else {
-                        setErrMsg("Invalid response to getState");
-                    }
+                    // A reply with neither usable state nor an error is a host
+                    // saying it has nothing saved for this document: nothing
+                    // to show, and the request left open for an answerer that
+                    // does have something.
                 }
             } else if (
                 e.data.subject === "SPLICE.requestSolutionView.response"
@@ -2823,6 +2865,15 @@ export function DocViewer({
         }
 
         coreId.current = nanoid();
+        // A request the previous document made is not this one's to have
+        // answered. Nothing else retires it: `requestStateViaSplice` replaces
+        // the id only after the load's awaits, and a successor restoring from
+        // local state or handed `initialState` never asks at all, so the old
+        // id would stay current indefinitely — long enough for a late reply
+        // to it to be read as an answer to this document, putting an error
+        // over a document it never described, or state that was saved for
+        // another attempt at the same source into this one.
+        messageIdFromGetState.current = null;
         initialCoreData.current = null;
         coreInfo.current = null;
         setDocumentRenderer(null);
