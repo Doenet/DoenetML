@@ -82,9 +82,11 @@ describe("throttled state is mirrored to the main realm (#1726)", () => {
         // A flush delivers the *latest* mirror, so what matters is that the
         // most recent one carries the most recent work — not merely that some
         // earlier mirror did.
-        expect(
-            (pendingReports.at(-1)?.state as { coreState: string }).coreState,
-        ).toContain("third");
+        const mirrored = pendingReports.at(-1);
+        expect(mirrored, "the throttled saves mirrored nothing").toBeDefined();
+        expect((mirrored!.state as { coreState: string }).coreState).toContain(
+            "third",
+        );
         expect(scoreState.state).not.toContain("third");
     });
 });

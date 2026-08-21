@@ -773,16 +773,18 @@ export function DocViewer({
     // holding back, mirrored here by `StatePersistence` as a report marked
     // `pending` (#1726). A page can go away without the viewer unmounting —
     // the tab is closed, a new URL is typed, an external link is followed, a
-    // backgrounded mobile tab is discarded — and the unmount flush that covers
-    // in-app navigation does not run for any of those. Keeping the payload in
-    // this realm is what lets `flushPendingStateReport` hand it to the host
-    // without a round-trip into the worker, which `pagehide` has no budget for.
+    // backgrounded mobile tab is discarded — and a React effect cleanup runs
+    // for none of those. Keeping the payload in this realm is what lets
+    // `flushPendingStateReport` hand it to the host without a round-trip into
+    // the worker, which `pagehide` has no budget for. It is also what the
+    // unmount cleanup delivers, the core's own teardown report being
+    // suppressed by then — see that cleanup below.
     const pendingStateReport = useRef<StateReport | null>(null);
 
     // Report whatever the throttle is holding back, right now. Safe to call
-    // repeatedly and safe to interleave with the unmount flush: the buffer is
-    // taken before it is reported, and any real report clears it, so a given
-    // payload goes out at most once from here. Must stay synchronous
+    // repeatedly and safe to interleave with the core's own reports: the
+    // buffer is taken before it is reported, and any real report clears it, so
+    // a given payload goes out at most once from here. Must stay synchronous
     // throughout — see `deliverStateReport`.
     function flushPendingStateReport() {
         const pending = pendingStateReport.current;
@@ -844,10 +846,11 @@ export function DocViewer({
         coreWorker.current = null;
         coreWorkerKill.current = null;
         // Drop the throttled payload along with the core that produced it
-        // (#1726). A graceful teardown flushes it through the core anyway, and
-        // a rebuild replaces the document it belongs to — reporting it after
-        // the successor has reported would put stale state, under a stale
-        // `cid`, over the host's newer record.
+        // (#1726). A rebuild replaces the document the payload belongs to, so
+        // reporting it after the successor has reported would put stale state,
+        // under a stale `cid`, over the host's newer record. The other caller
+        // is the unmount cleanup below, which delivers the payload first —
+        // there being no successor to overwrite.
         pendingStateReport.current = null;
         return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
@@ -880,6 +883,15 @@ export function DocViewer({
         viewerUnmounted.current = false;
         return () => {
             viewerUnmounted.current = true;
+            // Hand the host whatever the throttle was holding back before the
+            // teardown below drops it (#1726). The core's own teardown flush
+            // does not cover this: `Core.terminate()` does report, but that
+            // report arrives through `speakingFor`, which suppresses every
+            // delivery once `viewerUnmounted` is set — so on an in-app
+            // navigation the last minute of work reached nobody. The buffered
+            // payload is up to one save-debounce older than what the core
+            // would have built, and it is what actually gets out.
+            flushPendingStateReportRef.current();
             // Best-effort graceful terminate, but always guarantee a native
             // kill so a wedged worker (whose Comlink terminate would hang) is
             // still released on unmount (Doenet/DoenetApps#2957).
@@ -1900,10 +1912,12 @@ export function DocViewer({
      * from `pagehide` is silently dropped — precisely the loss this exists to
      * prevent. Dispatching the same `message` event by hand runs the host's
      * listeners inline instead. The host sees the message a `postMessage`
-     * would have delivered, with the same `origin` and `source`; what differs
-     * is the timing, `isTrusted`, and that `data` is passed by reference
-     * rather than structured-cloned (nothing on this channel reads the first
-     * two, and hosts consume `data` where they receive it).
+     * would have delivered: same `data`, same `origin`, same `source` — the
+     * last of which has to hold, since the standalone coordinator identifies
+     * the reporting viewer by `event.source`. What differs is the timing,
+     * `isTrusted` (nothing on this channel reads it), and that `data` is
+     * passed by reference rather than structured-cloned (hosts consume it
+     * where they receive it).
      *
      * Synchronous delivery only buys time if what receives it is synchronous
      * too. Two known places where it is not, both documented as gaps on

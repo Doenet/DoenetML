@@ -7,8 +7,12 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { DocViewer, type SourcePosition } from "./Viewer/DocViewer";
-export type { SourcePosition } from "./Viewer/DocViewer";
+import {
+    DocViewer,
+    type SourcePosition,
+    type StateReport,
+} from "./Viewer/DocViewer";
+export type { SourcePosition, StateReport } from "./Viewer/DocViewer";
 import { MathJaxContext } from "@doenet/utils/mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
 import type { ReaderStyleOverrides } from "@doenet/utils";
@@ -172,12 +176,7 @@ export function DoenetViewer({
     render?: boolean;
     requestedVariantIndex?: number;
     initialState?: Record<string, any> | null;
-    reportScoreAndStateCallback?: (data: {
-        score: number;
-        state: unknown;
-        activityId: string;
-        docId: string;
-    }) => void;
+    reportScoreAndStateCallback?: (data: StateReport) => void;
     setIsInErrorState?: Function;
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;

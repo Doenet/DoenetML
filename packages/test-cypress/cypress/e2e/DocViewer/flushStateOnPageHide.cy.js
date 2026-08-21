@@ -1,8 +1,8 @@
 // Flush pending state when the page goes away (Doenet/DoenetML#1726).
 //
 // The core throttles its `SPLICE.reportScoreAndState` saves at 60 seconds, and
-// the only thing that overrode that throttle was a viewer *unmount* (or a
-// host's explicit `SPLICE.flushState`). A page can go away without either —
+// the only things that overrode that throttle were a host's explicit
+// `SPLICE.flushState` and a submitted answer. A page can go away with neither —
 // the tab is closed, a new URL is typed, an external link is followed — and a
 // React effect cleanup does not run for any of those, so up to a minute of a
 // reader's work was lost. This spec drives the real thing: a navigation away

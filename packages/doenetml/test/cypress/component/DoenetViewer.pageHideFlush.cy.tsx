@@ -5,11 +5,11 @@ import { captureReports, flushState } from "./utils/splice";
 // Flush pending state when the page goes away (Doenet/DoenetML#1726).
 //
 // The core throttles its `reportScoreAndState` saves at 60 seconds, and the
-// only thing that overrode that throttle was a viewer *unmount* (or a host's
-// explicit `SPLICE.flushState`). A page can go away without either: the tab is
-// closed, a new URL is typed, an external link is followed, a backgrounded
-// mobile tab is discarded. React effect cleanups do not run for any of those,
-// so up to a minute of a reader's work was lost.
+// only things that overrode that throttle were a host's explicit
+// `SPLICE.flushState` and a submitted answer. A document can go away with
+// neither: the tab is closed, a new URL is typed, an external link is
+// followed, a backgrounded mobile tab is discarded, or an app navigates in
+// place and unmounts the viewer. Up to a minute of a reader's work was lost.
 //
 // `pagehide` gives no budget for a Comlink round-trip into the worker, so the
 // fix does not try one: the core mirrors each throttled payload into the main
@@ -18,9 +18,12 @@ import { captureReports, flushState } from "./utils/splice";
 // the page hides.
 //
 // The property under test is the same one #1440's flush test asserts, driven by
-// the events a closing page actually fires: work performed AFTER the last
+// the ways a document actually goes away: work performed AFTER the last
 // (throttled) report — work a host would otherwise never see — reaches the host
-// through the ordinary `SPLICE.reportScoreAndState` channel, and restores.
+// through the ordinary `SPLICE.reportScoreAndState` channel, and restores. That
+// includes a plain unmount, whose in-worker flush is suppressed on arrival (see
+// the unmount case below), so the buffered payload is the only thing that
+// reaches a host on an in-app navigation too.
 
 const DOC = `<p>Enter text: <textInput name="ti" /></p>
 <p>You typed: $ti.value</p>`;
@@ -169,6 +172,40 @@ describe("DoenetViewer flush-on-page-hide (#1726)", () => {
                         expect(
                             hasValue(reports, "work while visible"),
                             "hiding the tab reported the pending work",
+                        ).to.eq(true);
+                    });
+                },
+            );
+        });
+    });
+
+    it("reports throttle-stuck work when the viewer unmounts", () => {
+        // An in-app navigation unmounts the viewer rather than hiding the
+        // page, and the core's own teardown flush does not cover it: the
+        // unmount cleanup marks the viewer gone before terminating the
+        // worker, and every delivery from a core that no longer speaks for
+        // the document is dropped on arrival — so the report
+        // `Core.terminate()` produces reaches nobody. The buffered payload is
+        // what makes an unmount lossless.
+        captureReports().then((reports) => {
+            cy.mount(
+                <DoenetViewer doenetML={DOC} addVirtualKeyboard={false} />,
+            );
+
+            typeBehindThrottle(reports, "work before unmount").then(
+                (reportsBeforeUnmount) => {
+                    expect(
+                        hasValue(reportsBeforeUnmount, "work before unmount"),
+                        "second commit reported before unmounting (should not be)",
+                    ).to.eq(false);
+
+                    // `cy.mount` unmounts whatever it replaces.
+                    cy.mount(<div>the viewer is gone</div>);
+
+                    cy.wrap(null, { timeout: VIEWER_TIMEOUT }).should(() => {
+                        expect(
+                            hasValue(reports, "work before unmount"),
+                            "unmounting reported the pending work",
                         ).to.eq(true);
                     });
                 },

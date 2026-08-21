@@ -197,8 +197,9 @@ export class StatePersistence {
      *
      * A mirror goes out on every throttled save, so it is never further behind
      * the screen than the one-second save debounce. Any real report that
-     * follows (throttle expiry, submission, the unmount flush,
-     * `SPLICE.flushState`) carries the same or newer state and supersedes it.
+     * follows (throttle expiry, submission, `SPLICE.flushState`, the
+     * `saveImmediately` in `terminate`) carries the same or newer state and
+     * supersedes it.
      *
      * The score is resolved *before* the payload is read so that a report can
      * never carry state older than one already sent: awaiting `creditAchieved`
