@@ -858,20 +858,27 @@ export function DocViewer({
                 return;
             }
             if (e.data.subject === "SPLICE.getState.response") {
-                // The request this viewer is still waiting on — or null once
-                // an answer has been adopted below, which is what makes every
-                // later reply, error or otherwise, none of this document's
+                // The request this viewer is waiting on, or null when it is
+                // waiting on none: either none was ever made (a viewer handed
+                // `initialState`, or one not allowed to load state at all) or
+                // an answer has already been adopted below. Null is what makes
+                // every reply, error or otherwise, none of this document's
                 // business.
                 const openRequestId = messageIdFromGetState.current;
-                // Does this reply answer that request? A reply quotes the id
-                // it answers, but the protocol specifies an error response as
-                // carrying none (see `SPLICE.getState` in
-                // `packages/standalone/README.md`), and a host that echoes the
-                // id there anyway — the natural thing to do, and what its own
-                // answers carrying state already do — is addressing this
-                // request just as plainly. Only one is ever open, so both
-                // reach it. What does not is a reply quoting a DIFFERENT id:
-                // a stale answer to a request some rebuild has replaced.
+                // Does this reply answer that request? That is all the id
+                // decides here; the payload below decides what the reply is.
+                //
+                // A reply quotes the id it answers. The protocol specifies an
+                // error response as carrying none instead (see
+                // `SPLICE.getState` in `packages/standalone/README.md`), and a
+                // host that quotes it there anyway — the natural thing to do,
+                // and what its own answers carrying state already do — is
+                // addressing this request just as plainly; a host that spells
+                // the absence out as `message_id: null` says the same thing as
+                // one that omits the field. Only one request is ever open, so
+                // all of those reach it. What does not is a reply quoting a
+                // DIFFERENT id: a stale answer to a request some rebuild has
+                // replaced.
                 const answersOpenRequest =
                     openRequestId !== null &&
                     (e.data.message_id === undefined ||
@@ -962,6 +969,11 @@ export function DocViewer({
                         // that IT has nothing cannot shut out one still to
                         // come — and when that one arrives, the restored
                         // document clears this screen.
+                        //
+                        // Reached only after the state test above, so a reply
+                        // carrying both restores the document rather than
+                        // failing it: a host that produced usable state has
+                        // answered, whatever else it also reported.
                         const error = e.data.error;
                         setIsInErrorState?.(true);
                         if (

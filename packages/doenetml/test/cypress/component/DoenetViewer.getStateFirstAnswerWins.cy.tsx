@@ -63,9 +63,11 @@ function saveStateAfterTyping(reports: any[], text: string, flushId: string) {
  * with `first`, then — once the request is out of the way — with `second`.
  *
  * A reply carries the request's own `message_id`, which is what makes it an
- * answer to the *same* request rather than stale traffic — unless it sets
- * `omitMessageId`, since the protocol specifies an error response as carrying
- * none (see the `SPLICE.getState` section of `@doenet/standalone`'s README).
+ * answer to the request the viewer has open rather than to one a rebuild has
+ * replaced — unless it sets `omitMessageId`, the shape the protocol specifies
+ * for an error response, which the viewer also reads as answering the open
+ * request (see the `SPLICE.getState` section of `@doenet/standalone`'s README,
+ * and `DoenetViewer.getStateError.cy.tsx` for both error shapes).
  * Resolves with a flag object whose `sent` turns true when the second reply
  * has gone out.
  */
@@ -198,12 +200,12 @@ describe("DoenetViewer SPLICE.getState with more than one answerer", () => {
     });
 
     it("clears an earlier answerer's error once a later answer restores the document", function () {
-        // The reverse order. A protocol error carries no `message_id`, so it
-        // never answers the request — it only puts the failure on screen,
-        // leaving the request open for someone who does have state. When that
-        // answer arrives the restored document has to replace the error
-        // screen; the error is not this document's outcome, it was one
-        // listener's.
+        // The reverse order. An error never consumes the request — only
+        // usable state does, whatever `message_id` the error carries — so it
+        // does no more than put the failure on screen, leaving the request
+        // open for someone who does have state. When that answer arrives the
+        // restored document has to replace the error screen; the error is not
+        // this document's outcome, it was one listener's.
         answerGetStateTwice(
             {
                 error: { code: 500, message: "storage unavailable" },

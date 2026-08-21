@@ -337,8 +337,11 @@ If there is no saved state, no response is needed. To surface a load
 failure to the student instead, respond with
 `{ subject: "SPLICE.getState.response", error: { code, message } }` —
 quoting the request's `message_id` or leaving it out, whichever is easier
-for the host. Both answer the request the viewer has open. A reply quoting a
-*different* id is ignored: it answers a request some rebuild has replaced.
+for the host. Both answer the request the viewer has open, and a reply
+quoting a *different* id is ignored: it answers a request some rebuild has
+replaced. Quoting it is the more precise of the two — an error carrying no
+id answers whichever request is open when it lands, including one a rebuild
+opened after the error was sent.
 
 A request has a single answer: the **first** response carrying state for
 this `cid` is the one the viewer reboots from, and every response after
