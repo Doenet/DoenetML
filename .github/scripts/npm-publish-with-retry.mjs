@@ -31,13 +31,15 @@
  *   - Hides the per-file tarball listing from the relayed npm output, keeping
  *     the Tarball Details summary (see NPM_PUBLISH_SHOW_FILE_LIST below).
  *
- * Configuration (environment variables). Each of the publish and any follow-up
- * dist-tag write gets its own budget of attempts under these settings:
+ * Configuration (environment variables):
  *   NPM_PUBLISH_MAX_ATTEMPTS    - total attempts before giving up (default 4)
  *   NPM_PUBLISH_RETRY_DELAY_MS  - base backoff delay in ms (default 10000)
  *   NPM_PUBLISH_MAX_DELAY_MS    - backoff delay cap in ms (default 60000)
  *   NPM_PUBLISH_SHOW_FILE_LIST  - set to 1 to relay the per-file tarball
  *                                 listing instead of hiding it
+ *
+ * Each of the publish and any follow-up dist-tag write gets its own budget of
+ * attempts under the three retry settings.
  */
 
 import { spawnSync } from "node:child_process";
@@ -218,7 +220,9 @@ const TARBALL_FILE_LINE = /^npm notice \d+(\.\d+)?[kMGT]?B .+$/;
  * the two: `--loglevel=warn` would drop the summary along with the listing. The
  * published tarball keeps the full file list permanently, and
  * `npm pack <spec> --dry-run` reprints exactly this listing from it, so the copy
- * in an expiring CI log is redundant as well as noisy.
+ * in an expiring CI log is redundant as well as noisy. On the one path where it
+ * is not redundant — a publish that never reached the registry — the file list
+ * is the least interesting thing in the log.
  *
  * Filtering is display-only: `combinedOutput` still classifies the untouched
  * text, so the retry and already-published patterns see everything npm said.
