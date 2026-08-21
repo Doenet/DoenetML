@@ -45,8 +45,8 @@ function fakeSharedLocks() {
 }
 
 /**
- * Let the cache refreshes a census seat sets going — a query on the way in,
- * and one deferred a task on release — run to completion, so the cached count
+ * A census seat sets two cache refreshes going: a query on the way in, and one
+ * deferred a task on release. Let both run to completion, so the cached count
  * reflects the seats that have come and gone before the next assertion, or the
  * next test, reads it.
  */
