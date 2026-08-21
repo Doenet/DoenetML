@@ -28,12 +28,16 @@
  *     version, so no follow-up write is made. On the other success paths
  *     (already published, or published server-side despite a client error) it
  *     ensures the tag points at the version, retrying transient failures.
+ *   - Hides the per-file tarball listing from the relayed npm output, keeping
+ *     the Tarball Details summary (see NPM_PUBLISH_SHOW_FILE_LIST below).
  *
  * Configuration (environment variables). Each of the publish and any follow-up
  * dist-tag write gets its own budget of attempts under these settings:
  *   NPM_PUBLISH_MAX_ATTEMPTS    - total attempts before giving up (default 4)
  *   NPM_PUBLISH_RETRY_DELAY_MS  - base backoff delay in ms (default 10000)
  *   NPM_PUBLISH_MAX_DELAY_MS    - backoff delay cap in ms (default 60000)
+ *   NPM_PUBLISH_SHOW_FILE_LIST  - set to 1 to relay the per-file tarball
+ *                                 listing instead of hiding it
  */
 
 import { spawnSync } from "node:child_process";
@@ -52,6 +56,7 @@ if (!publishDir) {
 const maxAttempts = readIntegerEnv("NPM_PUBLISH_MAX_ATTEMPTS", 4, 1);
 const baseDelayMs = readIntegerEnv("NPM_PUBLISH_RETRY_DELAY_MS", 10_000, 0);
 const maxDelayMs = readIntegerEnv("NPM_PUBLISH_MAX_DELAY_MS", 60_000, 0);
+const showFileList = process.env.NPM_PUBLISH_SHOW_FILE_LIST === "1";
 
 const cwd = resolve(process.cwd(), publishDir);
 
@@ -192,12 +197,65 @@ function combinedOutput(result) {
         .join("\n");
 }
 
+/**
+ * One line of the tarball listing `npm publish` prints at its default log level:
+ * `npm notice 7.6kB Viewer/renderers/answer.js`. The size always follows
+ * `npm notice` immediately, which no line of the Tarball Details summary does
+ * (`npm notice package size: 12.8 MB` leads with a word), so this cannot eat the
+ * summary.
+ */
+const TARBALL_FILE_LINE = /^npm notice \d+(\.\d+)?[kMGT]?B .+$/;
+
+/**
+ * Drop the per-file tarball listing from npm's output.
+ *
+ * A dev release publishes four packages of a few thousand files each, so the
+ * listing runs ~5800 of the step's ~6000 lines and buries anything worth
+ * reading — a release that failed on a one-line `npm error` looks, at a glance,
+ * like it never got as far as publishing. The Tarball Details summary that
+ * follows the listing carries the part worth keeping (package size, unpacked
+ * size, file count, shasum, integrity), and npm has no log level that separates
+ * the two: `--loglevel=warn` would drop the summary along with the listing. The
+ * registry keeps the full file list permanently — `npm view <spec>` — so the
+ * copy in an expiring CI log is redundant as well as noisy.
+ *
+ * Filtering is display-only: `combinedOutput` still classifies the untouched
+ * text, so the retry and already-published patterns see everything npm said.
+ */
+function withoutTarballFileList(text) {
+    if (!text || showFileList) {
+        return { text, suppressed: 0 };
+    }
+
+    let suppressed = 0;
+    const kept = text.split("\n").filter((line) => {
+        if (!TARBALL_FILE_LINE.test(line)) {
+            return true;
+        }
+        suppressed++;
+        return false;
+    });
+
+    return { text: kept.join("\n"), suppressed };
+}
+
 function writeCommandOutput(result, commandName) {
+    let suppressed = 0;
+
     if (result.stdout) {
-        process.stdout.write(result.stdout);
+        const filtered = withoutTarballFileList(result.stdout);
+        suppressed += filtered.suppressed;
+        process.stdout.write(filtered.text);
     }
     if (result.stderr) {
-        process.stderr.write(result.stderr);
+        const filtered = withoutTarballFileList(result.stderr);
+        suppressed += filtered.suppressed;
+        process.stderr.write(filtered.text);
+    }
+    if (suppressed > 0) {
+        console.log(
+            `(${suppressed} tarball file lines hidden; \`npm view ${spec}\` lists the published files, or set NPM_PUBLISH_SHOW_FILE_LIST=1)`,
+        );
     }
     if (result.error) {
         console.error(
