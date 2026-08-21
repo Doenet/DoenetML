@@ -65,6 +65,30 @@ describe("handshake census (#1711)", () => {
         c.release();
     });
 
+    it("reports the count its own seat was granted against", async () => {
+        // The reading a FIRST handshake gets (#1718): the cached snapshot
+        // answers with the refresh before the caller's own, and a realm's
+        // first boot has none before it, so the seat has to bring the count
+        // back itself — counted from inside the grant, so it includes the
+        // seat being taken.
+        installLocks(fakeSharedLocks());
+
+        const first = await joinHandshakeCensus();
+        expect(first.count).toBe(1);
+        const second = await joinHandshakeCensus();
+        expect(second.count).toBe(2);
+        // Taking a seat is also the cache's earliest possible refresh, so a
+        // retry does not have to wait for one of its own either.
+        expect(concurrentHandshakesSnapshot()).toBe(2);
+
+        first.release();
+        second.release();
+        // Let the release-triggered refreshes land, so the next test starts
+        // from the neutral count.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
     it("reports a neutral 1 when the browser cannot answer", async () => {
         // No Web Locks at all, and a query that rejects: both must read as
         // "no visible contention" so the watchdog falls back to its fixed
@@ -72,7 +96,7 @@ describe("handshake census (#1711)", () => {
         installLocks(undefined);
         expect(await countConcurrentHandshakes()).toBe(1);
         const noop = await joinHandshakeCensus();
-        expect(noop).toBeDefined();
+        expect(noop.count).toBe(1);
         noop.release();
 
         installLocks({
@@ -116,7 +140,7 @@ describe("handshake census (#1711)", () => {
         });
 
         const seat = await joinHandshakeCensus();
-        expect(seat).toBeDefined();
+        expect(seat.count).toBe(1);
         seat.release();
     });
 });

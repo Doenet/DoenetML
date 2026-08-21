@@ -44,6 +44,7 @@ import { renderersLoadComponent } from "./renderersLoadComponent";
 import { doenetGlobalConfig } from "../global-config";
 import {
     concurrentHandshakesSnapshot,
+    type HandshakeCensusSeat,
     joinHandshakeCensus,
     refreshHandshakeCensusCount,
     reportedCores,
@@ -2142,7 +2143,7 @@ export function DocViewer({
 
         // From here a census seat is held, so every exit — the abandonment
         // returns below included — runs through the `finally` that frees it.
-        let censusHandle: Promise<{ release: () => void }> | null = null;
+        let censusHandle: Promise<HandshakeCensusSeat> | null = null;
         try {
             // Join the page-wide handshake count for as long as this ladder is
             // handshaking, so sibling realms sizing their own watchdogs can
@@ -2153,7 +2154,10 @@ export function DocViewer({
             // blocks.
             // NOT awaited: joining is bookkeeping, and an await here is a
             // suspension point in the middle of a boot. See
-            // `concurrentHandshakesSnapshot` for what that cost.
+            // `concurrentHandshakesSnapshot` for what that cost. The seat
+            // still reports the count it was granted against, which is what
+            // gives the first attempt below a reading of its own (#1718); it
+            // is consumed where it lands rather than waited for.
             // The seat deliberately spans the whole ladder, retry backoff
             // included: a ladder in backoff is pressure about to return, so
             // siblings sizing watchdogs against it err long — the safe
@@ -2176,18 +2180,61 @@ export function DocViewer({
                 // reading taken next is the one the PREVIOUS refresh produced
                 // — the backoff between attempts is what it lands in.
                 refreshHandshakeCensusCount();
-                const concurrentHandshakes = concurrentHandshakesSnapshot();
-                const handshakeWatchdogMs =
+                // Both stay mutable so the seat's own reading, which arrives
+                // mid-attempt below, is what the budget and the failure
+                // wording end up using.
+                let concurrentHandshakes = concurrentHandshakesSnapshot();
+                let handshakeWatchdogMs =
                     handshakeWatchdogOverride ??
                     handshakeWatchdogMsFor({
                         concurrentHandshakes,
                         hardwareConcurrency: cores,
                     });
+                // The first attempt reads a cache that nothing in this realm
+                // has refreshed yet, so a first boot sizes itself as the only
+                // one on the page — and a fresh PreTeXt iframe, the very case
+                // #1711 exists for, is exactly that boot (#1718). The seat
+                // this ladder is already taking counted the page as it was
+                // granted, and that answer arrives a lock grant and a query
+                // after the handshake starts — far inside even the base
+                // budget — so the deadline is widened in flight rather than
+                // waited for. Nothing here suspends `startCore`: an await for
+                // this count is what raced a rebuild in #1713.
+                //
+                // Only the first attempt: from the second on, the seat's
+                // reading is the pressure at the ladder's entry, while the
+                // cache has been refreshed by the attempt before and
+                // describes the page the retry actually faces.
+                //
+                // Widening only, never narrowing — a seat that saw a quieter
+                // page than the cache leaves the budget alone, erring long as
+                // everywhere else in this ladder. An explicit host override
+                // wins outright, so it takes the seat's count for the wording
+                // and leaves the budget where the host put it.
+                const widenedWatchdogMs =
+                    attempt === 0
+                        ? censusHandle?.then((seat) => {
+                              concurrentHandshakes = Math.max(
+                                  concurrentHandshakes,
+                                  seat.count,
+                              );
+                              handshakeWatchdogMs = Math.max(
+                                  handshakeWatchdogMs,
+                                  handshakeWatchdogOverride ??
+                                      handshakeWatchdogMsFor({
+                                          concurrentHandshakes,
+                                          hardwareConcurrency: cores,
+                                      }),
+                              );
+                              return handshakeWatchdogMs;
+                          })
+                        : null;
                 try {
                     thisCoreWorker = await withTimeout(
                         () => handshakeCore(attempt, coreIdWhenCalled),
                         handshakeWatchdogMs,
                         `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
+                        widenedWatchdogMs,
                     );
                     handshakeSucceeded = true;
                     break;
