@@ -11,12 +11,17 @@ const codemirrorSrc = path.resolve(__dirname, "../codemirror/src/index.ts");
 export default defineConfig({
     // Match the policy `@doenet/test-cypress`, `@doenet/docs-cypress` and
     // `@doenet/doenetml-iframe` already set: retry twice in CI (runMode), never
-    // when iterating locally (openMode). This package was the odd one out, so a
-    // single flake failed the whole `doenetml-cypress` job — which is how both
-    // #1612 (a hover re-dispatch race) and #1719 (a viewer that boots slower
-    // than the test's wait on a cold 2-core runner) took CI down. Retrying is a
-    // safety net, not a diagnosis: a spec that fails every attempt still fails
-    // the job, and the `printAppConsole` task below is what says why.
+    // when iterating locally (openMode). Without it a single flake failed the
+    // whole `doenetml-cypress` job — which is how both #1612 (a hover
+    // re-dispatch race) and #1719 (a viewer that boots slower than the test's
+    // wait on a cold 2-core runner) took CI down. These specs need it most:
+    // they are the ones that boot a real core worker, so their flakes are
+    // boot-cost flakes rather than logic flakes, and a second attempt against
+    // a warm cache almost always passes. (`@doenet/codemirror` has no retries
+    // either — #1612 lists it too — but its component specs drive the editor
+    // alone and are left alone here.) Retrying is a safety net, not a
+    // diagnosis: a spec that fails every attempt still fails the job, and the
+    // `printAppConsole` task below is what says why.
     retries: {
         runMode: 2,
         openMode: 0,

@@ -28,14 +28,23 @@ const EDITOR_TIMEOUT = 15_000;
  * boot (#1719). `EDITOR_TIMEOUT` is exactly one watchdog period, so a first
  * handshake slow enough to trip the watchdog — which a cold two-core CI runner
  * is — could never be beaten by it, however promptly the retry then succeeded.
- * This budgets for that: a watchdogged first attempt, the backoff, a second
- * handshake that gets the same budget, and the evaluation and render that
- * follow it. Derived from the ladder's own constants so it keeps meaning that
- * if they move.
+ * This budgets for that trip, term by term below, and is derived from the
+ * ladder's own constants so it keeps that meaning if they move.
+ *
+ * `MAX_CORE_BOOT_RETRY_DELAY_MS` is the ladder's backoff *ceiling*, not what
+ * the first retry actually waits (`retryDelayMs(0)` is a few hundred ms). The
+ * ceiling is budgeted anyway because it costs nothing here and stays correct
+ * if the retry schedule is ever made more patient.
  */
 const VIEWER_BOOT_TIMEOUT =
+    // A first handshake that runs out its watchdog, plus a second that gets
+    // the same budget.
     2 * DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS +
+    // The backoff between the two.
     MAX_CORE_BOOT_RETRY_DELAY_MS +
+    // Evaluating the document and rendering the result, which the watchdog
+    // deliberately does not cover — see `coreWorkerBoot`'s header on why only
+    // the handshake is time-boxed.
     10_000;
 
 function Editor({
