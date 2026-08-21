@@ -792,7 +792,20 @@ export function DocViewer({
             return;
         }
         pendingStateReport.current = null;
-        deliverStateReport(pending, { synchronous: true });
+        try {
+            deliverStateReport(pending, { synchronous: true });
+        } catch (err) {
+            // Delivery runs host code — `reportScoreAndStateCallback` is a
+            // plain synchronous call — and one of the callers is the unmount
+            // cleanup, where a throw would skip the core-worker teardown that
+            // follows and leak the worker. The buffer has already been taken
+            // and there is nothing left to retry, so report the failure and
+            // let the caller carry on.
+            console.warn(
+                "DocViewer: could not deliver the pending state report",
+                err,
+            );
+        }
     }
 
     // Latest identity of the flush, for the mount-once listeners below to call

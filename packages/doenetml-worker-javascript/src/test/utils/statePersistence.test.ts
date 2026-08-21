@@ -24,7 +24,7 @@ function afterSaveDebounce() {
     return new Promise((resolve) => setTimeout(resolve, 1500));
 }
 
-describe("throttled state is mirrored to the main realm (#1726)", () => {
+describe("throttled state is mirrored to the main realm (#1726) @group4", () => {
     it("mirrors the work the throttle withholds, without reporting it", async () => {
         const { core, resolvePathToNodeIdx, scoreState, pendingReports } =
             await createTestCore({ doenetML: DOC });
