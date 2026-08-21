@@ -24,10 +24,13 @@
  *   - After a failed attempt it re-checks the registry: if the version now
  *     exists (the publish succeeded server-side despite a client-side error),
  *     it is treated as success.
- *   - On every successful path, ensures any requested/configured dist-tag points
- *     to the published version.
+ *   - A publish that carried the dist-tag has already pointed that tag at the
+ *     version, so no follow-up write is made. On the other success paths
+ *     (already published, or published server-side despite a client error) it
+ *     ensures the tag points at the version, retrying transient failures.
  *
- * Configuration (environment variables):
+ * Configuration (environment variables). Each of the publish and any follow-up
+ * dist-tag write gets its own budget of attempts under these settings:
  *   NPM_PUBLISH_MAX_ATTEMPTS    - total attempts before giving up (default 4)
  *   NPM_PUBLISH_RETRY_DELAY_MS  - base backoff delay in ms (default 10000)
  *   NPM_PUBLISH_MAX_DELAY_MS    - backoff delay cap in ms (default 60000)
@@ -111,6 +114,21 @@ const TRANSIENT_PATTERNS = [
     /Bad Gateway/i,
     /Gateway Time-?out/i,
     /registry returned/i,
+];
+
+/**
+ * `npm dist-tag add` is a cheap, idempotent metadata write, so it can retry
+ * failures that would be suspicious on a publish. Auth errors are included:
+ * a genuinely missing or invalid token fails every package in the run, while a
+ * one-off `E401` on a single tag write — with the same credentials publishing
+ * the other packages seconds earlier and later — is a registry blip, and losing
+ * an already-published release to it is the worse outcome.
+ */
+const TRANSIENT_DIST_TAG_PATTERNS = [
+    ...TRANSIENT_PATTERNS,
+    /\bE401\b/,
+    /\bENEEDAUTH\b/,
+    /Unable to authenticate/i,
 ];
 
 function matchesAny(text, patterns) {
@@ -241,40 +259,102 @@ function publishedVersionForTag(tag) {
     }
 }
 
-function ensureExplicitDistTag() {
-    if (!explicitPublishTag) {
-        return true;
-    }
-
-    const taggedVersion = publishedVersionForTag(explicitPublishTag);
-    if (taggedVersion === version) {
-        return true;
-    }
-
-    const previousTagMessage = taggedVersion
-        ? ` (currently ${taggedVersion})`
-        : "";
-    console.log(
-        `Ensuring npm dist-tag ${name}@${explicitPublishTag} points to ${version}${previousTagMessage}.`,
-    );
+function runDistTagAdd() {
     const result = spawnSync(
         "npm",
         ["dist-tag", "add", spec, explicitPublishTag, "--no-workspaces"],
         { encoding: "utf8" },
     );
     writeCommandOutput(result, "npm dist-tag add");
-    if (result.status === 0) {
+    return {
+        status: result.status,
+        output: combinedOutput(result),
+    };
+}
+
+/**
+ * Make sure the requested dist-tag points at this version.
+ *
+ * `appliedByPublish` says the `npm publish` in this run carried the tag, which
+ * already points it at the version we just published. Verifying it anyway races
+ * the registry: reads taken moments after a publish are served from a cache that
+ * still shows the previous version, which used to send us into a redundant
+ * `npm dist-tag add` — and a failure there would fail a release whose packages
+ * were all published and correctly tagged.
+ */
+async function ensureExplicitDistTag({ appliedByPublish = false } = {}) {
+    if (!explicitPublishTag) {
+        return true;
+    }
+
+    if (appliedByPublish) {
+        // The tag can come from the environment (`npm run publish -- --tag dev`
+        // reaches us as `npm_config_tag`), in which case nothing else in the log
+        // names it. Say so, so the release log still records which tag moved.
+        console.log(
+            `npm publish applied dist-tag ${name}@${explicitPublishTag}; no follow-up tag write needed.`,
+        );
+        return true;
+    }
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        // Also serves as the re-check after a failed attempt: the write may have
+        // landed server-side even though the client reported an error.
+        const taggedVersion = publishedVersionForTag(explicitPublishTag);
+        if (taggedVersion === version) {
+            return true;
+        }
+
+        const previousTagMessage = taggedVersion
+            ? ` (currently ${taggedVersion})`
+            : "";
+        console.log(
+            `Ensuring npm dist-tag ${name}@${explicitPublishTag} points to ${version}${previousTagMessage} (attempt ${attempt}/${maxAttempts}).`,
+        );
+
+        const { output, status } = runDistTagAdd();
+        if (status === 0) {
+            return true;
+        }
+
+        if (!matchesAny(output, TRANSIENT_DIST_TAG_PATTERNS)) {
+            console.error(
+                `✖ Could not point npm dist-tag ${name}@${explicitPublishTag} at ${version}; the error is not transient, so not retrying.`,
+            );
+            return false;
+        }
+
+        // Back off before looking again — after the final attempt too, whose
+        // only re-check is the one below. Reading the registry the instant a
+        // write fails tells us nothing new: it is the same cached answer the
+        // top of this iteration already saw.
+        const delay = Math.min(baseDelayMs * 2 ** (attempt - 1), maxDelayMs);
+        console.warn(
+            `⚠ Transient failure updating npm dist-tag ${name}@${explicitPublishTag}; ${
+                attempt === maxAttempts ? "re-checking" : "retrying"
+            } in ${Math.round(delay / 1000)}s...`,
+        );
+        await sleep(delay);
+    }
+
+    // One last look before failing a released version. Two things can make the
+    // writes above look worse than the state they were trying to reach: one may
+    // have landed server-side even though the client reported an error, and the
+    // tag may have been right the whole time, with every read above served from
+    // a cache predating the publish. Either only becomes visible once that cache
+    // has had time to expire, hence the backoff after the final attempt.
+    if (publishedVersionForTag(explicitPublishTag) === version) {
         return true;
     }
 
     console.error(
-        `Could not ensure npm dist-tag ${name}@${explicitPublishTag} points to ${version}.`,
+        `✖ Could not point npm dist-tag ${name}@${explicitPublishTag} at ${version} after ${maxAttempts} attempts.`,
     );
     return false;
 }
 
-function finishPublishedVersion(message) {
-    if (!ensureExplicitDistTag()) {
+async function finishPublishedVersion(message, options) {
+    if (!(await ensureExplicitDistTag(options))) {
         process.exit(1);
     }
     console.log(message);
@@ -295,7 +375,9 @@ function runPublish() {
 
 async function main() {
     if (alreadyPublished()) {
-        finishPublishedVersion(`✔ ${spec} is already published; skipping.`);
+        await finishPublishedVersion(
+            `✔ ${spec} is already published; skipping.`,
+        );
         return;
     }
 
@@ -306,12 +388,14 @@ async function main() {
         const { status, output } = runPublish();
 
         if (status === 0) {
-            finishPublishedVersion(`✔ Published ${spec}.`);
+            await finishPublishedVersion(`✔ Published ${spec}.`, {
+                appliedByPublish: Boolean(explicitPublishTag),
+            });
             return;
         }
 
         if (matchesAny(output, ALREADY_PUBLISHED_PATTERNS)) {
-            finishPublishedVersion(
+            await finishPublishedVersion(
                 `✔ ${spec} is already published (publish reported a conflict); treating as success.`,
             );
             return;
@@ -321,7 +405,7 @@ async function main() {
         // reported an error (e.g. the token read failed after upload). Confirm
         // against the registry before deciding to retry.
         if (alreadyPublished()) {
-            finishPublishedVersion(
+            await finishPublishedVersion(
                 `✔ ${spec} is now present on the registry despite the error; treating as success.`,
             );
             return;
