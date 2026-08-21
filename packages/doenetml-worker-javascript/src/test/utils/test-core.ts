@@ -181,7 +181,15 @@ export async function createTestCore({
     function reportScoreAndStateCallback(data: {
         score: number;
         state: unknown;
+        pending?: boolean;
     }) {
+        if (data.pending) {
+            // A mirror of what the 60-second throttle is holding back
+            // (Doenet/DoenetML#1726), not a report for a host to save. Real
+            // hosts never see these — `DocViewer` buffers them for the
+            // page-hide flush — so this stand-in host ignores them too.
+            return;
+        }
         scoreState.score = data.score;
 
         if (

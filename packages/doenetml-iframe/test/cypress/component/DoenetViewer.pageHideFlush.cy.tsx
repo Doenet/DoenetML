@@ -1,6 +1,15 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/index";
-import { STANDALONE_BLOB_URL, STANDALONE_CSS_BLOB_URL } from "./helpers";
+import {
+    STANDALONE_BLOB_URL,
+    STANDALONE_CSS_BLOB_URL,
+    captureReports,
+    flushStateViaHost,
+    iframeBody,
+    lastReportWith,
+    reported,
+    typeInViewer,
+} from "./helpers";
 
 // Flush pending state when the page hides (Doenet/DoenetML#1726), through the
 // FULL embedding chain a PreTeXt or Runestone book uses: the viewer runs from
@@ -21,62 +30,6 @@ import { STANDALONE_BLOB_URL, STANDALONE_CSS_BLOB_URL } from "./helpers";
 const DOC = `<p>Enter text: <textInput name="ti" /></p>
 <p>You typed: $ti.value</p>`;
 
-const IFRAME_BOOT_TIMEOUT = 60_000;
-
-/** Post `SPLICE.flushState` on the host window; resolve with its response. */
-function flushStateViaHost(messageId: string): Cypress.Chainable<any> {
-    return cy.window().then(
-        (win) =>
-            new Cypress.Promise((resolve) => {
-                const post = () =>
-                    win.postMessage(
-                        { subject: "SPLICE.flushState", message_id: messageId },
-                        "*",
-                    );
-                const retryTimer = setInterval(post, 500);
-                const listener = (e: MessageEvent) => {
-                    if (
-                        e.data?.subject === "SPLICE.flushState.response" &&
-                        e.data?.message_id === messageId
-                    ) {
-                        clearInterval(retryTimer);
-                        win.removeEventListener("message", listener);
-                        resolve(e.data);
-                    }
-                };
-                win.addEventListener("message", listener);
-                post();
-            }),
-    );
-}
-
-/** Collect every report the iframe's viewer delivers to this (host) window. */
-function captureReports(): Cypress.Chainable<any[]> {
-    return cy.window().then((win) => {
-        const reports: any[] = [];
-        win.addEventListener("message", (e: MessageEvent) => {
-            if (e.data?.subject === "SPLICE.reportScoreAndState") {
-                reports.push(e.data);
-            }
-        });
-        return reports;
-    });
-}
-
-function iframeBody() {
-    return cy
-        .get("iframe")
-        .its("0.contentDocument.body", { timeout: IFRAME_BOOT_TIMEOUT });
-}
-
-function typeInViewer(text: string) {
-    iframeBody().find("input:not([type=checkbox])").then(cy.wrap).type(text);
-}
-
-function reported(reports: any[], value: string) {
-    return reports.some((r) => String(r.state?.coreState).includes(value));
-}
-
 describe("DoenetViewer (iframe wrapper) — flush-on-page-hide (#1726)", () => {
     it("hands the host throttle-stuck work while the page is still there", () => {
         captureReports().then((reports) => {
@@ -89,8 +42,6 @@ describe("DoenetViewer (iframe wrapper) — flush-on-page-hide (#1726)", () => {
                 />,
             );
 
-            // Commit with Enter — Cypress cannot .blur() across the iframe
-            // boundary.
             iframeBody().should("contain.text", "Enter text:");
             typeInViewer("first value{enter}");
             iframeBody().should("contain.text", "You typed: first value");
@@ -135,13 +86,10 @@ describe("DoenetViewer (iframe wrapper) — flush-on-page-hide (#1726)", () => {
                 // And a fresh viewer seeded with that state restores the work,
                 // as a host would on the reader's next visit.
                 cy.then(() => {
-                    const flushed = [...reports]
-                        .reverse()
-                        .find((r) =>
-                            String(r.state?.coreState).includes(
-                                "work after last save",
-                            ),
-                        );
+                    const flushed = lastReportWith(
+                        reports,
+                        "work after last save",
+                    );
                     cy.mount(
                         <DoenetViewer
                             doenetML={DOC}

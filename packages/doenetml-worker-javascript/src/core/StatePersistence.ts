@@ -183,24 +183,42 @@ export class StatePersistence {
     }
 
     /**
-     * Mirror the payload the 60-second throttle is holding back into the main
-     * realm (Doenet/DoenetML#1726). A page can go away without the viewer
+     * Hand the currently buffered database payload to the main realm through
+     * `reportScoreAndStateCallback`.
+     *
+     * With `pending: true` this is a *mirror* of the payload the 60-second
+     * throttle is holding back, not a report for the host to save
+     * (Doenet/DoenetML#1726). A page can go away without the viewer
      * unmounting — the tab is closed, a new URL is typed, a backgrounded
      * mobile tab is discarded — and `pagehide` offers no budget for a Comlink
      * round-trip into this worker, so the payload has to already be over
      * there. `DocViewer` buffers a `pending` report rather than handing it to
      * the host, and delivers it as an ordinary report when the page hides.
      *
-     * Sent on every throttled save, so the mirror is never further behind the
-     * screen than the one-second save debounce. Any real report that follows
-     * (throttle expiry, submission, the unmount flush, `SPLICE.flushState`)
-     * carries the same or newer state and supersedes it.
+     * A mirror goes out on every throttled save, so it is never further behind
+     * the screen than the one-second save debounce. Any real report that
+     * follows (throttle expiry, submission, the unmount flush,
+     * `SPLICE.flushState`) carries the same or newer state and supersedes it.
+     *
+     * The score is resolved *before* the payload is read so that a report can
+     * never carry state older than one already sent: awaiting `creditAchieved`
+     * yields, and a concurrent save (a submission overriding the throttle, say)
+     * can report in that gap. Reading the buffer afterwards makes whatever this
+     * call delivers at least as new as that report.
      */
-    async reportPendingState(): Promise<void> {
+    async _reportStateToMainRealm(pending: boolean): Promise<void> {
+        const score = await this.core.document.stateValues.creditAchieved;
+        const payload = this.docStateToBeSavedToDatabase;
+        if (!payload) {
+            // `reset()` cleared the buffer while the score resolved: the
+            // document this payload belonged to is gone, and reporting `{}`
+            // over the host's record would be worse than reporting nothing.
+            return;
+        }
         this.core.reportScoreAndStateCallback({
-            state: { ...this.docStateToBeSavedToDatabase },
-            score: await this.core.document.stateValues.creditAchieved,
-            pending: true,
+            state: { ...payload },
+            score,
+            pending,
         });
     }
 
@@ -215,7 +233,9 @@ export class StatePersistence {
             if (overrideThrottle) {
                 clearTimeout(this.saveStateToDBTimerId);
             } else {
-                await this.reportPendingState();
+                // Held back by the throttle: mirror the payload into the main
+                // realm so a page hide can still deliver it (#1726).
+                await this._reportStateToMainRealm(true);
                 return;
             }
         }
@@ -230,11 +250,6 @@ export class StatePersistence {
             );
         }, 60000);
 
-        this.core.reportScoreAndStateCallback({
-            state: { ...this.docStateToBeSavedToDatabase },
-            score: await this.core.document.stateValues.creditAchieved,
-        });
-
-        return;
+        await this._reportStateToMainRealm(false);
     }
 }

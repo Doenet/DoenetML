@@ -13,7 +13,7 @@ import { captureReports, flushState } from "./utils/splice";
 //
 // `pagehide` gives no budget for a Comlink round-trip into the worker, so the
 // fix does not try one: the core mirrors each throttled payload into the main
-// realm (`reportPendingState` → a report marked `pending`), `DocViewer` buffers
+// realm (`StatePersistence` → a report marked `pending`), `DocViewer` buffers
 // it instead of handing it to the host, and hands it over synchronously when
 // the page hides.
 //

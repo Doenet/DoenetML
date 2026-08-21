@@ -760,7 +760,8 @@ export function DocViewer({
     }, [formatDiagnostic]);
 
     // The most recent state payload the core's 60-second database throttle is
-    // holding back, mirrored here by `reportPendingState` (#1726). A page can
+    // holding back, mirrored here by `StatePersistence` as a report marked
+    // `pending` (#1726). A page can
     // go away without the viewer unmounting — the tab is closed, a new URL is
     // typed, an external link is followed, a backgrounded mobile tab is
     // discarded — and the unmount flush that covers in-app navigation does not
@@ -776,54 +777,13 @@ export function DocViewer({
     // repeatedly and safe to interleave with the unmount flush: the buffer is
     // taken before it is reported, and any real report clears it, so a given
     // payload goes out at most once from here.
-    //
-    // Delivery is synchronous, which routine reporting does not have to be. A
-    // host callback is a plain call and always was. The `SPLICE` message
-    // channel is the part that needs care: `postMessage` queues a task, and a
-    // document being unloaded is torn down without its task queue ever being
-    // drained — so a report posted from `pagehide` is silently dropped, which
-    // is precisely the loss this exists to prevent. Dispatching the same
-    // `message` event by hand runs the host's listeners inline instead. What
-    // the host receives is the message a `postMessage` would have delivered,
-    // down to `origin` and `source`; only the timing differs (and
-    // `isTrusted`, which nothing on this channel reads).
     function flushPendingStateReport() {
         const pending = pendingStateReport.current;
         if (!pending) {
             return;
         }
         pendingStateReport.current = null;
-
-        if (specifiedReportScoreAndStateCallback) {
-            specifiedReportScoreAndStateCallback({
-                ...pending,
-                activityId,
-                docId,
-            });
-            return;
-        }
-
-        const { target, message } = buildStateReport(pending);
-        try {
-            target.dispatchEvent(
-                new MessageEvent("message", {
-                    data: message,
-                    origin: window.location.origin,
-                    source: window,
-                }),
-            );
-        } catch (err) {
-            // A target that turns out not to be reachable this way (an origin
-            // change since mount, a window already gone). Fall back to the
-            // ordinary post: it may still land, and on the `visibilitychange`
-            // path — where the page is fully alive — it reliably does.
-            console.warn("DocViewer: synchronous state flush failed", err);
-            try {
-                target.postMessage(message);
-            } catch (postErr) {
-                console.warn("DocViewer: state flush failed", postErr);
-            }
-        }
+        deliverStateReport(pending, { synchronous: true });
     }
 
     // Latest identity of the flush, for the mount-once listeners below to call
@@ -1245,6 +1205,10 @@ export function DocViewer({
     // Neither event tears anything down, so a bfcache `pagehide`
     // (`persisted: true`) needs no special case — the core stays alive, the
     // page can come back, and the reader's work simply reached the host early.
+    //
+    // Deliberately separate from the visibility-measuring listener below,
+    // which is keyed to the core's lifetime: flushing has to be armed from
+    // mount, before (and after) there is a core to talk to.
     useEffect(() => {
         function flush() {
             flushPendingStateReportRef.current();
@@ -1890,7 +1854,7 @@ export function DocViewer({
         score: number;
         state: unknown;
         /**
-         * Set by the core's `reportPendingState` (#1726): this is a mirror of
+         * Set by the core's `StatePersistence` (#1726): this is a mirror of
          * the payload the core's 60-second database throttle is holding back,
          * not a report the host should save yet. Buffer it here in the main
          * realm so `flushPendingStateReport` can hand it over synchronously
@@ -1908,39 +1872,75 @@ export function DocViewer({
         // core was holding back, so the buffer is now superseded.
         pendingStateReport.current = null;
 
+        deliverStateReport({ score, state });
+    }
+
+    /**
+     * Hand a state report to whoever is listening for one: the host's
+     * `reportScoreAndStateCallback` when it passed one, otherwise the
+     * `SPLICE.reportScoreAndState` message channel (to the parent window when
+     * `flags.messageParent` is set, else to this one).
+     *
+     * `synchronous` is for the page-hide flush (#1726), and only affects the
+     * message channel — a host callback is a plain call and always was.
+     * `postMessage` merely queues a task, and a document being unloaded is
+     * torn down without its task queue ever being drained, so a report posted
+     * from `pagehide` is silently dropped — precisely the loss this exists to
+     * prevent. Dispatching the same `message` event by hand runs the host's
+     * listeners inline instead. The host sees the message a `postMessage`
+     * would have delivered, with the same `origin` and `source`; what differs
+     * is the timing, `isTrusted`, and that `data` is passed by reference
+     * rather than structured-cloned (nothing on this channel reads the first
+     * two, and hosts consume `data` where they receive it).
+     */
+    function deliverStateReport(
+        report: { score: number; state: unknown },
+        { synchronous = false }: { synchronous?: boolean } = {},
+    ) {
         if (specifiedReportScoreAndStateCallback) {
             specifiedReportScoreAndStateCallback({
-                score,
-                state,
+                ...report,
                 activityId,
                 docId,
             });
-        } else {
-            const { target, message } = buildStateReport({ score, state });
-            target.postMessage(message);
+            return;
         }
-    }
 
-    /** The `SPLICE.reportScoreAndState` message for a report, and the window it goes to. */
-    function buildStateReport({
-        score,
-        state,
-    }: {
-        score: number;
-        state: unknown;
-    }) {
-        return {
-            target:
-                flags.messageParent && window.parent ? window.parent : window,
-            message: {
-                score,
-                state,
-                subject: "SPLICE.reportScoreAndState",
-                activity_id: activityId,
-                doc_id: docId,
-                message_id: nanoid(),
-            },
+        const target =
+            flags.messageParent && window.parent ? window.parent : window;
+        const message = {
+            ...report,
+            subject: "SPLICE.reportScoreAndState",
+            activity_id: activityId,
+            doc_id: docId,
+            message_id: nanoid(),
         };
+
+        if (synchronous) {
+            try {
+                target.dispatchEvent(
+                    new MessageEvent("message", {
+                        data: message,
+                        origin: window.origin,
+                        source: window,
+                    }),
+                );
+                return;
+            } catch (err) {
+                // A cross-origin parent is the expected way to land here: such
+                // a window exposes `postMessage` and little else. That embed
+                // was never served by this channel anyway — the post below has
+                // no `targetOrigin`, which defaults to same-origin — so the
+                // fallback preserves existing behavior rather than rescuing
+                // it. Warn so the silence is at least visible.
+                console.warn(
+                    "DocViewer: could not deliver the state report synchronously; falling back to postMessage",
+                    err,
+                );
+            }
+        }
+
+        target.postMessage(message);
     }
 
     /**
