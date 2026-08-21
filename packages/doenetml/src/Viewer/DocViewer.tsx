@@ -861,22 +861,21 @@ export function DocViewer({
                 // The request this viewer is waiting on, or null when it is
                 // waiting on none: either none was ever made (a viewer handed
                 // `initialState`, or one not allowed to load state at all) or
-                // an answer has already been adopted below. Null is what makes
-                // every reply, error or otherwise, none of this document's
-                // business.
+                // an answer has already been adopted below.
                 const openRequestId = messageIdFromGetState.current;
                 // Whether this reply answers that request is all the id
                 // decides here; the payload below decides what the reply is.
                 //
                 // A reply quotes the id it answers. The protocol specifies an
                 // error response as carrying none instead (see
-                // `SPLICE.getState` in `packages/standalone/README.md`), but a
-                // host that quotes it there anyway — the natural thing to do —
-                // is addressing this request just as plainly, and spelling the
-                // absence out as `message_id: null` says what omitting the
-                // field says. Only one request is ever open, so all three
-                // reach it. What does not is a reply quoting a DIFFERENT id: a
-                // stale answer to a request some rebuild has replaced.
+                // `SPLICE.getState` in `packages/standalone/README.md`), and
+                // `message_id: null` spells that absence out — but a host that
+                // quotes the id there anyway, the natural thing to do, is
+                // addressing this request just as plainly. Only one request is
+                // ever open, so all three reach it, whatever they carry. What
+                // does not is a reply quoting a DIFFERENT id: it belongs to
+                // another request — one some rebuild has replaced, or a second
+                // viewer's in the same window.
                 const answersOpenRequest =
                     openRequestId !== null &&
                     (e.data.message_id === undefined ||
@@ -960,18 +959,16 @@ export function DocViewer({
                             setStage("readyToCreateCore");
                         }
                     } else if (e.data.error) {
-                        // The host cannot produce this document's saved
-                        // state and says why. Putting that on screen is all
-                        // this does: the request stays open, because only
-                        // usable state closes it, so an answerer reporting
-                        // that IT has nothing cannot shut out one still to
-                        // come — and when that one arrives, the restored
-                        // document clears this screen.
+                        // The host cannot produce this document's saved state
+                        // and says why. Putting that on screen is all this
+                        // does — the request is left open (see above), so a
+                        // second answerer that does have state can still
+                        // restore the document and clear this screen.
                         //
                         // Reached only after the state test above, so a reply
-                        // carrying both restores the document rather than
-                        // failing it: a host that produced usable state has
-                        // answered, whatever else it also reported.
+                        // carrying both is read as state: a host that produced
+                        // usable state has answered, whatever else it also
+                        // reported.
                         const error = e.data.error;
                         setIsInErrorState?.(true);
                         if (
@@ -987,11 +984,10 @@ export function DocViewer({
                             setErrMsg("Invalid response to getState");
                         }
                     }
-                    // An answer with nothing this document can use in it — no
-                    // state, state for another `cid`, no error either — is a
-                    // host saying it has nothing saved. It neither restores
-                    // the document nor fails it, and it leaves the request
-                    // open for an answerer that does have something.
+                    // A reply with neither usable state nor an error is a host
+                    // saying it has nothing saved for this document: nothing
+                    // to show, and the request left open for an answerer that
+                    // does have something.
                 }
             } else if (
                 e.data.subject === "SPLICE.requestSolutionView.response"

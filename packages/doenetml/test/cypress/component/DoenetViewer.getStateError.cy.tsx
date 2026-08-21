@@ -15,9 +15,9 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 // what its own answers carrying state already do — used to be ignored, because
 // the error branch hung off the id NOT matching.
 //
-// `DoenetViewer.getStateFirstAnswerWins.cy.tsx` covers the rule these share:
-// an error never closes the request, so an answerer that has state can still
-// restore the document afterwards.
+// Every reply here carries an error. What an error leaves possible for an
+// answerer that does have state — restoring the document over the error
+// screen — is `DoenetViewer.getStateFirstAnswerWins.cy.tsx`.
 
 const DOC = `<p>the document itself</p>`;
 
@@ -130,9 +130,9 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
     it("surfaces an error whose `message_id` is an explicit null", () => {
         // Spelling the absence out rather than omitting the field says the
         // same thing, and a host serializing a fixed message shape sends it
-        // this way without meaning anything by it. Nothing else here would
-        // notice if the viewer stopped reading it that way, since a null id
-        // matches no request.
+        // this way without meaning anything by it. It takes a clause of its
+        // own in the listener — a null id equals no request's id — and
+        // nothing else here would notice that clause going missing.
         interceptGetState().then(({ win, request }) => {
             mountViewer();
             afterGetStateRequest(request);
