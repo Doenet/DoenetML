@@ -4,11 +4,29 @@ import type Core from "../../Core";
 
 /** Every local-state write, in the order IndexedDB committed it. */
 const localWrites: { key: string; coreState: string }[] = [];
+/**
+ * Whether local writes hang until released, for the tests that need a save
+ * suspended mid-write while another one runs.
+ */
+let holdLocalWrites = false;
+const heldLocalWrites: (() => void)[] = [];
 vi.mock("idb-keyval", () => ({
     set: async (key: string, value: { coreState: string }) => {
         localWrites.push({ key, coreState: value.coreState });
+        if (holdLocalWrites) {
+            const { promise, resolve } = deferred<void>();
+            heldLocalWrites.push(() => resolve());
+            await promise;
+        }
     },
 }));
+
+/** Let every suspended call run as far as it can. */
+async function settle() {
+    for (let i = 0; i < 50; i++) {
+        await Promise.resolve();
+    }
+}
 
 // Overlapping saves in `StatePersistence` (Doenet/DoenetML#1726).
 //
@@ -74,6 +92,23 @@ function makePersistence() {
 
     const persistence = new StatePersistence({ core });
     localWrites.length = 0;
+    heldLocalWrites.length = 0;
+    holdLocalWrites = false;
+
+    /** Enable local state, with its writes hanging until released. */
+    function holdLocalState() {
+        (core.flags as any).allowLocalState = true;
+        holdLocalWrites = true;
+    }
+
+    /** Let every held local write finish, in the order they were started. */
+    async function releaseLocalWrites() {
+        holdLocalWrites = false;
+        for (const release of heldLocalWrites.splice(0)) {
+            release();
+        }
+        await settle();
+    }
 
     /** Begin a save of `work`, as a change to the document would. */
     function saveWork(work: string, overrideThrottle = false) {
@@ -110,6 +145,9 @@ function makePersistence() {
         armThrottle,
         storedWork,
         localWrites,
+        holdLocalState,
+        releaseLocalWrites,
+        settle,
     };
 }
 
@@ -242,6 +280,54 @@ describe("overlapping saves (#1726) @group4", () => {
         ).toBe(true);
         expect(real[0].state.coreState).toContain("kept typing");
         expect(persistence.docStateToBeSavedToDatabase.onSubmission).toBe(true);
+    });
+
+    it("hands over a submission overtaken while it was writing local state", async () => {
+        // A claim is only good until the next await, and the local write is
+        // one. A submission can claim, store its pair, and still be inside
+        // `idb_set` when an ordinary save claims and stores over it — so by
+        // the time the submission reports, the pair it is reporting is the
+        // other save's, and says no submission happened.
+        const {
+            persistence,
+            reports,
+            scoreReads,
+            saveWork,
+            submitWork,
+            armThrottle,
+            holdLocalState,
+            releaseLocalWrites,
+            settle,
+        } = makePersistence();
+        holdLocalState();
+        armThrottle();
+
+        const submission = submitWork("answered");
+        const ordinary = saveWork("kept typing");
+
+        // The submission claims and stores its pair, then hangs in the write.
+        scoreReads[0].resolve(1);
+        await settle();
+        expect(persistence.docStateToBeSavedToDatabase.onSubmission).toBe(true);
+
+        // The ordinary save now claims and stores over it, unmarked.
+        scoreReads[1].resolve(1);
+        await settle();
+        expect(persistence.docStateToBeSavedToDatabase.onSubmission).toBe(
+            false,
+        );
+
+        await releaseLocalWrites();
+        await submission;
+        await ordinary;
+
+        const real = reports.filter((r) => r.pending !== true);
+        expect(real, "the submission never reached the host").toHaveLength(1);
+        expect(
+            real[0].state.onSubmission,
+            "the report did not say a submission had happened",
+        ).toBe(true);
+        expect(real[0].state.coreState).toContain("kept typing");
     });
 
     it("stores nothing for a document that has been replaced", async () => {

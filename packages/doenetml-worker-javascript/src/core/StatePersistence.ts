@@ -181,11 +181,15 @@ export class StatePersistence {
         // write, not after: `idb_set` is itself an await, so a check on the
         // far side of it would let an older save land in IndexedDB and only
         // then discover it should not have.
-        if (sequence < this._storedSequence) {
+        //
+        // A claim is only good until the next await, though, so it is taken
+        // again after the local write below. Nothing else here yields: the
+        // store beneath this is synchronous, and so is the report, up to and
+        // including `_reportStateToMainRealm`.
+        if (!this._claimSave(sequence)) {
             await this._standDownSupersededSave(overrideThrottle, onSubmission);
             return;
         }
-        this._storedSequence = sequence;
 
         // Claim and store together, with nothing awaited in between, so the
         // stored pair always belongs to the save holding the claim.
@@ -212,6 +216,18 @@ export class StatePersistence {
                     coreInfo: core.coreInfoString,
                 },
             );
+
+            // Writing took a turn, and a newer save can have claimed and
+            // stored its own pair during it. The pair below is that save's
+            // now, so reporting it as though it were this one's would put a
+            // submission's report out unmarked.
+            if (!this._claimSave(sequence)) {
+                await this._standDownSupersededSave(
+                    overrideThrottle,
+                    onSubmission,
+                );
+                return;
+            }
         }
 
         if (!core.flags.allowSaveState) {
@@ -223,8 +239,22 @@ export class StatePersistence {
     }
 
     /**
-     * Give up on a save that a later one overtook while it resolved its score,
-     * without giving up what only *this* save knew.
+     * Whether this save is still the newest to have got this far, taking the
+     * claim if so. A claim is only good until the next await, so a save that
+     * yields after taking one has to take it again on the far side.
+     */
+    _claimSave(sequence: number): boolean {
+        if (sequence < this._storedSequence) {
+            return false;
+        }
+        this._storedSequence = sequence;
+        return true;
+    }
+
+    /**
+     * Give up on a save that a later one overtook — while it resolved its
+     * score, or while it wrote local state — without giving up what only
+     * *this* save knew.
      *
      * The work itself is not lost: the save that overtook it was built later,
      * so the pair now stored holds at least as much. What does not survive the
