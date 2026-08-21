@@ -865,20 +865,18 @@ export function DocViewer({
                 // every reply, error or otherwise, none of this document's
                 // business.
                 const openRequestId = messageIdFromGetState.current;
-                // Does this reply answer that request? That is all the id
+                // Whether this reply answers that request is all the id
                 // decides here; the payload below decides what the reply is.
                 //
                 // A reply quotes the id it answers. The protocol specifies an
                 // error response as carrying none instead (see
-                // `SPLICE.getState` in `packages/standalone/README.md`), and a
-                // host that quotes it there anyway — the natural thing to do,
-                // and what its own answers carrying state already do — is
-                // addressing this request just as plainly; a host that spells
-                // the absence out as `message_id: null` says the same thing as
-                // one that omits the field. Only one request is ever open, so
-                // all of those reach it. What does not is a reply quoting a
-                // DIFFERENT id: a stale answer to a request some rebuild has
-                // replaced.
+                // `SPLICE.getState` in `packages/standalone/README.md`), but a
+                // host that quotes it there anyway — the natural thing to do —
+                // is addressing this request just as plainly, and spelling the
+                // absence out as `message_id: null` says what omitting the
+                // field says. Only one request is ever open, so all three
+                // reach it. What does not is a reply quoting a DIFFERENT id: a
+                // stale answer to a request some rebuild has replaced.
                 const answersOpenRequest =
                     openRequestId !== null &&
                     (e.data.message_id === undefined ||
