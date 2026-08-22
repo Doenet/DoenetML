@@ -6,7 +6,22 @@ import { fileURLToPath } from "url";
 import { version as doenetmlVersion } from "./package.json";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const codemirrorSrc = path.resolve(__dirname, "../codemirror/src/index.ts");
+// `@doenet/codemirror`'s source entry point, in both forms this config needs
+// it: relative to the Vite root — this package directory — for
+// `optimizeDeps.entries`, which reads it as a glob, and absolute for the
+// `resolve.alias` below. An `entries` glob that matches nothing is silent, so
+// fail loudly here instead if the path ever stops resolving.
+const codemirrorSrcEntry = "../codemirror/src/index.ts";
+const codemirrorSrc = path.resolve(__dirname, codemirrorSrcEntry);
+if (!fs.existsSync(codemirrorSrc)) {
+    throw new Error(
+        `optimizeDeps.entries and resolve.alias point at ` +
+            `"${codemirrorSrcEntry}", which does not exist. Without it the ` +
+            "editor's dependencies go undiscovered until a spec imports " +
+            "them, and the re-optimization reloads the page mid-spec " +
+            "(#1735). Update the path.",
+    );
+}
 
 export default defineConfig({
     // Match the policy `@doenet/test-cypress`, `@doenet/docs-cypress` and
@@ -103,18 +118,40 @@ export default defineConfig({
                         "@doenet/doenetml-worker",
                         "@doenet/codemirror",
                     ],
-                    // Aliasing `@doenet/codemirror` to source means Vite only
-                    // discovers its transitive deps when the first spec is
-                    // already loading, triggering a mid-flight reload that
-                    // aborts the spec's dynamic import (one spec fails, the
-                    // next passes). Pre-include them so the first scan
-                    // catches everything before any spec runs.
+                    // Give the dep scan a way into `@doenet/codemirror`
+                    // (#1735). `exclude` above matches the bare specifier
+                    // before the alias is applied, so the scanner externalizes
+                    // `@doenet/codemirror` on sight and never crawls the
+                    // source it actually resolves to — which leaves everything
+                    // reachable only through the editor's CodeMirror stack
+                    // undiscovered until a spec imports it for real. Vite then
+                    // re-optimizes mid-run and reloads the page, killing the
+                    // chunk request whichever spec was mounting is waiting on.
+                    // Naming the source root as an entry crawls it up front
+                    // instead.
+                    //
+                    // Cypress seeds `entries` with the spec files and the
+                    // support file, and Vite concatenates arrays when merging
+                    // the two configs, so this adds to that list rather than
+                    // replacing it. Nothing else needs naming: the scanner
+                    // does follow the `import()` in `EditorViewerLazy`, and
+                    // `@doenet/codemirror` is the only excluded package
+                    // aliased to source, so it is the only one whose graph the
+                    // scan would otherwise miss.
+                    entries: [codemirrorSrcEntry],
+                    // A floor under the scan. Every name here is reachable
+                    // from the entry above, so the list is belt-and-braces
+                    // rather than the mechanism and should not need to grow:
+                    // if something new goes undiscovered, add an entry that
+                    // reaches it rather than a name here.
                     include: [
                         "@codemirror/state",
                         "@codemirror/view",
                         "@codemirror/language",
                         "@codemirror/lint",
                         "@codemirror/autocomplete",
+                        // Reached from `selection-highlight.ts` (#1735).
+                        "@codemirror/search",
                         "@uiw/react-codemirror",
                         "@lezer/highlight",
                         "@qualified/lsp-connection",
@@ -156,14 +193,22 @@ export default defineConfig({
                     title,
                     attempt,
                     messages,
+                    diagnosis,
                 }: {
                     title: string;
                     attempt: number;
                     messages: string[];
+                    diagnosis: string | null;
                 }) {
                     console.log(
                         `\n--- app console during failing test (attempt ${attempt}): ${title}`,
                     );
+                    // Above the transcript rather than inside it: when
+                    // `component.ts` recognizes a failure shape, the reader
+                    // should not have to find the line it recognized.
+                    if (diagnosis) {
+                        console.log(`    *** ${diagnosis}`);
+                    }
                     if (messages.length === 0) {
                         // Said out loud rather than left as a missing block —
                         // see `component.ts`: silence is itself the answer to
