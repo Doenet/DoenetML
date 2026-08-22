@@ -87,10 +87,10 @@ wait_for_registry_tag() {
     done
 }
 
-# Ask jsDelivr to drop its cached copy of one URL. Non-fatal on failure: the
-# retry loop in `purge_and_verify` is there for exactly this, and the purge API
-# is rate-limited, so one refused request should cost an attempt rather than
-# the release.
+# Ask jsDelivr to drop its cached copy of one URL. Non-fatal on its own: the
+# purge API is rate-limited, so one refused request should cost an attempt
+# rather than the release. `purge_and_verify` is what decides whether a refusal
+# that survives every attempt matters.
 _purge_url() {
     if curl -fsS --retry 3 --retry-delay 2 --max-time 60 "${1}" -o /dev/null; then
         echo "  purge   ${1}"
@@ -136,13 +136,36 @@ _tag_serves_version() {
     return ${status}
 }
 
+# Whether `path` is one of the paths verified after the purge. Verification is
+# better evidence than the purge request's own answer — it compares the bytes
+# the tag serves against the immutable pinned release — so for a verified path
+# it is the comparison that decides, not whether the request was accepted. For
+# every other URL the purge request is the only evidence there is.
+_is_verify_path() {
+    local candidate="$1" path
+    for path in "${VERIFY_PATHS[@]}"; do
+        if [[ "${path}" == "${candidate}" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 # Purge `PURGE_PATHS` (plus the package-level alias) and confirm `VERIFY_PATHS`
 # are served at `version` afterwards, retrying the pair a few times before
 # giving up. Both are arrays the caller sets; `VERIFY_PATHS` is normally the
 # subset small enough to fetch twice per attempt.
+#
+# Being a subset is why verification passing is not on its own enough to call
+# the purge done. The paths left out are the large ones — a multi-megabyte core
+# worker, a Pyodide runtime — and a refused purge leaves one of those cached
+# from the previous release with nothing downstream to notice, which is the
+# silent staleness this file exists to remove. So a purge request that no
+# verification covers has to have been accepted as well.
 purge_and_verify() {
     local package="$1" tag="$2" version="$3"
-    local attempt path result stale unreachable purge_failures=0
+    local attempt path result stale unreachable
+    local purge_failures=0 unverified_failures=0
 
     # A purge that verifies nothing is the failure mode this whole file exists
     # to remove, so refuse to be that rather than exiting 0 on an empty list.
@@ -156,11 +179,20 @@ purge_and_verify() {
     for ((attempt = 1; attempt <= PURGE_ATTEMPTS; attempt++)); do
         echo "Purging ${package}@${tag} (attempt ${attempt}/${PURGE_ATTEMPTS})..."
         purge_failures=0
-        _purge_url "https://purge.jsdelivr.net/npm/${package}@${tag}" ||
+        unverified_failures=0
+        # The package-level alias is its own cache key and nothing below fetches
+        # it, so a refusal here is unverified by definition.
+        if ! _purge_url "https://purge.jsdelivr.net/npm/${package}@${tag}"; then
             purge_failures=$((purge_failures + 1))
+            unverified_failures=$((unverified_failures + 1))
+        fi
         for path in "${PURGE_PATHS[@]}"; do
-            _purge_url "https://purge.jsdelivr.net/npm/${package}@${tag}/${path}" ||
+            if ! _purge_url "https://purge.jsdelivr.net/npm/${package}@${tag}/${path}"; then
                 purge_failures=$((purge_failures + 1))
+                if ! _is_verify_path "${path}"; then
+                    unverified_failures=$((unverified_failures + 1))
+                fi
+            fi
         done
 
         stale=""
@@ -182,8 +214,12 @@ purge_and_verify() {
         done
 
         if [[ -z "${stale}" && -z "${unreachable}" ]]; then
-            echo "${package}@${tag} now serves ${version}."
-            return 0
+            if [[ ${unverified_failures} -eq 0 ]]; then
+                echo "${package}@${tag} now serves ${version}."
+                return 0
+            fi
+            echo "  the verified paths are current, but ${unverified_failures} purge request(s)"
+            echo "  for paths this run does not verify were refused; retrying those."
         fi
         if [[ ${attempt} -lt ${PURGE_ATTEMPTS} ]]; then
             echo "  retrying in ${PURGE_RETRY_DELAY}s..."
@@ -191,8 +227,17 @@ purge_and_verify() {
         fi
     done
 
-    echo "Error: could not confirm ${package}@${tag} serves ${version}, after" >&2
-    echo "       ${PURGE_ATTEMPTS} purge attempts." >&2
+    if [[ -n "${stale}" || -n "${unreachable}" ]]; then
+        echo "Error: could not confirm ${package}@${tag} serves ${version}, after" >&2
+        echo "       ${PURGE_ATTEMPTS} purge attempts." >&2
+    else
+        echo "Error: ${package}@${tag} serves ${version} on every verified path, but" >&2
+        echo "       ${unverified_failures} purge request(s) for paths this run does not verify" >&2
+        echo "       were refused on all ${PURGE_ATTEMPTS} attempts. Those URLs — the ones too" >&2
+        echo "       large to fetch twice per attempt — can still be served from the" >&2
+        echo "       previous release, which on a floating tag pairs a fresh bundle" >&2
+        echo "       with a stale runtime." >&2
+    fi
     if [[ -n "${stale}" ]]; then
         echo "  Still serving an older release:${stale}" >&2
         echo "  ${version} is published and reachable at its pinned URL; only the" >&2
