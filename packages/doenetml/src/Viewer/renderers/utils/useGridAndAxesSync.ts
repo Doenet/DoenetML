@@ -34,26 +34,86 @@ export default function useGridAndAxesSync({
         }
 
         // Keep JSXGraph grid state aligned with current SVs.
-        if (Array.isArray(SVs.grid)) {
+        if (
+            Array.isArray(SVs.grid) ||
+            SVs.grid === "dense" ||
+            SVs.grid === "medium"
+        ) {
+            const fixedGrid = Array.isArray(SVs.grid);
+            const gridX = fixedGrid ? SVs.grid[0] : null;
+            const gridY = fixedGrid ? SVs.grid[1] : null;
+            const gridMode = fixedGrid ? "fixed" : SVs.grid;
+            const majorStep = fixedGrid
+                ? [gridX, gridY]
+                : [
+                      xaxisRef.current?.defaultTicks.getDistanceMajorTicks() ??
+                          "auto",
+                      yaxisRef.current?.defaultTicks.getDistanceMajorTicks() ??
+                          "auto",
+                  ];
+            const currentGrid = (board as any).doenetGrid;
             const gridParamsChanged =
-                JXG.Options.grid.gridX !== SVs.grid[0] ||
-                JXG.Options.grid.gridY !== SVs.grid[1];
+                JXG.Options.grid.gridX !== gridX ||
+                JXG.Options.grid.gridY !== gridY ||
+                currentGrid?.doenetGridMode !== gridMode ||
+                currentGrid?.doenetGridMajorStep?.[0] !== majorStep[0] ||
+                currentGrid?.doenetGridMajorStep?.[1] !== majorStep[1];
             if (gridParamsChanged) {
-                JXG.Options.grid.gridX = SVs.grid[0];
-                JXG.Options.grid.gridY = SVs.grid[1];
-                if (board.grids.length > 0) {
-                    board.removeObject(board.grids[0]);
+                JXG.Options.grid.gridX = gridX;
+                JXG.Options.grid.gridY = gridY;
+                if (currentGrid) {
+                    board.removeObject(
+                        [currentGrid, currentGrid.minorGrid].filter(Boolean),
+                    );
+                    (board as any).doenetGrid = null;
+                } else if (board.grids.length > 0) {
+                    board.removeObject(board.grids.slice(0, 2));
                     board.grids = [];
                 }
             }
-            if (board.grids.length === 0) {
-                board.create("grid", [], {
-                    gridX: SVs.grid[0],
-                    gridY: SVs.grid[1],
+            if (!(board as any).doenetGrid) {
+                const isDenseGrid = SVs.grid === "dense";
+                const grid = board.create("grid", [], {
+                    gridX,
+                    gridY,
+                    majorStep,
+                    minorElements: isDenseGrid ? 4 : 0,
+                    visible: true,
+                    strokeColor: "var(--graphGrid)",
+                    strokeOpacity: 1,
+                    major: {
+                        visible: true,
+                        strokeColor: "var(--graphGrid)",
+                        strokeOpacity: 1,
+                    },
+                    minor: {
+                        visible: isDenseGrid,
+                        strokeColor: "var(--graphGrid)",
+                        strokeOpacity: 1,
+                    },
                 });
+                grid.setAttribute({ visible: true });
+                grid.minorGrid?.setAttribute({ visible: isDenseGrid });
+                grid.doenetGridMode = gridMode;
+                grid.doenetGridMajorStep = majorStep;
+                (board as any).doenetGrid = grid;
             }
+            const activeGrid = (board as any).doenetGrid;
+            // `visible` is inherited by the minor curve, so set the major
+            // curve directly and then restore the mode-specific minor state.
+            activeGrid.visProp.visible = true;
+            activeGrid.needsUpdate = true;
+            activeGrid.minorGrid?.setAttribute({
+                visible: SVs.grid === "dense",
+            });
+        } else if ((board as any).doenetGrid) {
+            const currentGrid = (board as any).doenetGrid;
+            board.removeObject(
+                [currentGrid, currentGrid.minorGrid].filter(Boolean),
+            );
+            (board as any).doenetGrid = null;
         } else if (board.grids.length > 0) {
-            board.removeObject(board.grids[0]);
+            board.removeObject(board.grids.slice(0, 2));
             board.grids = [];
         }
 

@@ -6,9 +6,10 @@
  * element.
  */
 export interface LabelLikeJXG {
-    visProp: Record<string, any>;
+    visProp: any;
     needsUpdate: boolean;
-    update: () => void;
+    update: Function;
+    fullUpdate?: Function;
 }
 
 /**
@@ -140,12 +141,15 @@ export function attachLabelHoverHighlight({
     hoverTargetJXG: {
         on: (event: string, fn: () => void) => void;
         isDraggable?: boolean;
-    };
+    } | null;
     getLabelJXG: () => LabelLikeJXG | null | undefined;
     cssStyle: string;
     highlightCssStyle: string;
     board: { updateRenderer: () => void } | null;
 }) {
+    if (!hoverTargetJXG) {
+        return;
+    }
     function applyHover(hovered: boolean) {
         const labelJXG = getLabelJXG();
         if (!labelJXG) {
@@ -154,6 +158,9 @@ export function attachLabelHoverHighlight({
         // Only draggable objects get the hover border. `isDraggable` is `false`
         // when the component is fixed / has a fixed location; treat any other
         // value (true, or an unset default) as draggable.
+        if (!hoverTargetJXG) {
+            return;
+        }
         const draggable = hoverTargetJXG.isDraggable !== false;
         const show = hovered && draggable;
         // Record the desired state so a mid-hover re-render

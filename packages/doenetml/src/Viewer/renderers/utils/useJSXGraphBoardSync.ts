@@ -40,7 +40,7 @@ export default function useJSXGraphBoardSync({
     const enabled = Boolean(board) && !boardJustInitializedRef.current;
 
     useGridAndAxesSync({
-        enabled,
+        enabled: Boolean(board),
         board,
         SVs,
         xaxisRef,
