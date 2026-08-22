@@ -592,10 +592,16 @@ export function DocViewer({
     //  - "offered" — a failure is on screen and still has a retry to give.
     //    Set by `failCoreStart`, for the first failure only: a retry that
     //    fails too is shown the terminal message, which advises the reload
-    //    that by then really is the next thing to try.
+    //    that by then really is the next thing to try. The offer belongs to
+    //    that one message, so `showFailureMessage` retires it whenever some
+    //    other error takes the pane over — a host that cannot produce saved
+    //    state names a cause a fresh core start would meet again.
     //  - "running" — a retry is booting. The viewer renders nothing at stage
     //    `"wait"`, so without this a click would blank the pane for as long
-    //    as the boot takes, which reads as the error getting worse.
+    //    as the boot takes, which reads as the error getting worse. Set from
+    //    the rebuild itself rather than from the click, so that it describes
+    //    the rebuild actually in flight: a rebuild the reader did not ask for
+    //    clears it back to "none" and goes back to rendering nothing.
     const [coreStartRetry, setCoreStartRetry] = useState<
         "none" | "offered" | "running"
     >("none");
@@ -1067,13 +1073,13 @@ export function DocViewer({
                             // just the failure signal, keeping the specific
                             // message below on screen (`failCoreStart` would
                             // overwrite it with the generic one).
-                            setIsInErrorState?.(true);
-
                             let message = "";
                             if ("message" in err) {
                                 message = err.message;
                             }
-                            setErrMsg(`Error loading doc state: ${message}`);
+                            showFailureMessage(
+                                `Error loading doc state: ${message}`,
+                            );
                             reportCoreStartFailed();
                             return;
                         }
@@ -1095,7 +1101,6 @@ export function DocViewer({
                         // usable state has answered, whatever else it also
                         // reported.
                         const error = e.data.error;
-                        setIsInErrorState?.(true);
                         if (
                             typeof error === "object" &&
                             "code" in error &&
@@ -1104,9 +1109,9 @@ export function DocViewer({
                             console.log(
                                 `error ${error.code} getting state: ${error.message}`,
                             );
-                            setErrMsg(error.message);
+                            showFailureMessage(error.message);
                         } else {
-                            setErrMsg("Invalid response to getState");
+                            showFailureMessage("Invalid response to getState");
                         }
                     }
                     // A reply with neither usable state nor an error is a host
@@ -2166,13 +2171,11 @@ export function DocViewer({
                         // boot ladder follows.
                         return;
                     }
-                    setIsInErrorState?.(true);
-
                     let message = "";
                     if ("message" in e) {
                         message = e.message;
                     }
-                    setErrMsg(`Error loading doc state: ${message}`);
+                    showFailureMessage(`Error loading doc state: ${message}`);
                     // The core will never be started, so a host holding a boot
                     // slot for this document has to hear about it (#1709).
                     // Report just the failure signal, keeping the specific
@@ -2254,6 +2257,30 @@ export function DocViewer({
         initializeCounters.current = data.initializeCounters;
     }
 
+    /**
+     * Put `message` on the viewer's failure pane, in place of whatever the
+     * document was showing. The single way an error reaches the reader, so
+     * that the pane's two pieces cannot drift apart: `offerRetry` says
+     * whether this message comes with the **Try again** button (#1712), and
+     * every message that does not clears an offer a previous one made.
+     *
+     * That matters because the pane outlives the failure it was raised for.
+     * A viewer whose core start failed still has a `SPLICE.getState` request
+     * open — the boot does not wait for the answer — so a host reporting that
+     * it cannot produce the saved state lands its message on top of the
+     * give-up screen. A retry belongs to a core start that could not be made,
+     * not to that: restarting the document would ask the same host the same
+     * question and get the same answer.
+     */
+    function showFailureMessage(
+        message: string,
+        { offerRetry = false }: { offerRetry?: boolean } = {},
+    ) {
+        setIsInErrorState?.(true);
+        setErrMsg(message);
+        setCoreStartRetry(offerRetry ? "offered" : "none");
+    }
+
     // Put the viewer into a visible "core failed to start" error state rather
     // than leaving it blank at stage "wait" forever (Doenet/DoenetApps#2957).
     // Shared by every core-start failure path.
@@ -2261,7 +2288,6 @@ export function DocViewer({
         contended = false,
     }: { contended?: boolean } = {}) {
         coreCreationInProgress.current = false;
-        setIsInErrorState?.(true);
         // The first failure offers the reader a button and a message with no
         // reload advice in it; a failure that has already been retried is
         // terminal and shows the message that advises the reload (#1712).
@@ -2272,33 +2298,34 @@ export function DocViewer({
         // The four messages are spelled out as four literal `translate` calls
         // because a computed key is invisible to `lint:i18n`, which reads
         // string literals only (see `collectCallSites` in `@doenet/i18n`).
-        const retryAvailable = !retrySpent.current;
-        setErrMsg(
-            retryAvailable
-                ? contended
-                    ? translate(
-                          "core-start-failed-busy-retry",
-                          undefined,
-                          CORE_START_FAILED_BUSY_RETRY_MESSAGE,
-                      )
-                    : translate(
-                          "core-start-failed-retry",
-                          undefined,
-                          CORE_START_FAILED_RETRY_MESSAGE,
-                      )
-                : contended
-                  ? translate(
-                        "core-start-failed-busy",
-                        undefined,
-                        CORE_START_FAILED_BUSY_MESSAGE,
-                    )
-                  : translate(
-                        "core-start-failed",
-                        undefined,
-                        CORE_START_FAILED_MESSAGE,
-                    ),
-        );
-        setCoreStartRetry(retryAvailable ? "offered" : "none");
+        const offerRetry = !retrySpent.current;
+        let message: string;
+        if (offerRetry) {
+            message = contended
+                ? translate(
+                      "core-start-failed-busy-retry",
+                      undefined,
+                      CORE_START_FAILED_BUSY_RETRY_MESSAGE,
+                  )
+                : translate(
+                      "core-start-failed-retry",
+                      undefined,
+                      CORE_START_FAILED_RETRY_MESSAGE,
+                  );
+        } else {
+            message = contended
+                ? translate(
+                      "core-start-failed-busy",
+                      undefined,
+                      CORE_START_FAILED_BUSY_MESSAGE,
+                  )
+                : translate(
+                      "core-start-failed",
+                      undefined,
+                      CORE_START_FAILED_MESSAGE,
+                  );
+        }
+        showFailureMessage(message, { offerRetry });
         setHasInitialError(true);
         reportCoreStartFailed();
     }
@@ -2306,6 +2333,11 @@ export function DocViewer({
     /**
      * Start this document over at the reader's request (#1712), without
      * reloading the page.
+     *
+     * Bumping the counter is the whole of it: the render below reads the bump
+     * as a rebuild input, and running the rebuild from there rather than from
+     * here is what keeps `coreStartRetry` describing the rebuild actually in
+     * flight rather than a click whose rebuild some other one superseded.
      *
      * Stacking is not possible by construction: the button lives in the
      * failure pane, and the rebuild this schedules clears `errMsg` in the
@@ -2324,7 +2356,6 @@ export function DocViewer({
      * because the report latch is keyed on the re-rolled `coreId` (#1721).
      */
     function retryCoreStart() {
-        setCoreStartRetry("running");
         setRetryGeneration((generation) => generation + 1);
     }
 
@@ -2844,8 +2875,7 @@ export function DocViewer({
                 }
             }
         } else {
-            setIsInErrorState?.(true);
-            setErrMsg(dastResult.errMsg);
+            showFailureMessage(dastResult.errMsg);
             setHasInitialError(true);
         }
 
@@ -3197,6 +3227,11 @@ export function DocViewer({
         // One retry per document: the reader spends theirs on the rebuild
         // they asked for, and gets a fresh one with a document they didn't.
         retrySpent.current = retriedByReader;
+        // And only the rebuild they asked for shows that it is working; every
+        // other one goes back to rendering nothing while it runs. Setting this
+        // here rather than in the click handler is what retires a "running"
+        // that some later rebuild superseded.
+        setCoreStartRetry(retriedByReader ? "running" : "none");
 
         coreId.current = nanoid();
         // A request the previous document made is not this one's to have

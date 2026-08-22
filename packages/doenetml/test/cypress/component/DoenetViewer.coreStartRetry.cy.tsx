@@ -129,6 +129,48 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         cy.contains("button", "Try again").should("not.exist");
     });
 
+    it("withdraws the offer when a different error takes the pane over", () => {
+        // The give-up screen outlives the failure it was raised for: the boot
+        // never waited for the host's answer to `SPLICE.getState`, so a host
+        // that cannot produce the saved work reports it onto whatever the
+        // viewer is showing — here, a core start that had a retry left. The
+        // button has to go with the message it belonged to. Restarting the
+        // document would put the same question to the same host, so offering
+        // it beside that answer is offering the reader nothing.
+        giveUpQuickly();
+        stallableHandshake(() => true);
+
+        cy.mount(
+            <DoenetViewer
+                doenetML="<p>never boots</p>"
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+            />,
+        );
+
+        cy.contains("button", "Try again", { timeout: 8000 }).should("exist");
+
+        // An error carrying no `message_id` is the shape the SPLICE protocol
+        // specifies, and answers whichever request is open — this viewer's.
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    subject: "SPLICE.getState.response",
+                    error: {
+                        code: 1,
+                        message: "no saved state for this document",
+                    },
+                },
+                "*",
+            );
+        });
+
+        cy.contains("no saved state for this document", {
+            timeout: 8000,
+        }).should("exist");
+        cy.contains("button", "Try again").should("not.exist");
+    });
+
     it("offers a fresh retry once the document itself changes", () => {
         // The bound is one retry per document, not one per viewer. A viewer
         // outlives the document it failed on — an editor recompile, a host
