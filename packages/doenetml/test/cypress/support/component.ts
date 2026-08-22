@@ -40,6 +40,31 @@ Cypress.Commands.add("mount", mount);
 /** Enough for a full boot ladder's narration without flooding the log. */
 const MAX_BUFFERED_MESSAGES = 100;
 
+/**
+ * The wording `importRendererWithRetry` and the browsers use when a chunk
+ * fetch fails — kept loose for the same reason
+ * `isTransientDynamicImportError` keeps its regexes loose.
+ */
+const CHUNK_LOAD_FAILURE_RE =
+    /dynamically imported module|module script failed/i;
+
+/**
+ * What a chunk-load failure gets called when one shows up in a failing test's
+ * transcript (#1735).
+ *
+ * It is worth naming because it is indistinguishable at a glance from the
+ * boot-timing flakes these diagnostics were built for (#1719, #1612): in both,
+ * the viewer or editor renders nothing and every assertion burns its full
+ * timeout. The cause is not a boot at all — Vite met a dependency for the
+ * first time mid-run, re-optimized, and reloaded the page, killing the chunk
+ * request in flight. Retrying cannot win, because the URL stays dead until the
+ * page reloads.
+ */
+const CHUNK_LOAD_DIAGNOSIS =
+    "a renderer chunk failed to fetch — this is a chunk-load failure, not a " +
+    "boot flake. Check whether Vite re-optimized dependencies mid-run and " +
+    "see #1735 (cypress.config.ts `optimizeDeps`).";
+
 let bufferedMessages: string[] = [];
 /**
  * When the current buffer started, so each line can carry the elapsed time
@@ -144,6 +169,11 @@ afterEach(function () {
         "printAppConsole",
         {
             title: this.currentTest.fullTitle(),
+            diagnosis: messages.some((message) =>
+                CHUNK_LOAD_FAILURE_RE.test(message),
+            )
+                ? CHUNK_LOAD_DIAGNOSIS
+                : null,
             // Retries mean the same title can print up to three times in one
             // run; number the attempts so the transcripts can be told apart —
             // and so "attempt 1 timed out, attempt 2 never started a worker"
