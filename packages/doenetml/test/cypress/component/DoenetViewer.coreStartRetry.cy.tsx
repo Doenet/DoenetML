@@ -1,6 +1,7 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 import { doenetGlobalConfig } from "../../../src/global-config";
+import { captureReports, flushState } from "./utils/splice";
 
 // Component coverage for the retry control on a failed core start (#1712).
 //
@@ -40,6 +41,28 @@ function letTheNextAttemptSucceed(stopStalling: () => void) {
     stopStalling();
     delete doenetGlobalConfig.coreHandshakeWatchdogMs;
 }
+
+/**
+ * Follow the `SPLICE.getState` request the viewer currently has open. Every
+ * rebuild asks again, so the last id seen is the one an answer has to quote
+ * to be read as this document's.
+ */
+function trackGetStateRequests() {
+    return cy.window().then((win) => {
+        const open: { id: string | null } = { id: null };
+        win.addEventListener("message", (e: MessageEvent) => {
+            if (e.data?.subject === "SPLICE.getState") {
+                open.id = e.data.message_id;
+            }
+        });
+        return { win, open };
+    });
+}
+
+/** A document with something a reader can leave work in. */
+const STATEFUL_DOC = `<p>Enter text: <textInput name="ti" /></p>
+<p>You typed: $ti.value</p>`;
+const TEXT_INPUT = "input.doenet-textinput, input:not([type=checkbox])";
 
 describe("DoenetViewer core-start retry (#1712)", () => {
     afterEach(() => {
@@ -210,6 +233,145 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         // A different document, and its first failure gets its own offer.
         cy.contains("button", "Try again", { timeout: 8000 }).should("exist");
         cy.contains("reload the page").should("not.exist");
+    });
+
+    it("stays spent when the host answers the retry's own state request", () => {
+        // The one rebuild that must NOT restore the offer. A retry re-asks the
+        // host for saved state, and the boot does not wait for the answer, so
+        // the answer lands on a document that has already given up — and
+        // adopting it rebuilds and boots again, outside the render-phase path
+        // that keeps the tally. Counting that as a document the reader was
+        // handed would hand a fresh button to every failure on any host that
+        // answers with state, which is most of them, and the bound would stop
+        // bounding anything.
+        const saved: { state?: unknown } = {};
+
+        // There is no saved work to be had from a document that never boots,
+        // so take it from a healthy run of the same source. Same source, same
+        // `cid` — which is what makes it an answer the failing viewer can use.
+        captureReports().then((reports) => {
+            cy.mount(
+                <DoenetViewer
+                    doenetML={STATEFUL_DOC}
+                    addVirtualKeyboard={false}
+                />,
+            );
+            cy.contains("Enter text:", { timeout: 20000 }).should("exist");
+            cy.get(TEXT_INPUT).type("{selectall}{backspace}saved work{enter}");
+            cy.contains("You typed: saved work", { timeout: 20000 }).should(
+                "exist",
+            );
+            // Routine state reports are throttled to one a minute, so the
+            // flush is what makes the capture deterministic.
+            flushState("capture-for-retry");
+            cy.wrap(null, { timeout: 20000 }).should(() => {
+                expect(
+                    reports.some((r) =>
+                        String(r.state?.coreState).includes("saved work"),
+                    ),
+                    "a report carried the reader's work",
+                ).to.eq(true);
+            });
+            cy.then(() => {
+                saved.state = [...reports]
+                    .reverse()
+                    .find((r) =>
+                        String(r.state?.coreState).includes("saved work"),
+                    ).state;
+            });
+        });
+
+        trackGetStateRequests().then(({ win, open }) => {
+            cy.then(() => {
+                giveUpQuickly();
+                stallableHandshake(() => true);
+            });
+            cy.mount(
+                <DoenetViewer
+                    doenetML={STATEFUL_DOC}
+                    addVirtualKeyboard={false}
+                    flags={{ allowLoadState: true }}
+                />,
+            );
+
+            cy.contains("could not be started", { timeout: 8000 }).should(
+                "exist",
+            );
+            cy.contains("button", "Try again").click();
+            // Spent: this document's next failure is terminal.
+            cy.contains("reload the page", { timeout: 8000 }).should("exist");
+            cy.contains("button", "Try again").should("not.exist");
+
+            // The host finally answers the request the retry's rebuild left
+            // open. A failed boot does not close it, which is what lets a
+            // host that was slow to storage still restore the document.
+            cy.wrap(null, { timeout: 8000 }).should(() => {
+                expect(open.id, "an open getState request").to.not.eq(null);
+            });
+            cy.then(() => {
+                win.postMessage(
+                    {
+                        subject: "SPLICE.getState.response",
+                        message_id: open.id,
+                        state: saved.state,
+                    },
+                    "*",
+                );
+            });
+
+            // The answer is adopted — the restored document is on screen for
+            // as long as the boot it triggers takes — and when that boot fails
+            // as well, the message is still the terminal one and no button
+            // has come back.
+            cy.contains("could not be started", { timeout: 8000 }).should(
+                "exist",
+            );
+            cy.contains("reload the page", { timeout: 8000 }).should("exist");
+            cy.contains("button", "Try again").should("not.exist");
+        });
+    });
+
+    it("withdraws the offer while the host is not rendering the document", () => {
+        // The failure pane is shown whether or not the host is rendering this
+        // document — it asked for the document and has to hear that it could
+        // not be had — but a viewer at `render={false}` never starts a core,
+        // so a retry there would trade the message for a rebuild that boots
+        // nothing. The offer is gated where it is rendered rather than where
+        // it is made, so it comes back if the host asks for the document
+        // again.
+        giveUpQuickly();
+        stallableHandshake(() => true);
+
+        function Harness() {
+            const [render, setRender] = React.useState(true);
+            return (
+                <div>
+                    <button
+                        type="button"
+                        data-test="toggle-render"
+                        onClick={() => setRender((on) => !on)}
+                    >
+                        toggle
+                    </button>
+                    <DoenetViewer
+                        doenetML="<p>never boots</p>"
+                        addVirtualKeyboard={false}
+                        render={render}
+                    />
+                </div>
+            );
+        }
+
+        cy.mount(<Harness />);
+
+        cy.contains("button", "Try again", { timeout: 8000 }).should("exist");
+
+        cy.get('[data-test="toggle-render"]').click();
+        cy.contains("could not be started").should("exist");
+        cy.contains("button", "Try again").should("not.exist");
+
+        cy.get('[data-test="toggle-render"]').click();
+        cy.contains("button", "Try again").should("exist");
     });
 
     it("shows the retry working instead of blanking the pane", () => {

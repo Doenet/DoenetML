@@ -621,6 +621,15 @@ export function DocViewer({
     // whose closure predates the click, and cleared by every rebuild the
     // reader did not ask for — a new source, a new attempt, a locale switch
     // is a different document, and its first failure gets its own offer.
+    //
+    // The rebuild the `SPLICE.getState` listener runs is deliberately NOT one
+    // of those, which is why it clears `errMsg` without touching this. That
+    // rebuild adopts an answer to the request THIS document has open, and
+    // after a retry the open request is the one the retry itself posted — the
+    // reader's own state load landing late, not a document handed to the
+    // viewer from outside. Restoring the retry there would hand a fresh
+    // button to every failure on any host that answers with saved state,
+    // which is most of them, and the bound would stop bounding anything.
     const retrySpent = useRef(false);
 
     type DeferredCoreAction = {
@@ -3292,7 +3301,16 @@ export function DocViewer({
                 }}
             >
                 <MdError color="red" fontSize={"24pt"} /> {errMsg}
-                {coreStartRetry === "offered" ? (
+                {/* The failure pane is shown whether or not this viewer is
+                    rendering its document — a host that has set `render`
+                    false still wants to hear that the document failed — but
+                    the button is offered only to one that is. A viewer at
+                    `render={false}` never starts a core (see the launch site
+                    below), so a retry there would trade the message for a
+                    rebuild that boots nothing. Gated here rather than where
+                    the offer is made, so the button appears if the host later
+                    asks for the document. */}
+                {coreStartRetry === "offered" && render ? (
                     <div style={{ marginTop: "0.5em" }}>
                         <UiButton onClick={retryCoreStart}>
                             {translate(
@@ -3312,7 +3330,12 @@ export function DocViewer({
         // Blank is right for one the reader did not ask for — an editor
         // recompile, a locale switch — but a retry they clicked has to show
         // that it is working, or the failure pane just vanishes (#1712).
-        return coreStartRetry === "running" ? initializingPane() : null;
+        // Only for a viewer that renders its document at all, the same
+        // condition the button was offered under and the one the pane's other
+        // use (`noCoreWarning`) sits below.
+        return coreStartRetry === "running" && render
+            ? initializingPane()
+            : null;
     }
 
     if (stage === "readyToCreateCore" && render) {
