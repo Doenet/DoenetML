@@ -7,19 +7,19 @@ import { version as doenetmlVersion } from "./package.json";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // `@doenet/codemirror`'s source entry point, in both forms this config needs
-// it: a path relative to the Vite root — this package directory — for
-// `optimizeDeps.entries`, which reads it as a glob, and an absolute path for
-// the `resolve.alias` below. A glob that matches nothing is silent, so check
-// it once here and say what the silence would have cost.
+// it: relative to the Vite root — this package directory — for
+// `optimizeDeps.entries`, which reads it as a glob, and absolute for the
+// `resolve.alias` below. An `entries` glob that matches nothing is silent, so
+// fail loudly here instead if the path ever stops resolving.
 const codemirrorSrcEntry = "../codemirror/src/index.ts";
 const codemirrorSrc = path.resolve(__dirname, codemirrorSrcEntry);
 if (!fs.existsSync(codemirrorSrc)) {
     throw new Error(
         `optimizeDeps.entries and resolve.alias point at ` +
-            `"${codemirrorSrcEntry}", which does not exist. Vite would go ` +
-            "back to meeting the editor's dependencies " +
-            "while a spec is already loading and reloading the page out from " +
-            "under it (#1735). Update the path.",
+            `"${codemirrorSrcEntry}", which does not exist. Without it the ` +
+            "editor's dependencies go undiscovered until a spec imports " +
+            "them, and the re-optimization reloads the page mid-spec " +
+            "(#1735). Update the path.",
     );
 }
 
@@ -135,15 +135,15 @@ export default defineConfig({
                     // the two configs, so this adds to that list rather than
                     // replacing it. Nothing else needs naming: the scanner
                     // does follow the `import()` in `EditorViewerLazy`, and
-                    // this is the only excluded module graph.
+                    // `@doenet/codemirror` is the only excluded package
+                    // aliased to source, so it is the only one whose graph the
+                    // scan would otherwise miss.
                     entries: [codemirrorSrcEntry],
                     // A floor under the scan. Every name here is reachable
-                    // from the entry above — most were added one round at a
-                    // time before the entry existed, and `@codemirror/search`
-                    // alongside it — so the list is belt-and-braces rather
-                    // than the mechanism, and should not need to grow again.
-                    // If something new goes undiscovered, add an entry that
-                    // reaches it, not a name here.
+                    // from the entry above, so the list is belt-and-braces
+                    // rather than the mechanism and should not need to grow:
+                    // if something new goes undiscovered, add an entry that
+                    // reaches it rather than a name here.
                     include: [
                         "@codemirror/state",
                         "@codemirror/view",
