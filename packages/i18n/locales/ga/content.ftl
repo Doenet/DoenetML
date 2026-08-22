@@ -83,7 +83,6 @@ color =
             [f] dhonn
            *[m] donn
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -95,7 +94,6 @@ line-width =
             [f] thanaí
            *[m] tanaí
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -107,7 +105,6 @@ line-style =
             [f] phoncaithe
            *[m] poncaithe
         }
-
 # Noun phrases standing behind «le», which is where the composition messages
 # put them. They modify nothing and so take no gender.
 fill-style =
@@ -117,7 +114,6 @@ fill-style =
     .backdiagonal = línte trasnánacha droim ar ais
     .dots = poncanna
     .diamonds = muileataí
-
 noun =
     .line = líne
     .line-segment = mírlíne
@@ -137,7 +133,6 @@ noun =
     .diamond = muileata
     .cross = cros
     .plus = plus
-
 # «polagán rialta» is the noun and its own adjective; the side count follows
 # the style adjectives as a prepositional phrase, so the head and the tail
 # split around them the way Spanish's does.
@@ -151,7 +146,6 @@ noun-regular-polygon =
         [tail] le { $numSides } taobh
        *[head] polagán rialta
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (polagán, m) or the
 # head of a phrase the description never names: `border` (imlíne, f), `fill`
 # (líonadh, m), `text` (téacs, m), `background` (cúlra, m).
@@ -169,7 +163,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 # The adjectives follow their noun rather than preceding it, and among
@@ -185,7 +178,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and the adjectives follow it, which is the reverse of English
 # and the reason this message exists rather than a concatenation.
 style-with-noun =
@@ -193,17 +185,14 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 # «líonta» begins with `l`, which has no lenited form, so it reads the same
 # after a feminine noun as after a masculine one and needs no branch.
 style-filled-word = líonta
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } le { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } le { $pattern }
@@ -211,7 +200,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $color } { $filled } { $nounTail } le { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «imlíne» is feminine, so the border's adjectives lenite after it whatever the
 # shape around it is. It also begins with a vowel, and «le» prefixes h- to a
 # vowel while «agus» does not — so the same noun is «le himlíne» in one pair of
@@ -224,7 +212,6 @@ style-border-clause =
         [and-article] agus imlíne { $border }
        *[with] le himlíne { $border }
     }
-
 # The pattern words are plural nouns, so this supplies «líonadh» — masculine,
 # the gender `noun-gender` already answers for `fill` — for the colour to
 # follow, and hangs the pattern off it with «le».
@@ -233,9 +220,7 @@ style-fill =
         [pattern] líonadh { $color } le { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = gan líonadh
-
 # «cúlra» is masculine, so the background colour does not lenite, and «le»
 # leaves a consonant alone.
 style-text =
@@ -243,21 +228,17 @@ style-text =
         [background] { $color } le cúlra { $background }
        *[plain] { $color }
     }
-
 style-background-none = gan aon cheann
-
 
 ## Boolean words
 
 boolean-true = fíor
 boolean-false = bréagach
 
-
 ## Answer buttons
 
 answer-submit-label = Seiceáil an obair
 answer-submit-label-no-correctness = Seol an freagra
-
 
 ## Sectional blocks
 
@@ -282,7 +263,6 @@ section-name =
     .solution = Réiteach
     .task = Tasc
     .theorem = Teoirim
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -292,9 +272,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Leid
-
 
 ## Tables and figures
 
@@ -305,7 +283,6 @@ table-name =
         [unnumbered-title] Tábla{ ": " }
        *[unnumbered] Tábla
     }
-
 figure-name =
     { $parts ->
         [numbered] Fíor { $enumeration }
@@ -314,22 +291,18 @@ figure-name =
        *[unnumbered] Fíor
     }
 
-
 ## Paginator controls
 
 paginator-previous = Roimhe seo
 paginator-next = Ar aghaidh
 paginator-page = Leathanach
-
 paginator-page-status = { $pageLabel } { $currentPage } as { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = nó
 piecewise-condition-if = má
 piecewise-condition-otherwise = ar shlí eile
-
 
 ## Chemistry
 
@@ -452,7 +425,6 @@ element-name =
     .lv = Livearmóiriam
     .ts = Teinisein
     .og = Oganasan
-
 element-anion-name =
     .h = Hidríd
     .c = Cairbíd
@@ -466,8 +438,6 @@ element-anion-name =
     .i = Iaidíd
     .at = Astaitíd
     .ts = Teiniséid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Siombail cheimiceach neamhbhailí
 chemistry-invalid-ionic-compound = Comhdhúil ianach neamhbhailí

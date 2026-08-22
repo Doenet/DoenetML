@@ -87,7 +87,6 @@ color =
     .purple = perese
     .pink = pinki
     .brown = sootho
-
 line-width =
     .thick =
         { $gender ->
@@ -103,14 +102,12 @@ line-width =
             [c7] sesesane
            *[c9] sesane
         }
-
 # Written as invariable «ka …» phrases rather than as adjectives, so that they
 # agree with nothing and can close the description. `style-stroke` puts them
 # last for that reason.
 line-style =
     .dashed = ka dikgaolo
     .dotted = ka dintlha
-
 fill-style =
     .horizontal = mela e robetseng
     .vertical = mela e emeng
@@ -118,7 +115,6 @@ fill-style =
     .backdiagonal = mela e sekameng morao
     .dots = dintlha
     .diamonds = ditaemane
-
 noun =
     .line = mola
     .line-segment = karolo ya mola
@@ -138,7 +134,6 @@ noun =
     .diamond = taemane
     .cross = sefapano
     .plus = letshwao la ho eketsa
-
 # The side count goes in the tail, behind the adjectives, because «e nang le
 # mahlakore a 5» is a relative clause and Sesotho closes a noun phrase with one
 # rather than opening one.
@@ -147,7 +142,6 @@ noun-regular-polygon =
         [tail] e nang le mahlakore a { $numSides }
        *[head] polikone e lekanang
     }
-
 noun-gender =
     { $noun ->
         [line] c3
@@ -164,7 +158,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -177,13 +170,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] o tletseng
@@ -191,13 +182,11 @@ style-filled-word =
         [c7] se tletseng
        *[c9] e tletseng
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ka { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ka { $pattern }
@@ -205,7 +194,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ka { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «moedi» is class 3 and leads its own adjectives, so the border's words agree
 # with it and not with the shape it surrounds. Sesotho has no article, so the
 # two `-article` branches read like the two without, and the complement is
@@ -218,35 +206,28 @@ style-border-clause =
         [and-article] ka moedi { $border }
        *[with] ka moedi { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = e sa tlalang
-
 style-text =
     { $parts ->
         [background] { $color } holim'a bokamorao { $background }
        *[plain] { $color }
     }
-
 style-background-none = ha ho letho
-
 
 ## Boolean words
 
 boolean-true = nnete
 boolean-false = leshano
 
-
 ## Answer buttons
 
 answer-submit-label = Hlahloba Mosebetsi
 answer-submit-label-no-correctness = Romela Karabo
-
 
 ## Sectional blocks
 
@@ -271,7 +252,6 @@ section-name =
     .solution = Tharollo
     .task = Mosebetsi
     .theorem = Thiorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -281,9 +261,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Keletso
-
 
 ## Tables and figures
 
@@ -294,7 +272,6 @@ table-name =
         [unnumbered-title] Tafole{ ": " }
        *[unnumbered] Tafole
     }
-
 figure-name =
     { $parts ->
         [numbered] Setshwantsho { $enumeration }
@@ -303,22 +280,18 @@ figure-name =
        *[unnumbered] Setshwantsho
     }
 
-
 ## Paginator controls
 
 paginator-previous = E fetileng
 paginator-next = E latelang
 paginator-page = Leqephe
-
 paginator-page-status = { $pageLabel } { $currentPage } ho { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = kapa
 piecewise-condition-if = ha
 piecewise-condition-otherwise = ho seng joalo
-
 
 ## Chemistry
 
@@ -328,6 +301,5 @@ piecewise-condition-otherwise = ho seng joalo
 # meets them in English already, and the seed has no settled Sesotho list to
 # reproduce. A speaker adding one should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Letshwao la Khemistri le sa Nepahalang
 chemistry-invalid-ionic-compound = Motswako wa Ione o sa Nepahalang

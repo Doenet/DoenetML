@@ -22,69 +22,50 @@
 
 answer-checking = Kei te tirotiro...
 answer-submitting = Kei te tuku...
-
 answer-checking-status = Kei te tirotiro i te whakautu
 answer-submitting-status = Kei te tuku i te whakautu
-
 answer-correct = Tika
 answer-incorrect = Hē
-
 answer-response-saved = Kua tiakina te whakautu
-
 answer-percent-credit = { $percent }% o te kaute
 answer-percent-correct = { $percent }% tika
 answer-percent-short = { $percent }%
-
 max-credit-available = Te kaute mōrahi e wātea ana: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] kāore he ngana e toe ana
        *[other] e toe ana { $count } ngana
     }
-
 validation-correct = (Tika)
 validation-incorrect = (Hē)
 validation-partially-correct = (Tika ā-wāhanga)
-
 answer-show-responses = Whakaaturia ngā whakautu { $count } ki { $answerId }
-
 
 ## Disclosure panels
 
 feedback-heading = Urupare
-
 collapsible-click-to-open = (pāwhiri kia whakatuwhera)
 collapsible-click-to-close = (pāwhiri kia kati)
-
 collapsible-initializing = Kei te tīmata...
-
 footnote-show = Whakaaturia te tuhinga waewae
 footnote-hide = Hunaia te tuhinga waewae
-
 description-more-information = ētahi atu mōhiohio
-
 
 ## Controls
 
 slider-previous = Mua
 slider-next = Muri
-
 keyboard-open = Whakatuwheratia te papapātuhi
 keyboard-close = Katia te papapātuhi
-
 choice-input-remove-choice = Tangohia { $choice }
-
 matrix-remove-row = Tangohia te rārangi
 matrix-add-row = Tāpirihia he rārangi
 matrix-remove-column = Tangohia te tīwae
 matrix-add-column = Tāpirihia he tīwae
-
 subset-add-remove-points = Tāpiri/Tango ira
 subset-toggle-points-intervals = Whakawhitia ngā ira me ngā āwhe
 subset-move-points = Nekehia ngā ira
 subset-clear = Ūkuia
-
 orbital-add-row = Tāpirihia he rārangi
 orbital-remove-row = Tangohia te rārangi
 orbital-add-box = Tāpirihia he pouaka
@@ -92,13 +73,9 @@ orbital-remove-box = Tangohia te pouaka
 orbital-add-up-arrow = Tāpirihia he pere whakarunga
 orbital-add-down-arrow = Tāpirihia he pere whakararo
 orbital-remove-arrow = Tangohia te pere
-
 orbital-row-label = Tapanga mō te rārangi { $row }
-
 pretzel-answer = Whakautu
-
 summary-statistics-caption = Tauanga whakarāpopoto o { $column }
-
 
 ## Math input
 
@@ -106,34 +83,25 @@ math-input-preview-region = arokite o te kīanga pāngarau
 math-input-preview = Arokite
 math-input-invalid-expression = Kīanga muhu:
 
-
 ## Document status
 
 viewer-initializing = Kei te tīmata...
 
-
 ## Errors
 
 error-heading = Hapa
-
 error-found-at =
     { $span ->
         [line] I kitea i te rārangi { $startLine }.
        *[lines] I kitea i ngā rārangi { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = He hapa kei roto i tēnei tuhinga!
-
 diagnostic-heading-error = Hapa
 diagnostic-heading-warning = Whakatūpato
 diagnostic-heading-information = Mōhiohio
 diagnostic-heading-hint = Tohutohu
-
 accessibility-heading-level-1 = Takahitanga urunga WCAG AA
 accessibility-heading-level-2 = Whakatūpato urunga
-
 something-went-wrong = I hē tētahi mea.
-
 renderer-load-failed = kāore tētahi kaiwhakaatu i uta. Tēnā, utaina anō te whārangi.
-
 core-start-failed = Kāore i taea te tīmata i te kaitirotiro tuhinga. Tēnā, utaina anō te whārangi.

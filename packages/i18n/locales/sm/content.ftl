@@ -42,15 +42,12 @@ color =
     .purple = viole
     .pink = piniki
     .brown = enaena
-
 line-width =
     .thick = mafiafia
     .thin = manifinifi
-
 line-style =
     .dashed = motumotu
     .dotted = togitogi
-
 # Noun phrases: they follow «faʻatasi ma» and modify nothing.
 fill-style =
     .horizontal = laina faʻalava
@@ -59,7 +56,6 @@ fill-style =
     .backdiagonal = laina faʻapiʻo faʻafeagai
     .dots = togitogi
     .diamonds = taimane
-
 noun =
     .line = laina
     .line-segment = vaega o le laina
@@ -79,7 +75,6 @@ noun =
     .diamond = taimane
     .cross = koluse
     .plus = faʻailoga faʻaopoopo
-
 # The side count follows the noun and precedes its adjectives, so it folds into
 # the head and there is no tail.
 noun-regular-polygon =
@@ -87,11 +82,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] poligoni tutusa itu e { $numSides }
     }
-
 # Samoan has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,22 +98,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «laina mafiafia motumotu mūmū».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = faʻatumu
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } faʻatasi ma { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } faʻatasi ma { $pattern }
@@ -128,7 +117,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } faʻatasi ma { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] faʻatasi ma se tuaoi { $border }
@@ -136,36 +124,29 @@ style-border-clause =
         [and-article] ma se tuaoi { $border }
        *[with] faʻatasi ma se tuaoi { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = e leʻi faʻatumuina
-
 style-text =
     { $parts ->
         [background] { $color } i luga o se pito i tua { $background }
        *[plain] { $color }
     }
-
 style-background-none = leai
-
 
 ## Boolean words
 
 boolean-true = moni
 boolean-false = sesē
 
-
 ## Answer buttons
 
 answer-submit-label = Siaki le galuega
 answer-submit-label-no-correctness = Lafo le tali
-
 
 ## Sectional blocks
 
@@ -190,7 +171,6 @@ section-name =
     .solution = Fofō
     .task = Galuega
     .theorem = Aʻoaʻoga faʻamaonia
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -200,9 +180,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Fautuaga
-
 
 ## Tables and figures
 
@@ -213,7 +191,6 @@ table-name =
         [unnumbered-title] Laulau{ ": " }
        *[unnumbered] Laulau
     }
-
 figure-name =
     { $parts ->
         [numbered] Ata { $enumeration }
@@ -222,22 +199,18 @@ figure-name =
        *[unnumbered] Ata
     }
 
-
 ## Paginator controls
 
 paginator-previous = Muamua
 paginator-next = Sosoʻo
 paginator-page = Itulau
-
 paginator-page-status = { $pageLabel } { $currentPage } mai le { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = pe
 piecewise-condition-if = afai
 piecewise-condition-otherwise = a leai
-
 
 ## Chemistry
 ##
@@ -249,6 +222,5 @@ piecewise-condition-otherwise = a leai
 ## the vocabulary a student meets in their own classroom.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Faʻailoga kemikolo lē saʻo
 chemistry-invalid-ionic-compound = Tuʻufaʻatasiga ionika lē saʻo

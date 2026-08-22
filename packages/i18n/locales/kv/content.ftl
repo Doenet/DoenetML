@@ -38,15 +38,12 @@ color =
     .purple = фиолетовӧй
     .pink = гӧрдоват
     .brown = мугӧм
-
 line-width =
     .thick = кыз
     .thin = вӧсньыд
-
 line-style =
     .dashed = вундалӧм
     .dotted = пасъялӧм
-
 # Noun phrases: they stand in front of «серӧн» and modify nothing.
 fill-style =
     .horizontal = горизонтальнӧй визь
@@ -55,7 +52,6 @@ fill-style =
     .backdiagonal = паныд диагональнӧй визь
     .dots = пас
     .diamonds = ромб
-
 noun =
     .line = веськыд визь
     .line-segment = юкӧн
@@ -75,7 +71,6 @@ noun =
     .diamond = ромб
     .cross = перекрест
     .plus = плюс
-
 # Komi builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -83,11 +78,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] веськыд { $numSides } пельӧса
     }
-
 # Komi has no grammatical gender, so every noun answers the same and the answer
 # goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -101,21 +94,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = мавтӧм
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } серӧн { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } серӧн { $color } { $filled } { $noun }
@@ -123,7 +112,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } серӧн { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «дорӧн» is the instrumental of «дор», "edge", and carries the whole of "with
 # a border" in its own suffix, so neither a preposition nor an article is
 # wanted — `locales/udm`'s «дуроен» exactly, in the sister language.
@@ -134,15 +122,12 @@ style-border-clause =
         [and-article] да { $border } дорӧн
        *[with] { $border } дорӧн
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } серӧн { $color } мавтӧм
        *[plain] { $color } мавтӧм
     }
-
 style-unfilled = мавтытӧм
-
 # «вылын» — "on" — is a postposition and follows the background colour, so
 # nothing stands between the two words.
 style-text =
@@ -150,21 +135,17 @@ style-text =
         [background] { $background } фон вылын { $color }
        *[plain] { $color }
     }
-
 style-background-none = абу
-
 
 ## Boolean words
 
 boolean-true = збыль
 boolean-false = абу збыль
 
-
 ## Answer buttons
 
 answer-submit-label = Видлавны
 answer-submit-label-no-correctness = Вочакыв мӧдӧдны
-
 
 ## Sectional blocks
 
@@ -189,7 +170,6 @@ section-name =
     .solution = Вӧчӧм
     .task = Уджтас
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -199,9 +179,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Индӧд
-
 
 ## Tables and figures
 
@@ -212,7 +190,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Серпас { $enumeration }
@@ -221,15 +198,12 @@ figure-name =
        *[unnumbered] Серпас
     }
 
-
 ## Paginator controls
 
 paginator-previous = Бӧрлань
 paginator-next = Водзлань
 paginator-page = Лист бок
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -242,7 +216,6 @@ piecewise-condition-or = либӧ
 piecewise-condition-if = кӧ
 piecewise-condition-otherwise = мӧд ногӧн
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -251,6 +224,5 @@ piecewise-condition-otherwise = мӧд ногӧн
 ## Russian ones — the school-system case this batch shares throughout.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Абу веськыд химическӧй пас
 chemistry-invalid-ionic-compound = Абу веськыд ион йитӧд

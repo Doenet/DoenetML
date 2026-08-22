@@ -61,15 +61,12 @@ color =
     .purple = vyolɛ
     .pink = rɔzi
     .brown = maroŋ
-
 line-width =
     .thick = abibí
     .thin = afefele
-
 line-style =
     .dashed = a mimbaŋ
     .dotted = a mimpwɛ̃
-
 fill-style =
     .horizontal = milɔn mi orizɔntal
     .vertical = milɔn mi vertikal
@@ -77,7 +74,6 @@ fill-style =
     .backdiagonal = milɔn mi diagonal, nkíli
     .dots = mimpwɛ̃
     .diamonds = milozãzi
-
 noun =
     .line = liɲi
     .line-segment = segimã a liɲi
@@ -97,15 +93,12 @@ noun =
     .diamond = lozãzi
     .cross = krwa
     .plus = plisi
-
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
        *[head] poligɔn a kɔte { $numSides }, a regilie
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -119,21 +112,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } a { $noun } { $nounTail }
        *[noun] { $description } a { $noun }
     }
-
 style-filled-word = tôbé
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } a { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } a { $noun } a { $pattern }
@@ -141,7 +130,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } a { $noun } { $nounTail } a { $pattern }
        *[plain] { $filled } { $color } a { $noun }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] a mfeg { $border }
@@ -149,35 +137,28 @@ style-border-clause =
         [and-article] a mfeg { $border }
        *[with] a mfeg { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = te tôbé
-
 style-text =
     { $parts ->
         [background] { $color }, a ndoŋ { $background }
        *[plain] { $color }
     }
-
 style-background-none = éziŋ
-
 
 ## Boolean words
 
 boolean-true = true
 boolean-false = false
 
-
 ## Answer buttons
 
 answer-submit-label = Lɛk Nkɔbɔ
 answer-submit-label-no-correctness = Lɔɔt Ajapkɔb
-
 
 ## Sectional blocks
 
@@ -202,7 +183,6 @@ section-name =
     .solution = Ajapkɔb
     .task = Nkɔbɔ
     .theorem = Teorɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -212,9 +192,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ntílán
-
 
 ## Tables and figures
 
@@ -225,7 +203,6 @@ table-name =
         [unnumbered-title] Tabló{ ": " }
        *[unnumbered] Tabló
     }
-
 figure-name =
     { $parts ->
         [numbered] Figír { $enumeration }
@@ -234,24 +211,18 @@ figure-name =
        *[unnumbered] Figír
     }
 
-
 ## Paginator controls
 
 paginator-previous = Osú
 paginator-next = Ényiñ
 paginator-page = Pázi
-
 paginator-page-status = { $pageLabel } { $currentPage } dama { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = to
-
 piecewise-condition-if = nge
-
 piecewise-condition-otherwise = ényiñ éziŋ
-
 
 ## Chemistry
 ##
@@ -260,6 +231,5 @@ piecewise-condition-otherwise = ényiñ éziŋ
 ## secondary science in Ewondo-speaking Cameroon is taught in French.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Symbole Chimique a si mvɛ̃ te
 chemistry-invalid-ionic-compound = Compound Ionique a si mvɛ̃ te

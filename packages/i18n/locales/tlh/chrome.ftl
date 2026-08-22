@@ -44,23 +44,17 @@
 
 answer-checking = chovlu'taH…
 answer-submitting = ngeHlu'taH…
-
 answer-checking-status = jang chovlu'taH
 answer-submitting-status = jang ngeHlu'taH
-
 answer-correct = lugh
 answer-incorrect = lughbe'
-
 # «pol» is «keep, save»; «-ta'» marks it done on purpose.
 answer-response-saved = pollu'ta'
-
 # «pop» is «reward», which is what credit is.
 answer-percent-credit = { $percent }% pop
 answer-percent-correct = { $percent }% lugh
 answer-percent-short = { $percent } %
-
 max-credit-available = Suqlu'laHbogh pop: { $percent }%
-
 # No select. Klingon marks no number on a noun after a numeral, so one form of
 # «nID» serves every count, and «ratlh» (remain) puts its subject after it.
 # «nID» is canon as the verb «attempt, try» and there is no noun for an
@@ -71,38 +65,30 @@ attempts-remaining =
         [0] ratlh pagh nID
        *[other] ratlh { $count } nID
     }
-
 validation-correct = (lugh)
 validation-incorrect = (lughbe')
 validation-partially-correct = ('op lugh)
-
 # No select, for the reason above. `$answerId` is the author's own name for the
 # answer and is never translated; «-vaD» sits on it unchanged, which is what
 # `content.ftl`'s header means about Klingon suffixes having one shape each.
 answer-show-responses = { $answerId }vaD { $count } jang yI'ang
-
 
 ## Disclosure panels
 
 # «qeS» is «advice». `hint-title` in `content.ftl` takes «boQ» (aid) so that the
 # two headings stay apart.
 feedback-heading = qeS
-
 # «yuv» is «push», which is what a click is; «-meH» opens the purpose clause
 # that says what pushing is for.
 collapsible-click-to-open = (poSmoHmeH yIyuv)
 collapsible-click-to-close = (SoQmoHmeH yIyuv)
-
 # «tagh» is «begin» and «-lI'» marks it under way toward a known end.
 collapsible-initializing = taghlI'…
-
 # «bIng QIn» — «the message below» — is this file's own compound for a
 # footnote, from two canon words.
 footnote-show = bIng QIn yI'ang
 footnote-hide = bIng QIn yISo'
-
 description-more-information = De' latlh
-
 
 ## Controls
 
@@ -111,14 +97,11 @@ description-more-information = De' latlh
 # longer do either.
 slider-previous = vorgh
 slider-next = veb
-
 # «nItlh 'echlet» — «finger board» — is Okrand's own word for a computer
 # keyboard, from the `qepHom'a'` list of 2014 rather than from TKD.
 keyboard-open = nItlh 'echlet yIpoSmoH
 keyboard-close = nItlh 'echlet yISoQmoH
-
 choice-input-remove-choice = { $choice } yIteq
-
 # «wev» and «war» are Okrand's words for a row and a column of a table or
 # spreadsheet (`qepHom'a'` 2015), which is what a matrix is made of.
 matrix-remove-row = wev yIteq
@@ -141,11 +124,8 @@ orbital-remove-box = ngaSwI' yIteq
 orbital-add-up-arrow = Dung tIH yIchel
 orbital-add-down-arrow = bIng tIH yIchel
 orbital-remove-arrow = tIH yIteq
-
 orbital-row-label = { $row } wev pong
-
 pretzel-answer = jang
-
 
 ## Math input
 
@@ -154,16 +134,13 @@ pretzel-answer = jang
 # English: *preview* is a root, not a description.
 math-input-invalid-expression = mujbogh mu'tlhegh:
 
-
 ## Document status
 
 viewer-initializing = taghlI'…
 
-
 ## Errors
 
 error-heading = Qagh
-
 # «tu'lu'» is «one finds it», Klingon's way of saying *was found*; the locative
 # «-Daq» sits on «tlhegh» rather than on the line number, and the verb comes
 # last as it does in every Klingon sentence.
@@ -172,9 +149,7 @@ error-found-at =
         [line] { $startLine } tlheghDaq tu'lu'.
        *[lines] { $startLine }–{ $endLine } tlheghmeyDaq tu'lu'.
     }
-
 document-contains-errors = Qaghmey ngaS ghItlhvam!
-
 # «ghuHmoHwI'» — «that which warns» — is this file's own, from the TKD
 # «ghuHmoH» (warn). The two accessibility headings are left to English: nothing
 # published names accessibility, and WCAG AA is the standard's name and would
@@ -183,11 +158,8 @@ diagnostic-heading-error = Qagh
 diagnostic-heading-warning = ghuHmoHwI'
 diagnostic-heading-information = De'
 diagnostic-heading-hint = boQ
-
 something-went-wrong = qaS wanI' muj.
-
 # «'angwI'» is «that which shows», for the renderer; «HaSta» is a visual
 # display, and «chu'qa'» is «activate it again».
 renderer-load-failed = taghbe' 'angwI'. HaSta yIchu'qa'.
-
 core-start-failed = taghlaHbe' ghItlh 'angwI'. HaSta yIchu'qa'.

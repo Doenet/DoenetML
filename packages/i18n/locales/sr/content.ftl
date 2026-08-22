@@ -176,7 +176,6 @@ color =
                    *[m] смеђ
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -202,7 +201,6 @@ line-width =
                    *[m] танак
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -228,7 +226,6 @@ line-style =
                    *[m] тачкаст
                 }
         }
-
 # Noun phrases in the instrumental, which is the case «са» takes. They agree
 # with nothing.
 fill-style =
@@ -238,7 +235,6 @@ fill-style =
     .backdiagonal = обрнутим дијагоналним линијама
     .dots = тачкама
     .diamonds = ромбовима
-
 noun =
     .line = права
     .line-segment = дуж
@@ -258,7 +254,6 @@ noun =
     .diamond = ромб
     .cross = крст
     .plus = плус
-
 # Serbian keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -266,7 +261,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] правилни { $numSides }-угао
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (многоугао, m) or
 # the head of a phrase the description never names: `border` (ивица, f), `fill`
 # (испуна, f), `text` (текст, m), `background` (позадина, f).
@@ -288,7 +282,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -301,13 +294,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -316,13 +307,11 @@ style-filled-word =
         [n] испуњено
        *[m] испуњен
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } са { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } са { $pattern }
@@ -330,7 +319,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } са { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ивица» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds. Serbian has no article, so the two `-article`
 # branches read like the two without.
@@ -341,7 +329,6 @@ style-border-clause =
         [and-article] и { $border } ивицом
        *[with] са { $border } ивицом
     }
-
 # The fill-pattern words are instrumental plurals, because their other use is
 # the «са { $pattern }» clause in `style-filled`. So this message supplies a
 # noun for them to hang off — «испуна», feminine, which is the gender
@@ -351,29 +338,23 @@ style-fill =
         [pattern] { $color } испуна са { $pattern }
        *[plain] { $color } испуна
     }
-
 style-unfilled = неиспуњен
-
 style-text =
     { $parts ->
         [background] { $color } на { $background } позадини
        *[plain] { $color }
     }
-
 style-background-none = нема
-
 
 ## Boolean words
 
 boolean-true = тачно
 boolean-false = нетачно
 
-
 ## Answer buttons
 
 answer-submit-label = Провери
 answer-submit-label-no-correctness = Пошаљи одговор
-
 
 ## Sectional blocks
 
@@ -398,7 +379,6 @@ section-name =
     .solution = Решење
     .task = Задатак
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -408,9 +388,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Савет
-
 
 ## Tables and figures
 
@@ -421,7 +399,6 @@ table-name =
         [unnumbered-title] Табела{ ". " }
        *[unnumbered] Табела
     }
-
 figure-name =
     { $parts ->
         [numbered] Слика { $enumeration }
@@ -430,22 +407,18 @@ figure-name =
        *[unnumbered] Слика
     }
 
-
 ## Paginator controls
 
 paginator-previous = Претходна
 paginator-next = Следећа
 paginator-page = Страница
-
 paginator-page-status = { $pageLabel } { $currentPage } од { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = или
 piecewise-condition-if = ако
 piecewise-condition-otherwise = иначе
-
 
 ## Chemistry
 
@@ -568,7 +541,6 @@ element-name =
     .lv = Ливерморијум
     .ts = Тенесин
     .og = Оганесон
-
 element-anion-name =
     .h = Хидрид
     .c = Карбид
@@ -582,8 +554,6 @@ element-anion-name =
     .i = Јодид
     .at = Астатид
     .ts = Тенесид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Неисправан хемијски симбол
 chemistry-invalid-ionic-compound = Неисправно јонско једињење

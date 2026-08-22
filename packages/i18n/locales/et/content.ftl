@@ -97,7 +97,6 @@ color =
             [background-clause] pruunil
            *[standalone] pruun
         }
-
 line-width =
     .thick =
         { $role ->
@@ -111,7 +110,6 @@ line-width =
             [background-clause] peenikesel
            *[standalone] peenike
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -125,7 +123,6 @@ line-style =
             [background-clause] punktiirilisel
            *[standalone] punktiiriline
         }
-
 # Comitative plurals — the case that renders as "with" in English. The ending
 # carries the sense, so nothing is written in front of them where they are
 # placed.
@@ -136,7 +133,6 @@ fill-style =
     .backdiagonal = vastupidiste diagonaaljoontega
     .dots = punktidega
     .diamonds = rombidega
-
 noun =
     .line = sirge
     .line-segment = lõik
@@ -156,7 +152,6 @@ noun =
     .diamond = romb
     .cross = rist
     .plus = pluss
-
 # Estonian keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -164,13 +159,11 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] korrapärane { $numSides }-nurk
     }
-
 # Estonian has no grammatical gender, so every noun answers the same and the
 # answer goes unused — the same thing `locales/en` does, and for the same
 # reason, down to the constant it answers, which every genderless catalog here
 # spells `neuter`. What this catalog agrees for is case, which `$role` carries.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -184,23 +177,19 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # A participle, which does not decline here, so it needs neither argument.
 style-filled-word = täidetud
-
 # `{ $pattern }` is already comitative, so no connective is written.
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern }
@@ -208,7 +197,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «äärisega» is the comitative of «ääris», and it is the ending rather than a
 # preposition that says "with" — so the clause opens on the border's own
 # adjectives. Estonian has no article, so the two `-article` branches read like
@@ -220,7 +208,6 @@ style-border-clause =
         [and-article] ja { $border } äärisega
        *[with] { $border } äärisega
     }
-
 # The fill-pattern words are comitatives, so this message supplies «täide» for
 # the colour to stand with; the pattern follows it already inflected.
 style-fill =
@@ -228,9 +215,7 @@ style-fill =
         [pattern] { $color } täide { $pattern }
        *[plain] { $color } täide
     }
-
 style-unfilled = täitmata
-
 # «taustal» is the adessive of «taust», and the colour in front of it is
 # adessive too. Nothing stands between the two colours.
 style-text =
@@ -238,21 +223,17 @@ style-text =
         [background] { $color } { $background } taustal
        *[plain] { $color }
     }
-
 style-background-none = puudub
-
 
 ## Boolean words
 
 boolean-true = tõene
 boolean-false = väär
 
-
 ## Answer buttons
 
 answer-submit-label = Kontrolli
 answer-submit-label-no-correctness = Saada vastus
-
 
 ## Sectional blocks
 
@@ -277,7 +258,6 @@ section-name =
     .solution = Lahendus
     .task = Ülesanne
     .theorem = Teoreem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -287,9 +267,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Vihje
-
 
 ## Tables and figures
 
@@ -300,7 +278,6 @@ table-name =
         [unnumbered-title] Tabel{ ". " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Joonis { $enumeration }
@@ -309,22 +286,18 @@ figure-name =
        *[unnumbered] Joonis
     }
 
-
 ## Paginator controls
 
 paginator-previous = Eelmine
 paginator-next = Järgmine
 paginator-page = Lehekülg
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = või
 piecewise-condition-if = kui
 piecewise-condition-otherwise = muul juhul
-
 
 ## Chemistry
 
@@ -447,7 +420,6 @@ element-name =
     .lv = Livermoorium
     .ts = Tennessiin
     .og = Oganesson
-
 element-anion-name =
     .h = Hüdriid
     .c = Karbiid
@@ -461,8 +433,6 @@ element-anion-name =
     .i = Jodiid
     .at = Astatiid
     .ts = Tennessiid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Vigane keemiline sümbol
 chemistry-invalid-ionic-compound = Vigane ioonne ühend

@@ -18,32 +18,24 @@
 
 answer-checking = Wird geprüft …
 answer-submitting = Wird gesendet …
-
 answer-checking-status = Antwort wird geprüft
 answer-submitting-status = Antwort wird gesendet
-
 answer-correct = Richtig
 answer-incorrect = Falsch
-
 answer-response-saved = Antwort gespeichert
-
 answer-percent-credit = { $percent } % Anrechnung
 answer-percent-correct = { $percent } % richtig
 answer-percent-short = { $percent } %
-
 max-credit-available = Höchstens erreichbar: { $percent } %
-
 attempts-remaining =
     { $count ->
         [0] keine Versuche übrig
         [one] noch { $count } Versuch
        *[other] noch { $count } Versuche
     }
-
 validation-correct = (Richtig)
 validation-incorrect = (Falsch)
 validation-partially-correct = (Teilweise richtig)
-
 # `Anzeigen` is the infinitive, per the register note above.
 answer-show-responses =
     { $count ->
@@ -51,42 +43,31 @@ answer-show-responses =
        *[other] { $count } Antworten auf { $answerId } anzeigen
     }
 
-
 ## Disclosure panels
 
 feedback-heading = Rückmeldung
-
 collapsible-click-to-open = (zum Öffnen klicken)
 collapsible-click-to-close = (zum Schließen klicken)
-
 collapsible-initializing = Wird initialisiert …
-
 footnote-show = Fußnote anzeigen
 footnote-hide = Fußnote ausblenden
-
 description-more-information = weitere Informationen
-
 
 ## Controls
 
 slider-previous = Zurück
 slider-next = Weiter
-
 keyboard-open = Tastatur öffnen
 keyboard-close = Tastatur schließen
-
 choice-input-remove-choice = { $choice } entfernen
-
 matrix-remove-row = Zeile entfernen
 matrix-add-row = Zeile hinzufügen
 matrix-remove-column = Spalte entfernen
 matrix-add-column = Spalte hinzufügen
-
 subset-add-remove-points = Punkte hinzufügen/entfernen
 subset-toggle-points-intervals = Zwischen Punkten und Intervallen wechseln
 subset-move-points = Punkte verschieben
 subset-clear = Leeren
-
 # A `box` here is one orbital, drawn as a square: `Kästchen`.
 orbital-add-row = Zeile hinzufügen
 orbital-remove-row = Zeile entfernen
@@ -95,13 +76,9 @@ orbital-remove-box = Kästchen entfernen
 orbital-add-up-arrow = Pfeil nach oben hinzufügen
 orbital-add-down-arrow = Pfeil nach unten hinzufügen
 orbital-remove-arrow = Pfeil entfernen
-
 orbital-row-label = Beschriftung für Zeile { $row }
-
 pretzel-answer = Antwort
-
 summary-statistics-caption = Kennzahlen von { $column }
-
 
 ## Math input
 
@@ -109,34 +86,25 @@ math-input-preview-region = Vorschau des mathematischen Ausdrucks
 math-input-preview = Vorschau
 math-input-invalid-expression = Ungültiger Ausdruck:
 
-
 ## Document status
 
 viewer-initializing = Wird initialisiert …
 
-
 ## Errors
 
 error-heading = Fehler
-
 error-found-at =
     { $span ->
         [line] Gefunden in Zeile { $startLine }.
        *[lines] Gefunden in den Zeilen { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Dieses Dokument enthält Fehler!
-
 diagnostic-heading-error = Fehler
 diagnostic-heading-warning = Warnung
 diagnostic-heading-information = Info
 diagnostic-heading-hint = Hinweis
-
 accessibility-heading-level-1 = Verstoß gegen WCAG AA (Barrierefreiheit)
 accessibility-heading-level-2 = Hinweis zur Barrierefreiheit
-
 something-went-wrong = Etwas ist schiefgelaufen.
-
 renderer-load-failed = eine Anzeigekomponente konnte nicht geladen werden. Bitte die Seite neu laden.
-
 core-start-failed = Die Dokumentanzeige konnte nicht gestartet werden. Bitte die Seite neu laden.

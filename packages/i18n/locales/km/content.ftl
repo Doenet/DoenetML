@@ -45,15 +45,12 @@ color =
     .purple = ពណ៌ស្វាយ
     .pink = ពណ៌ផ្កាឈូក
     .brown = ពណ៌ត្នោត
-
 line-width =
     .thick = ក្រាស់
     .thin = ស្ដើង
-
 line-style =
     .dashed = ដាច់ៗ
     .dotted = ចុចៗ
-
 # Noun phrases: they follow «ជាមួយ» and modify nothing.
 fill-style =
     .horizontal = បន្ទាត់ដេក
@@ -62,7 +59,6 @@ fill-style =
     .backdiagonal = បន្ទាត់ទ្រេតបញ្ច្រាស
     .dots = ចំណុច
     .diamonds = រាងចតុកោណស្មើ
-
 noun =
     .line = បន្ទាត់
     .line-segment = អង្កត់
@@ -82,7 +78,6 @@ noun =
     .diamond = រាងចតុកោណស្មើ
     .cross = សញ្ញាកាកបាទ
     .plus = សញ្ញាបូក
-
 # A Khmer count follows what it counts and takes its own classifier word:
 # «ពហុកោណនិយ័ត 5 ជ្រុង», where «ជ្រុង» is the word for side. That whole group
 # sits immediately after the noun and in front of any adjective, so it folds
@@ -93,11 +88,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] ពហុកោណនិយ័ត { $numSides } ជ្រុង
     }
-
 # Khmer has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -111,26 +104,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «បន្ទាត់ក្រាស់ដាច់ៗពណ៌ក្រហម».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun }{ $description }{ $nounTail }
        *[noun] { $noun }{ $description }
     }
-
 # «លាប» is the verb for laying colour on a surface, and every colour word above
 # already carries its own «ពណ៌», so the composition reads «លាបពណ៌ខៀវ» with the
 # colour word said once. A colour that did not come from that table brings no
 # «ពណ៌» with it, and «លាប» stands in front of it unaided.
 style-filled-word = លាប
-
 style-filled =
     { $parts ->
         [pattern] { $filled }{ $color } ជាមួយ{ $pattern }
        *[plain] { $filled }{ $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun }{ $filled }{ $color } ជាមួយ{ $pattern }
@@ -138,7 +127,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun }{ $nounTail }{ $filled }{ $color } ជាមួយ{ $pattern }
        *[plain] { $noun }{ $filled }{ $color }
     }
-
 # «គែម» leads its own adjectives, the way every noun here does. Khmer has no
 # article, so the `-article` branches read like the ones without.
 style-border-clause =
@@ -148,36 +136,29 @@ style-border-clause =
         [and-article] និងគែម{ $border }
        *[with] ជាមួយគែម{ $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern }{ $color }
        *[plain] { $color }
     }
-
 style-unfilled = មិនលាបពណ៌
-
 style-text =
     { $parts ->
         [background] { $color }លើផ្ទៃខាងក្រោយ{ $background }
        *[plain] { $color }
     }
-
 style-background-none = គ្មាន
-
 
 ## Boolean words
 
 boolean-true = ពិត
 boolean-false = មិនពិត
 
-
 ## Answer buttons
 
 answer-submit-label = ពិនិត្យចម្លើយ
 answer-submit-label-no-correctness = ដាក់ស្នើចម្លើយ
-
 
 ## Sectional blocks
 
@@ -202,7 +183,6 @@ section-name =
     .solution = ដំណោះស្រាយ
     .task = កិច្ចការ
     .theorem = ទ្រឹស្តីបទ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -212,9 +192,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ការណែនាំ
-
 
 ## Tables and figures
 
@@ -225,7 +203,6 @@ table-name =
         [unnumbered-title] តារាង{ ": " }
        *[unnumbered] តារាង
     }
-
 figure-name =
     { $parts ->
         [numbered] រូបភាពទី { $enumeration }
@@ -234,22 +211,18 @@ figure-name =
        *[unnumbered] រូបភាព
     }
 
-
 ## Paginator controls
 
 paginator-previous = មុន
 paginator-next = បន្ទាប់
 paginator-page = ទំព័រ
-
 paginator-page-status = { $pageLabel } { $currentPage } ក្នុងចំណោម { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ឬ
 piecewise-condition-if = បើ
 piecewise-condition-otherwise = ក្នុងករណីផ្សេង
-
 
 ## Chemistry
 ##
@@ -265,6 +238,5 @@ piecewise-condition-otherwise = ក្នុងករណីផ្សេង
 ## it in needs no permission.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = សញ្ញាគីមីមិនត្រឹមត្រូវ
 chemistry-invalid-ionic-compound = សមាសធាតុអ៊ីយ៉ុងមិនត្រឹមត្រូវ

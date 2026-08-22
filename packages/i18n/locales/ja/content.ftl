@@ -35,15 +35,12 @@ color =
     .purple = 紫色
     .pink = ピンク色
     .brown = 茶色
-
 line-width =
     .thick = 太め
     .thin = 細め
-
 line-style =
     .dashed = 破線
     .dotted = 点線
-
 # Noun phrases: they precede 入り and modify nothing.
 fill-style =
     .horizontal = 横線
@@ -52,7 +49,6 @@ fill-style =
     .backdiagonal = 逆斜線
     .dots = ドット
     .diamonds = ひし形
-
 noun =
     .line = 直線
     .line-segment = 線分
@@ -72,7 +68,6 @@ noun =
     .diamond = ひし形
     .cross = 十字
     .plus = プラス記号
-
 # Japanese puts the side count inside the noun itself — 正 5 角形 — so the
 # whole thing is one head and there is no tail.
 noun-regular-polygon =
@@ -80,11 +75,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] 正 { $numSides } 角形
     }
-
 # Japanese has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -98,22 +91,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The modifier precedes the noun and is joined to it with の.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description }の{ $noun }{ $nounTail }
        *[noun] { $description }の{ $noun }
     }
-
 style-filled-word = 塗りつぶし
-
 style-filled =
     { $parts ->
         [pattern] { $pattern }入りの{ $color }の{ $filled }
        *[plain] { $color }の{ $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern }入りの{ $color }の{ $filled }の{ $noun }
@@ -121,7 +110,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern }入りの{ $color }の{ $filled }の{ $noun }{ $nounTail }
        *[plain] { $color }の{ $filled }の{ $noun }
     }
-
 # Japanese needs no article, so the `-article` branches read the same as the
 # ones without.
 style-border-clause =
@@ -131,35 +119,28 @@ style-border-clause =
         [and-article] と{ $border }の枠線
        *[with] { $border }の枠線付き
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color }の{ $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = 塗りつぶしなし
-
 style-text =
     { $parts ->
         [background] { $color }（背景は{ $background }）
        *[plain] { $color }
     }
-
 style-background-none = なし
-
 
 ## Boolean words
 
 boolean-true = 真
 boolean-false = 偽
 
-
 ## Answer buttons
 
 answer-submit-label = 解答を確認
 answer-submit-label-no-correctness = 解答を送信
-
 
 ## Sectional blocks
 
@@ -184,7 +165,6 @@ section-name =
     .solution = 解答
     .task = 課題
     .theorem = 定理
-
 # A space separates the word from its number, because the number is Latin
 # digits. A title follows the full-width colon Japanese punctuates with, which
 # carries its own trailing space. A bare number keeps the ASCII period, which
@@ -198,9 +178,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ "：" }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ヒント
-
 
 ## Tables and figures
 
@@ -211,7 +189,6 @@ table-name =
         [unnumbered-title] 表{ "：" }
        *[unnumbered] 表
     }
-
 figure-name =
     { $parts ->
         [numbered] 図 { $enumeration }
@@ -220,17 +197,14 @@ figure-name =
        *[unnumbered] 図
     }
 
-
 ## Paginator controls
 
 paginator-previous = 前へ
 paginator-next = 次へ
 paginator-page = ページ
-
 # `$pageLabel` is the `pageLabel` attribute, which an author may have written
 # themselves, so it leads and the counts follow it.
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
@@ -239,7 +213,6 @@ piecewise-condition-or = または
 # that can come first — もし rather than the clause-final のとき.
 piecewise-condition-if = もし
 piecewise-condition-otherwise = それ以外
-
 
 ## Chemistry
 
@@ -362,7 +335,6 @@ element-name =
     .lv = リバモリウム
     .ts = テネシン
     .og = オガネソン
-
 element-anion-name =
     .h = 水素化物
     .c = 炭化物
@@ -376,8 +348,6 @@ element-anion-name =
     .i = ヨウ化物
     .at = アスタチン化物
     .ts = テネシン化物
-
 ion-name-oxidation-state = { $name }（{ $numeral }）
-
 chemistry-invalid-symbol = 無効な化学記号
 chemistry-invalid-ionic-compound = 無効なイオン化合物

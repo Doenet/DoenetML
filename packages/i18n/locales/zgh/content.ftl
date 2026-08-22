@@ -81,7 +81,6 @@ color =
     .purple = ⴰⵕⴳⵡⴰⵏⵉ
     .pink = ⵡⴰⵔⴷⵉ
     .brown = ⵇⴰⵀⵡⵉ
-
 line-width =
     .thick =
         { $gender ->
@@ -93,13 +92,11 @@ line-width =
             [f] ⵜⴰⵔⵇⴰⵇⵜ
            *[m] ⴰⵔⵇⴰⵇ
         }
-
 # Prepositional phrases rather than adjectives, so that they agree with nothing
 # and can close the description.
 line-style =
     .dashed = ⵙ ⵜⴻⴳⵣⵓⵎⵉⵏ
     .dotted = ⵙ ⵜⴻⵏⵇⵉⴹⵉⵏ
-
 # Written in the annexed state, because every place these words are placed puts
 # them behind ⵙ; see this file's header.
 fill-style =
@@ -109,7 +106,6 @@ fill-style =
     .backdiagonal = ⵢⵉⵣⵉⵔⵉⴳⴻⵏ ⵉⵣⴳⴻⵏ ⵙ ⵜⴰⵎⴰ ⵢⴰⴹⵏⵉⵏ
     .dots = ⵜⴻⵏⵇⵉⴹⵉⵏ
     .diamonds = ⵜⴻⵍⵎⴰⵙⵉⵏ
-
 noun =
     .line = ⵉⵣⵉⵔⵉⴳ
     .line-segment = ⴰⴳⵣⵓⵎ ⵏ ⵢⵉⵣⵉⵔⵉⴳ
@@ -129,7 +125,6 @@ noun =
     .diamond = ⵜⴰⵍⵎⴰⵙⵜ
     .cross = ⴰⵎⴳⵔⵉⴷ
     .plus = ⴰⵣⴰⵎⵓⵍ ⵏ ⵓⵔⵏⵓ
-
 # The side count is a complement introduced by ⵙ, so it follows the whole
 # phrase rather than opening it.
 noun-regular-polygon =
@@ -137,7 +132,6 @@ noun-regular-polygon =
         [tail] ⵙ { $numSides } ⵏ ⵢⵉⴷⵉⵙⴰⵏ
        *[head] ⴰⵎⴻⴳⴳⴻⵜⵙⴷⵉⵙ ⴰⵎⴻⵛⵜⵓ
     }
-
 # The grammatical gender of the noun being described. Masculine is the default
 # and the gender a loanword takes.
 noun-gender =
@@ -152,7 +146,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -165,19 +158,16 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] ⵜⴻⵛⵛⵓⵔ
        *[m] ⵉⵛⵛⵓⵔ
     }
-
 # Every branch that places `$pattern` puts it behind ⵙ, which is what lets
 # `fill-style` write one annexed form apiece.
 style-filled =
@@ -185,7 +175,6 @@ style-filled =
         [pattern] { $filled } { $color } ⵙ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ⵙ { $pattern }
@@ -193,7 +182,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ⵙ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # ⵜⴰⵎⴰ is feminine, so the border's adjectives agree with it rather than with
 # the shape it surrounds. Tamazight has no indefinite article, so the two
 # `-article` branches read like their neighbours.
@@ -204,35 +192,28 @@ style-border-clause =
         [and-article] ⴷ ⵜⴻⵎⴰ { $border }
        *[with] ⵙ ⵜⴻⵎⴰ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } ⵙ { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ⵓⵔ ⵉⵛⵛⵓⵔ
-
 style-text =
     { $parts ->
         [background] { $color } ⵅⴼ ⵓⴳⵉⵍⴰⵍ { $background }
        *[plain] { $color }
     }
-
 style-background-none = ⵓⵍⴰⵛ
-
 
 ## Boolean words
 
 boolean-true = ⵜⵉⴷⴻⵜ
 boolean-false = ⵜⴰⴽⴻⵕⴹⵉⵜ
 
-
 ## Answer buttons
 
 answer-submit-label = ⵙⵏⵇⴻⴷ ⵜⴰⵡⵓⵔⵉ
 answer-submit-label-no-correctness = ⴰⵣⴻⵏ ⵜⵉⵔⵉⵔⵉⵜ
-
 
 ## Sectional blocks
 
@@ -257,7 +238,6 @@ section-name =
     .solution = ⵜⵉⴼⵔⴰⵜ
     .task = ⵜⴰⵡⵓⵔⵉ
     .theorem = ⵜⴰⵎⴰⵎⴽⵜ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -267,9 +247,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ⵜⴰⵍⵖⵓⵜ
-
 
 ## Tables and figures
 
@@ -280,7 +258,6 @@ table-name =
         [unnumbered-title] ⵜⴰⴼⴻⵍⵡⵉⵜ{ ": " }
        *[unnumbered] ⵜⴰⴼⴻⵍⵡⵉⵜ
     }
-
 figure-name =
     { $parts ->
         [numbered] ⵜⵓⴳⵏⴰ { $enumeration }
@@ -289,24 +266,18 @@ figure-name =
        *[unnumbered] ⵜⵓⴳⵏⴰ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ⴰⵣⵡⵉⵔ
 paginator-next = ⴰⴹⴼⵉⵔ
 paginator-page = ⴰⵙⴻⴱⵜⴻⵔ
-
 paginator-page-status = { $pageLabel } { $currentPage } ⵙⴻⴳ { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ⵏⴻⵖ
-
 piecewise-condition-if = ⵎⴽ
-
 piecewise-condition-otherwise = ⵏⴻⵖ ⵎⵓⵍⴰⵛ
-
 
 ## Chemistry
 ##
@@ -320,6 +291,5 @@ piecewise-condition-otherwise = ⵏⴻⵖ ⵎⵓⵍⴰⵛ
 ## border: three Berber catalogs, two school systems, one answer.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ⴰⵣⴰⵎⵓⵍ ⴰⴽⵉⵎⵢⴰⵏ ⴰⵔⴰⵎⴻⵖⵜⵓ
 chemistry-invalid-ionic-compound = ⴰⵙⴷⵓⴽⴽⴻⵍ ⴰⵢⵓⵏⴰⵏ ⴰⵔⴰⵎⴻⵖⵜⵓ

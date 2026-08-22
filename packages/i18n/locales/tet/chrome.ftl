@@ -24,21 +24,15 @@
 
 answer-checking = Sei verifika…
 answer-submitting = Sei haruka…
-
 answer-checking-status = Sei verifika resposta
 answer-submitting-status = Sei haruka resposta
-
 answer-correct = Loos
 answer-incorrect = La loos
-
 answer-response-saved = Resposta rai ona
-
 answer-percent-credit = { $percent }% kréditu
 answer-percent-correct = { $percent }% loos
 answer-percent-short = { $percent } %
-
 max-credit-available = Kréditu máximu ne'ebé bele hetan: { $percent }%
-
 # No select: «koko» is the same word for one and for many. The `[0]` branch
 # stays, because it names none rather than counting.
 attempts-remaining =
@@ -46,51 +40,38 @@ attempts-remaining =
         [0] la iha koko ida sei hela
        *[other] sei hela koko { $count }
     }
-
 validation-correct = (Loos)
 validation-incorrect = (La loos)
 validation-partially-correct = (Loos parsialmente)
-
 # No select, for the reason above. `$answerId` is the author's own name for the
 # answer and is never translated.
 answer-show-responses = Hatudu resposta { $count } ba { $answerId }
 
-
 ## Disclosure panels
 
 feedback-heading = Komentáriu
-
 collapsible-click-to-open = (klik atu loke)
 collapsible-click-to-close = (klik atu taka)
-
 collapsible-initializing = Hahú hela…
-
 footnote-show = Hatudu footnote
 footnote-hide = Subar footnote
-
 description-more-information = informasaun tan
-
 
 ## Controls
 
 slider-previous = Uluk
 slider-next = Tuirmai
-
 keyboard-open = Loke tekladu
 keyboard-close = Taka tekladu
-
 choice-input-remove-choice = Hasai { $choice }
-
 matrix-remove-row = Hasai liña
 matrix-add-row = Tau tan liña
 matrix-remove-column = Hasai koluna
 matrix-add-column = Tau tan koluna
-
 subset-add-remove-points = Tau/Hasai pontu
 subset-toggle-points-intervals = Troka pontu ho intervalu
 subset-move-points = Book pontu sira
 subset-clear = Hamoos
-
 orbital-add-row = Tau tan liña
 orbital-remove-row = Hasai liña
 orbital-add-box = Tau tan kaixa
@@ -98,13 +79,9 @@ orbital-remove-box = Hasai kaixa
 orbital-add-up-arrow = Tau tan fleixa ba leten
 orbital-add-down-arrow = Tau tan fleixa ba kraik
 orbital-remove-arrow = Hasai fleixa
-
 orbital-row-label = Etiketa ba liña { $row }
-
 pretzel-answer = Resposta
-
 summary-statistics-caption = Rezumu estatístika husi { $column }
-
 
 ## Math input
 
@@ -112,34 +89,25 @@ math-input-preview-region = pré-vizualizasaun ba espresaun matemátika
 math-input-preview = Pré-vizualizasaun
 math-input-invalid-expression = Espresaun la válidu:
 
-
 ## Document status
 
 viewer-initializing = Hahú hela…
 
-
 ## Errors
 
 error-heading = Sala
-
 error-found-at =
     { $span ->
         [line] Hetan iha liña { $startLine }.
        *[lines] Hetan iha liña { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Dokumentu ne'e iha sala!
-
 diagnostic-heading-error = Sala
 diagnostic-heading-warning = Avizu
 diagnostic-heading-information = Informasaun
 diagnostic-heading-hint = Matadalan
-
 accessibility-heading-level-1 = Violasaun asesibilidade WCAG AA
 accessibility-heading-level-2 = Avizu kona-ba asesibilidade
-
 something-went-wrong = Iha buat ida la loos.
-
 renderer-load-failed = iha renderer ida la bele karega. Favor karega fali pájina ne'e.
-
 core-start-failed = Vizualizadór dokumentu la bele hahú. Favor karega fali pájina ne'e.

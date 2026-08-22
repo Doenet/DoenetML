@@ -23,21 +23,15 @@
 
 answer-checking = Provjera…
 answer-submitting = Slanje…
-
 answer-checking-status = Provjera odgovora
 answer-submitting-status = Slanje odgovora
-
 answer-correct = Točno
 answer-incorrect = Netočno
-
 answer-response-saved = Odgovor je spremljen
-
 answer-percent-credit = { $percent }% bodova
 answer-percent-correct = { $percent }% točno
 answer-percent-short = { $percent } %
-
 max-credit-available = Najviše mogućih bodova: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] nema više pokušaja
@@ -45,11 +39,9 @@ attempts-remaining =
         [few] preostaju { $count } pokušaja
        *[other] preostaje { $count } pokušaja
     }
-
 validation-correct = (Točno)
 validation-incorrect = (Netočno)
 validation-partially-correct = (Djelomično točno)
-
 answer-show-responses =
     { $count ->
         [one] Prikaži { $count } odgovor na { $answerId }
@@ -57,42 +49,31 @@ answer-show-responses =
        *[other] Prikaži { $count } odgovora na { $answerId }
     }
 
-
 ## Disclosure panels
 
 feedback-heading = Povratna informacija
-
 collapsible-click-to-open = (kliknite za otvaranje)
 collapsible-click-to-close = (kliknite za zatvaranje)
-
 collapsible-initializing = Pokretanje…
-
 footnote-show = Prikaži bilješku
 footnote-hide = Sakrij bilješku
-
 description-more-information = više informacija
-
 
 ## Controls
 
 slider-previous = Natrag
 slider-next = Naprijed
-
 keyboard-open = Otvori tipkovnicu
 keyboard-close = Zatvori tipkovnicu
-
 choice-input-remove-choice = Ukloni { $choice }
-
 matrix-remove-row = Ukloni redak
 matrix-add-row = Dodaj redak
 matrix-remove-column = Ukloni stupac
 matrix-add-column = Dodaj stupac
-
 subset-add-remove-points = Dodaj/ukloni točke
 subset-toggle-points-intervals = Prebaci između točaka i intervala
 subset-move-points = Pomakni točke
 subset-clear = Očisti
-
 orbital-add-row = Dodaj redak
 orbital-remove-row = Ukloni redak
 orbital-add-box = Dodaj okvir
@@ -100,13 +81,9 @@ orbital-remove-box = Ukloni okvir
 orbital-add-up-arrow = Dodaj strelicu prema gore
 orbital-add-down-arrow = Dodaj strelicu prema dolje
 orbital-remove-arrow = Ukloni strelicu
-
 orbital-row-label = Oznaka za redak { $row }
-
 pretzel-answer = Odgovor
-
 summary-statistics-caption = Sažete statistike za { $column }
-
 
 ## Math input
 
@@ -114,34 +91,25 @@ math-input-preview-region = pregled matematičkog izraza
 math-input-preview = Pregled
 math-input-invalid-expression = Neispravan izraz:
 
-
 ## Document status
 
 viewer-initializing = Pokretanje…
 
-
 ## Errors
 
 error-heading = Pogreška
-
 error-found-at =
     { $span ->
         [line] Pronađena u retku { $startLine }.
        *[lines] Pronađena u recima { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Ovaj dokument sadrži pogreške!
-
 diagnostic-heading-error = Pogreška
 diagnostic-heading-warning = Upozorenje
 diagnostic-heading-information = Informacija
 diagnostic-heading-hint = Savjet
-
 accessibility-heading-level-1 = Kršenje pristupačnosti prema WCAG AA
 accessibility-heading-level-2 = Upozorenje o pristupačnosti
-
 something-went-wrong = Nešto je pošlo po zlu.
-
 renderer-load-failed = modul za prikaz nije se uspio učitati. Ponovno učitajte stranicu.
-
 core-start-failed = Preglednik dokumenta nije se mogao pokrenuti. Ponovno učitajte stranicu.

@@ -39,15 +39,12 @@ color =
     .purple = unggu
     .pink = sirah jambu
     .brown = coklaik
-
 line-width =
     .thick = taba
     .thin = tipih
-
 line-style =
     .dashed = putuih-putuih
     .dotted = titiak-titiak
-
 # Noun phrases. Minangkabau marks no plural on the noun, so «garih» is the word
 # for one line and for many alike.
 fill-style =
@@ -57,7 +54,6 @@ fill-style =
     .backdiagonal = garih serong tabaliak
     .dots = titiak
     .diamonds = balah katupek
-
 noun =
     .line = garih
     .line-segment = ruweh garih
@@ -77,7 +73,6 @@ noun =
     .diamond = balah katupek
     .cross = silang
     .plus = plus
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -85,10 +80,8 @@ noun-regular-polygon =
         [tail] nan basisi { $numSides }
        *[head] poligon baraturan
     }
-
 # One answer for every noun: Minangkabau has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -102,22 +95,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = taisi
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } jo { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } jo { $pattern }
@@ -125,7 +114,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } jo { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Minangkabau has no article, so the two `-article` branches say what the other
 # two say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «jo» against «sarato».
@@ -136,35 +124,28 @@ style-border-clause =
         [and-article] sarato tapi { $border }
        *[with] jo tapi { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = indak taisi
-
 style-text =
     { $parts ->
         [background] { $color } jo latar { $background }
        *[plain] { $color }
     }
-
 style-background-none = indak ado
-
 
 ## Boolean words
 
 boolean-true = bana
 boolean-false = indak bana
 
-
 ## Answer buttons
 
 answer-submit-label = Pareso karajo
 answer-submit-label-no-correctness = Kirim jawaban
-
 
 ## Sectional blocks
 
@@ -191,7 +172,6 @@ section-name =
     .solution = Panyalasaian
     .task = Tugeh
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -201,9 +181,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pituah
-
 
 ## Tables and figures
 
@@ -214,7 +192,6 @@ table-name =
         [unnumbered-title] Tabel{ ": " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Gambar { $enumeration }
@@ -223,22 +200,18 @@ figure-name =
        *[unnumbered] Gambar
     }
 
-
 ## Paginator controls
 
 paginator-previous = Sabalunnyo
 paginator-next = Salanjuiknyo
 paginator-page = Laman
-
 paginator-page-status = { $pageLabel } { $currentPage } dari { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = atau
 piecewise-condition-if = jiko
 piecewise-condition-otherwise = jiko indak
-
 
 ## Chemistry
 ##
@@ -252,6 +225,5 @@ piecewise-condition-otherwise = jiko indak
 ## Minangkabau table of all 118 exists to seed from.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol kimia nan indak sah
 chemistry-invalid-ionic-compound = Sanyawa ionik nan indak sah

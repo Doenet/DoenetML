@@ -50,15 +50,12 @@ color =
     .purple = kulli
     .pink = panti
     .brown = ch'umpi
-
 line-width =
     .thick = rakhu
     .thin = ñañu
-
 line-style =
     .dashed = t'aqasqa
     .dotted = chiqchi
-
 # Noun phrases, which is what the head of `style-fill` is. «-kuna» is written
 # here because nothing precedes them to say how many.
 fill-style =
@@ -68,7 +65,6 @@ fill-style =
     .backdiagonal = kutichisqa wingu siq'ikuna
     .dots = chiqchikuna
     .diamonds = rombokuna
-
 noun =
     .line = siq'i
     .line-segment = siq'i phatma
@@ -88,7 +84,6 @@ noun =
     .diamond = rombo
     .cross = chakana
     .plus = yapay unancha
-
 # The side count is a prenominal modifier, so it stays in the head and the tail
 # is empty — English's shape, reached by a different road. «-yuq» welds onto
 # «waqta», which this catalog writes, not onto `$numSides`.
@@ -97,11 +92,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } waqtayuq kikin achka k'uchu
     }
-
 # One answer for every noun: Quechua has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -115,7 +108,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives precede the noun, so this is English's order. The `[noun-tail]`
 # branch is unreachable from Quechua's own `noun-regular-polygon`, which supplies
 # no tail; it is kept because it is what a partly-corrected catalog falls back
@@ -125,9 +117,7 @@ style-with-noun =
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = hunt'asqa
-
 # The pattern is a comitative complement, and Quechua's comitative is the suffix
 # «-wan», which cannot be welded to `$pattern`. So the pattern is named rather
 # than marked: «pallaynin { $pattern }» — "its design: diamonds".
@@ -136,7 +126,6 @@ style-filled =
         [pattern] { $filled } { $color }, pallaynin { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun }, pallaynin { $pattern }
@@ -144,7 +133,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail }, pallaynin { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «-yuq», "having", lands on «manya» — the border — which this catalog writes,
 # and the adjectives precede it. Quechua has no articles, so English's four
 # branches collapse to two distinct strings; all four are written out because
@@ -157,7 +145,6 @@ style-border-clause =
         [and-article] hinaspa { $border } manyayuq
        *[with] { $border } manyayuq
     }
-
 # Here the pattern is the **head noun** — "blue diamonds" — so it needs no case
 # suffix at all and the colour simply precedes it. The same value that had to be
 # named in `style-filled` needs nothing here, which is what makes that message's
@@ -167,29 +154,23 @@ style-fill =
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = mana hunt'asqa
-
 style-text =
     { $parts ->
         [background] { $background } qhipayuq { $color }
        *[plain] { $color }
     }
-
 style-background-none = mana kanchu
-
 
 ## Boolean words
 
 boolean-true = cheqaq
 boolean-false = llulla
 
-
 ## Answer buttons
 
 answer-submit-label = Llamk'ayta qhaway
 answer-submit-label-no-correctness = Kutichiyta apachiy
-
 
 ## Sectional blocks
 
@@ -214,7 +195,6 @@ section-name =
     .solution = Paskay
     .task = Ruranapaq
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -224,9 +204,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Yanapay
-
 
 ## Tables and figures
 
@@ -237,7 +215,6 @@ table-name =
         [unnumbered-title] Tabla{ ": " }
        *[unnumbered] Tabla
     }
-
 figure-name =
     { $parts ->
         [numbered] Rikch'a { $enumeration }
@@ -246,24 +223,20 @@ figure-name =
        *[unnumbered] Rikch'a
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ñawpaq
 paginator-next = Qhipa
 paginator-page = P'anqa
-
 # The ablative «-manta» lands on «p'anqa», which this catalog writes, so the
 # total precedes it and the whole reads "of N pages, Page 3".
 paginator-page-status = { $numPages } p'anqamanta { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = icha
 piecewise-condition-if = sichus
 piecewise-condition-otherwise = mana chayqa
-
 
 ## Chemistry
 ##
@@ -276,6 +249,5 @@ piecewise-condition-otherwise = mana chayqa
 ## least check against their own book.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Mana allin unancha kimiku
 chemistry-invalid-ionic-compound = Mana allin huñu iyoniku

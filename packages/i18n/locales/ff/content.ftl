@@ -82,7 +82,6 @@ color =
     .purple = purpul
     .pink = roos
     .brown = mbaroodi
-
 line-width =
     .thick =
         { $gender ->
@@ -98,13 +97,11 @@ line-width =
             [ngal] famɗungal
            *[nde] famɗunde
         }
-
 # Written as an invariable «e …» phrase, so that it agrees with nothing and can
 # close the phrase. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = e taƴe
     .dotted = e toɓɓe
-
 fill-style =
     .horizontal = diide lelinde
     .vertical = diide dariinde
@@ -112,7 +109,6 @@ fill-style =
     .backdiagonal = diide ooñiinde e banŋe goɗɗo
     .dots = toɓɓe
     .diamonds = damaa
-
 noun =
     .line = diidol
     .line-segment = taƴre diidol
@@ -132,14 +128,12 @@ noun =
     .diamond = damaa
     .cross = kuruwaa
     .plus = maandeeji ɓeydugol
-
 # The side count follows the whole phrase, so it goes in the tail.
 noun-regular-polygon =
     { $part ->
         [tail] mo banŋeeji { $numSides }
        *[head] poligoŋ fotduɗo
     }
-
 # The noun class, which is what a concording suffix agrees with. `nde` is the
 # default and the class of every loanword.
 noun-gender =
@@ -159,7 +153,6 @@ noun-gender =
        *[other] nde
     }
 
-
 ## Style composition
 
 # The dash pattern is an «e …» phrase and closes the description, so it moves
@@ -174,13 +167,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [ngol] heewngol
@@ -188,13 +179,11 @@ style-filled-word =
         [ngal] heewngal
        *[nde] heewnde
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } e { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } e { $pattern }
@@ -202,7 +191,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } e { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «keerol» is an `ngol` noun and leads its own adjectives, so the border's
 # words agree with it rather than with the shape it surrounds. Fula has no
 # article and joins this clause with the invariable «e», so all four branches
@@ -214,35 +202,28 @@ style-border-clause =
         [and-article] e keerol { $border }
        *[with] e keerol { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = heewaani
-
 style-text =
     { $parts ->
         [background] { $color } e dow ɓaawo { $background }
        *[plain] { $color }
     }
-
 style-background-none = alaa
-
 
 ## Boolean words
 
 boolean-true = goonga
 boolean-false = fenaande
 
-
 ## Answer buttons
 
 answer-submit-label = Ƴeewto Golle
 answer-submit-label-no-correctness = Neldu Jaabawol
-
 
 ## Sectional blocks
 
@@ -267,7 +248,6 @@ section-name =
     .solution = Ndimaagu
     .task = Golle
     .theorem = Teyoreem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -277,9 +257,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tinndinoore
-
 
 ## Tables and figures
 
@@ -290,7 +268,6 @@ table-name =
         [unnumbered-title] Tabal{ ": " }
        *[unnumbered] Tabal
     }
-
 figure-name =
     { $parts ->
         [numbered] Natal { $enumeration }
@@ -299,24 +276,18 @@ figure-name =
        *[unnumbered] Natal
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ɓennungo
 paginator-next = Garowo
 paginator-page = Hello
-
 paginator-page-status = { $pageLabel } { $currentPage } e { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = walla
-
 piecewise-condition-if = si
-
 piecewise-condition-otherwise = si wonaa noon
-
 
 ## Chemistry
 ##
@@ -330,6 +301,5 @@ piecewise-condition-otherwise = si wonaa noon
 ## those two and the fallback *is* the curriculum wherever they are.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Maandeeji Kimi Moƴƴaani
 chemistry-invalid-ionic-compound = Denndaangal Iyoŋ Moƴƴaani

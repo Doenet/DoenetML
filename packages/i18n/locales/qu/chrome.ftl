@@ -31,21 +31,15 @@
 
 answer-checking = Qhawachkan…
 answer-submitting = Apachichkan…
-
 answer-checking-status = Kutichiyta qhawachkan
 answer-submitting-status = Kutichiyta apachichkan
-
 answer-correct = Allin
 answer-incorrect = Mana allinchu
-
 answer-response-saved = Kutichiy waqaychasqa
-
 answer-percent-credit = { $percent }% chanin
 answer-percent-correct = { $percent }% allin
 answer-percent-short = { $percent } %
-
 max-credit-available = Aswan hatun chanin: { $percent }%
-
 # No select: «ruray» does not take «-kuna» after a numeral, so both English
 # categories render the same words. The count still arrives and is still
 # formatted. `[0]` stays, because "none left" is its own sentence.
@@ -54,53 +48,40 @@ attempts-remaining =
         [0] manaña ima ruraypas puchunchu
        *[other] { $count } ruray puchun
     }
-
 validation-correct = (Allin)
 validation-incorrect = (Mana allinchu)
 validation-partially-correct = (Wakinlla allin)
-
 # No select, for the reason given above. The answer is reached by naming it —
 # «{ $answerId } sutiyuq tapuypaq», "for the question named X" — rather than by
 # putting the dative «-man» on `$answerId`, which would weld a suffix to a value
 # this catalog never sees.
 answer-show-responses = { $answerId } sutiyuq tapuypaq { $count } kutichiy rikuchiy
 
-
 ## Disclosure panels
 
 feedback-heading = Kutichiy rimay
-
 collapsible-click-to-open = (kichanapaq ñit'iy)
 collapsible-click-to-close = (wichq'anapaq ñit'iy)
-
 collapsible-initializing = Qallarichkan…
-
 footnote-show = Uraypi qillqata rikuchiy
 footnote-hide = Uraypi qillqata pakay
-
 description-more-information = aswan willay
-
 
 ## Controls
 
 slider-previous = Ñawpaq
 slider-next = Qhipa
-
 keyboard-open = Ñit'ipanata kichay
 keyboard-close = Ñit'ipanata wichq'ay
-
 choice-input-remove-choice = { $choice } qichuy
-
 matrix-remove-row = Siqita qichuy
 matrix-add-row = Siqita yapay
 matrix-remove-column = Sayaqta qichuy
 matrix-add-column = Sayaqta yapay
-
 subset-add-remove-points = Chimpukunata yapay/qichuy
 subset-toggle-points-intervals = Chimpumanta chawpimanpas tikray
 subset-move-points = Chimpukunata astay
 subset-clear = Pichay
-
 orbital-add-row = Siqita yapay
 orbital-remove-row = Siqita qichuy
 orbital-add-box = Q'ipita yapay
@@ -108,13 +89,9 @@ orbital-remove-box = Q'ipita qichuy
 orbital-add-up-arrow = Wichay wach'ita yapay
 orbital-add-down-arrow = Uray wach'ita yapay
 orbital-remove-arrow = Wach'ita qichuy
-
 orbital-row-label = { $row } siqipaq suti
-
 pretzel-answer = Kutichiy
-
 summary-statistics-caption = { $column } huñusqa yupaykuna
-
 
 ## Math input
 
@@ -122,34 +99,25 @@ math-input-preview-region = yupay rimay ñawpaq rikuchiy
 math-input-preview = Ñawpaq rikuchiy
 math-input-invalid-expression = Mana allin rimay:
 
-
 ## Document status
 
 viewer-initializing = Qallarichkan…
 
-
 ## Errors
 
 error-heading = Pantay
-
 error-found-at =
     { $span ->
         [line] { $startLine } siqipi tarisqa.
        *[lines] { $startLine }–{ $endLine } siqikunapi tarisqa.
     }
-
 document-contains-errors = Kay qillqapi pantaykuna kachkan!
-
 diagnostic-heading-error = Pantay
 diagnostic-heading-warning = Yuyaychay
 diagnostic-heading-information = Willay
 diagnostic-heading-hint = Yanapay
-
 accessibility-heading-level-1 = WCAG AA chayanapaq p'akiy
 accessibility-heading-level-2 = Chayanapaq yuyaychay
-
 something-went-wrong = Imapas mana allinchu karqan.
-
 renderer-load-failed = huk rikuchiq mana chayamurqanchu. Ama hina kaspa, p'anqata musuqmanta chaqnay.
-
 core-start-failed = Qillqa rikuchiq mana qallarikuyta atirqanchu. Ama hina kaspa, p'anqata musuqmanta chaqnay.

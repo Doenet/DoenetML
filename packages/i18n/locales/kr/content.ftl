@@ -48,17 +48,14 @@ color =
     .purple = papul
     .pink = pinki
     .brown = burawun
-
 line-width =
     .thick = kura
     .thin = dibi
-
 # Written as invariable «-be» phrases rather than as qualifiers, so that they
 # can close the description. `style-stroke` puts them last.
 line-style =
     .dashed = kǝska-be
     .dotted = tǝndi-be
-
 fill-style =
     .horizontal = layinwa kǝlanzǝ
     .vertical = layinwa dǝganzǝ
@@ -66,7 +63,6 @@ fill-style =
     .backdiagonal = layinwa gǝnyinzǝ kǝskabe
     .dots = tǝndiwa
     .diamonds = dayamonwa
-
 noun =
     .line = layin
     .line-segment = layin fartu
@@ -86,7 +82,6 @@ noun =
     .diamond = dayamon
     .cross = kurus
     .plus = alama zawube
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -94,11 +89,9 @@ noun-regular-polygon =
         [tail] kǝskawa { $numSides } jinzǝ
        *[head] poligon lawanbe
     }
-
 # No grammatical gender, so this answers one token for every noun and the
 # answer goes unused — the shape `locales/en` has.
 noun-gender = tilo
-
 
 ## Style composition
 
@@ -112,21 +105,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = dinzǝ
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern }-a
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } { $pattern }-a
@@ -134,7 +123,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } { $pattern }-a
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Kanuri has no article, and joins this clause with the invariable «-a»
 # whatever came before it, so all four branches read alike.
 style-border-clause =
@@ -144,35 +132,28 @@ style-border-clause =
         [and-article] kǝska { $border }-a
        *[with] kǝska { $border }-a
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = dinzǝni
-
 style-text =
     { $parts ->
         [background] { $color } kǝska { $background }-be
        *[plain] { $color }
     }
-
 style-background-none = ndu bago
-
 
 ## Boolean words
 
 boolean-true = haqqa
 boolean-false = kǝzǝna
 
-
 ## Answer buttons
 
 answer-submit-label = Kalakce Jiliwu
 answer-submit-label-no-correctness = Jawab Sadi
-
 
 ## Sectional blocks
 
@@ -197,7 +178,6 @@ section-name =
     .solution = Kǝlanzǝ
     .task = Jiliwu
     .theorem = Tiyorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -207,9 +187,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Alama
-
 
 ## Tables and figures
 
@@ -220,7 +198,6 @@ table-name =
         [unnumbered-title] Tebur{ ": " }
        *[unnumbered] Tebur
     }
-
 figure-name =
     { $parts ->
         [numbered] Suratu { $enumeration }
@@ -229,24 +206,18 @@ figure-name =
        *[unnumbered] Suratu
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ngǝwube
 paginator-next = Waube
 paginator-page = Bela
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ya
-
 piecewise-condition-if = adǝga
-
 piecewise-condition-otherwise = kǝlawa dǝga
-
 
 ## Chemistry
 ##
@@ -263,6 +234,5 @@ piecewise-condition-otherwise = kǝlawa dǝga
 ## already is.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Alama Kemistiribe Ngǝlani
 chemistry-invalid-ionic-compound = Ayon Kǝlanzǝbe Ngǝlani

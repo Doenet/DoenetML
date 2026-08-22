@@ -75,7 +75,6 @@ color =
             [n] bruin
            *[c] bruine
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -87,7 +86,6 @@ line-width =
             [n] dun
            *[c] dunne
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -99,7 +97,6 @@ line-style =
             [n] gestippeld
            *[c] gestippelde
         }
-
 # Noun phrases: they follow `met` and agree with nothing.
 fill-style =
     .horizontal = horizontale lijnen
@@ -108,7 +105,6 @@ fill-style =
     .backdiagonal = tegengesteld diagonale lijnen
     .dots = stippen
     .diamonds = ruiten
-
 noun =
     .line = lijn
     .line-segment = lijnstuk
@@ -128,7 +124,6 @@ noun =
     .diamond = ruit
     .cross = kruis
     .plus = plusteken
-
 # Dutch keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -136,7 +131,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regelmatige { $numSides }-hoek
     }
-
 # `het`-words are the marked case, so they are the ones listed. Besides the
 # nouns above, `$noun` can be `regular-polygon` (de veelhoek) or the head of a
 # phrase the description never names: `border` (de rand), `fill` (de vulling),
@@ -153,7 +147,6 @@ noun-gender =
        *[other] c
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -166,25 +159,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [n] gevuld
        *[c] gevulde
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } met { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } met { $pattern }
@@ -192,7 +181,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } met { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # `rand` is a de-word, so the border's adjectives agree with it and not with
 # the shape it surrounds.
 style-border-clause =
@@ -202,7 +190,6 @@ style-border-clause =
         [and-article] en een { $border } rand
        *[with] met { $border } rand
     }
-
 # The gender this message is handed is the one `noun-gender` answers for
 # `fill` — `c`, for the de-word `vulling` — so it names that noun and the
 # colour takes its `-e` against it in both variants. The pattern follows in
@@ -212,29 +199,23 @@ style-fill =
         [pattern] { $color } vulling met { $pattern }
        *[plain] { $color } vulling
     }
-
 style-unfilled = niet gevuld
-
 style-text =
     { $parts ->
         [background] { $color } op een { $background } achtergrond
        *[plain] { $color }
     }
-
 style-background-none = geen
-
 
 ## Boolean words
 
 boolean-true = waar
 boolean-false = onwaar
 
-
 ## Answer buttons
 
 answer-submit-label = Controleren
 answer-submit-label-no-correctness = Antwoord indienen
-
 
 ## Sectional blocks
 
@@ -259,7 +240,6 @@ section-name =
     .solution = Oplossing
     .task = Taak
     .theorem = Stelling
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -269,9 +249,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tip
-
 
 ## Tables and figures
 
@@ -282,7 +260,6 @@ table-name =
         [unnumbered-title] Tabel{ ": " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Figuur { $enumeration }
@@ -291,22 +268,18 @@ figure-name =
        *[unnumbered] Figuur
     }
 
-
 ## Paginator controls
 
 paginator-previous = Vorige
 paginator-next = Volgende
 paginator-page = Pagina
-
 paginator-page-status = { $pageLabel } { $currentPage } van { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = of
 piecewise-condition-if = als
 piecewise-condition-otherwise = anders
-
 
 ## Chemistry
 
@@ -429,7 +402,6 @@ element-name =
     .lv = Livermorium
     .ts = Tennessine
     .og = Oganesson
-
 element-anion-name =
     .h = Hydride
     .c = Carbide
@@ -443,8 +415,6 @@ element-anion-name =
     .i = Jodide
     .at = Astatide
     .ts = Tennesside
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ongeldig chemisch symbool
 chemistry-invalid-ionic-compound = Ongeldige ionverbinding

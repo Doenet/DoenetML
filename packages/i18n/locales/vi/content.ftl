@@ -28,15 +28,12 @@ color =
     .purple = màu tím
     .pink = màu hồng
     .brown = màu nâu
-
 line-width =
     .thick = đậm
     .thin = mảnh
-
 line-style =
     .dashed = nét đứt
     .dotted = nét chấm
-
 # Noun phrases: they follow "với" and modify nothing.
 fill-style =
     .horizontal = đường kẻ ngang
@@ -45,7 +42,6 @@ fill-style =
     .backdiagonal = đường kẻ chéo ngược
     .dots = chấm tròn
     .diamonds = hình thoi
-
 noun =
     .line = đường thẳng
     .line-segment = đoạn thẳng
@@ -65,7 +61,6 @@ noun =
     .diamond = hình thoi
     .cross = dấu nhân
     .plus = dấu cộng
-
 # The side count is part of the noun phrase and sits immediately after it —
 # "đa giác đều 5 cạnh" — before any adjective, so it folds into the head and
 # there is no tail. Putting it after the adjectives would separate "cạnh" from
@@ -75,11 +70,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] đa giác đều { $numSides } cạnh
     }
-
 # Vietnamese has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -93,22 +86,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: "đường thẳng đậm nét đứt màu đỏ".
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = được tô
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } với { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } với { $pattern }
@@ -116,7 +105,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } với { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Vietnamese needs no article, so the `-article` branches read the same as the
 # ones without.
 style-border-clause =
@@ -126,36 +114,29 @@ style-border-clause =
         [and-article] và viền { $border }
        *[with] với viền { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = không tô
-
 style-text =
     { $parts ->
         [background] { $color } trên nền { $background }
        *[plain] { $color }
     }
-
 style-background-none = không có
-
 
 ## Boolean words
 
 boolean-true = đúng
 boolean-false = sai
 
-
 ## Answer buttons
 
 answer-submit-label = Kiểm tra
 answer-submit-label-no-correctness = Gửi câu trả lời
-
 
 ## Sectional blocks
 
@@ -180,7 +161,6 @@ section-name =
     .solution = Lời giải
     .task = Nhiệm vụ
     .theorem = Định lý
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -190,9 +170,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Gợi ý
-
 
 ## Tables and figures
 
@@ -203,7 +181,6 @@ table-name =
         [unnumbered-title] Bảng{ ": " }
        *[unnumbered] Bảng
     }
-
 figure-name =
     { $parts ->
         [numbered] Hình { $enumeration }
@@ -212,15 +189,12 @@ figure-name =
        *[unnumbered] Hình
     }
 
-
 ## Paginator controls
 
 paginator-previous = Trước
 paginator-next = Sau
 paginator-page = Trang
-
 paginator-page-status = { $pageLabel } { $currentPage } trên { $numPages }
-
 
 ## Piecewise functions
 
@@ -228,8 +202,8 @@ piecewise-condition-or = hoặc
 piecewise-condition-if = nếu
 piecewise-condition-otherwise = trường hợp còn lại
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and the 130
 # keys fall back to English.
@@ -243,6 +217,5 @@ piecewise-condition-otherwise = trường hợp còn lại
 # document can add these keys, and `lint:i18n` reports the gap until then.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ký hiệu hóa học không hợp lệ
 chemistry-invalid-ionic-compound = Hợp chất ion không hợp lệ

@@ -29,21 +29,15 @@
 
 answer-checking = Mareksa…
 answer-submitting = Ngèrèm…
-
 answer-checking-status = Mareksa jhâwâban
 answer-submitting-status = Ngèrèm jhâwâban
-
 answer-correct = Bendher
 answer-incorrect = Ta' bendher
-
 answer-response-saved = Jhâwâbanna la èsimpen
-
 answer-percent-credit = { $percent }% kredit
 answer-percent-correct = { $percent }% bendher
 answer-percent-short = { $percent } %
-
 max-credit-available = Kredit se paleng bânnya' se ekaollè: { $percent }%
-
 # No select: «coba» is the same word for one and for many. The `[0]` branch
 # stays, because it names none rather than counting.
 attempts-remaining =
@@ -51,51 +45,38 @@ attempts-remaining =
         [0] tadâ' pole coba se karè
        *[other] karè { $count } coba
     }
-
 validation-correct = (Bendher)
 validation-incorrect = (Ta' bendher)
 validation-partially-correct = (Bendher sabâgiyân)
-
 # No select, for the reason above. `$answerId` is the author's own name for the
 # answer and is never translated.
 answer-show-responses = Toduwagi { $count } jhâwâban kaangguy { $answerId }
 
-
 ## Disclosure panels
 
 feedback-heading = Komentar
-
 collapsible-click-to-open = (klik sopaja abukka')
 collapsible-click-to-close = (klik sopaja atotop)
-
 collapsible-initializing = Molaè…
-
 footnote-show = Toduwagi footnote
 footnote-hide = Nyèmponnè footnote
-
 description-more-information = katerrangan laèn
-
 
 ## Controls
 
 slider-previous = Sabellunna
 slider-next = Salanjudde
-
 keyboard-open = Bukka' papan tuts
 keyboard-close = Totop papan tuts
-
 choice-input-remove-choice = Buwang { $choice }
-
 matrix-remove-row = Buwang barisa
 matrix-add-row = Tambâ baris
 matrix-remove-column = Buwang kolomma
 matrix-add-column = Tambâ kolom
-
 subset-add-remove-points = Nambâ/Mowang titik
 subset-toggle-points-intervals = Ngoba titik ban interval
 subset-move-points = Pindâ titikka
 subset-clear = Berseagi
-
 orbital-add-row = Tambâ baris
 orbital-remove-row = Buwang barisa
 orbital-add-box = Tambâ kotak
@@ -103,13 +84,9 @@ orbital-remove-box = Buwang kotakka
 orbital-add-up-arrow = Tambâ panah ka attas
 orbital-add-down-arrow = Tambâ panah ka bâbâ
 orbital-remove-arrow = Buwang panahha
-
 orbital-row-label = Label kaangguy baris { $row }
-
 pretzel-answer = Jhâwâban
-
 summary-statistics-caption = Ringkesan statistik { $column }
-
 
 ## Math input
 
@@ -117,34 +94,25 @@ math-input-preview-region = pratinjau ungkapan matematika
 math-input-preview = Pratinjau
 math-input-invalid-expression = Ungkapan se ta' sah:
 
-
 ## Document status
 
 viewer-initializing = Molaè…
 
-
 ## Errors
 
 error-heading = Kasalaan
-
 error-found-at =
     { $span ->
         [line] Etemmo e baris { $startLine }.
        *[lines] Etemmo e baris { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Dokumen rèya badâ kasalaanna!
-
 diagnostic-heading-error = Kasalaan
 diagnostic-heading-warning = Parèngèdan
 diagnostic-heading-information = Katerrangan
 diagnostic-heading-hint = Petodu
-
 accessibility-heading-level-1 = Palanggharân aksesibilitas WCAG AA
 accessibility-heading-level-2 = Parèngèdan parkara aksesibilitas
-
 something-went-wrong = Badâ se sala.
-
 renderer-load-failed = badâ renderer se ta' bisa emowat. Nyo'on mowat pole kacana.
-
 core-start-failed = Panèngalan dokumen ta' bisa emolaè. Nyo'on mowat pole kacana.

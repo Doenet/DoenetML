@@ -39,15 +39,12 @@ color =
     .purple = lila
     .pink = rosas
     .brown = kape
-
 line-width =
     .thick = baga
     .thin = manipis
-
 line-style =
     .dashed = putol-putol
     .dotted = tulbok-tulbok
-
 # Noun phrases. Waray marks no plural on the noun, so «badlis» is the word for
 # one line and for many alike.
 fill-style =
@@ -57,7 +54,6 @@ fill-style =
     .backdiagonal = baliskad nga hilis nga badlis
     .dots = tulbok
     .diamonds = diyamante
-
 noun =
     .line = linya
     .line-segment = segmento
@@ -77,7 +73,6 @@ noun =
     .diamond = diyamante
     .cross = krus
     .plus = plus
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -85,11 +80,9 @@ noun-regular-polygon =
         [tail] nga may { $numSides } nga kilid
        *[head] regular nga poligono
     }
-
 # One answer for every noun: Waray has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -103,21 +96,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } nga { $noun } { $nounTail }
        *[noun] { $description } nga { $noun }
     }
-
 style-filled-word = puno
-
 style-filled =
     { $parts ->
         [pattern] { $filled } nga { $color } nga may { $pattern }
        *[plain] { $filled } nga { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } nga { $color } nga { $noun } nga may { $pattern }
@@ -125,7 +114,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } nga { $color } nga { $noun } { $nounTail } nga may { $pattern }
        *[plain] { $filled } nga { $color } nga { $noun }
     }
-
 # Waray has no article, so the two `-article` branches say what the other two
 # say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «nga may» against «ngan».
@@ -136,35 +124,28 @@ style-border-clause =
         [and-article] ngan { $border } nga ligid
        *[with] nga may { $border } nga ligid
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } nga { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = diri puno
-
 style-text =
     { $parts ->
         [background] { $color } nga may { $background } nga background
        *[plain] { $color }
     }
-
 style-background-none = waray
-
 
 ## Boolean words
 
 boolean-true = tinuod
 boolean-false = buwa
 
-
 ## Answer buttons
 
 answer-submit-label = Susiha an baton
 answer-submit-label-no-correctness = Ipadara an baton
-
 
 ## Sectional blocks
 
@@ -192,7 +173,6 @@ section-name =
     .solution = Solusyon
     .task = Buruhaton
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -202,9 +182,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Giya
-
 
 ## Tables and figures
 
@@ -215,7 +193,6 @@ table-name =
         [unnumbered-title] Talaan{ ": " }
        *[unnumbered] Talaan
     }
-
 figure-name =
     { $parts ->
         [numbered] Pigura { $enumeration }
@@ -224,22 +201,18 @@ figure-name =
        *[unnumbered] Pigura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Nahiuna
 paginator-next = Sunod
 paginator-page = Pahina
-
 paginator-page-status = { $pageLabel } { $currentPage } ha { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = kon
 piecewise-condition-otherwise = kon diri
-
 
 ## Chemistry
 ##
@@ -249,6 +222,5 @@ piecewise-condition-otherwise = kon diri
 ## one — the same reason `locales/fil` and `locales/ceb` leave these keys out.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Imbalido nga simbolo nga kemikal
 chemistry-invalid-ionic-compound = Imbalido nga kompuwesto nga ioniko

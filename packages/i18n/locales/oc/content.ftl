@@ -78,7 +78,6 @@ color =
            *[m] ròse
         }
     .brown = marron
-
 line-width =
     .thick =
         { $gender ->
@@ -90,7 +89,6 @@ line-width =
             [f] prima
            *[m] prim
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -102,7 +100,6 @@ line-style =
             [f] puntejada
            *[m] puntejat
         }
-
 # Plural noun phrases, which is what follows «amb» in `style-filled`. They
 # agree with nothing.
 fill-style =
@@ -112,7 +109,6 @@ fill-style =
     .backdiagonal = linhas diagonalas inversas
     .dots = punts
     .diamonds = lausanjas
-
 noun =
     .line = linha
     .line-segment = segment
@@ -132,13 +128,11 @@ noun =
     .diamond = lausanja
     .cross = crotz
     .plus = mai
-
 noun-regular-polygon =
     { $part ->
         [tail] de { $numSides } costats
        *[head] poligòn regular
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (poligòn, m) or the
 # head of a phrase the description never names: `border` (bordadura, f), `fill`
 # (emplenatge, m), `text` (tèxte, m), `background` (fons, m).
@@ -157,7 +151,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -170,7 +163,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun comes first and the adjectives after it, which is the opposite of
 # English. A noun that splits — the regular polygon — puts its complement after
 # the adjectives that agree with its head.
@@ -179,19 +171,16 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] emplenada
        *[m] emplenat
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } amb { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } amb { $pattern }
@@ -199,7 +188,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } amb { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «bordadura» is feminine, so the border's adjectives agree with it rather than
 # with the shape it surrounds.
 style-border-clause =
@@ -209,7 +197,6 @@ style-border-clause =
         [and-article] e una bordadura { $border }
        *[with] amb bordadura { $border }
     }
-
 # The fill-pattern words are plural nouns, because their other use is the
 # «amb { $pattern }» clause in `style-filled`. So this message supplies a noun
 # for them to hang off — «emplenatge», masculine, which is the gender
@@ -220,29 +207,23 @@ style-fill =
         [pattern] emplenatge { $color } amb { $pattern }
        *[plain] emplenatge { $color }
     }
-
 style-unfilled = pas emplenat
-
 style-text =
     { $parts ->
         [background] { $color } sus un fons { $background }
        *[plain] { $color }
     }
-
 style-background-none = cap
-
 
 ## Boolean words
 
 boolean-true = verai
 boolean-false = fals
 
-
 ## Answer buttons
 
 answer-submit-label = Verificar
 answer-submit-label-no-correctness = Mandar la responsa
-
 
 ## Sectional blocks
 
@@ -267,7 +248,6 @@ section-name =
     .solution = Solucion
     .task = Prètzfach
     .theorem = Teorèma
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -277,9 +257,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Indici
-
 
 ## Tables and figures
 
@@ -290,7 +268,6 @@ table-name =
         [unnumbered-title] Taula{ ". " }
        *[unnumbered] Taula
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -299,22 +276,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Precedenta
 paginator-next = Seguenta
 paginator-page = Pagina
-
 paginator-page-status = { $pageLabel } { $currentPage } sus { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = se
 piecewise-condition-otherwise = siquenon
-
 
 ## Chemistry
 ##
@@ -325,6 +298,5 @@ piecewise-condition-otherwise = siquenon
 ## reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbòl quimic invalid
 chemistry-invalid-ionic-compound = Compausat ionic invalid

@@ -30,15 +30,12 @@ color =
     .purple = mor
     .pink = pembe
     .brown = kahverengi
-
 line-width =
     .thick = kalın
     .thin = ince
-
 line-style =
     .dashed = kesikli
     .dotted = noktalı
-
 # Noun phrases: they precede `desenli` and modify nothing.
 fill-style =
     .horizontal = yatay çizgi
@@ -47,7 +44,6 @@ fill-style =
     .backdiagonal = ters çapraz çizgi
     .dots = nokta
     .diamonds = baklava dilimi
-
 noun =
     .line = doğru
     .line-segment = doğru parçası
@@ -67,7 +63,6 @@ noun =
     .diamond = eşkenar dörtgen
     .cross = çarpı
     .plus = artı
-
 # Turkish builds the word from the side count itself — düzgün beşgen — so the
 # whole thing is one head and there is no tail.
 noun-regular-polygon =
@@ -75,11 +70,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] düzgün { $numSides }-gen
     }
-
 # Turkish has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -93,21 +86,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = dolgulu
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } desenli { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } desenli { $color } { $filled } { $noun }
@@ -115,7 +104,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } desenli { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # `kenarlıklı` carries the "with a border" sense in its own suffix, so no
 # preposition and no article is needed — which makes all four branches the same
 # except for the connective English needs and Turkish does not.
@@ -126,35 +114,28 @@ style-border-clause =
         [and-article] ve { $border } kenarlıklı
        *[with] { $border } kenarlıklı
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = dolgusuz
-
 style-text =
     { $parts ->
         [background] { $background } zemin üzerinde { $color }
        *[plain] { $color }
     }
-
 style-background-none = yok
-
 
 ## Boolean words
 
 boolean-true = doğru
 boolean-false = yanlış
 
-
 ## Answer buttons
 
 answer-submit-label = Kontrol et
 answer-submit-label-no-correctness = Yanıtı gönder
-
 
 ## Sectional blocks
 
@@ -179,7 +160,6 @@ section-name =
     .solution = Çözüm
     .task = Görev
     .theorem = Teorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -189,9 +169,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = İpucu
-
 
 ## Tables and figures
 
@@ -202,7 +180,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Şekil { $enumeration }
@@ -211,22 +188,18 @@ figure-name =
        *[unnumbered] Şekil
     }
 
-
 ## Paginator controls
 
 paginator-previous = Önceki
 paginator-next = Sonraki
 paginator-page = Sayfa
-
 paginator-page-status = { $numPages } { $pageLabel } içinden { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = veya
 piecewise-condition-if = eğer
 piecewise-condition-otherwise = aksi halde
-
 
 ## Chemistry
 
@@ -349,7 +322,6 @@ element-name =
     .lv = Livermoryum
     .ts = Tennessin
     .og = Oganesson
-
 element-anion-name =
     .h = Hidrür
     .c = Karbür
@@ -363,8 +335,6 @@ element-anion-name =
     .i = İyodür
     .at = Astatür
     .ts = Tennessür
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Geçersiz kimyasal sembol
 chemistry-invalid-ionic-compound = Geçersiz iyonik bileşik

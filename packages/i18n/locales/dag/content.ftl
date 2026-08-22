@@ -72,7 +72,6 @@ color =
     .purple = pɔpul
     .pink = piŋk
     .brown = braun
-
 line-width =
     .thick =
         { $gender ->
@@ -86,7 +85,6 @@ line-width =
             [c3] bilim
            *[c1] billi
         }
-
 # Written as an invariable «ni …» phrase, so that it agrees with nothing and
 # can close the description; `style-stroke` puts it last for that reason. That
 # is also what keeps the class suffix off the end of the phrase, where a
@@ -94,7 +92,6 @@ line-width =
 line-style =
     .dashed = ni dasɛs
     .dotted = ni dɔts
-
 fill-style =
     .horizontal = layinnima din doya
     .vertical = layinnima din ʒe
@@ -102,7 +99,6 @@ fill-style =
     .backdiagonal = layinnima din gbaai luɣ' shɛli
     .dots = dɔts
     .diamonds = dayamɔnnima
-
 noun =
     .line = layin
     .line-segment = layin sɛgmɛnti
@@ -122,7 +118,6 @@ noun =
     .diamond = dayamɔn
     .cross = daantalli
     .plus = pahibu maka
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -130,7 +125,6 @@ noun-regular-polygon =
         [tail] din mali kpaŋa { $numSides }
        *[head] poligɔn din kpaŋa nyɛla yim
     }
-
 # The noun class. A Dagbani noun's class is usually legible in its own suffix —
 # «gilli» and «luɣili» are `-li`, so `c1` — but the class is a fact about the
 # noun rather than about its ending: «daantalli» is `c2` despite `-li`. The
@@ -153,7 +147,6 @@ noun-gender =
        *[other] c1
     }
 
-
 ## Style composition
 
 # The dash pattern is a «ni …» phrase and closes the description, so it moves
@@ -168,26 +161,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c2] palliga
         [c3] pallim
        *[c1] palli
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ni { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ni { $pattern }
@@ -195,7 +184,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ni { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «nɔli» is the border and leads its own describing words, so they agree with
 # it rather than with the shape it surrounds. Dagbani has no article and joins
 # this clause with the invariable «ni», so all four branches read alike.
@@ -206,35 +194,28 @@ style-border-clause =
         [and-article] ni nɔli { $border }
        *[with] ni nɔli { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = bi palli
-
 style-text =
     { $parts ->
         [background] { $color } nyaaŋa { $background }
        *[plain] { $color }
     }
-
 style-background-none = shɛli ka nyaaŋa
-
 
 ## Boolean words
 
 boolean-true = yɛlimaŋli
 boolean-false = ʒiri
 
-
 ## Answer buttons
 
 answer-submit-label = Yuli Tuma
 answer-submit-label-no-correctness = Tim Lahabali
-
 
 ## Sectional blocks
 
@@ -259,7 +240,6 @@ section-name =
     .solution = Ŋmaabu
     .task = Tuma
     .theorem = Tiyorɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -269,9 +249,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Maka
-
 
 ## Tables and figures
 
@@ -282,7 +260,6 @@ table-name =
         [unnumbered-title] Teebul{ ": " }
        *[unnumbered] Teebul
     }
-
 figure-name =
     { $parts ->
         [numbered] Ŋmahiŋga { $enumeration }
@@ -291,24 +268,18 @@ figure-name =
        *[unnumbered] Ŋmahiŋga
     }
 
-
 ## Paginator controls
 
 paginator-previous = Din daŋ
 paginator-next = Din pahi
 paginator-page = Peji
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = bee
-
 piecewise-condition-if = di yi niŋ
-
 piecewise-condition-otherwise = luɣ' shɛŋa kam
-
 
 ## Chemistry
 ##
@@ -322,6 +293,5 @@ piecewise-condition-otherwise = luɣ' shɛŋa kam
 ## one border away.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kɛmistiri Maka Din Bi Tuhi
 chemistry-invalid-ionic-compound = Ayɔn Laɣimbu Din Bi Tuhi

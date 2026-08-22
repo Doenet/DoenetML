@@ -112,7 +112,6 @@ color =
             [c7] esintsundu
            *[c9] entsundu
         }
-
 # These two are true adjectives and take the adjective concord, not the
 # relative one the colours take.
 line-width =
@@ -130,14 +129,12 @@ line-width =
             [c7] esincinci
            *[c9] encinci
         }
-
 # Written as an invariable "having …" phrase rather than as a describing word,
 # so that it agrees with nothing and can close the phrase. `style-stroke` puts
 # it last for that reason.
 line-style =
     .dashed = onemigcana
     .dotted = onamachokoza
-
 fill-style =
     .horizontal = imigca ethe tyaba
     .vertical = imigca emileyo
@@ -145,7 +142,6 @@ fill-style =
     .backdiagonal = imigca ejikelezileyo ngokuchasene
     .dots = amachokoza
     .diamonds = amadayimani
-
 noun =
     .line = umgca
     .line-segment = isiqwenga somgca
@@ -165,7 +161,6 @@ noun =
     .diamond = idayimani
     .cross = umnqamlezo
     .plus = uphawu lokudibanisa
-
 # The side count goes in the tail, behind the describing words: Xhosa closes a
 # noun phrase with a relative clause rather than opening one with it.
 noun-regular-polygon =
@@ -173,7 +168,6 @@ noun-regular-polygon =
         [tail] esinamacala angu-{ $numSides }
        *[head] isakhelo esilinganayo
     }
-
 noun-gender =
     { $noun ->
         [line] c3
@@ -194,7 +188,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -207,13 +200,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] ozalisiweyo
@@ -221,13 +212,11 @@ style-filled-word =
         [c7] esizalisiweyo
        *[c9] ezalisiweyo
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kunye ne-{ $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } kunye ne-{ $pattern }
@@ -235,7 +224,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } kunye ne-{ $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «umda» is class 3, so the border's words agree with it and not with the shape
 # it surrounds. Xhosa has no article and joins a complement with the invariable
 # «kunye no-», so all four branches read alike.
@@ -246,35 +234,28 @@ style-border-clause =
         [and-article] kunye nomda { $border }
        *[with] kunye nomda { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = akuzaliswanga
-
 style-text =
     { $parts ->
         [background] { $color } kumva { $background }
        *[plain] { $color }
     }
-
 style-background-none = akukho
-
 
 ## Boolean words
 
 boolean-true = inyaniso
 boolean-false = ubuxoki
 
-
 ## Answer buttons
 
 answer-submit-label = Jonga Umsebenzi
 answer-submit-label-no-correctness = Ngenisa Impendulo
-
 
 ## Sectional blocks
 
@@ -299,7 +280,6 @@ section-name =
     .solution = Isisombululo
     .task = Umsebenzi
     .theorem = Ithiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -309,9 +289,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Icebiso
-
 
 ## Tables and figures
 
@@ -322,7 +300,6 @@ table-name =
         [unnumbered-title] Itheyibhile{ ": " }
        *[unnumbered] Itheyibhile
     }
-
 figure-name =
     { $parts ->
         [numbered] Umfanekiso { $enumeration }
@@ -331,15 +308,12 @@ figure-name =
        *[unnumbered] Umfanekiso
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ephelileyo
 paginator-next = Elandelayo
 paginator-page = Iphepha
-
 paginator-page-status = { $pageLabel } { $currentPage } kwangama-{ $numPages }
-
 
 ## Piecewise functions
 
@@ -347,8 +321,8 @@ piecewise-condition-or = okanye
 piecewise-condition-if = ukuba
 piecewise-condition-otherwise = ngaphandle koko
 
-
 ## Chemistry
+
 
 # Xhosa is one of the catalogs that leaves `element-name` and
 # `element-anion-name` out, so those 130 keys fall back to English, for the
@@ -357,6 +331,5 @@ piecewise-condition-otherwise = ngaphandle koko
 # classroom to seed from.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Uphawu Lweekhemikhali Olungasebenziyo
 chemistry-invalid-ionic-compound = Umxube Weayoni Ongasebenziyo

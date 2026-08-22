@@ -38,15 +38,12 @@ color =
     .purple = фиолетовый
     .pink = роза тӱсан
     .brown = кӱрен
-
 line-width =
     .thick = кӱжгӧ
     .thin = вичкыж
-
 line-style =
     .dashed = кӱрылтшӧ
     .dotted = точкан
-
 # Noun phrases: they stand in front of «сӱретан» and modify nothing.
 fill-style =
     .horizontal = горизонтальный линий
@@ -55,7 +52,6 @@ fill-style =
     .backdiagonal = ваштареш диагональный линий
     .dots = точко
     .diamonds = ромб
-
 noun =
     .line = вияш линий
     .line-segment = ужаш
@@ -75,7 +71,6 @@ noun =
     .diamond = ромб
     .cross = вашкыл
     .plus = плюс
-
 # Mari builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -83,11 +78,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] тӧр { $numSides } лукан
     }
-
 # Mari has no grammatical gender, so every noun answers the same and the answer
 # goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -101,21 +94,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = чиялтыме
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } сӱретан { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } сӱретан { $color } { $filled } { $noun }
@@ -123,7 +112,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } сӱретан { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «тӱран» — "having an edge" — carries the whole of "with a border" in its own
 # suffix, so neither a preposition nor an article is wanted.
 style-border-clause =
@@ -133,15 +121,12 @@ style-border-clause =
         [and-article] да { $border } тӱран
        *[with] { $border } тӱран
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } сӱретан { $color } чия
        *[plain] { $color } чия
     }
-
 style-unfilled = чиялтыдыме
-
 # «ӱмбалне» — "on" — is a postposition and follows the background colour, so
 # nothing stands between the two words.
 style-text =
@@ -149,21 +134,17 @@ style-text =
         [background] { $background } фон ӱмбалне { $color }
        *[plain] { $color }
     }
-
 style-background-none = уке
-
 
 ## Boolean words
 
 boolean-true = чын
 boolean-false = чын огыл
 
-
 ## Answer buttons
 
 answer-submit-label = Тергаш
 answer-submit-label-no-correctness = Вашмутым колташ
-
 
 ## Sectional blocks
 
@@ -188,7 +169,6 @@ section-name =
     .solution = Решений
     .task = Пашаж
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -198,9 +178,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ой
-
 
 ## Tables and figures
 
@@ -211,7 +189,6 @@ table-name =
         [unnumbered-title] Таблице{ ". " }
        *[unnumbered] Таблице
     }
-
 figure-name =
     { $parts ->
         [numbered] Сӱрет { $enumeration }
@@ -220,15 +197,12 @@ figure-name =
        *[unnumbered] Сӱрет
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ончычсо
 paginator-next = Вес
 paginator-page = Лаштык
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -242,7 +216,6 @@ piecewise-condition-or = але
 piecewise-condition-if = гын
 piecewise-condition-otherwise = вес семын
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -251,6 +224,5 @@ piecewise-condition-otherwise = вес семын
 ## ones — the school-system case this batch shares throughout.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Чын огыл химический пале
 chemistry-invalid-ionic-compound = Чын огыл ион ушымаш

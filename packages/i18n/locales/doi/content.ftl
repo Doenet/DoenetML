@@ -74,7 +74,6 @@ color =
             [f] भूरी
            *[m] भूरा
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -86,12 +85,10 @@ line-width =
             [f] पतली
            *[m] पतला
         }
-
 # Neither ends in -आ, so neither changes.
 line-style =
     .dashed = टुकड़ेदार
     .dotted = बिंदुदार
-
 # Plural nouns rather than adjectives, so they carry their own agreement and
 # «कन्नै» takes them bare.
 fill-style =
@@ -101,7 +98,6 @@ fill-style =
     .backdiagonal = उल्टियां तिरछियां लकीरां
     .dots = बिंदू
     .diamonds = समचतुर्भुज
-
 noun =
     .line = रेखा
     .line-segment = रेखाखंड
@@ -121,7 +117,6 @@ noun =
     .diamond = समचतुर्भुज
     .cross = गुणा दा निशान
     .plus = जोड़ दा निशान
-
 # «भुजाएं आला» takes the count and stands in front of the noun, so nothing
 # follows the adjectives and the tail is empty.
 noun-regular-polygon =
@@ -129,7 +124,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } भुजाएं आला समबहुभुज
     }
-
 # Besides the nouns above, `$noun` may be «regular-polygon» (बहुभुज, m) or the
 # head of a phrase the description does not name: «border» (किनारी, f), «fill»
 # (भराई, f), «text» (पाठ, m), «background» (पृष्ठभूमि, f).
@@ -144,7 +138,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -157,19 +150,16 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [f] भरेई
        *[m] भरेआ
     }
-
 # «कन्नै» ("with") is a postposition and follows what it governs, so the
 # pattern moves to the front of the phrase where English appends it.
 style-filled =
@@ -177,7 +167,6 @@ style-filled =
         [pattern] { $pattern } कन्नै { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } कन्नै { $filled } { $color } { $noun }
@@ -185,7 +174,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } कन्नै { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Dogri has no article, so the two `-article` branches read like their
 # neighbours; «ते» is the conjunction and stands in front.
 style-border-clause =
@@ -195,35 +183,28 @@ style-border-clause =
         [and-article] ते { $border } किनारी कन्नै
        *[with] { $border } किनारी कन्नै
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } कन्नै { $color } भराई
        *[plain] { $color } भराई
     }
-
 style-unfilled = बिन भरेआ
-
 style-text =
     { $parts ->
         [background] { $background } पृष्ठभूमि पर { $color }
        *[plain] { $color }
     }
-
 style-background-none = कुसै किस्म दा नेईं
-
 
 ## Boolean words
 
 boolean-true = सच्च
 boolean-false = झूठ
 
-
 ## Answer buttons
 
 answer-submit-label = जाँचो
 answer-submit-label-no-correctness = जवाब भेजो
-
 
 ## Sectional blocks
 
@@ -248,7 +229,6 @@ section-name =
     .solution = हल
     .task = कम्म
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -258,9 +238,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = इशारा
-
 
 ## Tables and figures
 
@@ -271,7 +249,6 @@ table-name =
         [unnumbered-title] सारणी{ ": " }
        *[unnumbered] सारणी
     }
-
 figure-name =
     { $parts ->
         [numbered] चित्र { $enumeration }
@@ -280,25 +257,19 @@ figure-name =
        *[unnumbered] चित्र
     }
 
-
 ## Paginator controls
 
 paginator-previous = पिछला
 paginator-next = अगला
 paginator-page = सफा
-
 # «X चा Y» — "Y of X" — puts the total first, so the two counts change places.
 paginator-page-status = { $numPages } चा { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = जां
-
 piecewise-condition-if = जेकर
-
 piecewise-condition-otherwise = नैं ते
-
 
 ## Chemistry
 ##
@@ -313,6 +284,5 @@ piecewise-condition-otherwise = नैं ते
 ## and `kok` record — four languages, four education systems, one sentence.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = गलत रसायनिक निशान
 chemistry-invalid-ionic-compound = गलत आयनिक यौगिक

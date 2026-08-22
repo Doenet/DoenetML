@@ -39,15 +39,12 @@ color =
     .purple = 紫色
     .pink = 粉紅色
     .brown = 棕色
-
 line-width =
     .thick = 粗
     .thin = 細
-
 line-style =
     .dashed = 虛線
     .dotted = 點線
-
 # Noun phrases: they follow 帶 and modify nothing.
 fill-style =
     .horizontal = 水平線
@@ -56,7 +53,6 @@ fill-style =
     .backdiagonal = 反向斜線
     .dots = 圓點
     .diamonds = 菱形
-
 noun =
     .line = 直線
     .line-segment = 線段
@@ -76,7 +72,6 @@ noun =
     .diamond = 菱形
     .cross = 十字
     .plus = 加號
-
 # Chinese puts the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -84,11 +79,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] 正 { $numSides } 邊形
     }
-
 # Chinese has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -102,22 +95,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # No space between a modifier and the noun it modifies.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description }{ $noun }{ $nounTail }
        *[noun] { $description }{ $noun }
     }
-
 style-filled-word = 填充
-
 style-filled =
     { $parts ->
         [pattern] 帶{ $pattern }的{ $color }{ $filled }
        *[plain] { $color }{ $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] 帶{ $pattern }的{ $color }{ $filled }{ $noun }
@@ -125,7 +114,6 @@ style-filled-with-noun =
         [pattern-tail] 帶{ $pattern }的{ $color }{ $filled }{ $noun }{ $nounTail }
        *[plain] { $color }{ $filled }{ $noun }
     }
-
 # The code appends this clause to the description with a plain space, which is
 # the one join no catalog owns, so Chinese gets a space it would not write:
 # 帶圓點的藍色填充圓 和紅色邊框. Closing it means the code passing the join to
@@ -137,35 +125,28 @@ style-border-clause =
         [and-article] 和{ $border }邊框
        *[with] 帶{ $border }邊框
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color }{ $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = 未填充
-
 style-text =
     { $parts ->
         [background] { $color }，{ $background }背景
        *[plain] { $color }
     }
-
 style-background-none = 無
-
 
 ## Boolean words
 
 boolean-true = 真
 boolean-false = 假
 
-
 ## Answer buttons
 
 answer-submit-label = 檢查
 answer-submit-label-no-correctness = 提交作答
-
 
 ## Sectional blocks
 
@@ -190,7 +171,6 @@ section-name =
     .solution = 解答
     .task = 任務
     .theorem = 定理
-
 # A space separates the word from its number, because the number is Latin
 # digits, and a title follows the full-width colon Chinese punctuates with. A
 # bare number keeps the ASCII period, which is the punctuation the number
@@ -204,9 +184,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ "：" }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = 提示
-
 
 ## Tables and figures
 
@@ -217,7 +195,6 @@ table-name =
         [unnumbered-title] 表{ "：" }
        *[unnumbered] 表
     }
-
 figure-name =
     { $parts ->
         [numbered] 圖 { $enumeration }
@@ -226,26 +203,22 @@ figure-name =
        *[unnumbered] 圖
     }
 
-
 ## Paginator controls
 
 paginator-previous = 上一頁
 paginator-next = 下一頁
 paginator-page = 頁
-
 # Chinese counts pages with the label on both halves — 第 3 頁，共 5 頁 — so
 # `$pageLabel` appears twice. It is the `pageLabel` attribute, which an author
 # may have written themselves, and a word they chose has to be the word in
 # both halves.
 paginator-page-status = 第 { $currentPage } { $pageLabel }，共 { $numPages } { $pageLabel }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = 或
 piecewise-condition-if = 當
 piecewise-condition-otherwise = 其他情況
-
 
 ## Chemistry
 
@@ -368,7 +341,6 @@ element-name =
     .lv = 鉝
     .ts = 鿬
     .og = 鿫
-
 element-anion-name =
     .h = 氫化物
     .c = 碳化物
@@ -382,8 +354,6 @@ element-anion-name =
     .i = 碘化物
     .at = 砈化物
     .ts = 鿬化物
-
 ion-name-oxidation-state = { $name }（{ $numeral }）
-
 chemistry-invalid-symbol = 無效的化學符號
 chemistry-invalid-ionic-compound = 無效的離子化合物

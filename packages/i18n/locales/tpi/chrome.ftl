@@ -27,21 +27,15 @@
 
 answer-checking = Skelim i stap…
 answer-submitting = Salim i stap…
-
 answer-checking-status = Skelim bekim
 answer-submitting-status = Salim bekim
-
 answer-correct = Stret
 answer-incorrect = I no stret
-
 answer-response-saved = Bekim i stap sef
-
 answer-percent-credit = { $percent }% mak
 answer-percent-correct = { $percent }% stret
 answer-percent-short = { $percent } %
-
 max-credit-available = Bikpela mak yu inap kisim: { $percent }%
-
 # No select: «traim» is the same word for one and for many. The `[0]` branch
 # stays, because it names none rather than counting.
 attempts-remaining =
@@ -49,51 +43,38 @@ attempts-remaining =
         [0] i no gat traim i stap yet
        *[other] { $count } traim i stap yet
     }
-
 validation-correct = (Stret)
 validation-incorrect = (I no stret)
 validation-partially-correct = (Stret liklik)
-
 # No select, for the reason above. `$answerId` is the author's own name for the
 # answer and is never translated.
 answer-show-responses = Soim { $count } bekim bilong { $answerId }
 
-
 ## Disclosure panels
 
 feedback-heading = Toktok bek
-
 collapsible-click-to-open = (klikim bilong opim)
 collapsible-click-to-close = (klikim bilong pasim)
-
 collapsible-initializing = Kirapim i stap…
-
 footnote-show = Soim footnote
 footnote-hide = Haitim footnote
-
 description-more-information = moa tok save
-
 
 ## Controls
 
 slider-previous = Bipo
 slider-next = Neks
-
 keyboard-open = Opim kibot
 keyboard-close = Pasim kibot
-
 choice-input-remove-choice = Rausim { $choice }
-
 matrix-remove-row = Rausim lain
 matrix-add-row = Putim wanpela lain
 matrix-remove-column = Rausim kolam
 matrix-add-column = Putim wanpela kolam
-
 subset-add-remove-points = Putim/Rausim ol poin
 subset-toggle-points-intervals = Senisim ol poin na ol namel
 subset-move-points = Muvim ol poin
 subset-clear = Klinim
-
 orbital-add-row = Putim wanpela lain
 orbital-remove-row = Rausim lain
 orbital-add-box = Putim wanpela bokis
@@ -101,13 +82,9 @@ orbital-remove-box = Rausim bokis
 orbital-add-up-arrow = Putim wanpela spia i go antap
 orbital-add-down-arrow = Putim wanpela spia i go daun
 orbital-remove-arrow = Rausim spia
-
 orbital-row-label = Nem bilong lain { $row }
-
 pretzel-answer = Bekim
-
 summary-statistics-caption = Sotpela ripot namba bilong { $column }
-
 
 ## Math input
 
@@ -115,34 +92,25 @@ math-input-preview-region = lukluk pastaim long tok matematik
 math-input-preview = Lukluk pastaim
 math-input-invalid-expression = Tok i no stret:
 
-
 ## Document status
 
 viewer-initializing = Kirapim i stap…
 
-
 ## Errors
 
 error-heading = Asua
-
 error-found-at =
     { $span ->
         [line] Painim long lain { $startLine }.
        *[lines] Painim long ol lain { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Dispela dokumen i gat asua!
-
 diagnostic-heading-error = Asua
 diagnostic-heading-warning = Tok lukaut
 diagnostic-heading-information = Tok save
 diagnostic-heading-hint = Tok helpim
-
 accessibility-heading-level-1 = Brukim lo bilong akses WCAG AA
 accessibility-heading-level-2 = Tok lukaut long akses
-
 something-went-wrong = Wanpela samting i no orait.
-
 renderer-load-failed = wanpela renderer i no lodim. Plis lodim gen dispela pes.
-
 core-start-failed = Luk bilong dokumen i no inap kirap. Plis lodim gen dispela pes.

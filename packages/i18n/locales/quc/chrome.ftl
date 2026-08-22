@@ -35,21 +35,15 @@
 
 answer-checking = Kanikʼoxik…
 answer-submitting = Kataqik…
-
 answer-checking-status = Kanikʼoxik ri tzalijisabʼal
 answer-submitting-status = Kataqik ri tzalijisabʼal
-
 answer-correct = Utz
 answer-incorrect = Man utz taj
-
 answer-response-saved = Xkʼol ri tzalijisabʼal
-
 answer-percent-credit = { $percent }% rajil
 answer-percent-correct = { $percent }% utz
 answer-percent-short = { $percent } %
-
 max-credit-available = Ri nimalaj rajil kʼo: { $percent }%
-
 # No select: «tijonik» is inanimate and takes no plural, so both English
 # categories render the same words. The count still arrives and is still
 # formatted. `[0]` stays, because "none left" is its own sentence.
@@ -58,52 +52,39 @@ attempts-remaining =
         [0] maj chi tijonik kʼo kanaj
        *[other] { $count } tijonik kʼo kanaj
     }
-
 validation-correct = (Utz)
 validation-incorrect = (Man utz taj)
 validation-partially-correct = (Jubʼiqʼ utz)
-
 # No select, for the reason given above. The answer is reached with «rech» rather
 # than with the possessive prefix, whose shape `$answerId`'s first sound would
 # decide.
 answer-show-responses = Chakʼutu { $count } tzalijisabʼal rech { $answerId }
 
-
 ## Disclosure panels
 
 feedback-heading = Tzalijisan tzij
-
 collapsible-click-to-open = (chapitzʼa rech kajaqik)
 collapsible-click-to-close = (chapitzʼa rech katzʼapix)
-
 collapsible-initializing = Kachaplebʼex…
-
 footnote-show = Chakʼutu ri tzʼibʼ pa uxeʼ
 footnote-hide = Chawewaj ri tzʼibʼ pa uxeʼ
-
 description-more-information = kʼi na etamabʼal
-
 
 ## Controls
 
 slider-previous = Nabʼe
 slider-next = Kʼisbʼal
-
 keyboard-open = Chajaqa ri kʼutbʼal tzʼibʼ
 keyboard-close = Chatzʼapij ri kʼutbʼal tzʼibʼ
-
 choice-input-remove-choice = Chesaj { $choice }
-
 matrix-remove-row = Chesaj jun wokaj
 matrix-add-row = Chakoj jun wokaj
 matrix-remove-column = Chesaj jun tikbʼal
 matrix-add-column = Chakoj jun tikbʼal
-
 subset-add-remove-points = Chakoj/Chesaj tzʼubʼ
 subset-toggle-points-intervals = Chakʼexa tzʼubʼ rukʼ nikʼajibʼal
 subset-move-points = Chasilabʼisaj ri tzʼubʼ
 subset-clear = Chachup
-
 orbital-add-row = Chakoj jun wokaj
 orbital-remove-row = Chesaj jun wokaj
 orbital-add-box = Chakoj jun kaxa
@@ -111,13 +92,9 @@ orbital-remove-box = Chesaj jun kaxa
 orbital-add-up-arrow = Chakoj jun chʼabʼ upa akʼanibʼal
 orbital-add-down-arrow = Chakoj jun chʼabʼ upa qajibʼal
 orbital-remove-arrow = Chesaj jun chʼabʼ
-
 orbital-row-label = Ubʼiʼ ri wokaj { $row }
-
 pretzel-answer = Tzalijisabʼal
-
 summary-statistics-caption = Ri ajilanik rech { $column }
-
 
 ## Math input
 
@@ -125,34 +102,25 @@ math-input-preview-region = kʼutbʼal rech ri ajilanik tzij
 math-input-preview = Nabʼe kʼutbʼal
 math-input-invalid-expression = Man utz taj ri tzij:
 
-
 ## Document status
 
 viewer-initializing = Kachaplebʼex…
 
-
 ## Errors
 
 error-heading = Sachbʼal
-
 error-found-at =
     { $span ->
         [line] Xriqitaj pa ri juchʼ { $startLine }.
        *[lines] Xriqitaj pa ri juchʼ { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Wa wuj kʼo sachbʼal chupam!
-
 diagnostic-heading-error = Sachbʼal
 diagnostic-heading-warning = Pixabʼ
 diagnostic-heading-information = Etamabʼal
 diagnostic-heading-hint = Tobʼanik
-
 accessibility-heading-level-1 = WCAG AA sachbʼal rech okibʼal
 accessibility-heading-level-2 = Pixabʼ rech okibʼal
-
 something-went-wrong = Kʼo jasachike man utz taj xbʼantajik.
-
 renderer-load-failed = jun kʼutunel man xoponik taj. Chakʼexa chi ri wuj.
-
 core-start-failed = Ri ilonel rech wuj man xkowin taj kachaplebʼexik. Chakʼexa chi ri wuj.

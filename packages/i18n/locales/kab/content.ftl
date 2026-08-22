@@ -91,7 +91,6 @@ color =
     .purple = purpuri
     .pink = wardi
     .brown = qahwi
-
 line-width =
     .thick =
         { $gender ->
@@ -103,14 +102,12 @@ line-width =
             [f] tarqaqt
            *[m] arqaq
         }
-
 # Prepositional phrases rather than adjectives, so that they agree with nothing
 # and can close the description. The nouns inside them are already in the
 # annexed state «s» governs.
 line-style =
     .dashed = s tegzumin
     .dotted = s tenqiḍin
-
 # Written in the annexed state, because every place these words are placed puts
 # them behind «s»; see this file's header.
 fill-style =
@@ -120,7 +117,6 @@ fill-style =
     .backdiagonal = yizirigen izgen s tama nniḍen
     .dots = tenqiḍin
     .diamonds = telmasin
-
 noun =
     .line = izirig
     .line-segment = agzum n yizirig
@@ -140,7 +136,6 @@ noun =
     .diamond = talmast
     .cross = amgrid
     .plus = azamul n urnu
-
 # The side count is a complement introduced by «s», so it follows the whole
 # phrase rather than opening it, and the noun inside it is annexed.
 #
@@ -152,7 +147,6 @@ noun-regular-polygon =
         [tail] s { $numSides } n yidisan
        *[head] ameggetsdis amectu
     }
-
 # The grammatical gender of the noun being described. Masculine is the default
 # and the gender a loanword takes, which is what an author's own
 # `markerStyleWord` is as far as this catalog is concerned.
@@ -168,7 +162,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 # The dash pattern is an «s …» phrase and closes the description, so it moves
@@ -183,19 +176,16 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] teččuṛ
        *[m] iččuṛ
     }
-
 # Every branch that places `$pattern` puts it behind «s», which is what lets
 # `fill-style` write one annexed form apiece.
 style-filled =
@@ -203,7 +193,6 @@ style-filled =
         [pattern] { $filled } { $color } s { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } s { $pattern }
@@ -211,7 +200,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } s { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «tama» is feminine, so the border's adjectives agree with it rather than with
 # the shape it surrounds, and it stands here in the annexed state «s» governs.
 # Kabyle has no indefinite article, so the two `-article` branches read like
@@ -223,36 +211,29 @@ style-border-clause =
         [and-article] d tema { $border }
        *[with] s tema { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } s { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ur yeččuṛ ara
-
 # «ugilal» is «agilal» in the annexed state, which «ɣef» governs.
 style-text =
     { $parts ->
         [background] { $color } ɣef ugilal { $background }
        *[plain] { $color }
     }
-
 style-background-none = ulac
-
 
 ## Boolean words
 
 boolean-true = tidet
 boolean-false = lekdeb
 
-
 ## Answer buttons
 
 answer-submit-label = Senqed Ammud
 answer-submit-label-no-correctness = Azen Tiririt
-
 
 ## Sectional blocks
 
@@ -277,7 +258,6 @@ section-name =
     .solution = Tifrat
     .task = Ammud
     .theorem = Aḥric usnan
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -287,9 +267,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Talɣut
-
 
 ## Tables and figures
 
@@ -300,7 +278,6 @@ table-name =
         [unnumbered-title] Tafelwit{ ": " }
        *[unnumbered] Tafelwit
     }
-
 figure-name =
     { $parts ->
         [numbered] Tugna { $enumeration }
@@ -309,24 +286,18 @@ figure-name =
        *[unnumbered] Tugna
     }
 
-
 ## Paginator controls
 
 paginator-previous = Uzwir
 paginator-next = Uḍfir
 paginator-page = Asebter
-
 paginator-page-status = { $pageLabel } { $currentPage } seg { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = neɣ
-
 piecewise-condition-if = ma yella
-
 piecewise-condition-otherwise = neɣ mulac
-
 
 ## Chemistry
 ##
@@ -341,6 +312,5 @@ piecewise-condition-otherwise = neɣ mulac
 ## school system that answers the same way.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Azamul akimyan arameɣtu
 chemistry-invalid-ionic-compound = Asdukkel ayunan arameɣtu

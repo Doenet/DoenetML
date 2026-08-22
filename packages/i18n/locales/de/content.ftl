@@ -175,7 +175,6 @@ color =
                    *[m] brauner
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -201,7 +200,6 @@ line-width =
                    *[m] dünner
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -227,7 +225,6 @@ line-style =
                    *[m] gepunkteter
                 }
         }
-
 # Noun phrases: they follow `mit` and agree with nothing.
 fill-style =
     .horizontal = waagerechten Linien
@@ -236,7 +233,6 @@ fill-style =
     .backdiagonal = gegenläufigen diagonalen Linien
     .dots = Punkten
     .diamonds = Rauten
-
 noun =
     .line = Linie
     .line-segment = Strecke
@@ -256,7 +252,6 @@ noun =
     .diamond = Raute
     .cross = Kreuz
     .plus = Pluszeichen
-
 # German keeps the side count in front of the noun, as a compound, so the whole
 # thing is one head and there is no tail.
 noun-regular-polygon =
@@ -264,7 +259,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regelmäßiges { $numSides }-Eck
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (which is
 # `{ $numSides }-Eck`, neuter) or the head of a phrase the description never
 # names: `border` (der Rand, m), `fill` (die Füllung, f), `text` (der Text, m),
@@ -298,7 +292,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -311,7 +304,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives lead and the noun closes the phrase, which is the reverse of
 # Spanish and the same as English: „dicke rote Linie“.
 style-with-noun =
@@ -319,7 +311,6 @@ style-with-noun =
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every
 # description and takes no `$role` branch.
 style-filled-word =
@@ -328,13 +319,11 @@ style-filled-word =
         [n] gefülltes
        *[m] gefüllter
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } mit { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } mit { $pattern }
@@ -342,7 +331,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } mit { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # „Rand“ is masculine, so the border's adjectives agree with it and not with
 # the shape it surrounds. `mit` and `und einem` govern the dative, which is
 # what the `border-clause` branch of every adjective supplies.
@@ -360,7 +348,6 @@ style-border-clause =
         [and-article] und einem { $border } Rand
        *[with] mit einem { $border } Rand
     }
-
 # The fill-pattern words are dative plurals, because their other use is the
 # „mit { $pattern }“ clause in `style-filled`. So this message supplies a noun
 # for them to hang off — „Füllung“, feminine, which is the gender `noun-gender`
@@ -370,9 +357,7 @@ style-fill =
         [pattern] { $color } Füllung mit { $pattern }
        *[plain] { $color } Füllung
     }
-
 style-unfilled = ungefüllt
-
 # „auf“ with no article governs the strong dative, which is the
 # `background-clause` ending; the text colour beside it is predicative, which
 # in German is the bare stem. So this reads „rot auf gelbem Hintergrund“, where
@@ -383,21 +368,17 @@ style-text =
         [background] { $color } auf { $background } Hintergrund
        *[plain] { $color }
     }
-
 style-background-none = keiner
-
 
 ## Boolean words
 
 boolean-true = wahr
 boolean-false = falsch
 
-
 ## Answer buttons
 
 answer-submit-label = Prüfen
 answer-submit-label-no-correctness = Antwort senden
-
 
 ## Sectional blocks
 
@@ -422,7 +403,6 @@ section-name =
     .solution = Lösung
     .task = Aufgabe
     .theorem = Satz
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -432,9 +412,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tipp
-
 
 ## Tables and figures
 
@@ -445,7 +423,6 @@ table-name =
         [unnumbered-title] Tabelle{ ": " }
        *[unnumbered] Tabelle
     }
-
 figure-name =
     { $parts ->
         [numbered] Abbildung { $enumeration }
@@ -454,22 +431,18 @@ figure-name =
        *[unnumbered] Abbildung
     }
 
-
 ## Paginator controls
 
 paginator-previous = Zurück
 paginator-next = Weiter
 paginator-page = Seite
-
 paginator-page-status = { $pageLabel } { $currentPage } von { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = oder
 piecewise-condition-if = falls
 piecewise-condition-otherwise = sonst
-
 
 ## Chemistry
 
@@ -592,7 +565,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenness
     .og = Oganesson
-
 element-anion-name =
     .h = Hydrid
     .c = Carbid
@@ -606,8 +578,6 @@ element-anion-name =
     .i = Iodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ungültiges chemisches Symbol
 chemistry-invalid-ionic-compound = Ungültige Ionenverbindung

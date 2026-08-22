@@ -14,25 +14,20 @@
 # 3 of those mutates, so that branch keeps the base form. `many` is the branch
 # for multiples of a million, which is why it reads with «a» and a plural.
 
+
 ## Answer submission
 
 answer-checking = O wiriañ…
 answer-submitting = O kas…
-
 answer-checking-status = O wiriañ ar respont
 answer-submitting-status = O kas ar respont
-
 answer-correct = Reizh
 answer-incorrect = Direizh
-
 answer-response-saved = Respont enrollet
-
 answer-percent-credit = { $percent }% eus ar poentoù
 answer-percent-correct = { $percent }% reizh
 answer-percent-short = { $percent } %
-
 max-credit-available = Poentoù uhelañ hegerz: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] taol ebet a chom
@@ -42,11 +37,9 @@ attempts-remaining =
         [many] { $count } a daolioù a chom
        *[other] { $count } taol a chom
     }
-
 validation-correct = (Reizh)
 validation-incorrect = (Direizh)
 validation-partially-correct = (Reizh en un doare)
-
 answer-show-responses =
     { $count ->
         [one] Diskouez { $count } respont da { $answerId }
@@ -56,42 +49,31 @@ answer-show-responses =
        *[other] Diskouez { $count } respont da { $answerId }
     }
 
-
 ## Disclosure panels
 
 feedback-heading = Evezhiadennoù
-
 collapsible-click-to-open = (klikit evit digeriñ)
 collapsible-click-to-close = (klikit evit serriñ)
-
 collapsible-initializing = O kregiñ…
-
 footnote-show = Diskouez an notenn traoñ-pajenn
 footnote-hide = Kuzhat an notenn traoñ-pajenn
-
 description-more-information = muioc'h a ditouroù
-
 
 ## Controls
 
 slider-previous = A-raok
 slider-next = War-lerc'h
-
 keyboard-open = Digeriñ ar c'hlavier
 keyboard-close = Serriñ ar c'hlavier
-
 choice-input-remove-choice = Lemel { $choice }
-
 matrix-remove-row = Lemel ul linenn
 matrix-add-row = Ouzhpennañ ul linenn
 matrix-remove-column = Lemel ur bann
 matrix-add-column = Ouzhpennañ ur bann
-
 subset-add-remove-points = Ouzhpennañ/lemel poentoù
 subset-toggle-points-intervals = Tremen etre poentoù ha spasoù
 subset-move-points = Dilec'hiañ ar poentoù
 subset-clear = Skarzhañ
-
 orbital-add-row = Ouzhpennañ ul linenn
 orbital-remove-row = Lemel ul linenn
 orbital-add-box = Ouzhpennañ ur voest
@@ -99,13 +81,9 @@ orbital-remove-box = Lemel ur voest
 orbital-add-up-arrow = Ouzhpennañ ur bir war-grec'h
 orbital-add-down-arrow = Ouzhpennañ ur bir war-zu an traoñ
 orbital-remove-arrow = Lemel ur bir
-
 orbital-row-label = Tikedenn evit al linenn { $row }
-
 pretzel-answer = Respont
-
 summary-statistics-caption = Stadegoù berr eus { $column }
-
 
 ## Math input
 
@@ -113,34 +91,25 @@ math-input-preview-region = rakwel eus ar frazenn jedoniel
 math-input-preview = Rakwel
 math-input-invalid-expression = Frazenn direizh:
 
-
 ## Document status
 
 viewer-initializing = O kregiñ…
 
-
 ## Errors
 
 error-heading = Fazi
-
 error-found-at =
     { $span ->
         [line] Kavet war al linenn { $startLine }.
        *[lines] Kavet war al linennoù { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Fazioù zo en teul-mañ!
-
 diagnostic-heading-error = Fazi
 diagnostic-heading-warning = Diwall
 diagnostic-heading-information = Titour
 diagnostic-heading-hint = Kuzul
-
 accessibility-heading-level-1 = Torr-reizh haezadusted WCAG AA
 accessibility-heading-level-2 = Kemenn haezadusted
-
 something-went-wrong = Un dra bennak a zo aet a-dreuz.
-
 renderer-load-failed = un treser n'en deus ket gallet kargañ. Adkargit ar bajenn.
-
 core-start-failed = N'eus ket bet gallet kregiñ gant gweler an teul. Adkargit ar bajenn.

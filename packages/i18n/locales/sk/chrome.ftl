@@ -22,21 +22,15 @@
 
 answer-checking = Prebieha kontrola…
 answer-submitting = Prebieha odosielanie…
-
 answer-checking-status = Kontrola odpovede
 answer-submitting-status = Odosielanie odpovede
-
 answer-correct = Správne
 answer-incorrect = Nesprávne
-
 answer-response-saved = Odpoveď uložená
-
 answer-percent-credit = { $percent } % hodnotenia
 answer-percent-correct = { $percent } % správne
 answer-percent-short = { $percent } %
-
 max-credit-available = Maximálne možné hodnotenie: { $percent } %
-
 attempts-remaining =
     { $count ->
         [0] nezostávajú žiadne pokusy
@@ -44,11 +38,9 @@ attempts-remaining =
         [few] zostávajú { $count } pokusy
        *[other] zostáva { $count } pokusov
     }
-
 validation-correct = (Správne)
 validation-incorrect = (Nesprávne)
 validation-partially-correct = (Čiastočne správne)
-
 answer-show-responses =
     { $count ->
         [one] Zobraziť { $count } odpoveď na { $answerId }
@@ -56,42 +48,31 @@ answer-show-responses =
        *[other] Zobraziť { $count } odpovedí na { $answerId }
     }
 
-
 ## Disclosure panels
 
 feedback-heading = Spätná väzba
-
 collapsible-click-to-open = (kliknutím otvoriť)
 collapsible-click-to-close = (kliknutím zavrieť)
-
 collapsible-initializing = Inicializácia…
-
 footnote-show = Zobraziť poznámku pod čiarou
 footnote-hide = Skryť poznámku pod čiarou
-
 description-more-information = viac informácií
-
 
 ## Controls
 
 slider-previous = Späť
 slider-next = Ďalej
-
 keyboard-open = Otvoriť klávesnicu
 keyboard-close = Zavrieť klávesnicu
-
 choice-input-remove-choice = Odobrať { $choice }
-
 matrix-remove-row = Odobrať riadok
 matrix-add-row = Pridať riadok
 matrix-remove-column = Odobrať stĺpec
 matrix-add-column = Pridať stĺpec
-
 subset-add-remove-points = Pridať/odobrať body
 subset-toggle-points-intervals = Prepnúť body a intervaly
 subset-move-points = Presunúť body
 subset-clear = Vymazať
-
 orbital-add-row = Pridať riadok
 orbital-remove-row = Odobrať riadok
 orbital-add-box = Pridať políčko
@@ -99,13 +80,9 @@ orbital-remove-box = Odobrať políčko
 orbital-add-up-arrow = Pridať šípku nahor
 orbital-add-down-arrow = Pridať šípku nadol
 orbital-remove-arrow = Odobrať šípku
-
 orbital-row-label = Označenie riadka { $row }
-
 pretzel-answer = Odpoveď
-
 summary-statistics-caption = Súhrnné štatistiky pre { $column }
-
 
 ## Math input
 
@@ -113,34 +90,25 @@ math-input-preview-region = náhľad matematického výrazu
 math-input-preview = Náhľad
 math-input-invalid-expression = Neplatný výraz:
 
-
 ## Document status
 
 viewer-initializing = Inicializácia…
 
-
 ## Errors
 
 error-heading = Chyba
-
 error-found-at =
     { $span ->
         [line] Nájdené na riadku { $startLine }.
        *[lines] Nájdené na riadkoch { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Tento dokument obsahuje chyby!
-
 diagnostic-heading-error = Chyba
 diagnostic-heading-warning = Varovanie
 diagnostic-heading-information = Informácia
 diagnostic-heading-hint = Pomôcka
-
 accessibility-heading-level-1 = Porušenie prístupnosti WCAG AA
 accessibility-heading-level-2 = Upozornenie na prístupnosť
-
 something-went-wrong = Niečo sa pokazilo.
-
 renderer-load-failed = vykresľovací modul sa nepodarilo načítať. Je potrebné znova načítať stránku.
-
 core-start-failed = Prehliadač dokumentu sa nepodarilo spustiť. Je potrebné znova načítať stránku.

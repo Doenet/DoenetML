@@ -51,15 +51,12 @@ color =
     .purple = fiolehtta
     .pink = roosa
     .brown = ruškes
-
 line-width =
     .thick = asse
     .thin = seaggi
-
 line-style =
     .dashed = sárgolaš
     .dotted = čuoggálaš
-
 # Comitative plurals. The `-iguin` ending is Sami's own word for "with", which
 # is why `style-filled` below places these straight after the colour and writes
 # no preposition of its own: the ending already said it.
@@ -70,7 +67,6 @@ fill-style =
     .backdiagonal = nuppe guvlui diagonála sárgguiguin
     .dots = čuoggáiguin
     .diamonds = rombbaiguin
-
 noun =
     .line = linnjá
     .line-segment = linnjáoassi
@@ -90,7 +86,6 @@ noun =
     .diamond = romba
     .cross = ruossa
     .plus = plus
-
 # Sami keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -98,12 +93,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] dássedis { $numSides }-bealat polygona
     }
-
 # Sami has no grammatical gender, so nothing above reads this and every noun
 # answers alike. It is here because the argument is passed to every adjective
 # and a message that resolves to nothing would render `{noun-gender}`.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -117,15 +110,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = devdojuvvon
-
 # The pattern words carry their own «with» in their comitative ending, so
 # nothing is written between them and what they follow.
 style-filled =
@@ -133,7 +123,6 @@ style-filled =
         [pattern] { $filled } { $color } { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern }
@@ -141,7 +130,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ravddain» is «ravda», a border, in the comitative — the case that carries
 # "with" — so the clause needs no preposition either. Sami has no article, so
 # the two `-article` branches read like the two without.
@@ -152,35 +140,28 @@ style-border-clause =
         [and-article] ja { $border } ravddain
        *[with] { $border } ravddain
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } deavdda { $pattern }
        *[plain] { $color } deavdda
     }
-
 style-unfilled = devdekeahtes
-
 style-text =
     { $parts ->
         [background] { $color } { $background } duogážiin
        *[plain] { $color }
     }
-
 style-background-none = ii mihkkiige
-
 
 ## Boolean words
 
 boolean-true = duohta
 boolean-false = eahpeduohta
 
-
 ## Answer buttons
 
 answer-submit-label = Dárkkis barggu
 answer-submit-label-no-correctness = Sádde vástádusa
-
 
 ## Sectional blocks
 
@@ -205,7 +186,6 @@ section-name =
     .solution = Čoavddus
     .task = Bargu
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -215,9 +195,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ráva
-
 
 ## Tables and figures
 
@@ -228,7 +206,6 @@ table-name =
         [unnumbered-title] Tabealla{ ": " }
        *[unnumbered] Tabealla
     }
-
 figure-name =
     { $parts ->
         [numbered] Govva { $enumeration }
@@ -237,22 +214,18 @@ figure-name =
        *[unnumbered] Govva
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ovddit
 paginator-next = Boahtte
 paginator-page = Siidu
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = dahje
 piecewise-condition-if = jos
 piecewise-condition-otherwise = muđui
-
 
 ## Chemistry
 ##
@@ -264,6 +237,5 @@ piecewise-condition-otherwise = muđui
 ## would report a fact about a border rather than about the language.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Gustohis kemiijalaš symbola
 chemistry-invalid-ionic-compound = Gustohis iovnnalaš oktavuohta

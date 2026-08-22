@@ -171,7 +171,6 @@ color =
                    *[m] ברוינער
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -195,7 +194,6 @@ line-width =
                    *[m] דינער
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -219,7 +217,6 @@ line-style =
                    *[m] געפּינטלטער
                 }
         }
-
 # Plural noun phrases, which is what follows «מיט» in `style-filled`. They agree
 # with nothing.
 fill-style =
@@ -229,7 +226,6 @@ fill-style =
     .backdiagonal = פֿאַרקערטע דיאַגאָנאַלע ליניעס
     .dots = פּינטלעך
     .diamonds = ראָמבן
-
 noun =
     .line = ליניע
     .line-segment = אָפּשניט
@@ -249,7 +245,6 @@ noun =
     .diamond = ראָמב
     .cross = קרייץ
     .plus = פּלוס
-
 # Yiddish keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -257,7 +252,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] רעגולערער { $numSides }-זייַטיקער פּאָליגאָן
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (פּאָליגאָן, m) or the
 # head of a phrase the description never names: `border` (ראַנד, m), `fill`
 # (אָנפֿיל, m), `text` (טעקסט, m), `background` (הינטערגרונט, m).
@@ -272,7 +266,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -285,13 +278,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -299,13 +290,11 @@ style-filled-word =
         [f] אָנגעפֿילטע
        *[m] אָנגעפֿילטער
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } מיט { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } מיט { $pattern }
@@ -313,7 +302,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } מיט { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ראַנד» is masculine, so the border's adjectives agree with it and not with
 # the shape it surrounds, and they are in the dative, which «מיט» governs.
 # Yiddish has an indefinite article, «אַ», so the two `-article` branches really
@@ -325,7 +313,6 @@ style-border-clause =
         [and-article] און אַ { $border } ראַנד
        *[with] מיט { $border } ראַנד
     }
-
 # The fill-pattern words are plurals, because their other use is the
 # «מיט { $pattern }» clause in `style-filled`. So this message supplies a noun
 # for them to hang off — «אָנפֿיל», masculine, which is the gender `noun-gender`
@@ -335,29 +322,23 @@ style-fill =
         [pattern] { $color } אָנפֿיל מיט { $pattern }
        *[plain] { $color } אָנפֿיל
     }
-
 style-unfilled = ניט אָנגעפֿילט
-
 style-text =
     { $parts ->
         [background] { $color } אויף אַ { $background } הינטערגרונט
        *[plain] { $color }
     }
-
 style-background-none = קיינער
-
 
 ## Boolean words
 
 boolean-true = אמת
 boolean-false = פֿאַלש
 
-
 ## Answer buttons
 
 answer-submit-label = קאָנטראָליר די אַרבעט
 answer-submit-label-no-correctness = שיק דעם ענטפֿער
-
 
 ## Sectional blocks
 
@@ -382,7 +363,6 @@ section-name =
     .solution = לייזונג
     .task = אויפֿטו
     .theorem = טעאָרעם
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -392,9 +372,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = אָנווייַז
-
 
 ## Tables and figures
 
@@ -405,7 +383,6 @@ table-name =
         [unnumbered-title] טאַבעלע{ ": " }
        *[unnumbered] טאַבעלע
     }
-
 figure-name =
     { $parts ->
         [numbered] פֿיגור { $enumeration }
@@ -414,22 +391,18 @@ figure-name =
        *[unnumbered] פֿיגור
     }
 
-
 ## Paginator controls
 
 paginator-previous = פֿריִערדיקע
 paginator-next = קומענדיקע
 paginator-page = זייַט
-
 paginator-page-status = { $pageLabel } { $currentPage } פֿון { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = אָדער
 piecewise-condition-if = אויב
 piecewise-condition-otherwise = אַנדערש
-
 
 ## Chemistry
 ##
@@ -441,6 +414,5 @@ piecewise-condition-otherwise = אַנדערש
 ## the English. This is where a speaker should look first.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = אומגילטיקער כעמישער סימבאָל
 chemistry-invalid-ionic-compound = אומגילטיקע יאָנישע פֿאַרבינדונג

@@ -25,69 +25,50 @@
 
 answer-checking = Бэрэбиэркэлэнэр…
 answer-submitting = Ыытыллар…
-
 answer-checking-status = Хоруй бэрэбиэркэлэнэр
 answer-submitting-status = Хоруй ыытыллар
-
 answer-correct = Сөп
 answer-incorrect = Сыыһа
-
 answer-response-saved = Хоруй хараллыбыта
-
 answer-percent-credit = { $percent }% баал
 answer-percent-correct = { $percent }% сөп
 answer-percent-short = { $percent } %
-
 max-credit-available = Ылыахха сөптөөх үрдүк баал: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] боруобалыыр кыах хаалбата
        *[other] { $count } боруобалыыр кыах хаалла
     }
-
 validation-correct = (Сөп)
 validation-incorrect = (Сыыһа)
 validation-partially-correct = (Аҥаардастыы сөп)
-
 answer-show-responses = { $answerId } диэҥҥэ { $count } хоруйу көрдөр
-
 
 ## Disclosure panels
 
 feedback-heading = Хардары этии
-
 collapsible-click-to-open = (аһар туһугар баттаа)
 collapsible-click-to-close = (сабар туһугар баттаа)
-
 collapsible-initializing = Бэлэмнэнэр…
-
 footnote-show = Бэлиэтээһини көрдөр
 footnote-hide = Бэлиэтээһини кистээ
-
 description-more-information = эбии информация
-
 
 ## Controls
 
 slider-previous = Иннинээҕи
 slider-next = Аныгыскы
-
 keyboard-open = Клавиатураны аһар
 keyboard-close = Клавиатураны сабар
-
 choice-input-remove-choice = { $choice } талыытын сот
-
 matrix-remove-row = Строканы сот
 matrix-add-row = Строка эп
 matrix-remove-column = Колонканы сот
 matrix-add-column = Колонка эп
-
 subset-add-remove-points = Туочука эбии/сотуу
 subset-toggle-points-intervals = Туочукалары уонна кэрчиктэри уларыт
 subset-move-points = Туочукалары көһөр
 subset-clear = Ыраастаа
-
 orbital-add-row = Строка эп
 orbital-remove-row = Строканы сот
 orbital-add-box = Кыаһы эп
@@ -95,13 +76,9 @@ orbital-remove-box = Кыаһы сот
 orbital-add-up-arrow = Үөһэ ох эп
 orbital-add-down-arrow = Аллара ох эп
 orbital-remove-arrow = Оҕу сот
-
 orbital-row-label = { $row } строка бэлиэтэ
-
 pretzel-answer = Хоруй
-
 summary-statistics-caption = { $column } колонка түмүк статистиката
-
 
 ## Math input
 
@@ -109,34 +86,25 @@ math-input-preview-region = математика этиитин иннинэ к�
 math-input-preview = Иннинэ көрүү
 math-input-invalid-expression = Сыыһа этии:
 
-
 ## Document status
 
 viewer-initializing = Бэлэмнэнэр…
 
-
 ## Errors
 
 error-heading = Алҕас
-
 error-found-at =
     { $span ->
         [line] Булуллубут строка: { $startLine }.
        *[lines] Булуллубут строкалар: { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Бу дьокумуоҥҥа алҕастар бааллар!
-
 diagnostic-heading-error = Алҕас
 diagnostic-heading-warning = Сэрэтии
 diagnostic-heading-information = Информация
 diagnostic-heading-hint = Сүбэ
-
 accessibility-heading-level-1 = WCAG AA туттуллар кыаҕын кэһиитэ
 accessibility-heading-level-2 = Туттуллар кыаҕын туһунан биллэрии
-
 something-went-wrong = Туох эрэ сыыһа тахсыбыт.
-
 renderer-load-failed = ойуулааччыны хачайдыы иликпит. Сирэйи саҥалыы хачайдаа.
-
 core-start-failed = Дьокумуон көрөр тэрилин саҕалыыр кыах суох. Сирэйи саҥалыы хачайдаа.

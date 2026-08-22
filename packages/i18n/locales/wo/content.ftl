@@ -51,17 +51,14 @@ color =
     .purple = wiyole
     .pink = roos
     .brown = maroo
-
 line-width =
     .thick = réy
     .thin = sew
-
 # Written as «ak …» phrases rather than as adjectives, so that they take no
 # linker and can close the description. `style-stroke` puts them last.
 line-style =
     .dashed = ak ay tiret
     .dotted = ak ay poñ
-
 fill-style =
     .horizontal = ay rëdd yu tëdd
     .vertical = ay rëdd yu taxaw
@@ -69,7 +66,6 @@ fill-style =
     .backdiagonal = ay rëdd yu jeng gannaaw
     .dots = ay poñ
     .diamonds = ay losaas
-
 noun =
     .line = rëdd
     .line-segment = dogu rëdd
@@ -89,7 +85,6 @@ noun =
     .diamond = losaas
     .cross = kruwaa
     .plus = màndarga plus
-
 # The side count follows the adjectives, behind «bu am», because Wolof closes a
 # noun phrase with a relative rather than opening one: «poligon bu yem bu xonq
 # bu am 5 wet».
@@ -98,10 +93,8 @@ noun-regular-polygon =
         [tail] bu am { $numSides } wet
        *[head] poligon bu yem
     }
-
 # Unused: the class lives on the determiner, not on the adjective.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -115,7 +108,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow, with the noun's own relative
 # complement closing the phrase.
 style-with-noun =
@@ -123,15 +115,12 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = feesal
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ak { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ak { $pattern }
@@ -139,7 +128,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ak { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Wolof has no article, and the complement is joined with the invariable «ak»,
 # so all four branches read alike.
 style-border-clause =
@@ -149,35 +137,28 @@ style-border-clause =
         [and-article] ak wetu { $border }
        *[with] ak wetu { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = feesalul
-
 style-text =
     { $parts ->
         [background] { $color } ci kaw ginnaaw { $background }
        *[plain] { $color }
     }
-
 style-background-none = amul
-
 
 ## Boolean words
 
 boolean-true = dëgg
 boolean-false = fen
 
-
 ## Answer buttons
 
 answer-submit-label = Seetlu Liggéey bi
 answer-submit-label-no-correctness = Yónnee Tontu bi
-
 
 ## Sectional blocks
 
@@ -202,7 +183,6 @@ section-name =
     .solution = Saafara
     .task = Liggéey
     .theorem = Teyoreem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -212,9 +192,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Xelal
-
 
 ## Tables and figures
 
@@ -225,7 +203,6 @@ table-name =
         [unnumbered-title] Tabal{ ": " }
        *[unnumbered] Tabal
     }
-
 figure-name =
     { $parts ->
         [numbered] Nataal { $enumeration }
@@ -234,22 +211,18 @@ figure-name =
        *[unnumbered] Nataal
     }
 
-
 ## Paginator controls
 
 paginator-previous = Bi jiitu
 paginator-next = Bi ci topp
 paginator-page = Xët
-
 paginator-page-status = { $pageLabel } { $currentPage } ci { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = walla
 piecewise-condition-if = su
 piecewise-condition-otherwise = su dul loolu
-
 
 ## Chemistry
 
@@ -259,6 +232,5 @@ piecewise-condition-otherwise = su dul loolu
 # these words meets them in a European language already — and the seed has no
 # settled Wolof list to reproduce. A speaker adding one should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Màndarga Simi bu Baaxul
 chemistry-invalid-ionic-compound = Konpose Iyonik bu Baaxul

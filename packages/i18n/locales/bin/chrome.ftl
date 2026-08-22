@@ -39,75 +39,56 @@
 
 answer-checking = A gha miẹn ọre...
 answer-submitting = A gha rhie ọre...
-
 answer-checking-status = A gha miẹn ọre
 answer-submitting-status = A gha rhie ọre
-
 answer-correct = Ọ maan
 answer-incorrect = Ọ i maan
-
 answer-response-saved = A rhie ọre ye efe
-
 answer-percent-credit = Kirediti { $percent }%
 answer-percent-correct = { $percent }% Ọ maan
 answer-percent-short = { $percent } %
-
 max-credit-available = Kirediti nọ khẹke sẹ: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] ighiẹnrhan i ke rre
         [one] ighiẹnrhan { $count } keghi rre
        *[other] ighiẹnrhan { $count } keghi rre
     }
-
 validation-correct = (Ọ maan)
 validation-incorrect = (Ọ i maan)
 validation-partially-correct = (Ọ maan vbe ọkpa fua)
-
 answer-show-responses =
     { $count ->
         [one] Rhie ọre { $count } ne { $answerId } miẹn
        *[other] Rhie ọre { $count } ne { $answerId } miẹn
     }
 
-
 ## Disclosure panels
 
 feedback-heading = Erhuanren
-
 collapsible-click-to-open = (kie ne u wa a)
 collapsible-click-to-close = (kie ne u mudia a)
-
 collapsible-initializing = A gha ghi hia...
-
 footnote-show = Rhie ẹkpotọ nkoko miẹn
 footnote-hide = Fian ẹkpotọ nkoko
-
 description-more-information = ikuẹdẹ eso ke odaro
-
 
 ## Controls
 
 slider-previous = Ọni
 slider-next = Ọvbehe
-
 keyboard-open = Wa Kiboọdi
 keyboard-close = Mudia Kiboọdi
-
 # `$choice` — the choice's own text — is not translated.
 choice-input-remove-choice = Fian { $choice }
-
 matrix-remove-row = Fian ẹfẹ
 matrix-add-row = Gie ẹfẹ
 matrix-remove-column = Fian ọwagbe
 matrix-add-column = Gie ọwagbe
-
 subset-add-remove-points = Gie/Fian akoto
 subset-toggle-points-intervals = Ghee vbe akoto kevbe ẹvba
 subset-move-points = Gele akoto
 subset-clear = Fian hia
-
 orbital-add-row = Gie Ẹfẹ
 orbital-remove-row = Fian Ẹfẹ
 orbital-add-box = Gie Ẹkpẹtin
@@ -115,13 +96,9 @@ orbital-remove-box = Fian Ẹkpẹtin
 orbital-add-up-arrow = Gie Ọfa Ye Odukhunmwu
 orbital-add-down-arrow = Gie Ọfa Ye Otọ
 orbital-remove-arrow = Fian Ọfa
-
 orbital-row-label = Uni ne ẹfẹ { $row }
-
 pretzel-answer = Ọre
-
 summary-statistics-caption = Igbe ekhọe ti { $column }
-
 
 ## Math input
 
@@ -129,34 +106,25 @@ math-input-preview-region = uhunmwu ẹdẹ ọfoworhọ
 math-input-preview = Uhunmwu
 math-input-invalid-expression = Ọfoworhọ nọ i maan:
 
-
 ## Document status
 
 viewer-initializing = A gha ghi hia...
 
-
 ## Errors
 
 error-heading = Efian
-
 error-found-at =
     { $span ->
         [line] A miẹn ẹre vbe ẹfẹ { $startLine }.
        *[lines] A miẹn ẹre vbe efe { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Ekhọe rre vbe akọsile nan!
-
 diagnostic-heading-error = Efian
 diagnostic-heading-warning = Ivbieka
 diagnostic-heading-information = Ikuẹdẹ
 diagnostic-heading-hint = Ọtọ
-
 accessibility-heading-level-1 = Efian WCAG AA vbe abọ nọ khẹke
 accessibility-heading-level-2 = Ivbieka vbe abọ nọ khẹke
-
 something-went-wrong = Emwin ọkpa i rre vbe odẹ.
-
 renderer-load-failed = ọkpa ke ihe ọfoworhọ i rre. Gie ọdẹ mudia ọni ọwagbe.
-
 core-start-failed = Ihe akọsile i sẹtin ghi. Gie ọdẹ mudia ọni ọwagbe.
