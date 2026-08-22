@@ -224,5 +224,5 @@ core-start-failed-busy-retry = This document could not be started. Several docum
 
 # Label of the button that starts a failed document over without reloading
 # the page. Offered once per document; a retry that fails too falls back to
-# `core-start-failed`, which advises the reload.
+# `core-start-failed` / `core-start-failed-busy`, which advise the reload.
 core-start-retry = Try again

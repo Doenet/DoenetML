@@ -590,18 +590,13 @@ export function DocViewer({
     // A core start the reader asked to try again (#1712).
     //
     //  - "offered" — a failure is on screen and still has a retry to give.
-    //    Set by `failCoreStart`, for the first failure only: a retry that
-    //    fails too is shown the terminal message, which advises the reload
-    //    that by then really is the next thing to try. The offer belongs to
-    //    that one message, so `showFailureMessage` retires it whenever some
-    //    other error takes the pane over — a host that cannot produce saved
-    //    state names a cause a fresh core start would meet again.
-    //  - "running" — a retry is booting. The viewer renders nothing at stage
-    //    `"wait"`, so without this a click would blank the pane for as long
-    //    as the boot takes, which reads as the error getting worse. Set from
-    //    the rebuild itself rather than from the click, so that it describes
-    //    the rebuild actually in flight: a rebuild the reader did not ask for
-    //    clears it back to "none" and goes back to rendering nothing.
+    //    Raised by `failCoreStart` for a first failure, and retired by
+    //    `showFailureMessage` for any later message; see there for why the
+    //    offer must not outlive the message it was raised with.
+    //  - "running" — a retry is booting. A viewer at stage `"wait"` renders
+    //    nothing, so without this a click would blank the pane for as long as
+    //    the boot takes, which reads as the error getting worse. Set by the
+    //    rebuild rather than by the click — see the rebuild below.
     const [coreStartRetry, setCoreStartRetry] = useState<
         "none" | "offered" | "running"
     >("none");
@@ -611,22 +606,21 @@ export function DocViewer({
     // sequence a changed `doenetML` takes — re-roll `coreId`, drop the old
     // renderer, re-load saved state, run a fresh boot ladder — rather than
     // adding a second way to start a core. Held in state (not a ref) because
-    // the click has to re-render for the comparison to run.
+    // the click has to re-render for the comparison to run;
+    // `lastRetryGeneration` is its render-phase mirror, compared the way
+    // `lastDoenetML` is compared against `doenetML`.
     const [retryGeneration, setRetryGeneration] = useState(0);
-    // The render-phase mirror of `retryGeneration`, compared against it the
-    // way `lastDoenetML` is compared against `doenetML`.
     const lastRetryGeneration = useRef(0);
     // Whether the reader has already spent their retry on the document now on
-    // screen. Kept in a ref because `failCoreStart` runs from async boot code
-    // whose closure predates the click, and cleared by every rebuild the
-    // reader did not ask for — a new source, a new attempt, a locale switch
-    // is a different document, and its first failure gets its own offer.
+    // screen. A ref because `failCoreStart` runs from async boot code whose
+    // closure predates the click.
     //
-    // The rebuild the `SPLICE.getState` listener runs is deliberately NOT one
-    // of those, which is why it clears `errMsg` without touching this. That
-    // rebuild adopts an answer to the request THIS document has open, and
-    // after a retry the open request is the one the retry itself posted — the
-    // reader's own state load landing late, not a document handed to the
+    // Every rebuild the reader did not ask for clears it (see the rebuild
+    // below) — with one deliberate exception, which is why the rebuild the
+    // `SPLICE.getState` listener runs clears `errMsg` without touching this.
+    // That rebuild adopts an answer to the request THIS document has open,
+    // and after a retry the open request is the one the retry itself posted —
+    // the reader's own state load landing late, not a document handed to the
     // viewer from outside. Restoring the retry there would hand a fresh
     // button to every failure on any host that answers with saved state,
     // which is most of them, and the bound would stop bounding anything.
@@ -2297,12 +2291,10 @@ export function DocViewer({
         contended = false,
     }: { contended?: boolean } = {}) {
         coreCreationInProgress.current = false;
-        // The first failure offers the reader a button and a message with no
-        // reload advice in it; a failure that has already been retried is
-        // terminal and shows the message that advises the reload (#1712).
-        // Bounding it at one is what keeps the reader out of a loop they
-        // cannot win, and it is why the reload advice keeps a home — and its
-        // translations, which the retry-flavored messages do not have yet.
+        // The first failure offers the reader a button, beside a message with
+        // no reload advice in it; a failure that has already been retried is
+        // terminal and gets the message that advises the reload — which is
+        // also what keeps that message, and its translations, in use (#1712).
         //
         // The four messages are spelled out as four literal `translate` calls
         // because a computed key is invisible to `lint:i18n`, which reads
@@ -2341,12 +2333,9 @@ export function DocViewer({
 
     /**
      * Start this document over at the reader's request (#1712), without
-     * reloading the page.
-     *
-     * Bumping the counter is the whole of it: the render below reads the bump
-     * as a rebuild input, and running the rebuild from there rather than from
-     * here is what keeps `coreStartRetry` describing the rebuild actually in
-     * flight rather than a click whose rebuild some other one superseded.
+     * reloading the page. Bumping the counter is the whole of it: the render
+     * below reads the bump as a rebuild input and runs the rebuild from
+     * there.
      *
      * Stacking is not possible by construction: the button lives in the
      * failure pane, and the rebuild this schedules clears `errMsg` in the
@@ -2354,15 +2343,12 @@ export function DocViewer({
      * inside one React batch collapse into a single rebuild, since it is the
      * *change* in `retryGeneration` that triggers one.
      *
-     * Nothing here asks a boot-scheduling host for a slot. The gates that
+     * Nothing here asks a boot-scheduling host for a slot: the gates that
      * exist (`coordinator.ts`, `viewer-lifecycle-manager`) live in the parent
-     * realm and gate mounting, not re-booting, and none of them accepts such
-     * a request; what a retry is measured against instead is the
-     * contention-scaled handshake watchdog (#1711), which counts a retry's
-     * handshake in the page-wide census like any other. A coordinator hears
-     * how this ends the usual way: `bootComplete` clears the `failed` mark it
-     * put on the realm, and `bootFailed` arrives again for a retry that fails
-     * because the report latch is keyed on the re-rolled `coreId` (#1721).
+     * realm, gate mounting rather than re-booting, and accept no such request
+     * from a child. What bounds a retry instead is the contention-scaled
+     * handshake watchdog (#1711), which counts its handshake in the page-wide
+     * census like any other.
      */
     function retryCoreStart() {
         setRetryGeneration((generation) => generation + 1);
@@ -2903,8 +2889,9 @@ export function DocViewer({
             });
         }
         setStage("coreCreated");
-        // Whatever the reader retried is on screen now. (A no-op for every
-        // boot nobody asked to retry: React bails out on an unchanged value.)
+        // A retry that got this far is over: the boot it ran has produced
+        // whatever it is going to. (A no-op for every boot nobody asked to
+        // retry: React bails out on an unchanged value.)
         setCoreStartRetry("none");
         initializedCallback?.({ activityId, docId });
     }
@@ -3237,9 +3224,10 @@ export function DocViewer({
         // they asked for, and gets a fresh one with a document they didn't.
         retrySpent.current = retriedByReader;
         // And only the rebuild they asked for shows that it is working; every
-        // other one goes back to rendering nothing while it runs. Setting this
-        // here rather than in the click handler is what retires a "running"
-        // that some later rebuild superseded.
+        // other one goes back to rendering nothing while it runs. Set here
+        // rather than in the click handler so the flag describes the rebuild
+        // actually in flight, retiring a "running" that a later rebuild
+        // superseded.
         setCoreStartRetry(retriedByReader ? "running" : "none");
 
         coreId.current = nanoid();
@@ -3304,7 +3292,7 @@ export function DocViewer({
                 {/* The failure pane is shown whether or not this viewer is
                     rendering its document — a host that has set `render`
                     false still wants to hear that the document failed — but
-                    the button is offered only to one that is. A viewer at
+                    the button is offered only to one that is: a viewer at
                     `render={false}` never starts a core (see the launch site
                     below), so a retry there would trade the message for a
                     rebuild that boots nothing. Gated here rather than where
@@ -3330,9 +3318,7 @@ export function DocViewer({
         // Blank is right for one the reader did not ask for — an editor
         // recompile, a locale switch — but a retry they clicked has to show
         // that it is working, or the failure pane just vanishes (#1712).
-        // Only for a viewer that renders its document at all, the same
-        // condition the button was offered under and the one the pane's other
-        // use (`noCoreWarning`) sits below.
+        // Gated on `render` for the same reason the button above is.
         return coreStartRetry === "running" && render
             ? initializingPane()
             : null;
