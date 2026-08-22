@@ -7,9 +7,10 @@ import { version as doenetmlVersion } from "./package.json";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // `@doenet/codemirror`'s source entry point, in both forms this config needs
-// it: a root-relative POSIX glob for `optimizeDeps.entries`, and an absolute
-// path for the `resolve.alias` below. A glob that matches nothing is silent,
-// so check it once here and say what the silence would have cost.
+// it: a path relative to the Vite root — this package directory — for
+// `optimizeDeps.entries`, which reads it as a glob, and an absolute path for
+// the `resolve.alias` below. A glob that matches nothing is silent, so check
+// it once here and say what the silence would have cost.
 const codemirrorSrcEntry = "../codemirror/src/index.ts";
 const codemirrorSrc = path.resolve(__dirname, codemirrorSrcEntry);
 if (!fs.existsSync(codemirrorSrc)) {
@@ -145,6 +146,8 @@ export default defineConfig({
                         "@codemirror/language",
                         "@codemirror/lint",
                         "@codemirror/autocomplete",
+                        // Reached from `selection-highlight.ts` (#1735).
+                        "@codemirror/search",
                         "@uiw/react-codemirror",
                         "@lezer/highlight",
                         "@qualified/lsp-connection",
@@ -161,8 +164,6 @@ export default defineConfig({
                         // dynamic import.
                         "vscode-languageserver/browser",
                         "vscode-languageserver-protocol/browser",
-                        // Reached from `selection-highlight.ts` (#1735).
-                        "@codemirror/search",
                     ],
                 },
             },

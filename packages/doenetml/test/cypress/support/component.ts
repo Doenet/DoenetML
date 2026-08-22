@@ -1,5 +1,6 @@
 // Cypress component support file for DoenetML tests.
 import { mount } from "cypress/react";
+import { isTransientDynamicImportError } from "../../../src/Viewer/renderersLoadComponent";
 
 declare global {
     namespace Cypress {
@@ -39,14 +40,6 @@ Cypress.Commands.add("mount", mount);
 
 /** Enough for a full boot ladder's narration without flooding the log. */
 const MAX_BUFFERED_MESSAGES = 100;
-
-/**
- * The wording `importRendererWithRetry` and the browsers use when a chunk
- * fetch fails — kept loose for the same reason
- * `isTransientDynamicImportError` keeps its regexes loose.
- */
-const CHUNK_LOAD_FAILURE_RE =
-    /dynamically imported module|module script failed/i;
 
 /**
  * What a chunk-load failure gets called when one shows up in a failing test's
@@ -169,9 +162,10 @@ afterEach(function () {
         "printAppConsole",
         {
             title: this.currentTest.fullTitle(),
-            diagnosis: messages.some((message) =>
-                CHUNK_LOAD_FAILURE_RE.test(message),
-            )
+            // Same recognizer the retry path uses, so the two never disagree
+            // about what counts as a chunk-load failure; it takes `unknown`,
+            // and a buffered line is already the message text.
+            diagnosis: messages.some(isTransientDynamicImportError)
                 ? CHUNK_LOAD_DIAGNOSIS
                 : null,
             // Retries mean the same title can print up to three times in one
