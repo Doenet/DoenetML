@@ -88,13 +88,31 @@ jobs:
                   VITE_PREFIGURE_MODULE_URL: "https://cdn.jsdelivr.net/npm/@doenet/prefigure@latest/prefigure.js"
 
             - name: Publish dev release
+              id: publish-npm
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
               run: npm run publish -- --tag dev
               env:
                   WIREIT_CACHE: "local"
 
+            # Waits for npm to finish processing the publish before purging, so
+            # this is minutes rather than seconds; see `jsdelivr-purge-lib.sh`.
+            # The script bounds its own waiting, and `timeout-minutes` is the
+            # backstop that keeps a wedged request from holding the runner.
+            #
+            # Gated on the publish having *run*, not on it having succeeded:
+            # `npm run publish` is four independent workspace publishes and npm
+            # does not stop at the first one that fails, so a failed step tells
+            # you nothing about whether @doenet/standalone went out. Skipping
+            # the purge on that signal would leave `dev` on the CDN a release
+            # behind for 12 hours because some unrelated package failed. The
+            # registry wait inside the script is the real gate: it refuses to
+            # purge until npm serves this version under the tag.
             - name: Purge jsDelivr cache
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              if: >-
+                  !cancelled() &&
+                  (steps.publish-npm.outcome == 'success' ||
+                   steps.publish-npm.outcome == 'failure')
+              timeout-minutes: 30
               run: bash .github/scripts/purge-jsdelivr.sh dev
 
     # Publishes a VS Code extension pre-release on every successful CI run on
@@ -300,14 +318,11 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Publish production release
+              id: publish-npm
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
               run: npm run publish
               env:
                   WIREIT_CACHE: "local"
-
-            - name: Purge jsDelivr cache
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: bash .github/scripts/purge-jsdelivr.sh latest
 
             - name: Publish VS Code extension
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
@@ -330,3 +345,40 @@ jobs:
                   npm run publish:openvsx -w @doenet/vscode-extension
               env:
                   OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+            # Last, and deliberately so. The purge waits for npm to finish
+            # processing the publish before it fires, which takes minutes rather
+            # than seconds (see `jsdelivr-purge-lib.sh`), and it now fails the
+            # job when the tag will not move. Neither should stand between a
+            # published npm release and the extension registries: those do not
+            # depend on the CDN, and a purge that has to be re-run should not
+            # take the Marketplace publish with it.
+            #
+            # The condition is what keeps that from cutting the other way. Being
+            # last, this step would otherwise be skipped whenever a step above
+            # failed — leaving `latest` on the CDN a release behind for 12 hours
+            # because an extension registry was down. `!cancelled()` runs it
+            # anyway, and it is tied to the npm publish instead.
+            #
+            # Tied to that step having *run*, though, not to it having
+            # succeeded. `npm run publish` is four independent workspace
+            # publishes and npm does not stop at the first one that fails, so a
+            # failed step is equally consistent with @doenet/standalone — the
+            # only package this purges — having published fine while
+            # `v06-to-v07` did not. Naming the two outcomes the step can have
+            # when it ran leaves out the case that genuinely has nothing to
+            # purge: the dry run, where it does not run at all. Whether
+            # standalone did publish is then decided where it can be — by the
+            # registry wait inside the script, which refuses to purge until npm
+            # serves this version under the tag, and fails the step if it never
+            # does.
+            #
+            # `timeout-minutes` is the backstop on the script's own bounded
+            # waiting, so a wedged request cannot hold the runner.
+            - name: Purge jsDelivr cache
+              if: >-
+                  !cancelled() &&
+                  (steps.publish-npm.outcome == 'success' ||
+                   steps.publish-npm.outcome == 'failure')
+              timeout-minutes: 30
+              run: bash .github/scripts/purge-jsdelivr.sh latest
