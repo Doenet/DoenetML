@@ -121,6 +121,60 @@ describe(
                 });
             });
         });
+
+        it("recovers a coordinated activity from the viewer's own retry button", () => {
+            // The reader's path (#1712), and the one that needs no host
+            // cooperation: the retry rebuilds inside the realm rather than
+            // reloading it, so the coordinator is never asked for anything. It
+            // still has to end up with its books straight — it hears
+            // `bootComplete` from a realm it had written off, and that is what
+            // clears the `failed` mark. The case above drives the same
+            // recovery programmatically; this one drives it by clicking.
+            cy.viewport(1000, 800);
+            cy.visit("/coordination-boot-failure-page.html");
+
+            cy.get("#actFails")
+                .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
+                .should((body) => {
+                    expect(body.textContent ?? "").to.contain(
+                        "could not be started",
+                    );
+                });
+
+            // Lift the stall, but leave the failed document exactly as the
+            // reader finds it — the retry is the only thing that starts a new
+            // ladder here.
+            cy.get("#actFails").then(($iframe) => {
+                $iframe[0].contentWindow.__doenetTestUnstall();
+            });
+            cy.get("#actFails")
+                .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
+                .then((body) => {
+                    cy.wrap(body).contains("button", "Try again").click();
+                });
+
+            // The document the failure covered is on screen.
+            cy.get("#actFails")
+                .its("0.contentDocument.body", { timeout: BOOT_TIMEOUT })
+                .should((body) => {
+                    const clone = body.cloneNode(true);
+                    clone.querySelectorAll("script").forEach((s) => s.remove());
+                    const text = clone.textContent ?? "";
+                    expect(text).to.contain("This activity never boots");
+                    expect(text).to.not.contain("could not be started");
+                });
+
+            cy.window().then((win) => {
+                cy.wrap(null, { timeout: BOOT_TIMEOUT }).should(() => {
+                    const stats = win.doenetCoordinatorStats();
+                    expect(
+                        stats.byState.failed ?? 0,
+                        `failed after the retry: ${JSON.stringify(stats)}`,
+                    ).to.eq(0);
+                    expect(stats.byState.live ?? 0, "live").to.eq(2);
+                });
+            });
+        });
     },
 );
 

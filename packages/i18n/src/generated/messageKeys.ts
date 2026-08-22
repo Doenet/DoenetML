@@ -70,6 +70,9 @@ export type MessageKey =
     | "renderer-load-failed"
     | "core-start-failed"
     | "core-start-failed-busy"
+    | "core-start-failed-retry"
+    | "core-start-failed-busy-retry"
+    | "core-start-retry"
     | "color.black"
     | "color.white"
     | "color.gray"
@@ -641,6 +644,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "renderer-load-failed",
     "core-start-failed",
     "core-start-failed-busy",
+    "core-start-failed-retry",
+    "core-start-failed-busy-retry",
+    "core-start-retry",
     "color.black",
     "color.white",
     "color.gray",

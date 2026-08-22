@@ -20,6 +20,7 @@ import type { DiagnosticRecord, ReaderStyleOverrides } from "@doenet/utils";
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
+import { UiButton } from "@doenet/ui-components";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
@@ -59,6 +60,9 @@ import {
     retryDelayMs,
     CORE_START_FAILED_MESSAGE,
     CORE_START_FAILED_BUSY_MESSAGE,
+    CORE_START_FAILED_RETRY_MESSAGE,
+    CORE_START_FAILED_BUSY_RETRY_MESSAGE,
+    CORE_START_RETRY_MESSAGE,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import {
@@ -583,6 +587,45 @@ export function DocViewer({
     const rawDiagnostics = useRef<DiagnosticRecord[]>([]);
     const [hasInitialError, setHasInitialError] = useState(false);
 
+    // A core start the reader asked to try again (#1712).
+    //
+    //  - "offered" — a failure is on screen and still has a retry to give.
+    //    Raised by `failCoreStart` for a first failure, and retired by
+    //    `showFailureMessage` for any later message; see there for why the
+    //    offer must not outlive the message it was raised with.
+    //  - "running" — a retry is booting. A viewer at stage `"wait"` renders
+    //    nothing, so without this a click would blank the pane for as long as
+    //    the boot takes, which reads as the error getting worse. Set by the
+    //    rebuild rather than by the click — see the rebuild below.
+    const [coreStartRetry, setCoreStartRetry] = useState<
+        "none" | "offered" | "running"
+    >("none");
+    // Bumped by the retry button, and compared below like any other rebuild
+    // input. Nothing about the document changes on a retry, so the counter is
+    // the whole trigger: it routes the retry through the same rebuild
+    // sequence a changed `doenetML` takes — re-roll `coreId`, drop the old
+    // renderer, re-load saved state, run a fresh boot ladder — rather than
+    // adding a second way to start a core. Held in state (not a ref) because
+    // the click has to re-render for the comparison to run;
+    // `lastRetryGeneration` is its render-phase mirror, compared the way
+    // `lastDoenetML` is compared against `doenetML`.
+    const [retryGeneration, setRetryGeneration] = useState(0);
+    const lastRetryGeneration = useRef(0);
+    // Whether the reader has already spent their retry on the document now on
+    // screen. A ref because `failCoreStart` runs from async boot code whose
+    // closure predates the click.
+    //
+    // Every rebuild the reader did not ask for clears it (see the rebuild
+    // below) — with one deliberate exception, which is why the rebuild the
+    // `SPLICE.getState` listener runs clears `errMsg` without touching this.
+    // That rebuild adopts an answer to the request THIS document has open,
+    // and after a retry the open request is the one the retry itself posted —
+    // the reader's own state load landing late, not a document handed to the
+    // viewer from outside. Restoring the retry there would hand a fresh
+    // button to every failure on any host that answers with saved state,
+    // which is most of them, and the bound would stop bounding anything.
+    const retrySpent = useRef(false);
+
     type DeferredCoreAction = {
         actionName: string;
         componentIdx: number | undefined;
@@ -1033,13 +1076,13 @@ export function DocViewer({
                             // just the failure signal, keeping the specific
                             // message below on screen (`failCoreStart` would
                             // overwrite it with the generic one).
-                            setIsInErrorState?.(true);
-
                             let message = "";
                             if ("message" in err) {
                                 message = err.message;
                             }
-                            setErrMsg(`Error loading doc state: ${message}`);
+                            showFailureMessage(
+                                `Error loading doc state: ${message}`,
+                            );
                             reportCoreStartFailed();
                             return;
                         }
@@ -1061,7 +1104,6 @@ export function DocViewer({
                         // usable state has answered, whatever else it also
                         // reported.
                         const error = e.data.error;
-                        setIsInErrorState?.(true);
                         if (
                             typeof error === "object" &&
                             "code" in error &&
@@ -1070,9 +1112,9 @@ export function DocViewer({
                             console.log(
                                 `error ${error.code} getting state: ${error.message}`,
                             );
-                            setErrMsg(error.message);
+                            showFailureMessage(error.message);
                         } else {
-                            setErrMsg("Invalid response to getState");
+                            showFailureMessage("Invalid response to getState");
                         }
                     }
                     // A reply with neither usable state nor an error is a host
@@ -2132,13 +2174,11 @@ export function DocViewer({
                         // boot ladder follows.
                         return;
                     }
-                    setIsInErrorState?.(true);
-
                     let message = "";
                     if ("message" in e) {
                         message = e.message;
                     }
-                    setErrMsg(`Error loading doc state: ${message}`);
+                    showFailureMessage(`Error loading doc state: ${message}`);
                     // The core will never be started, so a host holding a boot
                     // slot for this document has to hear about it (#1709).
                     // Report just the failure signal, keeping the specific
@@ -2220,6 +2260,55 @@ export function DocViewer({
         initializeCounters.current = data.initializeCounters;
     }
 
+    /**
+     * Put `message` on the viewer's failure pane, in place of whatever the
+     * document was showing. The single way an error reaches the reader, so
+     * that the pane's two pieces cannot drift apart: `offerRetry` says
+     * whether this message comes with the **Try again** button (#1712), and
+     * every message that does not clears an offer a previous one made.
+     *
+     * That matters because the pane outlives the failure it was raised for.
+     * A viewer whose core start failed still has a `SPLICE.getState` request
+     * open — the boot does not wait for the answer — so a host reporting that
+     * it cannot produce the saved state lands its message on top of the
+     * give-up screen. A retry belongs to a core start that could not be made,
+     * not to that: restarting the document would ask the same host the same
+     * question and get the same answer.
+     */
+    function showFailureMessage(
+        message: string,
+        { offerRetry = false }: { offerRetry?: boolean } = {},
+    ) {
+        setIsInErrorState?.(true);
+        setErrMsg(message);
+        setCoreStartRetry(offerRetry ? "offered" : "none");
+    }
+
+    /**
+     * Take down a failure pane raised while this document was still starting,
+     * now that it has started.
+     *
+     * The pane covers the document rather than sitting beside it, so a message
+     * that outlives what it described hides a working document — and a
+     * `SPLICE.getState` answer keeps its own schedule: the boot posts the
+     * request and does not wait for it (see `requestStateViaSplice`), so a
+     * host reporting that it cannot produce the saved state can land anywhere
+     * in a perfectly healthy boot, including inside a retry the reader asked
+     * for. What that message described — a document with no core — stopped
+     * being true here; what the core has to say about itself (its diagnostics,
+     * its error banner) speaks for the document from now on.
+     *
+     * Only what a boot can supersede is cleared. A message arriving *after*
+     * the document is on screen still takes it away, which is #1741 rather
+     * than this: fixing it needs somewhere non-destructive to put what the
+     * host said, and that is a question about the pane itself.
+     */
+    function clearFailureMessage() {
+        setIsInErrorState?.(false);
+        setErrMsg(null);
+        setCoreStartRetry("none");
+    }
+
     // Put the viewer into a visible "core failed to start" error state rather
     // than leaving it blank at stage "wait" forever (Doenet/DoenetApps#2957).
     // Shared by every core-start failure path.
@@ -2227,9 +2316,30 @@ export function DocViewer({
         contended = false,
     }: { contended?: boolean } = {}) {
         coreCreationInProgress.current = false;
-        setIsInErrorState?.(true);
-        setErrMsg(
-            contended
+        // The first failure offers the reader a button, beside a message with
+        // no reload advice in it; a failure that has already been retried is
+        // terminal and gets the message that advises the reload — which is
+        // also what keeps that message, and its translations, in use (#1712).
+        //
+        // The four messages are spelled out as four literal `translate` calls
+        // because a computed key is invisible to `lint:i18n`, which reads
+        // string literals only (see `collectCallSites` in `@doenet/i18n`).
+        const offerRetry = !retrySpent.current;
+        let message: string;
+        if (offerRetry) {
+            message = contended
+                ? translate(
+                      "core-start-failed-busy-retry",
+                      undefined,
+                      CORE_START_FAILED_BUSY_RETRY_MESSAGE,
+                  )
+                : translate(
+                      "core-start-failed-retry",
+                      undefined,
+                      CORE_START_FAILED_RETRY_MESSAGE,
+                  );
+        } else {
+            message = contended
                 ? translate(
                       "core-start-failed-busy",
                       undefined,
@@ -2239,10 +2349,66 @@ export function DocViewer({
                       "core-start-failed",
                       undefined,
                       CORE_START_FAILED_MESSAGE,
-                  ),
-        );
+                  );
+        }
+        showFailureMessage(message, { offerRetry });
         setHasInitialError(true);
         reportCoreStartFailed();
+    }
+
+    /**
+     * Start this document over at the reader's request (#1712), without
+     * reloading the page. Bumping the counter is the whole of it: the render
+     * below reads the bump as a rebuild input and runs the rebuild from
+     * there.
+     *
+     * Stacking is not possible by construction: the button lives in the
+     * failure pane, and the rebuild this schedules clears `errMsg` in the
+     * very next render, so a second click has nothing to land on. Two clicks
+     * inside one React batch collapse into a single rebuild, since it is the
+     * *change* in `retryGeneration` that triggers one.
+     *
+     * Nothing here asks a boot-scheduling host for a slot: the gates that
+     * exist (`coordinator.ts`, `viewer-lifecycle-manager`) live in the parent
+     * realm, gate mounting rather than re-booting, and accept no such request
+     * from a child. What bounds a retry instead is the contention-scaled
+     * handshake watchdog (#1711), which counts its handshake in the page-wide
+     * census like any other.
+     */
+    function retryCoreStart() {
+        setRetryGeneration((generation) => generation + 1);
+    }
+
+    /**
+     * What a document shows while it has nothing to render yet. Used both
+     * where a booting core has produced no renderer and while a
+     * reader-initiated retry is running (#1712).
+     */
+    function initializingPane() {
+        return (
+            <div
+                // Announced, because this pane can be an *answer*: the retry
+                // button removes itself when clicked (#1712), taking the
+                // reader's focus with it, so a reader who cannot see the pane
+                // that replaced it would otherwise be told nothing at all
+                // about what their click did. Polite rather than assertive —
+                // it reports progress, and the outcome that follows is what
+                // interrupts (see the failure pane's `role="alert"`).
+                role="status"
+                style={{
+                    backgroundColor: "var(--canvas)",
+                    color: "var(--canvasText)",
+                }}
+            >
+                <p>
+                    {translate(
+                        "viewer-initializing",
+                        undefined,
+                        "Initializing...",
+                    )}
+                </p>
+            </div>
+        );
     }
 
     /**
@@ -2706,6 +2872,7 @@ export function DocViewer({
         }
 
         if (dastResult.success) {
+            clearFailureMessage();
             if (
                 coreInfo.current &&
                 JSON.stringify(coreInfo.current) ===
@@ -2737,8 +2904,7 @@ export function DocViewer({
                 }
             }
         } else {
-            setIsInErrorState?.(true);
-            setErrMsg(dastResult.errMsg);
+            showFailureMessage(dastResult.errMsg);
             setHasInitialError(true);
         }
 
@@ -3019,6 +3185,13 @@ export function DocViewer({
         return null;
     }
 
+    let retriedByReader = false;
+    if (lastRetryGeneration.current !== retryGeneration) {
+        lastRetryGeneration.current = retryGeneration;
+        retriedByReader = true;
+        changedState = true;
+    }
+
     if (lastDoenetML.current !== doenetML) {
         lastDoenetML.current = doenetML;
         changedState = true;
@@ -3077,6 +3250,15 @@ export function DocViewer({
             setErrMsg(null);
             setIsInErrorState?.(false);
         }
+        // One retry per document: the reader spends theirs on the rebuild
+        // they asked for, and gets a fresh one with a document they didn't.
+        retrySpent.current = retriedByReader;
+        // And only the rebuild they asked for shows that it is working; every
+        // other one goes back to rendering nothing while it runs. Set here
+        // rather than in the click handler so the flag describes the rebuild
+        // actually in flight, retiring a "running" that a later rebuild
+        // superseded.
+        setCoreStartRetry(retriedByReader ? "running" : "none");
 
         coreId.current = nanoid();
         // A request the previous document made is not this one's to have
@@ -3124,6 +3306,12 @@ export function DocViewer({
     if (errMsg !== null) {
         return (
             <div
+                // The failure of a document is worth interrupting for, the
+                // same way `RendererLoadFailed` is: this pane replaces the
+                // document (or, after a retry, the pane that said the retry
+                // was working), and nothing else says so to a reader who
+                // cannot see it.
+                role="alert"
                 style={{
                     backgroundColor: "var(--lightRed)",
                     color: "var(--canvasText)",
@@ -3136,13 +3324,43 @@ export function DocViewer({
                     padding: "0.5em",
                 }}
             >
-                <MdError color="red" fontSize={"24pt"} /> {errMsg}
+                {/* Decorative: the message beside it says the same
+                    thing, and the alert above carries it. */}
+                <MdError aria-hidden="true" color="red" fontSize={"24pt"} />{" "}
+                {errMsg}
+                {/* The failure pane is shown whether or not this viewer is
+                    rendering its document — a host that has set `render`
+                    false still wants to hear that the document failed — but
+                    the button is offered only to one that is: a viewer at
+                    `render={false}` never starts a core (see the launch site
+                    below), so a retry there would trade the message for a
+                    rebuild that boots nothing. Gated here rather than where
+                    the offer is made, so the button appears if the host later
+                    asks for the document. */}
+                {coreStartRetry === "offered" && render ? (
+                    <div style={{ marginTop: "0.5em" }}>
+                        <UiButton onClick={retryCoreStart}>
+                            {translate(
+                                "core-start-retry",
+                                undefined,
+                                CORE_START_RETRY_MESSAGE,
+                            )}
+                        </UiButton>
+                    </div>
+                ) : null}
             </div>
         );
     }
 
     if (stage === "wait") {
-        return null;
+        // A rebuild is under way and there is nothing to show for it yet.
+        // Blank is right for one the reader did not ask for — an editor
+        // recompile, a locale switch — but a retry they clicked has to show
+        // that it is working, or the failure pane just vanishes (#1712).
+        // Gated on `render` for the same reason the button above is.
+        return coreStartRetry === "running" && render
+            ? initializingPane()
+            : null;
     }
 
     if (stage === "readyToCreateCore" && render) {
@@ -3182,22 +3400,7 @@ export function DocViewer({
     };
     if (!coreCreated.current) {
         if (!documentRenderer) {
-            noCoreWarning = (
-                <div
-                    style={{
-                        backgroundColor: "var(--canvas)",
-                        color: "var(--canvasText)",
-                    }}
-                >
-                    <p>
-                        {translate(
-                            "viewer-initializing",
-                            undefined,
-                            "Initializing...",
-                        )}
-                    </p>
-                </div>
-            );
+            noCoreWarning = initializingPane();
         }
     }
 
