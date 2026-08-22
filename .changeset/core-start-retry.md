@@ -14,4 +14,6 @@ A failed document now offers **Try again**, which starts that one document over 
 
 The offer is made once per document. A retry that fails too is shown the previous message, whose advice to reload is by then the honest next step, and no further button — so the reader is never left clicking at a document that will not start. A viewer handed a different document — an editor recompile, a host moving on to the next activity — starts the count over.
 
+A message raised while a document was still starting no longer outlives it: a host that reports it cannot produce the saved state puts its message where the document would be, and a document that then starts is no longer left behind it.
+
 A boot-scheduling host needs no changes to keep up: a retry that succeeds reports `initializedCallback` as any boot does, which is what clears the `failed` mark the `@doenet/standalone` coordinator put on the activity, and a retry that fails reports `coreStartFailedCallback` again.

@@ -435,4 +435,68 @@ describe("DoenetViewer core-start retry (#1712)", () => {
             expect(failures, "coreStartFailedCallback calls").to.eq(0);
         });
     });
+
+    it("recovers from a host state error that preceded the give-up screen", () => {
+        // The other order of the two failures. A host answering
+        // `SPLICE.getState` with an error can land *before* the ladder gives
+        // up — the boot posts that request and does not wait for it — so the
+        // reader ends up with both a state that would not load and a core
+        // that never started.
+        //
+        // The give-up screen wins that pane, and it is the one that carries
+        // the offer. Both parts are deliberate: with no core there is no
+        // document at all, which is the larger of the two facts, and a retry
+        // fixes exactly that — a state error does not stop a core from
+        // starting, it only starts it without the reader's saved work. (What
+        // is lost is the host's own wording, which is #1741: the pane has no
+        // precedence rule, only an arrival order.)
+        giveUpQuickly();
+        let stalled = true;
+        stallableHandshake(() => stalled);
+
+        let answers = 0;
+        const hostListener = (e: MessageEvent) => {
+            if (
+                typeof e.data === "object" &&
+                e.data?.subject === "SPLICE.getState"
+            ) {
+                answers++;
+                window.postMessage({
+                    subject: "SPLICE.getState.response",
+                    message_id: e.data.message_id,
+                    error: { code: 500, message: "saved state unavailable" },
+                });
+            }
+        };
+        cy.then(() => window.addEventListener("message", hostListener));
+
+        cy.mount(
+            <DoenetViewer
+                doenetML="<p>document past a state error</p>"
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+            />,
+        );
+
+        cy.contains("could not be started", { timeout: 8000 }).should("exist");
+        cy.contains("button", "Try again").should("exist");
+
+        // The retry hits a healthy handshake and the same erroring host. Its
+        // answer lands mid-boot and takes the pane, as it did the first time
+        // — and a document that has a core must not be left behind it.
+        cy.then(() => letTheNextAttemptSucceed(() => (stalled = false)));
+        cy.contains("button", "Try again").click();
+
+        cy.contains("document past a state error", { timeout: 20000 }).should(
+            "exist",
+        );
+        cy.contains("saved state unavailable").should("not.exist");
+        cy.then(() => {
+            expect(
+                answers,
+                "the host answered the retry too",
+            ).to.be.greaterThan(1);
+            window.removeEventListener("message", hostListener);
+        });
+    });
 });

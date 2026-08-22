@@ -2284,6 +2284,31 @@ export function DocViewer({
         setCoreStartRetry(offerRetry ? "offered" : "none");
     }
 
+    /**
+     * Take down a failure pane raised while this document was still starting,
+     * now that it has started.
+     *
+     * The pane covers the document rather than sitting beside it, so a message
+     * that outlives what it described hides a working document — and a
+     * `SPLICE.getState` answer keeps its own schedule: the boot posts the
+     * request and does not wait for it (see `requestStateViaSplice`), so a
+     * host reporting that it cannot produce the saved state can land anywhere
+     * in a perfectly healthy boot, including inside a retry the reader asked
+     * for. What that message described — a document with no core — stopped
+     * being true here; what the core has to say about itself (its diagnostics,
+     * its error banner) speaks for the document from now on.
+     *
+     * Only what a boot can supersede is cleared. A message arriving *after*
+     * the document is on screen still takes it away, which is #1741 rather
+     * than this: fixing it needs somewhere non-destructive to put what the
+     * host said, and that is a question about the pane itself.
+     */
+    function clearFailureMessage() {
+        setIsInErrorState?.(false);
+        setErrMsg(null);
+        setCoreStartRetry("none");
+    }
+
     // Put the viewer into a visible "core failed to start" error state rather
     // than leaving it blank at stage "wait" forever (Doenet/DoenetApps#2957).
     // Shared by every core-start failure path.
@@ -2839,6 +2864,7 @@ export function DocViewer({
         }
 
         if (dastResult.success) {
+            clearFailureMessage();
             if (
                 coreInfo.current &&
                 JSON.stringify(coreInfo.current) ===
@@ -2889,10 +2915,6 @@ export function DocViewer({
             });
         }
         setStage("coreCreated");
-        // A retry that got this far is over: the boot it ran has produced
-        // whatever it is going to. (A no-op for every boot nobody asked to
-        // retry: React bails out on an unchanged value.)
-        setCoreStartRetry("none");
         initializedCallback?.({ activityId, docId });
     }
 
