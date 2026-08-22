@@ -22,7 +22,7 @@ export interface MathJaxContextProps extends LoadMathJaxOptions {
      * clears their refs, and a typeset that starts across that gap reaches
      * MathJax with a null element and rejects — an unhandled rejection that
      * lands in whatever the host page has on `window.onunhandledrejection`.
-     * Abort first and unmount a task later, and nothing is left in flight to
+     * Abort first and unmount a tick later, and nothing is left in flight to
      * land that way.
      */
     signal?: AbortSignal;

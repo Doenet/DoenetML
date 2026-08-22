@@ -453,9 +453,7 @@ export function UniqueKeyboardTray({
                 virtualKeyboardState.keyboardMathJaxAbort?.abort();
                 virtualKeyboardState.keyboardMathJaxAbort = null;
                 if (virtualKeyboardState.keyboardReactRoot) {
-                    // React insists we asynchronously unmount. The wait also
-                    // gives any typeset that was already past the abort point
-                    // its microtasks, so it runs while the tray is still whole.
+                    // React insists we asynchronously unmount.
                     const root = virtualKeyboardState.keyboardReactRoot;
                     setTimeout(() => {
                         root.unmount();
