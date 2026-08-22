@@ -2459,4 +2459,63 @@ describe("Graph tag tests @group2", async () => {
         expect(stateVariables[g3Idx].stateValues.displayXAxis).eq("full");
         expect(stateVariables[g3Idx].stateValues.displayYAxis).eq("none");
     });
+
+    it("dynamically changes displayXAxis and displayYAxis through choiceInput", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <choiceInput name="disp">
+      <choice>full</choice>
+      <choice>none</choice>
+      <choice>positiveOnly</choice>
+      <choice>negativeOnly</choice>
+    </choiceInput>
+    <graph name="g" displayXAxis="$disp" displayYAxis="$disp" />
+    `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let gIdx = await resolvePathToNodeIdx("g");
+        let dispIdx = await resolvePathToNodeIdx("disp");
+
+        // Initial choice is full
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq("full");
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq("full");
+
+        // Switch to none (choice index 1, 1-based: [2])
+        await updateSelectedIndices({
+            selectedIndices: [2],
+            componentIdx: dispIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq("none");
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq("none");
+
+        // Switch to positiveOnly (choice index 2, 1-based: [3])
+        await updateSelectedIndices({
+            selectedIndices: [3],
+            componentIdx: dispIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq(
+            "positiveonly",
+        );
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq(
+            "positiveonly",
+        );
+
+        // Switch to negativeOnly (choice index 3, 1-based: [4])
+        await updateSelectedIndices({
+            selectedIndices: [4],
+            componentIdx: dispIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq(
+            "negativeonly",
+        );
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq(
+            "negativeonly",
+        );
+    });
 });

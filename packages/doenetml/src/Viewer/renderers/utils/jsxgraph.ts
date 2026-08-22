@@ -233,115 +233,6 @@ function reverseTickLabelSigns(axis: AxisJXG, coordIndex: 1 | 2): void {
     };
 }
 
-export function createXAxis({
-    theBoard,
-    SVs,
-    xaxisRef,
-    previousXaxisWithLabelRef,
-}: {
-    theBoard: JXGBoard;
-    SVs: Record<string, any>;
-    xaxisRef: AxisRef;
-    previousXaxisWithLabelRef: RefObject<boolean>;
-}): void {
-    const xaxisOptions: Record<string, any> = { highlight: false, fixed: true };
-    if (SVs.xLabel) {
-        let position = "rt";
-        let offset = [5, 10];
-        let anchorx = "right";
-        if (SVs.xLabelPosition === "left") {
-            position = "lft";
-            anchorx = "left";
-            offset = [-5, 10];
-        }
-        xaxisOptions.name = SVs.xLabel;
-        xaxisOptions.withLabel = true;
-        xaxisOptions.label = {
-            position,
-            offset,
-            anchorx,
-            strokeColor: "var(--canvasText)",
-            highlight: false,
-        };
-        if (SVs.xLabelHasLatex) {
-            xaxisOptions.label.useMathJax = true;
-        }
-    }
-    previousXaxisWithLabelRef.current = Boolean(SVs.xLabel);
-
-    xaxisOptions.ticks = {
-        ticksDistance: 2,
-        label: {
-            offset: [-5, -15],
-            layer: 2,
-            strokeColor: "var(--canvasText)",
-            highlightStrokeColor: "var(--canvasText)",
-            highlightStrokeOpacity: 1,
-        },
-        strokeColor: "var(--canvasText)",
-        strokeOpacity: 0.5,
-        digits: 4,
-        drawLabels: SVs.displayXAxisTickLabels,
-    };
-    if (SVs.xTickScaleFactor !== null) {
-        const xTickScaleFactor = me.fromAst(SVs.xTickScaleFactor);
-        const scale = xTickScaleFactor.evaluate_to_constant();
-        if (scale !== null && scale > 0) {
-            const scaleSymbol = xTickScaleFactor.toString();
-            xaxisOptions.ticks.scale = scale;
-            xaxisOptions.ticks.scaleSymbol = scaleSymbol;
-        }
-    }
-    xaxisOptions.strokeColor = "var(--canvasText)";
-    xaxisOptions.highlight = false;
-
-    // Only control real ticks (height != -1), not grid lines (height = -1)
-    if (SVs.grid === "dense") {
-        xaxisOptions.ticks.majorHeight = -1;
-        xaxisOptions.ticks.minorHeight = -1;
-    } else if (SVs.grid === "medium") {
-        xaxisOptions.ticks.majorHeight = -1;
-        xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
-    } else {
-        xaxisOptions.ticks.majorHeight = SVs.displayXAxisTicks ? 12 : 0;
-        xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
-    }
-
-    if (SVs.displayYAxis === "none") {
-        xaxisOptions.ticks.drawZero = true;
-    }
-
-    // Second defining point of the axis. For a negative-only axis, point it
-    // toward -x so the axis (and its default arrow head) is drawn on the
-    // negative side, mirroring the positive-only case exactly. This keeps the
-    // arrow head inside the graph's rounded border, unlike a custom
-    // `firstArrow` extending in the backward direction. The tradeoff is that
-    // JSXGraph signs tick labels by the point1->point2 direction, so the
-    // labels must have their sign restored afterward (see reverseTickLabelSigns).
-    let secondPoint = [1, 0];
-    if (SVs.displayXAxis === "positiveonly") {
-        xaxisOptions.straightFirst = false;
-    } else if (SVs.displayXAxis === "negativeonly") {
-        xaxisOptions.straightFirst = false;
-        secondPoint = [-1, 0];
-    }
-
-    theBoard.suspendUpdate();
-
-    xaxisRef.current = theBoard.create(
-        "axis",
-        [[0, 0], secondPoint],
-        xaxisOptions,
-    ) as AxisJXG;
-
-    if (SVs.displayXAxis === "negativeonly") {
-        reverseTickLabelSigns(xaxisRef.current, 1);
-    }
-
-    setMinorTicks(xaxisRef.current);
-    theBoard.unsuspendUpdate();
-}
-
 export function createYAxis({
     theBoard,
     SVs,
@@ -355,13 +246,11 @@ export function createYAxis({
 }): void {
     const yaxisOptions: Record<string, any> = { highlight: false, fixed: true };
     if (SVs.yLabel) {
-        let position = "rt";
-        const offset = [-10, -5];
+        const isNegativeOnly = SVs.displayYAxis === "negativeonly";
+        const isBottom = SVs.yLabelPosition === "bottom";
+        const position = isBottom === isNegativeOnly ? "rt" : "lft";
+        const offset = isBottom ? [-10, 5] : [-10, -5];
         let anchorx = "right";
-        if (SVs.yLabelPosition === "bottom") {
-            position = "lft";
-            offset[1] = 5;
-        }
         if (SVs.yLabelAlignment === "right") {
             anchorx = "left";
             offset[0] = 10;
@@ -408,6 +297,7 @@ export function createYAxis({
         }
     }
 
+    // Only control real ticks (height != -1), not grid lines (height = -1)
     if (SVs.grid === "dense") {
         yaxisOptions.ticks.majorHeight = -1;
         yaxisOptions.ticks.minorHeight = -1;
@@ -423,9 +313,13 @@ export function createYAxis({
         yaxisOptions.ticks.drawZero = true;
     }
 
-    // See createXAxis for why a negative-only axis is defined toward the
-    // negative direction (arrow head placement) and why its tick label signs
-    // must then be restored.
+    // Second defining point of the axis. For a negative-only axis, point it
+    // toward -y so the axis (and its default arrow head) is drawn on the
+    // negative side, mirroring the positive-only case exactly. This keeps the
+    // arrow head inside the graph's rounded border, unlike a custom
+    // `firstArrow` extending in the backward direction. The tradeoff is that
+    // JSXGraph signs tick labels by the point1->point2 direction, so the
+    // labels must have their sign restored afterward (see reverseTickLabelSigns).
     let secondPoint = [0, 1];
     if (SVs.displayYAxis === "positiveonly") {
         yaxisOptions.straightFirst = false;
@@ -448,6 +342,113 @@ export function createYAxis({
 
     setMinorTicks(yaxisRef.current);
 
+    theBoard.unsuspendUpdate();
+}
+
+export function createXAxis({
+    theBoard,
+    SVs,
+    xaxisRef,
+    previousXaxisWithLabelRef,
+}: {
+    theBoard: JXGBoard;
+    SVs: Record<string, any>;
+    xaxisRef: AxisRef;
+    previousXaxisWithLabelRef: RefObject<boolean>;
+}): void {
+    const xaxisOptions: Record<string, any> = { highlight: false, fixed: true };
+    if (SVs.xLabel) {
+        const isNegativeOnly = SVs.displayXAxis === "negativeonly";
+        const isLeft = SVs.xLabelPosition === "left";
+        const position = isLeft === isNegativeOnly ? "rt" : "lft";
+        let offset = isLeft ? [-5, 10] : [5, 10];
+        let anchorx = isLeft ? "left" : "right";
+        xaxisOptions.name = SVs.xLabel;
+        xaxisOptions.withLabel = true;
+        xaxisOptions.label = {
+            position,
+            offset,
+            anchorx,
+            strokeColor: "var(--canvasText)",
+            highlight: false,
+        };
+        if (SVs.xLabelHasLatex) {
+            xaxisOptions.label.useMathJax = true;
+        }
+    }
+    previousXaxisWithLabelRef.current = Boolean(SVs.xLabel);
+
+    xaxisOptions.strokeColor = "var(--canvasText)";
+    xaxisOptions.highlight = false;
+
+    xaxisOptions.ticks = {
+        ticksDistance: 2,
+        label: {
+            offset: [-5, -15],
+            layer: 2,
+            strokeColor: "var(--canvasText)",
+            highlightStrokeColor: "var(--canvasText)",
+            highlightStrokeOpacity: 1,
+        },
+        strokeColor: "var(--canvasText)",
+        strokeOpacity: 0.5,
+        digits: 4,
+        drawLabels: SVs.displayXAxisTickLabels,
+    };
+    if (SVs.xTickScaleFactor !== null) {
+        const xTickScaleFactor = me.fromAst(SVs.xTickScaleFactor);
+        const scale = xTickScaleFactor.evaluate_to_constant();
+        if (scale !== null && scale > 0) {
+            const scaleSymbol = xTickScaleFactor.toString();
+            xaxisOptions.ticks.scale = scale;
+            xaxisOptions.ticks.scaleSymbol = scaleSymbol;
+        }
+    }
+
+    // Only control real ticks (height != -1), not grid lines (height = -1)
+    if (SVs.grid === "dense") {
+        xaxisOptions.ticks.majorHeight = -1;
+        xaxisOptions.ticks.minorHeight = -1;
+    } else if (SVs.grid === "medium") {
+        xaxisOptions.ticks.majorHeight = -1;
+        xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
+    } else {
+        xaxisOptions.ticks.majorHeight = SVs.displayXAxisTicks ? 12 : 0;
+        xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
+    }
+
+    if (SVs.displayYAxis === "none") {
+        xaxisOptions.ticks.drawZero = true;
+    }
+
+    // Second defining point of the axis. For a negative-only axis, point it
+    // toward -x so the axis (and its default arrow head) is drawn on the
+    // negative side, mirroring the positive-only case exactly. This keeps the
+    // arrow head inside the graph's rounded border, unlike a custom
+    // `firstArrow` extending in the backward direction. The tradeoff is that
+    // JSXGraph signs tick labels by the point1->point2 direction, so the
+    // labels must have their sign restored afterward (see reverseTickLabelSigns).
+    let secondPoint = [1, 0];
+    if (SVs.displayXAxis === "positiveonly") {
+        xaxisOptions.straightFirst = false;
+    } else if (SVs.displayXAxis === "negativeonly") {
+        xaxisOptions.straightFirst = false;
+        secondPoint = [-1, 0];
+    }
+
+    theBoard.suspendUpdate();
+
+    xaxisRef.current = theBoard.create(
+        "axis",
+        [[0, 0], secondPoint],
+        xaxisOptions,
+    ) as AxisJXG;
+
+    if (SVs.displayXAxis === "negativeonly") {
+        reverseTickLabelSigns(xaxisRef.current, 1);
+    }
+
+    setMinorTicks(xaxisRef.current);
     theBoard.unsuspendUpdate();
 }
 

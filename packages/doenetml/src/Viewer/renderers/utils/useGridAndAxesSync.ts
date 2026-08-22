@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import JXG from "jsxgraph";
 import {
     applyAxisTickHeights,
@@ -28,6 +28,13 @@ export default function useGridAndAxesSync({
     previousXaxisWithLabelRef,
     previousYaxisWithLabelRef,
 }: UseGridAndAxesSyncParams) {
+    const previousDisplayXAxisRef = useRef<string | undefined>(
+        SVs.displayXAxis,
+    );
+    const previousDisplayYAxisRef = useRef<string | undefined>(
+        SVs.displayYAxis,
+    );
+
     useEffect(() => {
         if (!enabled || !board) {
             return;
@@ -69,19 +76,46 @@ export default function useGridAndAxesSync({
         const showXAxis = SVs.displayXAxis !== "none";
         const showYAxis = SVs.displayYAxis !== "none";
 
-        const displayXAxisChanged = showXAxis
+        const displayXAxisModeChanged =
+            SVs.displayXAxis !== previousDisplayXAxisRef.current;
+        const displayYAxisModeChanged =
+            SVs.displayYAxis !== previousDisplayYAxisRef.current;
+
+        const displayXAxisVisibilityChanged = showXAxis
             ? !Boolean(xaxisRef.current)
             : Boolean(xaxisRef.current);
-        const displayYAxisChanged = showYAxis
+        const displayYAxisVisibilityChanged = showYAxis
             ? !Boolean(yaxisRef.current)
             : Boolean(yaxisRef.current);
 
-        if (displayYAxisChanged && !displayXAxisChanged && showXAxis) {
+        if (displayXAxisModeChanged && xaxisRef.current) {
             board.removeObject(xaxisRef.current);
             xaxisRef.current = null;
         }
 
-        if (displayXAxisChanged && !displayYAxisChanged && showYAxis) {
+        if (displayYAxisModeChanged && yaxisRef.current) {
+            board.removeObject(yaxisRef.current);
+            yaxisRef.current = null;
+        }
+
+        // If one axis changed visibility (shown <-> hidden), the other axis's
+        // `drawZero` tick configuration may have changed and needs recreation.
+        if (
+            displayYAxisVisibilityChanged &&
+            !displayXAxisVisibilityChanged &&
+            showXAxis &&
+            xaxisRef.current
+        ) {
+            board.removeObject(xaxisRef.current);
+            xaxisRef.current = null;
+        }
+
+        if (
+            displayXAxisVisibilityChanged &&
+            !displayYAxisVisibilityChanged &&
+            showYAxis &&
+            yaxisRef.current
+        ) {
             board.removeObject(yaxisRef.current);
             yaxisRef.current = null;
         }
@@ -105,14 +139,11 @@ export default function useGridAndAxesSync({
                 // so the second clause only narrows the type — it never gates
                 // out a state that should be reachable.
                 if (xaxisRef.current.hasLabel && xaxisRef.current.label) {
-                    let position = "rt";
-                    let offset = [5, 10];
-                    let anchorx = "right";
-                    if (SVs.xLabelPosition === "left") {
-                        position = "lft";
-                        anchorx = "left";
-                        offset = [-5, 10];
-                    }
+                    const isNegativeOnly = SVs.displayXAxis === "negativeonly";
+                    const isLeft = SVs.xLabelPosition === "left";
+                    const position = isLeft === isNegativeOnly ? "rt" : "lft";
+                    let offset = isLeft ? [-5, 10] : [5, 10];
+                    let anchorx = isLeft ? "left" : "right";
                     xaxisRef.current.label.visProp.position = position;
                     xaxisRef.current.label.visProp.anchorx = anchorx;
                     xaxisRef.current.label.visProp.offset = offset;
@@ -149,13 +180,11 @@ export default function useGridAndAxesSync({
                 });
                 // Invariant: see x-axis above — `hasLabel` ⇒ `label` defined.
                 if (yaxisRef.current.hasLabel && yaxisRef.current.label) {
-                    let position = "rt";
-                    let offset = [-10, -5];
+                    const isNegativeOnly = SVs.displayYAxis === "negativeonly";
+                    const isBottom = SVs.yLabelPosition === "bottom";
+                    const position = isBottom === isNegativeOnly ? "rt" : "lft";
+                    const offset = isBottom ? [-10, 5] : [-10, -5];
                     let anchorx = "right";
-                    if (SVs.yLabelPosition === "bottom") {
-                        position = "lft";
-                        offset[1] = 5;
-                    }
                     if (SVs.yLabelAlignment === "right") {
                         anchorx = "left";
                         offset[0] = 10;
@@ -178,5 +207,8 @@ export default function useGridAndAxesSync({
             board.removeObject(yaxisRef.current);
             yaxisRef.current = null;
         }
+
+        previousDisplayXAxisRef.current = SVs.displayXAxis;
+        previousDisplayYAxisRef.current = SVs.displayYAxis;
     });
 }
