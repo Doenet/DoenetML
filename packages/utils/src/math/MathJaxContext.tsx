@@ -30,6 +30,18 @@ export interface MathJaxContextProps extends LoadMathJaxOptions {
 }
 
 /**
+ * Whether `value` is a thenable — anything `await` or `Promise.resolve` will
+ * adopt, which is all the loader requires of a host engine's `startup.promise`.
+ */
+function isThenable(value: unknown): value is PromiseLike<unknown> {
+    return (
+        !!value &&
+        (typeof value === "object" || typeof value === "function") &&
+        typeof (value as PromiseLike<unknown>).then === "function"
+    );
+}
+
+/**
  * `promise`, except that it never settles once `signal` is aborted — so the
  * work waiting on it is dropped rather than run against a torn-down tree.
  */
@@ -80,8 +92,13 @@ function untilAbortedEngine<T extends object>(
             ) {
                 return untilAbortedEngine(value as object, signal);
             }
-            if (property === "promise" && value instanceof Promise) {
-                return untilAborted(value, signal);
+            if (property === "promise" && isThenable(value)) {
+                // Any thenable, not only a native promise: the loader accepts
+                // a host engine on the strength of a thenable `startup.promise`
+                // (see `isMathJaxEngine`), so one that is not a promise of this
+                // realm must be gated too, or its continuation runs after the
+                // teardown this is here to survive.
+                return untilAborted(Promise.resolve(value), signal);
             }
             if (typeof value === "function") {
                 // `typesetClear` reports nothing; `typesetPromise` resolves, so

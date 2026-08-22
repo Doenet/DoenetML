@@ -362,14 +362,22 @@ describe("VirtualKeyboard — same-window focus tracking", () => {
  * it fails when handed a null element, which is what an unmounted `<MathJax>`
  * hands it (issue #1696).
  */
-function installStalledMathJax(win: Window & typeof globalThis) {
+function installStalledMathJax(
+    win: Window & typeof globalThis,
+    { nativePromise }: { nativePromise: boolean },
+) {
     let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+        release = resolve;
+    });
     // MathJax 4 exposes `startup` as a callable with its members attached, so
-    // the stand-in does too — that shape is what the loader sniffs for.
+    // the stand-in does too — that shape is what the loader sniffs for. The
+    // loader asks only that `startup.promise` be thenable, so a host engine may
+    // offer one that is not a promise of this realm.
     const startup = Object.assign(() => {}, {
-        promise: new Promise<void>((resolve) => {
-            release = resolve;
-        }),
+        promise: nativePromise
+            ? held
+            : { then: held.then.bind(held) as PromiseLike<void>["then"] },
     });
     const failOnNull = (elements: unknown[]) => {
         if (elements.some((element) => element == null)) {
@@ -400,25 +408,29 @@ describe("VirtualKeyboard — teardown while the keys are typesetting", () => {
         });
     });
 
-    it("does not leave an unhandled rejection behind", () => {
-        let release: () => void = () => {};
-        cy.window().then((win) => {
-            release = installStalledMathJax(win);
+    for (const nativePromise of [true, false]) {
+        it(`does not leave an unhandled rejection behind, with a ${
+            nativePromise ? "promise" : "bare thenable"
+        } to wait on`, () => {
+            let release: () => void = () => {};
+            cy.window().then((win) => {
+                release = installStalledMathJax(win, { nativePromise });
+            });
+
+            cy.mount(<SameWindowHarness />);
+            cy.get("#virtual-keyboard-tray").should("exist");
+
+            // Unmount the last (only) keyboard on the page: the tray goes with it,
+            // while the keys are still waiting on MathJax.
+            cy.mount(<div data-testid="after-unmount" />);
+            cy.get("[data-testid=after-unmount]").should("exist");
+            cy.get("#virtual-keyboard-tray").should("not.exist");
+
+            // Let the typeset the keys were waiting on run, now that the tray is
+            // gone. Cypress fails the test on an unhandled rejection, so the wait
+            // is what gives one time to arrive.
+            cy.then(() => release());
+            cy.wait(100);
         });
-
-        cy.mount(<SameWindowHarness />);
-        cy.get("#virtual-keyboard-tray").should("exist");
-
-        // Unmount the last (only) keyboard on the page: the tray goes with it,
-        // while the keys are still waiting on MathJax.
-        cy.mount(<div data-testid="after-unmount" />);
-        cy.get("[data-testid=after-unmount]").should("exist");
-        cy.get("#virtual-keyboard-tray").should("not.exist");
-
-        // Let the typeset the keys were waiting on run, now that the tray is
-        // gone. Cypress fails the test on an unhandled rejection, so the wait
-        // is what gives one time to arrive.
-        cy.then(() => release());
-        cy.wait(100);
-    });
+    }
 });

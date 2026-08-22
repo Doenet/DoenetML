@@ -1,6 +1,9 @@
 ---
-"@doenet/utils": patch
-"@doenet/virtual-keyboard": patch
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
 ---
 
 Stop the virtual keyboard tray from leaving an unhandled promise rejection behind when it is torn down.
