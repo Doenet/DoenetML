@@ -86,7 +86,6 @@ color =
             [n] brongt
            *[m] bronge
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -100,7 +99,6 @@ line-width =
             [n] dënnt
            *[m] dënne
         }
-
 # A participle used as an adjective takes the same endings, except that a stem
 # already ending in `t` has nothing to add for the neuter.
 line-style =
@@ -116,7 +114,6 @@ line-style =
             [n] gepunkt
            *[m] gepunkte
         }
-
 # Plural noun phrases, which is what follows «mat» in `style-filled`. A plural
 # adjective is the bare stem, so these agree with nothing.
 fill-style =
@@ -126,7 +123,6 @@ fill-style =
     .backdiagonal = ëmgedréint diagonal Linnen
     .dots = Punkten
     .diamonds = Rauten
-
 noun =
     .line = Linn
     .line-segment = Streck
@@ -146,7 +142,6 @@ noun =
     .diamond = Raut
     .cross = Kräiz
     .plus = Plus
-
 # Luxembourgish keeps the side count in front of the noun, as a compound, so
 # the whole of it is one head and there is no tail. The head noun is `-Eck`,
 # which is neuter, so the adjective inside it takes the neuter `-t` — and
@@ -157,7 +152,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regelméissegt { $numSides }-Eck
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (which is
 # `{ $numSides }-Eck`, n) or the head of a phrase the description never names:
 # `border` (Rand, m), `fill` (Fëllung, f), `text` (Text, m), `background`
@@ -181,7 +175,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -194,26 +187,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [f] gefëllt
         [n] gefëllt
        *[m] gefëllte
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } mat { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } mat { $pattern }
@@ -221,7 +210,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } mat { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «Rand» is masculine, so the border's adjectives agree with it rather than
 # with the shape it surrounds. Luxembourgish has an indefinite article, «e»,
 # so the two `-article` branches really do differ from the two without.
@@ -232,35 +220,28 @@ style-border-clause =
         [and-article] an engem { $border } Rand
        *[with] mat { $border } Rand
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } Fëllung mat { $pattern }
        *[plain] { $color } Fëllung
     }
-
 style-unfilled = net gefëllt
-
 style-text =
     { $parts ->
         [background] { $color } op engem { $background } Hannergrond
        *[plain] { $color }
     }
-
 style-background-none = keen
-
 
 ## Boolean words
 
 boolean-true = wouer
 boolean-false = falsch
 
-
 ## Answer buttons
 
 answer-submit-label = Iwwerpréifen
 answer-submit-label-no-correctness = Äntwert schécken
-
 
 ## Sectional blocks
 
@@ -285,7 +266,6 @@ section-name =
     .solution = Léisung
     .task = Aufgab
     .theorem = Theorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -295,9 +275,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Hiweis
-
 
 ## Tables and figures
 
@@ -308,7 +286,6 @@ table-name =
         [unnumbered-title] Tabell{ ": " }
        *[unnumbered] Tabell
     }
-
 figure-name =
     { $parts ->
         [numbered] Figur { $enumeration }
@@ -317,22 +294,18 @@ figure-name =
        *[unnumbered] Figur
     }
 
-
 ## Paginator controls
 
 paginator-previous = Zréck
 paginator-next = Weider
 paginator-page = Säit
-
 paginator-page-status = { $pageLabel } { $currentPage } vun { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = oder
 piecewise-condition-if = wann
 piecewise-condition-otherwise = soss
-
 
 ## Chemistry
 ##
@@ -343,6 +316,5 @@ piecewise-condition-otherwise = soss
 ## reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ongëltegt chemescht Symbol
 chemistry-invalid-ionic-compound = Ongëlteg ionesch Verbindung

@@ -95,7 +95,6 @@ color =
                    *[m] بھورا
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -119,12 +118,10 @@ line-width =
                    *[m] پتلا
                 }
         }
-
 # Both are unmarked, so neither inflects.
 line-style =
     .dashed = منقطع
     .dotted = نقطہ دار
-
 # Noun phrases in the oblique plural, because their other use is in front of
 # «والا» — a postposition that governs the oblique and inflects like a marked
 # adjective itself. They agree with nothing, so `style-fill` has to give them
@@ -136,7 +133,6 @@ fill-style =
     .backdiagonal = مخالف ترچھی لکیروں
     .dots = نقطوں
     .diamonds = معینوں
-
 noun =
     .line = لکیر
     .line-segment = قطعہ خط
@@ -156,7 +152,6 @@ noun =
     .diamond = معین
     .cross = کراس
     .plus = جمع کا نشان
-
 # Urdu keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -164,7 +159,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } اضلاع والا باقاعدہ کثیر الاضلاع
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (کثیر الاضلاع, m)
 # or the head of a phrase the description never names: `border` (کنارہ, m),
 # `fill` (بھراؤ, m), `text` (متن, m), `background` (پس منظر, m). Urdu parts
@@ -179,7 +173,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -192,14 +185,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # Adjectives precede the noun, as in English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -207,7 +198,6 @@ style-filled-word =
         [f] بھری ہوئی
        *[m] بھرا ہوا
     }
-
 # «والا» is a marked adjective itself, and it agrees with the shape rather than
 # with the pattern in front of it: «نقطوں والی لکیر», «نقطوں والا مربع». It is
 # always said of the shape, so the direct form is the only one needed here —
@@ -215,27 +205,28 @@ style-filled-word =
 # there is «بھراؤ», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] والی
-           *[m] والا
-        } { $color } { $filled }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] والی
+               *[m] والا
+            } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] والی
-           *[m] والا
-        } { $color } { $filled } { $noun }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] والی
+               *[m] والا
+            } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } { $gender ->
-            [f] والی
-           *[m] والا
-        } { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail]
+            { $pattern } { $gender ->
+                [f] والی
+               *[m] والا
+            } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «کے ساتھ» is a postposition, so «کنارہ» takes the oblique «کنارے» and so do
 # its adjectives — which is what the `border-clause` branch supplies. Urdu has
 # no article, so the `-article` branches read the same as the ones without.
@@ -246,7 +237,6 @@ style-border-clause =
         [and-article] اور { $border } کنارے کے ساتھ
        *[with] { $border } کنارے کے ساتھ
     }
-
 # The fill-pattern words are oblique plurals, so this message supplies a noun
 # for them to hang off — «بھراؤ», masculine, which is the gender `noun-gender`
 # already answers for `fill`, so the colour agrees with it in both variants.
@@ -255,29 +245,23 @@ style-fill =
         [pattern] { $pattern } والا { $color } بھراؤ
        *[plain] { $color } بھراؤ
     }
-
 style-unfilled = بغیر بھراؤ
-
 style-text =
     { $parts ->
         [background] { $background } پس منظر پر { $color }
        *[plain] { $color }
     }
-
 style-background-none = کوئی نہیں
-
 
 ## Boolean words
 
 boolean-true = صحیح
 boolean-false = غلط
 
-
 ## Answer buttons
 
 answer-submit-label = جواب جانچیں
 answer-submit-label-no-correctness = جواب بھیجیں
-
 
 ## Sectional blocks
 
@@ -302,7 +286,6 @@ section-name =
     .solution = حل
     .task = کام
     .theorem = نظریہ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -312,9 +295,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = اشارہ
-
 
 ## Tables and figures
 
@@ -325,7 +306,6 @@ table-name =
         [unnumbered-title] جدول{ ": " }
        *[unnumbered] جدول
     }
-
 figure-name =
     { $parts ->
         [numbered] شکل { $enumeration }
@@ -334,24 +314,18 @@ figure-name =
        *[unnumbered] شکل
     }
 
-
 ## Paginator controls
 
 paginator-previous = پچھلا
 paginator-next = اگلا
 paginator-page = صفحہ
-
 paginator-page-status = { $numPages } میں سے { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = یا
-
 piecewise-condition-if = اگر
-
 piecewise-condition-otherwise = بصورت دیگر
-
 
 ## Chemistry
 
@@ -474,7 +448,6 @@ element-name =
     .lv = لیورموریم
     .ts = ٹینیسین
     .og = اوگنیسون
-
 element-anion-name =
     .h = ہائیڈرائیڈ
     .c = کاربائیڈ
@@ -488,8 +461,6 @@ element-anion-name =
     .i = آیوڈائیڈ
     .at = ایسٹاٹائیڈ
     .ts = ٹینیسائیڈ
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = نامعتبر کیمیائی علامت
 chemistry-invalid-ionic-compound = نامعتبر آئنی مرکب

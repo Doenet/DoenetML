@@ -35,15 +35,12 @@ color =
     .purple = фиолетовой
     .pink = розовой
     .brown = коричневой
-
 line-width =
     .thick = эчке
     .thin = човине
-
 line-style =
     .dashed = сезнезь
     .dotted = точкань
-
 # Noun phrases: they stand in front of «мазылгавтомасо» and modify nothing.
 fill-style =
     .horizontal = горизонтальной линия
@@ -52,7 +49,6 @@ fill-style =
     .backdiagonal = каршо диагональной линия
     .dots = точка
     .diamonds = ромб
-
 noun =
     .line = виде линия
     .line-segment = пелькске
@@ -72,7 +68,6 @@ noun =
     .diamond = ромб
     .cross = крёст
     .plus = плюс
-
 # Erzya builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -80,11 +75,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] видестэ { $numSides } ужо
     }
-
 # Erzya has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -98,21 +91,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = артозь
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } мазылгавтомасо { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } мазылгавтомасо { $color } { $filled } { $noun }
@@ -120,7 +109,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } мазылгавтомасо { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «чиресэ» is the inessive of «чире», "edge", and carries the whole of "with a
 # border" in its own suffix — the same shape `locales/udm` and `locales/kv`
 # use, arriving from the other end of Uralic.
@@ -131,15 +119,12 @@ style-border-clause =
         [and-article] ды { $border } чиресэ
        *[with] { $border } чиресэ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } мазылгавтомасо { $color } артома
        *[plain] { $color } артома
     }
-
 style-unfilled = апак арта
-
 # «лангсо» — "on" — is a postposition and follows the background colour, so
 # nothing stands between the two words.
 style-text =
@@ -147,21 +132,17 @@ style-text =
         [background] { $background } фон лангсо { $color }
        *[plain] { $color }
     }
-
 style-background-none = арась
-
 
 ## Boolean words
 
 boolean-true = виде
 boolean-false = а виде
 
-
 ## Answer buttons
 
 answer-submit-label = Ванномс
 answer-submit-label-no-correctness = Каршо валонть кучомс
-
 
 ## Sectional blocks
 
@@ -186,7 +167,6 @@ section-name =
     .solution = Решения
     .task = Задания
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -196,9 +176,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Невтевкске
-
 
 ## Tables and figures
 
@@ -209,7 +187,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Артовкс { $enumeration }
@@ -218,15 +195,12 @@ figure-name =
        *[unnumbered] Артовкс
     }
 
-
 ## Paginator controls
 
 paginator-previous = Икелень
 paginator-next = Сы
 paginator-page = Лопа
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -241,7 +215,6 @@ piecewise-condition-or = эли
 piecewise-condition-if = бути
 piecewise-condition-otherwise = лия таркава
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -250,6 +223,5 @@ piecewise-condition-otherwise = лия таркава
 ## ones — the school-system case this batch shares throughout.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = А виде химиянь тешкс
 chemistry-invalid-ionic-compound = А виде иононь сюлмавкс

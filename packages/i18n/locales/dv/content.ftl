@@ -46,15 +46,12 @@ color =
     .purple = ދަނބު
     .pink = ފިޔާތޮށި
     .brown = މުށި
-
 line-width =
     .thick = ބޯ
     .thin = ތުނި
-
 line-style =
     .dashed = ކެނޑިކެނޑިގެން
     .dotted = ތިކިޖެހި
-
 fill-style =
     .horizontal = އަރިމަތީ ރޮނގު
     .vertical = ސީދާ ރޮނގު
@@ -62,7 +59,6 @@ fill-style =
     .backdiagonal = ވާތު ބުރި ރޮނގު
     .dots = ތިކި
     .diamonds = މުއްބަރު
-
 noun =
     .line = ރޮނގު
     .line-segment = ރޮނގުކޮޅު
@@ -82,7 +78,6 @@ noun =
     .diamond = މުއްބަރު
     .cross = ގުނަކުރުމުގެ ނިޝާން
     .plus = އެއްކުރުމުގެ ނިޝާން
-
 # «-ކަން ހުރި» takes the count and stands in front of the noun, so nothing
 # follows the adjectives and the tail is empty.
 noun-regular-polygon =
@@ -90,10 +85,8 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ކަން ހުރި ހަމަހަމަ ގިނަކަން
     }
-
 # Nothing selects on it: Dhivehi has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,15 +100,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ފުރިފައިވާ
-
 # «އިން» ("with, by means of") follows what it governs, so the pattern moves to
 # the front of the phrase where English appends it. It has one shape whatever
 # precedes it.
@@ -124,7 +114,6 @@ style-filled =
         [pattern] { $pattern } އިން { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } އިން { $filled } { $color } { $noun }
@@ -132,7 +121,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } އިން { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Dhivehi has no article, so the two `-article` branches read like their
 # neighbours; «އަދި» is the conjunction and stands in front.
 style-border-clause =
@@ -142,36 +130,29 @@ style-border-clause =
         [and-article] އަދި { $border } އަރިމަތްޗާއެކު
        *[with] { $border } އަރިމަތްޗާއެކު
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } އިން { $color } ފުރުން
        *[plain] { $color } ފުރުން
     }
-
 style-unfilled = ނުފުރޭ
-
 # «-ގައި» is the locative and has one shape too.
 style-text =
     { $parts ->
         [background] { $background } ބެކްގްރައުންޑުގައި { $color }
        *[plain] { $color }
     }
-
 style-background-none = އެއްވެސް އެއްޗެއް ނެތް
-
 
 ## Boolean words
 
 boolean-true = ތެދު
 boolean-false = ދޮގު
 
-
 ## Answer buttons
 
 answer-submit-label = ބައްލަވާ
 answer-submit-label-no-correctness = ޖަވާބު ފޮނުވާ
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = ހައްލު
     .task = މަސައްކަތް
     .theorem = ނަޒަރިއްޔާ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = އިޝާރާތް
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] ތާވަލު{ ": " }
        *[unnumbered] ތާވަލު
     }
-
 figure-name =
     { $parts ->
         [numbered] ތަސްވީރު { $enumeration }
@@ -228,28 +205,22 @@ figure-name =
        *[unnumbered] ތަސްވީރު
     }
 
-
 ## Paginator controls
 
 paginator-previous = ކުރީގެ
 paginator-next = ދެން
 paginator-page = ސަފުހާ
-
 # «X ން Y» — "Y out of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } ން { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = ނުވަތަ
-
 # Clause-final in Dhivehi and placed before the mathematics by the renderer;
 # see the header. The word is right and its position is not.
 piecewise-condition-if = ނަމަ
-
 piecewise-condition-otherwise = އެހެންނޫންނަމަ
-
 
 ## Chemistry
 ##
@@ -265,6 +236,5 @@ piecewise-condition-otherwise = އެހެންނޫންނަމަ
 ## and no table waiting behind it.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ސައްހަނޫން ކެމިކަލް ނިޝާން
 chemistry-invalid-ionic-compound = ސައްހަނޫން އަޔޮނިކް މުރައްކަބު

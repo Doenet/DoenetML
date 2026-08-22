@@ -105,7 +105,6 @@ color =
             [background-clause] ruskealla
            *[standalone] ruskea
         }
-
 line-width =
     .thick =
         { $role ->
@@ -119,7 +118,6 @@ line-width =
             [background-clause] ohuella
            *[standalone] ohut
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -133,7 +131,6 @@ line-style =
             [background-clause] pisteviivaisella
            *[standalone] pisteviivainen
         }
-
 # Partitive plural, which is what «jossa on» governs — see the note at the top
 # of this file.
 fill-style =
@@ -143,7 +140,6 @@ fill-style =
     .backdiagonal = vastakkaisia vinoviivoja
     .dots = pisteitä
     .diamonds = vinoneliöitä
-
 noun =
     .line = suora
     .line-segment = jana
@@ -163,7 +159,6 @@ noun =
     .diamond = vinoneliö
     .cross = risti
     .plus = plus
-
 # «5-kulmio» — Finnish writes a numeral-headed compound with a hyphen, and the
 # word after it is the same whatever the numeral, so the whole phrase is a head
 # and there is no tail.
@@ -172,12 +167,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] säännöllinen { $numSides }-kulmio
     }
-
 # Finnish has no grammatical gender, so this answer goes unused. It is here
 # because the source catalog defines the key and a missing key would fall back
 # to English rather than to nothing.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -191,21 +184,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = täytetty
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color }, jossa on { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun }, jossa on { $pattern }
@@ -213,7 +202,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail }, jossa on { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «reuna» takes the adessive, which the `border-clause` branch of every
 # adjective agrees with. Finnish has no article, so the `-article` branches
 # read the same as the ones without.
@@ -224,15 +212,12 @@ style-border-clause =
         [and-article] ja { $border } reunalla
        *[with] { $border } reunalla
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } täyttö, jossa on { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = täyttämätön
-
 # «tausta» takes the adessive too, so the colour in front of it agrees with it
 # the same way the border's does.
 style-text =
@@ -240,21 +225,17 @@ style-text =
         [background] { $color } { $background } taustalla
        *[plain] { $color }
     }
-
 style-background-none = ei mitään
-
 
 ## Boolean words
 
 boolean-true = tosi
 boolean-false = epätosi
 
-
 ## Answer buttons
 
 answer-submit-label = Tarkista
 answer-submit-label-no-correctness = Lähetä vastaus
-
 
 ## Sectional blocks
 
@@ -279,7 +260,6 @@ section-name =
     .solution = Ratkaisu
     .task = Tehtävänanto
     .theorem = Lause
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -289,9 +269,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Vihje
-
 
 ## Tables and figures
 
@@ -302,7 +280,6 @@ table-name =
         [unnumbered-title] Taulukko{ ": " }
        *[unnumbered] Taulukko
     }
-
 figure-name =
     { $parts ->
         [numbered] Kuva { $enumeration }
@@ -311,24 +288,20 @@ figure-name =
        *[unnumbered] Kuva
     }
 
-
 ## Paginator controls
 
 paginator-previous = Edellinen
 paginator-next = Seuraava
 paginator-page = Sivu
-
 # A slash rather than «-sta/-stä»: the elative harmonizes with how the numeral
 # is read, which the catalog cannot see.
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = tai
 piecewise-condition-if = jos
 piecewise-condition-otherwise = muutoin
-
 
 ## Chemistry
 
@@ -451,7 +424,6 @@ element-name =
     .lv = Livermorium
     .ts = Tennessiini
     .og = Oganesson
-
 element-anion-name =
     .h = Hydridi
     .c = Karbidi
@@ -465,8 +437,6 @@ element-anion-name =
     .i = Jodidi
     .at = Astatidi
     .ts = Tennessidi
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Virheellinen kemiallinen merkki
 chemistry-invalid-ionic-compound = Virheellinen ioniyhdiste

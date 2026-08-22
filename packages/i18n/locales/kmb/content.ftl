@@ -88,7 +88,6 @@ color =
     .purple = ya roxu
     .pink = ya rosa
     .brown = ya kastanyu
-
 line-width =
     .thick =
         { $gender ->
@@ -104,14 +103,12 @@ line-width =
             [c10] ja tetuka
            *[c9] ya tetuka
         }
-
 # Written with the frozen class-9 «ya», the way the Portuguese loans above are:
 # these describe a manner rather than a quality, and a speaker does not agree
 # them with the shape. `style-stroke` puts them last so nothing follows them.
 line-style =
     .dashed = ya jinlonji jitetuka
     .dotted = ya jimbanza
-
 fill-style =
     .horizontal = jinlonji ja lala
     .vertical = jinlonji ja imana
@@ -119,7 +116,6 @@ fill-style =
     .backdiagonal = jinlonji ja bhita ku mbandu ya mukwa
     .dots = jimbanza
     .diamonds = jidiamanti
-
 noun =
     .line = nlonji
     .line-segment = kitangana kya nlonji
@@ -139,7 +135,6 @@ noun =
     .diamond = diamanti
     .cross = kuluzu
     .plus = kimbanza kya kubhakela
-
 # The side count is a counted complement and closes the noun phrase behind the
 # describing words, so it goes in the tail. «-a» agrees here too, but the head
 # noun is always the same word, so the form is fixed and needs no fork — which
@@ -149,7 +144,6 @@ noun-regular-polygon =
         [tail] ya jimbandu { $numSides }
        *[head] poligonu ya kusokela
     }
-
 # The noun class. `c9` is the default, which is what an author's own
 # `markerStyleWord` is as far as this catalog is concerned. Every noun with an
 # overt `ki-` — «kizenge», «kididi», «kitangana», «kimbanza» — answers `c7`, so
@@ -171,7 +165,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «ya …» phrase and closes the description, so it moves
@@ -186,13 +179,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c5] dya kuizala
@@ -200,13 +191,11 @@ style-filled-word =
         [c10] ja kuizala
        *[c9] ya kuizala
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ni { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ni { $pattern }
@@ -214,7 +203,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ni { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «jimbandu» is the border and leads its own describing words, so they agree
 # with it rather than with the shape it surrounds — which is why `border`
 # answers `c10` in `noun-gender`. Kimbundu has no article and joins this clause
@@ -226,35 +214,28 @@ style-border-clause =
         [and-article] ni jimbandu { $border }
        *[with] ni jimbandu { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ki kya kuizala ko
-
 style-text =
     { $parts ->
         [background] { $color } ni kunima { $background }
        *[plain] { $color }
     }
-
 style-background-none = kima ki kwala ko
-
 
 ## Boolean words
 
 boolean-true = kidi
 boolean-false = makutu
 
-
 ## Answer buttons
 
 answer-submit-label = Tala o Kikalakalu
 answer-submit-label-no-correctness = Tuma o Kitambwijilu
-
 
 ## Sectional blocks
 
@@ -279,7 +260,6 @@ section-name =
     .solution = Kisokololwelu
     .task = Kikalakalu
     .theorem = Teoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -289,9 +269,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kikwatekesu
-
 
 ## Tables and figures
 
@@ -302,7 +280,6 @@ table-name =
         [unnumbered-title] Tabela{ ": " }
        *[unnumbered] Tabela
     }
-
 figure-name =
     { $parts ->
         [numbered] Kifika { $enumeration }
@@ -311,25 +288,18 @@ figure-name =
        *[unnumbered] Kifika
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ya bhitile
 paginator-next = Ya kaya
-
 paginator-page = Kibhamba
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = mba
-
 piecewise-condition-if = se
-
 piecewise-condition-otherwise = mu ima yoso ya mukwa
-
 
 ## Chemistry
 ##
@@ -342,6 +312,5 @@ piecewise-condition-otherwise = mu ima yoso ya mukwa
 ## the substitution this seeding effort is careful not to make.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kimbanza kya Kimika ki Kyabhonga ko
 chemistry-invalid-ionic-compound = Kibhungu kya Ioni ki Kyabhonga ko

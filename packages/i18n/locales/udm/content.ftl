@@ -37,15 +37,12 @@ color =
     .purple = фиолетовой
     .pink = лемлет
     .brown = коричневой
-
 line-width =
     .thick = зӧк
     .thin = векчи
-
 line-style =
     .dashed = чигем
     .dotted = пусъем
-
 # Noun phrases: they stand in front of «чеберъямен» and modify nothing.
 fill-style =
     .horizontal = горизонтальной чур
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = пумит диагональной чур
     .dots = пус
     .diamonds = ромб
-
 noun =
     .line = шонер чур
     .line-segment = висъет
@@ -74,7 +70,6 @@ noun =
     .diamond = ромб
     .cross = перекрест
     .plus = плюс
-
 # Udmurt builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -82,11 +77,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] шонер { $numSides } сэрего
     }
-
 # Udmurt has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -100,21 +93,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = буям
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } чеберъямен { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } чеберъямен { $color } { $filled } { $noun }
@@ -122,7 +111,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } чеберъямен { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «дуроен» is the instrumental of «дур», "edge", and carries the whole of "with
 # a border" in its own suffix — so neither a preposition nor an article is
 # wanted, and the suffix sits on a noun this catalog writes rather than on a
@@ -134,15 +122,12 @@ style-border-clause =
         [and-article] но { $border } дуроен
        *[with] { $border } дуроен
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } чеберъямен { $color } буям
        *[plain] { $color } буям
     }
-
 style-unfilled = буямтэ
-
 # «вылын» — "on" — is a postposition and follows the background colour, so
 # nothing stands between the two words.
 style-text =
@@ -150,21 +135,17 @@ style-text =
         [background] { $background } фон вылын { $color }
        *[plain] { $color }
     }
-
 style-background-none = ӧвӧл
-
 
 ## Boolean words
 
 boolean-true = зэм
 boolean-false = зэм ӧвӧл
 
-
 ## Answer buttons
 
 answer-submit-label = Эскерыны
 answer-submit-label-no-correctness = Ответэз ыстыны
-
 
 ## Sectional blocks
 
@@ -189,7 +170,6 @@ section-name =
     .solution = Шедьтон
     .task = Уж
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -199,9 +179,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Юрттэт
-
 
 ## Tables and figures
 
@@ -212,7 +190,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Суред { $enumeration }
@@ -221,15 +198,12 @@ figure-name =
        *[unnumbered] Суред
     }
 
-
 ## Paginator controls
 
 paginator-previous = Азьло
 paginator-next = Собере
 paginator-page = Бам
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -246,7 +220,6 @@ piecewise-condition-or = яке
 piecewise-condition-if = ке
 piecewise-condition-otherwise = мукет учыре
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -255,6 +228,5 @@ piecewise-condition-otherwise = мукет учыре
 ## ones — the school-system case this batch shares throughout.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Янгыш химической пус
 chemistry-invalid-ionic-compound = Янгыш ион герӟет

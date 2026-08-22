@@ -54,15 +54,12 @@ color =
     .purple = kelü-kallfü
     .pink = kelü-lig
     .brown = kolü
-
 line-width =
     .thick = motrin
     .thin = trongli
-
 line-style =
     .dashed = katrüntuku
     .dotted = pichike troykülen
-
 # Noun phrases. Mapudungun marks the plural with the free word «pu» before the
 # noun rather than with a suffix, and a bare noun already reads as a kind, so
 # these carry nothing.
@@ -73,7 +70,6 @@ fill-style =
     .backdiagonal = wirin aylla wüñotun
     .dots = troykülen
     .diamonds = rombo
-
 # The geometry nouns, and the loan boundary this file's header describes. «wirin»
 # (line), «wallke» (round), «troy» (point) and «meli» / «küla» (four, three) are
 # Mapudungun; ray, vector, parabola and the rest are Spanish, because the
@@ -97,7 +93,6 @@ noun =
     .diamond = rombo
     .cross = kürus
     .plus = yomümün chillka
-
 # The side count precedes the noun, so the head holds it and the tail is empty —
 # English's shape.
 noun-regular-polygon =
@@ -105,11 +100,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } xoy poligono kiñewkülen
     }
-
 # One answer for every noun: Mapudungun has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -123,7 +116,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives precede the noun, so this is English's order. The `[noun-tail]`
 # branch is unreachable from Mapudungun's own `noun-regular-polygon`; it is kept
 # because it is what a partly-corrected catalog falls back to.
@@ -132,9 +124,7 @@ style-with-noun =
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = apolen
-
 # «mew» is a postposition and a free word, so it follows `$pattern` without
 # touching it. Mapudungun needs none of the workarounds `locales/qu` and
 # `locales/ay` needed for this same message, and the reason is only that its
@@ -144,7 +134,6 @@ style-filled =
         [pattern] { $filled } { $color }, { $pattern } mew
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun }, { $pattern } mew
@@ -152,7 +141,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail }, { $pattern } mew
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Mapudungun has no article, so English's four branches are two distinct strings;
 # all four are written out because they are four positions and a later correction
 # to one need not be a correction to the others.
@@ -163,7 +151,6 @@ style-border-clause =
         [and-article] ka { $border } inaltu
        *[with] { $border } inaltu mew
     }
-
 # Here the pattern is the head noun — "blue diamonds" — and the colour precedes
 # it, so the phrase needs nothing at all.
 style-fill =
@@ -171,29 +158,23 @@ style-fill =
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = apolenolu
-
 style-text =
     { $parts ->
         [background] { $color }, { $background } furi mew
        *[plain] { $color }
     }
-
 style-background-none = chemnorume
-
 
 ## Boolean words
 
 boolean-true = rüf
 boolean-false = koyla
 
-
 ## Answer buttons
 
 answer-submit-label = Adkintuge ti küdaw
 answer-submit-label-no-correctness = Werküge ti llowdungun
-
 
 ## Sectional blocks
 
@@ -221,7 +202,6 @@ section-name =
     .solution = Nornentun
     .task = Elufe küdaw
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -231,9 +211,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kellun
-
 
 ## Tables and figures
 
@@ -244,7 +222,6 @@ table-name =
         [unnumbered-title] Wirin waria{ ": " }
        *[unnumbered] Wirin waria
     }
-
 figure-name =
     { $parts ->
         [numbered] Adentun { $enumeration }
@@ -253,24 +230,20 @@ figure-name =
        *[unnumbered] Adentun
     }
 
-
 ## Paginator controls
 
 paginator-previous = Wüne
 paginator-next = Inan
 paginator-page = Chillka
-
 # «mew» follows what it governs and is a free word, so the total can stand where
 # English puts it.
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = kam
 piecewise-condition-if = feyti
 piecewise-condition-otherwise = ka mew
-
 
 ## Chemistry
 ##
@@ -283,6 +256,5 @@ piecewise-condition-otherwise = ka mew
 ## that boundary is and why it is worth moving.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Weda chillka kimika
 chemistry-invalid-ionic-compound = Weda trawün ionika

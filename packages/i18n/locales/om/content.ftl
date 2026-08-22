@@ -37,15 +37,12 @@ color =
     .purple = hoomacha
     .pink = biloo
     .brown = magaala
-
 line-width =
     .thick = furdaa
     .thin = qal'aa
-
 line-style =
     .dashed = kutaa-kutaa
     .dotted = tuqaa-tuqaa
-
 # Noun phrases: they follow «waliin» and modify nothing.
 fill-style =
     .horizontal = sarara ciisaa
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = sarara jal'ataa faallaa
     .dots = tuqaalee
     .diamonds = daayimandii
-
 noun =
     .line = sarara
     .line-segment = kutaa sararaa
@@ -74,7 +70,6 @@ noun =
     .diamond = daayimandii
     .cross = fannoo
     .plus = mallattoo ida'uu
-
 # The side count goes in the tail, behind the adjectives: «boca walqixa diimaa
 # rogoota 5 qabu».
 noun-regular-polygon =
@@ -82,11 +77,9 @@ noun-regular-polygon =
         [tail] rogoota { $numSides } qabu
        *[head] boca walqixa
     }
-
 # Every noun this catalog names is masculine — see the header. The feminine
 # exists in the language and simply has no member here yet.
 noun-gender = m
-
 
 ## Style composition
 
@@ -100,21 +93,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = guutame
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } waliin
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } { $pattern } waliin
@@ -122,7 +111,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } { $pattern } waliin
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «daangaa» leads its own adjectives, the same way every noun here does, and
 # «waliin» closes the clause rather than opening it: Oromo is a postpositional
 # language, so the word joining the border to the shape follows the whole
@@ -135,35 +123,28 @@ style-border-clause =
         [and-article] fi daangaa { $border } waliin
        *[with] daangaa { $border } waliin
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = hin guutamne
-
 style-text =
     { $parts ->
         [background] { $color } duubbee { $background } irratti
        *[plain] { $color }
     }
-
 style-background-none = hin jiru
-
 
 ## Boolean words
 
 boolean-true = dhugaa
 boolean-false = soba
 
-
 ## Answer buttons
 
 answer-submit-label = Hojii Ilaali
 answer-submit-label-no-correctness = Deebii Ergi
-
 
 ## Sectional blocks
 
@@ -188,7 +169,6 @@ section-name =
     .solution = Furmaata
     .task = Hojii
     .theorem = Seera
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -198,9 +178,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Qajeelfama
-
 
 ## Tables and figures
 
@@ -211,7 +189,6 @@ table-name =
         [unnumbered-title] Gabatee{ ": " }
        *[unnumbered] Gabatee
     }
-
 figure-name =
     { $parts ->
         [numbered] Fakkii { $enumeration }
@@ -220,15 +197,12 @@ figure-name =
        *[unnumbered] Fakkii
     }
 
-
 ## Paginator controls
 
 paginator-previous = Kan darbe
 paginator-next = Kan itti aanu
 paginator-page = Fuula
-
 paginator-page-status = { $pageLabel } { $currentPage } kan { $numPages }
-
 
 ## Piecewise functions
 
@@ -236,8 +210,8 @@ piecewise-condition-or = yookaan
 piecewise-condition-if = yoo
 piecewise-condition-otherwise = yoo kanaan ta'uu baate
 
-
 ## Chemistry
+
 
 # Oromo is one of the catalogs that leaves `element-name` and
 # `element-anion-name` out, so those 130 keys fall back to English. Ethiopian
@@ -245,6 +219,5 @@ piecewise-condition-otherwise = yoo kanaan ta'uu baate
 # has reached a classroom to seed from.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Mallattoo Keemikaalaa Sirrii Hin Taane
 chemistry-invalid-ionic-compound = Walmakaa Ayoonii Sirrii Hin Taane

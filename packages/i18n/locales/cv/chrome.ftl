@@ -27,32 +27,24 @@
 
 answer-checking = Тӗрӗслет…
 answer-submitting = Ярать…
-
 answer-checking-status = Хурава тӗрӗслет
 answer-submitting-status = Хурава ярать
-
 answer-correct = Тӗрӗс
 answer-incorrect = Йӑнӑш
-
 answer-response-saved = Хурав упранчӗ
-
 answer-percent-credit = { $percent }% балл
 answer-percent-correct = { $percent }% тӗрӗс
 answer-percent-short = { $percent } %
-
 max-credit-available = Пулма пултаракан чи пысӑк балл: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] хӑтланса пӑхмалли юлмарӗ
         [one] { $count } хут хӑтланса пӑхма юлчӗ
        *[other] { $count } хут хӑтланса пӑхма юлчӗ
     }
-
 validation-correct = (Тӗрӗс)
 validation-incorrect = (Йӑнӑш)
 validation-partially-correct = (Пайӑн-пайӑн тӗрӗс)
-
 answer-show-responses =
     { $count ->
         [zero] { $answerId } валли хурав ҫук
@@ -60,42 +52,31 @@ answer-show-responses =
        *[other] { $answerId } валли { $count } хурав кӑтартас
     }
 
-
 ## Disclosure panels
 
 feedback-heading = Хирӗҫ калани
-
 collapsible-click-to-open = (уҫма пусӑр)
 collapsible-click-to-close = (хупма пусӑр)
-
 collapsible-initializing = Хатӗрленет…
-
 footnote-show = Асӑрхаттарӑва кӑтартас
 footnote-hide = Асӑрхаттарӑва пытарас
-
 description-more-information = хушма информаци
-
 
 ## Controls
 
 slider-previous = Малтанхи
 slider-next = Тепӗр
-
 keyboard-open = Клавиатурӑна уҫас
 keyboard-close = Клавиатурӑна хупас
-
 choice-input-remove-choice = { $choice } суйлавне кӑларас
-
 matrix-remove-row = Йӗркене кӑларас
 matrix-add-row = Йӗрке хушас
 matrix-remove-column = Юпана кӑларас
 matrix-add-column = Юпа хушас
-
 subset-add-remove-points = Пӑнчӑ хушас/кӑларас
 subset-toggle-points-intervals = Пӑнчӑсемпе хушӑксене улӑштарас
 subset-move-points = Пӑнчӑсене куҫарас
 subset-clear = Тасатас
-
 orbital-add-row = Йӗрке хушас
 orbital-remove-row = Йӗркене кӑларас
 orbital-add-box = Куҫӑ хушас
@@ -103,13 +84,9 @@ orbital-remove-box = Куҫӑ кӑларас
 orbital-add-up-arrow = Ҫӳлелле йӗппи хушас
 orbital-add-down-arrow = Аялалла йӗппи хушас
 orbital-remove-arrow = Йӗппе кӑларас
-
 orbital-row-label = { $row } йӗркин палли
-
 pretzel-answer = Хурав
-
 summary-statistics-caption = { $column } юпин пӗтӗмлетӳ статистики
-
 
 ## Math input
 
@@ -117,34 +94,25 @@ math-input-preview-region = математика палӑртӑвне малта
 math-input-preview = Малтан пӑхни
 math-input-invalid-expression = Тӗрӗс мар палӑрту:
 
-
 ## Document status
 
 viewer-initializing = Хатӗрленет…
 
-
 ## Errors
 
 error-heading = Йӑнӑш
-
 error-found-at =
     { $span ->
         [line] Тупнӑ йӗрке: { $startLine }.
        *[lines] Тупнӑ йӗркесем: { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Ку документра йӑнӑшсем пур!
-
 diagnostic-heading-error = Йӑнӑш
 diagnostic-heading-warning = Асӑрхаттару
 diagnostic-heading-information = Информаци
 diagnostic-heading-hint = Канаш
-
 accessibility-heading-level-1 = WCAG AA майлӑх пӑсӑлӑвӗ
 accessibility-heading-level-2 = Майлӑх пирки хыпар
-
 something-went-wrong = Темӗн йӑнӑш пулса тухрӗ.
-
 renderer-load-failed = ӳкерекеннине тиеме пулмарӗ. Страницӑна ҫӗнетӗр.
-
 core-start-failed = Документ пӑхмалли хатӗре ӗҫлеттерсе яма пулмарӗ. Страницӑна ҫӗнетӗр.

@@ -24,69 +24,50 @@
 
 answer-checking = Ɛrehwɛ...
 answer-submitting = Ɛrema akɔ...
-
 answer-checking-status = Ɛrehwɛ mmuaeɛ no
 answer-submitting-status = Ɛrema mmuaeɛ no akɔ
-
 answer-correct = Ɛteɛ
 answer-incorrect = Ɛnteɛ
-
 answer-response-saved = Wɔakora Mmuaeɛ No So
-
 answer-percent-credit = { $percent }% Nsɛkyerɛ
 answer-percent-correct = { $percent }% Ɛteɛ
 answer-percent-short = { $percent } %
-
 max-credit-available = Nsɛkyerɛ kɛseɛ a wobɛnya: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] mmɔdenbɔ biara nka ho
        *[other] mmɔdenbɔ { $count } na aka
     }
-
 validation-correct = (Ɛteɛ)
 validation-incorrect = (Ɛnteɛ)
 validation-partially-correct = (Ɛfã teɛ)
-
 answer-show-responses = Kyerɛ mmuaeɛ { $count } a wɔde maa { $answerId }
-
 
 ## Disclosure panels
 
 feedback-heading = Nsɛm a Ɛfiri Mu
-
 collapsible-click-to-open = (mia na bue)
 collapsible-click-to-close = (mia na to mu)
-
 collapsible-initializing = Ɛrefiri aseɛ...
-
 footnote-show = Kyerɛ ase nkaeɛ
 footnote-hide = Fa ase nkaeɛ sie
-
 description-more-information = nsɛm foforɔ
-
 
 ## Controls
 
 slider-previous = Akyire
 slider-next = Anim
-
 keyboard-open = Bue Kiibɔɔd
 keyboard-close = To Kiibɔɔd Mu
-
 choice-input-remove-choice = Yi { $choice } firi mu
-
 matrix-remove-row = Yi santene firi mu
 matrix-add-row = Fa santene ka ho
 matrix-remove-column = Yi adum firi mu
 matrix-add-column = Fa adum ka ho
-
 subset-add-remove-points = Fa pɔint ka ho/Yi firi mu
 subset-toggle-points-intervals = Sesa pɔint ne ntam
 subset-move-points = Twe Pɔint No
 subset-clear = Popa
-
 # A `box` here is one orbital, drawn as a square: «adaka».
 orbital-add-row = Fa Santene Ka Ho
 orbital-remove-row = Yi Santene Firi Mu
@@ -95,13 +76,9 @@ orbital-remove-box = Yi Adaka Firi Mu
 orbital-add-up-arrow = Fa Bɛmma A Ɛkyerɛ Soro Ka Ho
 orbital-add-down-arrow = Fa Bɛmma A Ɛkyerɛ Fam Ka Ho
 orbital-remove-arrow = Yi Bɛmma Firi Mu
-
 orbital-row-label = Santene { $row } din
-
 pretzel-answer = Mmuaeɛ
-
 summary-statistics-caption = { $column } ho akontabuo tiawa
-
 
 ## Math input
 
@@ -109,34 +86,25 @@ math-input-preview-region = akontabuo nkyerɛwee ho nhwɛ
 math-input-preview = Nhwɛ
 math-input-invalid-expression = Nkyerɛwee no nteɛ:
 
-
 ## Document status
 
 viewer-initializing = Ɛrefiri aseɛ...
 
-
 ## Errors
 
 error-heading = Mfomsoɔ
-
 error-found-at =
     { $span ->
         [line] Wohunuu no wɔ layin { $startLine } so.
        *[lines] Wohunuu no wɔ layin { $startLine }–{ $endLine } so.
     }
-
 document-contains-errors = Mfomsoɔ wɔ krataa yi mu!
-
 diagnostic-heading-error = Mfomsoɔ
 diagnostic-heading-warning = Kɔkɔbɔ
 diagnostic-heading-information = Nsɛm
 diagnostic-heading-hint = Akwankyerɛ
-
 accessibility-heading-level-1 = WCAG AA Nhyehyɛeɛ A Wɔabu So
 accessibility-heading-level-2 = Nkɔmu-kwan ho kɔkɔbɔ
-
 something-went-wrong = Biribi ansi yie.
-
 renderer-load-failed = ɔkyerɛfoɔ baako antumi amma. Yɛsrɛ wo, san fa kratafa no bra.
-
 core-start-failed = Krataa kyerɛfoɔ no antumi anfiri aseɛ. Yɛsrɛ wo, san fa kratafa no bra.

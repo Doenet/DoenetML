@@ -34,15 +34,12 @@ color =
     .purple = binafsha
     .pink = pushti
     .brown = jigarrang
-
 line-width =
     .thick = qalin
     .thin = ingichka
-
 line-style =
     .dashed = uzuq-uzuq
     .dotted = nuqtali
-
 # Noun phrases: they stand in front of «naqshli» and modify nothing.
 fill-style =
     .horizontal = gorizontal chiziq
@@ -51,7 +48,6 @@ fill-style =
     .backdiagonal = teskari diagonal chiziq
     .dots = nuqta
     .diamonds = romb
-
 noun =
     .line = toʻgʻri chiziq
     .line-segment = kesma
@@ -71,7 +67,6 @@ noun =
     .diamond = romb
     .cross = xoch
     .plus = plyus
-
 # Uzbek builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -79,11 +74,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] muntazam { $numSides }-burchak
     }
-
 # Uzbek has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English and Turkish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -97,21 +90,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = boʻyalgan
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } naqshli { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } naqshli { $color } { $filled } { $noun }
@@ -119,7 +108,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } naqshli { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «hoshiyali» — "bordered" — carries the "with a border" sense in its own
 # suffix, so neither a preposition nor an article is wanted, and all four
 # branches read alike except for the connective English needs and Uzbek does
@@ -131,15 +119,12 @@ style-border-clause =
         [and-article] va { $border } hoshiyali
        *[with] { $border } hoshiyali
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } naqshli { $color } boʻyoq
        *[plain] { $color } boʻyoq
     }
-
 style-unfilled = boʻyalmagan
-
 # «fonda» is the locative of «fon» and says "on the background" by itself, so
 # nothing stands between the two colours.
 style-text =
@@ -147,21 +132,17 @@ style-text =
         [background] { $background } fonda { $color }
        *[plain] { $color }
     }
-
 style-background-none = yoʻq
-
 
 ## Boolean words
 
 boolean-true = rost
 boolean-false = yolgʻon
 
-
 ## Answer buttons
 
 answer-submit-label = Tekshirish
 answer-submit-label-no-correctness = Javobni yuborish
-
 
 ## Sectional blocks
 
@@ -186,7 +167,6 @@ section-name =
     .solution = Yechim
     .task = Topshiriq
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -196,9 +176,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Maslahat
-
 
 ## Tables and figures
 
@@ -209,7 +187,6 @@ table-name =
         [unnumbered-title] Jadval{ ". " }
        *[unnumbered] Jadval
     }
-
 figure-name =
     { $parts ->
         [numbered] { $enumeration }-rasm
@@ -218,22 +195,18 @@ figure-name =
        *[unnumbered] Rasm
     }
 
-
 ## Paginator controls
 
 paginator-previous = Oldingi
 paginator-next = Keyingi
 paginator-page = Sahifa
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = yoki
 piecewise-condition-if = agar
 piecewise-condition-otherwise = aks holda
-
 
 ## Chemistry
 
@@ -356,7 +329,6 @@ element-name =
     .lv = Livermoriy
     .ts = Tennessin
     .og = Oganeson
-
 element-anion-name =
     .h = Gidrid
     .c = Karbid
@@ -370,8 +342,6 @@ element-anion-name =
     .i = Yodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Yaroqsiz kimyoviy belgi
 chemistry-invalid-ionic-compound = Yaroqsiz ion birikma

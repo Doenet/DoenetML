@@ -52,15 +52,12 @@ color =
     .purple = বেগুনী
     .pink = গোলাপী
     .brown = খয়েরী
-
 line-width =
     .thick = অচৌবা
     .thin = অপীকপা
-
 line-style =
     .dashed = তক্থোকপা
     .dotted = চেৎনবা
-
 fill-style =
     .horizontal = পরিং পরেং
     .vertical = লেপপা পরেং
@@ -68,7 +65,6 @@ fill-style =
     .backdiagonal = ওন্থোকপা তিংথোকপা পরেং
     .dots = চেৎ
     .diamonds = সমচতুর্ভুজ
-
 noun =
     .line = পরেং
     .line-segment = পরেং শরুক
@@ -88,7 +84,6 @@ noun =
     .diamond = সমচতুর্ভুজ
     .cross = গুণন খুদম
     .plus = পুনশিনবা খুদম
-
 # The count follows the noun the way every other modifier does, so the head
 # carries the noun alone and the tail carries the complement. The three
 # post-nominal catalogs in this batch — this one, `bo` and `dz` — are the ones
@@ -98,10 +93,8 @@ noun-regular-polygon =
         [tail] মায়কৈ { $numSides } লৈবা
        *[head] অচুম্বা বহুভুজ
     }
-
 # Nothing selects on it: Meitei has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -115,7 +108,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives follow the noun, so the two halves change places against
 # English. A noun with a tail puts the tail last, after the adjectives it
 # qualifies.
@@ -124,9 +116,7 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = থল্লবা
-
 # «-না» is the instrumental and has one shape whatever precedes it, so welding
 # it onto a placeable is sound.
 style-filled =
@@ -134,7 +124,6 @@ style-filled =
         [pattern] { $filled } { $color } { $pattern }না
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } { $pattern }না
@@ -142,7 +131,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } { $pattern }না
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «মপান» is the border and stands in front of its own adjective, so the
 # comitative «-গা» welds onto the placeable rather than onto a word this
 # catalog writes. Meitei has no article, so the `-article` branches read like
@@ -154,36 +142,29 @@ style-border-clause =
         [and-article] অমসুং মপান { $border }গা লোয়ননা
        *[with] মপান { $border }গা লোয়ননা
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }না
        *[plain] { $color }
     }
-
 style-unfilled = থল্লদবা
-
 # «-দা» is the locative and has one shape too.
 style-text =
     { $parts ->
         [background] মতুং { $background }দা { $color }
        *[plain] { $color }
     }
-
 style-background-none = করিসু লৈতে
-
 
 ## Boolean words
 
 boolean-true = অচুম্বা
 boolean-false = অরানবা
 
-
 ## Answer buttons
 
 answer-submit-label = য়েংশিল্লু
 answer-submit-label-no-correctness = পাউখুম থাদোকউ
-
 
 ## Sectional blocks
 
@@ -208,7 +189,6 @@ section-name =
     .solution = পাউখুম লম্বী
     .task = থবক
     .theorem = প্রমেয়
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -218,9 +198,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = খুদম
-
 
 ## Tables and figures
 
@@ -231,7 +209,6 @@ table-name =
         [unnumbered-title] তেবল{ ": " }
        *[unnumbered] তেবল
     }
-
 figure-name =
     { $parts ->
         [numbered] মমি { $enumeration }
@@ -240,26 +217,20 @@ figure-name =
        *[unnumbered] মমি
     }
 
-
 ## Paginator controls
 
 paginator-previous = মমাংগী
 paginator-next = মথংগী
 paginator-page = লামায়
-
 # «X-দগী Y» — "Y out of X" — puts the total first, so the two counts change
 # places. The ablative «-দগী» has one shape whatever precedes it.
 paginator-page-status = { $numPages }-দগী { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = নত্ত্রগা
-
 piecewise-condition-if = করিগুম্বা
-
 piecewise-condition-otherwise = নত্ত্রবদি
-
 
 ## Chemistry
 ##
@@ -273,6 +244,5 @@ piecewise-condition-otherwise = নত্ত্রবদি
 ## is the curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = অরানবা রাসায়নিক খুদম
 chemistry-invalid-ionic-compound = অরানবা আয়নিক যৌগিক

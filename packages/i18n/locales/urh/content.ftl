@@ -47,15 +47,12 @@ color =
     .purple = pọpol
     .pink = pinki
     .brown = brawun
-
 line-width =
     .thick = ro gbanro
     .thin = ro dinrin
-
 line-style =
     .dashed = ro vwo edaesi
     .dotted = ro vwo ẹkpo
-
 fill-style =
     .horizontal = eyin ro fẹẹ
     .vertical = eyin ro tọtọ
@@ -63,7 +60,6 @@ fill-style =
     .backdiagonal = eyin ro krisikrọsi ephiare
     .dots = ẹkpo
     .diamonds = daimọn
-
 noun =
     .line = layin
     .line-segment = ẹkpẹrọ layin
@@ -83,15 +79,12 @@ noun =
     .diamond = daimọn
     .cross = krọsi
     .plus = plọsi
-
 noun-regular-polygon =
     { $part ->
         [tail] { "" }
        *[head] poligọn ro dogba, vwo eyin { $numSides }
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,21 +98,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = ro vwo evwo vwẹrhọ
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } vwẹ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } vwẹ { $pattern }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } vwẹ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] vwẹ ẹkpẹrọ { $border }
@@ -135,35 +123,28 @@ style-border-clause =
         [and-article] vẹ ẹkpẹrọ { $border }
        *[with] vwẹ ẹkpẹrọ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ro vwo evwo vwẹrhọ-e
-
 style-text =
     { $parts ->
         [background] { $color } vwẹ ẹkẹ-otọ { $background }
        *[plain] { $color }
     }
-
 style-background-none = ovwan
-
 
 ## Boolean words
 
 boolean-true = true
 boolean-false = false
 
-
 ## Answer buttons
 
 answer-submit-label = Chek Iruo
 answer-submit-label-no-correctness = Sọmit Ẹkpahọnphiyọ
-
 
 ## Sectional blocks
 
@@ -188,7 +169,6 @@ section-name =
     .solution = Efejorin
     .task = Iruo
     .theorem = Iyẹrẹ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -198,9 +178,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Uphiudu
-
 
 ## Tables and figures
 
@@ -211,7 +189,6 @@ table-name =
         [unnumbered-title] Tebul{ ": " }
        *[unnumbered] Tebul
     }
-
 figure-name =
     { $parts ->
         [numbered] Fọtọ { $enumeration }
@@ -220,24 +197,18 @@ figure-name =
        *[unnumbered] Fọtọ
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ọsiẹvwin
 paginator-next = Ọrhirie
 paginator-page = Pej
-
 paginator-page-status = { $pageLabel } { $currentPage } vwẹ { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = yẹrẹ
-
 piecewise-condition-if = wọ da nẹ
-
 piecewise-condition-otherwise = ọvo ọfa
-
 
 ## Chemistry
 ##
@@ -245,8 +216,6 @@ piecewise-condition-otherwise = ọvo ọfa
 ## including in Delta State, is taught in English, and this seed found no
 ## settled Urhobo chemical nomenclature to draw on.
 
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ami-Kemistri ro Fioma
 chemistry-invalid-ionic-compound = Ọbọ-Aiọni ro Fioma

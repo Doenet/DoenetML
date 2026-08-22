@@ -116,16 +116,13 @@ color =
         }
     .pink = गुलाबी
     .brown = तपकिरी
-
 # Neither ends in -आ, so neither inflects.
 line-width =
     .thick = जाड
     .thin = बारीक
-
 line-style =
     .dashed = तुटक
     .dotted = ठिपकेदार
-
 # Plural nouns rather than adjectives, with genders of their own — रेषा is
 # feminine and ठिपके masculine. वापरून ("using") is invariable and takes them
 # bare, which is what lets both `style-filled` and `style-fill` set them beside
@@ -137,7 +134,6 @@ fill-style =
     .backdiagonal = उलट तिरप्या रेषा
     .dots = ठिपके
     .diamonds = समभुज चौकोन
-
 noun =
     .line = रेषा
     .line-segment = रेषाखंड
@@ -157,7 +153,6 @@ noun =
     .diamond = समभुज चौकोन
     .cross = फुली
     .plus = अधिक चिन्ह
-
 # बाजूंचा agrees with बहुभुज, which is masculine, so the count attaches to the
 # noun that follows and there is no tail.
 noun-regular-polygon =
@@ -165,7 +160,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } बाजूंचा नियमित बहुभुज
     }
-
 # Besides the nouns above, `$noun` may be «regular-polygon» (बहुभुज, m) or the
 # head of a phrase the description does not name: «border» (किनार, f), «fill»
 # (भरण, n), «text» (मजकूर, m), «background» (पार्श्वभूमी, f).
@@ -183,7 +177,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -196,13 +189,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -211,7 +202,6 @@ style-filled-word =
         [n] भरलेले
        *[m] भरलेला
     }
-
 # वापरून ("using") is invariable and takes the pattern bare, so the clause
 # English appends comes to the front here.
 style-filled =
@@ -219,7 +209,6 @@ style-filled =
         [pattern] { $pattern } वापरून { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } वापरून { $filled } { $color } { $noun }
@@ -227,7 +216,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } वापरून { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # -सह is a postposition, so किनार goes oblique to किनारी- and the adjectives in
 # front of it take the oblique -या that `border-clause` supplies. Marathi has
 # no article, which leaves the `-article` branches reading like the others.
@@ -238,7 +226,6 @@ style-border-clause =
         [and-article] आणि { $border } किनारीसह
        *[with] { $border } किनारीसह
     }
-
 # The colour arrives agreeing with «भरण», which is neuter, so it needs that
 # noun beside it — «निळे» in front of the feminine «आडव्या रेषा» agrees with
 # neither. The pattern hangs off वापरून, as it does in `style-filled`.
@@ -247,10 +234,8 @@ style-fill =
         [pattern] { $pattern } वापरून { $color } भरण
        *[plain] { $color } भरण
     }
-
 # Invariable, because nothing is passed to agree it with.
 style-unfilled = भरणविरहित
-
 # -वर is a postposition too, so the background's colour is oblique; the text's
 # own colour, which follows, agrees with मजकूर and is direct masculine.
 style-text =
@@ -258,21 +243,17 @@ style-text =
         [background] { $background } पार्श्वभूमीवर { $color }
        *[plain] { $color }
     }
-
 style-background-none = काहीही नाही
-
 
 ## Boolean words
 
 boolean-true = खरे
 boolean-false = खोटे
 
-
 ## Answer buttons
 
 answer-submit-label = तपासा
 answer-submit-label-no-correctness = उत्तर पाठवा
-
 
 ## Sectional blocks
 
@@ -297,7 +278,6 @@ section-name =
     .solution = उकल
     .task = कार्य
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -307,9 +287,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = सूचना
-
 
 ## Tables and figures
 
@@ -320,7 +298,6 @@ table-name =
         [unnumbered-title] सारणी{ ": " }
        *[unnumbered] सारणी
     }
-
 figure-name =
     { $parts ->
         [numbered] आकृती { $enumeration }
@@ -329,26 +306,20 @@ figure-name =
        *[unnumbered] आकृती
     }
 
-
 ## Paginator controls
 
 paginator-previous = मागील
 paginator-next = पुढील
 paginator-page = पृष्ठ
-
 # «X पैकी Y» — "Y out of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } पैकी { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = किंवा
-
 piecewise-condition-if = जर
-
 piecewise-condition-otherwise = अन्यथा
-
 
 ## Chemistry
 ##
@@ -476,7 +447,6 @@ element-name =
     .lv = लिव्हरमोरियम
     .ts = टेनेसिन
     .og = ओगानेसन
-
 element-anion-name =
     .h = हायड्राइड
     .c = कार्बाइड
@@ -490,8 +460,6 @@ element-anion-name =
     .i = आयोडाइड
     .at = ॲस्टाटाइड
     .ts = टेनेसाइड
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = अवैध रासायनिक चिन्ह
 chemistry-invalid-ionic-compound = अवैध आयनिक संयुग

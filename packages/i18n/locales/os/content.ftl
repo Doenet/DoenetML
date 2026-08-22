@@ -46,15 +46,12 @@ color =
     .purple = фиолетон
     .pink = розæхуыз
     .brown = морæ
-
 line-width =
     .thick = бæзджын
     .thin = тæнæг
-
 line-style =
     .dashed = скъуыдтæ
     .dotted = стъæлфытимæ
-
 # Noun phrases: they stand in front of «нывимæ» and modify nothing.
 fill-style =
     .horizontal = горизонталон хахх
@@ -63,7 +60,6 @@ fill-style =
     .backdiagonal = ныхмæ диагоналон хахх
     .dots = стъæлф
     .diamonds = ромб
-
 noun =
     .line = раст хахх
     .line-segment = хахххай
@@ -83,7 +79,6 @@ noun =
     .diamond = ромб
     .cross = дзуар
     .plus = плюс
-
 # Ossetian builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -91,11 +86,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] раст { $numSides }-къуымон
     }
-
 # Ossetian has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -109,21 +102,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ахуырст
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } нывимæ { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } нывимæ { $color } { $filled } { $noun }
@@ -131,7 +120,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } нывимæ { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «кæронимæ» — "with an edge" — is written after the colour word this catalog
 # supplies, so the comitative suffix lands on a noun of its own rather than on
 # a placeable, and neither a preposition nor an article is wanted.
@@ -142,15 +130,12 @@ style-border-clause =
         [and-article] æмæ { $border } кæронимæ
        *[with] { $border } кæронимæ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } нывимæ { $color } ахорæн
        *[plain] { $color } ахорæн
     }
-
 style-unfilled = ахуырст нæу
-
 # «уæлæ» — "on" — is a postposition and follows the background colour, so
 # nothing stands between the two words.
 style-text =
@@ -158,21 +143,17 @@ style-text =
         [background] { $background } фон уæлæ { $color }
        *[plain] { $color }
     }
-
 style-background-none = нæй
-
 
 ## Boolean words
 
 boolean-true = раст
 boolean-false = раст нæу
 
-
 ## Answer buttons
 
 answer-submit-label = Бабæрæг кæнын
 answer-submit-label-no-correctness = Дзуапп арвитын
-
 
 ## Sectional blocks
 
@@ -197,7 +178,6 @@ section-name =
     .solution = Раиртасæн
     .task = Хæслæвæрд
     .theorem = Теоремæ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -207,9 +187,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Амынд
-
 
 ## Tables and figures
 
@@ -220,7 +198,6 @@ table-name =
         [unnumbered-title] Таблицæ{ ". " }
        *[unnumbered] Таблицæ
     }
-
 figure-name =
     { $parts ->
         [numbered] Ныв { $enumeration }
@@ -229,15 +206,12 @@ figure-name =
        *[unnumbered] Ныв
     }
 
-
 ## Paginator controls
 
 paginator-previous = Разæй
 paginator-next = Дарддæр
 paginator-page = Фарс
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -250,7 +224,6 @@ piecewise-condition-or = кæнæ
 piecewise-condition-if = кæд
 piecewise-condition-otherwise = æндæр хуызы
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -261,6 +234,5 @@ piecewise-condition-otherwise = æндæр хуызы
 ## rather than one.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Раст нæу химион нысан
 chemistry-invalid-ionic-compound = Раст нæу ионон баиу

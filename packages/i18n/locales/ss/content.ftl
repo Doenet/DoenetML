@@ -79,7 +79,6 @@ color =
     .purple = lophephuli
     .pink = lophinki
     .brown = lonsundvu
-
 line-width =
     .thick =
         { $gender ->
@@ -95,14 +94,12 @@ line-width =
             [c7] lesincane
            *[c9] lencane
         }
-
 # Written as an invariable «nge…» phrase rather than as a describing word, so
 # that it agrees with nothing and can close the phrase. `style-stroke` puts it
 # last for that reason.
 line-style =
     .dashed = ngetincetu
     .dotted = ngemachashati
-
 # Noun phrases: they follow «nge» or «na» and modify nothing.
 fill-style =
     .horizontal = imidvwa levundlile
@@ -111,7 +108,6 @@ fill-style =
     .backdiagonal = imidvwa letsekile ngekuphambene
     .dots = emachashati
     .diamonds = emadayimane
-
 noun =
     .line = umudvwa
     .line-segment = sicheme semudvwa
@@ -131,7 +127,6 @@ noun =
     .diamond = lidayimane
     .cross = siphambano
     .plus = luphawu lwekuhlanganisa
-
 # The side count goes in the tail, behind the describing words, because
 # «lesinetinhlangotsi letingu-5» is a relative phrase and siSwati closes a noun
 # phrase with one rather than opening it.
@@ -140,7 +135,6 @@ noun-regular-polygon =
         [tail] lesinetinhlangotsi letingu-{ $numSides }
        *[head] sakhiwo lesilinganako
     }
-
 # The noun class, which is what a describing word agrees with. `c9` is the
 # default and the class of every loanword.
 noun-gender =
@@ -166,7 +160,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «nge…» phrase and closes the description, so it moves
@@ -181,7 +174,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its describing words follow, with the noun's own relative
 # complement closing the phrase.
 style-with-noun =
@@ -189,7 +181,6 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] logcwalisiwe
@@ -197,13 +188,11 @@ style-filled-word =
         [c7] lesigcwalisiwe
        *[c9] legcwalisiwe
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } nge{ $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } nge{ $pattern }
@@ -211,7 +200,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } nge{ $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «umngcele» is class 3 and leads its own describing words, so the border's
 # words agree with it rather than with the shape it surrounds. siSwati has no
 # article and joins this clause with the invariable «lonem-», so all four
@@ -223,35 +211,28 @@ style-border-clause =
         [and-article] lonemngcele { $border }
        *[with] lonemngcele { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = akagcwaliswanga
-
 style-text =
     { $parts ->
         [background] { $color } etikwesizinda { $background }
        *[plain] { $color }
     }
-
 style-background-none = kute
-
 
 ## Boolean words
 
 boolean-true = liciniso
 boolean-false = emanga
 
-
 ## Answer buttons
 
 answer-submit-label = Hlola Umsebenti
 answer-submit-label-no-correctness = Tfumela Imphendvulo
-
 
 ## Sectional blocks
 
@@ -276,7 +257,6 @@ section-name =
     .solution = Sisombululo
     .task = Umsebenti
     .theorem = Ithiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -286,9 +266,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Sicondziso
-
 
 ## Tables and figures
 
@@ -299,7 +277,6 @@ table-name =
         [unnumbered-title] Ithebula{ ": " }
        *[unnumbered] Ithebula
     }
-
 figure-name =
     { $parts ->
         [numbered] Umfanekiso { $enumeration }
@@ -308,24 +285,18 @@ figure-name =
        *[unnumbered] Umfanekiso
     }
 
-
 ## Paginator controls
 
 paginator-previous = Lokwendlulile
 paginator-next = Lokulandzelako
 paginator-page = Likhasi
-
 paginator-page-status = { $pageLabel } { $currentPage } kwangu-{ $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = nobe
-
 piecewise-condition-if = nangabe
-
 piecewise-condition-otherwise = ngaphandle kwaloko
-
 
 ## Chemistry
 ##
@@ -338,6 +309,5 @@ piecewise-condition-otherwise = ngaphandle kwaloko
 ## English and the fallback *is* the curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Luphawu Lwemakhemikhali Lolungasilo
 chemistry-invalid-ionic-compound = Inhlanganisela Ye-ayoni Lengasiyo

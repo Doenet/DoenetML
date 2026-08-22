@@ -100,7 +100,6 @@ color =
                    *[m] ਭੂਰਾ
                 }
         }
-
 # No `$role` fork on these two or on `line-style` below, unlike the colours: a
 # width and a dash pattern are only ever said of a stroke, which is placed
 # `standalone` or in `border-clause` and never in the one clause position that
@@ -116,7 +115,6 @@ line-width =
             [f] ਪਤਲੀ
            *[m] ਪਤਲਾ
         }
-
 # ਬਿੰਦੀਦਾਰ ends in a consonant and never changes; ਟੁੱਟਵਾਂ does.
 line-style =
     .dashed =
@@ -125,7 +123,6 @@ line-style =
            *[m] ਟੁੱਟਵਾਂ
         }
     .dotted = ਬਿੰਦੀਦਾਰ
-
 # Noun phrases: they stand in front of the «ਨਾਲ» the composition messages
 # supply, or in front of the «ਵਾਲੀ» in `style-fill`, and agree with nothing
 # themselves.
@@ -136,7 +133,6 @@ fill-style =
     .backdiagonal = ਉਲਟ ਵਿਕਰਣ ਲਕੀਰਾਂ
     .dots = ਬਿੰਦੀਆਂ
     .diamonds = ਹੀਰੇ
-
 noun =
     .line = ਰੇਖਾ
     .line-segment = ਰੇਖਾਖੰਡ
@@ -156,7 +152,6 @@ noun =
     .diamond = ਹੀਰਾ
     .cross = ਕਾਟਾ
     .plus = ਜਮ੍ਹਾਂ ਚਿੰਨ੍ਹ
-
 # The side count precedes the noun, as every modifier in Punjabi does, so it
 # folds into the head and there is no tail.
 noun-regular-polygon =
@@ -164,7 +159,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ਭੁਜਾਵਾਂ ਵਾਲਾ ਨਿਯਮਿਤ ਬਹੁਭੁਜ
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (ਬਹੁਭੁਜ, m) or the
 # head of a phrase: `border` (ਕਿਨਾਰੀ, f), `fill` (ਭਰਾਈ, f), `text` (ਲਿਖਤ, f),
 # `background` (ਪਿਛੋਕੜ, m). English leaves all four unnamed; the composition
@@ -181,7 +175,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -194,26 +187,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Said only of the shape itself, so it takes no `$role` branch.
 style-filled-word =
     { $gender ->
         [f] ਭਰੀ
        *[m] ਭਰਿਆ
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } ਨਾਲ
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern } ਨਾਲ
@@ -221,7 +210,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern } ਨਾਲ
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ਕਿਨਾਰੀ» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds. Punjabi has no article, so the two `-article`
 # branches read like the ones without.
@@ -232,7 +220,6 @@ style-border-clause =
         [and-article] ਅਤੇ { $border } ਕਿਨਾਰੀ ਨਾਲ
        *[with] { $border } ਕਿਨਾਰੀ ਨਾਲ
     }
-
 # The colour arrives agreeing with `fill`, which `noun-gender` answers feminine
 # — but the pattern words are plural nouns of their own gender (ਹੀਰੇ m), so
 # putting the colour straight in front of one would disagree with it. So the
@@ -243,12 +230,10 @@ style-fill =
         [pattern] { $pattern } ਵਾਲੀ { $color } ਭਰਾਈ
        *[plain] { $color } ਭਰਾਈ
     }
-
 # The other answer the same variable gives, and it takes no `$gender`, so it
 # names the noun rather than inflecting an adjective for a gender it was not
 # told — as «बिना भराव» does in `hi`.
 style-unfilled = ਬਿਨਾਂ ਭਰਾਈ
-
 # «ਪਿਛੋਕੜ» is masculine and takes the postposition «ਉੱਤੇ», which is what puts
 # its colour in the oblique.
 style-text =
@@ -256,21 +241,17 @@ style-text =
         [background] { $background } ਪਿਛੋਕੜ ਉੱਤੇ { $color }
        *[plain] { $color }
     }
-
 style-background-none = ਕੋਈ ਨਹੀਂ
-
 
 ## Boolean words
 
 boolean-true = ਸਹੀ
 boolean-false = ਗਲਤ
 
-
 ## Answer buttons
 
 answer-submit-label = ਜਾਂਚੋ
 answer-submit-label-no-correctness = ਜਵਾਬ ਭੇਜੋ
-
 
 ## Sectional blocks
 
@@ -295,7 +276,6 @@ section-name =
     .solution = ਹੱਲ
     .task = ਕਾਰਜ
     .theorem = ਪ੍ਰਮੇਯ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -305,9 +285,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ਸੰਕੇਤ
-
 
 ## Tables and figures
 
@@ -318,7 +296,6 @@ table-name =
         [unnumbered-title] ਸਾਰਣੀ{ ": " }
        *[unnumbered] ਸਾਰਣੀ
     }
-
 figure-name =
     { $parts ->
         [numbered] ਚਿੱਤਰ { $enumeration }
@@ -327,16 +304,13 @@ figure-name =
        *[unnumbered] ਚਿੱਤਰ
     }
 
-
 ## Paginator controls
 
 paginator-previous = ਪਿਛਲਾ
 paginator-next = ਅਗਲਾ
 paginator-page = ਸਫ਼ਾ
-
 # The total leads, marked with «ਵਿੱਚੋਂ», which is how Punjabi says "3 of 5".
 paginator-page-status = { $numPages } ਵਿੱਚੋਂ { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
@@ -344,8 +318,8 @@ piecewise-condition-or = ਜਾਂ
 piecewise-condition-if = ਜੇ
 piecewise-condition-otherwise = ਨਹੀਂ ਤਾਂ
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and the 130
 # keys fall back to English.
@@ -359,6 +333,5 @@ piecewise-condition-otherwise = ਨਹੀਂ ਤਾਂ
 # `lint:i18n` reports the gap until a chemist who writes Punjabi supplies them.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ਗਲਤ ਰਸਾਇਣਕ ਚਿੰਨ੍ਹ
 chemistry-invalid-ionic-compound = ਗਲਤ ਆਇਓਨਿਕ ਯੌਗਿਕ

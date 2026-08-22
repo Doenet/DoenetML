@@ -49,15 +49,12 @@ color =
     .purple = lila
     .pink = rosas
     .brown = kapé
-
 line-width =
     .thick = napuskol
     .thin = nanipis
-
 line-style =
     .dashed = naguris-guris
     .dotted = natuldek-tuldek
-
 # Noun phrases. Ilocano marks no plural on the noun, so «guris» is the word for
 # one line and for many alike; these are not plurals of anything.
 fill-style =
@@ -67,7 +64,6 @@ fill-style =
     .backdiagonal = supadi a kilo a guris
     .dots = tuldek
     .diamonds = diamante
-
 noun =
     .line = linia
     .line-segment = segmento
@@ -87,7 +83,6 @@ noun =
     .diamond = diamante
     .cross = krus
     .plus = plus
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe. «nga» here is correct and fixed: «addaan» is
 # vowel-initial and is this catalog's own word.
@@ -96,11 +91,9 @@ noun-regular-polygon =
         [tail] nga addaan iti { $numSides } a sikigan
        *[head] regular a poligono
     }
-
 # One answer for every noun: Ilocano has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -115,21 +108,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } a { $noun } { $nounTail }
        *[noun] { $description } a { $noun }
     }
-
 style-filled-word = napunno
-
 style-filled =
     { $parts ->
         [pattern] { $filled } a { $color } nga addaan iti { $pattern }
        *[plain] { $filled } a { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } a { $color } a { $noun } nga addaan iti { $pattern }
@@ -137,7 +126,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } a { $color } a { $noun } { $nounTail } nga addaan iti { $pattern }
        *[plain] { $filled } a { $color } a { $noun }
     }
-
 # Ilocano has no article, so the two `-article` branches say what the other two
 # say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «nga addaan iti» against
@@ -150,35 +138,28 @@ style-border-clause =
         [and-article] ken { $border } nga igid
        *[with] nga addaan iti { $border } nga igid
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } a { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = saan a napunno
-
 style-text =
     { $parts ->
         [background] { $color } nga addaan iti { $background } a likudan
        *[plain] { $color }
     }
-
 style-background-none = awan
-
 
 ## Boolean words
 
 boolean-true = pudno
 boolean-false = saan a pudno
 
-
 ## Answer buttons
 
 answer-submit-label = Sukimaten ti sungbat
 answer-submit-label-no-correctness = Ipatulod ti sungbat
-
 
 ## Sectional blocks
 
@@ -207,7 +188,6 @@ section-name =
     .solution = Solusion
     .task = Trabaho
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -217,9 +197,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Palagip
-
 
 ## Tables and figures
 
@@ -230,7 +208,6 @@ table-name =
         [unnumbered-title] Tabla{ ": " }
        *[unnumbered] Tabla
     }
-
 figure-name =
     { $parts ->
         [numbered] Pigura { $enumeration }
@@ -239,22 +216,18 @@ figure-name =
        *[unnumbered] Pigura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Napalabas
 paginator-next = Sumaruno
 paginator-page = Panid
-
 paginator-page-status = { $pageLabel } { $currentPage } iti { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = wenno
 piecewise-condition-if = no
 piecewise-condition-otherwise = no saan
-
 
 ## Chemistry
 ##
@@ -266,6 +239,5 @@ piecewise-condition-otherwise = no saan
 ## Philippine languages the roster now carries.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Imbalido a simbolo a kemikal
 chemistry-invalid-ionic-compound = Imbalido a kompuesto nga ioniko

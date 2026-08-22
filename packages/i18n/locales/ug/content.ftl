@@ -40,15 +40,12 @@ color =
     .purple = بىنەپشە
     .pink = ھالرەڭ
     .brown = قوڭۇر
-
 line-width =
     .thick = قېلىن
     .thin = ئىنچىكە
-
 line-style =
     .dashed = ئۈزۈك
     .dotted = چېكىتلىك
-
 fill-style =
     .horizontal = توغرا سىزىقلار
     .vertical = تىك سىزىقلار
@@ -56,7 +53,6 @@ fill-style =
     .backdiagonal = تەتۈر يانتۇ سىزىقلار
     .dots = چېكىتلەر
     .diamonds = رومبىلار
-
 noun =
     .line = سىزىق
     .line-segment = سىزىق بۆلىكى
@@ -76,7 +72,6 @@ noun =
     .diamond = رومبا
     .cross = كرېست
     .plus = قوشۇش بەلگىسى
-
 # Uyghur keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -84,11 +79,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } تەرەپلىك مۇنتىزىم كۆپ بۇلۇڭلۇق
     }
-
 # Uyghur has no grammatical gender. The token is defined anyway rather than
 # left to fall back, so that this catalog says so on purpose.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -102,16 +95,13 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # Adjectives precede the noun, as in English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = تولدۇرۇلغان
-
 # «بىلەن» is a postposition and a word of its own, so it can follow a
 # placeable where a case suffix could not.
 style-filled =
@@ -119,7 +109,6 @@ style-filled =
         [pattern] { $color } { $filled }، { $pattern } بىلەن
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $color } { $filled } { $noun }، { $pattern } بىلەن
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $color } { $filled } { $noun } { $nounTail }، { $pattern } بىلەن
        *[plain] { $color } { $filled } { $noun }
     }
-
 # Uyghur has no article, so the two `-article` branches say what their plain
 # counterparts do.
 style-border-clause =
@@ -137,7 +125,6 @@ style-border-clause =
         [and-article] ۋە { $border } گىرۋەك بىلەن
        *[with] { $border } گىرۋەك بىلەن
     }
-
 # The pattern is a plural noun and the colour an adjective in front of it, so
 # the two fall in the same order they do in English.
 style-fill =
@@ -145,29 +132,23 @@ style-fill =
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = تولدۇرۇلمىغان
-
 style-text =
     { $parts ->
         [background] { $color }، { $background } تەگلىك بىلەن
        *[plain] { $color }
     }
-
 style-background-none = يوق
-
 
 ## Boolean words
 
 boolean-true = راست
 boolean-false = يالغان
 
-
 ## Answer buttons
 
 answer-submit-label = جاۋابنى تەكشۈرۈش
 answer-submit-label-no-correctness = جاۋابنى يوللاش
-
 
 ## Sectional blocks
 
@@ -192,7 +173,6 @@ section-name =
     .solution = يېشىم
     .task = ۋەزىپە
     .theorem = تېئورېما
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -202,9 +182,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = كۆرسەتمە
-
 
 ## Tables and figures
 
@@ -215,7 +193,6 @@ table-name =
         [unnumbered-title] جەدۋەل{ ": " }
        *[unnumbered] جەدۋەل
     }
-
 figure-name =
     { $parts ->
         [numbered] رەسىم { $enumeration }
@@ -224,28 +201,21 @@ figure-name =
        *[unnumbered] رەسىم
     }
 
-
 ## Paginator controls
 
 paginator-previous = ئالدىنقى
 paginator-next = كېيىنكى
 paginator-page = بەت
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ياكى
-
 piecewise-condition-if = ئەگەر
-
 piecewise-condition-otherwise = بولمىسا
-
 
 ## Chemistry
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ئىناۋەتسىز خىمىيىلىك بەلگە
 chemistry-invalid-ionic-compound = ئىناۋەتسىز ئىئون بىرىكمىسى

@@ -52,15 +52,12 @@ color =
     .purple = viölê
     .pink = rôzo
     .brown = maröon
-
 line-width =
     .thick = kötä
     .thin = kete
-
 line-style =
     .dashed = na akete mbâgë
     .dotted = na apoin
-
 fill-style =
     .horizontal = alignë so alängö
     .vertical = alignë so aluti
@@ -68,7 +65,6 @@ fill-style =
     .backdiagonal = alignë so aveke na mbâgë ndê
     .dots = apoin
     .diamonds = adiamäan
-
 noun =
     .line = lignë
     .line-segment = mbâgë tî lignë
@@ -88,7 +84,6 @@ noun =
     .diamond = diamäan
     .cross = kürüzo
     .plus = fä tî bûngbi
-
 # The side count is a relative clause and closes the noun phrase behind the
 # describing words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -96,10 +91,8 @@ noun-regular-polygon =
         [tail] so ayeke na ambâgë { $numSides }
        *[head] poligöne so alîngbi
     }
-
 # Nothing selects on it: Sango has no gender and no noun classes.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -113,7 +106,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its describing words follow, with the noun's own relative
 # complement closing the phrase.
 style-with-noun =
@@ -121,15 +113,12 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = so asï
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } na { $pattern }
@@ -137,7 +126,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Sango has no article, so the two `-article` branches read like their
 # neighbours; «na» joins the clause and never changes shape.
 style-border-clause =
@@ -147,35 +135,28 @@ style-border-clause =
         [and-article] na ndâmbo { $border }
        *[with] na ndâmbo { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = asï pëpe
-
 style-text =
     { $parts ->
         [background] { $color } na ndö tî pekô { $background }
        *[plain] { $color }
     }
-
 style-background-none = mbênî ye pëpe
-
 
 ## Boolean words
 
 boolean-true = tâ tënë
 boolean-false = mvene
 
-
 ## Answer buttons
 
 answer-submit-label = Bâa Kua
 answer-submit-label-no-correctness = Tokua Kîri-tënë
-
 
 ## Sectional blocks
 
@@ -200,7 +181,6 @@ section-name =
     .solution = Kîrïngö-ndâ
     .task = Kua
     .theorem = Tëorêm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -210,9 +190,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Fängö-lêgë
-
 
 ## Tables and figures
 
@@ -223,7 +201,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Fôto { $enumeration }
@@ -232,25 +209,18 @@ figure-name =
        *[unnumbered] Fôto
     }
 
-
 ## Paginator controls
 
 paginator-previous = Kôzo
 paginator-next = Na pekô
-
 paginator-page = Lêmbëtï
-
 paginator-page-status = { $pageLabel } { $currentPage } na yâ tî { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = wala
-
 piecewise-condition-if = tônde
-
 piecewise-condition-otherwise = tônde ayeke tongasô pëpe
-
 
 ## Chemistry
 ##
@@ -263,6 +233,5 @@ piecewise-condition-otherwise = tônde ayeke tongasô pëpe
 ## `locales/ln`'s, reached through a third education ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Fä tî Shimïi so Ayeke Sïönî
 chemistry-invalid-ionic-compound = Bûngbïngö tî Iôni so Ayeke Sïönî

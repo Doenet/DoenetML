@@ -35,15 +35,12 @@ color =
     .purple = ఊదా
     .pink = గులాబీ
     .brown = గోధుమ
-
 line-width =
     .thick = మందపాటి
     .thin = సన్నని
-
 line-style =
     .dashed = తెగిన
     .dotted = చుక్కల
-
 # Noun phrases: they stand in front of the «కలిగిన» the composition messages
 # supply, and modify nothing.
 fill-style =
@@ -53,7 +50,6 @@ fill-style =
     .backdiagonal = వ్యతిరేక వికర్ణ గీతలు
     .dots = చుక్కలు
     .diamonds = వజ్రాకారాలు
-
 noun =
     .line = సరళరేఖ
     .line-segment = రేఖాఖండం
@@ -73,7 +69,6 @@ noun =
     .diamond = వజ్రాకారం
     .cross = అడ్డగుర్తు
     .plus = కూడిక గుర్తు
-
 # The side count precedes the noun, as every modifier in Telugu does, so it
 # folds into the head and there is no tail.
 noun-regular-polygon =
@@ -81,12 +76,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } భుజాల క్రమ బహుభుజి
     }
-
 # Telugu marks gender on verbs and pronouns, not on the adjectives in these
 # phrases, so every noun answers the same and the answer goes unused — as in
 # English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -100,15 +93,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = నింపిన
-
 # The pattern is marked with «కలిగిన», a participle that stands as a word of
 # its own in front of what it modifies, so the pattern clause leads. The bound
 # «-తో» the border takes below cannot be used here: a plural in -లు goes to
@@ -120,7 +110,6 @@ style-filled =
         [pattern] { $pattern } కలిగిన { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } కలిగిన { $filled } { $color } { $noun }
@@ -128,7 +117,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } కలిగిన { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «అంచు» is the catalog's own word, so «-తో» is joined to it directly, and
 # «మరియు» opens the further clause where English opens it with "and". Telugu
 # has no article, so the two `-article` branches read like the ones without.
@@ -139,15 +127,12 @@ style-border-clause =
         [and-article] మరియు { $border } అంచుతో
        *[with] { $border } అంచుతో
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = నింపని
-
 # «నేపథ్యం» takes the locative -పై, so the background leads and the text
 # colour follows it.
 style-text =
@@ -155,21 +140,17 @@ style-text =
         [background] { $background } నేపథ్యంపై { $color }
        *[plain] { $color }
     }
-
 style-background-none = ఏదీ లేదు
-
 
 ## Boolean words
 
 boolean-true = నిజం
 boolean-false = అబద్ధం
 
-
 ## Answer buttons
 
 answer-submit-label = సరిచూడు
 answer-submit-label-no-correctness = సమాధానం సమర్పించు
-
 
 ## Sectional blocks
 
@@ -194,7 +175,6 @@ section-name =
     .solution = సాధన
     .task = పని
     .theorem = సిద్ధాంతం
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -204,9 +184,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = సూచన
-
 
 ## Tables and figures
 
@@ -217,7 +195,6 @@ table-name =
         [unnumbered-title] పట్టిక{ ": " }
        *[unnumbered] పట్టిక
     }
-
 figure-name =
     { $parts ->
         [numbered] పటం { $enumeration }
@@ -226,24 +203,20 @@ figure-name =
        *[unnumbered] పటం
     }
 
-
 ## Paginator controls
 
 paginator-previous = మునుపటిది
 paginator-next = తదుపరిది
 paginator-page = పేజీ
-
 # The total leads, marked with the locative -లో, which is how Telugu says
 # "3 of 5".
 paginator-page-status = { $numPages } లో { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = లేదా
 piecewise-condition-if = అయితే
 piecewise-condition-otherwise = లేకపోతే
-
 
 ## Chemistry
 
@@ -370,7 +343,6 @@ element-name =
     .lv = లివర్‌మోరియం
     .ts = టెన్నస్సీన్
     .og = ఒగనెసాన్
-
 element-anion-name =
     .h = హైడ్రైడ్
     .c = కార్బైడ్
@@ -384,8 +356,6 @@ element-anion-name =
     .i = అయోడైడ్
     .at = అస్టటైడ్
     .ts = టెన్నస్సైడ్
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = చెల్లని రసాయన చిహ్నం
 chemistry-invalid-ionic-compound = చెల్లని అయానిక సమ్మేళనం

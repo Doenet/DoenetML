@@ -42,15 +42,12 @@ color =
     .purple = ниил яһан
     .pink = яһан
     .brown = хүрң
-
 line-width =
     .thick = зузан
     .thin = нимгн
-
 line-style =
     .dashed = тасрха
     .dotted = цегтә
-
 # Noun phrases: they stand in front of «кеермжтә» and modify nothing.
 fill-style =
     .horizontal = хөндлң зурас
@@ -59,7 +56,6 @@ fill-style =
     .backdiagonal = өөрхә диагональ зурас
     .dots = цег
     .diamonds = ромб
-
 noun =
     .line = шулун зурас
     .line-segment = хәәрцг
@@ -79,7 +75,6 @@ noun =
     .diamond = ромб
     .cross = крест
     .plus = плюс
-
 # Kalmyk builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -87,11 +82,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] дүңцү { $numSides } талта
     }
-
 # Kalmyk has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,21 +98,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = буддгсн
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } кеермжтә { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } кеермжтә { $color } { $filled } { $noun }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } кеермжтә { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «кеҗгтә» — "having an edge" — carries the "with a border" sense in its own
 # suffix, so neither a preposition nor an article is wanted.
 style-border-clause =
@@ -137,15 +125,12 @@ style-border-clause =
         [and-article] болн { $border } кеҗгтә
        *[with] { $border } кеҗгтә
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } кеермжтә { $color } буд
        *[plain] { $color } буд
     }
-
 style-unfilled = буддго
-
 # «деер» — "on top of" — is a postposition and follows the background colour,
 # so nothing stands between the two words.
 style-text =
@@ -153,21 +138,17 @@ style-text =
         [background] { $background } ора деер { $color }
        *[plain] { $color }
     }
-
 style-background-none = уга
-
 
 ## Boolean words
 
 boolean-true = үнн
 boolean-false = худл
 
-
 ## Answer buttons
 
 answer-submit-label = Шинҗлх
 answer-submit-label-no-correctness = Хәрүг илгәх
-
 
 ## Sectional blocks
 
@@ -192,7 +173,6 @@ section-name =
     .solution = Шиидвр
     .task = Даалһвр
     .theorem = Теорем
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -202,9 +182,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Зәәсн
-
 
 ## Tables and figures
 
@@ -215,7 +193,6 @@ table-name =
         [unnumbered-title] Хүсңт{ ". " }
        *[unnumbered] Хүсңт
     }
-
 figure-name =
     { $parts ->
         [numbered] Зург { $enumeration }
@@ -224,15 +201,12 @@ figure-name =
        *[unnumbered] Зург
     }
 
-
 ## Paginator controls
 
 paginator-previous = Өмнк
 paginator-next = Дару
 paginator-page = Халхц
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -244,7 +218,6 @@ piecewise-condition-or = эсвл
 piecewise-condition-if = кемр
 piecewise-condition-otherwise = нань бәәдлд
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -255,6 +228,5 @@ piecewise-condition-otherwise = нань бәәдлд
 ## unreviewed coinages would be the least defensible thing in it.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Буру химическ темдг
 chemistry-invalid-ionic-compound = Буру ионы ниилвр

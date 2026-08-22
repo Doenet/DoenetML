@@ -45,15 +45,12 @@ color =
     .purple = vaioleti
     .pink = pingi
     .brown = melo
-
 line-width =
     .thick = matolu
     .thin = manifinifi
-
 line-style =
     .dashed = motumotu
     .dotted = tuʻitongi
-
 # Noun phrases. Tongan marks no plural on the noun, so «laine» is the word for
 # one line and for many alike.
 fill-style =
@@ -63,7 +60,6 @@ fill-style =
     .backdiagonal = laine fakahekeheke fakafoki
     .dots = tongi
     .diamonds = taimane
-
 noun =
     .line = laine
     .line-segment = konga laine
@@ -83,7 +79,6 @@ noun =
     .diamond = taimane
     .cross = kolosi
     .plus = tānaki
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -91,10 +86,8 @@ noun-regular-polygon =
         [tail] ʻoku tapa { $numSides }
        *[head] polikoni tatau
     }
-
 # One answer for every noun: Tongan has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -108,22 +101,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = fonu
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } mo e { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } mo e { $pattern }
@@ -131,7 +120,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } mo e { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Tongan's article is «ha» for an indefinite and «e» for a definite, and neither
 # is what English's "a" is doing here, so all four branches read alike but for
 # the connective: «mo e» opens the first clause and «pea mo e» a further one.
@@ -142,35 +130,28 @@ style-border-clause =
         [and-article] pea mo e kapa { $border }
        *[with] mo e kapa { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = taʻefonu
-
 style-text =
     { $parts ->
         [background] { $color } mo e tuʻunga { $background }
        *[plain] { $color }
     }
-
 style-background-none = ʻikai ha taha
-
 
 ## Boolean words
 
 boolean-true = moʻoni
 boolean-false = loi
 
-
 ## Answer buttons
 
 answer-submit-label = Sivi ʻa e ngāue
 answer-submit-label-no-correctness = ʻAve ʻa e tali
-
 
 ## Sectional blocks
 
@@ -197,7 +178,6 @@ section-name =
     .solution = Fakalelei
     .task = Ngāue
     .theorem = Tioleme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -207,9 +187,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Fakahinohino
-
 
 ## Tables and figures
 
@@ -220,7 +198,6 @@ table-name =
         [unnumbered-title] Tēpile{ ": " }
        *[unnumbered] Tēpile
     }
-
 figure-name =
     { $parts ->
         [numbered] Fakatātā { $enumeration }
@@ -229,22 +206,18 @@ figure-name =
        *[unnumbered] Fakatātā
     }
 
-
 ## Paginator controls
 
 paginator-previous = Kimuʻa
 paginator-next = Hoko
 paginator-page = Peesi
-
 paginator-page-status = { $pageLabel } { $currentPage } ʻo e { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = pe
 piecewise-condition-if = kapau
 piecewise-condition-otherwise = kapau ʻoku ʻikai
-
 
 ## Chemistry
 ##
@@ -256,6 +229,5 @@ piecewise-condition-otherwise = kapau ʻoku ʻikai
 ## not a table.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Fakaʻilonga kemikale taʻetotonu
 chemistry-invalid-ionic-compound = Fefiofi ʻaioniki taʻetotonu

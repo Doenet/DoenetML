@@ -37,15 +37,12 @@ color =
     .purple = ஊதா
     .pink = இளஞ்சிவப்பு
     .brown = பழுப்பு
-
 line-width =
     .thick = தடிமனான
     .thin = மெல்லிய
-
 line-style =
     .dashed = துண்டிக்கப்பட்ட
     .dotted = புள்ளியிட்ட
-
 # Noun phrases: they stand in front of the «கொண்ட» the composition messages
 # supply, and modify nothing.
 fill-style =
@@ -55,7 +52,6 @@ fill-style =
     .backdiagonal = எதிர் மூலைவிட்டக் கோடுகள்
     .dots = புள்ளிகள்
     .diamonds = சாய்சதுரங்கள்
-
 noun =
     .line = கோடு
     .line-segment = கோட்டுத்துண்டு
@@ -75,7 +71,6 @@ noun =
     .diamond = சாய்சதுரம்
     .cross = குறுக்குக் குறி
     .plus = கூட்டல் குறி
-
 # The side count precedes the noun, as every modifier in Tamil does, so it
 # folds into the head and there is no tail.
 noun-regular-polygon =
@@ -83,11 +78,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } பக்க ஒழுங்கு பலகோணம்
     }
-
 # Tamil has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -101,15 +94,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = நிரப்பப்பட்ட
-
 # The pattern is marked with «கொண்ட», a participle that stands as a word of
 # its own in front of what it modifies, so the pattern clause leads. The bound
 # «-உடன்» the border takes below cannot be used here: joining it to a word
@@ -121,7 +111,6 @@ style-filled =
         [pattern] { $pattern } கொண்ட { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } கொண்ட { $filled } { $color } { $noun }
@@ -129,7 +118,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } கொண்ட { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «விளிம்பு» is the catalog's own word, so «-உடன்» is joined to it directly,
 # and «மற்றும்» opens the further clause where English opens it with "and".
 # Tamil has no article, so the two `-article` branches read like the ones
@@ -141,15 +129,12 @@ style-border-clause =
         [and-article] மற்றும் { $border } விளிம்புடன்
        *[with] { $border } விளிம்புடன்
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = நிரப்பப்படாத
-
 # «பின்னணி» takes the locative -இல், so the background leads and the text
 # colour follows it.
 style-text =
@@ -157,21 +142,17 @@ style-text =
         [background] { $background } பின்னணியில் { $color }
        *[plain] { $color }
     }
-
 style-background-none = இல்லை
-
 
 ## Boolean words
 
 boolean-true = உண்மை
 boolean-false = பொய்
 
-
 ## Answer buttons
 
 answer-submit-label = சரிபார்
 answer-submit-label-no-correctness = பதிலைச் சமர்ப்பி
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = தீர்வு
     .task = பணி
     .theorem = தேற்றம்
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = உதவிக்குறிப்பு
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] அட்டவணை{ ": " }
        *[unnumbered] அட்டவணை
     }
-
 figure-name =
     { $parts ->
         [numbered] படம் { $enumeration }
@@ -228,24 +205,20 @@ figure-name =
        *[unnumbered] படம்
     }
 
-
 ## Paginator controls
 
 paginator-previous = முந்தையது
 paginator-next = அடுத்தது
 paginator-page = பக்கம்
-
 # The total leads, marked with the locative -இல், which is how Tamil says
 # "3 of 5".
 paginator-page-status = { $numPages } இல் { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = அல்லது
 piecewise-condition-if = எனில்
 piecewise-condition-otherwise = இல்லையெனில்
-
 
 ## Chemistry
 
@@ -373,7 +346,6 @@ element-name =
     .lv = லிவர்மோரியம்
     .ts = டென்னசைன்
     .og = ஓகனிசான்
-
 element-anion-name =
     .h = ஹைட்ரைடு
     .c = கார்பைடு
@@ -387,8 +359,6 @@ element-anion-name =
     .i = அயோடைடு
     .at = அஸ்டட்டைடு
     .ts = டென்னசைடு
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = தவறான வேதியியல் குறியீடு
 chemistry-invalid-ionic-compound = தவறான அயனிச் சேர்மம்

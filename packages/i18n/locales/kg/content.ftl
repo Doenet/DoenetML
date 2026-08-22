@@ -133,7 +133,6 @@ color =
             [c11] lwa ntoto
            *[c9] ya ntoto
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -149,7 +148,6 @@ line-width =
             [c11] lwa fyoti
            *[c9] ya fyoti
         }
-
 # Written as «ya + noun» phrases with their own frozen class-9 linker, the way
 # Kituba writes everything: these describe a manner rather than a quality, and
 # a speaker does not agree them with the shape. They therefore take no
@@ -157,7 +155,6 @@ line-width =
 line-style =
     .dashed = ya bitini bitini
     .dotted = ya tona tona
-
 fill-style =
     .horizontal = nsinga miayalumuka
     .vertical = nsinga miatelama
@@ -165,7 +162,6 @@ fill-style =
     .backdiagonal = nsinga miasengoloka ku ndambu yankaka
     .dots = tona
     .diamonds = madiama
-
 noun =
     .line = nsinga
     .line-segment = kitini kya nsinga
@@ -185,7 +181,6 @@ noun =
     .diamond = diama
     .cross = kuluse
     .plus = sinsu kya kuvukisa
-
 # The side count is a counted complement and closes the noun phrase behind the
 # describing words, so it goes in the tail. «-a» agrees here too, but the head
 # noun is always the same word, so the form is fixed and needs no fork.
@@ -194,7 +189,6 @@ noun-regular-polygon =
         [tail] ya makonso { $numSides }
        *[head] poligone yafwanana
     }
-
 # The noun class. `c9` is the default and the class a French loan joins, which
 # is what an author's own `markerStyleWord` is as far as this catalog is
 # concerned — and it is also the row Kituba kept. So «kare» and «kuluse» are
@@ -214,7 +208,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «ya …» phrase and closes the description, so it moves
@@ -231,13 +224,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c5] dyazala
@@ -245,13 +236,11 @@ style-filled-word =
         [c11] lwazala
        *[c9] yazala
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ye { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ye { $pattern }
@@ -259,7 +248,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ye { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «lubaku» is the border and leads its own describing words, so they agree with
 # it rather than with the shape it surrounds — which is why `border` answers
 # `c11` in `noun-gender`, matching «lubaku»'s own «lu-». Kongo has no
@@ -272,35 +260,28 @@ style-border-clause =
         [and-article] ye lubaku { $border }
        *[with] ye lubaku { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = kyazala ve
-
 style-text =
     { $parts ->
         [background] { $color } ye nima { $background }
        *[plain] { $color }
     }
-
 style-background-none = ata kima ve
-
 
 ## Boolean words
 
 boolean-true = kyedika
 boolean-false = luvunu
 
-
 ## Answer buttons
 
 answer-submit-label = Fyongunuka Kisalu
 answer-submit-label-no-correctness = Tinda Mvutu
-
 
 ## Sectional blocks
 
@@ -325,7 +306,6 @@ section-name =
     .solution = Nsukulu
     .task = Mfunu
     .theorem = Tewoleme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -335,9 +315,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Lusadisu
-
 
 ## Tables and figures
 
@@ -348,7 +326,6 @@ table-name =
         [unnumbered-title] Tabele{ ": " }
        *[unnumbered] Tabele
     }
-
 figure-name =
     { $parts ->
         [numbered] Kifwani { $enumeration }
@@ -357,25 +334,18 @@ figure-name =
        *[unnumbered] Kifwani
     }
 
-
 ## Paginator controls
 
 paginator-previous = Yavita
 paginator-next = Yalanda
-
 paginator-page = Lukaya
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = to
-
 piecewise-condition-if = kana
-
 piecewise-condition-otherwise = mu mambu mankaka mawonso
-
 
 ## Chemistry
 ##
@@ -389,6 +359,5 @@ piecewise-condition-otherwise = mu mambu mankaka mawonso
 ## leave the same gap for the same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Sinsu kya Simi Kyambi
 chemistry-invalid-ionic-compound = Kivukanu kya Ioni Kyambi

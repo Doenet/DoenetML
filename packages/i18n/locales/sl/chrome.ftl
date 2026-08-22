@@ -25,21 +25,15 @@
 
 answer-checking = Preverjanje …
 answer-submitting = Pošiljanje …
-
 answer-checking-status = Preverjanje odgovora
 answer-submitting-status = Pošiljanje odgovora
-
 answer-correct = Pravilno
 answer-incorrect = Napačno
-
 answer-response-saved = Odgovor je shranjen
-
 answer-percent-credit = { $percent }% točk
 answer-percent-correct = { $percent }% pravilno
 answer-percent-short = { $percent } %
-
 max-credit-available = Največ mogočih točk: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] ni več poskusov
@@ -48,11 +42,9 @@ attempts-remaining =
         [few] ostajajo { $count } poskusi
        *[other] ostaja { $count } poskusov
     }
-
 validation-correct = (Pravilno)
 validation-incorrect = (Napačno)
 validation-partially-correct = (Delno pravilno)
-
 answer-show-responses =
     { $count ->
         [one] Pokaži { $count } odgovor na { $answerId }
@@ -61,42 +53,31 @@ answer-show-responses =
        *[other] Pokaži { $count } odgovorov na { $answerId }
     }
 
-
 ## Disclosure panels
 
 feedback-heading = Povratna informacija
-
 collapsible-click-to-open = (kliknite za odpiranje)
 collapsible-click-to-close = (kliknite za zapiranje)
-
 collapsible-initializing = Zagon …
-
 footnote-show = Pokaži opombo
 footnote-hide = Skrij opombo
-
 description-more-information = več informacij
-
 
 ## Controls
 
 slider-previous = Nazaj
 slider-next = Naprej
-
 keyboard-open = Odpri tipkovnico
 keyboard-close = Zapri tipkovnico
-
 choice-input-remove-choice = Odstrani { $choice }
-
 matrix-remove-row = Odstrani vrstico
 matrix-add-row = Dodaj vrstico
 matrix-remove-column = Odstrani stolpec
 matrix-add-column = Dodaj stolpec
-
 subset-add-remove-points = Dodaj/odstrani točke
 subset-toggle-points-intervals = Preklopi med točkami in intervali
 subset-move-points = Premakni točke
 subset-clear = Počisti
-
 orbital-add-row = Dodaj vrstico
 orbital-remove-row = Odstrani vrstico
 orbital-add-box = Dodaj polje
@@ -104,13 +85,9 @@ orbital-remove-box = Odstrani polje
 orbital-add-up-arrow = Dodaj puščico navzgor
 orbital-add-down-arrow = Dodaj puščico navzdol
 orbital-remove-arrow = Odstrani puščico
-
 orbital-row-label = Oznaka za vrstico { $row }
-
 pretzel-answer = Odgovor
-
 summary-statistics-caption = Povzetek statistik za { $column }
-
 
 ## Math input
 
@@ -118,34 +95,25 @@ math-input-preview-region = predogled matematičnega izraza
 math-input-preview = Predogled
 math-input-invalid-expression = Neveljaven izraz:
 
-
 ## Document status
 
 viewer-initializing = Zagon …
 
-
 ## Errors
 
 error-heading = Napaka
-
 error-found-at =
     { $span ->
         [line] Najdena v vrstici { $startLine }.
        *[lines] Najdena v vrsticah { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Ta dokument vsebuje napake!
-
 diagnostic-heading-error = Napaka
 diagnostic-heading-warning = Opozorilo
 diagnostic-heading-information = Informacija
 diagnostic-heading-hint = Namig
-
 accessibility-heading-level-1 = Kršitev dostopnosti po WCAG AA
 accessibility-heading-level-2 = Opozorilo o dostopnosti
-
 something-went-wrong = Nekaj je šlo narobe.
-
 renderer-load-failed = modula za izris ni bilo mogoče naložiti. Znova naložite stran.
-
 core-start-failed = Pregledovalnika dokumenta ni bilo mogoče zagnati. Znova naložite stran.

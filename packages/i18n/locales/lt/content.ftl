@@ -159,7 +159,6 @@ color =
                    *[m] rudas
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -183,7 +182,6 @@ line-width =
                    *[m] plonas
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -207,7 +205,6 @@ line-style =
                    *[m] taškinis
                 }
         }
-
 # Noun phrases in the instrumental, which is the case «su» takes. They agree
 # with nothing.
 fill-style =
@@ -217,7 +214,6 @@ fill-style =
     .backdiagonal = atvirkštinėmis įstrižomis linijomis
     .dots = taškais
     .diamonds = rombais
-
 noun =
     .line = tiesė
     .line-segment = atkarpa
@@ -237,7 +233,6 @@ noun =
     .diamond = rombas
     .cross = kryžius
     .plus = pliusas
-
 # Lithuanian keeps the side count in front of the noun, so the whole of it is
 # one head and there is no tail.
 noun-regular-polygon =
@@ -245,7 +240,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] taisyklingasis { $numSides }-kampis
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (daugiakampis, m)
 # or the head of a phrase the description never names: `border` (rėmelis, m),
 # `fill` (užpildas, m), `text` (tekstas, m), `background` (fonas, m).
@@ -261,7 +255,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -274,13 +267,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -288,13 +279,11 @@ style-filled-word =
         [f] užpildyta
        *[m] užpildytas
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } su { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } su { $pattern }
@@ -302,7 +291,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } su { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «rėmelis» is masculine, so the border's adjectives agree with it and not with
 # the shape it surrounds. Lithuanian has no article, so the two `-article`
 # branches read like the two without.
@@ -313,7 +301,6 @@ style-border-clause =
         [and-article] ir { $border } rėmeliu
        *[with] su { $border } rėmeliu
     }
-
 # The fill-pattern words are instrumental plurals, because their other use is
 # the «su { $pattern }» clause in `style-filled`. So this message supplies a
 # noun for them to hang off — «užpildas», masculine, which is the gender
@@ -323,9 +310,7 @@ style-fill =
         [pattern] { $color } užpildas su { $pattern }
        *[plain] { $color } užpildas
     }
-
 style-unfilled = neužpildytas
-
 # The background sits in the locative and carries no preposition of its own, so
 # the two colours simply follow one another.
 style-text =
@@ -333,21 +318,17 @@ style-text =
         [background] { $color } { $background } fone
        *[plain] { $color }
     }
-
 style-background-none = nėra
-
 
 ## Boolean words
 
 boolean-true = tiesa
 boolean-false = netiesa
 
-
 ## Answer buttons
 
 answer-submit-label = Tikrinti
 answer-submit-label-no-correctness = Pateikti atsakymą
-
 
 ## Sectional blocks
 
@@ -372,7 +353,6 @@ section-name =
     .solution = Sprendimas
     .task = Užduotis
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -382,9 +362,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Užuomina
-
 
 ## Tables and figures
 
@@ -395,7 +373,6 @@ table-name =
         [unnumbered-title] Lentelė{ ". " }
        *[unnumbered] Lentelė
     }
-
 figure-name =
     { $parts ->
         [numbered] { $enumeration } pav.
@@ -404,22 +381,18 @@ figure-name =
        *[unnumbered] Paveikslas
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ankstesnis
 paginator-next = Kitas
 paginator-page = Puslapis
-
 paginator-page-status = { $pageLabel } { $currentPage } iš { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = arba
 piecewise-condition-if = jei
 piecewise-condition-otherwise = kitaip
-
 
 ## Chemistry
 
@@ -542,7 +515,6 @@ element-name =
     .lv = Livermoris
     .ts = Tenesinas
     .og = Oganesonas
-
 element-anion-name =
     .h = Hidridas
     .c = Karbidas
@@ -556,8 +528,6 @@ element-anion-name =
     .i = Jodidas
     .at = Astatidas
     .ts = Tenesidas
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Netinkamas cheminis simbolis
 chemistry-invalid-ionic-compound = Netinkamas joninis junginys

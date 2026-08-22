@@ -57,15 +57,12 @@ color =
     .purple = རྒྱ་སྨུག
     .pink = ཟིང་སྐྱ
     .brown = སྨུག་པོ
-
 line-width =
     .thick = མཐུག་པོ
     .thin = སྲབ་མོ
-
 line-style =
     .dashed = ཆད་ལྷུག
     .dotted = ཚེག་ཅན
-
 fill-style =
     .horizontal = འཕྲེད་ཐིག
     .vertical = གཞུང་ཐིག
@@ -73,7 +70,6 @@ fill-style =
     .backdiagonal = ལྡོག་ཟུར་ཐིག
     .dots = ཚེག
     .diamonds = ཕ་ལམ་དབྱིབས
-
 noun =
     .line = ཐིག
     .line-segment = ཐིག་དུམ
@@ -93,7 +89,6 @@ noun =
     .diamond = ཕ་ལམ་དབྱིབས
     .cross = བསྒྱུར་རྟགས
     .plus = སྣོན་རྟགས
-
 # The count is a complement that follows the whole phrase, so the head carries
 # the noun alone and the tail carries the count. Tibetan reaches `[noun-tail]`
 # for the same reason `locales/mni` does — a count is a modifier and modifiers
@@ -103,10 +98,8 @@ noun-regular-polygon =
         [tail] ཟུར་ { $numSides } ཅན
        *[head] ཆ་སྙོམས་ཟུར་མང
     }
-
 # Nothing selects on it: Tibetan has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -120,7 +113,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives follow the noun, so the two halves change places against
 # English, and a noun with a complement puts it last.
 style-with-noun =
@@ -128,9 +120,7 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = བཀང་བ
-
 # «དང་» is invariant whatever precedes it, which is why the pattern can stand
 # beside a placeable here; see the header.
 style-filled =
@@ -138,7 +128,6 @@ style-filled =
         [pattern] { $filled } { $color } { $pattern } དང་བཅས་པ
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } { $pattern } དང་བཅས་པ
@@ -146,7 +135,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } { $pattern } དང་བཅས་པ
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «མཐའ་» is the border and stands in front of its own adjective, so «དང་བཅས་པ»
 # closes the clause. Tibetan has no article, so the `-article` branches read
 # like their neighbours.
@@ -157,36 +145,29 @@ style-border-clause =
         [and-article] དེ་བཞིན་མཐའ་ { $border } དང་བཅས་པ
        *[with] མཐའ་ { $border } དང་བཅས་པ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = མ་བཀང་བ
-
 # «ལ་» is invariant too, so the background can carry it beside a value.
 style-text =
     { $parts ->
         [background] རྒྱབ་ལྗོངས་ { $background } ལ་ { $color }
        *[plain] { $color }
     }
-
 style-background-none = གང་ཡང་མེད
-
 
 ## Boolean words
 
 boolean-true = བདེན་པ
 boolean-false = རྫུན་པ
 
-
 ## Answer buttons
 
 answer-submit-label = ཞིབ་བཤེར
 answer-submit-label-no-correctness = ལན་སྐུར
-
 
 ## Sectional blocks
 
@@ -211,7 +192,6 @@ section-name =
     .solution = ལན་ཐབས
     .task = ལས་འགན
     .theorem = གཏན་ཚིག
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -221,9 +201,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = བརྡ་སྟོན
-
 
 ## Tables and figures
 
@@ -234,7 +212,6 @@ table-name =
         [unnumbered-title] རེའུ་མིག{ ": " }
        *[unnumbered] རེའུ་མིག
     }
-
 figure-name =
     { $parts ->
         [numbered] རི་མོ { $enumeration }
@@ -243,26 +220,20 @@ figure-name =
        *[unnumbered] རི་མོ
     }
 
-
 ## Paginator controls
 
 paginator-previous = སྔོན་མ
 paginator-next = རྗེས་མ
 paginator-page = ཤོག་ངོས
-
 # «X ནང་གི Y» — "Y of X" — puts the total first, so the two counts change
 # places. «ནང་» is invariant.
 paginator-page-status = { $numPages } ནང་ { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = ཡང་ན
-
 piecewise-condition-if = གལ་ཏེ
-
 piecewise-condition-otherwise = དེ་མིན
-
 
 ## Chemistry
 ##
@@ -282,6 +253,5 @@ piecewise-condition-otherwise = དེ་མིན
 ## catalog.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ནུས་རྫས་རྟགས་ནོར་བ
 chemistry-invalid-ionic-compound = རླུང་རྡུལ་འདུས་རྫས་ནོར་བ

@@ -80,7 +80,6 @@ color =
             [n] bruun
            *[other] bruune
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -92,7 +91,6 @@ line-width =
             [n] dünn
            *[other] dünne
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -104,7 +102,6 @@ line-style =
             [n] püntelt
            *[other] püntelte
         }
-
 # Plural noun phrases, which is what follows «mit» in `style-filled`. A plural
 # adjective always takes `-e`, so these agree with nothing.
 fill-style =
@@ -114,7 +111,6 @@ fill-style =
     .backdiagonal = ümdreihte diagonale Lienen
     .dots = Pünkte
     .diamonds = Ruten
-
 noun =
     .line = Lien
     .line-segment = Streek
@@ -134,7 +130,6 @@ noun =
     .diamond = Ruut
     .cross = Krüüz
     .plus = Plus
-
 # Low German keeps the side count in front of the noun, as a compound, so the
 # whole of it is one head and there is no tail. The head noun is `-Eck`, which
 # is neuter, so the adjective inside it is the bare stem — and `noun-gender`
@@ -145,7 +140,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regelmatig { $numSides }-Eck
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (which is
 # `{ $numSides }-Eck`, n) or the head of a phrase the description never names:
 # `border` (Rand, m), `fill` (Füllung, f), `text` (Text, m), `background`
@@ -174,7 +168,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -187,25 +180,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [n] füllt
        *[other] füllte
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } mit { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } mit { $pattern }
@@ -213,7 +202,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } mit { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «Rand» is masculine, so the border's adjectives agree with it rather than
 # with the shape it surrounds. Low German has an indefinite article, «en», so
 # the two `-article` branches really do differ from the two without.
@@ -224,35 +212,28 @@ style-border-clause =
         [and-article] un en { $border } Rand
        *[with] mit { $border } Rand
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } Füllung mit { $pattern }
        *[plain] { $color } Füllung
     }
-
 style-unfilled = nich füllt
-
 style-text =
     { $parts ->
         [background] { $color } op en { $background } Achtergrund
        *[plain] { $color }
     }
-
 style-background-none = keen
-
 
 ## Boolean words
 
 boolean-true = wohr
 boolean-false = falsch
 
-
 ## Answer buttons
 
 answer-submit-label = Nakieken
 answer-submit-label-no-correctness = Antwoort afschicken
-
 
 ## Sectional blocks
 
@@ -277,7 +258,6 @@ section-name =
     .solution = Lösung
     .task = Opdrag
     .theorem = Theorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -287,9 +267,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Henwies
-
 
 ## Tables and figures
 
@@ -300,7 +278,6 @@ table-name =
         [unnumbered-title] Tabell{ ": " }
        *[unnumbered] Tabell
     }
-
 figure-name =
     { $parts ->
         [numbered] Figuur { $enumeration }
@@ -309,22 +286,18 @@ figure-name =
        *[unnumbered] Figuur
     }
 
-
 ## Paginator controls
 
 paginator-previous = Torüch
 paginator-next = Wieder
 paginator-page = Siet
-
 paginator-page-status = { $pageLabel } { $currentPage } vun { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = oder
 piecewise-condition-if = wenn
 piecewise-condition-otherwise = sünst
-
 
 ## Chemistry
 ##
@@ -335,6 +308,5 @@ piecewise-condition-otherwise = sünst
 ## reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ungülltig cheemsch Symbool
 chemistry-invalid-ionic-compound = Ungülltige ioonsche Verbinnen

@@ -120,7 +120,6 @@ color =
             [c7] esinsundu
            *[c9] ensundu
         }
-
 # These two are true adjectives and take the adjective concord, not the
 # relative one the colours take.
 line-width =
@@ -138,14 +137,12 @@ line-width =
             [c7] esincane
            *[c9] encane
         }
-
 # Written as an invariable «one-…» phrase — "having …" — rather than as a
 # describing word, so that it agrees with nothing and can close the phrase.
 # `style-stroke` puts it last for that reason.
 line-style =
     .dashed = onemidwa
     .dotted = onamachashazi
-
 # Noun phrases: they follow «kanye ne-» and modify nothing.
 fill-style =
     .horizontal = imigqa evundlile
@@ -154,7 +151,6 @@ fill-style =
     .backdiagonal = imigqa etshekile ngokuphambene
     .dots = amachashazi
     .diamonds = amadayimane
-
 noun =
     .line = umugqa
     .line-segment = isiqephu somugqa
@@ -174,7 +170,6 @@ noun =
     .diamond = idayimane
     .cross = isiphambano
     .plus = uphawu lokuhlanganisa
-
 # The side count goes in the tail, behind the describing words, because
 # «esinezinhlangothi ezingu-5» is a relative phrase and Zulu closes a noun
 # phrase with one rather than opening it.
@@ -183,7 +178,6 @@ noun-regular-polygon =
         [tail] esinezinhlangothi ezingu-{ $numSides }
        *[head] isakhiwo esilingene
     }
-
 # The noun class, which is what a describing word agrees with. `c9` is the
 # default and the class of every loanword.
 noun-gender =
@@ -206,7 +200,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a relative phrase of its own and closes the description,
@@ -221,13 +214,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] ogcwalisiwe
@@ -235,13 +226,11 @@ style-filled-word =
         [c7] esigcwalisiwe
        *[c9] egcwalisiwe
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kanye ne-{ $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } kanye ne-{ $pattern }
@@ -249,7 +238,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } kanye ne-{ $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «umngcele» is class 3, so the border's words agree with it and not with the
 # shape it surrounds. Zulu has no article, and it joins a complement with the
 # invariable «kanye no-» rather than with a concording relative, so all four
@@ -261,35 +249,28 @@ style-border-clause =
         [and-article] kanye nomngcele { $border }
        *[with] kanye nomngcele { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = akugcwalisiwe
-
 style-text =
     { $parts ->
         [background] { $color } engemuva { $background }
        *[plain] { $color }
     }
-
 style-background-none = lutho
-
 
 ## Boolean words
 
 boolean-true = kuyiqiniso
 boolean-false = akulona iqiniso
 
-
 ## Answer buttons
 
 answer-submit-label = Hlola Umsebenzi
 answer-submit-label-no-correctness = Thumela Impendulo
-
 
 ## Sectional blocks
 
@@ -314,7 +295,6 @@ section-name =
     .solution = Isixazululo
     .task = Umsebenzi
     .theorem = Ithiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -324,9 +304,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Isexwayiso
-
 
 ## Tables and figures
 
@@ -337,7 +315,6 @@ table-name =
         [unnumbered-title] Ithebula{ ": " }
        *[unnumbered] Ithebula
     }
-
 figure-name =
     { $parts ->
         [numbered] Umfanekiso { $enumeration }
@@ -346,15 +323,12 @@ figure-name =
        *[unnumbered] Umfanekiso
     }
 
-
 ## Paginator controls
 
 paginator-previous = Okwedlule
 paginator-next = Okulandelayo
 paginator-page = Ikhasi
-
 paginator-page-status = { $pageLabel } { $currentPage } kwangu-{ $numPages }
-
 
 ## Piecewise functions
 
@@ -362,8 +336,8 @@ piecewise-condition-or = noma
 piecewise-condition-if = uma
 piecewise-condition-otherwise = kwenye indawo
 
-
 ## Chemistry
+
 
 # Zulu is one of the catalogs that leaves `element-name` and
 # `element-anion-name` out, so those 130 keys fall back to English. South
@@ -374,6 +348,5 @@ piecewise-condition-otherwise = kwenye indawo
 # textbook in front of them.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Uphawu Lwamakhemikhali Olungavumelekile
 chemistry-invalid-ionic-compound = Inhlanganisela Ye-ayoni Engavumelekile

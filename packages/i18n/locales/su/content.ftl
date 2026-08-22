@@ -32,15 +32,12 @@ color =
     .purple = ungu
     .pink = beureum ngora
     .brown = coklat
-
 line-width =
     .thick = kandel
     .thin = ipis
-
 line-style =
     .dashed = pegat-pegat
     .dotted = titik-titik
-
 # Noun phrases: they follow «jeung» and modify nothing.
 fill-style =
     .horizontal = garis ngadatar
@@ -49,7 +46,6 @@ fill-style =
     .backdiagonal = garis miring sabalikna
     .dots = titik
     .diamonds = wajit
-
 noun =
     .line = garis
     .line-segment = ruas garis
@@ -69,7 +65,6 @@ noun =
     .diamond = wajit
     .cross = tanda silang
     .plus = tanda tambah
-
 # The side count follows the noun and precedes its adjectives, so it folds into
 # the head and there is no tail.
 noun-regular-polygon =
@@ -77,11 +72,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] poligon teratur sisi { $numSides }
     }
-
 # Sundanese has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -95,24 +88,20 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «garis kandel pegat-pegat beureum».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 # The participle, matching `style-unfilled`'s «teu dieusian» below; «eusi» on
 # its own is the noun for the contents rather than a word describing the shape.
 style-filled-word = dieusian
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } jeung { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } jeung { $pattern }
@@ -120,7 +109,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } jeung { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # Sundanese needs no article, so the `-article` branches read like the ones
 # without. The border is «pinggir», the rim, and not «sisi»: «sisi» is the word
 # `noun-regular-polygon` above counts, so a bordered pentagon would otherwise
@@ -132,36 +120,29 @@ style-border-clause =
         [and-article] jeung pinggir { $border }
        *[with] jeung pinggir { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = teu dieusian
-
 style-text =
     { $parts ->
         [background] { $color } dina latar { $background }
        *[plain] { $color }
     }
-
 style-background-none = euweuh
-
 
 ## Boolean words
 
 boolean-true = bener
 boolean-false = salah
 
-
 ## Answer buttons
 
 answer-submit-label = Pariksa Pagawéan
 answer-submit-label-no-correctness = Kirim Jawaban
-
 
 ## Sectional blocks
 
@@ -186,7 +167,6 @@ section-name =
     .solution = Pamecahan
     .task = Pancén
     .theorem = Téoréma
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -196,9 +176,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pituduh
-
 
 ## Tables and figures
 
@@ -209,7 +187,6 @@ table-name =
         [unnumbered-title] Tabél{ ": " }
        *[unnumbered] Tabél
     }
-
 figure-name =
     { $parts ->
         [numbered] Gambar { $enumeration }
@@ -218,22 +195,18 @@ figure-name =
        *[unnumbered] Gambar
     }
 
-
 ## Paginator controls
 
 paginator-previous = Saméméhna
 paginator-next = Salajengna
 paginator-page = Kaca
-
 paginator-page-status = { $pageLabel } { $currentPage } ti { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = atawa
 piecewise-condition-if = lamun
 piecewise-condition-otherwise = salian ti éta
-
 
 ## Chemistry
 ##
@@ -366,7 +339,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hidrida
     .c = Karbida
@@ -380,8 +352,6 @@ element-anion-name =
     .i = Iodida
     .at = Astatida
     .ts = Tenesida
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol Kimia Teu Bener
 chemistry-invalid-ionic-compound = Sanyawa Ionik Teu Bener

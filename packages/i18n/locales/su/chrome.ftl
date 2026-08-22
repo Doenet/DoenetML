@@ -26,69 +26,50 @@
 
 answer-checking = Mariksa...
 answer-submitting = Ngirim...
-
 answer-checking-status = Mariksa jawaban
 answer-submitting-status = Ngirim jawaban
-
 answer-correct = Bener
 answer-incorrect = Salah
-
 answer-response-saved = Jawaban Disimpen
-
 answer-percent-credit = Peunteun { $percent }%
 answer-percent-correct = Bener { $percent }%
 answer-percent-short = { $percent }%
-
 max-credit-available = Peunteun pangluhurna nu bisa kahontal: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] teu aya kasempetan nu nyésa
        *[other] nyésa { $count } kasempetan
     }
-
 validation-correct = (Bener)
 validation-incorrect = (Salah)
 validation-partially-correct = (Bener sabagian)
-
 answer-show-responses = Témbongkeun { $count } jawaban pikeun { $answerId }
-
 
 ## Disclosure panels
 
 feedback-heading = Tanggapan
-
 collapsible-click-to-open = (klik pikeun muka)
 collapsible-click-to-close = (klik pikeun nutup)
-
 collapsible-initializing = Ngamimitian...
-
 footnote-show = Témbongkeun catetan suku
 footnote-hide = Nyumputkeun catetan suku
-
 description-more-information = leuwih loba katerangan
-
 
 ## Controls
 
 slider-previous = Saméméhna
 slider-next = Salajengna
-
 keyboard-open = Buka Papan Tombol
 keyboard-close = Tutup Papan Tombol
-
 choice-input-remove-choice = Piceun { $choice }
-
 matrix-remove-row = Piceun baris
 matrix-add-row = Tambah baris
 matrix-remove-column = Piceun kolom
 matrix-add-column = Tambah kolom
-
 subset-add-remove-points = Tambah/Piceun titik
 subset-toggle-points-intervals = Gonta-ganti titik jeung interval
 subset-move-points = Pindahkeun Titik
 subset-clear = Beresihan
-
 orbital-add-row = Tambah Baris
 orbital-remove-row = Piceun Baris
 orbital-add-box = Tambah Kotak
@@ -96,13 +77,9 @@ orbital-remove-box = Piceun Kotak
 orbital-add-up-arrow = Tambah Panah Ka Luhur
 orbital-add-down-arrow = Tambah Panah Ka Handap
 orbital-remove-arrow = Piceun Panah
-
 orbital-row-label = Labél pikeun baris { $row }
-
 pretzel-answer = Jawaban
-
 summary-statistics-caption = Statistik ringkesan tina { $column }
-
 
 ## Math input
 
@@ -110,34 +87,25 @@ math-input-preview-region = pramidang éksprési matematika
 math-input-preview = Pramidang
 math-input-invalid-expression = Éksprési teu bener:
 
-
 ## Document status
 
 viewer-initializing = Ngamimitian...
 
-
 ## Errors
 
 error-heading = Kasalahan
-
 error-found-at =
     { $span ->
         [line] Kapanggih dina baris { $startLine }.
        *[lines] Kapanggih dina baris { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Dokumén ieu ngandung kasalahan!
-
 diagnostic-heading-error = Kasalahan
 diagnostic-heading-warning = Pépéling
 diagnostic-heading-information = Info
 diagnostic-heading-hint = Pituduh
-
 accessibility-heading-level-1 = Palanggaran Aksésibilitas WCAG AA
 accessibility-heading-level-2 = Pépéling aksésibilitas
-
 something-went-wrong = Aya nu salah.
-
 renderer-load-failed = aya perénder nu gagal dimuat. Mangga muat deui kacana.
-
 core-start-failed = Panempo dokumén teu bisa dimimitian. Mangga muat deui kacana.

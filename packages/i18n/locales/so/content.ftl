@@ -30,15 +30,12 @@ color =
     .purple = guduud-buluug
     .pink = casaan khafiif ah
     .brown = bunni
-
 line-width =
     .thick = dhumuc weyn
     .thin = khafiif
-
 line-style =
     .dashed = jarjaran
     .dotted = dhibco leh
-
 # Noun phrases: they follow `oo leh` and agree with nothing.
 fill-style =
     .horizontal = xariiqyo jiifa
@@ -47,7 +44,6 @@ fill-style =
     .backdiagonal = xariiqyo dhinaca kale u jeeda
     .dots = dhibco
     .diamonds = dheeman
-
 noun =
     .line = xariiq
     .line-segment = qayb xariiq
@@ -67,7 +63,6 @@ noun =
     .diamond = dheeman
     .cross = iskutallaab
     .plus = calaamadda lagu daro
-
 # The noun is split: `geesle joogto ah` carries the adjectives and
 # `oo leh 5 dhinac` closes the phrase behind them.
 noun-regular-polygon =
@@ -75,9 +70,7 @@ noun-regular-polygon =
         [tail] oo leh { $numSides } dhinac
        *[head] geesle joogto ah
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -91,22 +84,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $nounTail } { $description }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = buuxsan
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } oo leh { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } oo leh { $pattern }
@@ -114,7 +103,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } oo leh { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] oo leh xuduud { $border }
@@ -122,7 +110,6 @@ style-border-clause =
         [and-article] iyo xuduud { $border }
        *[with] oo leh xuduud { $border }
     }
-
 # Noun then colour, as everywhere else here. The colour words carry their own
 # `ah` where they need one (`casaan khafiif ah`), so this message adds none.
 style-fill =
@@ -130,29 +117,23 @@ style-fill =
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = aan buuxsanayn
-
 style-text =
     { $parts ->
         [background] { $color } oo ku yaal gadaal { $background }
        *[plain] { $color }
     }
-
 style-background-none = midna
-
 
 ## Boolean words
 
 boolean-true = run
 boolean-false = been
 
-
 ## Answer buttons
 
 answer-submit-label = Hubi
 answer-submit-label-no-correctness = Dir jawaabta
-
 
 ## Sectional blocks
 
@@ -177,7 +158,6 @@ section-name =
     .solution = Xal
     .task = Hawl
     .theorem = Aragti
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -187,9 +167,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tilmaan
-
 
 ## Tables and figures
 
@@ -200,7 +178,6 @@ table-name =
         [unnumbered-title] Shax{ ": " }
        *[unnumbered] Shax
     }
-
 figure-name =
     { $parts ->
         [numbered] Sawirka { $enumeration }
@@ -209,15 +186,12 @@ figure-name =
        *[unnumbered] Sawir
     }
 
-
 ## Paginator controls
 
 paginator-previous = Hore
 paginator-next = Xiga
 paginator-page = Bog
-
 paginator-page-status = { $pageLabel } { $currentPage } ka mid ah { $numPages }
-
 
 ## Piecewise functions
 
@@ -225,10 +199,8 @@ piecewise-condition-or = ama
 piecewise-condition-if = haddii
 piecewise-condition-otherwise = haddii kale
 
-
 ## Chemistry
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Calaamad kiimiko ah oo aan sax ahayn
 chemistry-invalid-ionic-compound = Isku-dhis ayoon ah oo aan sax ahayn

@@ -79,7 +79,6 @@ color =
             [f] חומה
            *[m] חום
         }
-
 # «עבה» is spelled the same in both genders once the vowels are left out, which
 # they are, so it takes no branch.
 line-width =
@@ -89,7 +88,6 @@ line-width =
             [f] דקה
            *[m] דק
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -101,7 +99,6 @@ line-style =
             [f] מנוקדת
            *[m] מנוקד
         }
-
 # Fill patterns are plural nouns rather than adjectives and take no gender
 # branch; `style-fill` names their colour with «בצבע» instead of agreeing an
 # adjective with them.
@@ -112,7 +109,6 @@ fill-style =
     .backdiagonal = קווים אלכסוניים הפוכים
     .dots = נקודות
     .diamonds = מעוינים
-
 # «איקס» names the marker by the sign it is drawn as; «צלב» is the word for a
 # cross as an object and carries a sense a plotted point does not.
 noun =
@@ -134,7 +130,6 @@ noun =
     .diamond = מעוין
     .cross = איקס
     .plus = פלוס
-
 # The side count is a complement closing the phrase, after the adjectives, so
 # that they stay beside the noun they agree with: «מצולע משוכלל אדום עבה בעל 5
 # צלעות».
@@ -143,7 +138,6 @@ noun-regular-polygon =
         [tail] בעל { $numSides } צלעות
        *[head] מצולע משוכלל
     }
-
 # Besides the nouns above, `$noun` may be «regular-polygon» (מצולע משוכלל, m) or
 # the head of a phrase the description never names: «border» (מסגרת, f), «fill»
 # (מילוי, m), «text» (טקסט, m), «background» (רקע, m). Only the first of those
@@ -161,7 +155,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 # The mirror of the English order, so the adjective English puts nearest the
@@ -177,25 +170,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] מלאה
        *[m] מלא
     }
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } עם { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } עם { $pattern }
@@ -203,7 +192,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $color } { $filled } { $nounTail } עם { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # Hebrew has no indefinite article, so the two `-article` branches say what
 # their plain counterparts do. «מסגרת» is feminine, so the border's adjectives
 # agree with it rather than with the shape around it.
@@ -214,7 +202,6 @@ style-border-clause =
         [and-article] ומסגרת { $border }
        *[with] עם מסגרת { $border }
     }
-
 # «בצבע» — "in the colour of" — because the pattern is a plural noun and the
 # colour arrives agreed with «מילוי», which is masculine singular.
 style-fill =
@@ -222,31 +209,25 @@ style-fill =
         [pattern] { $pattern } בצבע { $color }
        *[plain] { $color }
     }
-
 # Said of no particular shape — `describeFill` passes no gender — so it is put
 # as a phrase that does not inflect at all.
 style-unfilled = ללא מילוי
-
 style-text =
     { $parts ->
         [background] { $color } על רקע { $background }
        *[plain] { $color }
     }
-
 style-background-none = ללא
-
 
 ## Boolean words
 
 boolean-true = אמת
 boolean-false = שקר
 
-
 ## Answer buttons
 
 answer-submit-label = בדיקת התשובה
 answer-submit-label-no-correctness = שליחת התשובה
-
 
 ## Sectional blocks
 
@@ -271,7 +252,6 @@ section-name =
     .solution = פתרון
     .task = משימה
     .theorem = משפט
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -281,9 +261,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = רמז
-
 
 ## Tables and figures
 
@@ -294,7 +272,6 @@ table-name =
         [unnumbered-title] טבלה{ ": " }
        *[unnumbered] טבלה
     }
-
 figure-name =
     { $parts ->
         [numbered] איור { $enumeration }
@@ -303,24 +280,18 @@ figure-name =
        *[unnumbered] איור
     }
 
-
 ## Paginator controls
 
 paginator-previous = הקודם
 paginator-next = הבא
 paginator-page = עמוד
-
 paginator-page-status = { $pageLabel } { $currentPage } מתוך { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = או
-
 piecewise-condition-if = אם
-
 piecewise-condition-otherwise = אחרת
-
 
 ## Chemistry
 
@@ -443,7 +414,6 @@ element-name =
     .lv = ליברמוריום
     .ts = טנסין
     .og = אוגנסון
-
 element-anion-name =
     .h = הידריד
     .c = קרביד
@@ -457,8 +427,6 @@ element-anion-name =
     .i = יודיד
     .at = אסטטיד
     .ts = טנסיד
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = סמל כימי לא תקין
 chemistry-invalid-ionic-compound = תרכובת יונית לא תקינה

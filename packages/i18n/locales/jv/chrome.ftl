@@ -31,69 +31,50 @@
 
 answer-checking = Mriksa...
 answer-submitting = Ngirim...
-
 answer-checking-status = Mriksa wangsulan
 answer-submitting-status = Ngirim wangsulan
-
 answer-correct = Bener
 answer-incorrect = Salah
-
 answer-response-saved = Wangsulan Disimpen
-
 answer-percent-credit = Biji { $percent }%
 answer-percent-correct = Bener { $percent }%
 answer-percent-short = { $percent }%
-
 max-credit-available = Biji paling dhuwur sing bisa diolèh: { $percent }%
-
 attempts-remaining =
     { $count ->
         [0] ora ana kesempatan sing kèri
        *[other] kèri { $count } kesempatan
     }
-
 validation-correct = (Bener)
 validation-incorrect = (Salah)
 validation-partially-correct = (Bener sabagéan)
-
 answer-show-responses = Tampilaké { $count } wangsulan kanggo { $answerId }
-
 
 ## Disclosure panels
 
 feedback-heading = Tanggapan
-
 collapsible-click-to-open = (klik kanggo mbukak)
 collapsible-click-to-close = (klik kanggo nutup)
-
 collapsible-initializing = Miwiti...
-
 footnote-show = Tampilaké cathetan sikil
 footnote-hide = Ndhelikaké cathetan sikil
-
 description-more-information = katrangan liyané
-
 
 ## Controls
 
 slider-previous = Sadurungé
 slider-next = Sabanjuré
-
 keyboard-open = Bukak Papan Tuts
 keyboard-close = Tutup Papan Tuts
-
 choice-input-remove-choice = Busak { $choice }
-
 matrix-remove-row = Busak larik
 matrix-add-row = Tambah larik
 matrix-remove-column = Busak kolom
 matrix-add-column = Tambah kolom
-
 subset-add-remove-points = Tambah/Busak titik
 subset-toggle-points-intervals = Ganti titik lan interval
 subset-move-points = Pindhah Titik
 subset-clear = Resiki
-
 orbital-add-row = Tambah Larik
 orbital-remove-row = Busak Larik
 orbital-add-box = Tambah Kothak
@@ -101,13 +82,9 @@ orbital-remove-box = Busak Kothak
 orbital-add-up-arrow = Tambah Panah Munggah
 orbital-add-down-arrow = Tambah Panah Mudhun
 orbital-remove-arrow = Busak Panah
-
 orbital-row-label = Label kanggo larik { $row }
-
 pretzel-answer = Wangsulan
-
 summary-statistics-caption = Statistik ringkesan saka { $column }
-
 
 ## Math input
 
@@ -115,34 +92,25 @@ math-input-preview-region = pratayang èkspresi matématika
 math-input-preview = Pratayang
 math-input-invalid-expression = Èkspresi ora bener:
 
-
 ## Document status
 
 viewer-initializing = Miwiti...
 
-
 ## Errors
 
 error-heading = Kaluputan
-
 error-found-at =
     { $span ->
         [line] Ketemu ing larik { $startLine }.
        *[lines] Ketemu ing larik { $startLine }–{ $endLine }.
     }
-
 document-contains-errors = Dokumèn iki ngandhut kaluputan!
-
 diagnostic-heading-error = Kaluputan
 diagnostic-heading-warning = Pènget
 diagnostic-heading-information = Info
 diagnostic-heading-hint = Pituduh
-
 accessibility-heading-level-1 = Pelanggaran Aksesibilitas WCAG AA
 accessibility-heading-level-2 = Pènget aksesibilitas
-
 something-went-wrong = Ana sing salah.
-
 renderer-load-failed = ana perènder sing gagal dimuat. Muat ulanga kaca iki.
-
 core-start-failed = Panampil dokumèn ora bisa diwiwiti. Muat ulanga kaca iki.

@@ -36,15 +36,12 @@ color =
     .purple = more
     .pink = arrosa
     .brown = marroi
-
 line-width =
     .thick = lodi
     .thin = mehe
-
 line-style =
     .dashed = eten
     .dotted = puntukatu
-
 # Noun phrases already in the comitative, which is the case the composition
 # messages put them in. They agree with nothing.
 fill-style =
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = alderantzizko marra diagonalekin
     .dots = puntuekin
     .diamonds = erronboekin
-
 noun =
     .line = marra
     .line-segment = segmentu
@@ -74,7 +70,6 @@ noun =
     .diamond = erronbo
     .cross = gurutze
     .plus = plus
-
 # Basque puts a «-ko» modifier phrase *before* the noun — «5 aldeko poligono
 # erregular» — so the tail is the side count and the composing messages place
 # it ahead of the head rather than after the adjectives.
@@ -83,11 +78,9 @@ noun-regular-polygon =
         [tail] { $numSides } aldeko
        *[head] poligono erregular
     }
-
 # Basque has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English, Turkish and Finnish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,21 +98,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $nounTail } { $noun } { $description }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = beteta
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } { $pattern }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $nounTail } { $noun } { $color } { $filled } { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # The comitative `-ekin` lands on «bat», the indefinite article word, which
 # closes the phrase after the adjectives — so nothing is welded to a placeable
 # here. Basque has no article to distinguish, so the two `-article` branches
@@ -139,15 +127,12 @@ style-border-clause =
         [and-article] eta ertz { $border } batekin
        *[with] ertz { $border } batekin
     }
-
 style-fill =
     { $parts ->
         [pattern] betegarri { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = bete gabe
-
 # The comitative closes on «planoarekin», another word this catalog writes.
 # The colour reaches it through «koloreko» — "of the colour" — rather than
 # taking the ending itself, which is what keeps the suffix off the placeable.
@@ -156,21 +141,17 @@ style-text =
         [background] { $color }, { $background } koloreko atzeko planoarekin
        *[plain] { $color }
     }
-
 style-background-none = bat ere ez
-
 
 ## Boolean words
 
 boolean-true = egia
 boolean-false = gezurra
 
-
 ## Answer buttons
 
 answer-submit-label = Egiaztatu
 answer-submit-label-no-correctness = Bidali erantzuna
-
 
 ## Sectional blocks
 
@@ -195,7 +176,6 @@ section-name =
     .solution = Ebazpena
     .task = Zeregina
     .theorem = Teorema
-
 # Basque counts a numbered heading the way `table-name` and `figure-name`
 # already do: the ordinal comes first and the word follows it, «1.3. Atala»
 # rather than «Atala 1.3».
@@ -208,9 +188,7 @@ section-title-prefix =
         [name-number-title] { $sectionNumber }. { $sectionName }{ ": " }
        *[name-number] { $sectionNumber }. { $sectionName }
     }
-
 hint-title = Laguntza
-
 
 ## Tables and figures
 
@@ -221,7 +199,6 @@ table-name =
         [unnumbered-title] Taula{ ": " }
        *[unnumbered] Taula
     }
-
 figure-name =
     { $parts ->
         [numbered] { $enumeration }. irudia
@@ -230,22 +207,18 @@ figure-name =
        *[unnumbered] Irudia
     }
 
-
 ## Paginator controls
 
 paginator-previous = Aurrekoa
 paginator-next = Hurrengoa
 paginator-page = Orrialdea
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = edo
 piecewise-condition-if = baldin
 piecewise-condition-otherwise = bestela
-
 
 ## Chemistry
 
@@ -368,7 +341,6 @@ element-name =
     .lv = Livermorioa
     .ts = Tenesoa
     .og = Oganesoa
-
 element-anion-name =
     .h = Hidruroa
     .c = Karburoa
@@ -382,8 +354,6 @@ element-anion-name =
     .i = Ioduroa
     .at = Astaturoa
     .ts = Tenesuroa
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ikur kimiko baliogabea
 chemistry-invalid-ionic-compound = Konposatu ioniko baliogabea

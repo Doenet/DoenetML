@@ -168,7 +168,6 @@ color =
                    *[m] smeđ
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -192,7 +191,6 @@ line-width =
                    *[m] tanak
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -216,7 +214,6 @@ line-style =
                    *[m] tačkast
                 }
         }
-
 # Noun phrases in the instrumental, which is the case «sa» takes. They agree
 # with nothing.
 fill-style =
@@ -226,7 +223,6 @@ fill-style =
     .backdiagonal = obrnutim dijagonalnim linijama
     .dots = tačkama
     .diamonds = rombovima
-
 noun =
     .line = prava
     .line-segment = duž
@@ -246,7 +242,6 @@ noun =
     .diamond = romb
     .cross = križ
     .plus = plus
-
 # Bosnian keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -254,7 +249,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] pravilni { $numSides }-ougao
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (mnogougao, m) or
 # the head of a phrase the description never names: `border` (ivica, f), `fill`
 # (ispuna, f), `text` (tekst, m), `background` (pozadina, f).
@@ -279,7 +273,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -292,13 +285,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -306,13 +297,11 @@ style-filled-word =
         [f] ispunjena
        *[m] ispunjen
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } sa { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } sa { $pattern }
@@ -320,7 +309,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } sa { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ivica» is feminine, so the border's adjectives agree with it and not with the
 # shape it surrounds — and they are in the instrumental, which «sa» governs.
 # Bosnian has no article, so the two `-article` branches read like the two
@@ -332,7 +320,6 @@ style-border-clause =
         [and-article] i { $border } ivicom
        *[with] sa { $border } ivicom
     }
-
 # The fill-pattern words are instrumental plurals, because their other use is
 # the «sa { $pattern }» clause in `style-filled`. So this message supplies a
 # noun for them to hang off — «ispuna», feminine, which is the gender
@@ -343,17 +330,13 @@ style-fill =
         [pattern] { $color } ispuna sa { $pattern }
        *[plain] { $color } ispuna
     }
-
 style-unfilled = neispunjen
-
 style-text =
     { $parts ->
         [background] { $color } na { $background } pozadini
        *[plain] { $color }
     }
-
 style-background-none = nema
-
 
 ## Boolean words
 ##
@@ -365,12 +348,10 @@ style-background-none = nema
 boolean-true = tačno
 boolean-false = netačno
 
-
 ## Answer buttons
 
 answer-submit-label = Provjeri
 answer-submit-label-no-correctness = Pošalji odgovor
-
 
 ## Sectional blocks
 
@@ -395,7 +376,6 @@ section-name =
     .solution = Rješenje
     .task = Zadatak
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -405,9 +385,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Savjet
-
 
 ## Tables and figures
 
@@ -418,7 +396,6 @@ table-name =
         [unnumbered-title] Tabela{ ". " }
        *[unnumbered] Tabela
     }
-
 figure-name =
     { $parts ->
         [numbered] Slika { $enumeration }
@@ -427,22 +404,18 @@ figure-name =
        *[unnumbered] Slika
     }
 
-
 ## Paginator controls
 
 paginator-previous = Prethodna
 paginator-next = Sljedeća
 paginator-page = Stranica
-
 paginator-page-status = { $pageLabel } { $currentPage } od { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ili
 piecewise-condition-if = ako
 piecewise-condition-otherwise = inače
-
 
 ## Chemistry
 ##
@@ -572,7 +545,6 @@ element-name =
     .lv = Livermorij
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hidrid
     .c = Karbid
@@ -586,8 +558,6 @@ element-anion-name =
     .i = Jodid
     .at = Astatid
     .ts = Tenesid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Neispravan hemijski simbol
 chemistry-invalid-ionic-compound = Neispravan jonski spoj
