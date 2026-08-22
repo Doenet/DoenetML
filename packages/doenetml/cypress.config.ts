@@ -15,8 +15,9 @@ const codemirrorSrcEntry = "../codemirror/src/index.ts";
 const codemirrorSrc = path.resolve(__dirname, codemirrorSrcEntry);
 if (!fs.existsSync(codemirrorSrc)) {
     throw new Error(
-        `optimizeDeps.entries lists "${codemirrorSrcEntry}", which does not ` +
-            "exist. Vite would go back to meeting the editor's dependencies " +
+        `optimizeDeps.entries and resolve.alias point at ` +
+            `"${codemirrorSrcEntry}", which does not exist. Vite would go ` +
+            "back to meeting the editor's dependencies " +
             "while a spec is already loading and reloading the page out from " +
             "under it (#1735). Update the path.",
     );
@@ -136,10 +137,13 @@ export default defineConfig({
                     // does follow the `import()` in `EditorViewerLazy`, and
                     // this is the only excluded module graph.
                     entries: [codemirrorSrcEntry],
-                    // A floor under the scan. Every name here is a round of
-                    // the above from before the entry existed, and the entry
-                    // now reaches all of them, so this list should not need to
-                    // grow again — add an entry, not a name.
+                    // A floor under the scan. Every name here is reachable
+                    // from the entry above — most were added one round at a
+                    // time before the entry existed, and `@codemirror/search`
+                    // alongside it — so the list is belt-and-braces rather
+                    // than the mechanism, and should not need to grow again.
+                    // If something new goes undiscovered, add an entry that
+                    // reaches it, not a name here.
                     include: [
                         "@codemirror/state",
                         "@codemirror/view",
