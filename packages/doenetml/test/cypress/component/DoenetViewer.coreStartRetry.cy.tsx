@@ -97,6 +97,10 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         // every other document on the page.
         cy.contains("could not be started", { timeout: 8000 }).should("exist");
         cy.contains("reload the page").should("not.exist");
+        // A reader who cannot see the pane is told about it: the document
+        // failing is worth interrupting for, and after a retry this pane is
+        // the answer to something they clicked.
+        cy.get('[role="alert"]').should("contain.text", "could not be started");
 
         cy.then(() => letTheNextAttemptSucceed(() => (stalled = false)));
         cy.contains("button", "Try again").click();
@@ -150,6 +154,7 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         });
         cy.contains("reload the page", { timeout: 8000 }).should("exist");
         cy.contains("button", "Try again").should("not.exist");
+        cy.get('[role="alert"]').should("contain.text", "reload the page");
     });
 
     it("withdraws the offer when a different error takes the pane over", () => {
@@ -409,6 +414,10 @@ describe("DoenetViewer core-start retry (#1712)", () => {
 
         cy.contains("Initializing", { timeout: 8000 }).should("exist");
         cy.contains("could not be started").should("not.exist");
+        // Clicking the button removes it, and the reader's focus with it, so
+        // the pane that replaces it has to announce itself or a reader who
+        // cannot see it learns nothing about what their click did.
+        cy.get('[role="status"]').should("contain.text", "Initializing");
 
         cy.then(() => {
             releaseStateLoad?.();

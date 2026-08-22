@@ -2387,6 +2387,14 @@ export function DocViewer({
     function initializingPane() {
         return (
             <div
+                // Announced, because this pane can be an *answer*: the retry
+                // button removes itself when clicked (#1712), taking the
+                // reader's focus with it, so a reader who cannot see the pane
+                // that replaced it would otherwise be told nothing at all
+                // about what their click did. Polite rather than assertive —
+                // it reports progress, and the outcome that follows is what
+                // interrupts (see the failure pane's `role="alert"`).
+                role="status"
                 style={{
                     backgroundColor: "var(--canvas)",
                     color: "var(--canvasText)",
@@ -3298,6 +3306,12 @@ export function DocViewer({
     if (errMsg !== null) {
         return (
             <div
+                // The failure of a document is worth interrupting for, the
+                // same way `RendererLoadFailed` is: this pane replaces the
+                // document (or, after a retry, the pane that said the retry
+                // was working), and nothing else says so to a reader who
+                // cannot see it.
+                role="alert"
                 style={{
                     backgroundColor: "var(--lightRed)",
                     color: "var(--canvasText)",
@@ -3310,7 +3324,10 @@ export function DocViewer({
                     padding: "0.5em",
                 }}
             >
-                <MdError color="red" fontSize={"24pt"} /> {errMsg}
+                {/* Decorative: the message beside it says the same
+                    thing, and the alert above carries it. */}
+                <MdError aria-hidden="true" color="red" fontSize={"24pt"} />{" "}
+                {errMsg}
                 {/* The failure pane is shown whether or not this viewer is
                     rendering its document — a host that has set `render`
                     false still wants to hear that the document failed — but
