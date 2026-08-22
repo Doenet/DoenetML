@@ -1,5 +1,29 @@
 # @doenet/doenetml
 
+## 0.7.26
+
+### Patch Changes
+
+- c39ee37: Offer a retry when a document's core cannot be started.
+
+    The failure pane advised reloading the page, which is the wrong advice on the page that produces most of these failures: a section that starts many documents at once on a slow device. Reloading restarts all of them, and the reader who tried it was worse off the second time.
+
+    A failed document now offers **Try again**, which starts that one document over — a fresh saved-state load and boot ladder, without reloading the page or re-parsing the bundle — and shows that it is working rather than leaving a blank pane while it boots. The message beside the button leaves out the reload advice, and still names contention when that is what the failure is attributable to.
+
+    The offer is made once per document. A retry that fails too is shown the previous message, whose advice to reload is by then the honest next step, and no further button — so the reader is never left clicking at a document that will not start. A viewer handed a different document — an editor recompile, a host moving on to the next activity — starts the count over.
+
+    Both panes are announced now, since a reader who cannot see them is otherwise told nothing about what their click did: the button removes itself when clicked, so the "Initializing…" pane that replaces it reports politely that the retry is working, and the failure pane interrupts the way a failed renderer already does.
+
+    A message raised while a document was still starting no longer outlives it: a host that reports it cannot produce the saved state puts its message where the document would be, and a document that then starts is no longer left behind it.
+
+    A boot-scheduling host needs no changes to keep up: a retry that succeeds reports `initializedCallback` as any boot does, which is what clears the `failed` mark the `@doenet/standalone` coordinator put on the activity, and a retry that fails reports `coreStartFailedCallback` again.
+
+- b489f95: Stop the virtual keyboard tray from leaving an unhandled promise rejection behind when it is torn down.
+
+    The tray is a React root of its own, shared by every viewer on the page and unmounted when the last of them goes away. Its keys are `<MathJax>` elements, and a typeset can still be in flight at that moment: unmounting clears the elements' refs, so the typeset reaches MathJax with a null element and rejects with `Typesetting failed: Cannot read properties of null (reading 'contains')`. Nothing is rendered wrong by it — the tray is on its way out — but the rejection is unhandled, so it reaches `window.onunhandledrejection` and any error reporting a host has wired up there. It became easier to hit now that focusing a math input on a touch device opens the tray by itself.
+
+    `MathJaxContext` now takes a `signal`, and the tray aborts it as it tears the tray down. A `<MathJax>` element reaches the engine in stages — waiting on the context promise, then on `startup.promise`, and only then reading the element it is to typeset — so each stage is gated on the signal: once aborted, none of them proceeds and no typeset starts against a tree that is going away. The rest of the engine is passed through untouched, since it is the page's one shared MathJax and cancelling the tray's view of it must not disturb anyone else's.
+
 ## 0.7.25
 
 ### Patch Changes

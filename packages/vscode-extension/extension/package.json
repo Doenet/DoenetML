@@ -6,7 +6,7 @@
     "author": "Jason Siefken",
     "license": "AGPL-3.0-or-later",
     "publisher": "doenet",
-    "version": "0.7.25",
+    "version": "0.7.26",
     "repository": {
         "type": "git",
         "url": "https://github.com/Doenet/DoenetML"
