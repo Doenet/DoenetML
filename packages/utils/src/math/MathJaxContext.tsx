@@ -15,15 +15,15 @@ export interface MathJaxContextProps extends LoadMathJaxOptions {
      */
     version?: 3 | 4;
     /**
-     * Cancels the context: once aborted, the promise the `<MathJax>` elements
-     * below wait on never settles, so none of them starts a typeset.
+     * Cancels the context: once aborted, no `<MathJax>` element below starts a
+     * typeset, and none of them reports a failure.
      *
-     * For tearing down a React root that holds `<MathJax>` elements.
-     * Unmounting clears their refs, and a typeset that starts across that gap
-     * reaches MathJax with a null element and rejects — an unhandled rejection
-     * that lands in whatever the host page has on
-     * `window.onunhandledrejection`. Aborting first, and unmounting a task
-     * later, leaves nothing in flight to land that way.
+     * For tearing down a React root that holds `<MathJax>` elements. Unmounting
+     * clears their refs, and a typeset that starts across that gap reaches
+     * MathJax with a null element and rejects — an unhandled rejection that
+     * lands in whatever the host page has on `window.onunhandledrejection`.
+     * Abort first and unmount a task later, and nothing is left in flight to
+     * land that way.
      */
     signal?: AbortSignal;
     children?: React.ReactNode;
@@ -56,11 +56,12 @@ function untilAborted<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
  *
  * `<MathJax>` reaches the engine in stages — it waits on the context promise,
  * then on `startup.promise`, and only then reads the element it is to typeset
- * — so gating the context promise alone still lets a typeset that is midway
- * through those stages run after the tree is gone. Every stage is gated here
- * instead, and the whole of the rest of the engine is passed through
- * untouched: this is a view of the page's one shared MathJax, not a copy, and
- * cancelling it here must not disturb anyone else using it.
+ * and hands it to `typesetClear`/`typesetPromise` — so every one of those
+ * stages is gated, wherever the abort lands among them.
+ *
+ * The rest of the engine is passed through untouched, and this is a view of
+ * the page's one shared MathJax rather than a copy: cancelling one context's
+ * view of it must leave every other user of it working.
  */
 function untilAbortedEngine<T extends object>(
     engine: T,
@@ -73,7 +74,8 @@ function untilAbortedEngine<T extends object>(
                 property === "startup" &&
                 value &&
                 // MathJax 4 exposes `startup` as a callable function with the
-                // startup members attached; MathJax 3 as a plain object.
+                // startup members attached; MathJax 3 as a plain object. Either
+                // way, the recursion is what gates `startup.promise` below.
                 (typeof value === "object" || typeof value === "function")
             ) {
                 return untilAbortedEngine(value as object, signal);
@@ -81,22 +83,20 @@ function untilAbortedEngine<T extends object>(
             if (property === "promise" && value instanceof Promise) {
                 return untilAborted(value, signal);
             }
-            if (
-                (property === "typesetPromise" ||
-                    property === "typesetClear") &&
-                typeof value === "function"
-            ) {
-                return (...args: unknown[]) => {
-                    if (signal.aborted) {
-                        return property === "typesetPromise"
+            if (typeof value === "function") {
+                // `typesetClear` reports nothing; `typesetPromise` resolves, so
+                // that the caller's `.then` still runs and it does not look
+                // like a typeset that failed.
+                if (property === "typesetClear") {
+                    return (...args: unknown[]) =>
+                        signal.aborted ? undefined : value.apply(target, args);
+                }
+                if (property === "typesetPromise") {
+                    return (...args: unknown[]) =>
+                        signal.aborted
                             ? Promise.resolve()
-                            : undefined;
-                    }
-                    return (value as (...a: unknown[]) => unknown).apply(
-                        target,
-                        args,
-                    );
-                };
+                            : value.apply(target, args);
+                }
             }
             return value;
         },
@@ -131,6 +131,9 @@ export function MathJaxContext({
             useExistingMathJax,
             timeoutMs,
         });
+        // The load itself is gated too, not just the engine it resolves: a
+        // load that fails after the abort would otherwise be reported by
+        // elements that are on their way out.
         const promise = signal
             ? untilAborted(loaded, signal).then((engine) =>
                   untilAbortedEngine(engine, signal),

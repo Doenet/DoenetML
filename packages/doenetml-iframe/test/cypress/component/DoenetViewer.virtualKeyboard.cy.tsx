@@ -364,9 +364,12 @@ describe("VirtualKeyboard — same-window focus tracking", () => {
  */
 function installStalledMathJax(win: Window & typeof globalThis) {
     let release: () => void = () => {};
-    const startup: any = () => {};
-    startup.promise = new Promise<void>((resolve) => {
-        release = resolve;
+    // MathJax 4 exposes `startup` as a callable with its members attached, so
+    // the stand-in does too — that shape is what the loader sniffs for.
+    const startup = Object.assign(() => {}, {
+        promise: new Promise<void>((resolve) => {
+            release = resolve;
+        }),
     });
     const failOnNull = (elements: unknown[]) => {
         if (elements.some((element) => element == null)) {
@@ -398,24 +401,24 @@ describe("VirtualKeyboard — teardown while the keys are typesetting", () => {
     });
 
     it("does not leave an unhandled rejection behind", () => {
+        let release: () => void = () => {};
         cy.window().then((win) => {
-            const release = installStalledMathJax(win);
-
-            cy.mount(<SameWindowHarness />);
-            cy.get("#virtual-keyboard-tray").should("exist");
-
-            // Unmount the last (only) keyboard on the page: the tray goes with
-            // it, while the keys are still waiting on MathJax.
-            cy.mount(<div data-testid="after-unmount" />);
-            cy.get("[data-testid=after-unmount]").should("exist");
-
-            cy.then(() => {
-                release();
-            });
-            // Let the released typeset run: an unhandled rejection from it
-            // fails this test.
-            cy.wait(100);
-            cy.get("#virtual-keyboard-tray").should("not.exist");
+            release = installStalledMathJax(win);
         });
+
+        cy.mount(<SameWindowHarness />);
+        cy.get("#virtual-keyboard-tray").should("exist");
+
+        // Unmount the last (only) keyboard on the page: the tray goes with it,
+        // while the keys are still waiting on MathJax.
+        cy.mount(<div data-testid="after-unmount" />);
+        cy.get("[data-testid=after-unmount]").should("exist");
+        cy.get("#virtual-keyboard-tray").should("not.exist");
+
+        // Let the typeset the keys were waiting on run, now that the tray is
+        // gone. Cypress fails the test on an unhandled rejection, so the wait
+        // is what gives one time to arrive.
+        cy.then(() => release());
+        cy.wait(100);
     });
 });
