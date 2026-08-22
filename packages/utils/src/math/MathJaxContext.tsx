@@ -30,18 +30,6 @@ export interface MathJaxContextProps extends LoadMathJaxOptions {
 }
 
 /**
- * Drop-in replacement for `better-react-mathjax`'s `MathJaxContext` that
- * coexists with a MathJax the host page may already provide.
- *
- * It provides the same `MathJaxBaseContext` that `better-react-mathjax`'s
- * `<MathJax>` render components consume, but its `promise` comes from
- * {@link loadMathJax}, which reuses an existing/loading host engine instead of
- * unconditionally injecting a second copy and clobbering `window.MathJax`.
- *
- * See {@link loadMathJax} for the detection/coexistence rules and the range of
- * supported MathJax versions.
- */
-/**
  * `promise`, except that it never settles once `signal` is aborted — so the
  * work waiting on it is dropped rather than run against a torn-down tree.
  */
@@ -115,6 +103,18 @@ function untilAbortedEngine<T extends object>(
     });
 }
 
+/**
+ * Drop-in replacement for `better-react-mathjax`'s `MathJaxContext` that
+ * coexists with a MathJax the host page may already provide.
+ *
+ * It provides the same `MathJaxBaseContext` that `better-react-mathjax`'s
+ * `<MathJax>` render components consume, but its `promise` comes from
+ * {@link loadMathJax}, which reuses an existing/loading host engine instead of
+ * unconditionally injecting a second copy and clobbering `window.MathJax`.
+ *
+ * See {@link loadMathJax} for the detection/coexistence rules and the range of
+ * supported MathJax versions.
+ */
 export function MathJaxContext({
     config,
     src,
