@@ -13,7 +13,7 @@ import { doenetGlobalConfig } from "../../../src/global-config";
 // Failures are induced through the `__doenetTestCoreInitHook` seam, the same
 // way DoenetViewer.coreStartFailed.cy.tsx drives the give-up ladder.
 
-/** Hang the handshake until `stallHandshakes` is turned off. */
+/** Hang every handshake for as long as `isStalled()` keeps saying so. */
 function stallableHandshake(isStalled: () => boolean) {
     doenetGlobalConfig.__doenetTestCoreInitHook = (phase) => {
         if (phase === "handshake" && isStalled()) {
@@ -81,6 +81,10 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         cy.contains("retried document", { timeout: 20000 }).should("exist");
         cy.contains("could not be started").should("not.exist");
         cy.contains("button", "Try again").should("not.exist");
+        // And it is not wearing the failed attempt's error banner: what one
+        // attempt could not start says nothing about the document that the
+        // next one put on screen.
+        cy.contains("This document contains errors").should("not.exist");
 
         // The host hears one of each: the failure for the attempt that
         // failed, the initialization for the retry that did not. A second
@@ -123,6 +127,47 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         });
         cy.contains("reload the page", { timeout: 8000 }).should("exist");
         cy.contains("button", "Try again").should("not.exist");
+    });
+
+    it("offers a fresh retry once the document itself changes", () => {
+        // The bound is one retry per document, not one per viewer. A viewer
+        // outlives the document it failed on — an editor recompile, a host
+        // swapping in the next activity — and a reader who spent their retry
+        // on the first would otherwise never be offered another.
+        giveUpQuickly();
+        stallableHandshake(() => true);
+
+        function Harness() {
+            const [doenetML, setDoenetML] = React.useState("<p>first</p>");
+            return (
+                <div>
+                    <button
+                        type="button"
+                        data-test="recompile"
+                        onClick={() => setDoenetML("<p>second</p>")}
+                    >
+                        recompile
+                    </button>
+                    <DoenetViewer
+                        doenetML={doenetML}
+                        addVirtualKeyboard={false}
+                    />
+                </div>
+            );
+        }
+
+        cy.mount(<Harness />);
+
+        cy.contains("could not be started", { timeout: 8000 }).should("exist");
+        cy.contains("button", "Try again").click();
+        // Spent: this document's next failure is terminal.
+        cy.contains("reload the page", { timeout: 8000 }).should("exist");
+
+        cy.get('[data-test="recompile"]').click();
+
+        // A different document, and its first failure gets its own offer.
+        cy.contains("button", "Try again", { timeout: 8000 }).should("exist");
+        cy.contains("reload the page").should("not.exist");
     });
 
     it("shows the retry working instead of blanking the pane", () => {

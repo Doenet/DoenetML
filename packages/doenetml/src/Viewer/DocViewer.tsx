@@ -607,10 +607,15 @@ export function DocViewer({
     // adding a second way to start a core. Held in state (not a ref) because
     // the click has to re-render for the comparison to run.
     const [retryGeneration, setRetryGeneration] = useState(0);
-    // The render-phase mirror of `retryGeneration`, which doubles as the count
-    // of retries the reader has spent. `failCoreStart` runs from async boot
-    // code whose closure predates the click, so it reads the tally here.
+    // The render-phase mirror of `retryGeneration`, compared against it the
+    // way `lastDoenetML` is compared against `doenetML`.
     const lastRetryGeneration = useRef(0);
+    // Whether the reader has already spent their retry on the document now on
+    // screen. Kept in a ref because `failCoreStart` runs from async boot code
+    // whose closure predates the click, and cleared by every rebuild the
+    // reader did not ask for — a new source, a new attempt, a locale switch
+    // is a different document, and its first failure gets its own offer.
+    const retrySpent = useRef(false);
 
     type DeferredCoreAction = {
         actionName: string;
@@ -2263,7 +2268,11 @@ export function DocViewer({
         // Bounding it at one is what keeps the reader out of a loop they
         // cannot win, and it is why the reload advice keeps a home — and its
         // translations, which the retry-flavored messages do not have yet.
-        const retryAvailable = lastRetryGeneration.current === 0;
+        //
+        // The four messages are spelled out as four literal `translate` calls
+        // because a computed key is invisible to `lint:i18n`, which reads
+        // string literals only (see `collectCallSites` in `@doenet/i18n`).
+        const retryAvailable = !retrySpent.current;
         setErrMsg(
             retryAvailable
                 ? contended
@@ -3120,8 +3129,10 @@ export function DocViewer({
         return null;
     }
 
+    let retriedByReader = false;
     if (lastRetryGeneration.current !== retryGeneration) {
         lastRetryGeneration.current = retryGeneration;
+        retriedByReader = true;
         changedState = true;
     }
 
@@ -3183,6 +3194,9 @@ export function DocViewer({
             setErrMsg(null);
             setIsInErrorState?.(false);
         }
+        // One retry per document: the reader spends theirs on the rebuild
+        // they asked for, and gets a fresh one with a document they didn't.
+        retrySpent.current = retriedByReader;
 
         coreId.current = nanoid();
         // A request the previous document made is not this one's to have
