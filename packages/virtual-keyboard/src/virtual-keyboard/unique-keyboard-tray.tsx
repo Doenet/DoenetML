@@ -43,6 +43,11 @@ type VirtualKeyboardState = {
     focusedMathInputSources: Set<object>;
     keyboardDomNode: HTMLElement | null;
     keyboardReactRoot: Root | null;
+    /**
+     * Cancels the tray's `MathJaxContext` when the tray goes away, so no key
+     * starts typesetting into a tree that is about to be unmounted.
+     */
+    keyboardMathJaxAbort: AbortController | null;
     registrations: {
         id: number;
         onClick: OnClick;
@@ -73,6 +78,7 @@ const virtualKeyboardState: VirtualKeyboardState =
         focusedMathInputSources: new Set(),
         keyboardDomNode: null,
         keyboardReactRoot: null,
+        keyboardMathJaxAbort: null,
         registrations: [],
         lastActiveRegistrationId: null,
         nextRegistrationId: 0,
@@ -343,7 +349,11 @@ function renderTray(
     direction: Direction | undefined,
 ) {
     return (
-        <MathJaxContext config={mathjaxConfig} version={4}>
+        <MathJaxContext
+            config={mathjaxConfig}
+            version={4}
+            signal={virtualKeyboardState.keyboardMathJaxAbort?.signal}
+        >
             <TrayWithSharedOpenState
                 theme={theme}
                 translate={translate}
@@ -390,6 +400,7 @@ export function UniqueKeyboardTray({
             document.body.appendChild(keyboardDomNode);
             virtualKeyboardState.keyboardDomNode = keyboardDomNode;
 
+            virtualKeyboardState.keyboardMathJaxAbort = new AbortController();
             const root = createRoot(keyboardDomNode);
             virtualKeyboardState.keyboardReactRoot = root;
             virtualKeyboardState.handleFocusChange = () => {
@@ -436,6 +447,11 @@ export function UniqueKeyboardTray({
                     );
                     virtualKeyboardState.handleFocusChange = undefined;
                 }
+                // Stop the keys typesetting before the unmount below clears
+                // their refs: a typeset that started across that gap would
+                // reach MathJax with a null element and reject unhandled.
+                virtualKeyboardState.keyboardMathJaxAbort?.abort();
+                virtualKeyboardState.keyboardMathJaxAbort = null;
                 if (virtualKeyboardState.keyboardReactRoot) {
                     // React insists we asynchronously unmount.
                     const root = virtualKeyboardState.keyboardReactRoot;
