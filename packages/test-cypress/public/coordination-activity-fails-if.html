@@ -14,13 +14,19 @@
      same object, so these writes — and the `config` reference captured
      below — stay live. (See `facadeRenderQueue.ts` in `@doenet/standalone`.)
 
-     `window.__doenetTestRecover()` lets the spec drive the other half of the
-     story: it lifts the stall and rebuilds the document (a changed source, the
-     same path a locale switch or a recompile takes), so the realm starts a
-     fresh boot ladder that succeeds. That is what a `failed` activity does
-     when its next attempt works, and the coordinator has to notice — an
-     activity left labelled `failed` would have its state flush skipped at park
-     time even though it now has a core holding the reader's work. -->
+     Two hooks let the spec drive the other half of the story — what a
+     `failed` activity does when a later attempt works, which the coordinator
+     has to notice: an activity left labelled `failed` would have its state
+     flush skipped at park time even though it now has a core holding the
+     reader's work.
+
+     `window.__doenetTestRecover()` lifts the stall and rebuilds the document
+     with a changed source, the path a locale switch or a recompile takes.
+     `window.__doenetTestUnstall()` lifts only the stall, leaving the failed
+     document exactly as the reader finds it, so the spec can drive the same
+     recovery through the viewer's own retry button (#1712) — the reader's
+     path, and the one that has to keep the coordinator's books straight with
+     no host cooperation at all. -->
 <html>
     <head>
         <meta charset="utf-8" />
@@ -43,14 +49,17 @@
                     }
                 };
                 const container = document.querySelector(".doenetml-applet");
-                window.__doenetTestRecover = function () {
+                // The short watchdog goes with the stall. It is what makes the
+                // first attempt give up quickly, but a *real* handshake
+                // (worker boot plus WASM compile) needs far longer than
+                // 500 ms, so leaving it pinned would fail the recovery for
+                // reasons unrelated to the failed state.
+                window.__doenetTestUnstall = function () {
                     delete config.__doenetTestCoreInitHook;
-                    // The short watchdog goes with the stall. It is what makes
-                    // the first attempt give up quickly, but a *real*
-                    // handshake (worker boot plus WASM compile) needs far
-                    // longer than 500 ms, so leaving it pinned would fail the
-                    // recovery for reasons unrelated to the failed state.
                     delete config.coreHandshakeWatchdogMs;
+                };
+                window.__doenetTestRecover = function () {
+                    window.__doenetTestUnstall();
                     // A different source is what makes this a rebuild rather
                     // than a no-op re-render: the viewer re-rolls its `coreId`
                     // and runs a new ladder against the (now unstalled) seam.

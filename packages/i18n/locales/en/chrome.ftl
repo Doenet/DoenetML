@@ -207,3 +207,22 @@ core-start-failed = This document could not be started. Please reload the page.
 # the page the reader sees. Naming the contention keeps the reader from
 # concluding the service is broken.
 core-start-failed-busy = This document could not be started. Several documents were starting at once, which can take longer on a slower device. Reloading the page may help once the other documents have finished.
+
+# Shown for a core-start failure the reader can still retry, next to the
+# button that does it (`core-start-retry`). It leaves out the advice to
+# reload that the messages above carry: the button is the cheaper action,
+# and a reader told to reload will reload the whole page — restarting every
+# other document on it, which is what produced the failure in the first
+# place on a page that was already busy.
+core-start-failed-retry = This document could not be started.
+
+# The contended variant of `core-start-failed-retry`, named for the same
+# reason `core-start-failed-busy` is: a reader who is told that several
+# documents were starting at once has a reason to try again in a moment
+# rather than concluding the service is broken.
+core-start-failed-busy-retry = This document could not be started. Several documents were starting at once, which can take longer on a slower device.
+
+# Label of the button that starts a failed document over without reloading
+# the page. Offered once per document; a retry that fails too falls back to
+# `core-start-failed`, which advises the reload.
+core-start-retry = Try again

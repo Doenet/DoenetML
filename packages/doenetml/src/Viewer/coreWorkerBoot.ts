@@ -185,6 +185,28 @@ export const CORE_START_FAILED_BUSY_MESSAGE =
     "may help once the other documents have finished.";
 
 /**
+ * English fallback for `core-start-failed-retry` — what the first failure
+ * says, beside the button that starts the document over (#1712). It drops the
+ * advice to reload that {@link CORE_START_FAILED_MESSAGE} carries: reloading
+ * restarts every other document on the page, which on a busy page is what
+ * produced the failure, and the button costs a core rather than a bundle.
+ */
+export const CORE_START_FAILED_RETRY_MESSAGE =
+    "This document could not be started.";
+
+/**
+ * English fallback for `core-start-failed-busy-retry` — the contended variant
+ * of {@link CORE_START_FAILED_RETRY_MESSAGE}, naming the contention for the
+ * same reason {@link CORE_START_FAILED_BUSY_MESSAGE} does.
+ */
+export const CORE_START_FAILED_BUSY_RETRY_MESSAGE =
+    "This document could not be started. Several documents were starting " +
+    "at once, which can take longer on a slower device.";
+
+/** English fallback for `core-start-retry` — the retry button's label. */
+export const CORE_START_RETRY_MESSAGE = "Try again";
+
+/**
  * Resolve/reject with `task()`, but reject with a timeout error if it does
  * not settle within `ms`. The underlying promise is left to settle on its
  * own — we attach a (post-timeout no-op) handler so a late rejection is never
