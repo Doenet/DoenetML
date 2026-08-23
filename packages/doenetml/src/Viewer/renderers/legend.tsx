@@ -301,9 +301,19 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             }
         }
 
-        // A label's width is only known once MathJax has typeset it, and both
-        // the right-aligned position and the width of the box are measured
-        // from it, so both have to be recomputed after typesetting.
+        // The right-aligned position and the width of the box are both
+        // measured from the labels, so both are wrong if a latex label has
+        // not been typeset by the time it is measured above.
+        //
+        // Usually it has been: JSXGraph typesets with the synchronous
+        // `MathJax.typeset`, inside the `board.create` calls above rather
+        // than after them. What this covers is the board being drawn before
+        // MathJax has finished loading, when that call throws and JSXGraph's
+        // own try/catch swallows it, leaving the label showing raw latex.
+        // Waiting on `startup.promise` is what suits that case — it resolves
+        // once MathJax exists and has typeset the document — and waiting on a
+        // per-label typesetting instead would not, since the call that would
+        // have reported it is the one that failed.
         if (usedMathJax && (atRight || box.current)) {
             MathJax.startup.promise
                 .then(() => {
