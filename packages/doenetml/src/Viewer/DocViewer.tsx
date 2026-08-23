@@ -3403,7 +3403,14 @@ export function DocViewer({
                     load, depending on which settled last. Both are true and
                     neither implies the other: a state error does not stop a
                     core from starting, it only starts it without the reader's
-                    saved work. */}
+                    saved work.
+
+                    Inside the pane it is part of the pane's `role="alert"`,
+                    so one landing on a pane already up is announced with it.
+                    That is the right weight here and only here: the reader is
+                    looking at a document that failed, not working in one. The
+                    same message beside a working document gets the
+                    `role="status"` region built below. */}
                 {stateLoadNotice !== null ? (
                     <div style={{ marginTop: "0.5em", fontSize: "0.8em" }}>
                         {savedStateUnavailableLeadIn} {stateLoadNotice}
@@ -3562,9 +3569,11 @@ export function DocViewer({
     // it — empty, it is an unstyled zero-height div — because a region that
     // arrives in the same commit as its text is unreliably announced, and a
     // reader who is working somewhere else in the document is exactly who
-    // this has to reach. (It cannot collide with `initializingPane`'s own
-    // `role="status"`: that pane is returned instead of the document, never
-    // beside it.)
+    // this has to reach. It shares the screen with `initializingPane`'s own
+    // `role="status"` while a core is being created — that pane is rendered
+    // beside the container as `noCoreWarning`, not only returned in place of
+    // it — which costs nothing: an empty region has nothing to announce, and
+    // each region announces only its own text.
     const stateNoticeBanner = (
         <div role="status">
             {stateLoadNotice !== null ? (

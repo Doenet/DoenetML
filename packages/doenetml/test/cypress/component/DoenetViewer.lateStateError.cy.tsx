@@ -99,6 +99,15 @@ describe("DoenetViewer late SPLICE.getState error (#1741)", () => {
         );
 
         cy.contains("Enter text:", { timeout: VIEWER_TIMEOUT }).should("exist");
+        // The live region is in the document before it has anything to say.
+        // A region that arrives in the same commit as its text is unreliably
+        // announced, and this one has to reach a reader working elsewhere in
+        // the document, so its emptiness here is the behavior — not an
+        // accident of where the notice happens to be built.
+        cy.get('[role="status"]')
+            .should("exist")
+            .and("not.contain.text", "storage unavailable");
+
         postStateError("storage unavailable");
 
         cy.get('[role="status"]', { timeout: VIEWER_TIMEOUT }).should(
