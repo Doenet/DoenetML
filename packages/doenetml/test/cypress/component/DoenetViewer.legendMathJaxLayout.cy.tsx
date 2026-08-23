@@ -1,6 +1,5 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
-import { loadMathJax } from "@doenet/utils";
 
 // Component coverage for the two guards on the legend's post-typesetting
 // layout pass (#1751), neither of which the `@doenet/test-cypress` specs can
@@ -27,6 +26,27 @@ const VIEWER_TIMEOUT = 15_000;
 const SETTLE = 500;
 
 type Deferred = { promise: Promise<unknown>; release: () => void };
+
+/**
+ * Stands in for a loaded MathJax engine.
+ *
+ * Nothing here typesets, and nothing needs to: what these specs assert is
+ * where the legend ends up, and the layout pass only ever waits on the
+ * engine — `await loadMathJax()`, then `await mathJax.startup?.promise`. A
+ * real engine would mean fetching MathJax from a CDN inside a hook, which is
+ * a network dependency and a flake in a spec that is not about the network.
+ *
+ * `typeset` is a no-op rather than absent so that JSXGraph, which calls it
+ * directly on the global when it draws a latex label, finds something to call.
+ * The label is then left showing its latex source, which is what a board drawn
+ * mid-load shows anyway.
+ */
+const FAKE_ENGINE = {
+    startup: { promise: Promise.resolve() },
+    typeset: () => {},
+    typesetPromise: () => Promise.resolve(),
+    typesetClear: () => {},
+};
 
 function deferEngine(engine: unknown): Deferred {
     let release!: () => void;
@@ -85,13 +105,7 @@ const LEGEND_DOC = `
 `;
 
 describe("legend layout across a MathJax load (#1751)", () => {
-    let engine: unknown;
-
-    before(() => {
-        // Load the real engine once, so every test can hand it out on its own
-        // schedule rather than waiting on the network.
-        cy.wrap(null).then(() => loadMathJax().then((mj) => (engine = mj)));
-    });
+    const engine: unknown = FAKE_ENGINE;
 
     afterEach(() => {
         // The memo is per realm and the component runner reuses this window,

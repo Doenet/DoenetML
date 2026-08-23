@@ -183,11 +183,15 @@ legend's `<styleDefinition>{:dn}` names a `backgroundColor`:
 
 
 A `<legend>{:dn}`'s own `styleNumber` says how the legend itself is drawn — the
-background of its box, and the color of its labels — while each swatch keeps the
-style of the object it stands for. Labels are drawn in the style's `textColor`,
-which is black on light and white on dark unless a `<styleDefinition>{:dn}` or an
-active style palette says otherwise, so a box painted a color of its own can be
-given label text that reads against it.
+background of its box, and the color of its labels — while each swatch is drawn
+from the style of the object it stands for. Labels are drawn in the style's
+`textColor`, which is black on light and white on dark unless a
+`<styleDefinition>{:dn}` or an active style palette says otherwise, so a box
+painted a color of its own can be given label text that reads against it.
+
+Note that a swatch takes the *light-mode* color of the object it stands for, so
+in dark mode it can differ from the color that object is actually drawn in. The
+box and the labels do follow the theme.
 
 
 

@@ -135,7 +135,13 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         let legendLineLength = (xMax - xMin) * 0.05;
         let legendDx = (xMax - xMin) * 0.02;
 
-        let legendX = xMin + (xMax - xMin) * 0.05;
+        // Where the legend sits before any right-alignment. Both this pass
+        // and the one after typesetting bound the alignment below by it, so
+        // that the second computes the same function of the measured width as
+        // the first rather than only ever ratcheting the legend rightwards.
+        const baseLegendX = xMin + (xMax - xMin) * 0.05;
+
+        let legendX = baseLegendX;
 
         let legendY: number;
 
@@ -169,6 +175,15 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                     layer: labelLayer,
                     strokeColor: labelTextColor,
                     highlightStrokeColor: labelTextColor,
+                    // A label is an absolutely positioned div inside the
+                    // board, so left to itself it is only as wide as the room
+                    // beside it and wraps to fit. The legend gives each entry
+                    // one row, and the box is drawn around those rows, so a
+                    // label that wraps is taller than the row it was given: it
+                    // overlaps the entry below and overflows the box. Kept on
+                    // one line it runs past the graph's edge instead, which is
+                    // the lesser of the two (see #1750).
+                    cssStyle: "white-space: nowrap",
                 };
 
                 if (element.label.hasLatex) {
@@ -197,7 +212,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
 
         if (atRight) {
             legendX = Math.max(
-                legendX,
+                baseLegendX,
                 xMax - legendLineLength - 3 * legendDx - maxTextWidth,
             );
         }
@@ -358,7 +373,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
 
                     if (atRight) {
                         legendX = Math.max(
-                            legendX,
+                            baseLegendX,
                             xMax -
                                 legendLineLength -
                                 3 * legendDx -

@@ -339,6 +339,50 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
         );
     });
 
+    it("a legend keeps every label on one row", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph>
+        <function name="f">x^2</function>
+        <point name="P" styleNumber="2">(1,1)</point>
+        <legend boxed>
+            <label forObject="$f">a legend label so long that it cannot possibly fit beside its swatch inside the graphing window at all</label>
+            <label forObject="$P">short</label>
+        </legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.contains(".jxgbox .JXGtext", "cannot possibly").should("be.visible");
+
+        // A label is an absolutely positioned div, so one too long for the
+        // room beside it wraps — and the legend, which gives each entry a
+        // single row and draws its box around those rows, has no way to hold
+        // it. Both labels stay one line tall, and neither reaches the row the
+        // other is on.
+        cy.contains(".jxgbox .JXGtext", "short").then(($short) => {
+            const rowHeight = $short[0].getBoundingClientRect().height;
+            expect(rowHeight, "a one-line label's height").to.be.greaterThan(0);
+            cy.contains(".jxgbox .JXGtext", "cannot possibly").should(
+                ($long) => {
+                    const long = $long[0].getBoundingClientRect();
+                    expect(long.height, "the long label's height").to.eq(
+                        rowHeight,
+                    );
+                    expect(
+                        long.bottom,
+                        "the long label's bottom edge",
+                    ).to.be.lessThan($short[0].getBoundingClientRect().top);
+                },
+            );
+        });
+    });
+
     it("an unboxed legend draws no box", () => {
         cy.window().then(async (win) => {
             win.postMessage(

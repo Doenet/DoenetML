@@ -30,4 +30,9 @@ A `<legend>` inside a `<graph>` also honors `hide` at last: it was drawn whether
 or not it was hidden, which `boxed` would have made plain, since a hidden legend
 would still have painted an opaque box over the graph.
 
+Legend labels are also kept on one line. A label too long for the room beside
+its swatch used to wrap, which made it taller than the single row the legend
+gives each entry — overlapping the entry below it and overflowing the box drawn
+around them. It now runs past the graph's edge instead.
+
 Closes #1717.
