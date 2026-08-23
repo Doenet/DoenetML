@@ -10,7 +10,7 @@ import {
     POINT_LAYER_OFFSET,
     TEXT_LAYER_OFFSET,
 } from "./graph";
-import { deepCompare } from "@doenet/utils";
+import { deepCompare, loadMathJax } from "@doenet/utils";
 import {
     JXGElement,
     JXGLine,
@@ -24,10 +24,9 @@ import {
     resolveBackgroundColor,
     resolveCanvasColor,
     resolvePanelBorderColor,
+    resolveTextColor,
 } from "./utils/styleColors";
 import { UnlabeledGraphicalSVs } from "./utils/graphicalSVs";
-
-declare const MathJax: any;
 
 interface LegendElement {
     label?: { hasLatex: boolean; value: string };
@@ -98,6 +97,14 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         resolveCanvasColor(darkMode);
     const boxBorderColor = resolvePanelBorderColor(darkMode);
 
+    // JSXGraph paints a text with a fixed color of its own — black, unless
+    // told otherwise — rather than letting it inherit one from the page, so a
+    // legend label has to be given the theme's text color or it stays black
+    // against a dark canvas and a dark box alike. Taking it from the legend's
+    // own style definition also means an author who paints the box a color of
+    // their own can name the text color that reads against it.
+    const labelTextColor = resolveTextColor(SVs.selectedStyle, darkMode);
+
     // Each piece of the legend is offset from the DoenetML layer the same way
     // the rest of the graph's renderers offset theirs, so `<legend layer="3">`
     // sits above a `layer="2"` rectangle piece for piece. The box takes the
@@ -160,6 +167,8 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                     fixed: true,
                     highlight: false,
                     layer: labelLayer,
+                    strokeColor: labelTextColor,
+                    highlightStrokeColor: labelTextColor,
                 };
 
                 if (element.label.hasLatex) {
@@ -321,12 +330,17 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         // than after them. What this covers is the board being drawn before
         // MathJax has finished loading, when that call throws and JSXGraph's
         // own try/catch swallows it, leaving the label showing raw latex.
-        // Waiting on `startup.promise` is what suits that case — it resolves
-        // once MathJax exists and has typeset the document — and waiting on a
-        // per-label typesetting instead would not, since the call that would
-        // have reported it is the one that failed.
+        // Waiting for the engine and then for its startup is what suits that
+        // case; waiting on a per-label typesetting instead would not, since
+        // the call that would have reported it is the one that failed.
+        //
+        // `loadMathJax()` rather than `window.MathJax` directly, because
+        // that global holds a plain config object until the engine's script
+        // has run (see `isMathJaxEngine`) — reaching for `startup.promise`
+        // on it would throw, and throw synchronously, out of a render, in
+        // precisely the cold load this pass is here for.
         if (usedMathJax && (atRight || box.current)) {
-            MathJax.startup.promise
+            layOutAfterTypesetting()
                 .then(() => {
                     if (layoutGeneration.current !== generation) {
                         return;
@@ -413,6 +427,16 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         }
     }
 
+    /**
+     * Resolves once MathJax has loaded and finished its initial typesetting.
+     * `startup` is optional on the engine type, and awaiting `undefined` is
+     * harmless: an engine without one has no initial typesetting to wait for.
+     */
+    async function layOutAfterTypesetting() {
+        const mathJax = await loadMathJax();
+        await mathJax.startup?.promise;
+    }
+
     function deleteLegend() {
         // Retires any layout pass still pending for the legend being removed,
         // which matters most when its replacement has no latex of its own and
@@ -446,6 +470,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             boxed: SVs.boxed,
             boxFillColor,
             boxBorderColor,
+            labelTextColor,
         };
 
         if (!deepCompare(previousDependencies.current, dependencies)) {

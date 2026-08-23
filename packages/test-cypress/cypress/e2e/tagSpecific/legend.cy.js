@@ -322,6 +322,28 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
         cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
             "not.exist",
         );
+
+        // JSXGraph paints a label a fixed color rather than letting it
+        // inherit one, so a label left alone stays black over the dark box it
+        // now sits on. Both labels take the theme's text color instead.
+        cy.contains(".jxgbox .JXGtext", "canvas background").should(
+            "have.css",
+            "color",
+            "rgb(255, 255, 255)",
+        );
+        cy.contains(".jxgbox .JXGtext", "authored background").should(
+            "have.css",
+            "color",
+            "rgb(255, 255, 255)",
+        );
+
+        cy.setDarkMode("light");
+
+        cy.contains(".jxgbox .JXGtext", "canvas background").should(
+            "have.css",
+            "color",
+            "rgb(0, 0, 0)",
+        );
     });
 
     it("an unboxed legend draws no box", () => {

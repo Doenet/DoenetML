@@ -89,3 +89,17 @@ export function resolveBackgroundColor(
 export function resolvePanelBorderColor(darkMode: DarkMode): string {
     return darkMode === "dark" ? "#6b6b6b" : "#949494";
 }
+
+/**
+ * The text color of a style definition, resolved for the current theme.
+ * Unlike the background, this always has a value: `DEFAULT_STYLE_VALUES`
+ * pairs `textColor: black` with `textColorDarkMode: white`, so a component
+ * that has authored no text color of its own still reads against the canvas
+ * in both themes.
+ */
+export function resolveTextColor(
+    style: Pick<ResolvedStyleDefinition, "textColor" | "textColorDarkMode">,
+    darkMode: DarkMode,
+): string {
+    return darkMode === "dark" ? style.textColorDarkMode : style.textColor;
+}
