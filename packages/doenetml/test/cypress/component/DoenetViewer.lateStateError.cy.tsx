@@ -286,6 +286,44 @@ describe("DoenetViewer late SPLICE.getState error (#1741)", () => {
         });
     });
 
+    it("survives an error whose message is not text", () => {
+        // The message is rendered as a React child, so a host that sends
+        // something else — an object, a number — must not reach the render.
+        // Beside the document that throw goes to the error boundary and
+        // replaces the very document this notice exists to keep; on the
+        // failure pane, which is returned above the boundary, nothing would
+        // catch it. A reply the viewer cannot read is worth the generic
+        // notice, not the document.
+        cy.mount(
+            <DoenetViewer
+                doenetML={STATEFUL_DOC}
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+            />,
+        );
+
+        cy.contains("Enter text:", { timeout: VIEWER_TIMEOUT }).should("exist");
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    subject: "SPLICE.getState.response",
+                    error: { code: 500, message: { nested: "not text" } },
+                },
+                "*",
+            );
+        });
+
+        cy.contains("Invalid response to getState", {
+            timeout: VIEWER_TIMEOUT,
+        }).should("exist");
+        cy.wait(SETTLE);
+        cy.contains("Enter text:").should("exist");
+        cy.get(TEXT_INPUT).type("{selectall}{backspace}still usable{enter}");
+        cy.contains("You typed: still usable", {
+            timeout: VIEWER_TIMEOUT,
+        }).should("exist");
+    });
+
     it("retires the notice when the document is rebuilt", () => {
         // The notice describes this document's state load. A different
         // document — an editor recompile, a host swapping in the next

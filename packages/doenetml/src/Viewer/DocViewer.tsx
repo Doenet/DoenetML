@@ -1209,11 +1209,24 @@ export function DocViewer({
                         // carrying both is read as state: a host that produced
                         // usable state has answered, whatever else it also
                         // reported.
+                        //
+                        // The message has to be text, not merely present: it
+                        // is stored and later rendered as a React child, and
+                        // anything else throws there. Beside the document
+                        // that would reach the error boundary and replace
+                        // exactly the document this branch exists to keep;
+                        // beneath the failure pane, which is returned above
+                        // that boundary, nothing would catch it at all. A
+                        // reply the viewer cannot read costs the generic
+                        // notice instead — the same as one that carries no
+                        // recognizable error shape. (`error` is known
+                        // non-null here: this branch is gated on its
+                        // truthiness.)
                         const error = e.data.error;
                         if (
                             typeof error === "object" &&
                             "code" in error &&
-                            "message" in error
+                            typeof error.message === "string"
                         ) {
                             console.log(
                                 `error ${error.code} getting state: ${error.message}`,
