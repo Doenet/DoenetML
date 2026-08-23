@@ -9,6 +9,13 @@ export default class Legend extends GraphicalComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // A legend describes the rest of the graph, so it belongs on top of it.
+        // Layer 1 puts every piece of the legend above the whole of layer 0,
+        // where graphical components sit unless an author says otherwise,
+        // which is where JSXGraph's own element defaults used to put the
+        // swatches before the legend honored `layer` at all.
+        attributes.layer.defaultValue = 1;
+
         attributes.position = {
             description: "Position of the legend on the graph.",
             createComponentOfType: "text",
@@ -35,6 +42,16 @@ export default class Legend extends GraphicalComponent {
                     description: "Place the legend in the lower-left corner.",
                 },
             ],
+        };
+
+        attributes.boxed = {
+            description:
+                "Whether to draw an opaque box behind the legend so that graph contents passing behind it stay hidden.",
+            createComponentOfType: "boolean",
+            createStateVariable: "boxed",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
         };
 
         attributes.displayClosedSwatches = {

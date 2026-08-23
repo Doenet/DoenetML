@@ -144513,6 +144513,13 @@
                         "lowerLeft"
                     ]
                 },
+                "boxed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayClosedSwatches": {
                     "optional": true,
                     "type": [
@@ -144591,6 +144598,13 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Position of the legend on the graph.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to draw an opaque box behind the legend so that graph contents passing behind it stay hidden.",
                     "fromAttribute": true
                 },
                 {

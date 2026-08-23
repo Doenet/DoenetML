@@ -3,7 +3,13 @@ import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { BoardContext } from "./graph";
+import {
+    BoardContext,
+    BASE_LAYER_OFFSET,
+    LINE_LAYER_OFFSET,
+    POINT_LAYER_OFFSET,
+    TEXT_LAYER_OFFSET,
+} from "./graph";
 import { deepCompare } from "@doenet/utils";
 import {
     JXGElement,
@@ -13,6 +19,13 @@ import {
     JXGText,
 } from "./jsxgraph-distrib/types";
 import { styleToDash } from "./utils/styleToDash";
+import { DocContext } from "../DocViewer";
+import {
+    resolveBackgroundColor,
+    resolveCanvasColor,
+    resolvePanelBorderColor,
+} from "./utils/styleColors";
+import { UnlabeledGraphicalSVs } from "./utils/graphicalSVs";
 
 declare const MathJax: any;
 
@@ -38,26 +51,53 @@ interface GraphLimits {
     yMax: number;
 }
 
-interface LegendSVs {
-    hidden: boolean;
+interface LegendSVs extends UnlabeledGraphicalSVs {
     graphLimits: GraphLimits;
     position: string;
+    boxed: boolean;
     legendElements: LegendElement[];
 }
 
 type Swatch = JXGPoint | JXGPolygon | JXGLine | JXGElement;
+
+type Corner = [number, number];
+
+/** The four corners of the backing box, clockwise from the top left. */
+type BoxCorners = [Corner, Corner, Corner, Corner];
 
 export default React.memo(function Legend(props: UseDoenetRendererProps) {
     let { id, SVs } = useDoenetRenderer<LegendSVs>(props);
 
     const board = useContext(BoardContext);
 
+    const { darkMode } = useContext(DocContext) || {};
+
     let swatches = useRef<Swatch[]>([]);
     let labels = useRef<JXGText[]>([]);
+    let box = useRef<JXGPolygon | null>(null);
 
-    let previousElements = useRef<LegendElement[] | null>(null);
-    let previousPosition = useRef<string | null>(null);
-    let previousLimits = useRef<GraphLimits | null>(null);
+    let previousDependencies = useRef<Record<string, any> | null>(null);
+
+    // The box paints the graph's own background unless the legend's style
+    // definition names one, so an unboxed and a boxed legend look the same
+    // until something passes behind the box. Its border is the neutral panel
+    // color rather than the style definition's line color: the box is chrome
+    // around the legend, not one more piece of graph content, and the line
+    // color belongs to the swatches that stand for the graphed objects.
+    const boxFillColor =
+        resolveBackgroundColor(SVs.selectedStyle, darkMode) ||
+        resolveCanvasColor(darkMode);
+    const boxBorderColor = resolvePanelBorderColor(darkMode);
+
+    // Each piece of the legend is offset from the DoenetML layer the same way
+    // the rest of the graph's renderers offset theirs, so `<legend layer="3">`
+    // sits above a `layer="2"` rectangle piece for piece. The box takes the
+    // base offset so it stays behind the legend's own swatches and labels
+    // while covering everything drawn below the legend's layer.
+    const boxLayer = 10 * SVs.layer + BASE_LAYER_OFFSET;
+    const lineSwatchLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
+    const markerSwatchLayer = 10 * SVs.layer + POINT_LAYER_OFFSET;
+    const labelLayer = 10 * SVs.layer + TEXT_LAYER_OFFSET;
 
     useEffect(() => {
         //On unmount
@@ -107,6 +147,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                 let textAttrs: Record<string, any> = {
                     fixed: true,
                     highlight: false,
+                    layer: labelLayer,
                 };
 
                 if (element.label.hasLatex) {
@@ -140,6 +181,46 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             );
         }
 
+        /** Where the box goes for the geometry computed so far. */
+        function currentBoxCorners(): BoxCorners {
+            const padX = legendDx / 2;
+            const padY = legendDy / 4;
+            const left = legendX - padX;
+            const right =
+                legendX + legendLineLength + legendDx + maxTextWidth + padX;
+            const top = legendY + legendDy / 2 + padY;
+            const bottom =
+                legendY -
+                (SVs.legendElements.length - 1) * legendDy -
+                legendDy / 2 -
+                padY;
+            return [
+                [left, top],
+                [right, top],
+                [right, bottom],
+                [left, bottom],
+            ];
+        }
+
+        if (SVs.boxed && SVs.legendElements.length > 0) {
+            box.current = board.create("polygon", currentBoxCorners(), {
+                fillColor: boxFillColor,
+                fillOpacity: 1,
+                fixed: true,
+                highlight: false,
+                layer: boxLayer,
+                vertices: { visible: false },
+                borders: {
+                    strokeColor: boxBorderColor,
+                    strokeWidth: 1,
+                    strokeOpacity: 1,
+                    fixed: true,
+                    highlight: false,
+                    layer: boxLayer,
+                },
+            }) as JXGPolygon;
+        }
+
         for (let [ind, element] of SVs.legendElements.entries()) {
             let y = legendY - ind * legendDy;
             if (element.swatchType === "marker") {
@@ -153,6 +234,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                     highlight: false,
                     withLabel: false,
                     showInfoBox: false,
+                    layer: markerSwatchLayer,
                 };
                 let point = board.create(
                     "point",
@@ -166,6 +248,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                     fillOpacity: element.fillOpacity,
                     fixed: true,
                     highlight: false,
+                    layer: lineSwatchLayer,
                     vertices: { visible: false },
                     borders: {
                         strokeColor: element.lineColor,
@@ -174,6 +257,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                         dash: styleToDash(element.lineStyle),
                         fixed: true,
                         highlight: false,
+                        layer: lineSwatchLayer,
                     },
                 };
 
@@ -196,6 +280,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                     dash: styleToDash(element.lineStyle),
                     fixed: true,
                     highlight: false,
+                    layer: lineSwatchLayer,
                 };
                 let seg = board.create(
                     "segment",
@@ -215,85 +300,90 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             }
         }
 
-        if (atRight && usedMathJax) {
-            MathJax.startup.promise.then(() => {
-                maxTextWidth = 0;
-                for (let txt of labels.current) {
-                    maxTextWidth = Math.max(
-                        maxTextWidth,
-                        txt.rendNode.offsetWidth,
-                    );
-                }
+        // A label's width is only known once MathJax has typeset it, and both
+        // the right-aligned position and the width of the box are measured
+        // from it, so both have to be recomputed after typesetting.
+        if (usedMathJax && (atRight || box.current)) {
+            MathJax.startup.promise
+                .then(() => {
+                    maxTextWidth = 0;
+                    for (let txt of labels.current) {
+                        maxTextWidth = Math.max(
+                            maxTextWidth,
+                            txt.rendNode.offsetWidth,
+                        );
+                    }
 
-                maxTextWidth /= board!.unitX;
+                    maxTextWidth /= board!.unitX;
 
-                legendX = Math.max(
-                    legendX,
-                    xMax - legendLineLength - 3 * legendDx - maxTextWidth,
-                );
-
-                for (let [ind, swatch] of swatches.current.entries()) {
-                    let y = legendY - ind * legendDy;
-                    if (swatch.elType === "point") {
-                        (swatch as JXGPoint).coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength / 2, y],
-                        );
-                        swatch.needsUpdate = true;
-                        swatch.update();
-                    } else if (swatch.elType === "polygon") {
-                        const polygon = swatch as JXGPolygon;
-                        polygon.vertices[0].coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX, y + legendDy / 4],
-                        );
-                        polygon.vertices[1].coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength, y + legendDy / 4],
-                        );
-                        polygon.vertices[2].coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength, y - legendDy / 4],
-                        );
-                        polygon.vertices[3].coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX, y - legendDy / 4],
-                        );
-
-                        for (let i = 0; i < 4; i++) {
-                            polygon.vertices[i].needsUpdate = true;
-                            polygon.vertices[i].update();
-                            polygon.borders[i].needsUpdate = true;
-                            polygon.borders[i].update();
-                        }
-                        polygon.needsUpdate = true;
-                        polygon.update();
-                    } else {
-                        const line = swatch as JXGLine;
-                        line.point1.coords.setCoordinates(JXG.COORDS_BY_USER, [
+                    if (atRight) {
+                        legendX = Math.max(
                             legendX,
-                            y,
-                        ]);
-                        line.point2.coords.setCoordinates(JXG.COORDS_BY_USER, [
-                            legendX + legendLineLength,
-                            y,
-                        ]);
-                        line.needsUpdate = true;
-                        line.update();
-                    }
-
-                    if (labels.current[ind]) {
-                        labels.current[ind].coords.setCoordinates(
-                            JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength + legendDx, y],
+                            xMax -
+                                legendLineLength -
+                                3 * legendDx -
+                                maxTextWidth,
                         );
-                        labels.current[ind].needsUpdate = true;
-                        labels.current[ind].update();
-                    }
-                }
 
-                board!.updateRenderer();
-            });
+                        for (let [ind, swatch] of swatches.current.entries()) {
+                            let y = legendY - ind * legendDy;
+                            if (swatch.elType === "point") {
+                                (swatch as JXGPoint).coords.setCoordinates(
+                                    JXG.COORDS_BY_USER,
+                                    [legendX + legendLineLength / 2, y],
+                                );
+                                swatch.needsUpdate = true;
+                                swatch.update();
+                            } else if (swatch.elType === "polygon") {
+                                movePolygon(swatch as JXGPolygon, [
+                                    [legendX, y + legendDy / 4],
+                                    [
+                                        legendX + legendLineLength,
+                                        y + legendDy / 4,
+                                    ],
+                                    [
+                                        legendX + legendLineLength,
+                                        y - legendDy / 4,
+                                    ],
+                                    [legendX, y - legendDy / 4],
+                                ]);
+                            } else {
+                                const line = swatch as JXGLine;
+                                line.point1.coords.setCoordinates(
+                                    JXG.COORDS_BY_USER,
+                                    [legendX, y],
+                                );
+                                line.point2.coords.setCoordinates(
+                                    JXG.COORDS_BY_USER,
+                                    [legendX + legendLineLength, y],
+                                );
+                                line.needsUpdate = true;
+                                line.update();
+                            }
+
+                            if (labels.current[ind]) {
+                                labels.current[ind].coords.setCoordinates(
+                                    JXG.COORDS_BY_USER,
+                                    [legendX + legendLineLength + legendDx, y],
+                                );
+                                labels.current[ind].needsUpdate = true;
+                                labels.current[ind].update();
+                            }
+                        }
+                    }
+
+                    if (box.current) {
+                        movePolygon(box.current, currentBoxCorners());
+                    }
+
+                    board!.updateRenderer();
+                })
+                .catch((e: unknown) => {
+                    console.error(
+                        "Failed to lay out legend after typesetting",
+                        e,
+                    );
+                });
         }
     }
 
@@ -304,25 +394,33 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         for (let txt of labels.current) {
             board?.removeObject(txt);
         }
+        if (box.current) {
+            board?.removeObject(box.current);
+            box.current = null;
+        }
         swatches.current = [];
         labels.current = [];
     }
 
     if (board) {
-        if (
-            !deepCompare(previousElements.current, SVs.legendElements) ||
-            !deepCompare(previousLimits.current, SVs.graphLimits) ||
-            previousPosition.current !== SVs.position
-        ) {
-            if (swatches.current.length > 0) {
-                deleteLegend();
-            }
+        // Everything below is baked into the JSXGraph objects at creation, so
+        // any change to it means tearing the legend down and drawing it again.
+        const dependencies = {
+            legendElements: [...SVs.legendElements],
+            graphLimits: { ...SVs.graphLimits },
+            position: SVs.position,
+            layer: SVs.layer,
+            boxed: SVs.boxed,
+            boxFillColor,
+            boxBorderColor,
+        };
+
+        if (!deepCompare(previousDependencies.current, dependencies)) {
+            deleteLegend();
             createLegend();
         }
 
-        previousElements.current = [...SVs.legendElements];
-        previousLimits.current = Object.assign({}, SVs.graphLimits);
-        previousPosition.current = SVs.position;
+        previousDependencies.current = dependencies;
 
         return (
             <>
@@ -349,4 +447,24 @@ function normalizeStyle(style: string | undefined): string | undefined {
     } else {
         return style;
     }
+}
+
+/**
+ * Move a four-cornered polygon to new coordinates. JSXGraph draws a polygon's
+ * fill and each of its borders from its vertices, so all three have to be told
+ * they are stale for the move to reach the renderer.
+ */
+function movePolygon(polygon: JXGPolygon, corners: Corner[]) {
+    for (let i = 0; i < corners.length; i++) {
+        polygon.vertices[i].coords.setCoordinates(
+            JXG.COORDS_BY_USER,
+            corners[i],
+        );
+        polygon.vertices[i].needsUpdate = true;
+        polygon.vertices[i].update();
+        polygon.borders[i].needsUpdate = true;
+        polygon.borders[i].update();
+    }
+    polygon.needsUpdate = true;
+    polygon.update();
 }
