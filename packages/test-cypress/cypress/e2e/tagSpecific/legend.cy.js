@@ -14,10 +14,13 @@ function assertPaintedAbove($above, $below) {
 }
 
 /**
- * Assert that the legend's box is drawn around the label showing `labelText`.
+ * Assert that the legend's box is drawn around the label `getLabel` yields.
  * It only can be if that label was measured at the width it is drawn at: the
  * box is sized from the widest label, so a label measured narrower than it is
  * drawn spills out of the box that was drawn for it.
+ *
+ * `getLabel` is called rather than passed a value so that the element is
+ * queried inside the assertion, letting Cypress retry it.
  */
 function assertBoxContainsLabel(getLabel, boxFill = "white") {
     cy.get(`.jxgbox svg [fill='${boxFill}'][fill-opacity='1']`).then(($box) => {

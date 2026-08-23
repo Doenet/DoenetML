@@ -78,6 +78,14 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
 
     let previousDependencies = useRef<Record<string, any> | null>(null);
 
+    // Stamps each drawing of the legend, so the layout pass that runs once
+    // MathJax has started can tell whether the legend it was scheduled for is
+    // still the one on the board. It closes over the geometry of its own
+    // drawing but reaches the objects through the refs above, which by then
+    // may hold a legend drawn from different graph limits — or nothing at
+    // all, the legend having been hidden or unmounted.
+    const layoutGeneration = useRef(0);
+
     // The box paints the graph's own background unless the legend's style
     // definition names one, so all that distinguishes it from the graph behind
     // it is its border — which is what makes something passing behind the
@@ -111,6 +119,9 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         if (board === null) {
             return;
         }
+
+        const generation = ++layoutGeneration.current;
+
         let { xMin, xMax, yMin, yMax } = SVs.graphLimits;
 
         let legendDy = (yMax - yMin) * 0.06;
@@ -317,6 +328,10 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         if (usedMathJax && (atRight || box.current)) {
             MathJax.startup.promise
                 .then(() => {
+                    if (layoutGeneration.current !== generation) {
+                        return;
+                    }
+
                     maxTextWidth = 0;
                     for (let txt of labels.current) {
                         maxTextWidth = Math.max(
@@ -399,6 +414,11 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     }
 
     function deleteLegend() {
+        // Retires any layout pass still pending for the legend being removed,
+        // which matters most when its replacement has no latex of its own and
+        // so schedules no pass to correct what a stale one did.
+        layoutGeneration.current++;
+
         for (let swatch of swatches.current) {
             board?.removeObject(swatch);
         }
