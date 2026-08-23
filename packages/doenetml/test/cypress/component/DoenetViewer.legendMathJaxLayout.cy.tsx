@@ -66,8 +66,10 @@ function labelHeightFraction(): Cypress.Chainable<number> {
  * An upper legend sits at 95% of the way up whatever the graph's limits are,
  * so it stays put in pixels when they change — unless it is placed from limits
  * that are no longer current. Placed from `ymax="10"` on a graph now running
- * to 100, `legendY` of 9 lands 17% up instead of 95%, which is the difference
- * these tests read.
+ * to 100, `legendY` of 9 lands 17% of the way up instead of 95%. Read the way
+ * {@link labelHeightFraction} reads it — down from the board's top — that is
+ * 0.80 rather than the near-zero an upper legend gives, which is the
+ * difference these tests turn on.
  */
 const LEGEND_DOC = `
 <number name="top">10</number>
@@ -156,7 +158,7 @@ describe("legend layout across a MathJax load (#1751)", () => {
             // Now let the pass scheduled for the *old* graph arrive. It closes
             // over limits that ran to 10, and reaches the legend through refs
             // that now hold the objects drawn for a graph running to 100, so
-            // applying it would drag the legend down to 17% of the board.
+            // applying it would drag the legend 80% of the way down the board.
             cy.wrap(null).then(() => stale.release());
             cy.wait(SETTLE);
             labelHeightFraction().should("be.lessThan", 0.4);

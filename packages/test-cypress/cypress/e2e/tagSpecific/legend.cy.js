@@ -14,16 +14,17 @@ function assertPaintedAbove($above, $below) {
 }
 
 /**
- * Assert that the legend's box is drawn around the label `getLabel` yields.
- * It only can be if that label was measured at the width it is drawn at: the
- * box is sized from the widest label, so a label measured narrower than it is
- * drawn spills out of the box that was drawn for it.
+ * Assert that the legend's box — the one painted the light-mode canvas color —
+ * is drawn around the label `getLabel` yields. It only can be if that label was
+ * measured at the width it is drawn at: the box is sized from the widest label,
+ * so a label measured narrower than it is drawn spills out of the box that was
+ * drawn for it.
  *
  * `getLabel` is called rather than passed a value so that the element is
  * queried inside the assertion, letting Cypress retry it.
  */
-function assertBoxContainsLabel(getLabel, boxFill = "white") {
-    cy.get(`.jxgbox svg [fill='${boxFill}'][fill-opacity='1']`).then(($box) => {
+function assertBoxContainsLabel(getLabel) {
+    cy.get(`.jxgbox svg [fill='white'][fill-opacity='1']`).then(($box) => {
         getLabel().should(($label) => {
             const boxRect = $box[0].getBoundingClientRect();
             const labelRect = $label[0].getBoundingClientRect();
@@ -35,14 +36,6 @@ function assertBoxContainsLabel(getLabel, boxFill = "white") {
             );
         });
     });
-}
-
-/** {@link assertBoxContainsLabel} for the label showing `labelText`. */
-function assertLabelInsideBox(labelText, boxFill) {
-    assertBoxContainsLabel(
-        () => cy.contains(".jxgbox .JXGtext", labelText),
-        boxFill,
-    );
 }
 
 describe("Legend Tag Tests", { tags: ["@group2"] }, function () {

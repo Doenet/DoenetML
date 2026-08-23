@@ -21,6 +21,11 @@ paints the graph's background color, or the `backgroundColor` of the legend's
 `<styleDefinition>` when one is set, and is bordered so it reads as a panel in
 both light and dark presentation.
 
+Legend labels now follow the theme, and the legend's `<styleDefinition>`, rather
+than being painted black whatever the theme was: they read white on a dark canvas
+and take the style definition's `textColor` when one is set, so an author who
+paints the box a color of their own can name the text color that reads against it.
+
 A `<legend>` inside a `<graph>` also honors `hide` at last: it was drawn whether
 or not it was hidden, which `boxed` would have made plain, since a hidden legend
 would still have painted an opaque box over the graph.
