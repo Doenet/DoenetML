@@ -10,10 +10,10 @@
 
 Every piece of a legend — its swatches and its labels — is now drawn at the
 DoenetML `layer` the legend asks for, offset the same way the rest of a graph's
-contents are. `<legend layer="3">` therefore sits above a `layer="2"` rectangle
-instead of underneath it, as it did before. A legend now defaults to `layer="1"`
-so that it still sits above everything on the default layer, which is where the
-JSXGraph defaults used to put it.
+contents are. `<legend layer="3">` therefore sits above a `layer="2"` rectangle,
+where before it was painted underneath one. A legend now defaults to `layer="1"`
+rather than `layer="0"`, so that it still sits above everything on the default
+layer, as its labels and marker swatches did before.
 
 The new `boxed` attribute draws an opaque box behind the legend, so a curve
 passing behind it is hidden rather than tangled up with the labels. The box

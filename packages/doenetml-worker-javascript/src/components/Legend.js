@@ -11,11 +11,13 @@ export default class Legend extends GraphicalComponent {
 
         // A legend describes the rest of the graph, so it belongs on top of it.
         // Layer 1 puts every piece of the legend above the whole of layer 0,
-        // where graphical components sit unless an author says otherwise. That
-        // is where JSXGraph's own element defaults happened to put the swatches
-        // back when the renderer ignored `layer`, so honoring `layer` with a
-        // default of 0 would instead have dropped the legend into the band it
-        // used to sit above.
+        // where graphical components sit unless an author says otherwise.
+        // Honoring `layer` with the inherited default of 0 would instead have
+        // interleaved the legend with the components it describes, and would
+        // have lowered its labels and marker swatches: while the renderer
+        // ignored `layer` those took JSXGraph's own element defaults, which
+        // draw text and points at layer 9, above the 0-6 band that Doenet's
+        // layer 0 occupies.
         attributes.layer.defaultValue = 1;
 
         attributes.position = {
