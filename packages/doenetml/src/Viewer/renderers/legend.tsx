@@ -79,11 +79,12 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     let previousDependencies = useRef<Record<string, any> | null>(null);
 
     // The box paints the graph's own background unless the legend's style
-    // definition names one, so an unboxed and a boxed legend look the same
-    // until something passes behind the box. Its border is the neutral panel
-    // color rather than the style definition's line color: the box is chrome
-    // around the legend, not one more piece of graph content, and the line
-    // color belongs to the swatches that stand for the graphed objects.
+    // definition names one, so all that distinguishes it from the graph behind
+    // it is its border — which is what makes something passing behind the
+    // legend disappear rather than tangle with it. That border is the neutral
+    // panel color rather than the style definition's line color: the box is
+    // chrome around the legend, not one more piece of graph content, and the
+    // line color belongs to the swatches that stand for the graphed objects.
     const boxFillColor =
         resolveBackgroundColor(SVs.selectedStyle, darkMode) ||
         resolveCanvasColor(darkMode);
