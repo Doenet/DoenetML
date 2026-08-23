@@ -141,45 +141,6 @@ export const DocContext = createContext<{
     reportGraphElementUp?: (domId: string | null, graphDomId?: string) => void;
 }>({});
 
-/**
- * What raised the message on the viewer's failure pane (#1741).
- *
- *  - `"core-start"` — no core could be started. Generic by design: the boot
- *    ladder knows that it gave up, not why the host's machine could not
- *    produce a worker.
- *  - `"state-load"` — saved state arrived and could not be processed, so the
- *    core is never started. Carries the host's or the parser's own words.
- *  - `"document"` — the core evaluated the document and reported that it
- *    could not build one. Also attributable, to the source.
- */
-type FailureKind = "core-start" | "state-load" | "document";
-
-/**
- * Which message wins when two failures land on the one pane.
- *
- * They arrive in whatever order the machine settles them in — a boot ladder
- * gives up on its own schedule, a host answers `SPLICE.getState` on its —
- * and arrival order is not a statement about which one the reader needs to
- * read. The rule is that a cause somebody can attribute outranks the generic
- * one: "This document could not be started." is what is left to say when
- * nothing else is known, so anything that does know something says it
- * instead. Equal ranks still overwrite, which is how a second core-start
- * failure replaces the retry message with the terminal one.
- *
- * With the host's own error moved off the pane and onto `stateLoadNotice`,
- * the ranks rarely have to decide anything: the remaining writers mostly
- * cannot collide, because a state-load failure re-rolls `coreId` and so
- * stands down the ladder that would have raised a core-start message. The
- * rule is what keeps that from being a matter of luck — the pane is a shared
- * surface, and a writer added to it later inherits an answer rather than an
- * arrival order.
- */
-const FAILURE_PRECEDENCE: Record<FailureKind, number> = {
-    "core-start": 0,
-    "state-load": 1,
-    document: 1,
-};
-
 export function DocViewer({
     doenetML,
     userId,
@@ -544,23 +505,18 @@ export function DocViewer({
         };
     });
 
-    // What the failure pane is showing, and what kind of failure raised it.
+    // What the failure pane is showing.
     //
     // The pane replaces the document, so only a failure that means there is
-    // no document may write here: a core that never started, or saved state
-    // that could not be processed (which stops the core from being started at
-    // all). What the host says about state it *cannot produce* is a different
-    // fact — the document boots without the reader's saved work — and goes to
-    // `stateLoadNotice` below instead. Splitting the two is what took the
-    // last-writer-wins away from a pane two unlike failures used to share
-    // (#1741).
+    // no document may write here: a core that never started, saved state that
+    // could not be processed (which stops the core from being started at
+    // all), or a document the core could not build. What the host says about
+    // state it *cannot produce* is a different fact — the document boots
+    // without the reader's saved work — and goes to `stateLoadNotice` below
+    // instead. Splitting the two is what took the last-writer-wins away from
+    // a pane two unlike failures used to share (#1741); see
+    // `showFailureMessage` for the rule the pane follows now.
     const [errMsg, setErrMsg] = useState<string | null>(null);
-    // The kind of the message now on the pane. Held in a ref rather than in
-    // state — nothing renders it — because `showFailureMessage` is reached
-    // from the `SPLICE.getState` listener, whose empty dependency array
-    // freezes every piece of state it closes over at its initial value. See
-    // `showFailureMessage` for the rule this feeds.
-    const failureKind = useRef<FailureKind | null>(null);
     // The host's own words for why it could not produce this document's saved
     // state, shown as a notice beside the document rather than in place of it
     // (#1741). Retired only by a rebuild or by an answer that does carry
@@ -1117,7 +1073,6 @@ export function DocViewer({
                         // document behind a pane it could not clear.
                         // Both setters are idempotent.
                         setErrMsg(null);
-                        failureKind.current = null;
                         setIsInErrorState?.(false);
                         // An answerer that does have the saved work retires
                         // an earlier answerer's report that it could not be
@@ -1142,17 +1097,17 @@ export function DocViewer({
                             // attempt it is failing. The core will never be
                             // started, so a host holding a boot slot for this
                             // document has to hear about it (#1709). Report
-                            // just the failure signal: the specific message
-                            // below is what the reader needs, and
-                            // `failCoreStart` would add the generic one on top
-                            // of the host's callback as well.
+                            // just the failure signal, keeping the specific
+                            // message below on screen: `failCoreStart` would
+                            // raise the generic one over it, and offer a retry
+                            // that would put the same state to the same
+                            // parser.
                             let message = "";
                             if ("message" in err) {
                                 message = err.message;
                             }
                             showFailureMessage(
                                 `Error loading doc state: ${message}`,
-                                { kind: "state-load" },
                             );
                             reportCoreStartFailed();
                             return;
@@ -2254,15 +2209,13 @@ export function DocViewer({
                     if ("message" in e) {
                         message = e.message;
                     }
-                    showFailureMessage(`Error loading doc state: ${message}`, {
-                        kind: "state-load",
-                    });
+                    showFailureMessage(`Error loading doc state: ${message}`);
                     // The core will never be started, so a host holding a boot
                     // slot for this document has to hear about it (#1709).
-                    // Report just the failure signal: the specific message
-                    // above is what the reader needs, and `failCoreStart`
-                    // would add the generic one on top of the host's callback
-                    // as well.
+                    // Report just the failure signal, keeping the specific
+                    // message above on screen: `failCoreStart` would raise the
+                    // generic one over it, and offer a retry that would put
+                    // the same state to the same parser.
                     reportCoreStartFailed();
                     return;
                 }
@@ -2347,34 +2300,35 @@ export function DocViewer({
      * button (#1712), and every message that does not clears an offer a
      * previous one made.
      *
-     * `kind` is what keeps two unlike failures from erasing each other
-     * (#1741). The pane outlives the failure it was raised for — a viewer
-     * whose core start failed still has a `SPLICE.getState` request open,
-     * because the boot does not wait for the answer — so it is a surface
-     * several writers can reach, in an order nothing chooses. A message
-     * already on the pane whose kind outranks this one stays: see
-     * {@link FAILURE_PRECEDENCE} for why attributable beats generic, and for
-     * how far apart the writers that remain are kept. What the outranked
-     * message had to say is not lost either — a host's account of state it
-     * could not produce is shown beneath the pane's message, as
-     * `stateLoadNotice`.
+     * The rule the pane follows, which is what #1741 asked for, is a rule
+     * about *what may write here* rather than about which writer wins. The
+     * pane is reserved for the failures that leave no document at all — no
+     * core started, saved state that could not be processed, a document the
+     * core could not build — and every one of those ends this document's
+     * boot: each returns without starting a core (or, for a failed
+     * evaluation, is the ladder's own last word), and the pane's early return
+     * in the render below stops another ladder from launching behind it. So
+     * there is one pane message per `coreId`, and a rebuild — which re-rolls
+     * `coreId` — clears it before the next one can be raised.
+     *
+     * The failure that used to fight this pane for the reader's attention is
+     * no longer on it. A host reporting that it cannot produce the saved
+     * state can land anywhere in a document's life, because the boot does not
+     * wait for that answer and the request stays open; it now writes
+     * `stateLoadNotice`, which renders *beneath* whatever the pane is saying
+     * rather than in place of it. Both facts reach the reader, in either
+     * arrival order, and **Try again** stays with the core-start failure it
+     * addresses.
+     *
+     * A writer added to this pane later has to keep the reservation above —
+     * in particular, a failure state rendered in place of the early return
+     * would let a second ladder launch behind the pane, and with it a second
+     * message.
      */
     function showFailureMessage(
         message: string,
-        {
-            kind = "core-start",
-            offerRetry = false,
-        }: { kind?: FailureKind; offerRetry?: boolean } = {},
+        { offerRetry = false }: { offerRetry?: boolean } = {},
     ) {
-        if (
-            failureKind.current !== null &&
-            FAILURE_PRECEDENCE[kind] < FAILURE_PRECEDENCE[failureKind.current]
-        ) {
-            // Outranked. The offer is left alone with the message it belongs
-            // to: it is that message the reader is acting on.
-            return;
-        }
-        failureKind.current = kind;
         setIsInErrorState?.(true);
         setErrMsg(message);
         setCoreStartRetry(offerRetry ? "offered" : "none");
@@ -2401,7 +2355,6 @@ export function DocViewer({
     function clearFailureMessage() {
         setIsInErrorState?.(false);
         setErrMsg(null);
-        failureKind.current = null;
         setCoreStartRetry("none");
     }
 
@@ -3000,7 +2953,7 @@ export function DocViewer({
                 }
             }
         } else {
-            showFailureMessage(dastResult.errMsg, { kind: "document" });
+            showFailureMessage(dastResult.errMsg);
             setHasInitialError(true);
         }
 
@@ -3344,7 +3297,6 @@ export function DocViewer({
 
         if (errMsg !== null) {
             setErrMsg(null);
-            failureKind.current = null;
             setIsInErrorState?.(false);
         }
         // A different document — or the same one started over — has not yet
@@ -3444,14 +3396,14 @@ export function DocViewer({
                 <MdError aria-hidden="true" color="red" fontSize={"24pt"} />{" "}
                 {errMsg}
                 {/* What the host said about the saved state it could not
-                    produce, beneath the message that outranked it rather
-                    than instead of it (#1741). Two unlike failures used to
-                    share this pane and erase each other in arrival order, so
-                    a reader was told either that no core started or why the
-                    state would not load, depending on which settled last.
-                    Both are true and neither implies the other: a state
-                    error does not stop a core from starting, it only starts
-                    it without the reader's saved work. */}
+                    produce, beneath the pane's own message rather than
+                    instead of it (#1741). The two used to share this pane and
+                    erase each other in arrival order, so a reader was told
+                    either that no core started or why the state would not
+                    load, depending on which settled last. Both are true and
+                    neither implies the other: a state error does not stop a
+                    core from starting, it only starts it without the reader's
+                    saved work. */}
                 {stateLoadNotice !== null ? (
                     <div style={{ marginTop: "0.5em", fontSize: "0.8em" }}>
                         {savedStateUnavailableLeadIn} {stateLoadNotice}
@@ -3605,30 +3557,38 @@ export function DocViewer({
     // on the dark, so the border keeps its contrast either way.
     // `role="status"` rather than `role="alert"`: nothing here interrupts
     // what the reader is doing.
-    let stateNoticeBanner = null;
-    if (stateLoadNotice !== null) {
-        stateNoticeBanner = (
-            <div
-                role="status"
-                style={{
-                    backgroundColor: "var(--canvas)",
-                    color: "var(--canvasText)",
-                    borderWidth: 2,
-                    borderStyle: "solid",
-                    borderColor: "var(--mainYellow)",
-                    padding: "0.25em 0.5em",
-                }}
-                // Addressed to whoever is looking at the screen, so it is in
-                // `uiLocale` — except for the host's own words, which arrive
-                // in whatever language the host wrote them. Re-declared only
-                // where the two directions disagree, for the reason
-                // `errorOverview` gives below.
-                {...chromeLangDir(effectiveUiLocale, documentDirection)}
-            >
-                <b>{savedStateUnavailableLeadIn}</b> {stateLoadNotice}
-            </div>
-        );
-    }
+    //
+    // The live region itself is rendered whether or not there is anything in
+    // it — empty, it is an unstyled zero-height div — because a region that
+    // arrives in the same commit as its text is unreliably announced, and a
+    // reader who is working somewhere else in the document is exactly who
+    // this has to reach. (It cannot collide with `initializingPane`'s own
+    // `role="status"`: that pane is returned instead of the document, never
+    // beside it.)
+    const stateNoticeBanner = (
+        <div role="status">
+            {stateLoadNotice !== null ? (
+                <div
+                    style={{
+                        backgroundColor: "var(--canvas)",
+                        color: "var(--canvasText)",
+                        borderWidth: 2,
+                        borderStyle: "solid",
+                        borderColor: "var(--mainYellow)",
+                        padding: "0.25em 0.5em",
+                    }}
+                    // Addressed to whoever is looking at the screen, so it is
+                    // in `uiLocale` — except for the host's own words, which
+                    // arrive in whatever language the host wrote them.
+                    // Re-declared only where the two directions disagree, for
+                    // the reason `errorOverview` gives below.
+                    {...chromeLangDir(effectiveUiLocale, documentDirection)}
+                >
+                    <b>{savedStateUnavailableLeadIn}</b> {stateLoadNotice}
+                </div>
+            ) : null}
+        </div>
+    );
 
     let errorOverview = null;
     if (documentRenderer && hasInitialError) {
