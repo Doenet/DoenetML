@@ -9,6 +9,17 @@ export default class Legend extends GraphicalComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // A legend describes the rest of the graph, so it belongs on top of it.
+        // Layer 1 puts every piece of the legend above the whole of layer 0,
+        // where graphical components sit unless an author says otherwise.
+        // Honoring `layer` with the inherited default of 0 would instead have
+        // interleaved the legend with the components it describes, and would
+        // have lowered its labels and marker swatches: while the renderer
+        // ignored `layer` those took JSXGraph's own element defaults, which
+        // draw text and points at layer 9, above the 0-6 band that Doenet's
+        // layer 0 occupies.
+        attributes.layer.defaultValue = 1;
+
         attributes.position = {
             description: "Position of the legend on the graph.",
             createComponentOfType: "text",
@@ -35,6 +46,16 @@ export default class Legend extends GraphicalComponent {
                     description: "Place the legend in the lower-left corner.",
                 },
             ],
+        };
+
+        attributes.boxed = {
+            description:
+                "Whether to draw an opaque box behind the legend so that graph contents passing behind it stay hidden.",
+            createComponentOfType: "boolean",
+            createStateVariable: "boxed",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
         };
 
         attributes.displayClosedSwatches = {

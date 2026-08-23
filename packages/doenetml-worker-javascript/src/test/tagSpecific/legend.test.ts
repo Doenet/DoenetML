@@ -486,6 +486,43 @@ describe("Legend tag tests @group3", async () => {
         await check_items(true);
     });
 
+    it("legend defaults to layer 1 and an unboxed background", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="p">(3,4)</point>
+      <legend name="default"><label>point p</label></legend>
+    </graph>
+    <graph>
+      <point name="q">(3,4)</point>
+      <legend name="boxed" boxed layer="3"><label>point q</label></legend>
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // A legend sits above everything on layer 0, where graphical
+        // components land unless an author says otherwise.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("default")].stateValues
+                .layer,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("default")].stateValues
+                .boxed,
+        ).eq(false);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("boxed")].stateValues
+                .layer,
+        ).eq(3);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("boxed")].stateValues
+                .boxed,
+        ).eq(true);
+    });
+
     it("legend with forObject, use names of shadow sources", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

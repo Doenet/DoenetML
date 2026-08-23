@@ -144,6 +144,89 @@ are: `upperright`, `upperleft`, `lowerright` and `lowerleft`.
 
 ---
 
+### Attribute Example: boxed
+
+
+```doenet-example
+<graph xmin="-2" ymin="-2" size="small">
+  <shortDescription>graph of two functions with a legend drawn over an opaque box</shortDescription>
+  <function name="f">x^2</function>
+  <function name="g" styleNumber="2">x</function>
+  <legend boxed>
+    <label forObject="$f"><m>f(x)</m></label>
+    <label forObject="$g"><m>g(x)</m></label>
+  </legend>
+</graph>
+```
+
+
+
+By default a `<legend>{:dn}` has no background of its own, so graph contents
+passing behind it show through. The `boxed` attribute draws an opaque box behind
+the legend instead. The box paints the graph's background color unless the
+legend's `<styleDefinition>{:dn}` names a `backgroundColor`:
+
+```doenet-example
+<graph xmin="-2" ymin="-2" size="small">
+  <shortDescription>graph of a function with a legend on a pale yellow box</shortDescription>
+  <function name="f">x^2</function>
+  <legend boxed styleNumber="10">
+    <label forObject="$f"><m>f(x)</m></label>
+  </legend>
+</graph>
+
+<setup>
+  <styleDefinition styleNumber="10" backgroundColor="#fff8c4" backgroundColorDarkMode="#3b3410" />
+</setup>
+```
+
+
+
+A `<legend>{:dn}`'s own `styleNumber` says how the legend itself is drawn — the
+background of its box, and the color of its labels — while each swatch is drawn
+from the style of the object it stands for. Labels are drawn in the style's
+`textColor`, which is black on light and white on dark unless a
+`<styleDefinition>{:dn}` or an active style palette says otherwise, so a box
+painted a color of its own can be given label text that reads against it.
+
+Note that a swatch takes the *light-mode* color of the object it stands for, so
+in dark mode it can differ from the color that object is actually drawn in. The
+box and the labels do follow the theme.
+
+
+
+---
+
+### Attribute Example: layer
+
+
+```doenet-example
+<graph xmin="-2" ymin="-2" size="small">
+  <shortDescription>graph of a function, a filled rectangle, and a legend drawn above the rectangle</shortDescription>
+  <function name="f">x^2</function>
+  <rectangle vertices="(4,6) (9.5,9.5)" filled styleNumber="2" layer="2" fixLocation />
+  <legend layer="3">
+    <label forObject="$f"><m>f(x)</m></label>
+  </legend>
+</graph>
+```
+
+
+
+A `<legend>{:dn}` is drawn on `layer="1"{:dn}` unless told otherwise, which puts
+it above everything on the default layer. Raise the `layer` to lift it above
+graphical components that set a layer of their own — here the legend asks for
+layer 3, above the rectangle's layer 2, so the swatch stays visible.
+
+The `layer` governs the legend's swatches and its box. A legend's labels are
+drawn as text laid over the graph, so they stay in front of the graph's contents
+whatever layer the legend is given: lowering a legend's `layer` will send its
+swatches behind a curve but not its labels.
+
+
+
+---
+
 ### Attribute Example: displayClosedSwatches
 
 

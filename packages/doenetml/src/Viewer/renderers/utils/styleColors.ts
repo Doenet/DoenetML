@@ -61,3 +61,45 @@ export function resolveHandleColor(darkMode: DarkMode): string {
 export function resolveCanvasColor(darkMode: DarkMode): string {
     return darkMode === "dark" ? "#121212" : "white";
 }
+
+/**
+ * The authored background color of a style definition, or `""` when none was
+ * authored. Callers treat the empty string as "no explicit color" and fall
+ * back to whatever surface they sit on — usually {@link resolveCanvasColor}.
+ */
+export function resolveBackgroundColor(
+    style: Pick<
+        ResolvedStyleDefinition,
+        "backgroundColor" | "backgroundColorDarkMode"
+    >,
+    darkMode: DarkMode,
+): string {
+    return darkMode === "dark"
+        ? style.backgroundColorDarkMode
+        : style.backgroundColor;
+}
+
+/**
+ * The border color for a panel drawn in the canvas color, which has no fill of
+ * its own to set it apart from the graph behind it. Mirrors the `--panelBorder`
+ * CSS variable, which meets WCAG's 3:1 non-text contrast against the canvas in
+ * both themes, and is resolved rather than passed through as `var(--panelBorder)`
+ * for the same reason as {@link resolveHandleColor}.
+ */
+export function resolvePanelBorderColor(darkMode: DarkMode): string {
+    return darkMode === "dark" ? "#6b6b6b" : "#949494";
+}
+
+/**
+ * The text color of a style definition, resolved for the current theme.
+ * Unlike the background, this always has a value: `DEFAULT_STYLE_VALUES`
+ * pairs `textColor: black` with `textColorDarkMode: white`, so a component
+ * that has authored no text color of its own still reads against the canvas
+ * in both themes.
+ */
+export function resolveTextColor(
+    style: Pick<ResolvedStyleDefinition, "textColor" | "textColorDarkMode">,
+    darkMode: DarkMode,
+): string {
+    return darkMode === "dark" ? style.textColorDarkMode : style.textColor;
+}

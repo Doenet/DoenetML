@@ -117070,7 +117070,7 @@
                 {
                     "name": "layer",
                     "description": "Z-order layer index used to stack graphical components (higher values render on top).",
-                    "defaultValue": 0,
+                    "defaultValue": 1,
                     "type": "integer"
                 },
                 {
@@ -117102,6 +117102,16 @@
                         }
                     ],
                     "type": "keyword"
+                },
+                {
+                    "name": "boxed",
+                    "description": "Whether to draw an opaque box behind the legend so that graph contents passing behind it stay hidden.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "displayClosedSwatches",
@@ -117170,6 +117180,13 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Position of the legend on the graph.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to draw an opaque box behind the legend so that graph contents passing behind it stay hidden.",
                     "fromAttribute": true
                 },
                 {
