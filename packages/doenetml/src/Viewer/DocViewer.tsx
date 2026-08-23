@@ -3397,13 +3397,12 @@ export function DocViewer({
                 {errMsg}
                 {/* What the host said about the saved state it could not
                     produce, beneath the pane's own message rather than
-                    instead of it (#1741). The two used to share this pane and
-                    erase each other in arrival order, so a reader was told
-                    either that no core started or why the state would not
-                    load, depending on which settled last. Both are true and
-                    neither implies the other: a state error does not stop a
-                    core from starting, it only starts it without the reader's
-                    saved work.
+                    instead of it (#1741). Both are true and neither implies
+                    the other — a state error does not stop a core from
+                    starting, it only starts it without the reader's saved
+                    work — where they used to share this pane and erase each
+                    other in arrival order; see `showFailureMessage` for the
+                    rule that separated them.
 
                     Inside the pane it is part of the pane's `role="alert"`,
                     so one landing on a pane already up is announced with it.
@@ -3547,15 +3546,14 @@ export function DocViewer({
         );
     }
 
-    // A document that is on screen and working, started without the saved
-    // work the host could not produce (#1741). Beside the document, never in
-    // place of it: this answer keeps its own schedule — the boot posts the
-    // request and does not wait for it, and the request stays open until an
-    // answer carries usable state — so it can land on a reader who has been
-    // working in the document for minutes. Replacing what they were working
-    // in with a red box, which is what putting it on the failure pane did,
-    // takes their activity away over a fact that costs them a state restore
-    // they have already worked past.
+    // The notice for a document that is on screen and working, started
+    // without the saved work the host could not produce — beside the
+    // document, never in place of it (#1741). This answer keeps its own
+    // schedule and can land on a reader who has been working for minutes
+    // (see the `SPLICE.getState` error branch above for why the request is
+    // still open then), so putting it on the failure pane, which is what
+    // used to happen, took the reader's activity away over a fact that costs
+    // them a state restore they have already worked past.
     //
     // Built like `errorOverview` below, but bordered in `--mainYellow`
     // rather than the red that pane and overview share: red is what the
