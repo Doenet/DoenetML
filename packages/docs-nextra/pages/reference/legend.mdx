@@ -182,6 +182,15 @@ legend's `<styleDefinition>{:dn}` names a `backgroundColor`:
 
 
 
+A `<legend>{:dn}`'s own `styleNumber` says how the legend itself is drawn — the
+background of its box, and the color of its labels — while each swatch keeps the
+style of the object it stands for. Labels are drawn in the style's `textColor`,
+which is black on light and white on dark unless a `<styleDefinition>{:dn}` or an
+active style palette says otherwise, so a box painted a color of its own can be
+given label text that reads against it.
+
+
+
 ---
 
 ### Attribute Example: layer
