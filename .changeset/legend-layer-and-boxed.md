@@ -21,4 +21,8 @@ paints the graph's background color, or the `backgroundColor` of the legend's
 `<styleDefinition>` when one is set, and is bordered so it reads as a panel in
 both light and dark presentation.
 
+A `<legend>` inside a `<graph>` also honors `hide` at last: it was drawn whether
+or not it was hidden, which `boxed` would have made plain, since a hidden legend
+would still have painted an opaque box over the graph.
+
 Closes #1717.

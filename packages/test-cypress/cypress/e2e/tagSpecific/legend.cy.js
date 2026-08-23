@@ -164,4 +164,49 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
             "not.exist",
         );
     });
+
+    it("a hidden legend draws nothing", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="hideLegend" />
+    <graph>
+        <function name="f" styleNumber="10">x^2</function>
+        <legend boxed hide="$hideLegend">
+            <label forObject="$f">f</label>
+        </legend>
+    </graph>
+
+    <setup>
+        <styleDefinition styleNumber="10" lineColor="#ff0000" lineOpacity="1" />
+    </setup>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Shown: the function's curve plus the legend's swatch, and the box.
+        cy.get(".jxgbox svg [stroke='#ff0000']").should("have.length", 2);
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "have.length",
+            1,
+        );
+
+        // Hidden: only the curve is left, and no box is painted over it.
+        cy.get("#hideLegend").click();
+        cy.get(".jxgbox svg [stroke='#ff0000']").should("have.length", 1);
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "not.exist",
+        );
+
+        // Unhidden: the legend comes back whole.
+        cy.get("#hideLegend").click();
+        cy.get(".jxgbox svg [stroke='#ff0000']").should("have.length", 2);
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "have.length",
+            1,
+        );
+    });
 });

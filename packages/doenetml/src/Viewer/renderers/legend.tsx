@@ -404,9 +404,11 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     }
 
     if (board) {
-        // Everything below is baked into the JSXGraph objects at creation, so
-        // any change to it means tearing the legend down and drawing it again.
+        // Whether the legend is drawn at all, and everything that is baked
+        // into its JSXGraph objects at creation. Any change here means tearing
+        // the legend down and, unless it is now hidden, drawing it again.
         const dependencies = {
+            hidden: SVs.hidden,
             legendElements: [...SVs.legendElements],
             graphLimits: { ...SVs.graphLimits },
             position: SVs.position,
@@ -417,8 +419,12 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         };
 
         if (!deepCompare(previousDependencies.current, dependencies)) {
+            // A hidden legend puts nothing on the board, so none of it is
+            // drawn — box included — and it reappears intact when unhidden.
             deleteLegend();
-            createLegend();
+            if (!SVs.hidden) {
+                createLegend();
+            }
         }
 
         previousDependencies.current = dependencies;
