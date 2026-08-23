@@ -165,6 +165,14 @@ type FailureKind = "core-start" | "state-load" | "document";
  * nothing else is known, so anything that does know something says it
  * instead. Equal ranks still overwrite, which is how a second core-start
  * failure replaces the retry message with the terminal one.
+ *
+ * With the host's own error moved off the pane and onto `stateLoadNotice`,
+ * the ranks rarely have to decide anything: the remaining writers mostly
+ * cannot collide, because a state-load failure re-rolls `coreId` and so
+ * stands down the ladder that would have raised a core-start message. The
+ * rule is what keeps that from being a matter of luck — the pane is a shared
+ * surface, and a writer added to it later inherits an answer rather than an
+ * arrival order.
  */
 const FAILURE_PRECEDENCE: Record<FailureKind, number> = {
     "core-start": 0,
@@ -547,11 +555,11 @@ export function DocViewer({
     // last-writer-wins away from a pane two unlike failures used to share
     // (#1741).
     const [errMsg, setErrMsg] = useState<string | null>(null);
-    // The kind of the message now on the pane, mirrored in a ref because
-    // `showFailureMessage` is reached from the `SPLICE.getState` listener,
-    // whose empty dependency array freezes every piece of state it closes
-    // over at its initial value. See `showFailureMessage` for the rule this
-    // feeds.
+    // The kind of the message now on the pane. Held in a ref rather than in
+    // state — nothing renders it — because `showFailureMessage` is reached
+    // from the `SPLICE.getState` listener, whose empty dependency array
+    // freezes every piece of state it closes over at its initial value. See
+    // `showFailureMessage` for the rule this feeds.
     const failureKind = useRef<FailureKind | null>(null);
     // The host's own words for why it could not produce this document's saved
     // state, shown as a notice beside the document rather than in place of it
@@ -2342,12 +2350,14 @@ export function DocViewer({
      * `kind` is what keeps two unlike failures from erasing each other
      * (#1741). The pane outlives the failure it was raised for — a viewer
      * whose core start failed still has a `SPLICE.getState` request open,
-     * because the boot does not wait for the answer — so more than one writer
-     * can reach it, in an order nothing chooses. A message already on the
-     * pane whose kind outranks this one stays: see {@link FAILURE_PRECEDENCE}
-     * for why attributable beats generic. What the outranked message had to
-     * say is not lost either — a host's account of state it could not produce
-     * is shown beneath the pane's message, as `stateLoadNotice`.
+     * because the boot does not wait for the answer — so it is a surface
+     * several writers can reach, in an order nothing chooses. A message
+     * already on the pane whose kind outranks this one stays: see
+     * {@link FAILURE_PRECEDENCE} for why attributable beats generic, and for
+     * how far apart the writers that remain are kept. What the outranked
+     * message had to say is not lost either — a host's account of state it
+     * could not produce is shown beneath the pane's message, as
+     * `stateLoadNotice`.
      */
     function showFailureMessage(
         message: string,
@@ -3397,6 +3407,17 @@ export function DocViewer({
         return null;
     }
 
+    // The lead-in of the "started without your saved work" notice, in the
+    // reader's language, with the host's own words following it. Written
+    // once for the two places that notice can appear — beneath a failure
+    // pane's message, and beside a working document — and as a literal
+    // `translate` call, the only form `lint:i18n` can see.
+    const savedStateUnavailableLeadIn = translate(
+        "saved-state-unavailable",
+        undefined,
+        SAVED_STATE_UNAVAILABLE_MESSAGE,
+    );
+
     if (errMsg !== null) {
         return (
             <div
@@ -3433,12 +3454,7 @@ export function DocViewer({
                     it without the reader's saved work. */}
                 {stateLoadNotice !== null ? (
                     <div style={{ marginTop: "0.5em", fontSize: "0.8em" }}>
-                        {translate(
-                            "saved-state-unavailable",
-                            undefined,
-                            SAVED_STATE_UNAVAILABLE_MESSAGE,
-                        )}{" "}
-                        {stateLoadNotice}
+                        {savedStateUnavailableLeadIn} {stateLoadNotice}
                     </div>
                 ) : null}
                 {/* The failure pane is shown whether or not this viewer is
@@ -3582,9 +3598,12 @@ export function DocViewer({
     // takes their activity away over a fact that costs them a state restore
     // they have already worked past.
     //
-    // Rendered like `errorOverview` below, and in the same amber the viewer
-    // uses elsewhere for something the reader should know but need not act
-    // on. `role="status"` rather than `role="alert"`: nothing here interrupts
+    // Built like `errorOverview` below, but bordered in `--mainYellow`
+    // rather than the red that pane and overview share: red is what the
+    // viewer says a document is broken in, and this one is not. The theme
+    // sheet gives the token a dark amber on the light canvas and a light one
+    // on the dark, so the border keeps its contrast either way.
+    // `role="status"` rather than `role="alert"`: nothing here interrupts
     // what the reader is doing.
     let stateNoticeBanner = null;
     if (stateLoadNotice !== null) {
@@ -3606,14 +3625,7 @@ export function DocViewer({
                 // `errorOverview` gives below.
                 {...chromeLangDir(effectiveUiLocale, documentDirection)}
             >
-                <b>
-                    {translate(
-                        "saved-state-unavailable",
-                        undefined,
-                        SAVED_STATE_UNAVAILABLE_MESSAGE,
-                    )}
-                </b>{" "}
-                {stateLoadNotice}
+                <b>{savedStateUnavailableLeadIn}</b> {stateLoadNotice}
             </div>
         );
     }

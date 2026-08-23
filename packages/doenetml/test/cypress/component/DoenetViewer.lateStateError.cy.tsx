@@ -31,12 +31,12 @@ const TEXT_INPUT = "input.doenet-textinput, input:not([type=checkbox])";
  * Answer as the host, carrying no `message_id` — the shape the SPLICE
  * protocol specifies for an error, which addresses whichever request is open.
  */
-function postStateError(message: string, code = 500) {
+function postStateError(message: string) {
     cy.window().then((win) => {
         win.postMessage(
             {
                 subject: "SPLICE.getState.response",
-                error: { code, message },
+                error: { code: 500, message },
             },
             "*",
         );
@@ -142,7 +142,7 @@ describe("DoenetViewer late SPLICE.getState error (#1741)", () => {
         });
     });
 
-    it("shows both failures whichever of them settles last", () => {
+    it("shows both failures when the host answers before the ladder gives up", () => {
         // Defect 2 of #1741: the pane had two writers and no rule, so a
         // reader was told either that no core started or what the host said
         // about the saved state, depending on arrival order alone. Here the

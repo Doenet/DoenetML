@@ -457,13 +457,13 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         // reader ends up with both a state that would not load and a core
         // that never started.
         //
-        // The give-up screen wins that pane, and it is the one that carries
-        // the offer: with no core there is no document at all, which is the
-        // larger of the two facts, and a retry fixes exactly that — a state
-        // error does not stop a core from starting, it only starts it without
-        // the reader's saved work. The host's own wording is not lost to that;
-        // it is shown beneath (#1741), and follows the booted document as a
-        // notice beside it.
+        // The pane says the core never started, and carries the offer: with
+        // no core there is no document at all, which is the larger of the two
+        // facts, and a retry fixes exactly that — a state error does not stop
+        // a core from starting, it only starts it without the reader's saved
+        // work. The host's own wording is not lost to that; it is shown
+        // beneath the pane's message (#1741), and once a retry does produce a
+        // document it goes on standing beside it.
         giveUpQuickly();
         let stalled = true;
         stallableHandshake(() => stalled);
@@ -496,8 +496,8 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         cy.contains("button", "Try again").should("exist");
 
         // The retry hits a healthy handshake and the same erroring host. Its
-        // answer lands mid-boot and takes the pane, as it did the first time
-        // — and a document that has a core must not be left behind it.
+        // answer lands mid-boot, as it did the first time — and a document
+        // that has a core must not be left behind it.
         cy.then(() => letTheNextAttemptSucceed(() => (stalled = false)));
         cy.contains("button", "Try again").click();
 
