@@ -226,3 +226,9 @@ core-start-failed-busy-retry = This document could not be started. Several docum
 # the page. Offered once per document; a retry that fails too falls back to
 # `core-start-failed` / `core-start-failed-busy`, which advise the reload.
 core-start-retry = Try again
+
+# Shown beside a document that is on screen and working, when the host
+# answered `SPLICE.getState` with an error and so the document started
+# without the reader's saved work (#1741). The host's own wording follows
+# this lead-in, so it says what was lost rather than why.
+saved-state-unavailable = Your saved work could not be loaded.

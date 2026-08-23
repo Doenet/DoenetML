@@ -365,11 +365,19 @@ failure to the student instead, respond with
 `{ subject: "SPLICE.getState.response", error: { code, message } }`,
 either quoting the request's `message_id` or leaving it out — an error is
 the one reply the viewer will take unaddressed, since the worst it costs is
-a message the next usable answer clears. Prefer quoting it even so: an
+a notice the next usable answer clears. Prefer quoting it even so: an
 unaddressed error is taken by whichever request is open when it lands, on
 every viewer on the page, including one a rebuild opened after the error was
 sent. A reply quoting a *different* id is ignored, since that id belongs to
 some other request.
+
+The `message` is shown to the student **beside** the document, not in place
+of it: the request stays open until an answer carries usable state, so an
+error can land long after the document is on screen and being worked in, and
+what it reports is that the document started without the student's saved
+work rather than that there is no document. If no core could be started
+either, the viewer says so on its failure pane and adds this message beneath
+it, so the two are not mutually erasing.
 
 A request has a single answer: the **first** response carrying state for
 this `cid` is the one the viewer reboots from, and every response after
