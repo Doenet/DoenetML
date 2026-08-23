@@ -110,6 +110,14 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     // sits above a `layer="2"` rectangle piece for piece. The box takes the
     // base offset so it stays behind the legend's own swatches and labels
     // while covering everything drawn below the legend's layer.
+    //
+    // The label's layer buys less than the others'. JSXGraph renders these
+    // labels as HTML overlaid on the board and turns the layer into the
+    // node's `z-index`, which orders a label against the board's other HTML
+    // but not against its SVG: the overlay is positioned and the board's
+    // `<svg>` is not, so a label paints above the graph's contents at any
+    // layer an author would ask for. It is passed for the ordering it does
+    // buy, and because a label rendered as SVG would honor it in full.
     const boxLayer = 10 * SVs.layer + BASE_LAYER_OFFSET;
     const lineSwatchLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
     const markerSwatchLayer = 10 * SVs.layer + POINT_LAYER_OFFSET;

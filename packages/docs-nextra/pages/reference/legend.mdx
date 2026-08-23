@@ -218,6 +218,11 @@ it above everything on the default layer. Raise the `layer` to lift it above
 graphical components that set a layer of their own — here the legend asks for
 layer 3, above the rectangle's layer 2, so the swatch stays visible.
 
+The `layer` governs the legend's swatches and its box. A legend's labels are
+drawn as text laid over the graph, so they stay in front of the graph's contents
+whatever layer the legend is given: lowering a legend's `layer` will send its
+swatches behind a curve but not its labels.
+
 
 
 ---

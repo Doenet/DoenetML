@@ -8,12 +8,18 @@
 
 `<legend>` honors its `layer` attribute and can draw an opaque box behind itself.
 
-Every piece of a legend — its swatches and its labels — is now drawn at the
-DoenetML `layer` the legend asks for, offset the same way the rest of a graph's
-contents are. `<legend layer="3">` therefore sits above a `layer="2"` rectangle,
-where before it was painted underneath one. A legend now defaults to `layer="1"`
-rather than `layer="0"`, so that it still sits above everything on the default
-layer, as its labels and marker swatches did before.
+A legend's swatches, and its box, are now drawn at the DoenetML `layer` the
+legend asks for, offset the same way the rest of a graph's contents are.
+`<legend layer="3">` therefore sits above a `layer="2"` rectangle, where before
+it was painted underneath one. A legend now defaults to `layer="1"` rather than
+`layer="0"`, so that it still sits above everything on the default layer, as its
+marker swatches did before.
+
+Its labels are a different matter, and the `layer` does less for them: they are
+drawn as HTML overlaid on the board, so they paint above the graph's contents
+whatever layer is asked for. Lowering a legend's layer sends its swatches behind
+a curve but leaves its labels in front — the same asymmetry that made the
+opaque-rectangle workaround look half-broken.
 
 The new `boxed` attribute draws an opaque box behind the legend, so a curve
 passing behind it is hidden rather than tangled up with the labels. The box
