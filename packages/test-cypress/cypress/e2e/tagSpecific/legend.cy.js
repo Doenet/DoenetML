@@ -251,9 +251,9 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
         // not at the width of the latex source it was created with.
         //
         // Note what this does not pin down: JSXGraph typesets a latex label
-        // with the synchronous `MathJax.typeset`, inside the same
-        // `updateRenderer` that precedes the measurement, so the box is
-        // already sized correctly without the post-typesetting pass below it.
+        // with the synchronous `MathJax.typeset`, inside the `board.create`
+        // call that makes the label — so by the time the renderer measures it,
+        // the box is already sized correctly without the post-typesetting pass.
         // That pass is the safety net for a board drawn before MathJax has
         // finished loading, when JSXGraph's typeset call throws and is
         // swallowed — a load race there is no way to provoke from here.
