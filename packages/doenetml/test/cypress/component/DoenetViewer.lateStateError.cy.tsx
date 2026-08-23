@@ -203,6 +203,89 @@ describe("DoenetViewer late SPLICE.getState error (#1741)", () => {
         cy.then(() => window.removeEventListener("message", hostListener));
     });
 
+    it("never puts the notice on the page in the same commit as its region", () => {
+        // A live region a screen reader first meets with text already in it
+        // is unreliably announced, and this region does not exist until the
+        // document does — a booting viewer returns before rendering its
+        // container. So a host that answers before the first render, which is
+        // an ordinary host (the coordinator's in-page warehouse answers from
+        // memory), would put region and text on the page together.
+        //
+        // Announcement itself is not observable from a spec. What is, and
+        // what it rests on, is the DOM event: no `role="status"` node is ever
+        // inserted already carrying the notice. Watched from before the mount,
+        // since the insertion under test is the container's own.
+        const inserted: string[] = [];
+
+        cy.window().then((win) => {
+            const observer = new win.MutationObserver((records) => {
+                for (const record of records) {
+                    for (const node of Array.from(record.addedNodes)) {
+                        if (!(node instanceof win.HTMLElement)) {
+                            continue;
+                        }
+                        const regions = [
+                            ...(node.getAttribute("role") === "status"
+                                ? [node]
+                                : []),
+                            ...Array.from(
+                                node.querySelectorAll('[role="status"]'),
+                            ),
+                        ];
+                        for (const region of regions) {
+                            if (region.textContent?.trim()) {
+                                inserted.push(region.textContent.trim());
+                            }
+                        }
+                    }
+                }
+            });
+            observer.observe(win.document.body, {
+                childList: true,
+                subtree: true,
+            });
+            cy.wrap(null).then(() => observer);
+        });
+
+        // Answered synchronously, so the error is in hand well before the
+        // core finishes booting.
+        const hostListener = (e: MessageEvent) => {
+            if (
+                typeof e.data === "object" &&
+                e.data?.subject === "SPLICE.getState"
+            ) {
+                window.postMessage({
+                    subject: "SPLICE.getState.response",
+                    message_id: e.data.message_id,
+                    error: { code: 500, message: "storage unavailable" },
+                });
+            }
+        };
+        cy.then(() => window.addEventListener("message", hostListener));
+
+        cy.mount(
+            <DoenetViewer
+                doenetML={STATEFUL_DOC}
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+            />,
+        );
+
+        // The notice does arrive — the assertion below is only worth
+        // something if it did.
+        cy.get('[role="status"]', { timeout: VIEWER_TIMEOUT }).should(
+            "contain.text",
+            "storage unavailable",
+        );
+        cy.then(() => {
+            window.removeEventListener("message", hostListener);
+            expect(
+                inserted,
+                "status regions inserted with text already in them",
+            ).to.deep.eq([]);
+        });
+    });
+
     it("retires the notice when the document is rebuilt", () => {
         // The notice describes this document's state load. A different
         // document — an editor recompile, a host swapping in the next

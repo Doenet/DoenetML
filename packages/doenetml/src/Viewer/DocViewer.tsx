@@ -141,6 +141,81 @@ export const DocContext = createContext<{
     reportGraphElementUp?: (domId: string | null, graphDomId?: string) => void;
 }>({});
 
+/**
+ * The live region a failed state load is reported in, beside a document that
+ * is on screen and working (#1741).
+ *
+ * Mounts empty and takes its text on a later commit, never the one it
+ * appears in: a live region a screen reader first meets with text already in
+ * it is unreliably announced, and this notice's whole purpose is reaching a
+ * reader who is working somewhere else in the document.
+ *
+ * The deferral lives here rather than in a region hoisted above `DocViewer`'s
+ * early returns because the region does not exist until the document does —
+ * a viewer still booting returns before ever rendering its container — so a
+ * host that answers `SPLICE.getState` with an error before the first render
+ * would otherwise put region and text on the page in the same commit. That
+ * host is ordinary: the coordinator's in-page warehouse answers from memory.
+ * Deferring the text holds the guarantee whenever the region mounts, rather
+ * than only when it happens to predate the answer.
+ *
+ * Built like `errorOverview` in `DocViewer`, but bordered in `--mainYellow`
+ * rather than the red that pane and overview share: red is what the viewer
+ * says a document is broken in, and this one is not. The theme sheet gives
+ * the token a dark amber on the light canvas and a light one on the dark, so
+ * the border keeps its contrast either way. `role="status"` rather than
+ * `role="alert"`: nothing here interrupts what the reader is doing. It
+ * shares the screen with `initializingPane`'s own `role="status"` while a
+ * core is being created — that pane is rendered beside the container as
+ * `noCoreWarning`, not only returned in place of it — which costs nothing:
+ * an empty region has nothing to announce, and each region announces only
+ * its own text.
+ */
+function StateLoadNoticeRegion({
+    message,
+    leadIn,
+    uiLocale,
+    documentDirection,
+}: {
+    message: string | null;
+    leadIn: string;
+    uiLocale: string;
+    documentDirection: "ltr" | "rtl";
+}) {
+    // Whether this region has been through a commit of its own yet. A
+    // passive effect, so the empty region is painted before the text is
+    // handed to it.
+    const [regionOnPage, setRegionOnPage] = useState(false);
+    useEffect(() => {
+        setRegionOnPage(true);
+    }, []);
+
+    return (
+        <div role="status">
+            {regionOnPage && message !== null ? (
+                <div
+                    style={{
+                        backgroundColor: "var(--canvas)",
+                        color: "var(--canvasText)",
+                        borderWidth: 2,
+                        borderStyle: "solid",
+                        borderColor: "var(--mainYellow)",
+                        padding: "0.25em 0.5em",
+                    }}
+                    // Addressed to whoever is looking at the screen, so it is
+                    // in `uiLocale` — except for the host's own words, which
+                    // arrive in whatever language the host wrote them.
+                    // Re-declared only where the two directions disagree, for
+                    // the reason `errorOverview` gives.
+                    {...chromeLangDir(uiLocale, documentDirection)}
+                >
+                    <b>{leadIn}</b> {message}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 export function DocViewer({
     doenetML,
     userId,
@@ -3555,46 +3630,15 @@ export function DocViewer({
     // used to happen, took the reader's activity away over a fact that costs
     // them a state restore they have already worked past.
     //
-    // Built like `errorOverview` below, but bordered in `--mainYellow`
-    // rather than the red that pane and overview share: red is what the
-    // viewer says a document is broken in, and this one is not. The theme
-    // sheet gives the token a dark amber on the light canvas and a light one
-    // on the dark, so the border keeps its contrast either way.
-    // `role="status"` rather than `role="alert"`: nothing here interrupts
-    // what the reader is doing.
-    //
-    // The live region itself is rendered whether or not there is anything in
-    // it — empty, it is an unstyled zero-height div — because a region that
-    // arrives in the same commit as its text is unreliably announced, and a
-    // reader who is working somewhere else in the document is exactly who
-    // this has to reach. It shares the screen with `initializingPane`'s own
-    // `role="status"` while a core is being created — that pane is rendered
-    // beside the container as `noCoreWarning`, not only returned in place of
-    // it — which costs nothing: an empty region has nothing to announce, and
-    // each region announces only its own text.
+    // Its live region is a component of its own so that the text is always
+    // added to a region already on the page — see `StateLoadNoticeRegion`.
     const stateNoticeBanner = (
-        <div role="status">
-            {stateLoadNotice !== null ? (
-                <div
-                    style={{
-                        backgroundColor: "var(--canvas)",
-                        color: "var(--canvasText)",
-                        borderWidth: 2,
-                        borderStyle: "solid",
-                        borderColor: "var(--mainYellow)",
-                        padding: "0.25em 0.5em",
-                    }}
-                    // Addressed to whoever is looking at the screen, so it is
-                    // in `uiLocale` — except for the host's own words, which
-                    // arrive in whatever language the host wrote them.
-                    // Re-declared only where the two directions disagree, for
-                    // the reason `errorOverview` gives below.
-                    {...chromeLangDir(effectiveUiLocale, documentDirection)}
-                >
-                    <b>{savedStateUnavailableLeadIn}</b> {stateLoadNotice}
-                </div>
-            ) : null}
-        </div>
+        <StateLoadNoticeRegion
+            message={stateLoadNotice}
+            leadIn={savedStateUnavailableLeadIn}
+            uiLocale={effectiveUiLocale}
+            documentDirection={documentDirection}
+        />
     );
 
     let errorOverview = null;
