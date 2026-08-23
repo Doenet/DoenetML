@@ -157,14 +157,18 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         cy.get('[role="alert"]').should("contain.text", "reload the page");
     });
 
-    it("withdraws the offer when a different error takes the pane over", () => {
+    it("keeps the offer when a host state error lands on the pane too", () => {
         // The give-up screen outlives the failure it was raised for: the boot
         // never waited for the host's answer to `SPLICE.getState`, so a host
         // that cannot produce the saved work reports it onto whatever the
-        // viewer is showing — here, a core start that had a retry left. The
-        // button has to go with the message it belonged to. Restarting the
-        // document would put the same question to the same host, so offering
-        // it beside that answer is offering the reader nothing.
+        // viewer is showing — here, a core start that had a retry left.
+        //
+        // The two facts no longer erase each other (#1741). The pane keeps
+        // the message for the failure that left no document at all, and the
+        // host's wording is added beneath it; the button stays with the
+        // message it belongs to, because a core that never started is exactly
+        // what a retry addresses. Both parts used to depend on which of the
+        // two settled last.
         giveUpQuickly();
         stallableHandshake(() => true);
 
@@ -196,7 +200,8 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         cy.contains("no saved state for this document", {
             timeout: 8000,
         }).should("exist");
-        cy.contains("button", "Try again").should("not.exist");
+        cy.contains("could not be started").should("exist");
+        cy.contains("button", "Try again").should("exist");
     });
 
     it("offers a fresh retry once the document itself changes", () => {
@@ -452,13 +457,13 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         // reader ends up with both a state that would not load and a core
         // that never started.
         //
-        // The give-up screen wins that pane, and it is the one that carries
-        // the offer. Both parts are deliberate: with no core there is no
-        // document at all, which is the larger of the two facts, and a retry
-        // fixes exactly that — a state error does not stop a core from
-        // starting, it only starts it without the reader's saved work. (What
-        // is lost is the host's own wording, which is #1741: the pane has no
-        // precedence rule, only an arrival order.)
+        // The pane says the core never started, and carries the offer: with
+        // no core there is no document at all, which is the larger of the two
+        // facts, and a retry fixes exactly that — a state error does not stop
+        // a core from starting, it only starts it without the reader's saved
+        // work. The host's own wording is not lost to that; it is shown
+        // beneath the pane's message (#1741), and once a retry does produce a
+        // document it goes on standing beside it.
         giveUpQuickly();
         let stalled = true;
         stallableHandshake(() => stalled);
@@ -491,15 +496,21 @@ describe("DoenetViewer core-start retry (#1712)", () => {
         cy.contains("button", "Try again").should("exist");
 
         // The retry hits a healthy handshake and the same erroring host. Its
-        // answer lands mid-boot and takes the pane, as it did the first time
-        // — and a document that has a core must not be left behind it.
+        // answer lands mid-boot, as it did the first time — and a document
+        // that has a core must not be left behind it.
         cy.then(() => letTheNextAttemptSucceed(() => (stalled = false)));
         cy.contains("button", "Try again").click();
 
         cy.contains("document past a state error", { timeout: 20000 }).should(
             "exist",
         );
-        cy.contains("saved state unavailable").should("not.exist");
+        // The document is on screen, and what the host said about the saved
+        // work rides alongside it rather than in place of it.
+        cy.contains("could not be started").should("not.exist");
+        cy.get('[role="status"]').should(
+            "contain.text",
+            "saved state unavailable",
+        );
         cy.then(() => {
             expect(
                 answers,

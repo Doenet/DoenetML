@@ -207,6 +207,16 @@ export const CORE_START_FAILED_BUSY_RETRY_MESSAGE =
 export const CORE_START_RETRY_MESSAGE = "Try again";
 
 /**
+ * English fallback for `saved-state-unavailable` — the lead-in of the notice
+ * shown beside a working document whose saved work the host could not
+ * produce (#1741). The host's own wording follows it, so this says only what
+ * was lost; grouped with the messages above because `DocViewer` renders all
+ * of them and translates each before showing it.
+ */
+export const SAVED_STATE_UNAVAILABLE_MESSAGE =
+    "Your saved work could not be loaded.";
+
+/**
  * Resolve/reject with `task()`, but reject with a timeout error if it does
  * not settle within `ms`. The underlying promise is left to settle on its
  * own — we attach a (post-timeout no-op) handler so a late rejection is never
