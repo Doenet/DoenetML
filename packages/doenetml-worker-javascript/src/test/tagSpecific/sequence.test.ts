@@ -2316,7 +2316,8 @@ describe("Sequence tag tests @group1", async () => {
     });
 
     // The same cycle `<selectFromSequence>` hits in Doenet/DoenetML#1665: the
-    // exclusion is one of the values the sequence has yet to produce.
+    // exclusion is one of the values the sequence has yet to produce. See
+    // `src/test/diagnostics/circularReferences.test.ts` for the wider family.
     it("self-referential exclude is reported as circular", async () => {
         await expect(
             createTestCore({

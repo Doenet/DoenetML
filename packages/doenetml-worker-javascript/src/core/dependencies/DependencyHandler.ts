@@ -2714,8 +2714,18 @@ export class DependencyHandler {
 
     /**
      * Resolve `item`, resolving whatever blocks it first. `_resolveItem` does
-     * that work and defines the parameters and the result; this wrapper only
-     * keeps a cycle in the blockers from being chased forever.
+     * that work and defines the parameters and the result; this wrapper is a
+     * backstop against a cycle in the blockers being chased forever.
+     *
+     * A cycle is normally caught the moment its last edge goes in: `addBlocker`
+     * ends by running `checkForCircularResolveBlocker` on the item it has just
+     * blocked, and that throws. What went wrong in Doenet/DoenetML#1665 is that
+     * the throw was dropped — five `addBlockerForUnexpandedComposite` calls
+     * were left unawaited, so the rejection floated and resolution went on
+     * around the cycle until the worker ran out of memory. Those five are
+     * awaited now, and every `addBlocker` call in `src/core` is; no input we
+     * know of reaches the check below. It is here so that the next dropped
+     * rejection costs an error message rather than the tab.
      *
      * Note: even if expandComposites=false and force=false we still might
      * expand composites and force evaluate, as resolving a determineDependency
@@ -2734,36 +2744,36 @@ export class DependencyHandler {
             });
         }
 
-        const identifier = resolveItemIdentifier(item);
-        const inProgressCount =
-            this.resolveItemsInProgress.get(identifier) ?? 0;
+        let identifier: string;
+        let inProgressCount: number;
+        try {
+            identifier = resolveItemIdentifier(item);
+            inProgressCount = this.resolveItemsInProgress.get(identifier) ?? 0;
 
-        if (inProgressCount > 0) {
-            // A resolve of this item is already underway, so — when this call
-            // is nested inside it, as a cycle makes it — the item is among its
-            // own blockers. Whether that is a cycle the author has to fix or a
-            // step that will still resolve is a question for the blocker graph,
-            // which throws naming the components when the cycle is real. Left
-            // unasked, a real cycle is chased until the worker runs out of
-            // memory (Doenet/DoenetML#1665).
-            try {
+            if (inProgressCount > 0) {
+                // A resolve of this item is already underway, so — when this
+                // call is nested inside it, as a cycle makes it — the item is
+                // among its own blockers. Re-entry is not itself an error:
+                // re-resolving the same item is an ordinary step for collected
+                // and extended components. Only the blocker graph can tell the
+                // two apart, so put the question to it. It throws naming the
+                // components when the cycle is real and returns when it is not.
                 this.recheckForCircularResolveBlocker(item);
-            } catch (e) {
-                // Every other failure out of `resolveItem` reaches the caller
-                // as a rejected promise, from inside `_resolveItem`. This one
-                // is raised before that call, and `resolveItem` is not async,
-                // so hand it back in the same shape rather than throwing into
-                // the caller's own frame.
-                this.resolveDepth--;
-                return Promise.reject(e);
             }
+        } catch (e) {
+            // Every other failure out of `resolveItem` reaches the caller as a
+            // rejected promise, from inside `_resolveItem`. Anything raised
+            // above happens before that call, and `resolveItem` is not async,
+            // so hand it back in the same shape rather than throwing into the
+            // caller's own frame — and undo the depth this call took.
+            this.resolveDepth--;
+            return Promise.reject(e);
         }
 
         this.resolveItemsInProgress.set(identifier, inProgressCount + 1);
         return this._resolveItem(item).finally(() => {
             this.resolveDepth--;
-            const remaining =
-                (this.resolveItemsInProgress.get(identifier) ?? 1) - 1;
+            const remaining = this.resolveItemsInProgress.get(identifier)! - 1;
             if (remaining > 0) {
                 this.resolveItemsInProgress.set(identifier, remaining);
             } else {

@@ -13,15 +13,14 @@ circular dependency instead of hanging the page.
 asks for a selection that cannot be made until the exclusion is known, and an
 exclusion that cannot be evaluated until the selection is made. The two chased
 each other — no warning, no error, the tab growing until it ran out of memory —
-and the same happened for any sequence attribute written in terms of the
-sequence's own values, `<sequence exclude="$a[1]"/>` and `to="$a[1]"` among them.
+and the same happened for any attribute written in terms of the component's own
+values: `<sequence exclude="$a[1]"/>` and `to="$a[1]"` among them, and the
+matching shapes on `<select>`, `<repeat>`, and `<conditionalContent>`.
 
-Doenet already recognizes a cycle like this one and says which components are
-involved; the check was simply never run here, because it fires only as a new
-dependency is registered and this cycle closed without one. Resolving something
-that is already being resolved now puts the question to that same check, and the
-document reports a circular dependency naming the components instead of
-consuming the tab.
+Doenet had recognized the cycle all along and raised its usual error naming the
+components involved; the error was being dropped rather than reported, because
+the step that raised it was started and never waited for. It is waited for now,
+so the cycle is reported.
 
 The report arrives as the document's failure, which is what a circular
 reference has always done — `<math name="m">$m</math>` fails a document the
