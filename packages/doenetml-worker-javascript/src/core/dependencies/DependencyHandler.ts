@@ -32,6 +32,41 @@ import { dependencyTypeClasses } from "./registry";
 const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
 
 /**
+ * The `resolveItem` nesting depth past which each call is recorded so that a
+ * cycle in the blockers can be recognized. Set above the depth ordinary
+ * resolution reaches — the heaviest documents in the test suite nest around
+ * 30 — so that the common case pays only a counter. A document that nests
+ * deeper than this is not treated as suspect; it just starts being recorded.
+ */
+const RESOLVE_DEPTH_TO_TRACK = 50;
+
+/**
+ * The key `resolveItem` uses to recognize that it is already resolving an
+ * item further up the stack. Matches the identifiers of
+ * `checkForCircularResolveBlocker` so the two can be read side by side.
+ */
+function resolveItemIdentifier({
+    componentIdx,
+    type,
+    stateVariable,
+    dependency,
+}: {
+    componentIdx: ComponentIdx | string;
+    type: string;
+    stateVariable?: string;
+    dependency?: string;
+}) {
+    let code = componentIdx.toString();
+    if (stateVariable) {
+        code += "|" + stateVariable;
+        if (dependency) {
+            code += "|" + dependency;
+        }
+    }
+    return code + "|" + type;
+}
+
+/**
  * The 9 trigger tables that `DependencyHandler` exposes for cross-component
  * change propagation. Each is an index over component identifiers or names
  * pointing at the dependent dependency records; the records themselves are
@@ -84,6 +119,14 @@ export class DependencyHandler {
 
     circularCheckPassed: Record<string, boolean>;
     circularResolveBlockedCheckPassed: Record<string, boolean>;
+    /**
+     * How many `resolveItem` calls for each identifier are on the stack, so a
+     * call can tell that it is resolving an item it is already resolving.
+     * Only the calls nested deeper than `RESOLVE_DEPTH_TO_TRACK` are recorded.
+     */
+    resolveItemsInProgress: Map<string, number>;
+    /** How many `resolveItem` calls are on the stack. */
+    resolveDepth: number;
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
@@ -171,6 +214,8 @@ export class DependencyHandler {
 
         this.circularCheckPassed = {};
         this.circularResolveBlockedCheckPassed = {};
+        this.resolveItemsInProgress = new Map();
+        this.resolveDepth = 0;
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -2653,7 +2698,7 @@ export class DependencyHandler {
         return result;
     }
 
-    async resolveItem({
+    resolveItem({
         componentIdx,
         type,
         stateVariable,
@@ -2676,6 +2721,111 @@ export class DependencyHandler {
         // and updateDependencies calls the getters on
         // the state variables determining dependencies
 
+        // Resolving one item routinely means resolving the handful of items
+        // blocking it, so only the calls nested past a depth no ordinary
+        // document reaches are worth the bookkeeping below. A cycle keeps
+        // nesting, so it is always caught once past that depth.
+        this.resolveDepth++;
+        if (this.resolveDepth <= RESOLVE_DEPTH_TO_TRACK) {
+            return this._resolveItem({
+                componentIdx,
+                type,
+                stateVariable,
+                dependency,
+                force,
+                recurseUpstream,
+                expandComposites,
+                numPreviouslyNeeded,
+            }).finally(() => {
+                this.resolveDepth--;
+            });
+        }
+
+        const inProgressIdentifier = resolveItemIdentifier({
+            componentIdx,
+            type,
+            stateVariable,
+            dependency,
+        });
+
+        const inProgressCount =
+            this.resolveItemsInProgress.get(inProgressIdentifier) ?? 0;
+
+        if (inProgressCount > 0) {
+            // We are already resolving this item further up the stack, so it
+            // is now among its own blockers. Whether that is a cycle the
+            // author has to fix or a step that will still resolve is a
+            // question for the blocker graph, which throws with the components
+            // involved when the cycle is real. Left unasked, a real cycle is
+            // chased until the worker runs out of memory (Doenet/DoenetML#1665).
+            // The check runs against an empty set of memos, since a memo left
+            // from an earlier traversal would stop it before it reaches the
+            // cycle. The memos the rest of the resolve is relying on are put
+            // back either way.
+            const memos = this.circularResolveBlockedCheckPassed;
+            this.circularResolveBlockedCheckPassed = {};
+            try {
+                this.checkForCircularResolveBlocker({
+                    componentIdx,
+                    type,
+                    stateVariable,
+                    dependency,
+                });
+            } catch (e) {
+                // `resolveItem` hands back a promise rather than being async,
+                // so a caller that never awaits it sees a rejection here and
+                // not an exception thrown out of its own frame.
+                this.resolveDepth--;
+                return Promise.reject(e);
+            } finally {
+                this.circularResolveBlockedCheckPassed = memos;
+            }
+        }
+
+        this.resolveItemsInProgress.set(
+            inProgressIdentifier,
+            inProgressCount + 1,
+        );
+        return this._resolveItem({
+            componentIdx,
+            type,
+            stateVariable,
+            dependency,
+            force,
+            recurseUpstream,
+            expandComposites,
+            numPreviouslyNeeded,
+        }).finally(() => {
+            this.resolveDepth--;
+            const remaining =
+                (this.resolveItemsInProgress.get(inProgressIdentifier) ?? 1) -
+                1;
+            if (remaining > 0) {
+                this.resolveItemsInProgress.set(
+                    inProgressIdentifier,
+                    remaining,
+                );
+            } else {
+                this.resolveItemsInProgress.delete(inProgressIdentifier);
+            }
+        });
+    }
+
+    /**
+     * The body of `resolveItem`, which is the only caller: it holds the guard
+     * that keeps a cycle in the blockers from being chased forever, and this
+     * half is free to recurse into the blockers it finds.
+     */
+    async _resolveItem({
+        componentIdx,
+        type,
+        stateVariable,
+        dependency,
+        force = false,
+        recurseUpstream = false,
+        expandComposites = true,
+        numPreviouslyNeeded,
+    }: any): Promise<any> {
         if (type === "stateVariable") {
             // Set up this variable's dependencies now (if not yet built) so
             // the peek below sees the real blockers — including the

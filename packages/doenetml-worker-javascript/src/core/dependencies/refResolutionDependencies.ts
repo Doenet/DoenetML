@@ -88,7 +88,7 @@ export class RefResolutionIndexDependencies extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
@@ -234,7 +234,7 @@ export class RefResolutionDependency extends Dependency {
             }
 
             if (!compositeCreating.isExpanded) {
-                this.addBlockerForUnexpandedComposite(compositeCreating);
+                await this.addBlockerForUnexpandedComposite(compositeCreating);
 
                 return {
                     success: false,
@@ -293,7 +293,7 @@ export class RefResolutionDependency extends Dependency {
         if (haveComposite) {
             // make sure that the composite refComponent is expanded
             if (!refComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(refComponent);
+                await this.addBlockerForUnexpandedComposite(refComponent);
 
                 return {
                     success: false,
@@ -441,7 +441,7 @@ export class RefResolutionDependency extends Dependency {
             // We ended on a composite component with the next unresolved path being an index.
             // If the composite isn't expanded, that's the next blocker for resolving the reference.
             if (!newRefComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(newRefComponent);
+                await this.addBlockerForUnexpandedComposite(newRefComponent);
 
                 return {
                     success: false,
@@ -556,7 +556,7 @@ export class RefResolutionDependency extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
