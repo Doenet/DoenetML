@@ -843,12 +843,9 @@ function boxCorners(
     ];
 }
 
-function normalizeStyle(style: string | undefined): string | undefined {
-    if (style === "triangle") {
-        return "triangleup";
-    } else {
-        return style;
-    }
+/** A marker style under the name JSXGraph knows it by. */
+function normalizeStyle(style: string): string {
+    return style === "triangle" ? "triangleup" : style;
 }
 
 /**
