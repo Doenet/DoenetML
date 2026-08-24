@@ -2264,9 +2264,8 @@ describe("SelectFromSequence tag tests @group4", async () => {
     // Doenet/DoenetML#1665: an attribute that refers back to the selection
     // cannot be evaluated until the selection is made, which in turn needs the
     // attribute. Before the resolve machinery recognized that, the two chased
-    // each other until the worker ran out of memory. The cycle is found partway
-    // through resolution, so it fails the document rather than being reported
-    // as an error on the component the way a cycle found while building is.
+    // each other until the worker ran out of memory. The document now fails the
+    // way any circular reference fails one, `<math name="m">$m</math>` included.
     it("self-referential exclude is reported as circular", async () => {
         await expect(
             createTestCore({

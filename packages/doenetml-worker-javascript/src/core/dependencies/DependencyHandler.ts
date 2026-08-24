@@ -3021,6 +3021,11 @@ export class DependencyHandler {
             // Found circular dependency
             // Create error message with list of component types and names involved
 
+            // The path through the blockers, which carries the types and state
+            // variables the message below leaves out, and is what a cycle is
+            // diagnosed from.
+            console.log("found circular", identifier, previouslyVisited);
+
             let componentNameRe = /^([^|]*)\|/;
 
             let componentsInvolved = previouslyVisited.map(

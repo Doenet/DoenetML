@@ -22,7 +22,7 @@ sides never came back to ask. Resolving an item that is already being resolved
 now puts the question to that check, and the document reports a circular
 dependency naming the components instead of consuming the tab.
 
-The report arrives as the document's failure rather than as an error on the
-offending component, which is how a cycle found while the document is being
-built — `<math extend="$m" name="m"/>` and the like — is reported. Confining
-this one the same way is left for later.
+The report arrives as the document's failure, which is what a circular
+reference has always done — `<math name="m">$m</math>` fails a document the
+same way. Confining the report to the component at fault, as a composite that
+reports a cycle in its own replacements manages to, is left for later.
