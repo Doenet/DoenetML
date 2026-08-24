@@ -37,16 +37,7 @@ interface LegendLabel {
     value: string;
 }
 
-/**
- * One row of the legend, as the worker describes it: a label and the style of
- * the object that label stands for. Every color comes as a light-mode and a
- * dark-mode value, since which of the two a swatch takes is settled here and
- * not in the worker, which has no view of the document's theme.
- *
- * Which style keys an element carries follows from its `swatchType`, so the
- * three kinds are separate types rather than one type of optional fields:
- * only a marker names a marker color, only a rectangle a fill.
- */
+/** What every legend element carries, whatever its swatch is drawn as. */
 interface LegendElementBase {
     label?: LegendLabel;
     lineOpacity: number;
@@ -76,10 +67,23 @@ interface RectangleLegendElement extends Omit<LineLegendElement, "swatchType"> {
     filled: boolean;
 }
 
+/**
+ * One row of the legend, as the worker describes it: a label and the style of
+ * the object that label stands for. Every color comes as a light-mode and a
+ * dark-mode value, since which of the two a swatch takes is settled here and
+ * not in the worker, which has no view of the document's theme.
+ *
+ * Which style keys an element carries follows from its `swatchType`, so the
+ * three kinds are separate types rather than one type of optional fields:
+ * only a marker names a marker color, only a rectangle a fill.
+ */
 type LegendElement =
     MarkerLegendElement | LineLegendElement | RectangleLegendElement;
 
-/** The elements whose swatch is drawn with a stroke: a line, and a rectangle's border. */
+/**
+ * The elements whose swatch is drawn with a stroke: a line, and a rectangle's
+ * border.
+ */
 type StrokedLegendElement = LineLegendElement | RectangleLegendElement;
 
 interface GraphLimits {
@@ -717,11 +721,11 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             // A legend element carries both of its colors and the swatch
             // picks between them here, so toggling the theme leaves the
             // elements themselves untouched while every swatch drawn from
-            // them wants repainting. The resolved colors above would usually
-            // catch that, but only because they happen to differ between the
-            // themes — an author who names one color for both would leave
-            // them equal, and the swatches unrepainted. The theme itself is
-            // what the swatches actually turn on.
+            // them wants repainting. The theme is named directly rather than
+            // left to the resolved colors above, which catch a toggle only
+            // incidentally: `boxBorderColor` happens to differ between the
+            // themes today, but it is the box's color, and the swatches
+            // should not depend on it to be repainted.
             darkMode,
         };
 

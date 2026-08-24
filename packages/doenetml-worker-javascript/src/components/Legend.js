@@ -107,12 +107,10 @@ export default class Legend extends GraphicalComponent {
         };
 
         // Each element carries both the light-mode and the dark-mode color of
-        // the object it stands for, and the renderer picks between them. Dark
-        // mode is a document-level concern the renderer holds and the worker
-        // has no view of, so a swatch whose color were flattened here would be
-        // painted in one theme's color whatever theme the document is read in
-        // — disagreeing with the object it labels, which is the one job a
-        // legend has.
+        // the object it stands for, and the renderer picks between them. The
+        // theme is a document-level concern the renderer holds and the worker
+        // has no view of, so a color flattened to one theme here would leave
+        // the swatch disagreeing with the object it labels in the other.
         stateVariableDefinitions.legendElements = {
             forRenderer: true,
             stateVariablesDeterminingDependencies: ["graphicalElementNames"],
