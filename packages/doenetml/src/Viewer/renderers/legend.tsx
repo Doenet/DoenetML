@@ -366,7 +366,8 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                 // measured wherever the label happens to be standing at the
                 // time, so a label that may wrap measures differently
                 // depending on where it is measured. Kept on one line, its
-                // width is its own.
+                // width is its own — and it runs past the graph's edge rather
+                // than wrapping into the row below it (see #1750).
                 cssStyle: "white-space: nowrap",
             };
 
