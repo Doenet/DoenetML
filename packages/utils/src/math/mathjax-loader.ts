@@ -27,10 +27,11 @@
  * TeX packages Doenet's documents rely on are simply absent there — an author's
  * `\units{9.8}{...}` renders as a bare `\units` on a host page and correctly on
  * doenet.org. To close that gap, such an engine is *primed*: before the shared
- * promise resolves, we typeset a hidden expression that reproduces our
- * configured macros as `\def`s and pulls in our added TeX packages with
- * `\require`. MathJax keeps such definitions for the life of the document, so
- * this happens once rather than per expression. See
+ * promise resolves, we run an expression through its TeX input jax that
+ * reproduces our configured macros as `\def`s and pulls in our added TeX
+ * packages with `\require`. Nothing is rendered or added to the page; the point
+ * is the state that expression leaves behind in the jax, which MathJax keeps for
+ * the life of the document, so this happens once rather than per expression. See
  * {@link primeUnconfiguredEngine} for what that costs the host.
  *
  * Priming is deliberately skipped whenever the engine booted on our own
@@ -66,6 +67,12 @@ export interface MathJaxEngine {
     startup?: { promise?: Promise<unknown> } & Record<string, unknown>;
     typesetPromise?: (...args: unknown[]) => Promise<unknown>;
     typesetClear?: (...args: unknown[]) => unknown;
+    /**
+     * Direct TeX-to-MathML conversion, added by MathJax's startup when a TeX
+     * input jax is loaded. Used by priming to reach that jax without going
+     * through the page (see {@link primeUnconfiguredEngine}).
+     */
+    tex2mmlPromise?: (...args: unknown[]) => Promise<unknown>;
     version?: string;
     [key: string]: unknown;
 }
@@ -342,48 +349,37 @@ function texPackagesFromConfig(config: object | undefined): string[] {
 }
 
 /**
- * Typesets `tex` into a throwaway offscreen element purely for its side effect
- * on the engine, and resolves whether or not that worked.
+ * Runs `tex` through the engine's TeX input jax purely for the state it leaves
+ * behind there — a macro table entry, a loaded package — and resolves whether or
+ * not that worked.
+ *
+ * Direct conversion rather than typesetting a hidden element: it reaches the
+ * same input jax the engine renders everything else with, so the definitions
+ * persist, while depending on neither the host's math delimiters (which a host
+ * is free to redefine, and `\(`…`\)` need not survive) nor its ignored-element
+ * rules, and putting nothing into the page.
  *
  * Never rejects: priming is a best-effort improvement on an engine we did not
  * configure, and a failure here must not stop the math that follows from
  * rendering.
  */
-async function typesetForSideEffect(
+async function convertForSideEffect(
     engine: MathJaxEngine,
     tex: string,
 ): Promise<void> {
-    if (typeof engine.typesetPromise !== "function") {
+    // Defined by MathJax's startup once a TeX input jax is in play, so absent
+    // exactly when there are no TeX macros to teach in the first place.
+    if (typeof engine.tex2mmlPromise !== "function") {
         return;
     }
-    const parent = document.body ?? document.documentElement;
-    if (!parent) {
-        return;
-    }
-    const host = document.createElement("div");
-    host.setAttribute("aria-hidden", "true");
-    host.style.cssText =
-        "position:absolute;left:-9999px;top:0;width:0;height:0;overflow:hidden;visibility:hidden";
-    // Offscreen rather than `display: none`, because the output jax measures
-    // what it typesets and an undisplayed subtree has no metrics to measure.
-    host.textContent = `\\(${tex}\\)`;
-    parent.appendChild(host);
     try {
-        await engine.typesetPromise([host]);
+        await engine.tex2mmlPromise(tex);
     } catch (reason) {
         console.warn(
             `DoenetViewer: could not prime MathJax with "${tex}"; ` +
                 "math relying on it may not render as it does on doenet.org.",
             reason,
         );
-    } finally {
-        try {
-            engine.typesetClear?.([host]);
-        } catch {
-            // `typesetClear` only drops bookkeeping for an element we are about
-            // to discard; if the host engine dislikes it, nothing is lost.
-        }
-        host.remove();
     }
 }
 
@@ -401,7 +397,7 @@ async function typesetForSideEffect(
  *    means a host that defines any of the same names gets ours instead. The
  *    names come from Doenet's own configuration, so the exposure is limited to
  *    what a Doenet document could already have relied on.
- *  - Each fragment is typeset separately. `\require` throws when a package
+ *  - Each fragment is converted separately. `\require` throws when a package
  *    cannot be loaded, and MathJax abandons the rest of the expression when it
  *    does; batching would let one unavailable package silently take the macro
  *    definitions down with it.
@@ -413,15 +409,15 @@ async function primeUnconfiguredEngine(
     try {
         await engine.startup?.promise;
     } catch {
-        // An engine that reports a failed startup may still typeset; let the
+        // An engine that reports a failed startup may still convert; let the
         // priming attempts below find out rather than deciding here.
     }
     const defs = texDefsFromConfig(config);
     if (defs) {
-        await typesetForSideEffect(engine, defs);
+        await convertForSideEffect(engine, defs);
     }
     for (const packageName of texPackagesFromConfig(config)) {
-        await typesetForSideEffect(engine, `\\require{${packageName}}`);
+        await convertForSideEffect(engine, `\\require{${packageName}}`);
     }
     return engine;
 }

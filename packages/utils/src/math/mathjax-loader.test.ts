@@ -45,50 +45,18 @@ function makeScript(src = ""): FakeScript {
     };
 }
 
-/**
- * The offscreen element priming typesets into. Only the handful of members
- * `typesetForSideEffect` touches are modelled.
- */
-type FakeElement = {
-    textContent: string;
-    style: { cssText: string };
-    setAttribute: (name: string, value: string) => void;
-    remove: () => void;
-    _removed: boolean;
-};
-
-function makeElement(): FakeElement {
-    return {
-        textContent: "",
-        style: { cssText: "" },
-        setAttribute() {},
-        remove() {
-            this._removed = true;
-        },
-        _removed: false,
-    };
-}
-
 let appendedScripts: FakeScript[];
 let domScripts: FakeScript[];
-let bodyChildren: FakeElement[];
 
 function installFakeDom() {
     appendedScripts = [];
     domScripts = [];
-    bodyChildren = [];
     const fakeDocument = {
-        createElement: (tag: string) =>
-            tag === "script" ? makeScript() : makeElement(),
+        createElement: (_tag: string) => makeScript(),
         head: {
             appendChild: (script: FakeScript) => {
                 appendedScripts.push(script);
                 domScripts.push(script);
-            },
-        },
-        body: {
-            appendChild: (element: FakeElement) => {
-                bodyChildren.push(element);
             },
         },
         querySelectorAll: (_selector: string) =>
@@ -111,25 +79,27 @@ function installFakeDom() {
  * MathJax 4 host engine.
  */
 function makeEngine(
-    options: { failTypesetting?: (tex: string) => boolean } = {},
+    options: { failConversion?: (tex: string) => boolean } = {},
 ) {
     const startup: any = () => {};
     startup.promise = Promise.resolve();
-    // Everything the engine was asked to typeset, in order — which for a primed
+    // Everything the engine was asked to convert, in order — which for a primed
     // host engine is exactly the priming fragments.
-    const typeset: string[] = [];
+    const converted: string[] = [];
     return {
         version: "4.1.3",
         startup,
-        typeset,
-        typesetPromise: (elements: FakeElement[]) => {
-            const tex = elements[0]?.textContent ?? "";
-            typeset.push(tex);
-            return options.failTypesetting?.(tex)
-                ? Promise.reject(new Error(`cannot typeset ${tex}`))
-                : Promise.resolve();
-        },
+        converted,
+        typesetPromise: () => Promise.resolve(),
         typesetClear: () => {},
+        // Priming reaches the TeX input jax through this rather than through the
+        // page, so it is what records what was primed.
+        tex2mmlPromise: (tex: string) => {
+            converted.push(tex);
+            return options.failConversion?.(tex)
+                ? Promise.reject(new Error(`cannot convert ${tex}`))
+                : Promise.resolve("<math/>");
+        },
     };
 }
 
@@ -401,30 +371,27 @@ describe("priming a host-provided MathJax", () => {
 
         await expect(loadMathJax({ config })).resolves.toBe(engine);
 
-        expect(engine.typeset).toEqual([
-            "\\(\\def\\lt{<}\\def\\var#1{\\mathrm{#1}}\\)",
-            "\\(\\require{units}\\)",
+        expect(engine.converted).toEqual([
+            "\\def\\lt{<}\\def\\var#1{\\mathrm{#1}}",
+            "\\require{units}",
         ]);
-        // Every offscreen host is cleaned up, however the typeset went.
-        expect(bodyChildren).toHaveLength(2);
-        expect(bodyChildren.every((element) => element._removed)).toBe(true);
     });
 
-    it("keeps \\require in its own typeset so an unavailable package cannot take the macros down with it", async () => {
+    it("keeps \\require in its own conversion so an unavailable package cannot take the macros down with it", async () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         try {
             // A host whose MathJax has no `units` package to load.
             const engine = makeEngine({
-                failTypesetting: (tex) => tex.includes("\\require"),
+                failConversion: (tex) => tex.includes("\\require"),
             });
             (globalThis as any).window.MathJax = engine;
 
             await expect(loadMathJax({ config })).resolves.toBe(engine);
 
-            // The definitions were typeset before — and separately from — the
+            // The definitions were converted before — and separately from — the
             // package that failed, so they still took effect.
-            expect(engine.typeset[0]).toContain("\\def\\var#1{\\mathrm{#1}}");
-            expect(engine.typeset).toHaveLength(2);
+            expect(engine.converted[0]).toContain("\\def\\var#1{\\mathrm{#1}}");
+            expect(engine.converted).toHaveLength(2);
             expect(warnSpy).toHaveBeenCalled();
         } finally {
             warnSpy.mockRestore();
@@ -434,7 +401,7 @@ describe("priming a host-provided MathJax", () => {
     it("still resolves the engine when priming fails outright", async () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         try {
-            const engine = makeEngine({ failTypesetting: () => true });
+            const engine = makeEngine({ failConversion: () => true });
             (globalThis as any).window.MathJax = engine;
 
             // Priming is best-effort on an engine we do not own; a failure must
@@ -458,8 +425,7 @@ describe("priming a host-provided MathJax", () => {
 
         // `config` was staged on this engine before it booted, so its macros and
         // packages are already in effect — priming it would be pure overhead.
-        expect(engine.typeset).toEqual([]);
-        expect(bodyChildren).toHaveLength(0);
+        expect(engine.converted).toEqual([]);
     });
 
     it("does not prime the takeover copy loaded after a host engine never appears", async () => {
@@ -482,7 +448,7 @@ describe("priming a host-provided MathJax", () => {
             appendedScripts[0]._fire("load");
             await expect(promise).resolves.toBe(engine);
 
-            expect(engine.typeset).toEqual([]);
+            expect(engine.converted).toEqual([]);
         } finally {
             warnSpy.mockRestore();
             vi.useRealTimers();
@@ -507,9 +473,9 @@ describe("priming a host-provided MathJax", () => {
         appendedScripts[0]._fire("load");
         await expect(promise).resolves.toBe(engine);
 
-        expect(engine.typeset).toEqual([
-            "\\(\\def\\lt{<}\\def\\var#1{\\mathrm{#1}}\\)",
-            "\\(\\require{units}\\)",
+        expect(engine.converted).toEqual([
+            "\\def\\lt{<}\\def\\var#1{\\mathrm{#1}}",
+            "\\require{units}",
         ]);
     });
 
@@ -519,6 +485,6 @@ describe("priming a host-provided MathJax", () => {
 
         await expect(loadMathJax()).resolves.toBe(engine);
 
-        expect(engine.typeset).toEqual([]);
+        expect(engine.converted).toEqual([]);
     });
 });
