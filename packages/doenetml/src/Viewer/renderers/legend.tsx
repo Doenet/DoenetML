@@ -93,6 +93,13 @@ interface LegendEntry {
     /** Null when the element has no label. */
     label: JXGText | null;
     /**
+     * The layer `label` was created at. JSXGraph turns a text's layer into
+     * its node's `z-index` when it draws it, and that cannot be re-set
+     * afterwards (see `syncLabel`), so a label whose layer has changed is
+     * replaced rather than updated. Null alongside a null `label`.
+     */
+    labelLayer: number | null;
+    /**
      * What `label` was last given. Kept here because JSXGraph rewrites the
      * text it is handed (`plaintext` is the processed form), so the object
      * cannot be asked whether its text is still current — and re-setting the
@@ -316,22 +323,29 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         board: JXGBoard,
         previous: LegendEntry | null,
         element: LegendElement,
-    ): Pick<LegendEntry, "label" | "labelContent"> {
+    ): Pick<LegendEntry, "label" | "labelContent" | "labelLayer"> {
         const label = element.label;
         const hasLatex = label?.hasLatex ?? false;
         const shown = previous?.labelContent ?? null;
         let txt = previous?.label ?? null;
 
-        // Whether a label is typeset by MathJax is fixed when its JSXGraph
-        // text is created, so a label that gains or loses latex needs a new
-        // one; a label whose text alone changed does not.
-        if (txt && (!label || shown?.hasLatex !== hasLatex)) {
+        // Two things about a label are fixed when its JSXGraph text is
+        // created: whether MathJax typesets it, and the layer it is drawn at.
+        // A label that gains or loses latex, or whose legend has changed
+        // layer, therefore needs a new text; one whose text alone changed does
+        // not.
+        if (
+            txt &&
+            (!label ||
+                shown?.hasLatex !== hasLatex ||
+                previous?.labelLayer !== labelLayer)
+        ) {
             board.removeObject(txt);
             txt = null;
         }
 
         if (!label) {
-            return { label: null, labelContent: null };
+            return { label: null, labelContent: null, labelLayer: null };
         }
 
         if (txt) {
@@ -346,12 +360,12 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                 strokeColor: labelTextColor,
                 highlightStrokeColor: labelTextColor,
             });
-            // The layer is deliberately not re-set here. JSXGraph renders
+            // The layer is not re-set here, and cannot be: JSXGraph renders
             // these labels as HTML overlaid on the board, and setting a layer
             // on an existing element moves its node into that SVG layer's
-            // group — where an HTML div renders nothing at all. Nothing is
-            // lost: the overlay sits above every SVG layer whatever layer the
-            // label claims.
+            // group — where an HTML div renders nothing at all. A label whose
+            // layer changed was replaced above instead, so what is left here
+            // is always already drawn at the current one.
         } else {
             const textAttrs: Record<string, any> = {
                 fixed: true,
@@ -383,7 +397,11 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             ) as JXGText;
         }
 
-        return { label: txt, labelContent: { value: label.value, hasLatex } };
+        return {
+            label: txt,
+            labelContent: { value: label.value, hasLatex },
+            labelLayer,
+        };
     }
 
     /**

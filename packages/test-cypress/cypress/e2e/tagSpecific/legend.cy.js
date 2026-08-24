@@ -747,6 +747,45 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
         );
     });
 
+    it("a legend's labels follow a layer that changes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="lay" prefill="1" />
+    <graph>
+        <function name="f">x^2</function>
+        <legend layer="$lay"><label forObject="$f">a label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // JSXGraph draws these labels as HTML overlaid on the board and turns
+        // the layer into the node's z-index — `10 * layer + TEXT_LAYER_OFFSET`,
+        // the same arithmetic the swatches use. A reused label cannot be given
+        // a new layer, so a legend whose layer changed has to be given a new
+        // label, or its labels would keep ordering by the old one while its
+        // swatches moved to the new.
+        cy.contains(".jxgbox .JXGtext", "a label").should(
+            "have.css",
+            "z-index",
+            "16",
+        );
+
+        cy.get("#lay textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+
+        cy.contains(".jxgbox .JXGtext", "a label").should(
+            "have.css",
+            "z-index",
+            "36",
+        );
+    });
+
     it("an unboxed legend draws no box", () => {
         cy.window().then(async (win) => {
             win.postMessage(
