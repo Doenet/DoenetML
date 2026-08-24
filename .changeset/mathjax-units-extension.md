@@ -20,6 +20,7 @@ Documents embedded in a page that provides its own MathJax now render the same
 way they do on doenet.org. Doenet reuses such an engine rather than clobbering
 it, which previously meant none of Doenet's configuration applied there — the
 `units` macros above, and macros such as `\var`, typeset as their own names
-instead. Doenet now teaches a reused engine those macros and packages before
-rendering. Embeddings where Doenet loads MathJax itself, including every iframe
-embedding, are unaffected.
+instead. Doenet now teaches such an engine those macros and packages before
+rendering, as it does one that booted on a MathJax configuration the host staged
+for itself. Embeddings where Doenet's own configuration reaches the engine,
+including every iframe embedding, render as they did.

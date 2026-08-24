@@ -489,6 +489,30 @@ describe("priming a host-provided MathJax", () => {
         }
     });
 
+    it("primes the copy it injects when a host config already claimed the global", async () => {
+        const win = (globalThis as any).window;
+        // A host staged a config of its own but has not added a script yet. We
+        // load MathJax without clobbering that config, so the engine boots on
+        // the host's terms and is as short of our macros as the host's own
+        // engine would have been.
+        const hostConfig = { tex: { macros: {} } };
+        win.MathJax = hostConfig;
+
+        const promise = loadMathJax({ config });
+        expect(appendedScripts).toHaveLength(1);
+        expect(win.MathJax).toBe(hostConfig);
+
+        const engine = makeEngine();
+        win.MathJax = engine;
+        appendedScripts[0]._fire("load");
+        await expect(promise).resolves.toBe(engine);
+
+        expect(engine.typeset).toEqual([
+            "\\(\\def\\lt{<}\\def\\var#1{\\mathrm{#1}}\\)",
+            "\\(\\require{units}\\)",
+        ]);
+    });
+
     it("primes nothing when there is no configuration to reproduce", async () => {
         const engine = makeEngine();
         (globalThis as any).window.MathJax = engine;

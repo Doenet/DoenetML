@@ -1,10 +1,11 @@
 /**
  * Configuration staged as `window.MathJax` for the MathJax copy Doenet loads.
  *
- * Note that this only governs *our* engine: when a host page already provides
- * MathJax, Doenet reuses it and this configuration is not applied (see
- * `loadMathJax`). Authors on such a page can still reach the extensions below
- * with MathJax's `\require`, e.g. `\require{units}`.
+ * When a host page already provides MathJax, Doenet reuses that engine rather
+ * than clobbering it, so this object is never staged there. The `macros` and the
+ * `tex.packages` added below are applied to such an engine after the fact
+ * instead, by the priming step in `loadMathJax`; the remaining options
+ * (`tags`, `displayMath`, `output`) stay the host's to decide.
  */
 export const mathjaxConfig = {
     loader: {
