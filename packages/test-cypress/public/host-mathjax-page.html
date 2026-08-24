@@ -25,6 +25,21 @@
             window.renderDoenetViewerToContainer(
                 document.querySelector(".doenetml-applet"),
             );
+            // Wait for Doenet's math to be on the page before the host typesets
+            // any of its own. Doenet renders only after priming has written to
+            // this engine, so this is what makes the host's typesetting below
+            // unambiguously *after* priming — typesetting straight away could
+            // win the race and prove nothing about priming's effect on a host.
+            await new Promise((resolve) => {
+                function poll() {
+                    if (document.querySelector("#units mjx-container")) {
+                        resolve();
+                    } else {
+                        setTimeout(poll, 50);
+                    }
+                }
+                poll();
+            });
             // The host's own math, typeset by the host through the same engine
             // Doenet just primed. It must be unaffected.
             await window.MathJax.typesetPromise([

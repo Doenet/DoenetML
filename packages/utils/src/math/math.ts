@@ -4,8 +4,10 @@
  * When a host page already provides MathJax, Doenet reuses that engine rather
  * than clobbering it, so this object is never staged there. The `macros` and the
  * `tex.packages` added below are applied to such an engine after the fact
- * instead, by the priming step in `loadMathJax`; the remaining options
- * (`tags`, `displayMath`, `output`) stay the host's to decide.
+ * instead, by the priming step in `loadMathJax` — whose `\require` both fetches
+ * an added package and enables it, covering the `loader.load` entry too. The
+ * remaining options (`tags`, `displayMath`, `output`) stay the host's to decide,
+ * so e.g. long displayed equations do not line-break on a host engine.
  */
 export const mathjaxConfig = {
     loader: {

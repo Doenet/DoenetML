@@ -479,6 +479,19 @@ describe("priming a host-provided MathJax", () => {
         ]);
     });
 
+    it("leaves an engine with no TeX input jax alone", async () => {
+        // `tex2mmlPromise` is defined only once a TeX input jax is in play, so
+        // a MathML-only host engine has none. There is nothing to prime through
+        // and nothing priming could rescue; it must simply not throw.
+        const engine = makeEngine();
+        delete (engine as any).tex2mmlPromise;
+        (globalThis as any).window.MathJax = engine;
+
+        await expect(loadMathJax({ config })).resolves.toBe(engine);
+
+        expect(engine.converted).toEqual([]);
+    });
+
     it("primes nothing when there is no configuration to reproduce", async () => {
         const engine = makeEngine();
         (globalThis as any).window.MathJax = engine;

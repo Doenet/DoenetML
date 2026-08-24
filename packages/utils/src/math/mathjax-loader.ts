@@ -27,12 +27,17 @@
  * TeX packages Doenet's documents rely on are simply absent there — an author's
  * `\units{9.8}{...}` renders as a bare `\units` on a host page and correctly on
  * doenet.org. To close that gap, such an engine is *primed*: before the shared
- * promise resolves, we run an expression through its TeX input jax that
- * reproduces our configured macros as `\def`s and pulls in our added TeX
- * packages with `\require`. Nothing is rendered or added to the page; the point
- * is the state that expression leaves behind in the jax, which MathJax keeps for
- * the life of the document, so this happens once rather than per expression. See
+ * promise resolves, we run expressions through its TeX input jax that reproduce
+ * our configured macros as `\def`s and pull in our added TeX packages with
+ * `\require`. Nothing is rendered or added to the page; the point is the state
+ * those expressions leave behind in the jax, which MathJax keeps for the life of
+ * the document, so this happens once rather than per expression. See
  * {@link primeUnconfiguredEngine} for what that costs the host.
+ *
+ * Priming is best-effort by design: each fragment is allowed to fail on its own
+ * (an engine with no TeX input jax, a `\require` the host's MathJax cannot
+ * honor) and the worst outcome is that the host renders the document the way it
+ * would have before — never that math stops rendering.
  *
  * Priming is deliberately skipped whenever the engine booted on our own
  * configuration — the common case, including every iframe embedding — so the
@@ -47,9 +52,15 @@
  * Doenet renders with MathJax 4 and pins {@link DEFAULT_MATHJAX_SRC} for the
  * copy it injects. When reusing a host-provided engine, the host's version
  * governs typesetting. MathJax 3 and 4 share the component-tex/typeset API this
- * code relies on (`startup.promise`, `typesetPromise`, `typesetClear`), so a
- * host engine in the 3.x–4.x range works; MathJax 2 (which exposes `Hub`
- * instead) is not supported for reuse.
+ * code relies on (`startup.promise`, `typesetPromise`, `typesetClear`, and the
+ * `tex2mmlPromise` that priming uses), so a host engine in the 3.x–4.x range
+ * works; MathJax 2 (which exposes `Hub` instead) is not supported for reuse.
+ *
+ * Priming reaches only as far as the host's version allows. `units` is a
+ * MathJax 4 package, so on a host still running 3.x the `\require{units}`
+ * fragment fails, priming logs a warning, and the macros still land — `\units`
+ * typesets as its own name there, exactly as it did before this existed, while
+ * everything else is unaffected.
  */
 
 /**
@@ -367,8 +378,9 @@ async function convertForSideEffect(
     engine: MathJaxEngine,
     tex: string,
 ): Promise<void> {
-    // Defined by MathJax's startup once a TeX input jax is in play, so absent
-    // exactly when there are no TeX macros to teach in the first place.
+    // Defined by MathJax's startup only once a TeX input jax is in play. An
+    // engine without one cannot render Doenet's TeX at all, primed or not, so
+    // there is nothing priming could rescue here — leave the host alone.
     if (typeof engine.tex2mmlPromise !== "function") {
         return;
     }
@@ -475,6 +487,13 @@ function createMathJaxPromise(
  * returns a promise for the live engine. The promise is memoized on `window`,
  * so repeated calls (from multiple viewers/editors/keyboard trays) share a
  * single MathJax and the first caller's options win.
+ *
+ * "The first caller's options win" is why callers that only need the engine
+ * (renderers reaching for `startup.promise`) call this bare: they run inside a
+ * viewer, whose `MathJaxContext` has already made the call carrying `config`.
+ * A bare call that got there first would settle the memo with no configuration
+ * to stage *or* to prime, leaving Doenet's macros absent everywhere — so a new
+ * caller that could run before a viewer mounts must pass `config`.
  */
 export function loadMathJax(
     options: LoadMathJaxOptions = {},

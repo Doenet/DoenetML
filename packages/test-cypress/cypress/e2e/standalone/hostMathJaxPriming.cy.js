@@ -5,9 +5,10 @@ import { normalizeMathTextForComparison } from "../../../src/util/mathDisplay";
 // stock: no Doenet macros, no `units` package. Without priming, `\units` and
 // `\var` reach MathJax's `noundefined` handler and typeset as the macro names
 // themselves — the "works on doenet.org, breaks when embedded" divergence.
-// The page also has the host typeset its own math through the same engine
-// afterwards, so a regression that primed by breaking the host would fail here
-// too rather than pass quietly.
+// The page also has the host typeset its own math through the same engine,
+// after Doenet's math has rendered and so after priming has written to it, so a
+// regression that primed by breaking the host would fail here too rather than
+// pass quietly.
 
 describe(
     "standalone priming of a host-provided MathJax",
@@ -45,8 +46,8 @@ describe(
                 expect(el.text()).eq("x");
             });
 
-            // Priming writes to the host's engine; the host's own math must
-            // still typeset through it.
+            // Priming writes to the host's engine; the host's own math, typeset
+            // through it after priming, must still come out right.
             cy.window()
                 .its("__hostMathJaxProbe.hostTypesetDone")
                 .should("be.true");
