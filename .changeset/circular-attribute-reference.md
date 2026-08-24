@@ -19,5 +19,10 @@ sequence's own values, `<sequence exclude="$a[1]"/>` and `to="$a[1]"` among them
 Doenet already recognizes a cycle like this one and says which components are
 involved; it just never got the chance here, because the resolution of the two
 sides never came back to ask. Resolving an item that is already being resolved
-now puts the question to the same check, so these documents report the circular
-dependency the way `<math name="m">$m</math>` always has.
+now puts the question to that check, and the document reports a circular
+dependency naming the components instead of consuming the tab.
+
+The report arrives as the document's failure rather than as an error on the
+offending component, which is how a cycle found while the document is being
+built — `<math extend="$m" name="m"/>` and the like — is reported. Confining
+this one the same way is left for later.
