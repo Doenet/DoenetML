@@ -2314,4 +2314,15 @@ describe("Sequence tag tests @group1", async () => {
             ).lessThan(1e-14);
         }
     });
+
+    // The same cycle `<selectFromSequence>` hits in Doenet/DoenetML#1665: the
+    // exclusion is one of the values the sequence has yet to produce. See
+    // `src/test/diagnostics/circularReferences.test.ts` for the wider family.
+    it("self-referential exclude is reported as circular", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<sequence name="a" from="1" to="10" exclude="$a[1]"/>`,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
+    });
 });

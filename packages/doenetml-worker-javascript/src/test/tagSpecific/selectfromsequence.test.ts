@@ -2260,4 +2260,26 @@ describe("SelectFromSequence tag tests @group4", async () => {
         // sort with no value should produce consistent results
         expect(secondNumbers).eqls(originalNumbers);
     });
+
+    // Doenet/DoenetML#1665: an attribute that refers back to the selection
+    // cannot be evaluated until the selection is made, which in turn needs the
+    // attribute. Both cases exhausted the worker's heap before the fix; the
+    // document now fails the way any circular reference fails one. The wider
+    // family of self-referential attributes is in
+    // `src/test/diagnostics/circularReferences.test.ts`.
+    it("self-referential exclude is reported as circular", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
+    });
+
+    it("self-referential sequence bound is reported as circular", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<selectFromSequence name="a" from="1" to="$a[1]" numToSelect="2"/>`,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
+    });
 });

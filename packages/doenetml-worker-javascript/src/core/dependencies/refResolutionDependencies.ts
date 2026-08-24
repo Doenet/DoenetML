@@ -28,7 +28,9 @@ export class RefResolutionIndexDependencies extends Dependency {
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -88,7 +90,7 @@ export class RefResolutionIndexDependencies extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
@@ -196,7 +198,9 @@ export class RefResolutionDependency extends Dependency {
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -234,7 +238,7 @@ export class RefResolutionDependency extends Dependency {
             }
 
             if (!compositeCreating.isExpanded) {
-                this.addBlockerForUnexpandedComposite(compositeCreating);
+                await this.addBlockerForUnexpandedComposite(compositeCreating);
 
                 return {
                     success: false,
@@ -293,7 +297,7 @@ export class RefResolutionDependency extends Dependency {
         if (haveComposite) {
             // make sure that the composite refComponent is expanded
             if (!refComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(refComponent);
+                await this.addBlockerForUnexpandedComposite(refComponent);
 
                 return {
                     success: false,
@@ -441,7 +445,7 @@ export class RefResolutionDependency extends Dependency {
             // We ended on a composite component with the next unresolved path being an index.
             // If the composite isn't expanded, that's the next blocker for resolving the reference.
             if (!newRefComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(newRefComponent);
+                await this.addBlockerForUnexpandedComposite(newRefComponent);
 
                 return {
                     success: false,
@@ -556,7 +560,7 @@ export class RefResolutionDependency extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
@@ -676,7 +680,9 @@ export class AttributeRefResolutions extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -838,7 +844,9 @@ export class ComponentsReferencingAttributeDependency extends Dependency {
             this.dependencyHandler._components[this.referencedIdx];
 
         if (!referencedComponent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.referencedIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.referencedIdx,
+            );
             this.missingComponentBlockers.push(this.referencedIdx);
 
             return {
@@ -943,7 +951,9 @@ export class StringsFromReferenceAttribute extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -1010,7 +1020,9 @@ export class RendererId extends Dependency {
         this.component = this.dependencyHandler._components[this.componentIdx];
 
         if (!this.component) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.componentIdx,
+            );
             this.missingComponentBlockers.push(this.componentIdx);
 
             return {

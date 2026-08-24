@@ -1283,6 +1283,9 @@ export class Dependency {
      * Add resolve blockers to this dependency due to the component with `componentIdx`
      * not existing as well as update triggers that will attempt to resolve
      * this dependency when the component is created.
+     *
+     * Must be awaited, for the reason given on
+     * {@link Dependency.addBlockerForUnexpandedComposite}.
      */
     async addBlockerUpdateTriggerForMissingComponent(componentIdx: number) {
         this.addUpdateTriggerForMissingComponent(componentIdx);
@@ -1377,6 +1380,11 @@ export class Dependency {
     /**
      * Add a resolve blocker to this dependency based on `composite`
      * not yet being expanded.
+     *
+     * Must be awaited. `addBlocker` checks the blocker graph for a cycle and
+     * throws when it finds one; left unawaited, that becomes a floating
+     * rejection and resolution goes on around the cycle until the worker runs
+     * out of memory (Doenet/DoenetML#1665).
      */
     async addBlockerForUnexpandedComposite(composite: any) {
         for (const varName of this.upstreamVariableNames) {
