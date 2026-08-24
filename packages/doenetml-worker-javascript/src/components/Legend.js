@@ -106,6 +106,13 @@ export default class Legend extends GraphicalComponent {
             },
         };
 
+        // Each element carries both the light-mode and the dark-mode color of
+        // the object it stands for, and the renderer picks between them. Dark
+        // mode is a document-level concern the renderer holds and the worker
+        // has no view of, so a swatch whose color were flattened here would be
+        // painted in one theme's color whatever theme the document is read in
+        // — disagreeing with the object it labels, which is the one job a
+        // legend has.
         stateVariableDefinitions.legendElements = {
             forRenderer: true,
             stateVariablesDeterminingDependencies: ["graphicalElementNames"],
@@ -361,6 +368,8 @@ export default class Legend extends GraphicalComponent {
                                     swatchType: "marker",
                                     markerStyle: selectedStyle.markerStyle,
                                     markerColor: selectedStyle.markerColor,
+                                    markerColorDarkMode:
+                                        selectedStyle.markerColorDarkMode,
                                     markerSize: selectedStyle.markerSize,
                                     lineOpacity: selectedStyle.lineOpacity,
                                     label: label.labelInfo,
@@ -376,9 +385,13 @@ export default class Legend extends GraphicalComponent {
                                     swatchType: "rectangle",
                                     lineStyle: selectedStyle.lineStyle,
                                     lineColor: selectedStyle.lineColor,
+                                    lineColorDarkMode:
+                                        selectedStyle.lineColorDarkMode,
                                     lineWidth: selectedStyle.lineWidth,
                                     lineOpacity: selectedStyle.lineOpacity,
                                     fillColor: selectedStyle.fillColor,
+                                    fillColorDarkMode:
+                                        selectedStyle.fillColorDarkMode,
                                     filled: componentForLabel.stateValues
                                         .filled,
                                     fillOpacity: selectedStyle.fillOpacity,
@@ -390,6 +403,8 @@ export default class Legend extends GraphicalComponent {
                                     swatchType: "line",
                                     lineStyle: selectedStyle.lineStyle,
                                     lineColor: selectedStyle.lineColor,
+                                    lineColorDarkMode:
+                                        selectedStyle.lineColorDarkMode,
                                     lineWidth: selectedStyle.lineWidth,
                                     lineOpacity: selectedStyle.lineOpacity,
                                     label: label.labelInfo,

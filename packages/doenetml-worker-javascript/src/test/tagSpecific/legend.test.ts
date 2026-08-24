@@ -11,18 +11,22 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
+// The `*DarkMode` colors are checked on their own, since a legend element
+// carries both themes' colors and most of the cases below author neither.
 type LineLegendItem = {
     swatchType: "line";
     label: string;
     hasLatex: boolean;
     lineStyle?: string;
     lineColor?: string;
+    lineColorDarkMode?: string;
     lineWidth?: number;
     lineOpacity?: number;
 };
 type RectangleLegendItem = Omit<LineLegendItem, "swatchType"> & {
     swatchType: "rectangle";
     fillColor?: string;
+    fillColorDarkMode?: string;
     filled?: boolean;
     fillOpacity?: number;
 };
@@ -32,6 +36,7 @@ type MarkerLegendItem = {
     hasLatex: boolean;
     markerStyle?: string;
     markerColor?: string;
+    markerColorDarkMode?: string;
     markerSize?: number;
 };
 
@@ -77,6 +82,11 @@ async function check_legend({
                 expect(element.markerColor).eq(item.markerColor);
                 expect(element.markerSize).eq(item.markerSize);
             }
+            if (item.markerColorDarkMode !== undefined) {
+                expect(element.markerColorDarkMode).eq(
+                    item.markerColorDarkMode,
+                );
+            }
         } else {
             if (item.lineStyle !== undefined) {
                 expect(element.lineStyle).eq(item.lineStyle);
@@ -88,6 +98,15 @@ async function check_legend({
                     expect(element.filled).eq(item.filled);
                     expect(element.fillOpacity).eq(item.fillOpacity);
                 }
+            }
+            if (item.lineColorDarkMode !== undefined) {
+                expect(element.lineColorDarkMode).eq(item.lineColorDarkMode);
+            }
+            if (
+                item.swatchType === "rectangle" &&
+                item.fillColorDarkMode !== undefined
+            ) {
+                expect(element.fillColorDarkMode).eq(item.fillColorDarkMode);
             }
         }
     }
@@ -484,6 +503,68 @@ describe("Legend tag tests @group3", async () => {
             core,
         });
         await check_items(true);
+    });
+
+    it("legend elements carry both themes' colors", async () => {
+        // Which of the two a swatch is painted with is the renderer's to
+        // decide, since the worker has no view of the document's theme. A
+        // legend element that named only one color would be a swatch that
+        // disagreed with the object it labels in the other theme.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+        <styleDefinition styleNumber="1" lineColor="#1f5dff" lineColorDarkMode="#ffcc00" markerColor="#1f5dff" markerColorDarkMode="#ffcc00" fillColor="#c0d0ff" fillColorDarkMode="#553300" />
+    </setup>
+
+    <graph>
+      <function name="f" styleNumber="1">x^2</function>
+      <point name="P" styleNumber="1">(1,2)</point>
+      <circle name="c" styleNumber="1" filled />
+
+      <legend name="legend1" displayClosedSwatches>
+        <label forObject="$f">parabola</label>
+        <label forObject="$P">point</label>
+        <label forObject="$c">circle</label>
+      </legend>
+    </graph>
+    `,
+        });
+
+        await check_legend({
+            core,
+            resolvePathToNodeIdx,
+            legendItems: [
+                {
+                    swatchType: "line",
+                    label: "parabola",
+                    hasLatex: false,
+                    lineColorDarkMode: "#ffcc00",
+                },
+                {
+                    swatchType: "marker",
+                    label: "point",
+                    hasLatex: false,
+                    markerColorDarkMode: "#ffcc00",
+                },
+                {
+                    swatchType: "rectangle",
+                    label: "circle",
+                    hasLatex: false,
+                    lineColorDarkMode: "#ffcc00",
+                    fillColorDarkMode: "#553300",
+                },
+            ],
+        });
+
+        // The light-mode colors are still there beside them.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const legendElements =
+            stateVariables[await resolvePathToNodeIdx("legend1")].stateValues
+                .legendElements;
+        expect(legendElements[0].lineColor).eq("#1f5dff");
+        expect(legendElements[1].markerColor).eq("#1f5dff");
+        expect(legendElements[2].lineColor).eq("#1f5dff");
+        expect(legendElements[2].fillColor).eq("#c0d0ff");
     });
 
     it("legend defaults to layer 1 and an unboxed background", async () => {
