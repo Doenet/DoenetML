@@ -16,8 +16,11 @@ visibly flashed and shifted.
 
 The legend now keeps its objects and updates them: a label whose text changed is
 given the new text, a swatch takes the new colors, and everything moves to the
-new geometry. Objects are only created or removed when the legend gains or loses
-an entry, an entry changes what kind of swatch it draws, or a label gains or
-loses latex or moves to a new layer.
+new geometry. What still has to be built or thrown away is only what cannot be
+carried over — an entry the legend gains or loses, an entry that changes what
+kind of swatch it draws, a label that gains or loses latex or moves to a new
+layer, the backing box as `boxed` is switched on or off, and everything at once
+when the legend is hidden. Switching the box on no longer takes the swatches and
+labels with it, which is the difference.
 
 Closes #402.
