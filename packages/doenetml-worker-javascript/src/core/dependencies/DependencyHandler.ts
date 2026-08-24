@@ -32,50 +32,6 @@ import { dependencyTypeClasses } from "./registry";
 const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
 
 /**
- * The number of unsettled `resolveItem` calls past which each further call is
- * recorded so that a cycle in the blockers can be recognized. Set above the
- * count ordinary resolution reaches — the heaviest documents in the test suite
- * reach around 30 — so that the common case pays only a counter. A document
- * that goes past it is not treated as suspect; it just starts being recorded.
- */
-const RESOLVE_DEPTH_TO_TRACK = 50;
-
-/**
- * One thing resolution can be asked for: a state variable, a component's
- * expansion, a dependency's downstream components, and so on. The four fields
- * below identify it; callers pass further options (`force`, `expandComposites`,
- * …) alongside them, which `_resolveItem` destructures.
- */
-type ResolvableItem = {
-    componentIdx: ComponentIdx | string;
-    type: string;
-    stateVariable?: string;
-    dependency?: string;
-    [option: string]: any;
-};
-
-/**
- * The key identifying one resolvable item. Used both to memoize the
- * circular-blocker check and, in `resolveItem`, to recognize that an item is
- * already being resolved.
- */
-function resolveItemIdentifier({
-    componentIdx,
-    type,
-    stateVariable,
-    dependency,
-}: ResolvableItem) {
-    let code = componentIdx.toString();
-    if (stateVariable) {
-        code += "|" + stateVariable;
-        if (dependency) {
-            code += "|" + dependency;
-        }
-    }
-    return code + "|" + type;
-}
-
-/**
  * The 9 trigger tables that `DependencyHandler` exposes for cross-component
  * change propagation. Each is an index over component identifiers or names
  * pointing at the dependent dependency records; the records themselves are
@@ -128,19 +84,6 @@ export class DependencyHandler {
 
     circularCheckPassed: Record<string, boolean>;
     circularResolveBlockedCheckPassed: Record<string, boolean>;
-    /**
-     * How many `resolveItem` calls for each identifier have yet to settle, so
-     * a call can tell that it is resolving an item already being resolved.
-     * Only calls made past `RESOLVE_DEPTH_TO_TRACK` are recorded.
-     */
-    resolveItemsInProgress: Map<string, number>;
-    /**
-     * How many `resolveItem` calls have yet to settle. Resolution nests
-     * — resolving an item means resolving what blocks it — so this tracks
-     * nesting depth, except that concurrent resolutions also count toward it.
-     * Either way, a large value only turns on the bookkeeping in `resolveItem`.
-     */
-    resolveDepth: number;
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
@@ -228,8 +171,6 @@ export class DependencyHandler {
 
         this.circularCheckPassed = {};
         this.circularResolveBlockedCheckPassed = {};
-        this.resolveItemsInProgress = new Map();
-        this.resolveDepth = 0;
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -2712,99 +2653,7 @@ export class DependencyHandler {
         return result;
     }
 
-    /**
-     * Resolve `item`, resolving whatever blocks it first. `_resolveItem` does
-     * that work and defines the parameters and the result; this wrapper is a
-     * backstop against a cycle in the blockers being chased forever.
-     *
-     * A cycle is normally caught the moment its last edge goes in: `addBlocker`
-     * ends by running `checkForCircularResolveBlocker` on the item it has just
-     * blocked, and that throws. What went wrong in Doenet/DoenetML#1665 is that
-     * the throw was dropped — five `addBlockerForUnexpandedComposite` calls
-     * were left unawaited, so the rejection floated and resolution went on
-     * around the cycle until the worker ran out of memory. Those five are
-     * awaited now, and every `addBlocker` call in `src/core` is; no input we
-     * know of reaches the check below. It is here so that the next dropped
-     * rejection costs an error message rather than the tab.
-     *
-     * Note: even if expandComposites=false and force=false we still might
-     * expand composites and force evaluate, as resolving a determineDependency
-     * will call updateDependencies, and updateDependencies calls the getters on
-     * the state variables determining dependencies.
-     */
-    resolveItem(item: ResolvableItem): Promise<any> {
-        // Resolving one item routinely means resolving the handful of items
-        // blocking it, so only the calls made past a depth no ordinary
-        // document reaches are worth the bookkeeping below. A cycle keeps
-        // nesting, so it is always caught once past that depth.
-        this.resolveDepth++;
-        if (this.resolveDepth <= RESOLVE_DEPTH_TO_TRACK) {
-            return this._resolveItem(item).finally(() => {
-                this.resolveDepth--;
-            });
-        }
-
-        let identifier: string;
-        let inProgressCount: number;
-        try {
-            identifier = resolveItemIdentifier(item);
-            inProgressCount = this.resolveItemsInProgress.get(identifier) ?? 0;
-
-            if (inProgressCount > 0) {
-                // A resolve of this item is already underway, so — when this
-                // call is nested inside it, as a cycle makes it — the item is
-                // among its own blockers. Re-entry is not itself an error:
-                // re-resolving the same item is an ordinary step for collected
-                // and extended components. Only the blocker graph can tell the
-                // two apart, so put the question to it. It throws naming the
-                // components when the cycle is real and returns when it is not.
-                this.recheckForCircularResolveBlocker(item);
-            }
-        } catch (e) {
-            // Every other failure out of `resolveItem` reaches the caller as a
-            // rejected promise, from inside `_resolveItem`. Anything raised
-            // above happens before that call, and `resolveItem` is not async,
-            // so hand it back in the same shape rather than throwing into the
-            // caller's own frame — and undo the depth this call took.
-            this.resolveDepth--;
-            return Promise.reject(e);
-        }
-
-        this.resolveItemsInProgress.set(identifier, inProgressCount + 1);
-        return this._resolveItem(item).finally(() => {
-            this.resolveDepth--;
-            const remaining = this.resolveItemsInProgress.get(identifier)! - 1;
-            if (remaining > 0) {
-                this.resolveItemsInProgress.set(identifier, remaining);
-            } else {
-                this.resolveItemsInProgress.delete(identifier);
-            }
-        });
-    }
-
-    /**
-     * Run `checkForCircularResolveBlocker` on an item that an earlier
-     * traversal may already have cleared, against an empty set of memos: a
-     * memo left from that traversal would stop the walk before it reaches a
-     * cycle formed since. The memos the rest of the resolve is relying on are
-     * put back either way. Throws naming the components when the cycle is real.
-     */
-    recheckForCircularResolveBlocker(item: ResolvableItem) {
-        const memos = this.circularResolveBlockedCheckPassed;
-        this.circularResolveBlockedCheckPassed = {};
-        try {
-            this.checkForCircularResolveBlocker(item);
-        } finally {
-            this.circularResolveBlockedCheckPassed = memos;
-        }
-    }
-
-    /**
-     * The body of `resolveItem`, which is the only caller. Recursing into the
-     * blockers it finds goes back through `resolveItem`, so every step of the
-     * descent passes the guard there.
-     */
-    async _resolveItem({
+    async resolveItem({
         componentIdx,
         type,
         stateVariable,
@@ -2814,6 +2663,19 @@ export class DependencyHandler {
         expandComposites = true,
         numPreviouslyNeeded,
     }: any): Promise<any> {
+        // if (!this.resolveLevels) {
+        //   this.resolveLevels = 0;
+        // }
+        // this.resolveLevels++;
+
+        // console.log(`${" ".repeat(this.resolveLevels - 1)}${this.resolveLevels}. resolve item ${componentIdx}, ${type}, ${stateVariable}, ${dependency}, ${expandComposites}, ${force}`)
+
+        // Note: even if expandComposites=false and force=false
+        // we still might expand composites and force evaluate
+        // as resolving a determineDependency will call updateDependencies
+        // and updateDependencies calls the getters on
+        // the state variables determining dependencies
+
         if (type === "stateVariable") {
             // Set up this variable's dependencies now (if not yet built) so
             // the peek below sees the real blockers — including the
@@ -2857,6 +2719,8 @@ export class DependencyHandler {
                 });
 
                 if (!result.success) {
+                    // console.log(`${" ".repeat(this.resolveLevels - 1)}${this.resolveLevels}. couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
+                    // this.resolveLevels--;
                     return result;
                 }
             }
@@ -2921,6 +2785,8 @@ export class DependencyHandler {
                         if (force) {
                             nFailures++;
                         } else {
+                            // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
+                            // this.resolveLevels--;
                             return result;
                         }
                     }
@@ -2966,6 +2832,8 @@ export class DependencyHandler {
                         });
 
                         if (!result.success) {
+                            // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
+                            // this.resolveLevels--;
                             return result;
                         }
                     }
@@ -3022,6 +2890,9 @@ export class DependencyHandler {
             }
         }
 
+        // console.log(`${" ".repeat(this.resolveLevels - 1)}${this.resolveLevels}. done resolving item ${componentIdx}, ${type}, ${stateVariable}, ${dependency}, ${expandComposites}, ${force}`)
+        // this.resolveLevels--;
+
         return finalResult;
     }
 
@@ -3031,22 +2902,21 @@ export class DependencyHandler {
         stateVariable,
         dependency,
         previouslyVisited = [],
-    }: ResolvableItem) {
-        let identifier = resolveItemIdentifier({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
-        });
+    }: any) {
+        let code = componentIdx.toString();
+        if (stateVariable) {
+            code += "|" + stateVariable;
+            if (dependency) {
+                code += "|" + dependency;
+            }
+        }
+
+        let identifier = code + "|" + type;
 
         if (previouslyVisited.includes(identifier)) {
             // Found circular dependency
             // Create error message with list of component types and names involved
 
-            // Kept deliberately: the message built below names the components
-            // involved, while this path through the blockers also carries the
-            // blocker types and state variables that a cycle is actually
-            // diagnosed from.
             console.log("found circular", identifier, previouslyVisited);
 
             let componentNameRe = /^([^|]*)\|/;
@@ -3195,13 +3065,16 @@ export class DependencyHandler {
         type,
         stateVariable,
         dependency,
-    }: ResolvableItem) {
-        let identifier = resolveItemIdentifier({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
-        });
+    }: any) {
+        let code = componentIdx.toString();
+        if (stateVariable) {
+            code += "|" + stateVariable;
+            if (dependency) {
+                code += "|" + dependency;
+            }
+        }
+
+        let identifier = code + "|" + type;
 
         if (this.circularResolveBlockedCheckPassed[identifier]) {
             delete this.circularResolveBlockedCheckPassed[identifier];
