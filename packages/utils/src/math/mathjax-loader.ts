@@ -36,12 +36,10 @@
  *
  * Priming is best-effort by design: each fragment is allowed to fail on its own
  * (an engine with no TeX input jax, a `\require` the host's MathJax cannot
- * honor) and the worst outcome is that the host renders the document the way it
- * would have before — never that math stops rendering.
- *
- * Priming is deliberately skipped whenever the engine booted on our own
- * configuration — the common case, including every iframe embedding — so the
- * usual path pays nothing for it.
+ * honor) and the worst outcome is that the host renders the document as it would
+ * have unprimed — never that math stops rendering. It is skipped altogether
+ * whenever the engine booted on our own configuration — the common case,
+ * including every iframe embedding — so the usual path pays nothing for it.
  *
  * The resulting promise is memoized on `window` so that every viewer, editor,
  * and virtual-keyboard tray in the realm shares a single MathJax, regardless of
@@ -58,9 +56,8 @@
  *
  * Priming reaches only as far as the host's version allows. `units` is a
  * MathJax 4 package, so on a host still running 3.x the `\require{units}`
- * fragment fails, priming logs a warning, and the macros still land — `\units`
- * typesets as its own name there, exactly as it did before this existed, while
- * everything else is unaffected.
+ * fragment fails and priming logs a warning; the macros still land, and `\units`
+ * typesets as its own name there.
  */
 
 /**
