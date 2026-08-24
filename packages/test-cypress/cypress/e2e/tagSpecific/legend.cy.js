@@ -38,6 +38,11 @@ function assertBoxContainsLabel(getLabel) {
     });
 }
 
+/** {@link assertBoxContainsLabel} for the label showing `labelText`. */
+function assertLabelInsideBox(labelText) {
+    assertBoxContainsLabel(() => cy.contains(".jxgbox .JXGtext", labelText));
+}
+
 describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -381,6 +386,404 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
                 },
             );
         });
+    });
+
+    it("a changed legend keeps its swatches and labels", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="mi" prefill="2" />
+    <graph>
+        <function name="f" styleNumber="10">x^$mi</function>
+        <legend boxed><label forObject="$f">power $mi</label></legend>
+    </graph>
+
+    <setup>
+        <styleDefinition styleNumber="10" lineColor="#ff0000" lineOpacity="1" />
+    </setup>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(".jxgbox").should("contain.text", "power 2");
+
+        // The legend's swatch, above the curve of the same color, and the box.
+        const idsBefore = {};
+        cy.get(".jxgbox svg [stroke='#ff0000']")
+            .eq(1)
+            .then(($swatch) => {
+                idsBefore.swatch = $swatch.attr("id");
+                expect(idsBefore.swatch).to.be.a("string").and.not.be.empty;
+            });
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").then(($box) => {
+            idsBefore.box = $box.attr("id");
+        });
+
+        cy.get("#mi textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+
+        cy.get(".jxgbox").should("contain.text", "power 3");
+        cy.contains(".jxgbox .JXGtext", "power 3").should("be.visible");
+
+        // The legend is redrawn in place, so its JSXGraph objects — and hence
+        // the SVG nodes they render to — are the same ones as before.
+        cy.get(".jxgbox svg [stroke='#ff0000']")
+            .eq(1)
+            .should(($swatch) => {
+                expect($swatch.attr("id")).to.eq(idsBefore.swatch);
+            });
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            ($box) => {
+                expect($box.attr("id")).to.eq(idsBefore.box);
+            },
+        );
+    });
+
+    it("a latex label keeps its text object when it changes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="mi" prefill="2" />
+    <graph>
+        <function name="f">x^$mi</function>
+        <legend boxed><label forObject="$f"><m>k = $mi</m></label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        let labelId;
+        cy.contains(".jxgbox .JXGtext", toMathJaxString("k =2")).then(
+            ($label) => {
+                labelId = $label.attr("id");
+                expect(labelId).to.be.a("string").and.not.be.empty;
+            },
+        );
+
+        cy.get("#mi textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+
+        // The text is given to the object that was already showing the old
+        // one, so MathJax typesets the new label in place rather than the
+        // legend building a second text to typeset from scratch.
+        cy.contains(".jxgbox .JXGtext", toMathJaxString("k =3")).should(
+            ($label) => {
+                expect($label.attr("id")).to.eq(labelId);
+            },
+        );
+    });
+
+    it("a legend lays out from a label's full width", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph xmin="-100" xmax="0" ymin="-10" ymax="10">
+        <function name="f">x^2</function>
+        <legend boxed><label forObject="$f">a fairly long legend label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Every legend object is created at the graph's origin, which this
+        // graph puts hard against the board's right edge — where an absolutely
+        // positioned label would have no room to stand at its full width. The
+        // label is kept on one line, so it is measured, and the box around it
+        // drawn, from the width it will actually be drawn at.
+        cy.contains(".jxgbox .JXGtext", "a fairly long legend label").should(
+            "be.visible",
+        );
+        assertLabelInsideBox("a fairly long legend label");
+    });
+
+    it("a legend follows a label that grows where it stands", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <textInput name="ti" prefill="short" />
+    <graph>
+        <function name="f">x^2</function>
+        <legend boxed><label forObject="$f">$ti</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        let labelId;
+        cy.contains(".jxgbox .JXGtext", "short").then(($label) => {
+            labelId = $label.attr("id");
+            expect(labelId).to.be.a("string").and.not.be.empty;
+        });
+
+        const grown = "a considerably longer legend label";
+        cy.get("#ti_input").clear().type(`${grown}{enter}`);
+
+        // The label is the object that was already there, so it is measured
+        // where it was last drawn: hard against the graph's right edge, where
+        // this right-aligned legend had put it while it was short. Kept on one
+        // line it still measures its full width, so the legend moves left to
+        // make room for it instead of being stuck at the width it had.
+        cy.contains(".jxgbox .JXGtext", grown).should(($label) => {
+            expect($label.attr("id")).to.eq(labelId);
+        });
+        assertLabelInsideBox(grown);
+    });
+
+    it("a legend follows a latex label that grows where it stands", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <graph>
+        <function name="f">x^2</function>
+        <legend boxed><label forObject="$f"><m>g = $mi</m></label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        function latexLabel() {
+            return cy.get(".jxgbox .JXGtext").filter(":has(.MathJax)");
+        }
+
+        let shortWidth;
+        latexLabel().should(($label) => {
+            shortWidth = $label[0].getBoundingClientRect().width;
+            expect(shortWidth, "typeset width").to.be.greaterThan(0);
+        });
+
+        cy.get("#mi textarea").type(
+            "{selectall}{backspace}abcdefghijklmnop{enter}",
+            { force: true },
+        );
+
+        // The label is the text object that was already there, typeset in
+        // place, and it is measured where the short label left it — hard
+        // against the graph's right edge on this right-aligned legend. The
+        // box has to be sized from what MathJax made of the new latex, so it
+        // still encloses the label once the label is several times wider.
+        latexLabel().should(($label) => {
+            expect(
+                $label[0].getBoundingClientRect().width,
+                "typeset width after the label grew",
+            ).to.be.greaterThan(shortWidth * 2);
+        });
+        assertBoxContainsLabel(latexLabel);
+    });
+
+    it("a legend can gain and lose its box while it is shown", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="bi" prefill="false" />
+    <graph>
+        <function name="f">x^2</function>
+        <legend boxed="$bi"><label forObject="$f">a label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.contains(".jxgbox .JXGtext", "a label").should("be.visible");
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "not.exist",
+        );
+
+        cy.get("#bi").click();
+
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "have.length",
+            1,
+        );
+        cy.contains(".jxgbox .JXGtext", "a label").should("be.visible");
+
+        cy.get("#bi").click();
+
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "not.exist",
+        );
+        cy.contains(".jxgbox .JXGtext", "a label").should("be.visible");
+    });
+
+    it("marker and rectangle swatches are restyled in place", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <booleanInput name="bi" prefill="true" />
+    <graph>
+        <point name="P" styleNumber="10">(1,2)</point>
+        <circle name="c" center="(5,5)" filled="$bi" styleNumber="11" />
+        <legend displayClosedSwatches>
+            <label forObject="$P">a point</label>
+            <label forObject="$c">a circle</label>
+        </legend>
+    </graph>
+
+    <setup>
+        <styleDefinition styleNumber="10" markerColor="#ff0000" markerStyle="square" lineOpacity="1" />
+        <styleDefinition styleNumber="11" fillColor="#00ff00" fillOpacity="1"
+            lineColor="#0000ff" lineOpacity="1" />
+    </setup>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.contains(".jxgbox .JXGtext", "a circle").should("be.visible");
+
+        // The marker swatch is the only fully opaque red element: the point it
+        // stands for is drawn translucent. The rectangle swatch is the only
+        // green polygon; the circle it stands for is an ellipse.
+        const ids = {};
+        cy.get(".jxgbox svg [fill='#ff0000'][fill-opacity='1']")
+            .should("have.length", 1)
+            .then(($marker) => {
+                ids.marker = $marker.attr("id");
+                expect(ids.marker).to.be.a("string").and.not.be.empty;
+            });
+        cy.get(".jxgbox svg polygon[fill='#00ff00']")
+            .should("have.length", 1)
+            .then(($rectangle) => {
+                ids.rectangle = $rectangle.attr("id");
+                expect(ids.rectangle).to.be.a("string").and.not.be.empty;
+            });
+
+        // Unfilling the circle restyles the rectangle swatch, which JSXGraph
+        // draws unfilled by taking its fill opacity to zero. Both swatches are
+        // still the objects they were: only their attributes changed.
+        cy.get("#bi").click();
+
+        cy.then(() => {
+            cy.get(`.jxgbox svg polygon#${ids.rectangle}`)
+                .should("have.length", 1)
+                .and("have.attr", "fill-opacity", "0");
+            cy.get(`.jxgbox svg #${ids.marker}`)
+                .should("have.length", 1)
+                .and("have.attr", "fill", "#ff0000");
+        });
+
+        cy.get("#bi").click();
+
+        cy.then(() => {
+            cy.get(`.jxgbox svg polygon#${ids.rectangle}`)
+                .should("have.length", 1)
+                .and("have.attr", "fill", "#00ff00")
+                .and("have.attr", "fill-opacity", "1");
+        });
+    });
+
+    it("a legend follows entries being added and removed", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="n" prefill="2" />
+    <graph>
+        <repeatForSequence length="$n" indexName="i">
+            <function styleNumber="$i">x^$i</function>
+        </repeatForSequence>
+        <legend boxed>
+            <repeatForSequence length="$n" indexName="i">
+                <label>curve $i</label>
+            </repeatForSequence>
+        </legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.contains(".jxgbox .JXGtext", "curve 2").should("be.visible");
+        cy.get(".jxgbox").should("not.contain.text", "curve 3");
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "have.length",
+            1,
+        );
+
+        // A third entry: the legend gains a swatch and a label, and its box
+        // grows to hold them.
+        cy.get("#n textarea").type("{end}{backspace}3{enter}", { force: true });
+
+        cy.contains(".jxgbox .JXGtext", "curve 3").should("be.visible");
+        cy.contains(".jxgbox .JXGtext", "curve 1").should("be.visible");
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "have.length",
+            1,
+        );
+
+        // Down to one entry: the swatches and labels of the other two are
+        // taken off the board rather than left behind.
+        cy.get("#n textarea").type("{end}{backspace}1{enter}", { force: true });
+
+        cy.contains(".jxgbox .JXGtext", "curve 1").should("be.visible");
+        cy.get(".jxgbox").should("not.contain.text", "curve 2");
+        cy.get(".jxgbox").should("not.contain.text", "curve 3");
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+            "have.length",
+            1,
+        );
+    });
+
+    it("a legend's labels follow a layer that changes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="lay" prefill="1" />
+    <graph>
+        <function name="f">x^2</function>
+        <legend layer="$lay"><label forObject="$f">a label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // JSXGraph draws these labels as HTML overlaid on the board and turns
+        // the layer into the node's z-index — `10 * layer + TEXT_LAYER_OFFSET`,
+        // the same arithmetic the swatches use. A reused label cannot be given
+        // a new layer, so a legend whose layer changed has to be given a new
+        // label, or its labels would keep ordering by the old one while its
+        // swatches moved to the new.
+        cy.contains(".jxgbox .JXGtext", "a label").should(
+            "have.css",
+            "z-index",
+            "16",
+        );
+
+        cy.get("#lay textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+
+        cy.contains(".jxgbox .JXGtext", "a label").should(
+            "have.css",
+            "z-index",
+            "36",
+        );
     });
 
     it("an unboxed legend draws no box", () => {
