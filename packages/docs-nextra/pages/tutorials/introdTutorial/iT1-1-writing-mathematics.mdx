@@ -72,6 +72,16 @@ The `<m>` and `<me>` tags do not recognize strings such as "sqrt" or "sin" as ma
 <me>\sin{(a+b)}</me>
 ```
 
+Quantities with units are typeset with the [`units` extension](https://docs.mathjax.org/en/latest/input/tex/extensions/units.html), which spaces a number and its unit the way a typesetter would, so you don't have to reach for `\,` and `\mathrm` by hand. It supplies `\units`, along with `\unitfrac` and `\nicefrac` for the fractions that units tend to bring with them:
+
+```doenet-editor-horiz
+<p>The ball fell at <m>\units{9.8}{\text{m}/\text{s}^2}</m>.</p>
+
+<me>c = \units{3 \times 10^8}{\text{m}/\text{s}}</me>
+
+<p>A rate of <m>\unitfrac[60]{\text{mi}}{\text{hr}}</m> is <m>\nicefrac{1}{60}</m> of a mile per second.</p>
+```
+
 A full LaTeX introduction is beyond the scope of this tutorial. If you're not familiar with LaTeX, we highly encourage you to search online for an introduction to typing mathematics in LaTeX, such as [this guide](https://overleaf.com/learn/latex/Mathematical_expressions) from Overleaf.
 
 ### Lists and other HTML Tags
