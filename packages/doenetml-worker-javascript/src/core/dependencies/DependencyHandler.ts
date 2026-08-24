@@ -41,21 +41,30 @@ const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
 const RESOLVE_DEPTH_TO_TRACK = 50;
 
 /**
- * The key identifying one resolvable item — a state variable, a component's
- * expansion, and so on. Used both to memoize the circular-blocker check and,
- * in `resolveItem`, to recognize that an item is already being resolved.
+ * One thing resolution can be asked for: a state variable, a component's
+ * expansion, a dependency's downstream components, and so on. The four fields
+ * below identify it; callers pass further options (`force`, `expandComposites`,
+ * …) alongside them, which `_resolveItem` destructures.
+ */
+type ResolvableItem = {
+    componentIdx: ComponentIdx | string;
+    type: string;
+    stateVariable?: string;
+    dependency?: string;
+    [option: string]: any;
+};
+
+/**
+ * The key identifying one resolvable item. Used both to memoize the
+ * circular-blocker check and, in `resolveItem`, to recognize that an item is
+ * already being resolved.
  */
 function resolveItemIdentifier({
     componentIdx,
     type,
     stateVariable,
     dependency,
-}: {
-    componentIdx: ComponentIdx | string;
-    type: string;
-    stateVariable?: string;
-    dependency?: string;
-}) {
+}: ResolvableItem) {
     let code = componentIdx.toString();
     if (stateVariable) {
         code += "|" + stateVariable;
@@ -2704,16 +2713,16 @@ export class DependencyHandler {
     }
 
     /**
-     * Resolve `item`, resolving whatever blocks it first. See `_resolveItem`
-     * for the parameters and the returned result; this half only guards
-     * against a cycle in the blockers being chased forever.
+     * Resolve `item`, resolving whatever blocks it first. `_resolveItem` does
+     * that work and defines the parameters and the result; this wrapper only
+     * keeps a cycle in the blockers from being chased forever.
      *
      * Note: even if expandComposites=false and force=false we still might
      * expand composites and force evaluate, as resolving a determineDependency
      * will call updateDependencies, and updateDependencies calls the getters on
      * the state variables determining dependencies.
      */
-    resolveItem(item: any): Promise<any> {
+    resolveItem(item: ResolvableItem): Promise<any> {
         // Resolving one item routinely means resolving the handful of items
         // blocking it, so only the calls made past a depth no ordinary
         // document reaches are worth the bookkeeping below. A cycle keeps
@@ -2732,17 +2741,19 @@ export class DependencyHandler {
         if (inProgressCount > 0) {
             // A resolve of this item is already underway, so — when this call
             // is nested inside it, as a cycle makes it — the item is among its
-            // own blockers. Whether that is a cycle the
-            // author has to fix or a step that will still resolve is a
-            // question for the blocker graph, which throws with the components
-            // involved when the cycle is real. Left unasked, a real cycle is
-            // chased until the worker runs out of memory (Doenet/DoenetML#1665).
+            // own blockers. Whether that is a cycle the author has to fix or a
+            // step that will still resolve is a question for the blocker graph,
+            // which throws naming the components when the cycle is real. Left
+            // unasked, a real cycle is chased until the worker runs out of
+            // memory (Doenet/DoenetML#1665).
             try {
                 this.recheckForCircularResolveBlocker(item);
             } catch (e) {
-                // `resolveItem` hands back a promise rather than being async,
-                // so a caller that never awaits it sees a rejection here and
-                // not an exception thrown out of its own frame.
+                // Every other failure out of `resolveItem` reaches the caller
+                // as a rejected promise, from inside `_resolveItem`. This one
+                // is raised before that call, and `resolveItem` is not async,
+                // so hand it back in the same shape rather than throwing into
+                // the caller's own frame.
                 this.resolveDepth--;
                 return Promise.reject(e);
             }
@@ -2768,7 +2779,7 @@ export class DependencyHandler {
      * cycle formed since. The memos the rest of the resolve is relying on are
      * put back either way. Throws naming the components when the cycle is real.
      */
-    recheckForCircularResolveBlocker(item: any) {
+    recheckForCircularResolveBlocker(item: ResolvableItem) {
         const memos = this.circularResolveBlockedCheckPassed;
         this.circularResolveBlockedCheckPassed = {};
         try {
@@ -2779,8 +2790,9 @@ export class DependencyHandler {
     }
 
     /**
-     * The body of `resolveItem`, which is the only caller. Unlike that half,
-     * this one is free to recurse into the blockers it finds.
+     * The body of `resolveItem`, which is the only caller. Recursing into the
+     * blockers it finds goes back through `resolveItem`, so every step of the
+     * descent passes the guard there.
      */
     async _resolveItem({
         componentIdx,
@@ -3009,7 +3021,7 @@ export class DependencyHandler {
         stateVariable,
         dependency,
         previouslyVisited = [],
-    }: any) {
+    }: ResolvableItem) {
         let identifier = resolveItemIdentifier({
             componentIdx,
             type,
@@ -3021,8 +3033,9 @@ export class DependencyHandler {
             // Found circular dependency
             // Create error message with list of component types and names involved
 
-            // The path through the blockers, which carries the types and state
-            // variables the message below leaves out, and is what a cycle is
+            // Kept deliberately: the message built below names the components
+            // involved, while this path through the blockers also carries the
+            // blocker types and state variables that a cycle is actually
             // diagnosed from.
             console.log("found circular", identifier, previouslyVisited);
 
@@ -3172,7 +3185,7 @@ export class DependencyHandler {
         type,
         stateVariable,
         dependency,
-    }: any) {
+    }: ResolvableItem) {
         let identifier = resolveItemIdentifier({
             componentIdx,
             type,

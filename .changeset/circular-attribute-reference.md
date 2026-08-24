@@ -17,10 +17,11 @@ and the same happened for any sequence attribute written in terms of the
 sequence's own values, `<sequence exclude="$a[1]"/>` and `to="$a[1]"` among them.
 
 Doenet already recognizes a cycle like this one and says which components are
-involved; it just never got the chance here, because the resolution of the two
-sides never came back to ask. Resolving an item that is already being resolved
-now puts the question to that check, and the document reports a circular
-dependency naming the components instead of consuming the tab.
+involved; the check was simply never run here, because it fires only as a new
+dependency is registered and this cycle closed without one. Resolving something
+that is already being resolved now puts the question to that same check, and the
+document reports a circular dependency naming the components instead of
+consuming the tab.
 
 The report arrives as the document's failure, which is what a circular
 reference has always done — `<math name="m">$m</math>` fails a document the
