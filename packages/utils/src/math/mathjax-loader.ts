@@ -23,6 +23,20 @@
  *  - Otherwise, inject our own copy — and only stage `window.MathJax = config`
  *    when nothing else has claimed that global.
  *
+ * When we end up on someone else's engine, our configuration never reaches it,
+ * so the macros and TeX packages Doenet's documents rely on are simply absent
+ * there — an author's `\\units{9.8}{...}` renders as a red `\\units` on a host
+ * page and correctly on doenet.org. To close that gap, a foreign engine is
+ * *primed*: before the shared promise resolves, we typeset a hidden expression
+ * that reproduces our configured macros as `\\def`s and pulls in our added TeX
+ * packages with `\\require`. MathJax keeps such definitions for the life of the
+ * document, so this happens once rather than per expression. See
+ * {@link primeForeignEngine} for what that costs the host.
+ *
+ * Priming is deliberately skipped whenever the engine is one we configured
+ * ourselves — the common case, including every iframe embedding — so the usual
+ * path pays nothing for it.
+ *
  * The resulting promise is memoized on `window` so that every viewer, editor,
  * and virtual-keyboard tray in the realm shares a single MathJax, regardless of
  * how many (possibly separately-bundled) copies of this module are loaded.
@@ -231,6 +245,159 @@ function injectMathJax(
     });
 }
 
+/**
+ * Reproduces `config.tex.macros` as a string of `\def`s.
+ *
+ * MathJax's macro config accepts a bare replacement string, or `[replacement,
+ * argCount]`, or `[replacement, argCount, defaultForOptionalArg]`. A plain
+ * `\def` expresses the first two; the optional-argument form has no `\def`
+ * equivalent and is skipped rather than approximated, as is any name `\def`
+ * cannot take (control sequences are letters-only).
+ */
+function texDefsFromConfig(config: object | undefined): string {
+    const macros = (config as { tex?: { macros?: unknown } } | undefined)?.tex
+        ?.macros;
+    if (!macros || typeof macros !== "object") {
+        return "";
+    }
+    const defs: string[] = [];
+    for (const [name, value] of Object.entries(
+        macros as Record<string, unknown>,
+    )) {
+        if (!/^[A-Za-z]+$/.test(name)) {
+            continue;
+        }
+        let replacement: string;
+        let argCount = 0;
+        if (typeof value === "string") {
+            replacement = value;
+        } else if (
+            Array.isArray(value) &&
+            value.length <= 2 &&
+            typeof value[0] === "string"
+        ) {
+            replacement = value[0];
+            argCount = typeof value[1] === "number" ? value[1] : 0;
+        } else {
+            continue;
+        }
+        if (!Number.isInteger(argCount) || argCount < 0 || argCount > 9) {
+            continue;
+        }
+        const parameters = Array.from(
+            { length: argCount },
+            (_unused, index) => `#${index + 1}`,
+        ).join("");
+        defs.push(`\\def\\${name}${parameters}{${replacement}}`);
+    }
+    return defs.join("");
+}
+
+/**
+ * The TeX packages `config` *adds* to MathJax's defaults — the `{"[+]": [...]}`
+ * form. A bare array is ignored on purpose: that form replaces the default list
+ * outright and so describes the base set of the engine we build ourselves, not
+ * something a host engine is necessarily missing.
+ */
+function texPackagesFromConfig(config: object | undefined): string[] {
+    const packages = (config as { tex?: { packages?: unknown } } | undefined)
+        ?.tex?.packages;
+    if (!packages || typeof packages !== "object" || Array.isArray(packages)) {
+        return [];
+    }
+    const added = (packages as Record<string, unknown>)["[+]"];
+    if (!Array.isArray(added)) {
+        return [];
+    }
+    return added.filter(
+        (name): name is string =>
+            typeof name === "string" && /^[\w-]+$/.test(name),
+    );
+}
+
+/**
+ * Typesets `tex` into a throwaway offscreen element purely for its side effect
+ * on the engine, and resolves whether or not that worked.
+ *
+ * Never rejects: priming is a best-effort improvement on an engine we do not
+ * own, and a failure here must not stop the math that follows from rendering.
+ */
+async function typesetForSideEffect(
+    engine: MathJaxEngine,
+    tex: string,
+): Promise<void> {
+    if (typeof engine.typesetPromise !== "function") {
+        return;
+    }
+    const parent = document.body ?? document.documentElement;
+    if (!parent) {
+        return;
+    }
+    const host = document.createElement("div");
+    host.setAttribute("aria-hidden", "true");
+    host.style.cssText =
+        "position:absolute;left:-9999px;top:0;width:0;height:0;overflow:hidden;visibility:hidden";
+    // Offscreen rather than `display: none`, because the output jax measures
+    // what it typesets and an undisplayed subtree has no metrics to measure.
+    host.textContent = `\\(${tex}\\)`;
+    parent.appendChild(host);
+    try {
+        await engine.typesetPromise([host]);
+    } catch (reason) {
+        console.warn(
+            `DoenetViewer: could not prime a host-provided MathJax with "${tex}"; ` +
+                "math relying on it may not render as it does on doenet.org.",
+            reason,
+        );
+    } finally {
+        try {
+            engine.typesetClear?.([host]);
+        } catch {
+            // `typesetClear` only drops bookkeeping for an element we are about
+            // to discard; if the host engine dislikes it, nothing is lost.
+        }
+        host.remove();
+    }
+}
+
+/**
+ * Teaches a host-provided engine the macros and TeX packages our configuration
+ * would have given it, so a document renders the same there as on an engine we
+ * loaded ourselves.
+ *
+ * Two things are worth being explicit about, because this writes to state the
+ * host owns:
+ *
+ *  - The definitions are document-wide and outlive this call, which is what
+ *    makes priming a one-time cost instead of a per-expression one. It also
+ *    means a host that defines any of the same names gets ours instead. The
+ *    names come from Doenet's own configuration, so the exposure is limited to
+ *    what a Doenet document could already have relied on.
+ *  - Each fragment is typeset separately. `\require` throws when a package
+ *    cannot be loaded, and MathJax abandons the rest of the expression when it
+ *    does; batching would let one unavailable package silently take the macro
+ *    definitions down with it.
+ */
+async function primeForeignEngine(
+    engine: MathJaxEngine,
+    config: object | undefined,
+): Promise<MathJaxEngine> {
+    try {
+        await engine.startup?.promise;
+    } catch {
+        // A host engine that reports a failed startup may still typeset; let
+        // the priming attempts below find out rather than deciding here.
+    }
+    const defs = texDefsFromConfig(config);
+    if (defs) {
+        await typesetForSideEffect(engine, defs);
+    }
+    for (const packageName of texPackagesFromConfig(config)) {
+        await typesetForSideEffect(engine, `\\require{${packageName}}`);
+    }
+    return engine;
+}
+
 function createMathJaxPromise(
     options: LoadMathJaxOptions,
 ): Promise<MathJaxEngine> {
@@ -242,8 +409,9 @@ function createMathJaxPromise(
     } = options;
 
     // A live engine is already present — reuse it and never touch window.MathJax.
+    // It is not ours and never saw `config`, so prime it before anyone uses it.
     if (isMathJaxEngine(window.MathJax)) {
-        return Promise.resolve(window.MathJax);
+        return primeForeignEngine(window.MathJax, config);
     }
 
     // A MathJax script is already on the page (possibly deferred), or the host
@@ -253,17 +421,27 @@ function createMathJaxPromise(
     // loading — and taking over with — our own copy, so math still renders. This
     // is what makes a mis-detected host non-fatal instead of blanking all math.
     if (useExistingMathJax || findMathJaxScript()) {
-        return waitForExistingMathJax(timeoutMs).catch((reason) => {
-            console.warn(
-                "DoenetViewer: a host-provided MathJax did not become usable in " +
-                    "time; falling back to loading Doenet's own copy.",
-                reason,
-            );
-            return injectMathJax(src, config, { force: true });
-        });
+        return waitForExistingMathJax(timeoutMs).then(
+            // The host's engine: ours to use, not ours to have configured.
+            (engine) => primeForeignEngine(engine, config),
+            // The takeover copy is one we load and stage `config` on ourselves,
+            // so it needs no priming. Handling the rejection here rather than in
+            // a trailing `.catch` also keeps a priming failure above — which is
+            // never fatal — from being mistaken for a host that never loaded,
+            // and answered by injecting a second engine over the host's.
+            (reason) => {
+                console.warn(
+                    "DoenetViewer: a host-provided MathJax did not become usable in " +
+                        "time; falling back to loading Doenet's own copy.",
+                    reason,
+                );
+                return injectMathJax(src, config, { force: true });
+            },
+        );
     }
 
-    // Nothing else provides MathJax — load our own copy.
+    // Nothing else provides MathJax — we load it and stage `config` on it, so
+    // everything in that config is already in effect. No priming needed.
     return injectMathJax(src, config);
 }
 

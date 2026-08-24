@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- A page that already owns MathJax before Doenet boots — the React-app and
+     PreTeXt-style embeddings that load the standalone bundle inline rather than
+     through an iframe. The engine here is configured the way a host would
+     configure it: it knows nothing of Doenet's macros and carries no `units`
+     package. Doenet finds a live engine, reuses it rather than clobbering it,
+     and primes it so the document still renders as it does on doenet.org.
+     Asserted by e2e/standalone/hostMathJaxPriming.cy.js. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script>
+            // A stock host configuration. Deliberately NOT Doenet's: no
+            // `macros`, no `packages`. `typeset: false` only stops the initial
+            // page sweep, so what renders below is what someone asked for.
+            window.MathJax = { startup: { typeset: false } };
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js"></script>
+        <script type="module">
+            // Boot the host's engine FIRST, so `window.MathJax` is a live
+            // engine by the time the bundle looks — the reuse path.
+            await window.MathJax.startup.promise;
+            await import("/standalone/doenet-standalone.js");
+            window.renderDoenetViewerToContainer(
+                document.querySelector(".doenetml-applet"),
+            );
+            // The host's own math, typeset by the host through the same engine
+            // Doenet just primed. It must be unaffected.
+            await window.MathJax.typesetPromise([
+                document.getElementById("host-math"),
+            ]);
+            window.__hostMathJaxProbe = { hostTypesetDone: true };
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+                <p name="units"><m>\units{9.8}{\text{m}/\text{s}^2}</m></p>
+                <p name="nicefrac"><m>\nicefrac{1}{2}</m></p>
+                <p name="macro"><m>\var{x}</m></p>
+                <p name="plain"><m>y^2</m></p>
+            </script>
+        </div>
+        <div id="host-math">\(a^2+b^2\)</div>
+    </body>
+</html>

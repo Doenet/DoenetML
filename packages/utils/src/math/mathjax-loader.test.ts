@@ -45,18 +45,50 @@ function makeScript(src = ""): FakeScript {
     };
 }
 
+/**
+ * The offscreen element priming typesets into. Only the handful of members
+ * `typesetForSideEffect` touches are modelled.
+ */
+type FakeElement = {
+    textContent: string;
+    style: { cssText: string };
+    setAttribute: (name: string, value: string) => void;
+    remove: () => void;
+    _removed: boolean;
+};
+
+function makeElement(): FakeElement {
+    return {
+        textContent: "",
+        style: { cssText: "" },
+        setAttribute() {},
+        remove() {
+            this._removed = true;
+        },
+        _removed: false,
+    };
+}
+
 let appendedScripts: FakeScript[];
 let domScripts: FakeScript[];
+let bodyChildren: FakeElement[];
 
 function installFakeDom() {
     appendedScripts = [];
     domScripts = [];
+    bodyChildren = [];
     const fakeDocument = {
-        createElement: (_tag: string) => makeScript(),
+        createElement: (tag: string) =>
+            tag === "script" ? makeScript() : makeElement(),
         head: {
             appendChild: (script: FakeScript) => {
                 appendedScripts.push(script);
                 domScripts.push(script);
+            },
+        },
+        body: {
+            appendChild: (element: FakeElement) => {
+                bodyChildren.push(element);
             },
         },
         querySelectorAll: (_selector: string) =>
@@ -78,13 +110,25 @@ function installFakeDom() {
  * with an object `startup` hid the bug where `isMathJaxEngine` rejected every
  * MathJax 4 host engine.
  */
-function makeEngine() {
+function makeEngine(
+    options: { failTypesetting?: (tex: string) => boolean } = {},
+) {
     const startup: any = () => {};
     startup.promise = Promise.resolve();
+    // Everything the engine was asked to typeset, in order — which for a primed
+    // host engine is exactly the priming fragments.
+    const typeset: string[] = [];
     return {
         version: "4.1.3",
         startup,
-        typesetPromise: () => Promise.resolve(),
+        typeset,
+        typesetPromise: (elements: FakeElement[]) => {
+            const tex = elements[0]?.textContent ?? "";
+            typeset.push(tex);
+            return options.failTypesetting?.(tex)
+                ? Promise.reject(new Error(`cannot typeset ${tex}`))
+                : Promise.resolve();
+        },
         typesetClear: () => {},
     };
 }
@@ -322,5 +366,135 @@ describe("loadMathJax", () => {
         win.MathJax = engine;
         appendedScripts[1]._fire("load");
         await expect(second).resolves.toBe(engine);
+    });
+});
+
+/**
+ * Priming is what makes a document render the same on a host's engine as on one
+ * Doenet loaded: the engine never saw our config, so we teach it the macros and
+ * TeX packages that config would have given it. These tests pin down both that
+ * it happens where it must, and that it does *not* happen where our own config
+ * is already in effect — the common case, which must pay nothing for it.
+ */
+describe("priming a host-provided MathJax", () => {
+    const config = {
+        tex: {
+            macros: {
+                lt: "<",
+                var: ["\\mathrm{#1}", 1],
+                // A `\def` cannot express an optional argument, and control
+                // sequences are letters-only; both are skipped, not approximated.
+                withOptional: ["\\tfrac{#1}{#2}", 2, "1"],
+                "not-a-name": "\\alpha",
+            },
+            packages: { "[+]": ["units"] },
+        },
+    };
+
+    beforeEach(() => {
+        installFakeDom();
+    });
+
+    it("teaches a reused host engine our macros and added packages", async () => {
+        const engine = makeEngine();
+        (globalThis as any).window.MathJax = engine;
+
+        await expect(loadMathJax({ config })).resolves.toBe(engine);
+
+        expect(engine.typeset).toEqual([
+            "\\(\\def\\lt{<}\\def\\var#1{\\mathrm{#1}}\\)",
+            "\\(\\require{units}\\)",
+        ]);
+        // Every offscreen host is cleaned up, however the typeset went.
+        expect(bodyChildren).toHaveLength(2);
+        expect(bodyChildren.every((element) => element._removed)).toBe(true);
+    });
+
+    it("keeps \\require in its own typeset so an unavailable package cannot take the macros down with it", async () => {
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            // A host whose MathJax has no `units` package to load.
+            const engine = makeEngine({
+                failTypesetting: (tex) => tex.includes("\\require"),
+            });
+            (globalThis as any).window.MathJax = engine;
+
+            await expect(loadMathJax({ config })).resolves.toBe(engine);
+
+            // The definitions were typeset before — and separately from — the
+            // package that failed, so they still took effect.
+            expect(engine.typeset[0]).toContain("\\def\\var#1{\\mathrm{#1}}");
+            expect(engine.typeset).toHaveLength(2);
+            expect(warnSpy).toHaveBeenCalled();
+        } finally {
+            warnSpy.mockRestore();
+        }
+    });
+
+    it("still resolves the engine when priming fails outright", async () => {
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            const engine = makeEngine({ failTypesetting: () => true });
+            (globalThis as any).window.MathJax = engine;
+
+            // Priming is best-effort on an engine we do not own; a failure must
+            // degrade to "renders as the host would" rather than to no math.
+            await expect(loadMathJax({ config })).resolves.toBe(engine);
+        } finally {
+            warnSpy.mockRestore();
+        }
+    });
+
+    it("does not prime an engine it loaded and configured itself", async () => {
+        const win = (globalThis as any).window;
+
+        const promise = loadMathJax({ config });
+        expect(appendedScripts).toHaveLength(1);
+
+        const engine = makeEngine();
+        win.MathJax = engine;
+        appendedScripts[0]._fire("load");
+        await expect(promise).resolves.toBe(engine);
+
+        // `config` was staged on this engine before it booted, so its macros and
+        // packages are already in effect — priming it would be pure overhead.
+        expect(engine.typeset).toEqual([]);
+        expect(bodyChildren).toHaveLength(0);
+    });
+
+    it("does not prime the takeover copy loaded after a host engine never appears", async () => {
+        vi.useFakeTimers();
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            const win = (globalThis as any).window;
+            const promise = loadMathJax({
+                useExistingMathJax: true,
+                timeoutMs: 1000,
+                config,
+            });
+            await vi.advanceTimersByTimeAsync(1100);
+
+            // The fallback stages `config` on the copy it injects, so this
+            // engine is ours despite having started down the host branch.
+            expect(appendedScripts).toHaveLength(1);
+            const engine = makeEngine();
+            win.MathJax = engine;
+            appendedScripts[0]._fire("load");
+            await expect(promise).resolves.toBe(engine);
+
+            expect(engine.typeset).toEqual([]);
+        } finally {
+            warnSpy.mockRestore();
+            vi.useRealTimers();
+        }
+    });
+
+    it("primes nothing when there is no configuration to reproduce", async () => {
+        const engine = makeEngine();
+        (globalThis as any).window.MathJax = engine;
+
+        await expect(loadMathJax()).resolves.toBe(engine);
+
+        expect(engine.typeset).toEqual([]);
     });
 });
