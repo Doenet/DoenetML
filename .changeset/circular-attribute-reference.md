@@ -14,8 +14,8 @@ asks for a selection that cannot be made until the exclusion is known, and an
 exclusion that cannot be evaluated until the selection is made. The two chased
 each other — no warning, no error, the tab growing until it ran out of memory —
 and the same happened for any attribute written in terms of the component's own
-values: `<sequence exclude="$a[1]"/>` and `to="$a[1]"` among them, and the
-matching shapes on `<select>`, `<repeat>`, and `<conditionalContent>`.
+values: `<sequence name="a" from="1" to="10" exclude="$a[1]"/>` among them, and
+the matching shapes on `<select>`, `<repeat>`, and `<conditionalContent>`.
 
 Doenet had recognized the cycle all along and raised its usual error naming the
 components involved; the error was being dropped rather than reported, because
