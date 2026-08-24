@@ -18,6 +18,6 @@ The legend now keeps its objects and updates them: a label whose text changed is
 given the new text, a swatch takes the new colors, and everything moves to the
 new geometry. Objects are only created or removed when the legend gains or loses
 an entry, an entry changes what kind of swatch it draws, or a label gains or
-loses latex.
+loses latex or moves to a new layer.
 
 Closes #402.
