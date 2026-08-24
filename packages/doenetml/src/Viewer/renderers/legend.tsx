@@ -40,6 +40,13 @@ interface LegendLabel {
 /** What every legend element carries, whatever its swatch is drawn as. */
 interface LegendElementBase {
     label?: LegendLabel;
+    /**
+     * The opacity every swatch is drawn at, a marker's fill included: the
+     * worker sends the described object's `lineOpacity` for all three kinds.
+     * A point is drawn from `markerOpacity` instead, so a marker swatch and
+     * the point it stands for differ in opacity wherever a style definition
+     * names the two apart.
+     */
     lineOpacity: number;
 }
 
