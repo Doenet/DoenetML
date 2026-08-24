@@ -1283,6 +1283,9 @@ export class Dependency {
      * Add resolve blockers to this dependency due to the component with `componentIdx`
      * not existing as well as update triggers that will attempt to resolve
      * this dependency when the component is created.
+     *
+     * Must be awaited, for the reason given on
+     * {@link Dependency.addBlockerForUnexpandedComposite}.
      */
     async addBlockerUpdateTriggerForMissingComponent(componentIdx: number) {
         this.addUpdateTriggerForMissingComponent(componentIdx);

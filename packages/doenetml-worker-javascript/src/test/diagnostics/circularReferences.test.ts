@@ -58,8 +58,22 @@ describe("Circular reference tests @group2", async () => {
         });
     }
 
+    // The message is worth checking on one case: reporting the cycle is only
+    // useful if it says where to look. It goes on to name the components the
+    // attribute expanded into, which are an implementation detail, so only the
+    // authored component is asserted.
+    it("the report names the component the attribute is on", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`,
+            }),
+        ).rejects.toThrow(`${circularError}: <selectFromSequence> (line 1)`);
+    });
+
     // Two components, each excluding a value the other has yet to produce:
     // the same cycle, drawn across a pair rather than closed on one component.
+    // Both ends should be named, which is what distinguishes this from the
+    // cases above.
     it("mutually referential excludes are reported as circular", async () => {
         await expect(
             createTestCore({
@@ -68,6 +82,11 @@ describe("Circular reference tests @group2", async () => {
     <selectFromSequence name="b" from="1" to="10" exclude="$a[1]"/>
     `,
             }),
-        ).rejects.toThrow(circularError);
+        ).rejects.toThrow(
+            new RegExp(
+                `${circularError}:.*<selectFromSequence> \\(line 2\\).*<selectFromSequence> \\(line 3\\)`,
+                "s",
+            ),
+        );
     });
 });

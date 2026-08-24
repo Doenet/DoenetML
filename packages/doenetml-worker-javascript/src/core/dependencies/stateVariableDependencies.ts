@@ -46,7 +46,9 @@ export class StateVariableDependency extends Dependency {
         let component = this.dependencyHandler._components[this.componentIdx];
 
         if (!component) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.componentIdx,
+            );
 
             return {
                 success: false,
@@ -114,7 +116,9 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         const component = this.dependencyHandler._components[this.componentIdx];
 
         if (!component) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.componentIdx,
+            );
 
             return {
                 success: false,

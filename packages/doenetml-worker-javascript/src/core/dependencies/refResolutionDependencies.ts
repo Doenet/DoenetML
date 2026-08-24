@@ -28,7 +28,9 @@ export class RefResolutionIndexDependencies extends Dependency {
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -196,7 +198,9 @@ export class RefResolutionDependency extends Dependency {
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -676,7 +680,9 @@ export class AttributeRefResolutions extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -838,7 +844,9 @@ export class ComponentsReferencingAttributeDependency extends Dependency {
             this.dependencyHandler._components[this.referencedIdx];
 
         if (!referencedComponent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.referencedIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.referencedIdx,
+            );
             this.missingComponentBlockers.push(this.referencedIdx);
 
             return {
@@ -943,7 +951,9 @@ export class StringsFromReferenceAttribute extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -1010,7 +1020,9 @@ export class RendererId extends Dependency {
         this.component = this.dependencyHandler._components[this.componentIdx];
 
         if (!this.component) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.componentIdx,
+            );
             this.missingComponentBlockers.push(this.componentIdx);
 
             return {
