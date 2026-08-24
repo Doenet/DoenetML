@@ -20,6 +20,7 @@ import {
     detachAnchoredGraphElement,
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
 
 interface MathSVs {
     [key: string]: any;
@@ -91,14 +92,11 @@ export default React.memo(function MathComponent(
             return null;
         }
 
-        let textColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.textColorDarkMode
-                : SVs.selectedStyle.textColor;
-        let backgroundColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.backgroundColorDarkMode
-                : SVs.selectedStyle.backgroundColor;
+        let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+        let backgroundColor = resolveBackgroundColor(
+            SVs.selectedStyle,
+            darkMode,
+        );
 
         let cssStyle = ``;
         if (backgroundColor) {
@@ -264,14 +262,11 @@ export default React.memo(function MathComponent(
                 mathJXG.current.setAttribute({ layer });
             }
 
-            let textColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.textColorDarkMode
-                    : SVs.selectedStyle.textColor;
-            let backgroundColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.backgroundColorDarkMode
-                    : SVs.selectedStyle.backgroundColor;
+            let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+            let backgroundColor = resolveBackgroundColor(
+                SVs.selectedStyle,
+                darkMode,
+            );
             let cssStyle = ``;
             if (backgroundColor) {
                 cssStyle += `background-color: ${backgroundColor}`;

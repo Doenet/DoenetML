@@ -21,8 +21,12 @@ import {
 import { styleToDash } from "./utils/styleToDash";
 import { DocContext } from "../DocViewer";
 import {
+    DarkMode,
     resolveBackgroundColor,
     resolveCanvasColor,
+    resolveFillColor,
+    resolveLineColor,
+    resolveMarkerColor,
     resolvePanelBorderColor,
     resolveTextColor,
 } from "./utils/styleColors";
@@ -33,20 +37,61 @@ interface LegendLabel {
     value: string;
 }
 
-interface LegendElement {
+/** What every legend element carries, whatever its swatch is drawn as. */
+interface LegendElementBase {
     label?: LegendLabel;
-    swatchType: "marker" | "rectangle" | "line";
-    markerColor?: string;
-    markerStyle?: string;
-    markerSize?: number;
-    lineColor?: string;
-    lineWidth?: number;
-    lineStyle?: string;
-    lineOpacity?: number;
-    fillColor?: string;
-    fillOpacity?: number;
-    filled?: boolean;
+    /**
+     * The opacity every swatch is drawn at, a marker's fill included: the
+     * worker sends the described object's `lineOpacity` for all three kinds.
+     * A point is drawn from `markerOpacity` instead, so a marker swatch and
+     * the point it stands for differ in opacity wherever a style definition
+     * names the two apart.
+     */
+    lineOpacity: number;
 }
+
+interface MarkerLegendElement extends LegendElementBase {
+    swatchType: "marker";
+    markerColor: string;
+    markerColorDarkMode: string;
+    markerStyle: string;
+    markerSize: number;
+}
+
+interface LineLegendElement extends LegendElementBase {
+    swatchType: "line";
+    lineColor: string;
+    lineColorDarkMode: string;
+    lineWidth: number;
+    lineStyle: string;
+}
+
+interface RectangleLegendElement extends Omit<LineLegendElement, "swatchType"> {
+    swatchType: "rectangle";
+    fillColor: string;
+    fillColorDarkMode: string;
+    fillOpacity: number;
+    filled: boolean;
+}
+
+/**
+ * One row of the legend, as the worker describes it: a label and the style of
+ * the object that label stands for. Every color comes as a light-mode and a
+ * dark-mode value, since which of the two a swatch takes is settled here and
+ * not in the worker, which has no view of the document's theme.
+ *
+ * Which style keys an element carries follows from its `swatchType`, so the
+ * three kinds are separate types rather than one type of optional fields:
+ * only a marker names a marker color, only a rectangle a fill.
+ */
+type LegendElement =
+    MarkerLegendElement | LineLegendElement | RectangleLegendElement;
+
+/**
+ * The elements whose swatch is drawn with a stroke: a line, and a rectangle's
+ * border.
+ */
+type StrokedLegendElement = LineLegendElement | RectangleLegendElement;
 
 interface GraphLimits {
     xMin: number;
@@ -276,7 +321,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
 
         if (element.swatchType === "marker") {
             return board.create("point", ORIGIN, {
-                ...markerAttributes(element),
+                ...markerAttributes(element, darkMode),
                 strokeColor: "none",
                 fixed: true,
                 highlight: false,
@@ -288,13 +333,13 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
 
         if (element.swatchType === "rectangle") {
             return board.create("polygon", [ORIGIN, ORIGIN, ORIGIN, ORIGIN], {
-                ...fillAttributes(element),
+                ...fillAttributes(element, darkMode),
                 fixed: true,
                 highlight: false,
                 layer: lineSwatchLayer,
                 vertices: { visible: false },
                 borders: {
-                    ...strokeAttributes(element),
+                    ...strokeAttributes(element, darkMode),
                     fixed: true,
                     highlight: false,
                     layer: lineSwatchLayer,
@@ -305,7 +350,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         // The endpoints are distinct because a segment between coincident
         // points has no direction to be drawn along.
         return board.create("segment", [ORIGIN, [1, 0]], {
-            ...strokeAttributes(element),
+            ...strokeAttributes(element, darkMode),
             fixed: true,
             highlight: false,
             layer: lineSwatchLayer,
@@ -412,23 +457,23 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     function applySwatchStyle(swatch: Swatch, element: LegendElement) {
         if (element.swatchType === "marker") {
             swatch.setAttribute({
-                ...markerAttributes(element),
+                ...markerAttributes(element, darkMode),
                 layer: markerSwatchLayer,
             });
         } else if (element.swatchType === "rectangle") {
             swatch.setAttribute({
-                ...fillAttributes(element),
+                ...fillAttributes(element, darkMode),
                 layer: lineSwatchLayer,
             });
             for (const border of (swatch as JXGPolygon).borders) {
                 border.setAttribute({
-                    ...strokeAttributes(element),
+                    ...strokeAttributes(element, darkMode),
                     layer: lineSwatchLayer,
                 });
             }
         } else {
             swatch.setAttribute({
-                ...strokeAttributes(element),
+                ...strokeAttributes(element, darkMode),
                 layer: lineSwatchLayer,
             });
         }
@@ -680,6 +725,15 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             boxFillColor,
             boxBorderColor,
             labelTextColor,
+            // A legend element carries both of its colors and the swatch
+            // picks between them here, so toggling the theme leaves the
+            // elements themselves untouched while every swatch drawn from
+            // them wants repainting. The theme is named directly rather than
+            // left to the resolved colors above, which catch a toggle only
+            // incidentally: `boxBorderColor` happens to differ between the
+            // themes today, but it is the box's color, and the swatches
+            // should not depend on it to be repainted.
+            darkMode,
         };
 
         if (!deepCompare(previousDependencies.current, dependencies)) {
@@ -713,27 +767,38 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     );
 });
 
-function markerAttributes(element: LegendElement): Record<string, any> {
+function markerAttributes(
+    element: MarkerLegendElement,
+    darkMode: DarkMode,
+): Record<string, any> {
     return {
-        fillColor: element.markerColor,
+        fillColor: resolveMarkerColor(element, darkMode),
         fillOpacity: element.lineOpacity,
         size: element.markerSize,
         face: normalizeStyle(element.markerStyle),
     };
 }
 
-function strokeAttributes(element: LegendElement): Record<string, any> {
+function strokeAttributes(
+    element: StrokedLegendElement,
+    darkMode: DarkMode,
+): Record<string, any> {
     return {
-        strokeColor: element.lineColor,
+        strokeColor: resolveLineColor(element, darkMode),
         strokeWidth: element.lineWidth,
         strokeOpacity: element.lineOpacity,
         dash: styleToDash(element.lineStyle),
     };
 }
 
-function fillAttributes(element: LegendElement): Record<string, any> {
+function fillAttributes(
+    element: RectangleLegendElement,
+    darkMode: DarkMode,
+): Record<string, any> {
     return {
-        fillColor: element.filled ? element.fillColor : "none",
+        fillColor: element.filled
+            ? resolveFillColor(element, darkMode)
+            : "none",
         fillOpacity: element.fillOpacity,
     };
 }
@@ -778,12 +843,9 @@ function boxCorners(
     ];
 }
 
-function normalizeStyle(style: string | undefined): string | undefined {
-    if (style === "triangle") {
-        return "triangleup";
-    } else {
-        return style;
-    }
+/** A marker style under the name JSXGraph knows it by. */
+function normalizeStyle(style: string): string {
+    return style === "triangle" ? "triangleup" : style;
 }
 
 /**

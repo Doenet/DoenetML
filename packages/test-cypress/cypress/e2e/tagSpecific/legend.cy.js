@@ -694,6 +694,83 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("swatches agree with their objects in both themes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph>
+        <function name="f" styleNumber="10">x^2</function>
+        <point name="P" styleNumber="11">(1,2)</point>
+        <circle name="c" center="(5,5)" filled styleNumber="12" />
+        <legend displayClosedSwatches>
+            <label forObject="$f">a curve</label>
+            <label forObject="$P">a point</label>
+            <label forObject="$c">a circle</label>
+        </legend>
+    </graph>
+
+    <setup>
+        <styleDefinition styleNumber="10" lineColor="#ff0000" lineColorDarkMode="#ffcc00" lineOpacity="1" />
+        <styleDefinition styleNumber="11" markerColor="#00ff00" markerColorDarkMode="#00ffff" markerStyle="square" lineOpacity="1" />
+        <styleDefinition styleNumber="12" fillColor="#0000ff" fillColorDarkMode="#ff00ff" fillOpacity="1"
+            lineColor="#996633" lineColorDarkMode="#663399" lineOpacity="1" />
+    </setup>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.contains(".jxgbox .JXGtext", "a circle").should("be.visible");
+
+        // Two elements stroked the curve's light-mode color: the curve itself
+        // and the line swatch that stands for it. That they are both there is
+        // the assertion — a legend whose swatch disagreed with its object
+        // would leave one of each color.
+        cy.get(".jxgbox svg [stroke='#ff0000']").should("have.length", 2);
+
+        // The marker swatch is the only fully opaque green element; the point
+        // it stands for is drawn translucent. The rectangle swatch is the only
+        // blue polygon; the circle it stands for is an ellipse.
+        const ids = {};
+        cy.get(".jxgbox svg [fill='#00ff00'][fill-opacity='1']")
+            .should("have.length", 1)
+            .then(($marker) => {
+                ids.marker = $marker.attr("id");
+            });
+        cy.get(".jxgbox svg polygon[fill='#0000ff']")
+            .should("have.length", 1)
+            .then(($rectangle) => {
+                ids.rectangle = $rectangle.attr("id");
+            });
+
+        // Switch the document into dark mode. Every swatch takes the dark-mode
+        // color of the object it labels, and does so by being repainted rather
+        // than rebuilt: each is still the object it was.
+        cy.window().then((win) => {
+            win.postMessage({ darkMode: "dark" }, "*");
+        });
+        cy.get('[data-theme="dark"]').should("exist");
+
+        cy.get(".jxgbox svg [stroke='#ffcc00']").should("have.length", 2);
+        cy.get(".jxgbox svg [stroke='#ff0000']").should("not.exist");
+
+        cy.then(() => {
+            cy.get(`.jxgbox svg #${ids.marker}`)
+                .should("have.length", 1)
+                .and("have.attr", "fill", "#00ffff");
+            cy.get(`.jxgbox svg polygon#${ids.rectangle}`)
+                .should("have.length", 1)
+                .and("have.attr", "fill", "#ff00ff");
+        });
+
+        // The rectangle swatch's border follows the theme alongside its fill:
+        // the circle's outline and the swatch's are drawn the same color.
+        cy.get(".jxgbox svg [stroke='#663399']").should("have.length.gte", 2);
+        cy.get(".jxgbox svg [stroke='#996633']").should("not.exist");
+    });
+
     it("a legend follows entries being added and removed", () => {
         cy.window().then(async (win) => {
             win.postMessage(
