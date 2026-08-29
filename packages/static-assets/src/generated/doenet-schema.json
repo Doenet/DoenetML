@@ -65391,8 +65391,16 @@
                             "description": "English"
                         },
                         {
+                            "value": "ab",
+                            "description": "Abkhazian"
+                        },
+                        {
                             "value": "ace",
                             "description": "Acehnese"
+                        },
+                        {
+                            "value": "ady",
+                            "description": "Adyghe"
                         },
                         {
                             "value": "af",
@@ -65421,6 +65429,10 @@
                         {
                             "value": "ast",
                             "description": "Asturian (asturianu)"
+                        },
+                        {
+                            "value": "av",
+                            "description": "Avaric"
                         },
                         {
                             "value": "ay",
@@ -65519,6 +65531,10 @@
                             "description": "Mari"
                         },
                         {
+                            "value": "ckb",
+                            "description": "Central Kurdish (کوردیی ناوەندی)"
+                        },
+                        {
                             "value": "co",
                             "description": "Corsican"
                         },
@@ -65541,6 +65557,10 @@
                         {
                             "value": "dag",
                             "description": "Dagbani (Dagbanli)"
+                        },
+                        {
+                            "value": "dar",
+                            "description": "Dargwa"
                         },
                         {
                             "value": "de",
@@ -65711,6 +65731,10 @@
                             "description": "Iloko"
                         },
                         {
+                            "value": "inh",
+                            "description": "Ingush"
+                        },
+                        {
                             "value": "is",
                             "description": "Icelandic (íslenska)"
                         },
@@ -65733,6 +65757,10 @@
                         {
                             "value": "kab",
                             "description": "Kabyle (Taqbaylit)"
+                        },
+                        {
+                            "value": "kbd",
+                            "description": "Kabardian"
                         },
                         {
                             "value": "kbp",
@@ -65779,6 +65807,10 @@
                             "description": "Kanuri"
                         },
                         {
+                            "value": "krc",
+                            "description": "Karachay-Balkar"
+                        },
+                        {
                             "value": "kri",
                             "description": "Krio"
                         },
@@ -65791,6 +65823,14 @@
                             "description": "Kituba (Kikongo ya leta)"
                         },
                         {
+                            "value": "ku",
+                            "description": "Kurdish (kurdî (kurmancî))"
+                        },
+                        {
+                            "value": "kum",
+                            "description": "Kumyk"
+                        },
+                        {
                             "value": "kv",
                             "description": "Komi"
                         },
@@ -65801,6 +65841,14 @@
                         {
                             "value": "lb",
                             "description": "Luxembourgish (Lëtzebuergesch)"
+                        },
+                        {
+                            "value": "lbe",
+                            "description": "Lak (лакку маз)"
+                        },
+                        {
+                            "value": "lez",
+                            "description": "Lezghian"
                         },
                         {
                             "value": "lg",
@@ -65921,6 +65969,10 @@
                         {
                             "value": "nl",
                             "description": "Dutch (Nederlands)"
+                        },
+                        {
+                            "value": "nog",
+                            "description": "Nogai"
                         },
                         {
                             "value": "nso",
@@ -66103,6 +66155,10 @@
                             "description": "Tamil (தமிழ்)"
                         },
                         {
+                            "value": "tab",
+                            "description": "Tabasaran (tab)"
+                        },
+                        {
                             "value": "te",
                             "description": "Telugu (తెలుగు)"
                         },
@@ -66137,6 +66193,10 @@
                         {
                             "value": "tlh",
                             "description": "Klingon"
+                        },
+                        {
+                            "value": "tly",
+                            "description": "Talysh"
                         },
                         {
                             "value": "tn",

@@ -68,9 +68,9 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Thirteen of
- * the sixteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
- * `kg`, `bua`, `kv`, `chm` — are ISO 639-3 macrolanguages and list their
+ * member of `nb` or `ak`, and both are deliberately left to miss. Fourteen of
+ * the seventeen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
+ * `kg`, `bua`, `kv`, `chm`, `ku` — are ISO 639-3 macrolanguages and list their
  * macrolanguage members; `nah` is an ISO 639-3 **collection** code rather than a
  * macrolanguage, so it lists the individual Nahuan languages ISO 639-5 groups
  * under it; and `mnk` and `dje` are neither, being *members* — of `man` and
@@ -78,7 +78,8 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * Those two are the shape {@link LANGUAGE_ALIASES}'s `man` entry explains, and
  * it is why the members listed under `mnk` exclude `bam` and `dyu`: those two
  * have catalogs of their own, and folding them here would serve a Bambara
- * reader Mandinka.
+ * reader Mandinka. `ku` excludes `ckb` for that same reason, and is the first
+ * key here to exclude a member while still *being* the macrolanguage.
  *
  * The two member cases part company over their macrolanguage, and the reason
  * is CLDR rather than a preference: `man` is aliased onto `mnk` because
@@ -287,6 +288,31 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // a written standard with an orthography of its own rather than a spelling
     // of this one.
     chm: ["mhr", "mrj"],
+    // Kurdish. `locales/ku` is Northern Kurdish (Kurmanji) in the Hawar Latin
+    // alphabet, which is what ICU folds `kmr` onto and what a bare `ku`
+    // maximizes to (`ku-Latn-TR`). ISO 639-3 gives the macrolanguage three
+    // members — `ckb`, `kmr`, `sdh` — and this list holds two of them.
+    //
+    // `ckb` (Central Kurdish, Sorani) is deliberately absent: it has a catalog
+    // of its own, added in the same batch, and folding it here would serve a
+    // Sorani reader Kurmanji in a script they do not read. That is `locales/mnk`
+    // excluding `bam` and `dyu`, arriving for the first time on a key that is
+    // the macrolanguage rather than one of its members.
+    //
+    // `sdh` (Southern Kurdish) maximizes to `sdh-Arab-IR`, so a reader CLDR
+    // expects in the Perso-Arabic script is served the Latin catalog. That is
+    // this batch's script debt and the same one `locales/kr` owes `kby` in
+    // Ajami, `locales/dje` owes `tda` in Tifinagh and `locales/bua` owes `bxu`
+    // in Mongolian script; the answer to it is a second catalog rather than a
+    // change here, and routing `sdh` to `locales/ckb` on script alone would be
+    // exactly the judgement this map exists to avoid.
+    //
+    // `lki` (Laki) is left to miss. It is often described as Southern Kurdish
+    // and is written in the same script, but ISO 639-3's macrolanguage mapping
+    // gives it a code outside `kur`, so folding it would be a judgement about
+    // how close two varieties are rather than a published fact — `kbl` under
+    // `kr` and `alq` under `oj` land the same way.
+    ku: ["kmr", "sdh"],
 };
 
 /** Flattened once at module load rather than searched per request. */
