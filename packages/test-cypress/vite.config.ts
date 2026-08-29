@@ -146,6 +146,9 @@ export default defineConfig({
         }),
     ],
     server: {
+        // The wireit caches hold hundreds of thousands of files; watching
+        // them exhausts the system inotify limit (ENOSPC on `npm run dev`).
+        watch: { ignored: ["**/.wireit/**"] },
         port: 8012,
     },
 });
