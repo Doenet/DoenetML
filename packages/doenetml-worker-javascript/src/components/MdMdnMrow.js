@@ -211,7 +211,16 @@ export class Md extends InlineComponent {
 
         // Only rows that hold an embedded input are rendered. A display with no
         // inputs therefore renders exactly as it did before they were possible.
-        stateVariableDefinitions.childIndicesToRender = {
+        /**
+         * The inputs embedded in this display's rows, in row order, so the
+         * renderer knows which markers in the template are its own — and, as
+         * the same computation, which rows to render: only those holding one.
+         */
+        stateVariableDefinitions.embeddedInputComponentIndices = {
+            forRenderer: true,
+            additionalStateVariablesDefined: [
+                { variableName: "childIndicesToRender" },
+            ],
             returnDependencies: () => ({
                 allChildren: {
                     dependencyType: "child",
@@ -224,15 +233,16 @@ export class Md extends InlineComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                const rowsWithInputs = new Set(
-                    dependencyValues.mrowChildren
-                        .filter(
-                            (child) =>
-                                child.stateValues.embeddedInputComponentIndices
-                                    ?.length > 0,
-                        )
-                        .map((child) => child.componentIdx),
-                );
+                const embeddedInputComponentIndices = [];
+                const rowsWithInputs = new Set();
+                for (const row of dependencyValues.mrowChildren) {
+                    const embedded =
+                        row.stateValues.embeddedInputComponentIndices ?? [];
+                    if (embedded.length > 0) {
+                        rowsWithInputs.add(row.componentIdx);
+                        embeddedInputComponentIndices.push(...embedded);
+                    }
+                }
 
                 const childIndicesToRender = [];
                 for (const [
@@ -247,7 +257,12 @@ export class Md extends InlineComponent {
                     }
                 }
 
-                return { setValue: { childIndicesToRender } };
+                return {
+                    setValue: {
+                        embeddedInputComponentIndices,
+                        childIndicesToRender,
+                    },
+                };
             },
             markStale: () => ({ updateRenderedChildren: true }),
         };

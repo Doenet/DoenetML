@@ -416,6 +416,25 @@ describe("Inputs embedded in displayed math @group1", async () => {
             `\\notag q & = \\sin(x)\\\\\\notag w & = \\doenetInputSlot{${tiIdx}}`,
         );
         expect(md.typesetsOwnChildren).eq(false);
+        // The display's own list, so its renderer knows which markers are its
+        // slots without trusting the template's text.
+        expect(md.embeddedInputComponentIndices).eqls([tiIdx]);
+    });
+
+    it("an external label names the input, so the expression does not", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <label for="$ti">Your favorite number</label>
+    <m name="m">x = <textInput name="ti" /> + 3</m>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const ti = stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
+
+        expect(ti.shortDescription).eq("");
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.filter((w) => w.code === "doenet-a0003")).eqls([]);
     });
 
     it("a row typesets itself only outside an aligned display", async () => {

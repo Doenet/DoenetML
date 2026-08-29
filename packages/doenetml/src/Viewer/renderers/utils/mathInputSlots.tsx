@@ -79,11 +79,14 @@ export function slotIndicesInTemplate(template: string): number[] {
  */
 export function substituteSlots({
     template,
+    componentIndices,
     sizes,
     slotElementId,
     slotLabel,
 }: {
     template: string;
+    /** The markers that are slots; any other is left as written. */
+    componentIndices: readonly number[];
     sizes: ReadonlyMap<number, SlotBox>;
     slotElementId: (componentIdx: number) => string;
     slotLabel: (componentIdx: number) => string;
@@ -92,8 +95,11 @@ export function substituteSlots({
 
     const substituted = template.replace(
         SLOT_PATTERN,
-        (_match, rawIdx: string) => {
+        (match, rawIdx: string) => {
             const componentIdx = Number(rawIdx);
+            if (!componentIndices.includes(componentIdx)) {
+                return match;
+            }
             const box = sizes.get(componentIdx);
             if (!box) {
                 missing = true;
@@ -130,10 +136,13 @@ function escapeForTex(label: string): string {
 export function useMathSlots({
     rootId,
     template,
+    embeddedComponentIndices,
     describeSlot,
 }: {
     rootId: string;
     template: string;
+    /** The inputs core embedded, which is what makes a marker a slot. */
+    embeddedComponentIndices: readonly number[];
     /** The spoken name of the `ordinal`-th of `total` slots. */
     describeSlot: (ordinal: number, total: number) => string;
 }) {
@@ -151,9 +160,16 @@ export function useMathSlots({
         ReadonlyMap<number, SlotPosition>
     >(new Map());
 
+    // The template is trusted only as far as core's own list goes: a marker
+    // is a slot when core embedded that input, not merely because the text
+    // matches. So an author who happens to write the marker's spelling, or a
+    // host that defines a macro of that name, gets it typeset as written.
     const componentIndices = useMemo(
-        () => slotIndicesInTemplate(template),
-        [template],
+        () =>
+            slotIndicesInTemplate(template).filter((componentIdx) =>
+                embeddedComponentIndices.includes(componentIdx),
+            ),
+        [template, embeddedComponentIndices],
     );
 
     const slotElementId = useCallback(
@@ -195,6 +211,7 @@ export function useMathSlots({
                 ? template
                 : substituteSlots({
                       template,
+                      componentIndices,
                       sizes,
                       slotElementId,
                       slotLabel,

@@ -230,6 +230,68 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("a marker written by the author is typeset, not treated as a slot", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">x = \\doenetInputSlot{1} + 3</m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Core embedded nothing, so the plain path: MathJax gets the text as
+        // written (an undefined macro renders as an error node, but renders),
+        // and there is no slot layer waiting for a size that never comes.
+        cy.get(`${cesc("#m")} mjx-container`).should("exist");
+        cy.get(`${cesc("#m")} .doenet-math-slot-layer`).should("not.exist");
+    });
+
+    it("the control follows the reserved box when the page narrows", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <md name="md">
+      <mrow>f(x) \\amp = a + b + c + d + e + f + g + h</mrow>
+      <mrow>\\amp = <textInput name="ti" /> + 3</mrow>
+    </md>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
+
+        const expectAligned = () =>
+            cy.get(cesc("#md")).should(($root) => {
+                const root = $root[0];
+                const slotRect = root
+                    .querySelector(".doenet-math-slot")
+                    .getBoundingClientRect();
+                const reservedRect = root
+                    .querySelector("[id*='_mathSlot_']")
+                    .getBoundingClientRect();
+                expect(
+                    Math.abs(slotRect.left - reservedRect.left),
+                ).to.be.lessThan(2);
+                expect(
+                    Math.abs(slotRect.top - reservedRect.top),
+                ).to.be.lessThan(2);
+            });
+
+        expectAligned();
+        // A centered display moves sideways as its container narrows, with no
+        // re-typeset to read the new position from.
+        cy.viewport(500, 800);
+        expectAligned();
+        cy.viewport(1000, 800);
+        expectAligned();
+    });
+
     it("math with no embedded input keeps its plain markup", () => {
         // The guard on every existing document: nothing about the old path
         // changes just because this feature exists.

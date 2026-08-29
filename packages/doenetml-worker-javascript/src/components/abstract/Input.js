@@ -951,8 +951,15 @@ export default class Input extends InlineComponent {
 
                 // Nothing else named it, but it is a blank in an expression:
                 // read the expression, with the gap spoken in its place, so the
-                // reader hears what they are being asked to fill in.
-                if (shortDescription === "" && !dependencyValues.label) {
+                // reader hears what they are being asked to fill in. An
+                // external `<label for>` counts as naming it: the renderer
+                // would otherwise emit the expression as `aria-label`, which
+                // takes precedence over that label.
+                if (
+                    shortDescription === "" &&
+                    !dependencyValues.label &&
+                    !hasExternalForLabel
+                ) {
                     shortDescription = describeAsMathBlank({
                         dependencyValues,
                         componentIdx,
