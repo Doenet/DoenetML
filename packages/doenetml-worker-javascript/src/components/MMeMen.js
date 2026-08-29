@@ -222,10 +222,11 @@ export class M extends InlineComponent {
          * its shape suits an expression: a choice input must be `inline`, since
          * a block of radio buttons has no place inside an equation, and a text
          * input must have an absolute width, since a percentage would resolve
-         * against the absolutely-positioned wrapper rather than the page. An
-         * input that opts in but is shaped wrongly warns and falls back to being
-         * flattened into `latex`, which is what it did before it could be
-         * embedded at all.
+         * against the absolutely-positioned wrapper rather than the page. Math
+         * drawn on a graph is a single picture of the expression, with nowhere
+         * to put a control, so nothing is embedded there. An input that opts in
+         * but cannot be embedded warns and falls back to being flattened into
+         * `latex`, which is what it did before it could be embedded at all.
          */
         stateVariableDefinitions.embeddedInputComponentIndices = {
             forRenderer: true,
@@ -242,6 +243,10 @@ export class M extends InlineComponent {
                     childGroups: ["inline"],
                     variableNames: ["inline", "expanded", "width"],
                     variablesOptional: true,
+                },
+                graphAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "graph",
                 },
             }),
             definition({ dependencyValues, componentInfoObjects }) {
@@ -280,7 +285,9 @@ export class M extends InlineComponent {
                     // A component without one of these state variables is
                     // unconstrained by it, so only an explicit mismatch rejects.
                     let reason = null;
-                    if (shape.inline === false) {
+                    if (dependencyValues.graphAncestor) {
+                        reason = "on-graph";
+                    } else if (shape.inline === false) {
                         reason = "not-inline";
                     } else if (shape.expanded === true) {
                         reason = "expanded";

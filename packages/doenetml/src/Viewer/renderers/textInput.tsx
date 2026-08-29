@@ -648,18 +648,6 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     let shortDescription = SVs.shortDescription || undefined;
 
-    // The label element is not drawn inside an expression, so nothing may point
-    // at it. An author who labelled the input still meant that text to name it,
-    // so it becomes the accessible name directly, and a short description
-    // given alongside it stays the description, just as it does when the label
-    // is drawn.
-    const labelIsRendered = hasLabel && !inMathSlot;
-    const mathSlotName =
-        inMathSlot && hasLabel && typeof SVs.label === "string"
-            ? SVs.label
-            : undefined;
-    const hasAccessibleName = labelIsRendered || mathSlotName !== undefined;
-
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
 
@@ -700,11 +688,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 onBlur={handleBlur}
                 onFocus={handleFocus}
                 className={inputClass}
-                aria-labelledby={labelIsRendered ? labelId : undefined}
-                aria-label={hasAccessibleName ? mathSlotName : shortDescription}
-                aria-description={
-                    hasAccessibleName ? shortDescription : undefined
-                }
+                aria-labelledby={hasLabel ? labelId : undefined}
+                aria-label={!hasLabel ? shortDescription : undefined}
+                aria-description={hasLabel ? shortDescription : undefined}
                 aria-details={descriptionId}
                 style={{
                     margin: "0px 4px 4px 4px",
@@ -726,11 +712,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 onBlur={handleBlur}
                 onFocus={handleFocus}
                 className={inputClass}
-                aria-labelledby={labelIsRendered ? labelId : undefined}
-                aria-label={hasAccessibleName ? mathSlotName : shortDescription}
-                aria-description={
-                    hasAccessibleName ? shortDescription : undefined
-                }
+                aria-labelledby={hasLabel ? labelId : undefined}
+                aria-label={!hasLabel ? shortDescription : undefined}
+                aria-description={hasLabel ? shortDescription : undefined}
                 aria-details={descriptionId}
                 style={{
                     margin: "0px 4px 4px 4px",
@@ -760,16 +744,25 @@ export default function TextInput(props: UseDoenetRendererProps) {
         </span>
     );
 
-    const labelComponent = labelIsRendered ? (
+    // Inside an expression the label is kept out of sight rather than left
+    // out, so `aria-labelledby` names the field from it exactly as it does
+    // elsewhere — a label that is itself math is then spoken as MathJax reads
+    // it, not as its LaTeX.
+    const labelComponent = hasLabel ? (
         <label
             id={labelId}
             htmlFor={inputKey}
-            style={{
-                marginInlineEnd:
-                    SVs.labelPosition === "end" ? undefined : "2px",
-                marginInlineStart:
-                    SVs.labelPosition === "end" ? "2px" : undefined,
-            }}
+            className={inMathSlot ? "visually-hidden" : undefined}
+            style={
+                inMathSlot
+                    ? undefined
+                    : {
+                          marginInlineEnd:
+                              SVs.labelPosition === "end" ? undefined : "2px",
+                          marginInlineStart:
+                              SVs.labelPosition === "end" ? "2px" : undefined,
+                      }
+            }
         >
             {label}
         </label>

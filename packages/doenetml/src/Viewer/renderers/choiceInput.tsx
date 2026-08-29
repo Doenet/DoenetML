@@ -316,25 +316,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
-    // The label element is not drawn inside an expression, so nothing may point
-    // at it. An author who labelled the control still meant that text to name
-    // it, so it becomes the accessible name directly, and a short description
-    // given alongside it stays the description, just as it does when the label
-    // is drawn.
-    const labelIsRendered = hasLabel && !inMathSlot;
-    const mathSlotName =
-        inMathSlot && hasLabel && typeof SVs.label === "string"
-            ? SVs.label
-            : undefined;
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
     const inlineLabelledByIds = [
-        labelIsRendered ? labelId : null,
+        hasLabel ? labelId : null,
         ...externalLabelRendererIds,
     ]
         .filter(Boolean)
         .join(" ");
-    const inlineHasAccessibleName =
-        inlineLabelledByIds !== "" || mathSlotName !== undefined;
 
     // For inline, the default is a small check work button,
     // for non-inline, the default is a full check work button
@@ -572,12 +560,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             isOptionDisabled={(opt) => !!opt.isDisabled}
                             aria-labelledby={inlineLabelledByIds || undefined}
                             aria-label={
-                                inlineHasAccessibleName
-                                    ? mathSlotName
-                                    : shortDescription
+                                !inlineLabelledByIds
+                                    ? shortDescription
+                                    : undefined
                             }
                             aria-description={
-                                inlineHasAccessibleName
+                                inlineLabelledByIds
                                     ? shortDescription
                                     : undefined
                             }
@@ -588,16 +576,29 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </div>
         );
 
-        const labelComponent = labelIsRendered ? (
+        // Inside an expression the label is kept out of sight rather than
+        // left out, so `aria-labelledby` names the control from it exactly as
+        // it does elsewhere — a label that is itself math is then spoken as
+        // MathJax reads it, not as its LaTeX.
+        const labelComponent = hasLabel ? (
             <label
                 id={labelId}
                 htmlFor={inlineInputId}
-                style={{
-                    marginInlineEnd:
-                        SVs.labelPosition === "end" ? undefined : "4px",
-                    marginInlineStart:
-                        SVs.labelPosition === "end" ? "4px" : undefined,
-                }}
+                className={inMathSlot ? "visually-hidden" : undefined}
+                style={
+                    inMathSlot
+                        ? undefined
+                        : {
+                              marginInlineEnd:
+                                  SVs.labelPosition === "end"
+                                      ? undefined
+                                      : "4px",
+                              marginInlineStart:
+                                  SVs.labelPosition === "end"
+                                      ? "4px"
+                                      : undefined,
+                          }
+                }
             >
                 {label}
             </label>

@@ -39,7 +39,10 @@
 /*
  * The spoken name of a blank. It is inside the typeset expression so that
  * MathJax reads it in place, but `\rlap` has already collapsed it to zero
- * width, and this keeps it from being painted over the control.
+ * width, and this keeps it from being painted over the control. Hiding it
+ * does not silence it: MathJax computes the speech from the expression's
+ * structure as it typesets and attaches it to the container, so the painted
+ * box is never what a screen reader reads.
  */
 .doenet-viewer .doenet-math-slot-label {
     visibility: hidden;

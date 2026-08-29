@@ -10,6 +10,10 @@
  * term — `x = ␣ + 3` collapses to `x =  + 3`, in which the `+` is no longer an
  * operator but a sign.
  *
+ * An author who writes this LaTeX by hand gets the same treatment — a
+ * `<fillin>` in a PreTeXt export, a placeholder in `text` — which is what a
+ * hand-drawn blank means anyway.
+ *
  * Shared rather than local because two packages have to agree on it: the worker
  * writes it into `latex`, and the PreTeXt exporter reads it back out to emit a
  * `<fillin>` in its place.

@@ -113,12 +113,13 @@ export function substituteSlots({
 
 /**
  * Neutralize the characters that would end the `\text{…}` argument or start a
- * control sequence. The label is the translated word for a blank, and a
- * translation is free text that is written into TeX, so it is made TeX-safe
- * here rather than trusted to be.
+ * control sequence, and the angle brackets that would open a tag once the TeX
+ * is handed to MathJax as markup. The label is the translated word for a
+ * blank, and a translation is free text that is written into TeX, so it is
+ * made safe here rather than trusted to be.
  */
 function escapeForTex(label: string): string {
-    return label.replace(/[\\{}$&#^_~%]/g, " ");
+    return label.replace(/[\\{}$&#^_~%<>]/g, " ");
 }
 
 /**

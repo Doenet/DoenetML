@@ -1111,10 +1111,12 @@ function describeAsMathBlank({ dependencyValues, componentIdx }) {
     //
     // A row of an aligned display carries its alignment marker, which is
     // layout and not mathematics: it is dropped as `Md.text` drops it, so the
-    // row is spoken as the equation it is.
+    // row is spoken as the equation it is. Only the marker goes: a bare `&`,
+    // or `\amp` as a whole control sequence, so a longer name that starts
+    // the same way is left alone.
     const withPlaceholders = (math.stateValues.latexTemplate ?? "")
-        .replaceAll("\\amp", "")
-        .replaceAll("&", "")
+        .replace(/\\amp(?![a-zA-Z])/g, "")
+        .replace(/(?<!\\)&/g, "")
         .replace(SLOT_PATTERN, BLANK_PLACEHOLDER);
 
     // `latexToText` hands back the LaTeX itself when it cannot be parsed,

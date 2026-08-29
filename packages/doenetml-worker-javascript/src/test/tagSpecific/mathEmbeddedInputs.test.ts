@@ -222,6 +222,28 @@ describe("Inputs embedded in displayed math @group1", async () => {
         expect(warnings[0].message).contain("block of buttons");
     });
 
+    it("math on a graph embeds nothing and says why", async () => {
+        // On a graph the expression is drawn as one picture, so the input is
+        // flattened into it as it always was, and the author is told.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph><m name="m">x = <textInput name="ti" prefill="abc" /></m></graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
+
+        expect(m.embeddedInputComponentIndices).eqls([]);
+        expect(m.latex).eq("x = abc");
+        expect(m.latexTemplate).eq(m.latex);
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0125");
+        expect(warnings[0].message).contain("graph");
+    });
+
     it("a math input is not embedded", async () => {
         // Deliberate: a math input resizes on every keystroke, which needs a
         // growth policy the other inputs do not. Tracked as issue #1760 — do

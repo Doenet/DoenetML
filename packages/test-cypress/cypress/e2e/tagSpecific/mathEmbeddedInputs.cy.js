@@ -146,14 +146,19 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        // The label element is not drawn inside the expression, so its text
-        // becomes the accessible name directly, and the short description keeps
-        // its usual role as the description.
-        cy.get(`${cesc("#m")} .doenet-math-slot input`)
-            .should("have.attr", "aria-label", "the missing term")
-            .and("have.attr", "aria-description", "a monomial in x")
-            .and("not.have.attr", "aria-labelledby");
-        cy.get(`${cesc("#m")} label`).should("not.exist");
+        // The label is kept out of sight, not left out: it still names the
+        // input through `aria-labelledby`, and the short description keeps its
+        // usual role as the description.
+        cy.get(`${cesc("#m")} .doenet-math-slot label`)
+            .should("have.class", "visually-hidden")
+            .and("have.text", "the missing term")
+            .invoke("attr", "id")
+            .then((labelId) => {
+                cy.get(`${cesc("#m")} .doenet-math-slot input`)
+                    .should("have.attr", "aria-labelledby", labelId)
+                    .and("have.attr", "aria-description", "a monomial in x")
+                    .and("not.have.attr", "aria-label");
+            });
     });
 
     it("an aligned display keeps its rows aligned around a blank", () => {
