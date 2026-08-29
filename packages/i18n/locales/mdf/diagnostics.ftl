@@ -44,7 +44,7 @@
 # `locales/myv` than a Moksha speaker will want it to. Three residues are known
 # rather than guessed at, and are the next things to fix: the ablative is still
 # written Erzya-style `-де/-до` outside the numerals («нетнеде»,
-# «сюлмафкстнеде», «3-де») where Moksha writes `-да`; the abessive is `-втомо`
+# «сюлмафкстнеде») where Moksha writes `-да`; the abessive is `-втомо`
 # («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; and "equal" is
 # «вейкетть», an Erzya form this seed could not confidently replace. The
 # numerals and their ablative have been corrected, so what is left is in the
@@ -188,7 +188,7 @@ accessibility-section-title-insufficient-contrast =
 
 circle-through-points-non-numerical = Точкатнень ловома питнест арасть кда, { $count } точкань пачк ютыця `<circle>` аф тиф.
 
-circle-too-many-through-points = 3-де лама точкань пачк ютыця круготь ловомс аф маштови.
+circle-too-many-through-points = 3-да лама точкань пачк ютыця круготь ловомс аф маштови.
 
 circle-overprescribed-radius-center-points = Максф радиус, куншка и точкат мархта круготь ловомс аф маштови.
 
@@ -295,7 +295,7 @@ angle-invalid-through-point = `<angle>` элементэнь through питне�
 
 parabola-vertex-too-many-points = Максф пря мархта 1-де лама точкань пачк ютыця парабола аф тиф.
 
-parabola-too-many-points = 3-де лама точкань пачк ютыця парабола аф тиф.
+parabola-too-many-points = 3-да лама точкань пачк ютыця парабола аф тиф.
 
 intersection-too-many-items = Кафтада лама объектэнь вастневемась аф тиф
 

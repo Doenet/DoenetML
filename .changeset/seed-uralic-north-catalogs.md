@@ -35,6 +35,7 @@ their editor and diagnostics vocabulary is coined rather than attested,
 `locales/sjd` (Kildin Sami) is the least certain of the five Sami catalogs,
 `locales/vro` (Võro) records that two of its messages read with the wrong case
 because the seed declined to invent the forms, and `locales/mdf` (Moksha) names
-the three Erzya endings it still carries — the ablative, the abessive and the
-word for "equal" — where the seed could not establish the Moksha form.
+the three Erzya residues it still carries — the ablative ending, the abessive
+ending and the word for "equal" — where the seed could not establish the Moksha
+form.
 Correcting any of this needs no permission.

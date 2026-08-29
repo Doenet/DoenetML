@@ -1372,7 +1372,7 @@ describe("negotiateLocales", () => {
          * languages beside four that now have catalogs; `izh` (Ingrian),
          * `liv` (Livonian) and `vot` (Votic) are Finnic beside five. `fkv`
          * (Kven) is the sharpest of the seven: it is as close to `fit` as
-         * Meankieli is to Finnish, is written in a closely related orthography,
+         * Meänkieli is to Finnish, is written in a closely related orthography,
          * and is a separate ISO 639-3 language on the other side of a national
          * border — so folding it would be a judgement about how close two
          * varieties are rather than a published fact, which is `lki` beside

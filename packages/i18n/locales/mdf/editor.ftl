@@ -47,7 +47,7 @@
 # `locales/myv` than a Moksha speaker will want it to. Three residues are known
 # rather than guessed at, and are the next things to fix: the ablative is still
 # written Erzya-style `-де/-до` outside the numerals («нетнеде»,
-# «сюлмафкстнеде», «3-де») where Moksha writes `-да`; the abessive is `-втомо`
+# «сюлмафкстнеде») where Moksha writes `-да`; the abessive is `-втомо`
 # («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; and "equal" is
 # «вейкетть», an Erzya form this seed could not confidently replace. The
 # numerals and their ablative have been corrected, so what is left is in the

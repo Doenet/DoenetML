@@ -409,11 +409,6 @@ describe("the other descriptions", () => {
 
 describe("Spanish", () => {
     it("puts the noun first and agrees with its gender", () => {
-        const words = {
-            lineWidthWord: "thick",
-            lineStyleWord: "dashed",
-            colorWord: "red",
-        };
         expect(
             describeStrokedShape(es, words, { noun: line, withNoun: true }),
         ).toBe("línea discontinua gruesa roja");
@@ -742,11 +737,6 @@ describe("Irish", () => {
     // is masculine and leaves the same words alone. `$gender` carries the whole
     // of that, which is why no Celtic catalog writes a `$role` branch.
     it("lenites a feminine noun's adjectives and leaves a masculine one's", () => {
-        const words = {
-            colorWord: "red",
-            lineWidthWord: "thick",
-            lineStyleWord: "dashed",
-        };
         expect(
             describeStrokedShape(ga, words, {
                 noun: { key: "line" },

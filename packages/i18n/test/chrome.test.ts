@@ -255,6 +255,7 @@ describe("EN_CHROME_TRANSLATOR", () => {
         );
     });
 });
+
 /**
  * The Sami dual, and the one catalog in the family that cannot write it.
  *
