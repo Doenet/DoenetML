@@ -22,6 +22,8 @@ import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
+import { useInMathSlot } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 // type guard
 const isMultiValue = <T,>(
@@ -104,6 +106,19 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const tContent = useContentT();
 
     const { darkMode } = useContext(DocContext) || {};
+
+    // Inside an expression there is no room for anything but the control
+    // itself: a visible label or a check-work button drawn among the symbols
+    // would read as part of the math. The expression names the control instead,
+    // through its short description. Read here, with the other hooks, so it is
+    // read on every render whether or not the control goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -322,15 +337,17 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         ? SVs.forceFullCheckWorkButton
         : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
 
-    const checkWorkComponent = createCheckWorkComponent(
-        SVs,
-        id,
-        validationState,
-        submitActionWithPending,
-        fullCheckWork,
-        isPending,
-        tContent,
-    );
+    const checkWorkComponent = inMathSlot
+        ? null
+        : createCheckWorkComponent(
+              SVs,
+              id,
+              validationState,
+              submitActionWithPending,
+              fullCheckWork,
+              isPending,
+              tContent,
+          );
 
     if (SVs.inline) {
         // since we color correctness for inline choiceInput,
@@ -566,16 +583,29 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </div>
         );
 
+        // Inside an expression the label is kept out of sight rather than
+        // left out, so `aria-labelledby` names the control from it exactly as
+        // it does elsewhere — a label that is itself math is then spoken as
+        // MathJax reads it, not as its LaTeX.
         const labelComponent = hasLabel ? (
             <label
                 id={labelId}
                 htmlFor={inlineInputId}
-                style={{
-                    marginInlineEnd:
-                        SVs.labelPosition === "end" ? undefined : "4px",
-                    marginInlineStart:
-                        SVs.labelPosition === "end" ? "4px" : undefined,
-                }}
+                className={inMathSlot ? "visually-hidden" : undefined}
+                style={
+                    inMathSlot
+                        ? undefined
+                        : {
+                              marginInlineEnd:
+                                  SVs.labelPosition === "end"
+                                      ? undefined
+                                      : "4px",
+                              marginInlineStart:
+                                  SVs.labelPosition === "end"
+                                      ? "4px"
+                                      : undefined,
+                          }
+                }
             >
                 {label}
             </label>
@@ -600,6 +630,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         return (
             <span
+                ref={inMathSlot ? slotRootRef : undefined}
                 // `display: inline` so the label and select flow with the
                 // surrounding paragraph text and a wrapping label keeps the
                 // select after its end rather than beside its first line

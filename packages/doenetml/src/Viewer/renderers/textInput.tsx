@@ -21,6 +21,8 @@ import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
+import { useInMathSlot } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 interface TextInputSVs {
     [key: string]: any;
@@ -79,6 +81,19 @@ export default function TextInput(props: UseDoenetRendererProps) {
     let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
+
+    // Inside an expression there is no room for anything but the field itself:
+    // a visible label or a check-work button drawn among the symbols would read
+    // as part of the math. The expression names the field instead, through its
+    // short description. Read here, with the other hooks, so it is read on
+    // every render whether or not the field goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
 
     let pointerAtDown = useRef<[number, number] | null>(null);
     let pointAtDown = useRef<[number, number, number] | null>(null);
@@ -613,15 +628,17 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
-    const checkWorkComponent = createCheckWorkComponent(
-        SVs,
-        id,
-        validationState,
-        submitActionWithPending,
-        SVs.forceFullCheckWorkButton,
-        isPending,
-        tContent,
-    );
+    const checkWorkComponent = inMathSlot
+        ? null
+        : createCheckWorkComponent(
+              SVs,
+              id,
+              validationState,
+              submitActionWithPending,
+              SVs.forceFullCheckWorkButton,
+              isPending,
+              tContent,
+          );
 
     let input;
     let label: React.ReactNode = SVs.label;
@@ -734,16 +751,25 @@ export default function TextInput(props: UseDoenetRendererProps) {
         </span>
     );
 
+    // Inside an expression the label is kept out of sight rather than left
+    // out, so `aria-labelledby` names the field from it exactly as it does
+    // elsewhere — a label that is itself math is then spoken as MathJax reads
+    // it, not as its LaTeX.
     const labelComponent = hasLabel ? (
         <label
             id={labelId}
             htmlFor={inputKey}
-            style={{
-                marginInlineEnd:
-                    SVs.labelPosition === "end" ? undefined : "2px",
-                marginInlineStart:
-                    SVs.labelPosition === "end" ? "2px" : undefined,
-            }}
+            className={inMathSlot ? "visually-hidden" : undefined}
+            style={
+                inMathSlot
+                    ? undefined
+                    : {
+                          marginInlineEnd:
+                              SVs.labelPosition === "end" ? undefined : "2px",
+                          marginInlineStart:
+                              SVs.labelPosition === "end" ? "2px" : undefined,
+                      }
+            }
         >
             {label}
         </label>
@@ -752,6 +778,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
     return (
         <span
             id={id}
+            ref={inMathSlot ? slotRootRef : undefined}
             // `display: inline` so the label and input flow with the
             // surrounding paragraph text: text before and after the input wraps
             // together with it, and a wrapping label keeps the input after its

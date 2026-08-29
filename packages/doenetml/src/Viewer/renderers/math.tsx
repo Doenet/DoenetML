@@ -1,4 +1,4 @@
-import React, { useContext, useRef } from "react";
+import React, { useCallback, useContext, useEffect, useRef } from "react";
 import JXG from "jsxgraph";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
@@ -21,6 +21,13 @@ import {
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
+import {
+    MathSlot,
+    MathSlotProvider,
+    useMathSlots,
+} from "./utils/mathInputSlots";
+import { useContentT } from "../../utils/i18n";
+import "./math.css";
 
 interface MathSVs {
     [key: string]: any;
@@ -32,6 +39,13 @@ interface MathSVs {
     anchor: any;
     positionFromAnchor: any;
     latex: string;
+    /** `latex` with a marker per embedded input; see `mathInputSlots`. */
+    latexTemplate?: string;
+    embeddedInputComponentIndices?: number[];
+    /** True for an `<mrow>` whose `<md>` typesets it as part of the display. */
+    typesetByParent?: boolean;
+    /** True when the rendered children are the embedded inputs themselves. */
+    typesetsOwnChildren?: boolean;
     renderMode?: string;
     equationTag?: string;
     mrowChildRendererIds?: string[];
@@ -55,7 +69,7 @@ function getMathDelimiters(SVs: MathSVs): [string, string] {
 export default React.memo(function MathComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { componentIdx, id, SVs, actions, callAction } =
+    let { componentIdx, id, SVs, actions, callAction, children } =
         useDoenetRenderer<MathSVs>(props);
 
     // @ts-ignore
@@ -318,8 +332,14 @@ export default React.memo(function MathComponent(
         return null;
     }
 
+    // A row of an aligned display draws no math of its own — the whole display
+    // is typeset as one expression by the `<md>` above — so all this row has to
+    // do is place the inputs embedded in it, against that display's slots.
+    if (SVs.typesetByParent) {
+        return <EmbeddedInputs>{children}</EmbeddedInputs>;
+    }
+
     const [beginDelim, endDelim] = getMathDelimiters(SVs);
-    const latexWithDelims = beginDelim + SVs.latex + endDelim;
 
     let anchors = [];
     if (SVs.mrowChildRendererIds) {
@@ -334,12 +354,213 @@ export default React.memo(function MathComponent(
         ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
 
+    // Core's list, not the template's text, decides that there are inputs to
+    // draw: an expression without any takes the plain path whatever its LaTeX
+    // happens to contain.
+    const embeddedComponentIndices: number[] =
+        SVs.embeddedInputComponentIndices ?? [];
+
+    if (embeddedComponentIndices.length > 0) {
+        return (
+            <MathWithEmbeddedInputs
+                id={id}
+                style={style}
+                template={SVs.latexTemplate ?? SVs.latex}
+                embeddedComponentIndices={embeddedComponentIndices}
+                beginDelim={beginDelim}
+                endDelim={endDelim}
+                anchors={anchors}
+                slotsAreOwnChildren={SVs.typesetsOwnChildren !== false}
+            >
+                {children}
+            </MathWithEmbeddedInputs>
+        );
+    }
+
+    // No embedded inputs: the overwhelming majority of math, on exactly the
+    // markup and code path it took before any of this existed.
     return (
         <>
             {anchors}
             <span style={style} id={id}>
-                <DynamicMath latex={latexWithDelims} />
+                <DynamicMath latex={beginDelim + SVs.latex + endDelim} />
             </span>
         </>
     );
 });
+
+/** The closest ancestor-or-self whose box a `ResizeObserver` can report on. */
+function nearestBlock(element: Element): Element {
+    let current: Element | null = element;
+    while (
+        current &&
+        current.parentElement &&
+        getComputedStyle(current).display === "inline"
+    ) {
+        current = current.parentElement;
+    }
+    return current ?? element;
+}
+
+/**
+ * The children that are embedded inputs, paired with the component index the
+ * LaTeX template marks them by.
+ *
+ * `children` is positionally aligned with the component's active children and
+ * carries a `null` for each one that is not rendered, so the built elements are
+ * picked out rather than indexed.
+ */
+function embeddedInputChildren(children: React.ReactNode[]) {
+    return children.flatMap((child) => {
+        const componentIdx = (child as any)?.props?.componentInstructions
+            ?.componentIdx;
+        return typeof componentIdx === "number"
+            ? [{ componentIdx, child }]
+            : [];
+    });
+}
+
+/** Wrap each embedded input in the slot that positions it. */
+function EmbeddedInputs({ children }: { children: React.ReactNode[] }) {
+    return (
+        <>
+            {embeddedInputChildren(children).map(({ componentIdx, child }) => (
+                <MathSlot key={componentIdx} componentIdx={componentIdx}>
+                    {child}
+                </MathSlot>
+            ))}
+        </>
+    );
+}
+
+/**
+ * An expression with live inputs in it.
+ *
+ * The inputs are measured first and the expression is typeset around boxes of
+ * exactly their size, so it appears already correct rather than reflowing into
+ * place. They are then positioned over those boxes from a layer of their own,
+ * which is what lets the expression re-typeset — because a value it depends on
+ * changed, or because a control's own size did — without disturbing an input
+ * the reader is using.
+ */
+function MathWithEmbeddedInputs({
+    id,
+    style,
+    template,
+    embeddedComponentIndices,
+    beginDelim,
+    endDelim,
+    anchors,
+    slotsAreOwnChildren,
+    children,
+}: {
+    id: string;
+    style: React.CSSProperties | undefined;
+    template: string;
+    embeddedComponentIndices: number[];
+    beginDelim: string;
+    endDelim: string;
+    anchors: React.ReactNode[];
+    /** True for `<m>`, whose children are the inputs; false for `<md>`, whose
+     * children are the rows that hold them. */
+    slotsAreOwnChildren: boolean;
+    children: React.ReactNode[];
+}) {
+    const tContent = useContentT();
+
+    const describeSlot = useCallback(
+        (ordinal: number, total: number) =>
+            total > 1
+                ? tContent(
+                      "math-embedded-input-blank-ordinal",
+                      { ordinal, total },
+                      `blank ${ordinal} of ${total}`,
+                  )
+                : tContent("math-embedded-input-blank", undefined, "blank"),
+        [tContent],
+    );
+
+    const { rootRef, layerRef, latexForTypeset, readPositions, contextValue } =
+        useMathSlots({
+            rootId: id,
+            template,
+            embeddedComponentIndices,
+            describeSlot,
+        });
+
+    // The reserved boxes can move relative to the layer without the expression
+    // being re-typeset: the page narrows and the expression re-wraps, or
+    // display math re-breaks across lines. A `ResizeObserver` reports nothing
+    // for a non-replaced inline box, which the root is in running text, so it
+    // watches the nearest block around the expression — whose width is what
+    // drives a re-wrap — and the typeset output itself once there is one, for
+    // display math that MathJax re-breaks on its own.
+    const reflowObserver = useRef<ResizeObserver | null>(null);
+    const observedOutput = useRef<Element | null>(null);
+    useEffect(() => {
+        const root = rootRef.current;
+        if (!root || typeof ResizeObserver === "undefined") {
+            return;
+        }
+        const observer = new ResizeObserver(() => readPositions());
+        observer.observe(nearestBlock(root));
+        reflowObserver.current = observer;
+        return () => {
+            observer.disconnect();
+            reflowObserver.current = null;
+            observedOutput.current = null;
+        };
+    }, [readPositions]);
+
+    const onTypeset = useCallback(() => {
+        const output = rootRef.current?.querySelector("mjx-container");
+        const observer = reflowObserver.current;
+        if (observer && output && output !== observedOutput.current) {
+            if (observedOutput.current) {
+                observer.unobserve(observedOutput.current);
+            }
+            observer.observe(output);
+            observedOutput.current = output;
+        }
+        readPositions();
+    }, [readPositions]);
+
+    // MathJax's own fonts arrive after the first typeset and shift everything.
+    useEffect(() => {
+        async function readPositionsOnceFontsLoad() {
+            try {
+                await document.fonts?.ready;
+            } catch {
+                // The positions simply stay as first measured.
+            }
+            readPositions();
+        }
+        readPositionsOnceFontsLoad().catch(() => {});
+    }, [readPositions]);
+
+    return (
+        <MathSlotProvider value={contextValue}>
+            {anchors}
+            <span
+                ref={rootRef}
+                style={style}
+                id={id}
+                className="doenet-math-root"
+            >
+                {latexForTypeset !== null && (
+                    <DynamicMath
+                        latex={beginDelim + latexForTypeset + endDelim}
+                        onTypeset={onTypeset}
+                    />
+                )}
+                <span ref={layerRef} className="doenet-math-slot-layer">
+                    {slotsAreOwnChildren ? (
+                        <EmbeddedInputs>{children}</EmbeddedInputs>
+                    ) : (
+                        children
+                    )}
+                </span>
+            </span>
+        </MathSlotProvider>
+    );
+}

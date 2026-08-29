@@ -296,6 +296,8 @@ export type MessageKey =
     | "ion-name-oxidation-state"
     | "chemistry-invalid-symbol"
     | "chemistry-invalid-ionic-compound"
+    | "math-embedded-input-blank"
+    | "math-embedded-input-blank-ordinal"
     | "line-segment-attributes-ignored-with-endpoints"
     | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
     | "line-segment-midpoint-offset-without-midpoint"
@@ -515,6 +517,7 @@ export type MessageKey =
     | "select-prime-numbers-excluded-too-many-combinations"
     | "select-random-combination-fluke"
     | "select-random-value-fluke"
+    | "math-embedded-input-shape-unsuitable"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -871,6 +874,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "ion-name-oxidation-state",
     "chemistry-invalid-symbol",
     "chemistry-invalid-ionic-compound",
+    "math-embedded-input-blank",
+    "math-embedded-input-blank-ordinal",
     "line-segment-attributes-ignored-with-endpoints",
     "line-segment-attributes-ignored-with-endpoint-and-midpoint",
     "line-segment-midpoint-offset-without-midpoint",
@@ -1090,6 +1095,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "select-prime-numbers-excluded-too-many-combinations",
     "select-random-combination-fluke",
     "select-random-value-fluke",
+    "math-embedded-input-shape-unsuitable",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",
