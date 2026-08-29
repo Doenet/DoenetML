@@ -113,8 +113,9 @@ export function substituteSlots({
 
 /**
  * Neutralize the characters that would end the `\text{…}` argument or start a
- * control sequence. The label is author-influenced (it names the expression the
- * input sits in), so it cannot be trusted to be TeX-safe.
+ * control sequence. The label is the translated word for a blank, and a
+ * translation is free text that is written into TeX, so it is made TeX-safe
+ * here rather than trusted to be.
  */
 function escapeForTex(label: string): string {
     return label.replace(/[\\{}$&#^_~%]/g, " ");
