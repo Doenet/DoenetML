@@ -69,9 +69,11 @@
 #              follows a noun.
 #   «nge»      and, with — joining nouns and joining a phrase to what
 #              accompanies it.
-# Everything else below is a loan. Check «e» and «nge» first: both are frequent
-# enough that a wrong choice is wrong in many places at once. (`content.ftl`'s
-# style tables are the one place this seed writes more Yapese than that: its
+# That list is the whole of this catalog's Yapese, and none of it is reached in
+# *this* file — see the note on the size of the debt below. Where the words do
+# appear, in `content.ftl`, check «e» and «nge» first: both are frequent enough
+# there that a wrong choice is wrong in several places at once. (`content.ftl`'s
+# style tables are the one place this seed writes more Yapese than the list: its
 # colour and width words and two of its shape nouns are attested basic
 # vocabulary, sourced word by word in that file's header.)
 #
@@ -106,12 +108,23 @@
 # forks on number for grammar this file keeps the fork only because the
 # English words in the branches differ.
 #
-# **A named debt.** The piecewise connectives — `piecewise-condition-if`,
-# `-or`, `-otherwise` — are basic grammar rather than technical vocabulary, and
-# are exactly where a frame contribution belongs; this seed still left them in
-# English because it could not establish the Yapese conditional and
-# disjunctive particles with any confidence. They are the first three lines a
-# speaker should fix, and fixing them costs three lines.
+# **The size of the debt, said plainly: every message in this file stands in
+# English.** Not one of them contains «e», «ni», «nge», «thin» or any other
+# word on the list above — a sentence assembled entirely out of loans is an
+# English sentence, and calling it a Yapese one would be the guess this seed
+# refused to make elsewhere. What is Yapese about this file is what is *not*
+# wrong in it: the ids, the placeables, the variant keys and the argument names
+# are already in the right place, so a speaker rewriting a message supplies
+# words and changes nothing structural. `content.ftl` is the one file of the
+# four that carries Yapese text, and its style tables are where to see the
+# method working.
+#
+# The nearest thing to a *small* debt is in `content.ftl` rather than here: the
+# piecewise connectives — `piecewise-condition-if`, `-or`, `-otherwise` — are
+# basic grammar rather than technical vocabulary, and are exactly where a frame
+# contribution belongs, but this seed could not establish the Yapese
+# conditional and disjunctive particles with any confidence. Those three lines
+# are the cheapest correction in the catalog.
 
 
 line-segment-attributes-ignored-with-endpoints =

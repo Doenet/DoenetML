@@ -1896,6 +1896,22 @@ that range rather than papering over it:
   lluches» rather than an English sentence. Nauruan yielded two colour words
   and nothing else, and its header says that plainly.
 
+  **What that tier costs is worth stating in one number rather than four
+  headers.** The recovery reached `content.ftl` and stopped there, because the
+  style tables are single words and the other three namespaces are sentences.
+  So of each of these four catalogs' 445 keys, only the style table is the
+  language — 8 messages for `na`, 18 for `yap`, 27 for `rtm`, 32 for `pau` —
+  and the remaining 350-odd, the whole of `chrome.ftl`, `editor.ftl` and
+  `diagnostics.ftl`, are byte-identical to English. Nothing else in the roster
+  is close: the next most English-identical catalog is `nl` at 19%, where these
+  four run 92–98%. It is a deliberate and declared state, not a defect — the
+  keys, placeables and variant keys are in place so a speaker supplies words
+  and nothing structural — but it means the coverage figure below reads
+  *present*, never *translated*, for these four, and a fourth of the batch
+  ships English prose under its own locale directory. Whether that is worth its
+  weight in the bundle is the open question these four raise and the eleven do
+  not.
+
 No word went in by guess. Where a dictionary gave nothing the English loan
 stands and is *declared* a loan rather than respelled by an invented loan
 phonology — `locales/kos` argues that case explicitly, on the grounds that
@@ -1983,9 +1999,11 @@ nothing where it does not, and the seed cannot always tell which.
   (East Futunan) is this batch's `fkv` and sharper than `fkv` was: it is not
   merely a sister of a catalogued language but is spoken in the **same
   territory** as `wls`.
-- The first catalogs to cover `math-embedded-input-blank`, its ordinal and
+- The first catalogs to carry `math-embedded-input-blank`, its ordinal and
   `math-embedded-input-shape-unsuitable`, which no earlier seeded batch has, so
-  each of the fifteen sits at 445/575 rather than 442.
+  each of the fifteen sits at 445/575 rather than 442. Eleven of the fifteen
+  translate the three; the four of the loaned tier carry them in English, like
+  the rest of their `diagnostics.ftl`.
 - Regenerated locale roster and schema, so `<document lang>` autocompletes all
   fifteen.
 

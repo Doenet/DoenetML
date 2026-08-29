@@ -92,6 +92,15 @@
 # `attempts-remaining` and `answer-show-responses` therefore keep only a `[0]`
 # literal and a default: the noun beside the count does not move, so a second
 # branch would be a copy of the first.
+#
+# **The size of the debt, said plainly, as `diagnostics.ftl` says it there:
+# every message in this file stands in English.** None of them reaches «dorer»
+# or «ma» or the linker — a sentence assembled entirely out of loans is an
+# English sentence — and this file should be read as a scaffold rather than as
+# a translation. Its ids, placeables, variant keys and argument names are
+# already in the right place, so a speaker rewriting a message supplies words
+# and changes nothing structural. `content.ftl` is the one file of the four
+# that carries Nauruan text, and it carries two colour words.
 
 ## Answer submission
 
