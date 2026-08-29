@@ -401,7 +401,7 @@ export function useInMathSlot() {
  * no-ops outside a slot, so a renderer can make them unconditionally.
  */
 export interface MathSlotEditing {
-    /** Editing began, or ended — a commit or a move away. */
+    /** The reader began using this control, or has finished with it. */
     setEditing(editing: boolean): void;
     /** A value was committed without editing ending, as Enter does. */
     commit(): void;

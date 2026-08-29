@@ -617,15 +617,21 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
                 ).to.eq(true);
             }
 
-            // And the scripts are stacked around the integrand rather than in
+            // And the bounds are stacked around the integrand rather than in
             // line with it.
-            const tops = reserved.map((box) => box.top).sort((a, b) => a - b);
-            expect(tops[0], "the upper bound is highest").to.be.lessThan(
-                tops[1],
-            );
-            expect(tops[1], "the lower bound is lowest").to.be.lessThan(
-                tops[2],
-            );
+            const slotTop = (name) =>
+                root
+                    .querySelector(cesc(`#${name}`))
+                    .closest(".doenet-math-slot")
+                    .getBoundingClientRect().top;
+            expect(
+                slotTop("upper"),
+                "the upper bound is above the integrand",
+            ).to.be.lessThan(slotTop("integrand"));
+            expect(
+                slotTop("integrand"),
+                "the lower bound is below the integrand",
+            ).to.be.lessThan(slotTop("lower"));
         });
     });
 
