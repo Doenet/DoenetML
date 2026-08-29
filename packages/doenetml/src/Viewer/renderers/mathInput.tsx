@@ -479,10 +479,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const legacyKeyboardTray = useContext(LegacyKeyboardTrayContext);
 
     // Inside an expression there is no room for anything but the field itself:
-    // a visible label or a check-work button drawn among the symbols would read
-    // as part of the math. The expression names the field instead, through its
-    // short description. Read here, with the other hooks, so it is read on
-    // every render whether or not the field goes on to draw anything.
+    // a visible label drawn among the symbols would read as part of the math.
+    // The expression names the field instead, through its short description.
+    // Read here, with the other hooks, so it is read on every render whether
+    // or not the field goes on to draw anything.
     const inMathSlot = useInMathSlot();
 
     // A field that grows as the reader types would otherwise re-typeset the
@@ -1543,17 +1543,15 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     // ===== Inline (non-graph) branch =====
 
-    const checkWorkComponent = inMathSlot
-        ? null
-        : createCheckWorkComponent(
-              SVs,
-              id,
-              validationState.current,
-              submitActionWithPending,
-              SVs.forceFullCheckWorkButton,
-              isPending,
-              tContent,
-          );
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState.current,
+        submitActionWithPending,
+        SVs.forceFullCheckWorkButton,
+        isPending,
+        tContent,
+    );
 
     // Inside an expression the label stays in the document, out of sight, so
     // `aria-labelledby` names the field from it exactly as it does elsewhere —

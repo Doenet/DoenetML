@@ -108,10 +108,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const { darkMode } = useContext(DocContext) || {};
 
     // Inside an expression there is no room for anything but the control
-    // itself: a visible label or a check-work button drawn among the symbols
-    // would read as part of the math. The expression names the control instead,
-    // through its short description. Read here, with the other hooks, so it is
-    // read on every render whether or not the control goes on to draw anything.
+    // itself: a visible label drawn among the symbols would read as part of
+    // the math. The expression names the control instead, through its short
+    // description. Read here, with the other hooks, so it is read on every
+    // render whether or not the control goes on to draw anything.
     const inMathSlot = useInMathSlot();
 
     // A label that is itself math is typeset by MathJax, which gives it a tab
@@ -349,17 +349,15 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         ? SVs.forceFullCheckWorkButton
         : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
 
-    const checkWorkComponent = inMathSlot
-        ? null
-        : createCheckWorkComponent(
-              SVs,
-              id,
-              validationState,
-              submitActionWithPending,
-              fullCheckWork,
-              isPending,
-              tContent,
-          );
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitActionWithPending,
+        fullCheckWork,
+        isPending,
+        tContent,
+    );
 
     if (SVs.inline) {
         // since we color correctness for inline choiceInput,

@@ -418,9 +418,9 @@ export function MathSlotProvider({
 }
 
 /**
- * True while rendering inside a slot, so an input can drop the parts of itself
- * that make no sense inside an equation — its visible label and its check-work
- * button. The equation names the input instead; see `shortDescription`.
+ * True while rendering inside a slot, so an input can keep its visible label
+ * out of the equation. The equation names the input instead; see
+ * `shortDescription`.
  */
 export const InMathSlotContext = createContext(false);
 

@@ -89,8 +89,8 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
 
-        // Nothing but the control is drawn inside the expression: no label and
-        // no check-work button.
+        // Nothing but the control is drawn inside the expression: no label,
+        // and no button of any kind.
         cy.get(`${cesc("#m")} .doenet-math-slot`).within(() => {
             cy.get("label").should("not.exist");
             cy.get("button").should("not.exist");
@@ -177,8 +177,8 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
 
-        // Nothing but the field is drawn inside the expression: no label and
-        // no check-work button.
+        // Nothing but the field is drawn inside the expression: no label,
+        // and no button of any kind.
         cy.get(`${cesc("#m")} .doenet-math-slot`).within(() => {
             cy.get("label").should("not.exist");
             cy.get("button").should("not.exist");

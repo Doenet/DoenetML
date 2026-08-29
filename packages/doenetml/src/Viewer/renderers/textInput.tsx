@@ -83,10 +83,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
     const board = useContext(BoardContext);
 
     // Inside an expression there is no room for anything but the field itself:
-    // a visible label or a check-work button drawn among the symbols would read
-    // as part of the math. The expression names the field instead, through its
-    // short description. Read here, with the other hooks, so it is read on
-    // every render whether or not the field goes on to draw anything.
+    // a visible label drawn among the symbols would read as part of the math.
+    // The expression names the field instead, through its short description.
+    // Read here, with the other hooks, so it is read on every render whether
+    // or not the field goes on to draw anything.
     const inMathSlot = useInMathSlot();
 
     // A label that is itself math is typeset by MathJax, which gives it a tab
@@ -641,17 +641,15 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
-    const checkWorkComponent = inMathSlot
-        ? null
-        : createCheckWorkComponent(
-              SVs,
-              id,
-              validationState,
-              submitActionWithPending,
-              SVs.forceFullCheckWorkButton,
-              isPending,
-              tContent,
-          );
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitActionWithPending,
+        SVs.forceFullCheckWorkButton,
+        isPending,
+        tContent,
+    );
 
     let input;
     let label: React.ReactNode = SVs.label;
