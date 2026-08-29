@@ -77,10 +77,10 @@ cannot re-flow around it. A `<textInput/>{:dn}` or an inline
 A `<textInput/>{:dn}` or an inline `<choiceInput/>{:dn}` written inside an
 `<mrow>{:dn}` is rendered *in place*, inside the aligned display, so the reader
 completes the missing step where it belongs, and the rows stay aligned at the
-`&` around it. The same inputs can be used as inside `<m>{:dn}`: not a
+`&` around it. The same restrictions apply as inside `<m>{:dn}`: a
 `<mathInput/>{:dn}`, a non-`inline` `<choiceInput/>{:dn}`, an `expanded`
-`<textInput/>{:dn}` or one whose `width` is in `%` or `em`, or any input in a
-display drawn on a `<graph>{:dn}`.
+`<textInput/>{:dn}` or one whose `width` is in `%` or `em`, and any input in a
+display drawn on a `<graph>{:dn}` cannot be placed inside the display.
 
 
 

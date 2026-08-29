@@ -293,6 +293,26 @@ describe("Inputs embedded in displayed math @group1", async () => {
         expect(warnings[0].message).contain("graph");
     });
 
+    it("a hidden input is not embedded", async () => {
+        // The renderer is never handed a hidden child, so there would be no
+        // control to size the marker; the input is flattened as before.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <m name="m">x = <textInput name="ti" prefill="abc" hide /> + 3</m>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
+
+        expect(m.embeddedInputComponentIndices).eqls([]);
+        expect(m.latexTemplate).eq(m.latex);
+        expect(m.latex).eq("x = abc + 3");
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(0);
+    });
+
     it("a math input is not embedded", async () => {
         // Deliberate: a math input resizes on every keystroke, which needs a
         // growth policy the other inputs do not. Tracked as issue #1760 — do

@@ -342,6 +342,32 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         expectAligned();
     });
 
+    it("hiding the input leaves the expression on the page", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><booleanInput name="h"><label>hide</label></booleanInput></p>
+    <p><m name="m">x = <textInput name="ti" hide="$h" /> + 3</m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} .doenet-math-slot input`).should("exist");
+
+        // Hidden, the input is flattened into the expression rather than
+        // leaving a marker no control could fill; the math still typesets.
+        cy.get("#h_input").click({ force: true });
+        cy.get(`${cesc("#m")} .doenet-math-slot`).should("not.exist");
+        cy.get(`${cesc("#m")} mjx-container`).should("exist");
+
+        cy.get("#h_input").click({ force: true });
+        cy.get(`${cesc("#m")} .doenet-math-slot input`).should("exist");
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+    });
+
     it("math with no embedded input keeps its plain markup", () => {
         // The guard on every existing document: nothing about the old path
         // changes just because this feature exists.

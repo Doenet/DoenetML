@@ -245,7 +245,7 @@ export class M extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inline"],
-                    variableNames: ["inline", "expanded", "width"],
+                    variableNames: ["inline", "expanded", "width", "hidden"],
                     variablesOptional: true,
                 },
                 graphAncestor: {
@@ -286,6 +286,13 @@ export class M extends InlineComponent {
                     }
 
                     const shape = shapeByIdx.get(child.componentIdx) ?? {};
+                    // A hidden child is not handed to the renderer at all, so
+                    // no control could ever report a size for its marker; it
+                    // is flattened into `latex` as it was before, silently,
+                    // since hiding an input is a choice rather than a mistake.
+                    if (shape.hidden === true) {
+                        continue;
+                    }
                     // A component without one of these state variables is
                     // unconstrained by it, so only an explicit mismatch rejects.
                     let reason = null;

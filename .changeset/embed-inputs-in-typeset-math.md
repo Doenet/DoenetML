@@ -8,7 +8,7 @@
 
 Render a `<textInput>` or an inline `<choiceInput>` in place inside typeset math.
 
-An input written inside `<m>`, `<me>`, `<men>`, or an `<mrow>` of an `<md>` is now drawn where it is written, inside the MathJax output, instead of being flattened to its current value. The motivating case is an aligned `<md>` derivation where the reader fills in the missing step in the place that step belongs; the rows stay aligned around the input, because the space it needs is measured before the display is typeset.
+An input written inside `<m>`, `<me>`, `<men>`, or an `<mrow>` of an `<md>` is now drawn where it is written, inside the typeset expression, instead of being flattened to its current value. The motivating case is an aligned `<md>` derivation where the reader fills in the missing step in the place that step belongs; the rows stay aligned around the input, because the space it needs is measured before the display is typeset.
 
 Only inputs whose size is settled before layout are embedded. A `<mathInput>` is not, because it changes size as the reader types, and it renders as it did before. A `<choiceInput>` that is not `inline` or an `expanded` `<textInput>` is too large to sit in a line of mathematics, a `<textInput>` with a relative `width` (`%` or `em`) has nothing to measure against, and math drawn on a graph is a single picture with no room for a control; each of those also renders as it did before, and now warns that the input is not being drawn inside the expression.
 

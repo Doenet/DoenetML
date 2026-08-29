@@ -9,7 +9,7 @@ export {
  * Slot markers for inputs rendered inside typeset math.
  *
  * `<m>x = <textInput/></m>` renders the input where it is written, inside the
- * MathJax output, rather than flattening it to its current value. Reserving
+ * typeset expression, rather than flattening it to its current value. Reserving
  * space for it needs the control's pixel size, which only the renderer can
  * measure — core runs in a worker with no DOM. So core emits a *template*: the
  * LaTeX it would otherwise produce, with a marker in place of each embedded
