@@ -218,21 +218,22 @@ export function useMathSlots({
     /**
      * Read each reserved box's position out of the freshly typeset output.
      *
-     * Only ever called after a swap has landed, so `getElementById` finds the
-     * visible output rather than the off-screen buffer `DynamicMath` typesets
-     * into. Position only — the box's size came from the control in the first
-     * place.
+     * The lookup is scoped to this expression's root, so it sees neither the
+     * off-screen buffer `DynamicMath` typesets into nor another viewer on the
+     * same page that happens to mint the same ids. Position only — the box's
+     * size came from the control in the first place.
      */
     const readPositions = useCallback(() => {
+        const root = rootRef.current;
         const layer = layerRef.current;
-        if (!layer) {
+        if (!root || !layer) {
             return;
         }
         const originRect = layer.getBoundingClientRect();
         const next = new Map<number, SlotPosition>();
         for (const componentIdx of componentIndices) {
-            const reserved = document.getElementById(
-                slotElementId(componentIdx),
+            const reserved = root.querySelector(
+                `#${CSS.escape(slotElementId(componentIdx))}`,
             );
             if (!reserved) {
                 continue;
