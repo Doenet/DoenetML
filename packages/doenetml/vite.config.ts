@@ -8,6 +8,7 @@ import dts from "vite-plugin-dts";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
 import {
+    ignoreWireitCachesPlugin,
     prefigureDynamicImportIgnorePlugin,
     suppressLogPlugin,
 } from "../../scripts/vite-plugins";
@@ -23,6 +24,7 @@ export default defineConfig(({ mode }) => {
     return {
         base: "./",
         plugins: [
+            ignoreWireitCachesPlugin(),
             react(),
             dts({ rollupTypes: false }),
             viteStaticCopy({
@@ -55,9 +57,6 @@ export default defineConfig(({ mode }) => {
             DOENETML_VERSION: JSON.stringify(version),
         },
         server: {
-            // The wireit caches hold hundreds of thousands of files; watching
-            // them exhausts the system inotify limit (ENOSPC on `npm run dev`).
-            watch: { ignored: ["**/.wireit/**"] },
             host: "0.0.0.0",
             port: 8012,
         },

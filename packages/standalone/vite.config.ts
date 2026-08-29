@@ -8,6 +8,7 @@ import { version } from "./package.json";
 import {
     copyLocaleCatalogsPlugin,
     forceEsbuildMinifyPlugin,
+    ignoreWireitCachesPlugin,
     suppressLogPlugin,
 } from "../../scripts/vite-plugins";
 import { pinChunkUrlsPlugin } from "./scripts/pin-chunk-urls-plugin";
@@ -18,6 +19,7 @@ const require = createRequire(import.meta.url);
 export default defineConfig({
     base: "./",
     plugins: [
+        ignoreWireitCachesPlugin(),
         dts({ rollupTypes: true }),
         viteStaticCopy({
             targets: [

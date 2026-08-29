@@ -5,7 +5,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
-import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import {
+    ignoreWireitCachesPlugin,
+    suppressLogPlugin,
+} from "../../scripts/vite-plugins";
 
 const PYODIDE_EXCLUDE = [
     "!**/*.{md,html}",
@@ -17,13 +20,11 @@ const PYODIDE_EXCLUDE = [
 export default defineConfig({
     base: "./",
     server: {
-        // The wireit caches hold hundreds of thousands of files; watching
-        // them exhausts the system inotify limit (ENOSPC on `npm run dev`).
-        watch: { ignored: ["**/.wireit/**"] },
         host: "0.0.0.0",
     },
     optimizeDeps: { exclude: ["pyodide"] },
     plugins: [
+        ignoreWireitCachesPlugin(),
         dts({ rollupTypes: true }),
         vitePluginPyodide(),
         viteStaticCopy({

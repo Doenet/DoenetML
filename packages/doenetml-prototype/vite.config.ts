@@ -7,7 +7,10 @@ import * as fs from "node:fs/promises";
 import { visualizer } from "rollup-plugin-visualizer";
 import { version } from "./package.json";
 import { createRequire } from "module";
-import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import {
+    ignoreWireitCachesPlugin,
+    suppressLogPlugin,
+} from "../../scripts/vite-plugins";
 const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
@@ -17,6 +20,7 @@ const EXTERNAL_DEPS = ["react", "react-dom"];
 export default defineConfig({
     base: "./",
     plugins: [
+        ignoreWireitCachesPlugin(),
         react(),
         // Pre-create doenetml-worker/ before viteStaticCopy's closeBundle hook runs.
         // Node's fs.cp for a directory calls mkdirAsync(dest) WITHOUT {recursive:true},
@@ -56,9 +60,6 @@ export default defineConfig({
         suppressLogPlugin(),
     ],
     server: {
-        // The wireit caches hold hundreds of thousands of files; watching
-        // them exhausts the system inotify limit (ENOSPC on `npm run dev`).
-        watch: { ignored: ["**/.wireit/**"] },
         host: "0.0.0.0",
         port: 8012,
     },

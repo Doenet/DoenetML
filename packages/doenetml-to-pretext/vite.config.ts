@@ -2,6 +2,7 @@
 import { defineConfig } from "vitest/config";
 import dts from "vite-plugin-dts";
 import { version } from "./package.json";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom"];
@@ -13,14 +14,11 @@ export default defineConfig(({ mode }) => {
     const devBuild = mode === "development";
     return {
         base: "./",
-        plugins: [dts({ rollupTypes: true })],
+        plugins: [ignoreWireitCachesPlugin(), dts({ rollupTypes: true })],
         worker: {
             format: "es",
         },
         server: {
-            // The wireit caches hold hundreds of thousands of files; watching
-            // them exhausts the system inotify limit (ENOSPC on `npm run dev`).
-            watch: { ignored: ["**/.wireit/**"] },
             host: "0.0.0.0",
             port: 8012,
         },

@@ -1,11 +1,16 @@
 import { visualizer } from "rollup-plugin-visualizer";
 import { PluginOption, defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true }), visualizer() as PluginOption],
+    plugins: [
+        ignoreWireitCachesPlugin(),
+        dts({ rollupTypes: true }),
+        visualizer() as PluginOption,
+    ],
     build: {
         minify: false,
         sourcemap: true,
