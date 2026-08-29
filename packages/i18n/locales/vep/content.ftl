@@ -50,7 +50,7 @@
 #
 # `piecewise-condition-if` is placeable: Veps «ku» opens its clause and the
 # mathematics follows it, exactly as English «if» does, so this catalog has no
-# version of the limit `locales/kv` and `locales/chm` record.
+# version of the limit `locales/kpv` and `locales/mhr` record.
 #
 # **The vocabulary least certain in this seed is the technical one.** Veps has
 # no settled words for a good deal of mathematics; where it has not fixed one,

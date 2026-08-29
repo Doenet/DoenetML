@@ -12,13 +12,16 @@
 # nothing about the file format, and the text is written in logical order with
 # no direction marks placed by hand.
 #
-# Northern Kurdish (Kurmanji) is `locales/ku`, left to right in Latin. `ckb`
+# Northern Kurdish (Kurmanji) is `locales/kmr`, left to right in Latin. `ckb`
 # is a member of the `ku` macrolanguage but is deliberately kept out of the
-# roster's fold onto it, because a Sorani reader has this catalog to reach.
+# roster's fold onto Kurmanji, because a Sorani reader has this catalog to
+# reach — and because it does, the Kurmanji catalog is named for the individual
+# language, `kmr`, rather than for the macrolanguage. A document that writes
+# `ku` still reaches it.
 #
 # **Sorani has no grammatical gender.** It lost the masculine/feminine
 # distinction Kurmanji keeps, so `noun-gender` below answers with a single
-# token, nothing forks on `$gender` or `$role`, and `locales/ku` beside it
+# token, nothing forks on `$gender` or `$role`, and `locales/kmr` beside it
 # writes a full gender table for the same macrolanguage. Two catalogs of one
 # macrolanguage, one of which agrees and one of which does not.
 #

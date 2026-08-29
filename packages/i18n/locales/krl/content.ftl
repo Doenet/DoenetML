@@ -81,7 +81,7 @@
 #
 # `piecewise-condition-if` is placeable: Karelian «kun» opens its clause and
 # the mathematics follows it, exactly as English «if» does, so this catalog has
-# no version of the limit `locales/kv` and `locales/chm` record.
+# no version of the limit `locales/kpv` and `locales/mhr` record.
 
 
 ## Style vocabulary

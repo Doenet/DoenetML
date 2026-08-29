@@ -753,7 +753,7 @@ plain = Nothing to select
  * each language its own set, so a catalog resolving `one` and `other` where
  * English resolves `one`, `two` and `other` is right rather than wrong. Every
  * other key English selects on must still be there. A catalog may add keys
- * English does not have — `locales/ku` and the Dagestanian catalogs nest a
+ * English does not have — `locales/kmr` and the Dagestanian catalogs nest a
  * `$gender` select inside a `$parts` one, so their style messages carry an `m`
  * and an `f` English has no use for — so this is a subset check rather than an
  * equality one. What it forbids is a branch going missing.

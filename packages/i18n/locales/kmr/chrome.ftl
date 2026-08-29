@@ -1,4 +1,5 @@
-# Kurdish viewer chrome. Translated from `locales/en/chrome.ftl`, which is the
+# Northern Kurdish (Kurmanji) viewer chrome. Translated from
+# `locales/en/chrome.ftl`, which is the
 # source of truth: `lint:i18n` rejects a key that does not exist there, and
 # reports a key that exists there but not here as missing coverage.
 #
@@ -6,6 +7,13 @@
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
+#
+# **Named `kmr`, not `ku`.** `ku` is the macrolanguage over Northern, Central
+# and Southern Kurdish, and Central Kurdish (Sorani) ships beside this catalog
+# as `locales/ckb`; a directory called `ku` would claim to cover a sibling it
+# cannot serve. `negotiate.ts` aliases `ku` onto `kmr`, so a document written
+# with either tag reaches this catalog. See `locales/kmr/content.ftl` for the
+# full note.
 #
 # Northern Kurdish (Kurmanji) in the Hawar Latin alphabet — the orthography of
 # Kurmanji publishing in Turkey, Syria and the diaspora, and what CLDR fills a

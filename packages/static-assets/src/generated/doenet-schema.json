@@ -65535,10 +65535,6 @@
                             "description": "Chuukese"
                         },
                         {
-                            "value": "chm",
-                            "description": "Mari"
-                        },
-                        {
                             "value": "ckb",
                             "description": "Central Kurdish (کوردیی ناوەندی)"
                         },
@@ -65807,6 +65803,10 @@
                             "description": "Kimbundu"
                         },
                         {
+                            "value": "kmr",
+                            "description": "Kurdish (kurdî (kurmancî))"
+                        },
+                        {
                             "value": "kn",
                             "description": "Kannada (ಕನ್ನಡ)"
                         },
@@ -65829,6 +65829,10 @@
                         {
                             "value": "kpe",
                             "description": "Kpelle"
+                        },
+                        {
+                            "value": "kpv",
+                            "description": "Komi"
                         },
                         {
                             "value": "kr",
@@ -65855,16 +65859,8 @@
                             "description": "Kituba (Kikongo ya leta)"
                         },
                         {
-                            "value": "ku",
-                            "description": "Kurdish (kurdî (kurmancî))"
-                        },
-                        {
                             "value": "kum",
                             "description": "Kumyk"
-                        },
-                        {
-                            "value": "kv",
-                            "description": "Komi"
                         },
                         {
                             "value": "ky",
@@ -65937,6 +65933,10 @@
                         {
                             "value": "mh",
                             "description": "Marshallese"
+                        },
+                        {
+                            "value": "mhr",
+                            "description": "Mari"
                         },
                         {
                             "value": "mi",

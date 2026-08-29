@@ -110,7 +110,7 @@ style-filled-with-noun =
        *[plain] { $color } { $filled } { $noun }
     }
 # «чиресэ» is the inessive of «чире», "edge", and carries the whole of "with a
-# border" in its own suffix — the same shape `locales/udm` and `locales/kv`
+# border" in its own suffix — the same shape `locales/udm` and `locales/kpv`
 # use, arriving from the other end of Uralic.
 style-border-clause =
     { $parts ->
@@ -206,8 +206,8 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ##
 ## Erzya's conditional «бути» is clause-initial, as Buryat's and Kalmyk's are,
 ## so this key lands where the renderer puts it — unlike the two Permic
-## catalogs beside it, `locales/udm` and `locales/kv`, whose «ке» and «кӧ»
-## follow their clause and record a limit there — as `locales/chm`'s «гын»
+## catalogs beside it, `locales/udm` and `locales/kpv`, whose «ке» and «кӧ»
+## follow their clause and record a limit there — as `locales/mhr`'s «гын»
 ## does too. Four Uralic catalogs in one batch, three of them recording the
 ## limit and this one not, so word order rather than family decides.
 

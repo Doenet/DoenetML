@@ -62,8 +62,8 @@
 #
 # Khanty has no grammatical gender and does not inflect an attributive
 # adjective, so `$gender` and `$role` go unused here, as in every other Uralic
-# catalog in the roster — `locales/kv`, `locales/udm`, `locales/myv`,
-# `locales/chm`, `locales/mrj`, `locales/mns`.
+# catalog in the roster — `locales/kpv`, `locales/udm`, `locales/myv`,
+# `locales/mhr`, `locales/mrj`, `locales/mns`.
 
 
 # **«сир» carries three senses, and one message reads "the colour's colour".**
@@ -269,8 +269,8 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 
 ## Piecewise functions
 ##
-## `piecewise-condition-if` is the same limit `locales/kv`, `locales/udm`,
-## `locales/chm` and `locales/mrj` record, now in an Ob-Ugric language: Khanty's
+## `piecewise-condition-if` is the same limit `locales/kpv`, `locales/udm`,
+## `locales/mhr` and `locales/mrj` record, now in an Ob-Ugric language: Khanty's
 ## conditional «ки» is an enclitic that closes the clause it conditions, and the
 ## renderer places this key before the mathematics. Nothing can be written here
 ## that will stand in front of the condition and still be Khanty, so «ки» is

@@ -11,7 +11,7 @@
 # own speakers — the western literary standard of the Mari macrolanguage,
 # written in Cyrillic with ӓ and ӹ, two letters Meadow Mari does not use at
 # all. See `content.ftl`'s header for why this is a catalog of its own rather
-# than a spelling of `locales/chm`.
+# than a spelling of `locales/mhr`.
 #
 # Hill Mari counts in two plural categories, `one` and `other`, so every
 # `{ $count -> … }` below keeps the shape it had. A noun after a numeral stays

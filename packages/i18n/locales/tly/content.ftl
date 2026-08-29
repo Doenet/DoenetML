@@ -11,7 +11,7 @@
 # Cyrillic, and in Iran in the Perso-Arabic script, and a reader arriving under
 # `tly-Cyrl` or `tly-Arab` reaches this catalog and gets Latin. A second
 # catalog beside this one is the answer to that, not a rename of this one —
-# the same asymmetry `locales/pa`, `locales/sr`, `locales/jv` and `locales/ku`
+# the same asymmetry `locales/pa`, `locales/sr`, `locales/jv` and `locales/kmr`
 # already carry.
 #
 # **Talysh has no grammatical gender and no noun class**, as Persian and
@@ -251,8 +251,8 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## Talysh's conditional «əqər» opens its clause, as Persian's «agar» does, so
 ## `piecewise-condition-if` lands where the renderer puts it — in front of the
 ## mathematics it introduces. This catalog therefore records no limit here,
-## unlike `locales/sah`, `locales/tyv`, `locales/udm`, `locales/kv` and
-## `locales/chm`, whose conditionals close their clause.
+## unlike `locales/sah`, `locales/tyv`, `locales/udm`, `locales/kpv` and
+## `locales/mhr`, whose conditionals close their clause.
 
 piecewise-condition-or = ya
 piecewise-condition-if = əqər

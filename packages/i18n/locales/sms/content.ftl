@@ -246,7 +246,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ##
 ## «jõs» opens the clause it conditions and so places straight in front of the
 ## mathematics, which is where the renderer puts it — none of the trouble
-## `locales/kv`, `locales/chm` and `locales/dv` record with a clause-final
+## `locales/kpv`, `locales/mhr` and `locales/dv` record with a clause-final
 ## conditional arises here.
 
 piecewise-condition-or = leʹbe

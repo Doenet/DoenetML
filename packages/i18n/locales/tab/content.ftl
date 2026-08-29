@@ -273,7 +273,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ##
 ## Tabasaran's own conditional is a suffix on the verb and so closes the clause
 ## it conditions, which is the limit `locales/sah`, `locales/tyv`,
-## `locales/udm`, `locales/kv` and `locales/chm` record. This key escapes it:
+## `locales/udm`, `locales/kpv` and `locales/mhr` record. This key escapes it:
 ## «эгер» is the borrowed conjunction, it is clause-initial, and it is what
 ## written Tabasaran actually puts in front of a stated condition — so the word
 ## lands where the renderer places it, in front of the mathematics, and nothing

@@ -286,7 +286,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## Adyghe is a verbal suffix, -мэ, and the free form built on it — «хъумэ»,
 ## "if it is so" — closes the clause it conditions rather than opening it. So
 ## the word below lands on the wrong side of its mathematics, exactly as
-## `locales/sah`, `locales/tyv`, `locales/udm`, `locales/kv` and `locales/chm`
+## `locales/sah`, `locales/tyv`, `locales/udm`, `locales/kpv` and `locales/mhr`
 ## record for their own clause-final conditionals. Splitting the key into a
 ## prefix and a suffix would fix it; nothing here can, and inventing a
 ## clause-initial particle Adyghe does not have would be worse than a limit

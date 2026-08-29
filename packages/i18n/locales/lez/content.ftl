@@ -253,7 +253,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## «эгер», the borrowed clause-initial particle that ordinarily accompanies
 ## that suffix and is perfectly usual in written Lezgian, so this key lands
 ## where the renderer puts it and needs none of the caveat `locales/sah`,
-## `locales/tyv`, `locales/udm`, `locales/kv` and `locales/chm` record.
+## `locales/tyv`, `locales/udm`, `locales/kpv` and `locales/mhr` record.
 
 piecewise-condition-or = ва я
 piecewise-condition-if = эгер

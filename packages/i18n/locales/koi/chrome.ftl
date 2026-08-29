@@ -11,13 +11,13 @@
 # writes, which is not a letter of the Komi-Permyak alphabet.
 #
 # Komi-Permyak (`koi`) is a member of the Komi macrolanguage (`kv`) and until
-# now was folded onto `locales/kv` by `MACROLANGUAGE_MEMBERS` in
+# now was folded onto `locales/kpv` by `MACROLANGUAGE_MEMBERS` in
 # `src/negotiate.ts`, which serves a Komi-Permyak reader the Komi-Zyrian
 # catalog. It is a written standard of its own, with its own orthographic
 # conventions and its own school publishing in Perm Krai, so it now has a
 # catalog of its own and that fold is removed.
 #
-# Where this file's spelling parts from `locales/kv`'s, in the words it
+# Where this file's spelling parts from `locales/kpv`'s, in the words it
 # actually contains:
 #
 #   plural -эз, not Zyrian -яс      тшыкӧдчӧмэз, пасйӧмэз, вочакывэз

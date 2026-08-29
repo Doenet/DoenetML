@@ -16,7 +16,7 @@
 # A reader arriving under `tly-Cyrl` or `tly-Arab` reaches this catalog and
 # gets Latin; the answer to that is a second catalog beside this one rather
 # than a rename of it, which is the asymmetry `locales/pa`, `locales/sr`,
-# `locales/jv` and `locales/ku` already carry.
+# `locales/jv` and `locales/kmr` already carry.
 #
 # Talysh counts in two plural categories, `one` and `other`, so every
 # `{ $count -> … }` below keeps the shape English gives it. A noun after a

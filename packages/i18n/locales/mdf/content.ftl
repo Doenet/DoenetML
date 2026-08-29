@@ -166,7 +166,7 @@ style-filled-with-noun =
     }
 # «ширеса» is the inessive of «шире», "edge", and carries the whole of "with a
 # border" in its own suffix — Erzya's «чиресэ» in the sister language, and the
-# same shape `locales/udm` and `locales/kv` use from the other end of Uralic.
+# same shape `locales/udm` and `locales/kpv` use from the other end of Uralic.
 style-border-clause =
     { $parts ->
         [with-article] { $border } ширеса
@@ -261,7 +261,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ##
 ## Moksha's conditional «кда» is clause-initial, as Erzya's «бути» is, so this
 ## key lands where the renderer puts it and there is no limit to record here —
-## unlike the Permic catalogs, `locales/udm`, `locales/kv` and `locales/koi`,
+## unlike the Permic catalogs, `locales/udm`, `locales/kpv` and `locales/koi`,
 ## whose «ке» and «кӧ» follow their clause. Word order rather than family
 ## decides.
 

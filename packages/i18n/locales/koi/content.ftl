@@ -8,14 +8,14 @@
 # writes, which is not a letter of the Komi-Permyak alphabet.
 #
 # Komi-Permyak (`koi`) is a member of the Komi macrolanguage (`kv`) and until
-# now was folded onto `locales/kv` by `MACROLANGUAGE_MEMBERS` in
+# now was folded onto `locales/kpv` by `MACROLANGUAGE_MEMBERS` in
 # `src/negotiate.ts`, which serves a Komi-Permyak reader the Komi-Zyrian
 # catalog — the compromise that file's own header records. Komi-Permyak is a
 # written standard of its own, with its own orthographic conventions and its
 # own school publishing in Perm Krai, so it now has a catalog of its own and
 # that fold is removed.
 #
-# Where this file's spelling parts from `locales/kv`'s, in the words it
+# Where this file's spelling parts from `locales/kpv`'s, in the words it
 # actually contains:
 #
 #   plural -эз, not Zyrian -яс      уджэз, задачаэз, координатаэз
@@ -25,7 +25,7 @@
 #   «веж» for green, where Zyrian writes «турунвиж»
 #
 # Komi-Permyak has no grammatical gender and does not inflect an attributive
-# adjective, so `$gender` and `$role` go unused, exactly as in `locales/kv` and
+# adjective, so `$gender` and `$role` go unused, exactly as in `locales/kpv` and
 # `locales/udm`. What the Permic catalogs use instead is the noun's own case
 # suffix in the two clause messages, and it falls on a word the catalog writes
 # rather than on a placeable.
@@ -143,7 +143,7 @@ style-filled-with-noun =
     }
 # «дорӧн» is the instrumental of «дор», "edge", and carries the whole of "with
 # a border" in its own suffix, so neither a preposition nor an article is
-# wanted — `locales/kv`'s «дорӧн» and `locales/udm`'s «дуроен» exactly, in the
+# wanted — `locales/kpv`'s «дорӧн» and `locales/udm`'s «дуроен» exactly, in the
 # two sister languages.
 style-border-clause =
     { $parts ->
@@ -237,7 +237,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 
 ## Piecewise functions
 ##
-## `piecewise-condition-if` is the limit `locales/kv` and `locales/udm` already
+## `piecewise-condition-if` is the limit `locales/kpv` and `locales/udm` already
 ## record, and for the identical reason: Komi-Permyak's conditional «кӧ» is a
 ## particle that follows the clause it conditions, and the renderer places this
 ## key before the mathematics. Three Permic catalogs, one wall.

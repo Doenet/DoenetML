@@ -8,7 +8,8 @@
 #
 # Written in the Kurdo-Arabic alphabet; `ckb` maximizes to `ckb-Arab-IQ` and is
 # right to left. Kurmanji has its own left-to-right Latin catalog in
-# `locales/ku`.
+# `locales/kmr`, named for the individual language rather than the `ku`
+# macrolanguage because this catalog ships beside it.
 #
 # `through`, `endpoint`, `midpointOffset`, `numDimensions` and the like are
 # DoenetML attribute names. They are part of the language, not prose, and are

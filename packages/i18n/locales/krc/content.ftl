@@ -260,7 +260,7 @@ piecewise-condition-or = неда
 # borrowing that opens one, is what a mathematical condition is introduced with
 # in written Karachay-Balkar, and needs nothing after it. So this key is
 # correct as placed, unlike in `locales/sah`, `locales/tyv`, `locales/udm`,
-# `locales/kv` and `locales/chm`, and for the same reason `locales/ba`'s
+# `locales/kpv` and `locales/mhr`, and for the same reason `locales/ba`'s
 # «әгәр» is.
 piecewise-condition-if = эгер
 piecewise-condition-otherwise = алай болмаса

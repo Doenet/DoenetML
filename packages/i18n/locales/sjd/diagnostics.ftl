@@ -18,7 +18,7 @@
 # The technical nouns here are the **Russian** ones — «компонент», «атрибут»,
 # «функция», «индекс», «точка», «линия», «значение» — which is what written
 # Kildin uses for them and what the neighbouring Cyrillic Uralic catalogs
-# `locales/myv` and `locales/kv` already do. That is a heavier Russian layer
+# `locales/myv` and `locales/kpv` already do. That is a heavier Russian layer
 # than `locales/se` carries in Norwegian, and it is a fact about where Kildin
 # is written rather than a shortcut this seed took.
 #

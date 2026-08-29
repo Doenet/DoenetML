@@ -1,9 +1,16 @@
-# Mari diagnostics. Translated from `locales/en/diagnostics.ftl`, which is the
+# Meadow Mari diagnostics. Translated from `locales/en/diagnostics.ftl`, which
+# is the
 # source of truth: `lint:i18n` rejects a key that does not exist there, and
 # reports a key that exists there but not here as missing coverage.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
+#
+# **Meadow Mari**, the larger of the two Mari literary standards. The directory
+# is named `mhr` rather than the macrolanguage `chm` because Hill Mari ships
+# beside it as `locales/mrj`; `negotiate.ts` aliases `chm` onto `mhr`, so a
+# document written with either tag reaches this catalog. See
+# `locales/mhr/content.ftl` for the full note.
 #
 # Attribute names, element names and every other DoenetML identifier —
 # `through`, `endpoint`, `midpointOffset`, `numDimensions`, `<answer>`,
@@ -11,7 +18,8 @@
 # English exactly as written. So does anything quoted back from the author's
 # own source.
 #
-# The technical nouns are the Russian ones, which is what written Mari uses for
+# The technical nouns are the Russian ones, which is what written Meadow Mari
+# uses for
 # them: «компонент», «атрибут», «функций», «индекс».
 
 

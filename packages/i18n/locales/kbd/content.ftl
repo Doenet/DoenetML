@@ -281,7 +281,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## English's "if" does. The renderer places this message *before* the
 ## mathematics it introduces, so «хъумэ» — "if it is" — sits where Kabardian
 ## would never put it. That is the shape `locales/sah`, `locales/tyv`,
-## `locales/udm`, `locales/kv` and `locales/chm` already record for their own
+## `locales/udm`, `locales/kpv` and `locales/mhr` already record for their own
 ## clause-final conditionals; splitting the key into a prefix and a suffix
 ## would fix it, and no existing catalog needs that.
 

@@ -12,7 +12,7 @@
 # now was folded onto the Komi-Zyrian catalog by `MACROLANGUAGE_MEMBERS` in
 # `src/negotiate.ts`. It is a written standard of its own, so it now has a
 # catalog of its own and that fold is removed. Where its spelling parts from
-# `locales/kv`'s in the words this file contains: the plural is -эз and not
+# `locales/kpv`'s in the words this file contains: the plural is -эз and not
 # Zyrian -яс (тшыкӧдчӧмэз, индексэз, пасэз for kv's тшыкӧдчӧмъяс, индексъяс,
 # пасъяс), no word is written with і (вӧли, пыртис for kv's вӧлі, пыртіс), and
 # «либо» stands where Zyrian writes «либӧ».

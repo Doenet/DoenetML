@@ -274,7 +274,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ##
 ## Dargwa's own conditional is a *suffix* on the verb — «-алли» — and it closes
 ## the clause it conditions, which is the shape `locales/sah`, `locales/tyv`,
-## `locales/udm`, `locales/kv` and `locales/chm` record for their own
+## `locales/udm`, `locales/kpv` and `locales/mhr` record for their own
 ## conditionals. What saves this key is that Dargwa also has the borrowed
 ## clause-initial conjunction «эгер», which opens the clause the way the
 ## renderer needs and which is what is written below. There is no verb in the

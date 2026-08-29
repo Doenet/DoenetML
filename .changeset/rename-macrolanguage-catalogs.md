@@ -1,0 +1,19 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+---
+
+Three message catalogs are now identified by the code of the language they are
+actually written in rather than by the macrolanguage code above it: Northern
+Kurdish is `kmr` (was `ku`), Komi-Zyrian is `kpv` (was `kv`) and Meadow Mari is
+`mhr` (was `chm`). Each of the three shares its macrolanguage with a language
+that has a separate catalog here — Central Kurdish, Komi-Permyak and Hill Mari
+— so the old names claimed to cover readers they could not serve.
+
+Documents keep working unchanged. `<document lang="ku">`, `lang="kv"` and
+`lang="chm"` still reach these catalogs, as do the new codes, and a browser
+sending either form is served the same way it was before. `<document lang>`
+autocomplete now offers the new codes.

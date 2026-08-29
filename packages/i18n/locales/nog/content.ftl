@@ -240,7 +240,7 @@ piecewise-condition-or = яде
 # condition — «эгер» — stands at the **front** of it, so the renderer placing
 # this before the mathematics is where Nogai wants it. This catalog therefore
 # has none of the limit `locales/sah`, `locales/tyv`, `locales/udm`,
-# `locales/kv` and `locales/chm` record beside this key, whose «буоллаҕына»,
+# `locales/kpv` and `locales/mhr` record beside this key, whose «буоллаҕына»,
 # «болза», «ке», «кӧ» and «гын» all close the clause instead.
 piecewise-condition-if = эгер
 piecewise-condition-otherwise = болмаса

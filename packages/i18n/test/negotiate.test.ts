@@ -1049,13 +1049,13 @@ describe("negotiateLocales", () => {
             ["bxr", "bua"],
             ["bxm", "bua"],
             ["bxu", "bua"],
-            ["kpv", "kv"],
-            ["mhr", "chm"],
+            ["kpv", "kpv"],
+            ["mhr", "mhr"],
             // The ISO 639-3 codes ICU canonicalizes to a 639-1 code on its own.
             ["bak", "ba"],
             ["chv", "cv"],
             ["udm", "udm"],
-            ["kom", "kv"],
+            ["kom", "kpv"],
             ["oss", "os"],
             ["che", "ce"],
             // `sah`, `tyv`, `myv` and `xal` have no 639-1 code of their own, so
@@ -1074,9 +1074,9 @@ describe("negotiateLocales", () => {
             ["bua-RU", "bua"],
             ["xal-RU", "xal"],
             ["udm-RU", "udm"],
-            ["kv-RU", "kv"],
+            ["kv-RU", "kpv"],
             ["myv-RU", "myv"],
-            ["chm-RU", "chm"],
+            ["chm-RU", "mhr"],
             ["os-RU", "os"],
             ["os-GE", "os"],
             ["ce-RU", "ce"],
@@ -1149,16 +1149,16 @@ describe("negotiateLocales", () => {
         it.each([
             // The macrolanguage. `kmr` is the member ICU folds on its own;
             // `sdh` reaches the catalog only because the map names it.
-            ["ku", "ku"],
-            ["kmr", "ku"],
-            ["sdh", "ku"],
+            ["ku", "kmr"],
+            ["kmr", "kmr"],
+            ["sdh", "kmr"],
             // …and the member that is deliberately not folded, because it
             // answers for itself.
             ["ckb", "ckb"],
             // The ISO 639-3 codes ICU canonicalizes to a 639-1 code on its own.
             ["abk", "ab"],
             ["ava", "av"],
-            ["kur", "ku"],
+            ["kur", "kmr"],
             // The eleven with no 639-1 code, which arrive under the same tag
             // the directory is named for.
             ["ady", "ady"],
@@ -1192,8 +1192,8 @@ describe("negotiateLocales", () => {
             ["nog-RU", "nog"],
             ["tly-AZ", "tly"],
             ["tly-IR", "tly"],
-            ["ku-TR", "ku"],
-            ["ku-SY", "ku"],
+            ["ku-TR", "kmr"],
+            ["ku-SY", "kmr"],
             ["ckb-IQ", "ckb"],
             ["ckb-IR", "ckb"],
             // Script asymmetries. The twelve Caucasian catalogs are Cyrillic,
@@ -1203,7 +1203,7 @@ describe("negotiateLocales", () => {
             // `locales/pa`, `locales/sr` and `locales/ha` already give, and the
             // answer to it is a second catalog rather than a rename of this
             // one.
-            ["ku-Arab", "ku"],
+            ["ku-Arab", "kmr"],
             ["tly-Cyrl", "tly"],
             ["tly-Arab", "tly"],
             ["ab-Latn", "ab"],
@@ -1229,7 +1229,7 @@ describe("negotiateLocales", () => {
         it("serves Southern Kurdish the Latin catalog although CLDR expects it in Perso-Arabic", () => {
             expect(new Intl.Locale("sdh").maximize().script).toBe("Arab");
             expect(negotiateLocales([normalizeLocaleTag("sdh")], available)) //
-                .toEqual(["ku", "en"]);
+                .toEqual(["kmr", "en"]);
         });
 
         /**
@@ -1285,8 +1285,8 @@ describe("negotiateLocales", () => {
             ["mrj", "mrj"],
             ["mdf", "mdf"],
             // …and the macrolanguage tags themselves, untouched by any of it.
-            ["kv", "kv"],
-            ["chm", "chm"],
+            ["kv", "kpv"],
+            ["chm", "mhr"],
             // The twelve remaining catalogs, none of which has a 639-1 code, so
             // each arrives under the tag its directory is named for.
             ["sma", "sma"],
@@ -1353,8 +1353,8 @@ describe("negotiateLocales", () => {
          */
         it("stops folding a member the moment it has a catalog of its own", () => {
             for (const [member, macro] of [
-                ["koi", "kv"],
-                ["mrj", "chm"],
+                ["koi", "kpv"],
+                ["mrj", "mhr"],
             ]) {
                 // Offered *both* catalogs, the member's own wins — which it
                 // cannot do if the tag is rewritten before negotiation.
@@ -1596,6 +1596,74 @@ describe("negotiateLocales", () => {
             expect(negotiateLocales([normalizeLocaleTag("map")], available)) //
                 .toEqual(["en"]);
         });
+    });
+});
+
+/**
+ * The three catalogs named after a member of a macrolanguage rather than after
+ * the macrolanguage, and the ICU behaviour that makes the naming possible only
+ * with a {@link LANGUAGE_ALIASES} row behind it.
+ *
+ * `kmr`, `kpv` and `mhr` are not tags ICU will carry: it canonicalizes each one
+ * straight back onto `ku`, `kv` and `chm`, so `normalizeLocaleTag` has rewritten
+ * a hand-typed `<document lang="kmr">` before negotiation ever runs. A
+ * directory named `kmr` is therefore unreachable under *both* names unless
+ * something maps the macrolanguage forward onto it — which is the opposite of
+ * the `koi`/`mrj` case, where the alias had to be *removed* for the member's
+ * own catalog to win.
+ *
+ * These rows are the ones that fail if someone deletes those three alias
+ * entries as redundant, or if a future ICU stops folding the member codes and
+ * makes them look unnecessary. Both halves are asserted: the canonicalization
+ * itself, so the reason is visible, and the negotiation result, so the
+ * consequence is.
+ */
+describe("a catalog named after a macrolanguage member", () => {
+    const available = ["kmr", "kpv", "mhr", "ckb", "koi", "mrj", "en"];
+
+    it.each([
+        ["kmr", "ku"],
+        ["kpv", "kv"],
+        ["mhr", "chm"],
+    ])(
+        "has its own tag canonicalized onto %s's macrolanguage",
+        (member, macro) => {
+            expect(normalizeLocaleTag(member)).toBe(macro);
+        },
+    );
+
+    it.each([
+        // The member's own tag, which only arrives because the alias catches it
+        // after ICU has rewritten it.
+        ["kmr", "kmr"],
+        ["kpv", "kpv"],
+        ["mhr", "mhr"],
+        // The macrolanguage code, which is what an author is most likely to
+        // type and what a browser is most likely to send.
+        ["ku", "kmr"],
+        ["kv", "kpv"],
+        ["chm", "mhr"],
+    ])("reaches the catalog when asked for as %s", (requested, expected) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(requested)], available),
+        ).toEqual([expected, "en"]);
+    });
+
+    /**
+     * The sibling each rename was made for. A member with a catalog of its own
+     * still wins over the one named after the macrolanguage — `ckb` beside
+     * Kurmanji, `koi` beside Zyrian, `mrj` beside Meadow Mari — which is the
+     * property that makes naming the directory after the narrower language
+     * honest rather than merely tidier.
+     */
+    it.each([
+        ["ckb", "ckb"],
+        ["koi", "koi"],
+        ["mrj", "mrj"],
+    ])("leaves %s reaching its own catalog", (requested, expected) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(requested)], available),
+        ).toEqual([expected, "en"]);
     });
 });
 

@@ -13,7 +13,7 @@
 #
 # `mrj` is Hill Mari (Western Mari, кырык мары йӹлмӹ), the western literary
 # standard of the Mari macrolanguage and a written language in its own right —
-# `content.ftl`'s header sets out what separates it from `locales/chm` and
+# `content.ftl`'s header sets out what separates it from `locales/mhr` and
 # which of those differences this catalog actually contains.
 #
 # Hill Mari counts in the same two categories English does, so every selection

@@ -1,4 +1,4 @@
-# Mari editor and language-server surfaces. Translated from
+# Meadow Mari editor and language-server surfaces. Translated from
 # `locales/en/editor.ftl`, which is the source of truth: `lint:i18n` rejects a
 # key that does not exist there, and reports a key that exists there but not
 # here as missing coverage.
@@ -11,7 +11,14 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Mari counts in the same two categories English does, so every selection below
+# **Meadow Mari**, the larger of the two Mari literary standards. The directory
+# is named `mhr` rather than the macrolanguage `chm` because Hill Mari ships
+# beside it as `locales/mrj`; `negotiate.ts` aliases `chm` onto `mhr`, so a
+# document written with either tag reaches this catalog. See
+# `locales/mhr/content.ftl` for the full note.
+#
+# Meadow Mari counts in the same two categories English does, so every
+# selection below
 # keeps both branches — though a noun after a numeral stays singular, so the
 # two read alike.
 
