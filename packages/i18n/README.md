@@ -1423,6 +1423,12 @@ reach a catalog only because the map names them, which is the failure that map
 exists to prevent. Each catalog says in its own header which standard it is:
 Russia Buriat, Komi-Zyrian, Meadow Mari.
 
+Only `bua` is still keyed that way. The Komi and Mari catalogs are named
+`locales/kpv` and `locales/mhr` today, after the varieties they are written in,
+and their macrolanguage codes reach them through `LANGUAGE_ALIASES` instead —
+see [Naming a catalog when a sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too).
+
 `bxu` is the batch's **script debt** and is recorded rather than fixed: China
 Buriat maximizes to `bxu-Mong-CN`, so CLDR's own data says such a reader most
 likely arrives in the Mongolian script and what `locales/bua` gives them is
@@ -1430,8 +1436,9 @@ Cyrillic. That is `locales/dje`'s debt to `tda` in Tifinagh and `locales/kr`'s
 to `kby` in Ajami, and the answer to it is a second catalog rather than a change
 in `negotiate.ts`.
 
-**The other nine filter unaided, so the batch adds no `LANGUAGE_ALIASES` entry
-at all**, and — for the first time in several batches — **no
+**The other nine filter unaided, so the batch added no `LANGUAGE_ALIASES` entry
+at all** — the `kv` and `chm` rows there arrived later, with the naming rule
+above — and — for the first time in several batches — **no
 `LOCALE_NAME_FALLBACKS` entry either**: CLDR has an English name for every one
 of the twelve. Four of those names will look wrong and are not, the
 `ny`-reads-Nyanja rule again: `sah` renders as **Yakut**, `tyv` as
@@ -1613,11 +1620,12 @@ macrolanguage mapping still gives it a code outside `kur`, so it falls back —
 `xmf` and `sva` are the same shape in five other families, and
 `negotiate.test.ts` pins every one.
 
-**The other thirteen filter unaided, so the batch adds no `LANGUAGE_ALIASES`
-entry at all**, and every regional and script tag over them — `ab-GE`,
-`lez-AZ`, `tly-IR`, `ku-SY`, `ckb-IQ`, `ab-Latn`, `ku-Arab`, `tly-Cyrl` —
-reaches its catalog on ICU data alone. The script asymmetries the headers
-record: `ku` is Latin and answers `ku-Arab`, `tly` is Latin and answers both
+**The other thirteen filter unaided, so the only `LANGUAGE_ALIASES` entry this
+batch needs is the `ku: "kmr"` its Kurmanji catalog's name requires**, and
+every regional and script tag — `ab-GE`, `lez-AZ`, `tly-IR`, `ku-SY`,
+`ckb-IQ`, `ab-Latn`, `ku-Arab`, `tly-Cyrl` — reaches its catalog on ICU data
+plus that one row. The script asymmetries the headers record: `kmr` is Latin
+and answers `ku-Arab`, `tly` is Latin and answers both
 `tly-Cyrl` and `tly-Arab`, `ckb` is Perso-Arabic and answers `ckb-Latn`, and
 the twelve Cyrillic ones answer a Latin tag with Cyrillic. As ever the answer
 to a mismatch is a second catalog beside the first rather than a rename of it.
@@ -1781,7 +1789,7 @@ getting Zyrian.
 So `kv` was left listing `kpv` alone and `chm` listing `mhr` alone. That was
 `kmr` excluding `ckb` and `mnk` excluding `bam` and `dyu`, arriving for the
 first time as a *removal* rather than as an omission, and `negotiate.test.ts`
-holds both directions: `koi` and `mrj` reach themselves even when the
+asserts it as a removal: `koi` and `mrj` reach themselves even when the
 neighbouring standard's catalog is also on offer.
 
 Those two one-member lists are gone now, and their disappearance finished the

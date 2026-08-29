@@ -1028,18 +1028,22 @@ describe("negotiateLocales", () => {
      * script without sharing a family: four Turkic, two Mongolic, four Uralic,
      * one Iranian and one Nakh.
      *
-     * Three of the twelve are ISO 639-3 macrolanguages and go in
+     * Three of the twelve arrived as ISO 639-3 macrolanguages in
      * `MACROLANGUAGE_MEMBERS` — `bua`, `kv` and `chm` — which is the largest
-     * number any one batch has added. The other nine are individual languages
-     * that filter unaided, so the batch adds no `LANGUAGE_ALIASES` entry at
-     * all.
+     * number any one batch has added. Only `bua` is still keyed that way: the
+     * Komi and Mari catalogs were later named after the varieties they are
+     * written in, `kpv` and `mhr`, and their macrolanguage codes moved to
+     * `LANGUAGE_ALIASES`. The other nine are individual languages that filter
+     * unaided and need no entry of either kind.
      */
     describe("the Russian Federation batch", () => {
         it.each([
-            // The three macrolanguages. In each, the first member listed is the
-            // one `Intl.getCanonicalLocales` folds on its own and the rest
-            // reach the catalog only because `MACROLANGUAGE_MEMBERS` names
-            // them.
+            // The three macrolanguages the batch brought in. For `bua` the
+            // first member listed is the one `Intl.getCanonicalLocales` folds
+            // on its own and the rest reach the catalog only because
+            // `MACROLANGUAGE_MEMBERS` names them; `kpv` and `mhr` now name
+            // their own catalogs, and `kom` reaches Zyrian because ICU folds
+            // it to `kv` and `LANGUAGE_ALIASES` carries `kv` on to `kpv`.
             //
             // `koi` and `mrj` stood beside `kpv` and `mhr` here until the
             // Uralic north batch gave each of them a catalog and took it out
@@ -1130,25 +1134,30 @@ describe("negotiateLocales", () => {
 
     /**
      * The Caucasus and Kurdish batch. Fifteen catalogs, and the negotiation
-     * question it raises that no earlier batch did is what happens when a
-     * macrolanguage and one of its own members both have a catalog.
+     * question it raises that no earlier batch did is what happens when two
+     * members of one macrolanguage both have a catalog and the macrolanguage
+     * itself has none.
      *
-     * `ku` is Northern Kurdish (Kurmanji) in Latin and `ckb` is Central Kurdish
-     * (Sorani) in the Perso-Arabic script. ISO 639-3 makes `ckb` a member of
-     * the `ku` macrolanguage, so the naive entry would fold it — and would
-     * serve a Sorani reader a script they do not read while their own catalog
-     * sat on disk. `MACROLANGUAGE_MEMBERS` therefore lists `ku`'s other two
-     * members and excludes `ckb`, which is `locales/mnk` excluding `bam` and
-     * `dyu` arriving on a key that is the macrolanguage rather than a member of
-     * one.
+     * `kmr` is Northern Kurdish (Kurmanji) in Latin and `ckb` is Central
+     * Kurdish (Sorani) in the Perso-Arabic script, and ISO 639-3 makes both
+     * members of the `ku` macrolanguage. The naive entry would fold `ckb` onto
+     * Kurmanji — and would serve a Sorani reader a script they do not read
+     * while their own catalog sat on disk. `MACROLANGUAGE_MEMBERS` therefore
+     * keys on `kmr` and lists only `sdh`, the third member, excluding `ckb`
+     * exactly as `locales/mnk` excludes `bam` and `dyu`.
      *
-     * The other thirteen are individual languages that filter unaided, so the
-     * batch adds no `LANGUAGE_ALIASES` entry at all.
+     * Because the Kurmanji catalog is named for the member rather than the
+     * macrolanguage, `LANGUAGE_ALIASES` carries `ku: "kmr"` so the
+     * macrolanguage tag still reaches it — see "a catalog named after a
+     * macrolanguage member" below. The other thirteen catalogs are individual
+     * languages that filter unaided and need no entry of either kind.
      */
     describe("the Caucasus and Kurdish batch", () => {
         it.each([
-            // The macrolanguage. `kmr` is the member ICU folds on its own;
-            // `sdh` reaches the catalog only because the map names it.
+            // The macrolanguage tag, which reaches the catalog through
+            // `LANGUAGE_ALIASES`; the catalog's own tag, which ICU
+            // canonicalizes onto `ku` and the same alias catches; and `sdh`,
+            // which reaches the catalog only because the member map names it.
             ["ku", "kmr"],
             ["kmr", "kmr"],
             ["sdh", "kmr"],
@@ -1272,9 +1281,11 @@ describe("negotiateLocales", () => {
      * fold was the right answer while Komi-Permyak and Hill Mari had nowhere
      * else to go; the moment they had a file of their own it became the thing
      * the map exists to prevent, a reader served a neighbouring standard while
-     * their own sat on disk. The members that stayed — `kpv` and `mhr`, which
-     * still have no catalog — keep their rows in the Russian Federation batch
-     * above, so removing too much from either list fails there.
+     * their own sat on disk. That left `kv` and `chm` listing a single member
+     * each, `kpv` and `mhr` — the varieties those catalogs are actually
+     * written in — which is why the catalogs were later named after them and
+     * both one-member lists became `LANGUAGE_ALIASES` rows instead; see "a
+     * catalog named after a macrolanguage member" below.
      */
     describe("the Uralic north batch", () => {
         it.each([
@@ -1284,7 +1295,9 @@ describe("negotiateLocales", () => {
             ["koi", "koi"],
             ["mrj", "mrj"],
             ["mdf", "mdf"],
-            // …and the macrolanguage tags themselves, untouched by any of it.
+            // …and the macrolanguage tags themselves, which still reach the
+            // neighbouring standard — through `LANGUAGE_ALIASES` now that the
+            // catalogs are named `kpv` and `mhr` rather than `kv` and `chm`.
             ["kv", "kpv"],
             ["chm", "mhr"],
             // The twelve remaining catalogs, none of which has a 639-1 code, so
@@ -1345,21 +1358,22 @@ describe("negotiateLocales", () => {
 
         /**
          * The removal asserted as a removal rather than as a lookup: before
-         * this batch, `koi` and `mrj` were rewritten to `kv` and `chm` by
+         * this batch, `koi` and `mrj` were rewritten to `kv` and `chm` — the
+         * tags `locales/kpv` and `locales/mhr` were then named after — by
          * `applyLanguageAlias` *before* negotiation ever saw them, so a
          * `locales/koi` on disk would have been unreachable. The rows above
          * would pass either way if the alias happened to be gone; this one
          * says why it has to be.
          */
         it("stops folding a member the moment it has a catalog of its own", () => {
-            for (const [member, macro] of [
+            for (const [member, neighbour] of [
                 ["koi", "kpv"],
                 ["mrj", "mhr"],
             ]) {
                 // Offered *both* catalogs, the member's own wins — which it
                 // cannot do if the tag is rewritten before negotiation.
                 expect(
-                    negotiateLocales([member], [macro, member, "en"]),
+                    negotiateLocales([member], [neighbour, member, "en"]),
                 ).toEqual([member, "en"]);
             }
         });

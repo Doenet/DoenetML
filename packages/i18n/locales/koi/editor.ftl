@@ -16,7 +16,7 @@
 # `src/negotiate.ts`. It is a written standard of its own, so it now has a
 # catalog of its own and that fold is removed. In the words this file contains
 # its spelling parts from `locales/kpv`'s by the plural -эз rather than Zyrian
-# -яс (тшыкӧдчӧмэз, вочакывэз, координатаэз), by writing no і (вӧли for kv's
+# -яс (тшыкӧдчӧмэз, вочакывэз, координатаэз), by writing no і (вӧли for kpv's
 # вӧлі), and by «либо» where Zyrian writes «либӧ».
 #
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element

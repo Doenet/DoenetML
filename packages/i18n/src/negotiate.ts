@@ -58,8 +58,8 @@ const LANGUAGE_ALIASES: Record<string, string> = {
     // has already rewritten a hand-typed `<document lang="kmr">` before
     // negotiation sees it. Without these three rows the directories they name
     // would be unreachable under *either* tag — the hazard `koi` and `mrj`
-    // escaped by leaving `MACROLANGUAGE_MEMBERS`, arriving here from the
-    // opposite direction.
+    // escaped by leaving `MACROLANGUAGE_MEMBERS`, met here from the opposite
+    // direction.
     //
     // The catalogs were renamed off the macrolanguage codes because each is
     // written in one specific member variety while a *different* member ships
@@ -93,11 +93,11 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * members; `nah` is an ISO 639-3 **collection** code rather than a
  * macrolanguage, so it lists the individual Nahuan languages ISO 639-5 groups
  * under it; and `mnk`, `dje` and `kmr` are neither, being *members* — of
- * `man`, `son` and `kur` respectively — that this repository names catalogs
+ * `man`, `son` and `ku` respectively — that this repository names catalogs
  * after.
  *
- * Those three are the shape {@link LANGUAGE_ALIASES}'s `man`, `ku`, `kv` and
- * `chm` entries explain, and it is why the members listed under `mnk` exclude
+ * Those three are the shape {@link LANGUAGE_ALIASES}'s `man` and `ku` entries
+ * explain, and it is why the members listed under `mnk` exclude
  * `bam` and `dyu`: those two have catalogs of their own, and folding them here
  * would serve a Bambara reader Mandinka. `kmr` excludes `ckb` for the same
  * reason. There is a rule behind all of it — **name a catalog after the
@@ -117,7 +117,7 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * directories reachable under either name.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc`, `bxr`, `kpv`, `mhr` — so that each
+ * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc`, `bxr` — so that each
  * list reads as the whole of a group rather than as the leftovers of one, and
  * so that a change in ICU data cannot silently drop a code out of coverage.
  * `mnk`'s list carries `emk` for the same reason, though what ICU folds `emk`
@@ -315,6 +315,7 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // A one-member list folding a tag onto itself is not a fold, so both rows
     // became {@link LANGUAGE_ALIASES} entries pointing the macrolanguage at the
     // member instead.
+    //
     // Kurdish. `locales/kmr` is Northern Kurdish (Kurmanji) in the Hawar Latin
     // alphabet, which is what a bare `ku` maximizes to (`ku-Latn-TR`). ISO
     // 639-3 gives the macrolanguage three members — `ckb`, `kmr`, `sdh` — and
