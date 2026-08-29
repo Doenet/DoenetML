@@ -766,6 +766,16 @@ export const LOCALE_NAME_FALLBACKS: Record<
     olo: { englishName: "Livvi-Karelian" },
     kca: { englishName: "Khanty", endonym: "хӑнты ясӑӈ" },
     mns: { englishName: "Mansi", endonym: "мāньси лāтыӈ" },
+    // The one locale of the Oceania batch CLDR has no data for, and the batch
+    // is otherwise the best-named this roster has had: ICU knows ten of the
+    // eleven tags, down to `tkl` and `niu`. `wls` it knows in no language
+    // at all, not even its own, so without this entry a Wallisian reader would
+    // be offered "wls" in `<document lang>`'s autocomplete. The endonym is
+    // copied letter for letter from `locales/wls`'s own headers, `locales/sjd`
+    // fashion rather than `locales/olo` fashion, because those headers do
+    // commit to a self-name: the ʻokina is U+02BB, the same character the
+    // catalog writes throughout, and there is no macron in it.
+    wls: { englishName: "Wallisian", endonym: "Fakaʻuvea" },
 };
 
 /**

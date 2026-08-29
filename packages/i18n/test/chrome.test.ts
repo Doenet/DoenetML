@@ -12,6 +12,17 @@ import smjChrome from "../locales/smj/chrome.ftl?raw";
 import smnChrome from "../locales/smn/chrome.ftl?raw";
 import smsChrome from "../locales/sms/chrome.ftl?raw";
 import sjdChrome from "../locales/sjd/chrome.ftl?raw";
+import mhChrome from "../locales/mh/chrome.ftl?raw";
+import chkChrome from "../locales/chk/chrome.ftl?raw";
+import ponChrome from "../locales/pon/chrome.ftl?raw";
+import kosChrome from "../locales/kos/chrome.ftl?raw";
+import gilChrome from "../locales/gil/chrome.ftl?raw";
+import niuChrome from "../locales/niu/chrome.ftl?raw";
+import tklChrome from "../locales/tkl/chrome.ftl?raw";
+import tvlChrome from "../locales/tvl/chrome.ftl?raw";
+import rarChrome from "../locales/rar/chrome.ftl?raw";
+import wlsChrome from "../locales/wls/chrome.ftl?raw";
+import biChrome from "../locales/bi/chrome.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
 
 /**
@@ -314,4 +325,98 @@ describe("the Sami plural categories", () => {
             stripBidiIsolates(t("attempts-remaining", { count: 2 })),
         ).toContain("2");
     });
+});
+
+/**
+ * Oceania, and the first batch in which **not one member has CLDR plural
+ * data**.
+ *
+ * The Sami block above is this one's opposite: four of those five catalogs
+ * write a `[two]` branch because their own CLDR rules select it, and the fifth
+ * does not because CLDR has never heard of Kildin Sami. Here the fifth case is
+ * the whole batch. `Intl.PluralRules` resolves every one of these eleven tags
+ * against the *runtime's* default locale, so any category branch a catalog
+ * wrote would be selected by English's rules on English's terms — text that
+ * looks translated and is chosen by the wrong language.
+ *
+ * That is not a defect in the catalogs and the batch does not treat it as one:
+ * nouns in these languages are not marked for number after a numeral anyway,
+ * so a single unselected form is the *right* translation as well as the safe
+ * one. What this block pins is that nobody later adds a category branch to one
+ * of these files without noticing that nothing can select it.
+ *
+ * Explicit numeric literals (`[0]`, `[1]`) are a different mechanism — matched
+ * against the number itself rather than against a category — and stay legal,
+ * which the last assertion holds.
+ */
+describe("the Oceania batch's plural categories", () => {
+    /** Comment lines dropped: several headers discuss `[two]` in prose. */
+    const branches = (catalog: string) =>
+        catalog
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
+
+    const OCEANIA: [string, string][] = [
+        ["mh", mhChrome],
+        ["chk", chkChrome],
+        ["pon", ponChrome],
+        ["kos", kosChrome],
+        ["gil", gilChrome],
+        ["niu", niuChrome],
+        ["tkl", tklChrome],
+        ["tvl", tvlChrome],
+        ["rar", rarChrome],
+        ["wls", wlsChrome],
+        ["bi", biChrome],
+    ];
+
+    it.each(OCEANIA)(
+        "leaves %s free of a category branch nothing could select",
+        (locale, catalog) => {
+            // CLDR has no rules for the tag, so the categories on offer are
+            // some other language's.
+            expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+                .not.toBe(locale);
+            for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
+                expect(branches(catalog)).not.toContain(category);
+            }
+        },
+    );
+
+    it.each(OCEANIA)(
+        "still counts and still renders in %s",
+        (locale, catalog) => {
+            const t = createChromeTranslator(locale, { [locale]: catalog });
+            // The count reaches the reader whatever categories exist: this is the
+            // half that would break if a catalog dropped its default branch while
+            // shedding the categories it could not use.
+            for (const count of [1, 2, 5]) {
+                expect(
+                    stripBidiIsolates(t("attempts-remaining", { count })),
+                ).toContain(String(count));
+            }
+        },
+    );
+
+    /**
+     * The one selector these catalogs may still write, and do. `[0]` is
+     * matched against the number rather than against a category, so it is
+     * unaffected by having no CLDR data — which is why every catalog in the
+     * batch keeps English's "no attempts remaining" branch while dropping its
+     * `one`/`other` split.
+     */
+    it.each(OCEANIA)(
+        "selects %s's zero branch by the number itself",
+        (locale, catalog) => {
+            const t = createChromeTranslator(locale, { [locale]: catalog });
+            const none = stripBidiIsolates(
+                t("attempts-remaining", { count: 0 }),
+            );
+            const some = stripBidiIsolates(
+                t("attempts-remaining", { count: 3 }),
+            );
+            expect(none).not.toBe(some);
+        },
+    );
 });

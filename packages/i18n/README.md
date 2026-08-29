@@ -1817,6 +1817,186 @@ other: `krl` has «š», the adessive `-lla/-llä`, «ta» and «kun»; `olo` ha
 where `krl` takes Finnic ones. `mdf` and `myv` are the same relationship one
 branch over. Neither pair can serve the other's reader and neither pretends to.
 
+### Eleven catalogs across Oceania, and the batch that grades its own confidence
+
+The roster goes from 245 locales to 256: Marshallese (`mh`), Chuukese (`chk`),
+Pohnpeian (`pon`), Kosraean (`kos`) and Gilbertese (`gil`) in Micronesia;
+Niuean (`niu`), Tokelauan (`tkl`), Tuvaluan (`tvl`), Rarotongan (`rar`) and
+Wallisian (`wls`) in Polynesia; and Bislama (`bi`), the English-lexified creole
+of Vanuatu.
+
+It is the first batch assembled around **an ocean** rather than a family, a
+script or a state, and the first whose members are spread across nine countries
+and territories without a single shared administration between them.
+
+#### The batch that needed nothing from the maps
+
+`MACROLANGUAGE_MEMBERS` and `LANGUAGE_ALIASES` are **unchanged**, and after two
+batches that each turned on them that is worth saying rather than passing over.
+The Caucasus batch had to keep `ckb` *out* of a list it had never been in; the
+Uralic north had to take `koi` and `mrj` *out* of lists they were already in.
+Here not one of the eleven is a macrolanguage, not one is a member of one, and
+not one was being folded onto a wider code — so every tag reached English on its
+own account before this batch and reaches its own catalog after it.
+`negotiate.test.ts` asserts that as a property rather than leaving it implicit:
+each of the eleven resolves to itself against the full roster and to English
+against a roster of English alone.
+
+Two of them — `mh` and `bi` — have ISO 639-1 codes, so a reader can also arrive
+under the alpha-3 (`mah`, `bis`) that `Intl.getCanonicalLocales` folds. Those
+rows are pinned because the folding is ICU's rather than this repository's.
+
+#### Not one member has CLDR plural data
+
+This is the first batch of which that is true, and it inverts the Uralic north's
+finding. There, four Sami catalogs wrote a `[two]` branch because their own CLDR
+rules select it and a fifth could not; here the fifth case is the whole batch.
+`Intl.PluralRules` resolves all eleven tags against the *runtime's* default
+locale, so a category branch in any of these files would be text selected by
+English's rules on English's terms.
+
+The catalogs are not the worse for it, because the grammar agrees with the
+constraint: a noun in these languages is not marked for number after a numeral,
+so a single unselected form is the right translation as well as the safe one.
+`chrome.test.ts` holds all eleven to it — no `zero`, `two`, `few` or `many`
+branch anywhere — and holds the other half too, that each still renders its
+count and still selects the explicit `[0]` branch, which is matched against the
+number rather than against a category and so stays legal.
+
+Two catalogs found the same wall from a different direction. Pohnpeian and
+Gilbertese both count with **numeral classifiers**, and in both the classifier is
+a suffix on the numeral word — «uoua», «ruuw», never «2-ua» — so a count that
+arrives as `{ $count }` gives it nothing to attach to. That is the README's
+existing "an affix cannot be welded to a placeable" rule reached through a
+classifier rather than through a case ending, and `chk` records it a third time.
+
+#### A declared confidence scale, and the tier that was dropped
+
+The honest thing about this batch is that its eleven catalogs are **not equally
+good, and each one says where it sits.** Published lexical material for these
+languages ranges from a modern dictionary with a searchable web edition to a
+1907 missionary wordlist that exists nowhere as text, and the catalogs track
+that range rather than papering over it:
+
+- **Translated.** `pon`, `mh`, `chk`, `niu`, `tkl`, `tvl`, `rar`, `wls`, `bi`
+  write their own vocabulary throughout, leaning on a published dictionary each
+  header names.
+- **Framed.** `kos` and `gil` write a catalog's *frame* in the language —
+  «Tia ku in…», «Wangin…», «ke sripen» — around English technical nouns, and
+  say so.
+
+**A third tier was seeded and then dropped from the batch, which is worth
+recording rather than losing.** Nauruan (`na`), Yapese (`yap`), Palauan (`pau`)
+and Rotuman (`rtm`) began as correct frames with the whole technical lexicon
+declared as English loans, and a later pass recovered their *basic* vocabulary —
+colour terms, thick and thin, the geometric nouns — from Josephs, Churchward and
+Jensen. That recovery reached `content.ftl` and stopped there, because the style
+tables are single words and the other three namespaces are sentences: their
+`chrome.ftl`, `editor.ftl` and `diagnostics.ftl` stayed byte-identical to
+English, translating none of their 67, 64 and 220 messages. Shipping them would
+have put over 5,000 lines of English under four locale directories where the
+existing English fallback already puts identical text on screen, so all four are
+held back for a later batch with better lexical sources. Every key, placeable and
+variant key is in place in them, so nothing structural stands in the way; what
+they need is words.
+
+No word went in by guess. Where a dictionary gave nothing the English loan
+stands and is *declared* a loan rather than respelled by an invented loan
+phonology — `locales/kos` argues that case explicitly, on the grounds that
+`b c d g h j q v x z` are not Kosraean letters, so a loan should stay visibly a
+loan. `styleDescriptions.test.ts` pins the words that are the language beside
+the ones that are not, which makes replacing a loan a visible diff rather than a
+silent improvement.
+
+#### A colour system that is not English's
+
+`locales/gil` is the batch's one colour-system mismatch: «mawaawa» covers green
+and blue both, so it is assigned to one key and the other keeps a loan, with the
+header saying why rather than splitting the word silently.
+
+#### Word order, and a disagreement inside a subfamily
+
+Ten of the eleven put the adjectives behind the noun and one puts them in
+front — `bi`, which follows `locales/tpi`. A region is not a word order and here
+neither is a family: the ten postnominal catalogs and the one prenominal one all
+share the region, and every catalog but `bi` shares the family. Two catalogs
+write a linker out themselves: `chk`'s relative «mi» and `gil`'s «ae».
+
+The sharper split is over the side count. Eight of the eleven — `chk`, `pon`,
+`kos`, `niu`, `tvl`, `rar`, `wls` and `bi` — make it a following clause and so
+reach `[noun-tail]`, which is the widest use `[noun-tail]` has had in one batch.
+The other three fold it into the head: `mh`, `gil` and `tkl`, each because its
+own grammar puts it there. `tkl` is the interesting one, because it is
+Tuvaluan's closest relative here and `tvl` went the other way — a disagreement
+*inside* a subfamily, which no earlier batch's had, and both files state their
+choice so a reviewer can tell it is deliberate.
+
+A catalog that reaches `[noun-tail]` has to place the tail the same way in
+`style-with-noun` and in `style-filled-with-noun`, or the same polygon is
+assembled two ways in one language depending on whether it is filled.
+`locales/pon` and `locales/kos` each said in their headers that the tail closes
+the phrase and then placed it right after the noun in the filled message; both
+are corrected, and `styleDescriptions.test.ts` now renders the filled phrase for
+all eleven so the two messages cannot drift apart again.
+
+#### Pairs that are deliberately not copies of each other
+
+Five relationships in this batch could each have produced a respelling of an
+existing catalog, and every one of the five is argued in a header instead.
+`niu` and `wls` both sit beside `locales/to`: Niuean has no glottal-stop letter
+where Tongan writes the fakauʻa, and Wallisian writes /ŋ/ as a single `g`, so
+"correcting" a `g` to `ng` would convert that file into Tongan. `rar` sits
+beside `locales/mi` and `locales/ty` with a ten-row correspondence table and the
+instruction not to edit it back toward Māori. `bi` sits beside `locales/tpi`
+with fifteen rows and the rule stated outright that resemblance is not
+evidence. And `tkl` and `tvl` sit beside each other and beside `locales/sm`,
+each warning that the two are expected to look alike and that **their agreement
+is not evidence either is right**, since one process produced both — the
+self-suspicion the Uralic north batch had to discover by auditing itself, built
+in here from the start.
+
+`tkl`'s header also names its own largest risk, which is the shape this
+convention takes when a sound law is only half applicable: Samoan `ʻ`
+corresponds to Tokelauan `k` where it continues Proto-Polynesian \*k and to
+nothing where it does not, and the seed cannot always tell which.
+
+#### Also here
+
+- A `LOCALE_NAME_FALLBACKS` entry for `wls`, the only tag of the eleven CLDR
+  has no name for in any language, its own included. The endonym «Fakaʻuvea» is
+  copied letter for letter from `locales/wls`'s headers — `locales/sjd` fashion
+  rather than `locales/olo` fashion, because those headers do commit to a
+  self-name. ICU knows the other ten, down to `tkl` and `niu`, which makes this
+  the best-named batch the roster has had.
+- Two tags left to miss for `smi`'s reason one family up: `map`, the ISO 639-5
+  collection over all Austronesian languages, which maximizes to nothing at all,
+  and — recorded rather than fixed — `und-WF`, which CLDR maximizes to
+  **French**. That is true of Wallis and Futuna's administration and schooling,
+  and is why `locales/wls`'s loans are French-mediated where `locales/to`'s are
+  English-mediated; `locales/rar` is the mirror image, taking English loans where
+  `locales/ty` takes French ones.
+- Twelve near misses, and the Pacific's are sharper than the north's because its
+  language boundaries do not follow its political ones. `kpg` and `nkr` are
+  *Polynesian* languages spoken inside the Federated States of Micronesia, so
+  neither the country's catalogs nor the family's is the right answer. `fud`
+  (East Futunan) is this batch's `fkv` and sharper than `fkv` was: it is not
+  merely a sister of a catalogued language but is spoken in the **same
+  territory** as `wls`.
+- The first catalogs to carry `math-embedded-input-blank`, its ordinal and
+  `math-embedded-input-shape-unsuitable`, which no earlier seeded batch has, so
+  each of the eleven sits at 445/575 rather than 442.
+- Regenerated locale roster and schema, so `<document lang>` autocompletes all
+  eleven.
+
+#### Honesty
+
+Every string is machine-generated and unread by a speaker, and each catalog says
+so in its own header. Beyond the confidence scale above, `locales/chk` names
+«pwóón» — its word for *answer*, the highest-frequency word in the catalog — as
+one it could not confirm, and `locales/gil` names its colour line as its least
+certain. Each catalog lists its own coinages, and correcting any of it needs no
+permission.
+
 ### A language with no word for it
 
 `tlh` is **Klingon**, and it is the roster's first constructed language. Nothing

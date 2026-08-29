@@ -3914,3 +3914,240 @@ describe("the Uralic north batch", () => {
         },
     );
 });
+
+describe("the Oceania batch's word order", () => {
+    /**
+     * Eleven languages of one ocean and two orders — ten postnominal, one
+     * prenominal — which is worth pinning for the reason the Austronesian
+     * block above pins its own split: a region is not a word order, and here
+     * neither is a *family*. Ten Austronesian catalogs put the adjectives
+     * behind the noun, and `bi`, a creole whose lexifier is English, is the
+     * one that puts them in front.
+     *
+     * The linker is the other half of the story. Two catalogs join adjective
+     * to noun with a particle they write out themselves — `chk`'s relative
+     * «mi» repeated before each modifier and `gil`'s singular linker «ae»
+     * likewise — while the Polynesian catalogs use none at all. These strings
+     * are what hold each choice, and each `content.ftl` header says why its
+     * language needs the particle a neighbour does without.
+     *
+     * A few rows still render an English loan where a dictionary gave the
+     * catalog nothing — `kos` and `gil` say so in their own headers — and the
+     * words that *are* the language are pinned here beside the ones that are
+     * not, so that replacing a loan is a visible diff rather than a silent
+     * improvement.
+     */
+    const postnominal: [string, string, string][] = [
+        ["mh", "laain m̧ijel m̧ōttanm̧ōttan būrōrō", "m̧ijel m̧ōttanm̧ōttan būrōrō"],
+        ["chk", "nain mi wattee mi tass mi ppar", "wattee mi tass mi ppar"],
+        ["pon", "lain mosul lepilep weitahta", "mosul lepilep weitahta"],
+        ["kos", "line matoltol kotkot srusra", "matoltol kotkot srusra"],
+        [
+            "gil",
+            "te line ae bubura ae dashed ae uraura",
+            "bubura ae dashed ae uraura",
+        ],
+        ["niu", "laini matolu motumotu kula", "matolu motumotu kula"],
+        ["tkl", "laina mafiafia motumotu kula", "mafiafia motumotu kula"],
+        ["tvl", "laina matolu motumotu kula", "matolu motumotu kula"],
+        [
+            "rar",
+            "rārangi mātotoru motumotu muramura",
+            "mātotoru motumotu muramura",
+        ],
+        ["wls", "laina matolu motumotu kula", "matolu motumotu kula"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is prepended whole, with nothing of it reaching in
+            // among the adjectives — including for the catalogs that put a
+            // linker between the two, whose particle belongs to the adjective
+            // run rather than to the noun.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const prenominal: [string, string, string][] = [
+        ["bi", "tik brokbrok red laen", "tik brokbrok red"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * The side count, where the batch stops agreeing with itself — and the
+     * disagreement runs *inside* a subfamily rather than between them, which
+     * no earlier batch's did.
+     *
+     * Eight of the eleven make the count a following clause and so reach
+     * `[noun-tail]` — «e 5 ona tafa», «e 5 tapa tōna», «me pali 5», «mi 5
+     * peekin» and the rest — while `mh`, `gil` and `tkl` fold it into the head
+     * and leave `[tail]` empty. `tkl` is the sharp one: it is Tuvaluan's
+     * closest relative in the batch, and its own header warns that the two are
+     * expected to look alike, yet it heads the count («poligoni tutuha e 5 ona
+     * itu …») where `tvl` tails it, so its adjectives trail the whole phrase.
+     * `locales/tkl` and `locales/tvl` each state their choice, and these rows
+     * are why a reviewer
+     * can tell the difference is deliberate rather than an oversight in one of
+     * them.
+     *
+     * `kos` and `gil` still hold an English «regular polygon» where their
+     * dictionaries gave them no term, which is what the declared lexical debt
+     * looks like at this call site.
+     */
+    it.each([
+        ["mh", "polygon jejjet 5 kona m̧ijel m̧ōttanm̧ōttan būrōrō"],
+        [
+            "chk",
+            "poriikon mi wewe fengen mi wattee mi tass mi ppar mi 5 peekin",
+        ],
+        ["pon", "poliken pahrek mosul lepilep weitahta me pali 5"],
+        ["kos", "regular polygon matoltol kotkot srusra ma oasr siska 5"],
+        ["gil", "te regular polygon ae 5 itera ae bubura ae dashed ae uraura"],
+        ["niu", "polikone tatai matolu motumotu kula mo e 5 e tapa"],
+        ["tkl", "poligoni tutuha e 5 ona itu mafiafia motumotu kula"],
+        ["tvl", "poligona tutusa matolu motumotu kula e 5 ona tafa"],
+        ["rar", "polygon ʻaiteite mātotoru motumotu muramura e 5 tapa tōna"],
+        ["wls", "poligone tatau matolu motumotu kula ʻe tapa 5"],
+        ["bi", "tik brokbrok red poligon we i gat 5 saed we oli sem mak"],
+    ])(
+        "places the side count where %s's grammar puts it",
+        (locale, expected) => {
+            expect(
+                describeStrokedShape(forLocale(locale), words, {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                }),
+            ).toBe(expected);
+        },
+    );
+
+    /**
+     * The same phrase again with the shape filled, which is where a catalog
+     * can quietly disagree with itself. `style-with-noun` and
+     * `style-filled-with-noun` are two separate messages, so a catalog that
+     * reaches `[noun-tail]` has to place the tail the same way in both, or the
+     * same polygon is assembled two ways in one language depending on nothing
+     * but whether it is filled. `locales/pon` and `locales/kos` each said in
+     * their headers that the tail closes the phrase and then placed it right
+     * after the noun in the filled message; these rows are what holds the two
+     * messages together.
+     *
+     * The fill pattern is asserted alongside, because `[pattern-tail]` is the
+     * one branch carrying the tail *and* a trailing clause, and so the one
+     * where an ordering mistake can survive the plain case.
+     */
+    it.each([
+        [
+            "mh",
+            "polygon jejjet 5 kona obrak būļu",
+            "polygon jejjet 5 kona obrak būļu kōn taim̧ōn ko",
+        ],
+        [
+            "chk",
+            "poriikon mi wewe fengen mi ur mi puruu mi 5 peekin",
+            "poriikon mi wewe fengen mi ur mi puruu mi 5 peekin fiti taimon",
+        ],
+        [
+            "pon",
+            "poliken pahrek audaud pluh me pali 5",
+            "poliken pahrek audaud pluh me pali 5 iangahki taimen",
+        ],
+        [
+            "kos",
+            "regular polygon sessesla folfol ma oasr siska 5",
+            "regular polygon sessesla folfol ma oasr siska 5 ke diamond",
+        ],
+        [
+            "gil",
+            "te regular polygon ae 5 itera ae kanoaki ae buruu",
+            "te regular polygon ae 5 itera ae kanoaki ae buruu ma taian diamond",
+        ],
+        [
+            "niu",
+            "polikone tatai puke lanu moana mo e 5 e tapa",
+            "polikone tatai puke lanu moana mo e 5 e tapa mo e tau taimane",
+        ],
+        [
+            "tkl",
+            "poligoni tutuha e 5 ona itu fakatumu lanu moana",
+            "poligoni tutuha e 5 ona itu fakatumu lanu moana ma te taimane",
+        ],
+        [
+            "tvl",
+            "poligona tutusa fakafonu lanu moana e 5 ona tafa",
+            "poligona tutusa fakafonu lanu moana e 5 ona tafa mo taimane",
+        ],
+        [
+            "rar",
+            "polygon ʻaiteite kī ninamu e 5 tapa tōna",
+            "polygon ʻaiteite kī ninamu e 5 tapa tōna ma taimana",
+        ],
+        [
+            "wls",
+            "poligone tatau fonu lanumoana ʻe tapa 5",
+            "poligone tatau fonu lanumoana ʻe tapa 5 mo te taimane",
+        ],
+        [
+            "bi",
+            "fulap blu poligon we i gat 5 saed we oli sem mak",
+            "fulap blu poligon we i gat 5 saed we oli sem mak wetem ol daemon",
+        ],
+    ])(
+        "places the side count the same way in %s's filled phrase",
+        (locale, plain, withPattern) => {
+            const filled = {
+                lineWidthWord: "",
+                lineStyleWord: "",
+                colorWord: "blue",
+                fillColorWord: "blue",
+                fillStyleWord: "",
+            };
+            const noun = { key: "regular-polygon", numSides: 5 } as const;
+            expect(
+                describeClosedShape(forLocale(locale), filled, {
+                    filled: true,
+                    noun,
+                    withNoun: true,
+                }),
+            ).toBe(plain);
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    { ...filled, fillStyleWord: "diamonds" },
+                    { filled: true, noun, withNoun: true },
+                ),
+            ).toBe(withPattern);
+        },
+    );
+});

@@ -27,6 +27,7 @@ export type SupportedLocale =
     | "bem"
     | "bg"
     | "bho"
+    | "bi"
     | "bik"
     | "bin"
     | "bm"
@@ -41,6 +42,7 @@ export type SupportedLocale =
     | "ce"
     | "ceb"
     | "ch"
+    | "chk"
     | "chm"
     | "ckb"
     | "co"
@@ -77,6 +79,7 @@ export type SupportedLocale =
     | "ga"
     | "gaa"
     | "gd"
+    | "gil"
     | "gl"
     | "gn"
     | "gu"
@@ -112,6 +115,7 @@ export type SupportedLocale =
     | "ko"
     | "koi"
     | "kok"
+    | "kos"
     | "kpe"
     | "kr"
     | "krc"
@@ -139,6 +143,7 @@ export type SupportedLocale =
     | "mdf"
     | "men"
     | "mg"
+    | "mh"
     | "mi"
     | "min"
     | "mk"
@@ -158,6 +163,7 @@ export type SupportedLocale =
     | "nb"
     | "nds"
     | "ne"
+    | "niu"
     | "nl"
     | "nog"
     | "nso"
@@ -173,10 +179,12 @@ export type SupportedLocale =
     | "pam"
     | "pcm"
     | "pl"
+    | "pon"
     | "ps"
     | "pt"
     | "qu"
     | "quc"
+    | "rar"
     | "rm"
     | "rn"
     | "ro"
@@ -220,6 +228,7 @@ export type SupportedLocale =
     | "ti"
     | "tiv"
     | "tk"
+    | "tkl"
     | "tlh"
     | "tly"
     | "tn"
@@ -228,6 +237,7 @@ export type SupportedLocale =
     | "tr"
     | "ts"
     | "tt"
+    | "tvl"
     | "ty"
     | "tyv"
     | "udm"
@@ -242,6 +252,7 @@ export type SupportedLocale =
     | "vi"
     | "vro"
     | "war"
+    | "wls"
     | "wo"
     | "xal"
     | "xh"
@@ -394,6 +405,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "भोजपुरी",
         label: "Bhojpuri (भोजपुरी)",
     },
+    {
+        locale: "bi",
+        englishName: "Bislama",
+        endonym: "Bislama",
+        label: "Bislama",
+    },
     { locale: "bik", englishName: "Bikol", endonym: "Bikol", label: "Bikol" },
     { locale: "bin", englishName: "Bini", endonym: "Bini", label: "Bini" },
     {
@@ -457,6 +474,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Chamorro",
         endonym: "Chamorro",
         label: "Chamorro",
+    },
+    {
+        locale: "chk",
+        englishName: "Chuukese",
+        endonym: "Chuukese",
+        label: "Chuukese",
     },
     { locale: "chm", englishName: "Mari", endonym: "Mari", label: "Mari" },
     {
@@ -638,6 +661,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Scottish Gaelic",
         endonym: "Gàidhlig",
         label: "Scottish Gaelic (Gàidhlig)",
+    },
+    {
+        locale: "gil",
+        englishName: "Gilbertese",
+        endonym: "Gilbertese",
+        label: "Gilbertese",
     },
     {
         locale: "gl",
@@ -830,6 +859,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Konkani (कोंकणी)",
     },
     {
+        locale: "kos",
+        englishName: "Kosraean",
+        endonym: "Kosraean",
+        label: "Kosraean",
+    },
+    {
         locale: "kpe",
         englishName: "Kpelle",
         endonym: "Kpelle",
@@ -956,6 +991,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Malagasy",
         label: "Malagasy",
     },
+    {
+        locale: "mh",
+        englishName: "Marshallese",
+        endonym: "Marshallese",
+        label: "Marshallese",
+    },
     { locale: "mi", englishName: "Māori", endonym: "Māori", label: "Māori" },
     {
         locale: "min",
@@ -1056,6 +1097,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Nepali (नेपाली)",
     },
     {
+        locale: "niu",
+        englishName: "Niuean",
+        endonym: "Niuean",
+        label: "Niuean",
+    },
+    {
         locale: "nl",
         englishName: "Dutch",
         endonym: "Nederlands",
@@ -1131,6 +1178,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Polish (polski)",
     },
     {
+        locale: "pon",
+        englishName: "Pohnpeian",
+        endonym: "Pohnpeian",
+        label: "Pohnpeian",
+    },
+    {
         locale: "ps",
         englishName: "Pashto",
         endonym: "پښتو",
@@ -1153,6 +1206,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Kʼicheʼ",
         endonym: "Kʼicheʼ",
         label: "Kʼicheʼ",
+    },
+    {
+        locale: "rar",
+        englishName: "Rarotongan",
+        endonym: "Rarotongan",
+        label: "Rarotongan",
     },
     {
         locale: "rm",
@@ -1378,6 +1437,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Turkmen (türkmen dili)",
     },
     {
+        locale: "tkl",
+        englishName: "Tokelauan",
+        endonym: "Tokelauan",
+        label: "Tokelauan",
+    },
+    {
         locale: "tlh",
         englishName: "Klingon",
         endonym: "Klingon",
@@ -1419,6 +1484,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Tatar",
         endonym: "татар",
         label: "Tatar (татар)",
+    },
+    {
+        locale: "tvl",
+        englishName: "Tuvalu",
+        endonym: "Tuvalu",
+        label: "Tuvalu",
     },
     {
         locale: "ty",
@@ -1484,6 +1555,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "vro", englishName: "Võro", endonym: "Võro", label: "Võro" },
     { locale: "war", englishName: "Waray", endonym: "Waray", label: "Waray" },
+    {
+        locale: "wls",
+        englishName: "Wallisian",
+        endonym: "Fakaʻuvea",
+        label: "Wallisian (Fakaʻuvea)",
+    },
     { locale: "wo", englishName: "Wolof", endonym: "Wolof", label: "Wolof" },
     {
         locale: "xal",

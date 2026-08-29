@@ -1417,6 +1417,186 @@ describe("negotiateLocales", () => {
                 .toEqual(["en"]);
         });
     });
+
+    /**
+     * Oceania. Eleven catalogs across Micronesia, Polynesia and Melanesia,
+     * and the negotiation question it raises is neither of the last two
+     * batches'.
+     *
+     * The Caucasus batch had to keep a member *out* of a list; the Uralic
+     * north had to **take two out** of lists they were already in. This batch
+     * touches `MACROLANGUAGE_MEMBERS` not at all, and that is the fact
+     * worth pinning rather than passing over: not one of the eleven is a
+     * macrolanguage, and not one was being folded onto a wider code before
+     * this batch, so every tag reached English on its own account and now
+     * reaches its own catalog. The map is unchanged and the rows below prove
+     * the batch needed nothing from it.
+     *
+     * Two of the eleven — `mh` and `bi` — have ISO 639-1 codes, so a reader
+     * can also arrive under the 639-2/T alpha-3 that
+     * `Intl.getCanonicalLocales` folds for us. Those rows are here because the
+     * folding is ICU's rather than this repository's, and a change in it would
+     * silently cost two catalogs their alpha-3 door.
+     */
+    describe("the Oceania batch", () => {
+        /** The eleven tags this batch adds, in the order the README lists them. */
+        const OCEANIA = [
+            "mh",
+            "chk",
+            "pon",
+            "kos",
+            "gil",
+            "niu",
+            "tkl",
+            "tvl",
+            "rar",
+            "wls",
+            "bi",
+        ];
+
+        it.each([
+            // The nine tags with no 639-1 code, each arriving as the
+            // directory it names.
+            ["chk", "chk"],
+            ["pon", "pon"],
+            ["kos", "kos"],
+            ["gil", "gil"],
+            ["niu", "niu"],
+            ["tkl", "tkl"],
+            ["tvl", "tvl"],
+            ["rar", "rar"],
+            ["wls", "wls"],
+            // …and the two with one.
+            ["mh", "mh"],
+            ["bi", "bi"],
+            // The alpha-3 doors, folded by `Intl.getCanonicalLocales` rather
+            // than by anything here.
+            ["mah", "mh"],
+            ["bis", "bi"],
+            // Region tags, which filter without help. The batch spans nine
+            // countries and territories, and every one of the eleven
+            // maximizes to a region — a completeness no earlier batch had.
+            ["mh-MH", "mh"],
+            ["chk-FM", "chk"],
+            ["pon-FM", "pon"],
+            ["kos-FM", "kos"],
+            ["gil-KI", "gil"],
+            ["niu-NU", "niu"],
+            ["tkl-TK", "tkl"],
+            ["tvl-TV", "tvl"],
+            ["rar-CK", "rar"],
+            ["wls-WF", "wls"],
+            ["bi-VU", "bi"],
+            // Script tags. Every catalog here is Latin — the first batch of
+            // which that is true since the Philippine one — so a `-Latn` is
+            // redundant rather than a disambiguation, and has to cost nothing.
+            ["mh-Latn", "mh"],
+            ["gil-Latn", "gil"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The batch that changed no map, asserted as such. Each of the eleven
+         * reaches its own catalog when the whole roster is on offer *and* when
+         * only English is — the second half being what would fail if some
+         * entry were quietly folding one of these tags onto a neighbour.
+         */
+        it("folds none of the eleven onto another catalog", () => {
+            for (const locale of OCEANIA) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The near misses, and this batch's are sharper than the Uralic
+         * north's because the Pacific's language boundaries do not line up
+         * with its political ones.
+         *
+         * `uli` (Ulithian), `woe` (Woleaian) and `stw` (Satawalese) are
+         * Trukic, the dialect chain `chk` sits at one end of; `mkj`
+         * (Mokilese) is Pohnpeic beside `pon`. `kpg` (Kapingamarangi) and
+         * `nkr` (Nukuoro) are the sharpest of all: they are *Polynesian*
+         * languages spoken inside the Federated States of Micronesia, so
+         * neither the Micronesian catalogs they share a country with nor the
+         * Polynesian ones they share a family with is the right answer, and
+         * nothing published says which. `pkp` (Pukapukan) is a Cook Islands
+         * language beside `rar`, and `locales/rar`'s own header names it as a
+         * language with a code of its own rather than a variety of
+         * Rarotongan. `mrq` (Marquesan) is Eastern Polynesian beside `rar`.
+         * `meu` (Motu) and `ho` (Hiri Motu) sit beside `bi` in Melanesia, and
+         * `pih` (Pitkern) is the other English-lexified creole of the region.
+         *
+         * `fud` (East Futunan) is this batch's `fkv`, and it is sharper than
+         * `fkv` was: it is not merely a sister of a catalogued language, it is
+         * spoken in **the same territory** as `wls`. Wallis and Futuna has two
+         * Polynesian languages and this batch catalogues one of them. Folding
+         * Futunan onto Wallisian because they share a flag would be precisely
+         * the judgement these maps exist to avoid.
+         */
+        it.each([
+            "uli",
+            "woe",
+            "stw",
+            "mkj",
+            "kpg",
+            "nkr",
+            "pkp",
+            "mrq",
+            "meu",
+            "ho",
+            "pih",
+            "fud",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * The territory `wls` and `fud` share, and the reason a region can
+         * never stand in for the language here. CLDR maximizes `und-WF` to
+         * **French** — which is true of Wallis and Futuna's administration and
+         * schooling, and is why `locales/wls`'s loans are French-mediated
+         * where `locales/to`'s are English-mediated — so a host that knew only
+         * the territory would reach `fr`, not `wls`. That is CLDR's answer
+         * rather than a wrong one, and this row records it so that nobody
+         * later "fixes" region handling into serving Wallisian to a reader who
+         * only said where they were.
+         */
+        it("maximizes the batch's one shared territory to French, not to either of its languages", () => {
+            expect(new Intl.Locale("und-WF").maximize().language).toBe("fr");
+        });
+
+        /**
+         * `map` is left to miss for `smi`'s reason, one family up. It is the
+         * ISO 639-5 collection over all Austronesian languages — every catalog
+         * in this batch is inside it, and so are `ms`, `tl`-adjacent
+         * catalogs, `mi`, `haw` and a dozen others — and CLDR has no opinion
+         * about which of them a bare `map` means: it maximizes to nothing at
+         * all. A collection covering a tenth of the world's languages is the
+         * clearest possible case for leaving a tag to miss.
+         */
+        it("leaves the Austronesian collection code alone, because CLDR has no opinion about it", () => {
+            const maximized = new Intl.Locale("map").maximize();
+            expect(maximized.region).toBeUndefined();
+            expect(maximized.script).toBeUndefined();
+            expect(negotiateLocales([normalizeLocaleTag("map")], available)) //
+                .toEqual(["en"]);
+        });
+    });
 });
 
 describe("resolveDocumentLocale", () => {
