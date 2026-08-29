@@ -52,7 +52,7 @@
 # here only where it is needed. The geometry nouns (`line`, `ray`, `vector`,
 # `curve`, `function`, `parabola`, `polygon`, `polyline`, `triangle`,
 # `rectangle`, `circle`, `region`, `point`, `square`, `diamond`, `cross`,
-# `plus`, `slope field`, `vector field`), four colour words (`gray`, `orange`,
+# `plus`, `slope field`, `vector field`), six colour words (`gray`, `orange`,
 # `cyan`, `purple`, `pink`, `brown`), the dash and fill patterns, `blank`,
 # `cascade`, `theorem`, `paragraph`, `chemistry` and `ionic compound` are loans
 # of that kind. Replacing any of them needs no permission.

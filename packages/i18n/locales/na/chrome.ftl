@@ -51,7 +51,9 @@
 #   «ma»          and, with. Supported by the national anthem's «ngabena ma
 #                 auwe» and by Gilbertese «ma», Nauruan's nearest neighbour —
 #                 a comparative inference, not an attestation. Check it first.
-# Everything else below is a loan.
+# Everything else below is a loan. (`content.ftl` adds two attested colour
+# words to that list — «etangang» black and «ebabobo» yellow — and sources
+# them in its own header; no message in this file uses either.)
 #
 # **No grammatical gender**, so `noun-gender` answers one token and no
 # adjective in these files forks on `$gender`. **No `$role` fork** either:

@@ -27,10 +27,12 @@
 # Printed Yapese today is inconsistent about both: much of it substitutes an
 # apostrophe for «q» and drops the underlines altogether. A reviewer who
 # prefers that spelling should convert the whole file rather than mix the two
-# systems. Few of the words this seed commits to happen to contain an
-# underlined letter — that is a fact about how little vocabulary is here, not a
-# claim that the series is rare, and a reviewer replacing the loans below will
-# need all four.
+# systems. Many of the words this seed commits to do contain one of the four —
+# `content.ftl`'s style tables alone account for nine, which its header names
+# one by one — and the edition of Jensen they were quoted from prints no
+# underline anywhere, so the plain letter is written throughout. That is a
+# known and findable error rather than a claim, and a reviewer replacing the
+# loans below will need all four letters.
 #
 # **Yapese is Oceanic but it is not Micronesian in the narrow sense.** Yap is a
 # state of the Federated States of Micronesia, and this batch seeds catalogs
@@ -73,8 +75,8 @@
 # wrong in many places at once.
 #
 # **The style tables are the exception, and they are no longer a loan.** The
-# colour words and the two width words are basic vocabulary rather than
-# technical jargon, they are well attested, and they are the most audible
+# colour words, the two width words and two of the shape nouns are basic
+# vocabulary rather than technical jargon, they are well attested, and they are the most audible
 # strings in the package — they compose into the shape descriptions a
 # screen-reader speaks. Rendering «thick dashed red line» wholly in English for
 # a Yapese reader was a worse outcome than the loan convention intends, so this

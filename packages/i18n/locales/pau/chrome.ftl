@@ -120,9 +120,11 @@
 #   «klou»    big;  «kekere»  small
 #   «beches»  new;  «ungil»  good;  «mekngit»  bad
 # These are common, well attested words and the seed is confident of them. It
-# is **not** confident of a Palauan technical vocabulary — colour terms,
-# geometry terms, the words for a graph or a matrix or a function — and did not
-# invent one. Respelling English by a guessed loan phonology would have
+# is **not** confident of a Palauan technical vocabulary — the words for a graph
+# or a matrix or a function, a vector, a parabola, a polygon — and did not
+# invent one. (`content.ftl`'s style tables are the exception: its colour,
+# width and shape words are attested basic vocabulary, sourced word by word in
+# that file's header. No message in this file uses them.) Respelling English by a guessed loan phonology would have
 # presented a guess as a fact, which is the one thing this batch forbids. The
 # **frame** is this file's contribution — the word order, the linker, the
 # absent article, the agreement that was checked and found not to fire, the

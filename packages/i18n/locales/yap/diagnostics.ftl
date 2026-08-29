@@ -27,10 +27,12 @@
 # Printed Yapese today is inconsistent about both: much of it substitutes an
 # apostrophe for «q» and drops the underlines altogether. A reviewer who
 # prefers that spelling should convert the whole file rather than mix the two
-# systems. Few of the words this seed commits to happen to contain an
-# underlined letter — that is a fact about how little vocabulary is here, not a
-# claim that the series is rare, and a reviewer replacing the loans below will
-# need all four.
+# systems. Many of the words this seed commits to do contain one of the four —
+# `content.ftl`'s style tables alone account for nine, which its header names
+# one by one — and the edition of Jensen they were quoted from prints no
+# underline anywhere, so the plain letter is written throughout. That is a
+# known and findable error rather than a claim, and a reviewer replacing the
+# loans below will need all four letters.
 #
 # **Yapese is Oceanic but it is not Micronesian in the narrow sense.** Yap is a
 # state of the Federated States of Micronesia, and this batch seeds catalogs
@@ -68,7 +70,10 @@
 #   «nge»      and, with — joining nouns and joining a phrase to what
 #              accompanies it.
 # Everything else below is a loan. Check «e» and «nge» first: both are frequent
-# enough that a wrong choice is wrong in many places at once.
+# enough that a wrong choice is wrong in many places at once. (`content.ftl`'s
+# style tables are the one place this seed writes more Yapese than that: its
+# colour and width words and two of its shape nouns are attested basic
+# vocabulary, sourced word by word in that file's header.)
 #
 # **Word order: the modifier follows the noun**, linked by «ni». So a style
 # description is built as noun + «ni» + description — the opposite of English's

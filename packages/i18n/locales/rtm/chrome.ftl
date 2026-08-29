@@ -50,8 +50,10 @@
 #
 # **Lexicon: what this seed commits to, and what it does not.** Rotuman's
 # published lexical material is a single grammar-and-dictionary tradition, and
-# it has no settled vocabulary for graphs, functions, colour names in a
-# rendering pipeline, or the DoenetML machinery these files talk about. Rather
+# it has no settled vocabulary for graphs, functions, or the DoenetML machinery
+# these files talk about — outside the style tables of `content.ftl`, whose
+# colour and width words and three shape nouns are attested basic vocabulary
+# and are sourced word by word in that file's header. Rather
 # than dress English up in Rotuman shape, this catalog **keeps the technical
 # vocabulary as the English word** and marks it as a loan — the `locales/na`
 # method, for the same reason: the frame is this file's contribution and the
