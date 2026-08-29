@@ -3917,30 +3917,25 @@ describe("the Uralic north batch", () => {
 
 describe("the Oceania batch's word order", () => {
     /**
-     * Fifteen languages of one ocean and two orders — thirteen postnominal,
-     * two prenominal — which is worth pinning for the reason the Austronesian
+     * Eleven languages of one ocean and two orders — ten postnominal, one
+     * prenominal — which is worth pinning for the reason the Austronesian
      * block above pins its own split: a region is not a word order, and here
-     * neither is a *family*. `pau` is Austronesian like all the rest and `bi`
-     * is a creole whose lexifier is English, and those two put the adjectives
-     * in front while thirteen others put them behind.
+     * neither is a *family*. Ten Austronesian catalogs put the adjectives
+     * behind the noun, and `bi`, a creole whose lexifier is English, is the
+     * one that puts them in front.
      *
-     * The linker is the other half of the story, and this batch has more of
-     * them than any earlier one. Four catalogs join adjective to noun with a
-     * particle they write out themselves — `chk`'s relative «mi» repeated
-     * before each modifier, `gil`'s singular linker «ae» likewise, `yap`'s
-     * «ni», and `pau`'s prenominal «el» — while the Polynesian catalogs use
-     * none at all. These strings are what hold each choice, and each
-     * `content.ftl` header says why its language needs the particle a
-     * neighbour does without.
+     * The linker is the other half of the story. Two catalogs join adjective
+     * to noun with a particle they write out themselves — `chk`'s relative
+     * «mi» repeated before each modifier and `gil`'s singular linker «ae»
+     * likewise — while the Polynesian catalogs use none at all. These strings
+     * are what hold each choice, and each `content.ftl` header says why its
+     * language needs the particle a neighbour does without.
      *
-     * Some of these rows still render English adjectives, and that is not a
-     * gap in the test but the batch's declared confidence scale showing
-     * through: `na` could establish two colour words and no dimension words at
-     * all, and `kos`, `gil`, `yap`, `pau` and `rtm` keep a loan wherever a
-     * dictionary gave them nothing. Each of those files says so in its own
-     * header, and the words that *are* the language are pinned here beside the
-     * ones that are not, so that replacing a loan is a visible diff rather
-     * than a silent improvement.
+     * A few rows still render an English loan where a dictionary gave the
+     * catalog nothing — `kos` and `gil` say so in their own headers — and the
+     * words that *are* the language are pinned here beside the ones that are
+     * not, so that replacing a loan is a visible diff rather than a silent
+     * improvement.
      */
     const postnominal: [string, string, string][] = [
         ["mh", "laain m̧ijel m̧ōttanm̧ōttan būrōrō", "m̧ijel m̧ōttanm̧ōttan būrōrō"],
@@ -3952,8 +3947,6 @@ describe("the Oceania batch's word order", () => {
             "te line ae bubura ae dashed ae uraura",
             "bubura ae dashed ae uraura",
         ],
-        ["na", "line thick dashed red", "thick dashed red"],
-        ["yap", "line ni dibqag dashed roowroow", "dibqag dashed roowroow"],
         ["niu", "laini matolu motumotu kula", "matolu motumotu kula"],
         ["tkl", "laina mafiafia motumotu kula", "mafiafia motumotu kula"],
         ["tvl", "laina matolu motumotu kula", "matolu motumotu kula"],
@@ -3963,7 +3956,6 @@ describe("the Oceania batch's word order", () => {
             "mātotoru motumotu muramura",
         ],
         ["wls", "laina matolu motumotu kula", "matolu motumotu kula"],
-        ["rtm", "saha mafolu dashed mi'a", "mafolu dashed mi'a"],
     ];
 
     for (const [locale, withNoun, adjectivesOnly] of postnominal) {
@@ -3990,11 +3982,6 @@ describe("the Oceania batch's word order", () => {
     }
 
     const prenominal: [string, string, string][] = [
-        [
-            "pau",
-            "okrokr dashed bekerkard el lluches",
-            "okrokr dashed bekerkard",
-        ],
         ["bi", "tik brokbrok red laen", "tik brokbrok red"],
     ];
 
@@ -4022,7 +4009,7 @@ describe("the Oceania batch's word order", () => {
      * disagreement runs *inside* a subfamily rather than between them, which
      * no earlier batch's did.
      *
-     * Eight of the fifteen make the count a following clause and so reach
+     * Eight of the eleven make the count a following clause and so reach
      * `[noun-tail]` — «e 5 ona tafa», «e 5 tapa tōna», «me pali 5», «mi 5
      * peekin» and the rest — while `tkl`, Tuvaluan's closest relative in the
      * batch and the catalog whose header warns that the two are expected to
@@ -4032,9 +4019,9 @@ describe("the Oceania batch's word order", () => {
      * can tell the difference is deliberate rather than an oversight in one of
      * them.
      *
-     * The catalogs still holding an English `noun-regular-polygon` render
-     * "5-sided regular polygon" from the fallback, which is what the declared
-     * lexical debt looks like at this call site.
+     * `kos` and `gil` still hold an English «regular polygon» where their
+     * dictionaries gave them no term, which is what the declared lexical debt
+     * looks like at this call site.
      */
     it.each([
         ["mh", "polygon jejjet 5 kona m̧ijel m̧ōttanm̧ōttan būrōrō"],
@@ -4045,15 +4032,11 @@ describe("the Oceania batch's word order", () => {
         ["pon", "poliken pahrek mosul lepilep weitahta me pali 5"],
         ["kos", "regular polygon matoltol kotkot srusra ma oasr siska 5"],
         ["gil", "te regular polygon ae 5 itera ae bubura ae dashed ae uraura"],
-        ["na", "5-sided regular polygon thick dashed red"],
-        ["yap", "5-sided regular polygon ni dibqag dashed roowroow"],
         ["niu", "polikone tatai matolu motumotu kula mo e 5 e tapa"],
         ["tkl", "poligoni tutuha e 5 ona itu mafiafia motumotu kula"],
         ["tvl", "poligona tutusa matolu motumotu kula e 5 ona tafa"],
         ["rar", "polygon ʻaiteite mātotoru motumotu muramura e 5 tapa tōna"],
         ["wls", "poligone tatau matolu motumotu kula ʻe tapa 5"],
-        ["rtm", "5-sided regular polygon mafolu dashed mi'a"],
-        ["pau", "okrokr dashed bekerkard el 5-sided regular polygon"],
         ["bi", "tik brokbrok red poligon we i gat 5 saed we oli sem mak"],
     ])(
         "places the side count where %s's grammar puts it",
@@ -4109,21 +4092,6 @@ describe("the Oceania batch's word order", () => {
             "te regular polygon ae 5 itera ae kanoaki ae buruu ma taian diamond",
         ],
         [
-            "na",
-            "5-sided regular polygon filled blue",
-            "5-sided regular polygon filled blue ma diamonds",
-        ],
-        [
-            "yap",
-            "5-sided regular polygon ni filled yarraq",
-            "5-sided regular polygon ni filled yarraq nge diamonds",
-        ],
-        [
-            "pau",
-            "filled blue el 5-sided regular polygon",
-            "filled blue el 5-sided regular polygon me a delsemiich",
-        ],
-        [
             "niu",
             "polikone tatai puke lanu moana mo e 5 e tapa",
             "polikone tatai puke lanu moana mo e 5 e tapa mo e tau taimane",
@@ -4147,11 +4115,6 @@ describe("the Oceania batch's word order", () => {
             "wls",
             "poligone tatau fonu lanumoana ʻe tapa 5",
             "poligone tatau fonu lanumoana ʻe tapa 5 mo te taimane",
-        ],
-        [
-            "rtm",
-            "5-sided regular polygon filled blue",
-            "5-sided regular polygon filled blue ma diamond",
         ],
         [
             "bi",

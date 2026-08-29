@@ -159,7 +159,6 @@ export type SupportedLocale =
     | "mt"
     | "my"
     | "myv"
-    | "na"
     | "nah"
     | "nb"
     | "nds"
@@ -178,7 +177,6 @@ export type SupportedLocale =
     | "os"
     | "pa"
     | "pam"
-    | "pau"
     | "pcm"
     | "pl"
     | "pon"
@@ -190,7 +188,6 @@ export type SupportedLocale =
     | "rm"
     | "rn"
     | "ro"
-    | "rtm"
     | "ru"
     | "rw"
     | "sa"
@@ -259,7 +256,6 @@ export type SupportedLocale =
     | "wo"
     | "xal"
     | "xh"
-    | "yap"
     | "yi"
     | "yo"
     | "zgh"
@@ -1076,7 +1072,6 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Burmese (မြန်မာ)",
     },
     { locale: "myv", englishName: "Erzya", endonym: "Erzya", label: "Erzya" },
-    { locale: "na", englishName: "Nauru", endonym: "Nauru", label: "Nauru" },
     {
         locale: "nah",
         englishName: "Nahuatl",
@@ -1171,12 +1166,6 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Pampanga",
     },
     {
-        locale: "pau",
-        englishName: "Palauan",
-        endonym: "Palauan",
-        label: "Palauan",
-    },
-    {
         locale: "pcm",
         englishName: "Nigerian Pidgin",
         endonym: "Naijíriá Píjin",
@@ -1241,12 +1230,6 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Romanian",
         endonym: "română",
         label: "Romanian (română)",
-    },
-    {
-        locale: "rtm",
-        englishName: "Rotuman",
-        endonym: "Rotuman",
-        label: "Rotuman",
     },
     {
         locale: "ru",
@@ -1590,12 +1573,6 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Xhosa",
         endonym: "IsiXhosa",
         label: "Xhosa (IsiXhosa)",
-    },
-    {
-        locale: "yap",
-        englishName: "Yapese",
-        endonym: "Yapese",
-        label: "Yapese",
     },
     {
         locale: "yi",

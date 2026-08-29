@@ -17,15 +17,11 @@ import chkChrome from "../locales/chk/chrome.ftl?raw";
 import ponChrome from "../locales/pon/chrome.ftl?raw";
 import kosChrome from "../locales/kos/chrome.ftl?raw";
 import gilChrome from "../locales/gil/chrome.ftl?raw";
-import naChrome from "../locales/na/chrome.ftl?raw";
-import yapChrome from "../locales/yap/chrome.ftl?raw";
-import pauChrome from "../locales/pau/chrome.ftl?raw";
 import niuChrome from "../locales/niu/chrome.ftl?raw";
 import tklChrome from "../locales/tkl/chrome.ftl?raw";
 import tvlChrome from "../locales/tvl/chrome.ftl?raw";
 import rarChrome from "../locales/rar/chrome.ftl?raw";
 import wlsChrome from "../locales/wls/chrome.ftl?raw";
-import rtmChrome from "../locales/rtm/chrome.ftl?raw";
 import biChrome from "../locales/bi/chrome.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
 
@@ -338,7 +334,7 @@ describe("the Sami plural categories", () => {
  * The Sami block above is this one's opposite: four of those five catalogs
  * write a `[two]` branch because their own CLDR rules select it, and the fifth
  * does not because CLDR has never heard of Kildin Sami. Here the fifth case is
- * the whole batch. `Intl.PluralRules` resolves every one of these fifteen tags
+ * the whole batch. `Intl.PluralRules` resolves every one of these eleven tags
  * against the *runtime's* default locale, so any category branch a catalog
  * wrote would be selected by English's rules on English's terms — text that
  * looks translated and is chosen by the wrong language.
@@ -367,15 +363,11 @@ describe("the Oceania batch's plural categories", () => {
         ["pon", ponChrome],
         ["kos", kosChrome],
         ["gil", gilChrome],
-        ["na", naChrome],
-        ["yap", yapChrome],
-        ["pau", pauChrome],
         ["niu", niuChrome],
         ["tkl", tklChrome],
         ["tvl", tvlChrome],
         ["rar", rarChrome],
         ["wls", wlsChrome],
-        ["rtm", rtmChrome],
         ["bi", biChrome],
     ];
 

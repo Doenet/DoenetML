@@ -1419,93 +1419,79 @@ describe("negotiateLocales", () => {
     });
 
     /**
-     * Oceania. Fifteen catalogs across Micronesia, Polynesia and Melanesia,
+     * Oceania. Eleven catalogs across Micronesia, Polynesia and Melanesia,
      * and the negotiation question it raises is neither of the last two
      * batches'.
      *
      * The Caucasus batch had to keep a member *out* of a list; the Uralic
      * north had to **take two out** of lists they were already in. This batch
      * touches `MACROLANGUAGE_MEMBERS` not at all, and that is the fact
-     * worth pinning rather than passing over: not one of the fifteen is a
+     * worth pinning rather than passing over: not one of the eleven is a
      * macrolanguage, and not one was being folded onto a wider code before
      * this batch, so every tag reached English on its own account and now
      * reaches its own catalog. The map is unchanged and the rows below prove
      * the batch needed nothing from it.
      *
-     * Three of the fifteen — `mh`, `na`, `bi` — have ISO 639-1 codes, so a
-     * reader can also arrive under the 639-2/T alpha-3 that
+     * Two of the eleven — `mh` and `bi` — have ISO 639-1 codes, so a reader
+     * can also arrive under the 639-2/T alpha-3 that
      * `Intl.getCanonicalLocales` folds for us. Those rows are here because the
      * folding is ICU's rather than this repository's, and a change in it would
-     * silently cost three catalogs their alpha-3 door.
+     * silently cost two catalogs their alpha-3 door.
      */
     describe("the Oceania batch", () => {
-        /** The fifteen tags this batch adds, in the order the README lists them. */
+        /** The eleven tags this batch adds, in the order the README lists them. */
         const OCEANIA = [
             "mh",
             "chk",
             "pon",
             "kos",
             "gil",
-            "na",
-            "yap",
-            "pau",
             "niu",
             "tkl",
             "tvl",
             "rar",
             "wls",
-            "rtm",
             "bi",
         ];
 
         it.each([
-            // The twelve tags with no 639-1 code, each arriving as the
+            // The nine tags with no 639-1 code, each arriving as the
             // directory it names.
             ["chk", "chk"],
             ["pon", "pon"],
             ["kos", "kos"],
             ["gil", "gil"],
-            ["yap", "yap"],
-            ["pau", "pau"],
             ["niu", "niu"],
             ["tkl", "tkl"],
             ["tvl", "tvl"],
             ["rar", "rar"],
             ["wls", "wls"],
-            ["rtm", "rtm"],
-            // …and the three with one.
+            // …and the two with one.
             ["mh", "mh"],
-            ["na", "na"],
             ["bi", "bi"],
             // The alpha-3 doors, folded by `Intl.getCanonicalLocales` rather
             // than by anything here.
             ["mah", "mh"],
-            ["nau", "na"],
             ["bis", "bi"],
             // Region tags, which filter without help. The batch spans nine
-            // countries and territories, and every one of the fifteen
+            // countries and territories, and every one of the eleven
             // maximizes to a region — a completeness no earlier batch had.
             ["mh-MH", "mh"],
             ["chk-FM", "chk"],
             ["pon-FM", "pon"],
             ["kos-FM", "kos"],
-            ["yap-FM", "yap"],
             ["gil-KI", "gil"],
-            ["na-NR", "na"],
-            ["pau-PW", "pau"],
             ["niu-NU", "niu"],
             ["tkl-TK", "tkl"],
             ["tvl-TV", "tvl"],
             ["rar-CK", "rar"],
             ["wls-WF", "wls"],
-            ["rtm-FJ", "rtm"],
             ["bi-VU", "bi"],
             // Script tags. Every catalog here is Latin — the first batch of
             // which that is true since the Philippine one — so a `-Latn` is
             // redundant rather than a disambiguation, and has to cost nothing.
             ["mh-Latn", "mh"],
             ["gil-Latn", "gil"],
-            ["rtm-Latn", "rtm"],
         ])("reaches %s's catalog as %s", (requested, expected) => {
             expect(
                 negotiateLocales([normalizeLocaleTag(requested)], available),
@@ -1513,12 +1499,12 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The batch that changed no map, asserted as such. Each of the fifteen
+         * The batch that changed no map, asserted as such. Each of the eleven
          * reaches its own catalog when the whole roster is on offer *and* when
          * only English is — the second half being what would fail if some
          * entry were quietly folding one of these tags onto a neighbour.
          */
-        it("folds none of the fifteen onto another catalog", () => {
+        it("folds none of the eleven onto another catalog", () => {
             for (const locale of OCEANIA) {
                 expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
                 expect(negotiateLocales([locale], available)).toEqual([

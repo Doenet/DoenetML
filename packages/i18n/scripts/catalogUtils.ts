@@ -767,8 +767,8 @@ export const LOCALE_NAME_FALLBACKS: Record<
     kca: { englishName: "Khanty", endonym: "хӑнты ясӑӈ" },
     mns: { englishName: "Mansi", endonym: "мāньси лāтыӈ" },
     // The one locale of the Oceania batch CLDR has no data for, and the batch
-    // is otherwise the best-named this roster has had: ICU knows fourteen of
-    // the fifteen tags, down to `rtm` and `tkl`. `wls` it knows in no language
+    // is otherwise the best-named this roster has had: ICU knows ten of the
+    // eleven tags, down to `tkl` and `niu`. `wls` it knows in no language
     // at all, not even its own, so without this entry a Wallisian reader would
     // be offered "wls" in `<document lang>`'s autocomplete. The endonym is
     // copied letter for letter from `locales/wls`'s own headers, `locales/sjd`

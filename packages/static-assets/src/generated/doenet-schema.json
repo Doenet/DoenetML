@@ -65999,10 +65999,6 @@
                             "description": "Erzya"
                         },
                         {
-                            "value": "na",
-                            "description": "Nauru"
-                        },
-                        {
                             "value": "nah",
                             "description": "Nahuatl (Nāhuatl)"
                         },
@@ -66075,10 +66071,6 @@
                             "description": "Pampanga"
                         },
                         {
-                            "value": "pau",
-                            "description": "Palauan"
-                        },
-                        {
                             "value": "pcm",
                             "description": "Nigerian Pidgin (Naijíriá Píjin)"
                         },
@@ -66121,10 +66113,6 @@
                         {
                             "value": "ro",
                             "description": "Romanian (română)"
-                        },
-                        {
-                            "value": "rtm",
-                            "description": "Rotuman"
                         },
                         {
                             "value": "ru",
@@ -66397,10 +66385,6 @@
                         {
                             "value": "xh",
                             "description": "Xhosa (IsiXhosa)"
-                        },
-                        {
-                            "value": "yap",
-                            "description": "Yapese"
                         },
                         {
                             "value": "yi",
