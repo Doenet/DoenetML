@@ -7,7 +7,9 @@
 /** A locale this repository ships a catalog for. */
 export type SupportedLocale =
     | "en"
+    | "ab"
     | "ace"
+    | "ady"
     | "af"
     | "ak"
     | "am"
@@ -15,6 +17,7 @@ export type SupportedLocale =
     | "arn"
     | "as"
     | "ast"
+    | "av"
     | "ay"
     | "az"
     | "ba"
@@ -39,12 +42,14 @@ export type SupportedLocale =
     | "ceb"
     | "ch"
     | "chm"
+    | "ckb"
     | "co"
     | "cs"
     | "cv"
     | "cy"
     | "da"
     | "dag"
+    | "dar"
     | "de"
     | "dje"
     | "doi"
@@ -87,12 +92,14 @@ export type SupportedLocale =
     | "id"
     | "ig"
     | "ilo"
+    | "inh"
     | "is"
     | "it"
     | "ja"
     | "jv"
     | "ka"
     | "kab"
+    | "kbd"
     | "kbp"
     | "kg"
     | "ki"
@@ -104,12 +111,17 @@ export type SupportedLocale =
     | "kok"
     | "kpe"
     | "kr"
+    | "krc"
     | "kri"
     | "ks"
     | "ktu"
+    | "ku"
+    | "kum"
     | "kv"
     | "ky"
     | "lb"
+    | "lbe"
+    | "lez"
     | "lg"
     | "ln"
     | "lo"
@@ -140,6 +152,7 @@ export type SupportedLocale =
     | "nds"
     | "ne"
     | "nl"
+    | "nog"
     | "nso"
     | "ny"
     | "nyn"
@@ -185,6 +198,7 @@ export type SupportedLocale =
     | "sv"
     | "sw"
     | "ta"
+    | "tab"
     | "te"
     | "tem"
     | "tet"
@@ -194,6 +208,7 @@ export type SupportedLocale =
     | "tiv"
     | "tk"
     | "tlh"
+    | "tly"
     | "tn"
     | "to"
     | "tpi"
@@ -260,10 +275,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "English",
     },
     {
+        locale: "ab",
+        englishName: "Abkhazian",
+        endonym: "Abkhazian",
+        label: "Abkhazian",
+    },
+    {
         locale: "ace",
         englishName: "Acehnese",
         endonym: "Acehnese",
         label: "Acehnese",
+    },
+    {
+        locale: "ady",
+        englishName: "Adyghe",
+        endonym: "Adyghe",
+        label: "Adyghe",
     },
     {
         locale: "af",
@@ -302,6 +329,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "asturianu",
         label: "Asturian (asturianu)",
     },
+    { locale: "av", englishName: "Avaric", endonym: "Avaric", label: "Avaric" },
     { locale: "ay", englishName: "Aymara", endonym: "Aymara", label: "Aymara" },
     {
         locale: "az",
@@ -417,6 +445,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "chm", englishName: "Mari", endonym: "Mari", label: "Mari" },
     {
+        locale: "ckb",
+        englishName: "Central Kurdish",
+        endonym: "کوردیی ناوەندی",
+        label: "Central Kurdish (کوردیی ناوەندی)",
+    },
+    {
         locale: "co",
         englishName: "Corsican",
         endonym: "Corsican",
@@ -451,6 +485,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Dagbani",
         endonym: "Dagbanli",
         label: "Dagbani (Dagbanli)",
+    },
+    {
+        locale: "dar",
+        englishName: "Dargwa",
+        endonym: "Dargwa",
+        label: "Dargwa",
     },
     {
         locale: "de",
@@ -660,6 +700,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     { locale: "ig", englishName: "Igbo", endonym: "Igbo", label: "Igbo" },
     { locale: "ilo", englishName: "Iloko", endonym: "Iloko", label: "Iloko" },
     {
+        locale: "inh",
+        englishName: "Ingush",
+        endonym: "Ingush",
+        label: "Ingush",
+    },
+    {
         locale: "is",
         englishName: "Icelandic",
         endonym: "íslenska",
@@ -694,6 +740,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Kabyle",
         endonym: "Taqbaylit",
         label: "Kabyle (Taqbaylit)",
+    },
+    {
+        locale: "kbd",
+        englishName: "Kabardian",
+        endonym: "Kabardian",
+        label: "Kabardian",
     },
     {
         locale: "kbp",
@@ -751,6 +803,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Kpelle",
     },
     { locale: "kr", englishName: "Kanuri", endonym: "Kanuri", label: "Kanuri" },
+    {
+        locale: "krc",
+        englishName: "Karachay-Balkar",
+        endonym: "Karachay-Balkar",
+        label: "Karachay-Balkar",
+    },
     { locale: "kri", englishName: "Krio", endonym: "Krio", label: "Krio" },
     {
         locale: "ks",
@@ -764,6 +822,13 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Kikongo ya leta",
         label: "Kituba (Kikongo ya leta)",
     },
+    {
+        locale: "ku",
+        englishName: "Kurdish",
+        endonym: "kurdî (kurmancî)",
+        label: "Kurdish (kurdî (kurmancî))",
+    },
+    { locale: "kum", englishName: "Kumyk", endonym: "Kumyk", label: "Kumyk" },
     { locale: "kv", englishName: "Komi", endonym: "Komi", label: "Komi" },
     {
         locale: "ky",
@@ -776,6 +841,13 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Luxembourgish",
         endonym: "Lëtzebuergesch",
         label: "Luxembourgish (Lëtzebuergesch)",
+    },
+    { locale: "lbe", englishName: "lbe", endonym: "lbe", label: "lbe" },
+    {
+        locale: "lez",
+        englishName: "Lezghian",
+        endonym: "Lezghian",
+        label: "Lezghian",
     },
     {
         locale: "lg",
@@ -927,6 +999,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Nederlands",
         label: "Dutch (Nederlands)",
     },
+    { locale: "nog", englishName: "Nogai", endonym: "Nogai", label: "Nogai" },
     {
         locale: "nso",
         englishName: "Northern Sotho",
@@ -1172,6 +1245,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "தமிழ்",
         label: "Tamil (தமிழ்)",
     },
+    { locale: "tab", englishName: "tab", endonym: "tab", label: "tab" },
     {
         locale: "te",
         englishName: "Telugu",
@@ -1205,6 +1279,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Klingon",
         endonym: "Klingon",
         label: "Klingon",
+    },
+    {
+        locale: "tly",
+        englishName: "Talysh",
+        endonym: "Talysh",
+        label: "Talysh",
     },
     {
         locale: "tn",
