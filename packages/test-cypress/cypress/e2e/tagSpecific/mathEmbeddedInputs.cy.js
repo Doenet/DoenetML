@@ -72,6 +72,52 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("an inline choice input sits in its slot and its selection reaches core", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">x = <choiceInput inline name="ci">
+      <choice>1</choice><choice>2</choice>
+    </choiceInput> + 3</m></p>
+    <p name="chosen">$ci.selectedValue</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        // Nothing but the control is drawn inside the expression: no label and
+        // no check-work button.
+        cy.get(`${cesc("#m")} .doenet-math-slot`).within(() => {
+            cy.get("label").should("not.exist");
+            cy.get("button").should("not.exist");
+        });
+
+        cy.get(cesc("#m")).then(($root) => {
+            const root = $root[0];
+            const slotRect = root
+                .querySelector(".doenet-math-slot")
+                .getBoundingClientRect();
+            const reservedRect = root
+                .querySelector("[id*='_mathSlot_']")
+                .getBoundingClientRect();
+            expect(Math.abs(slotRect.left - reservedRect.left)).to.be.lessThan(
+                2,
+            );
+            expect(Math.abs(slotRect.top - reservedRect.top)).to.be.lessThan(2);
+        });
+
+        // The dropdown is portaled to the body, so it opens over the page
+        // rather than being clipped by the expression.
+        cy.get("#ci_input").type("{downarrow}", { force: true });
+        cy.get('[id^="react-select-"][id$="-option-1"]:visible').click();
+
+        cy.get("#chosen").should("have.text", "2");
+    });
+
     it("the input survives the expression being re-typeset around it", () => {
         // The reason the controls live in a layer of their own rather than
         // inside the typeset output: that output is replaced wholesale on every
@@ -99,7 +145,11 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         cy.get(`${cesc("#coef")} textarea`).type("{end}7{enter}", {
             force: true,
         });
-        cy.get(cesc("#m")).should("contain.html", "7");
+        // Wait for the re-typeset itself: the new coefficient is in the
+        // rendered math only once the swap has happened.
+        cy.get(`${cesc("#m")} mjx-mn`).should(($mn) => {
+            expect([...$mn].map((e) => e.textContent)).to.include("17");
+        });
 
         // The very same element is still in the document, still holding what
         // was typed — it was never unmounted and remounted, which is what would

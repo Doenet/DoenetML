@@ -94,7 +94,7 @@ Not every input can be placed inside an expression. A `<mathInput/>{:dn}`
 cannot, because it changes size as the reader types. A non-`inline`
 `<choiceInput/>{:dn}` or an `expanded` `<textInput/>{:dn}` is too large to sit
 in a line of mathematics, a `<textInput/>{:dn}` needs a `width` given in
-absolute units rather than a percentage, and mathematics drawn on a
+absolute units such as `px` rather than `%` or `em`, and mathematics drawn on a
 `<graph>{:dn}` has no room for an input. All of those are still accepted, but
 they are not drawn inside the expression, and the last three warn to say so.
 

@@ -241,6 +241,21 @@ describe("Inputs embedded in displayed math @group1", async () => {
         expect(warnings[0].message).contain("multi-line box");
     });
 
+    it("a relative width warns, whether a percentage or em", async () => {
+        // Core keeps only `{ size, isAbsolute }` for a width, so `em` and `%`
+        // are the same case to it, and the message must say so.
+        let { core } = await createTestCore({
+            doenetML: `
+    <m name="m">x = <textInput name="ti" width="10em" /></m>
+    `,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0125");
+        expect(warnings[0].message).contain("percentage or `em`");
+    });
+
     it("a block choice input warns for its own reason", async () => {
         let { core } = await createTestCore({
             doenetML: `

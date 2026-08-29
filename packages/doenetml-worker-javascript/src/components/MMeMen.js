@@ -224,8 +224,9 @@ export class M extends InlineComponent {
          * An input qualifies when its class opts in (`canBeEmbeddedInMath`) and
          * its shape suits an expression: a choice input must be `inline`, since
          * a block of radio buttons has no place inside an equation, and a text
-         * input must have an absolute width, since a percentage would resolve
-         * against the absolutely-positioned wrapper rather than the page. Math
+         * input must have an absolute width, since a relative one (`%` or
+         * `em`, which the renderer draws as a percentage) would resolve against
+         * the absolutely-positioned wrapper rather than the page. Math
          * drawn on a graph is a single picture of the expression, with nowhere
          * to put a control, so nothing is embedded there. An input that opts in
          * but cannot be embedded warns and falls back to being flattened into
