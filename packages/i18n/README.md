@@ -67,27 +67,29 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation — `ab`, `ace`, `ady`,
-`af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`, `az`, `ba`, `ban`,
-`bci`, `be`, `bem`, `bg`, `bho`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`,
-`brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`, `chm`, `ckb`, `co`,
+`af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`, `az`, `ba`,
+`ban`, `bci`, `be`, `bem`, `bg`, `bho`, `bik`, `bin`, `bm`, `bn`, `bo`,
+`br`, `brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`, `ckb`, `co`,
 `cs`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`, `doi`, `dv`, `dyo`,
-`dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`,
-`fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`,
-`gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`,
-`ig`, `ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbd`, `kbp`,
-`kca`, `kg`, `ki`, `kk`, `km`, `kmb`, `kn`, `ko`, `koi`, `kok`, `kpe`, `kr`,
-`krc`, `kri`, `krl`, `ks`, `ktu`, `ku`, `kum`, `kv`, `ky`, `lb`, `lbe`,
-`lez`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`,
-`mdf`, `men`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`,
-`mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `nl`,
-`nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`,
-`pcm`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`,
-`sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sjd`, `sk`, `sl`,
-`sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`,
-`sus`, `sv`, `sw`, `ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
-`tk`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`,
-`ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`, `vro`, `war`, `wo`,
-`xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an
+`dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`,
+`fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`,
+`gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`,
+`hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`,
+`kab`, `kbd`, `kbp`, `kca`, `kg`, `ki`, `kk`, `km`, `kmb`, `kmr`, `kn`,
+`ko`, `koi`, `kok`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`,
+`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `ln`, `lo`, `lom`, `lt`,
+`lua`, `luo`, `lv`, `mad`, `mai`, `mdf`, `men`, `mg`, `mhr`, `mi`,
+`min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`, `mos`, `mr`, `mrj`, `ms`,
+`mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `nl`, `nog`, `nso`, `ny`,
+`nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`,
+`ps`, `pt`, `qu`, `quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`, `sah`,
+`sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sjd`, `sk`, `sl`,
+`sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `ss`, `st`,
+`su`, `sus`, `sv`, `sw`, `ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`,
+`ti`, `tiv`, `tk`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`,
+`ty`, `tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`,
+`vi`, `vro`, `war`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`,
+`zh-Hant`, `zu` — is an
 **unreviewed machine-generated seed**, which each file's own header says at the
 top, and which is what #1521's translation platform is for. None has been read
 by a speaker. Correcting one needs no permission and no coordination: a wrong
@@ -1335,7 +1337,8 @@ already partially does for the Liberian half.
 
 Bashkir, Chuvash, Yakut, Tuvan, Buryat, Kalmyk, Udmurt, Komi, Erzya, Mari,
 Ossetian and Chechen — twelve catalogs from **five families** (Turkic: `ba`,
-`cv`, `sah`, `tyv`; Mongolic: `bua`, `xal`; Uralic: `udm`, `kv`, `myv`, `chm`;
+`cv`, `sah`, `tyv`; Mongolic: `bua`, `xal`; Uralic: `udm`, `kpv`, `myv`,
+`mhr`;
 Iranian: `os`; Nakh: `ce`), all written in Cyrillic, all spoken inside the
 Russian Federation. It is the roster's first batch whose whole membership
 shares a **script** without sharing a family, and that is what makes it useful:
@@ -1493,7 +1496,8 @@ Abkhaz, Adyghe, Kabardian, Avar, Lezgian, Dargwa, Lak, Tabasaran, Ingush,
 Karachay-Balkar, Kumyk, Nogai, Talysh, Kurmanji Kurdish and Central Kurdish —
 fifteen catalogs from **five families** (Northwest Caucasian: `ab`, `ady`,
 `kbd`; Northeast Caucasian: `av`, `lez`, `dar`, `lbe`, `tab`; Nakh: `inh`;
-Turkic: `krc`, `kum`, `nog`; Iranian: `tly`, `ku`, `ckb`), and three scripts.
+Turkic: `krc`, `kum`, `nog`; Iranian: `tly`, `kmr`, `ckb`), and three
+scripts.
 It picks up where the Russian Federation batch stopped in the most literal way
 available: **six of these fifteen were named in that batch's own test** as
 neighbours of `ba` and `ce` that fall back to English rather than being guessed
@@ -1583,9 +1587,10 @@ where Persian's is an unwritten vowel a space can carry, which is why
 
 `locales/ckb` is the roster's eleventh right-to-left catalog and needed nothing
 from `direction.ts`: direction is keyed on the script, `ckb` maximizes to
-`ckb-Arab-IQ`, and `ku` maximizes to `ku-Latn-TR`. One macrolanguage rendering
-in both directions is the plainest demonstration this repository has that
-direction is a fact about a script rather than about a language.
+`ckb-Arab-IQ`, and `kmr` maximizes to `ku-Latn-TR` — ICU canonicalizes `kmr`
+onto `ku` first, and both roads end in the Latin script. One macrolanguage
+rendering in both directions is the plainest demonstration this repository has
+that direction is a fact about a script rather than about a language.
 
 #### Negotiation
 
@@ -1641,9 +1646,13 @@ is `locales/bci`'s and `locales/lom`'s shape rather than a new one.
 
 Four of the batch's CLDR names will look wrong and are not, the
 `ny`-reads-Nyanja rule again: `ab` renders as **Abkhazian**, `av` as
-**Avaric**, `lez` as **Lezghian**, and `ku` — whose endonym ICU gives as
-"kurdî (kurmancî)" — labels itself **"Kurdish (kurdî (kurmancî))"**, nested
-parenthesis and all. `supportedLocales.ts` is derived rather than hand-written,
+**Avaric**, `lez` as **Lezghian**, and `kmr` — which ICU canonicalizes to `ku`
+and whose endonym it therefore gives as "kurdî (kurmancî)" — labels itself
+**"Kurdish (kurdî (kurmancî))"**, nested parenthesis and all. That last one is
+the label consequence of the rename spelled out under [Naming a catalog when a
+sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too): the tag is now the
+member's, and the name CLDR answers with is still the macrolanguage's. `supportedLocales.ts` is derived rather than hand-written,
 which is the whole point: adding fifteen languages cost no per-language prose,
 and the price of that is that ICU's rendering stands even when it reads oddly.
 Each catalog's header says which language it is.
@@ -1674,7 +1683,8 @@ formatted `{ $numSides }` — so it appends «къуапэ 5 иӀэу» behind t
 description; `locales/ckb`'s noun carries its ezafe and takes the count in a
 «بە … ەوە» phrase behind it. Those two are why `$part` is not dead weight.
 `styleDescriptions.test.ts` holds all fifteen to rendering the count exactly
-once, and names `kbd` and `ckb` against `ab`, `ady` and `ku` — the three other
+once, and names `kbd` and `ckb` against `ab`, `ady` and `kmr` — the three
+other
 postnominal catalogs, which are where the tail is what the string ends with and
 so the only group in which the split is visible from the outside.
 
@@ -1769,7 +1779,8 @@ through `resolvedOptions().locale` rather than by rendering a count, because
 what a runtime with no `sjd` data falls back to is the environment's business.
 
 That is not a fact about Kildin Sami, and it is not rare: **eleven of these
-fifteen tags have no CLDR plural data at all**, as `myv`, `kv`, `chm` and `tlh`
+fifteen tags have no CLDR plural data at all**, as `myv`, `kpv`, `mhr` and
+`tlh`
 already did before them. The roster's plural shapes are a map of CLDR's
 coverage, not of how the world's languages count, and the four Sami catalogs
 are here to make the difference visible from inside one family.

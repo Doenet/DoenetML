@@ -16,4 +16,13 @@ that has a separate catalog here — Central Kurdish, Komi-Permyak and Hill Mari
 Documents keep working unchanged. `<document lang="ku">`, `lang="kv"` and
 `lang="chm"` still reach these catalogs, as do the new codes, and a browser
 sending either form is served the same way it was before. `<document lang>`
-autocomplete now offers the new codes.
+autocomplete now offers the new codes, still under the English names CLDR gives
+the macrolanguage — "Kurdish", "Komi", "Mari" — because ICU canonicalizes each
+new code back onto it.
+
+One deployment does need a change: a host that serves its own copy of the
+catalog directory alongside the bundle and has hand-placed a translation in
+`ku/`, `kv/` or `chm/` must move it to `kmr/`, `kpv/` or `mhr/`. The viewer now
+fetches the new directory names, and a locale whose files 404 falls back to
+English rather than failing the render. A copy the build takes from the package
+picks up the new names on its own.
