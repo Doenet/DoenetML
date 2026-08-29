@@ -281,10 +281,11 @@ about the medium of instruction is a property of a language. `locales/sw` and
 answers.
 
 **All fifteen of the Caucasus and Kurdish batch are partial, and fourteen of
-the fifteen are one school system.** Secondary chemistry across the North
-Caucasus is taught in Russian, so for the twelve Cyrillic catalogs the fallback
-*is* the curriculum, exactly as it was for the twelve of the Russian Federation
-batch — one sentence for twelve education ministries that are really one.
+the fifteen are partial for the school-system reason.** Secondary chemistry
+across the North Caucasus is taught in Russian, so for the twelve Cyrillic
+catalogs the fallback *is* the curriculum, exactly as it was for the twelve of
+the Russian Federation batch — one sentence for twelve education ministries
+that are really one.
 `locales/tly` is a two-country version of the same case and the only one that
 has to name two: Talysh schooling is Azerbaijani-medium in Azerbaijan and
 Persian-medium in Iran, so there is no single curriculum to point at.
