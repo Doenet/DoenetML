@@ -58,12 +58,8 @@ interface HeldTemplate {
     template: string;
     embeddedComponentIndices: readonly number[];
     /**
-     * Whether this is a stand-in, kept only until the template that reflects a
-     * just-committed value arrives; see `noteSlotCommit`.
-     *
-     * "Reflects a just-committed value" is an assumption, not something the
-     * renderer is told: core sends templates, not acknowledgements. What this
-     * therefore means in practice is *the next template change of any origin*.
+     * Whether this is a stand-in, kept only until the commit that produced it
+     * has settled; see `noteSlotCommit`.
      */
     awaitingCommit: boolean;
 }
@@ -74,7 +70,7 @@ interface MathSlotContextValue {
     /** Whether this slot's control is being edited; see `useMathSlots`. */
     setSlotEditing(componentIdx: number, editing: boolean): void;
     /** The reader committed a value, so the expression may catch up. */
-    noteSlotCommit(): void;
+    noteSlotCommit(settled?: Promise<unknown>): void;
 }
 
 const MathSlotContext = createContext<MathSlotContextValue | null>(null);
@@ -232,39 +228,48 @@ export function useMathSlots({
         [holdTemplate],
     );
 
+    // Core resolves a committed action once it has finished the action and sent
+    // out every renderer update the action caused, so this is the point at
+    // which the expression knows there is nothing further coming — whether or
+    // not anything about it changed. Counted rather than flagged so that two
+    // commits in a row are two events.
+    const [commitsSettled, setCommitsSettled] = useState(0);
+    const noteSettled = useCallback(
+        () => setCommitsSettled((count) => count + 1),
+        [],
+    );
+
     const noteSlotCommit = useCallback(
-        () => holdTemplate(true),
-        [holdTemplate],
+        (settled?: Promise<unknown>) => {
+            holdTemplate(true);
+            settled?.then(noteSettled, noteSettled);
+        },
+        [holdTemplate, noteSettled],
     );
 
     // A commit asks the expression to catch up, but what it is to catch up to
     // is still on its way: the value goes to core, and the LaTeX that shows it
     // comes back a round trip later. So a commit holds what is on screen for
-    // now and re-anchors the hold on the next template core sends.
+    // now, and catches up once the action it started has settled.
     //
-    // That next template is taken to be the one carrying the committed value,
-    // which is an inference rather than a fact — nothing identifies an update
-    // as the answer to a particular commit. Two consequences, both bounded:
-    // an expression whose template does not depend on the value (`x = ␣` has
-    // the same template whatever is typed into it) stays armed, and then some
-    // later change is let through instead; and a change from elsewhere that
-    // arrives first is let through in the committed value's place. Either way
-    // it is one re-typeset, at a point where the reader has just finished
-    // entering something, and the hold closes again behind it.
+    // Settling is the signal rather than "the next template that differs",
+    // because a template need not change at all for a commit to be complete:
+    // `x = ␣` reads the same whatever is typed into the field. Waiting for a
+    // difference leaves such an expression armed indefinitely, and then the
+    // next change from anywhere is taken for the commit's answer — in an
+    // expression that shows what the reader is typing, that is their own very
+    // next keystroke, reflowing under the caret.
     //
-    // Closing that gap properly needs core to say which update answers which
-    // commit. Clearing the flag on any further activity from the control is
-    // *not* the fix: a control's own size settling after a commit is
-    // indistinguishable from the reader resuming, so it disarms before the
-    // value it was waiting for arrives, and the expression goes stale until
-    // the field is left — which is the bug this whole mechanism exists to fix.
+    // Re-anchoring here rather than in the promise's own callback is
+    // deliberate: this runs after a render, so the template it reads is the one
+    // core has just sent, where the callback can still see the previous one.
     useLayoutEffect(() => {
         setHeld((previous) =>
-            previous?.awaitingCommit && previous.template !== template
-                ? { template, embeddedComponentIndices, awaitingCommit: false }
+            previous?.awaitingCommit
+                ? { ...liveTemplate.current, awaitingCommit: false }
                 : previous,
         );
-    }, [template, embeddedComponentIndices]);
+    }, [commitsSettled]);
 
     const activeTemplate = held?.template ?? template;
     const activeEmbedded =
@@ -452,8 +457,15 @@ export function useInMathSlot() {
 export interface MathSlotEditing {
     /** The reader began using this control, or has finished with it. */
     setEditing(editing: boolean): void;
-    /** A value was committed without editing ending, as Enter does. */
-    commit(): void;
+    /**
+     * A value was committed without editing ending, as Enter does.
+     *
+     * `settled` is what the action returned: core resolves it once it has
+     * finished the action and sent out every renderer update the action
+     * caused. That is the expression's cue that there is nothing further to
+     * wait for — including when the answer is that nothing changed.
+     */
+    commit(settled?: Promise<unknown>): void;
 }
 
 const notInASlot: MathSlotEditing = {
@@ -538,9 +550,9 @@ export function MathSlot({
                     measure({ exact: true });
                 }
             },
-            commit() {
+            commit(settled?: Promise<unknown>) {
                 measure({ exact: true });
-                noteSlotCommit?.();
+                noteSlotCommit?.(settled);
             },
         }),
         [componentIdx, measure, setSlotEditing, noteSlotCommit],

@@ -386,6 +386,44 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("a commit the expression cannot show still ends the catching up", () => {
+        // A commit waits for the action it started to settle, not for the
+        // template to differ. Nothing here obliges a commit to change the
+        // template — `x = ␣` reads the same whatever is typed — and waiting for
+        // a difference would leave the expression waiting indefinitely, so that
+        // the reader's own next keystroke was taken for the commit's answer.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">$mi.immediateValue = <mathInput name="mi" /></m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        cy.get(`${cesc("#mi")} textarea`).type("77{enter}", { force: true });
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("77");
+        });
+
+        // Typing on is held, as it was before the commit.
+        cy.get(`${cesc("#mi")} textarea`).type("99", { force: true });
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("77");
+            expect($container[0].textContent).not.to.contain("779");
+        });
+
+        // And the next commit brings it up to date again.
+        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("7799");
+        });
+    });
+
     it("the room a field is given is not taken back while it is being used", () => {
         cy.window().then(async (win) => {
             win.postMessage(

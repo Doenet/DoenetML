@@ -218,7 +218,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             setRendererSelectedIndices(newSelectedIndices);
             selectedIndicesWhenSetState.current = SVs.selectedIndices;
 
-            callAction({
+            const committed = callAction({
                 action: actions.updateSelectedIndices,
                 args: {
                     selectedIndices: newSelectedIndices,
@@ -227,8 +227,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             });
             // Picking is itself the commit, and the control keeps the focus
             // afterwards, so an expression around it catches up here rather
-            // than waiting for focus to leave.
-            slotEditing.commit();
+            // than waiting for focus to leave. The action's own promise is what
+            // tells it the commit is done with, since a commit need not change
+            // anything the expression is typeset from.
+            slotEditing.commit(committed);
         }
     }
 

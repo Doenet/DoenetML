@@ -644,15 +644,17 @@ export default function MathInput(props: UseDoenetRendererProps) {
             return;
         }
         // The "Enter" key was pressed
-        callAction({
+        const committed = callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
         });
         // Enter commits without blurring, so an expression around this field
         // catches up here rather than waiting for focus to leave. The caret
         // survives the re-typeset because the field is drawn over the
-        // expression, not inside it.
-        slotEditingRef.current.commit();
+        // expression, not inside it. The action's own promise is what tells the
+        // expression the commit is done with, since a commit need not change
+        // anything the expression is typeset from.
+        slotEditingRef.current.commit(committed);
 
         if (
             showCheckWork.current &&
