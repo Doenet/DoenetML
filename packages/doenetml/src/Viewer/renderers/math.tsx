@@ -449,7 +449,7 @@ function MathWithEmbeddedInputs({
     const tContent = useContentT();
 
     const describeSlot = React.useCallback(
-        (_componentIdx: number, ordinal: number, total: number) =>
+        (ordinal: number, total: number) =>
             total > 1
                 ? tContent(
                       "math-embedded-input-blank-ordinal",

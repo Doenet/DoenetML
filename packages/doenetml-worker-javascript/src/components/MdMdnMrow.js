@@ -13,6 +13,43 @@ import {
 import { latexToAst, superSubscriptsToUnicode } from "../utils/math";
 import { convertLatexWithBlanks } from "../utils/embeddedMathInputs";
 
+/**
+ * The rows of an `<md>`, with the row variable `rowVariable` (`latex` or
+ * `latexTemplate`) plus what deciding each row's prefix needs.
+ */
+function returnRowDependencies(rowVariable) {
+    return {
+        mrowChildren: {
+            dependencyType: "child",
+            childGroups: ["mrows"],
+            variableNames: [rowVariable, "hide", "equationTag", "numbered"],
+        },
+    };
+}
+
+/**
+ * Join the visible rows into one aligned display: `\\` between rows, and
+ * each row prefixed with its `\tag{}` or with `\notag `.
+ */
+function composeRows(dependencyValues, rowVariable) {
+    let composed = "";
+    for (let child of dependencyValues.mrowChildren) {
+        if (child.stateValues.hide) {
+            continue;
+        }
+        if (composed.length > 0) {
+            composed += "\\\\";
+        }
+        if (child.stateValues.numbered) {
+            composed += `\\tag{${child.stateValues.equationTag}}`;
+        } else {
+            composed += `\\notag `;
+        }
+        composed += child.stateValues[rowVariable];
+    }
+    return composed;
+}
+
 export class Md extends InlineComponent {
     constructor(args) {
         super(args);
@@ -145,34 +182,10 @@ export class Md extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },
-            returnDependencies: () => ({
-                mrowChildren: {
-                    dependencyType: "child",
-                    childGroups: ["mrows"],
-                    variableNames: ["latex", "hide", "equationTag", "numbered"],
-                },
+            returnDependencies: () => returnRowDependencies("latex"),
+            definition: ({ dependencyValues }) => ({
+                setValue: { latex: composeRows(dependencyValues, "latex") },
             }),
-            definition: function ({ dependencyValues }) {
-                let latex = "";
-                if (dependencyValues.mrowChildren.length > 0) {
-                    for (let child of dependencyValues.mrowChildren) {
-                        if (child.stateValues.hide) {
-                            continue;
-                        }
-                        if (latex.length > 0) {
-                            latex += "\\\\";
-                        }
-                        if (child.stateValues.numbered) {
-                            latex += `\\tag{${child.stateValues.equationTag}}`;
-                        } else {
-                            latex += `\\notag `;
-                        }
-                        latex += child.stateValues.latex;
-                    }
-                }
-
-                return { setValue: { latex } };
-            },
         };
 
         /**
@@ -185,37 +198,15 @@ export class Md extends InlineComponent {
          */
         stateVariableDefinitions.latexTemplate = {
             forRenderer: true,
-            returnDependencies: () => ({
-                mrowChildren: {
-                    dependencyType: "child",
-                    childGroups: ["mrows"],
-                    variableNames: [
+            returnDependencies: () => returnRowDependencies("latexTemplate"),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    latexTemplate: composeRows(
+                        dependencyValues,
                         "latexTemplate",
-                        "hide",
-                        "equationTag",
-                        "numbered",
-                    ],
+                    ),
                 },
             }),
-            definition: function ({ dependencyValues }) {
-                let latexTemplate = "";
-                for (let child of dependencyValues.mrowChildren) {
-                    if (child.stateValues.hide) {
-                        continue;
-                    }
-                    if (latexTemplate.length > 0) {
-                        latexTemplate += "\\\\";
-                    }
-                    if (child.stateValues.numbered) {
-                        latexTemplate += `\\tag{${child.stateValues.equationTag}}`;
-                    } else {
-                        latexTemplate += `\\notag `;
-                    }
-                    latexTemplate += child.stateValues.latexTemplate;
-                }
-
-                return { setValue: { latexTemplate } };
-            },
         };
 
         // Only rows that hold an embedded input are rendered. A display with no

@@ -17,6 +17,25 @@
 export const MATH_BLANK_LATEX = "\\underline{\\hspace{2em}}";
 
 /**
+ * The marker that stands in for an embedded input in an expression's
+ * `latexTemplate`, keyed by the input's component index.
+ *
+ * Core writes the marker and the renderer replaces it with a box of the size
+ * it measured, so the two have to agree on its spelling; see
+ * `embeddedMathInputs.ts` in the worker and `mathInputSlots.tsx` in the viewer.
+ */
+export function mathInputSlotToken(componentIdx: number): string {
+    return `\\doenetInputSlot{${componentIdx}}`;
+}
+
+/**
+ * Matches {@link mathInputSlotToken}, capturing the component index. The `g`
+ * flag makes it stateful, so callers that iterate with `exec` must reset
+ * `lastIndex`; `replace` and `matchAll` need no care.
+ */
+export const MATH_INPUT_SLOT_PATTERN = /\\doenetInputSlot\{(\d+)\}/g;
+
+/**
  * Configuration staged as `window.MathJax` for the MathJax copy Doenet loads.
  *
  * When a host page already provides MathJax, Doenet reuses that engine rather

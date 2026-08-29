@@ -1,5 +1,10 @@
 import { MATH_BLANK_LATEX } from "@doenet/utils";
 
+export {
+    mathInputSlotToken as slotToken,
+    MATH_INPUT_SLOT_PATTERN as SLOT_PATTERN,
+} from "@doenet/utils";
+
 /**
  * Slot markers for inputs rendered inside typeset math.
  *
@@ -9,23 +14,14 @@ import { MATH_BLANK_LATEX } from "@doenet/utils";
  * measure — core runs in a worker with no DOM. So core emits a *template*: the
  * LaTeX it would otherwise produce, with a marker in place of each embedded
  * input. The renderer replaces each marker with a box of the size it measured.
+ * The marker itself lives in `@doenet/utils`, since both packages must agree
+ * on it.
  *
  * The public `latex` state variable keeps its existing meaning and still
  * interpolates the input's value; the template is a separate variable. That
  * split is also what keeps typing cheap — a keystroke changes `latex`, but not
  * the template, so nothing re-typesets while the reader works.
  */
-
-/** Marker standing in for one embedded input, keyed by its component index. */
-export function slotToken(componentIdx: number): string {
-    return `\\doenetInputSlot{${componentIdx}}`;
-}
-
-/**
- * Matches {@link slotToken}. Callers that iterate with this must create their
- * own instance or reset `lastIndex`, since the `g` flag makes it stateful.
- */
-export const SLOT_PATTERN = /\\doenetInputSlot\{(\d+)\}/g;
 
 /**
  * The blank as an *operand*, for the forms of the expression that are parsed.
@@ -38,7 +34,7 @@ export const SLOT_PATTERN = /\\doenetInputSlot\{(\d+)\}/g;
  * missing subexpression, and it parses back to that same placeholder, so the
  * blank survives the round trip in position: `x = ＿ + 3` rather than `＿`.
  */
-const BLANK_PLACEHOLDER = "\uFF3F";
+export const BLANK_PLACEHOLDER = "\uFF3F";
 
 /** `latex` with each blank written as something a parser can read. */
 export function latexWithBlanksAsPlaceholders(latex: string): string {

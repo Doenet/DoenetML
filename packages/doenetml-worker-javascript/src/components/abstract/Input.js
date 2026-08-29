@@ -8,7 +8,10 @@ import {
     contentTranslator,
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
-import { SLOT_PATTERN } from "../../utils/embeddedMathInputs";
+import {
+    BLANK_PLACEHOLDER,
+    SLOT_PATTERN,
+} from "../../utils/embeddedMathInputs";
 import { latexToText } from "../../utils/math";
 
 export default class Input extends InlineComponent {
@@ -1096,36 +1099,33 @@ function describeAsMathBlank({ dependencyValues, componentIdx }) {
               )
             : plainBlank;
 
-    // Stand a single private-use character in for each gap, read the whole
-    // expression as one, then put the words in. Two things force this shape:
-    // reading the pieces *between* the gaps separately does not work, because a
-    // fragment cut at a gap is not a whole expression and the math parser fills
-    // what is missing with a placeholder of its own; and the words cannot go in
-    // before parsing, because the parser passes `\text{...}` through untouched.
-    // A single character parses as an ordinary variable, so it survives the
-    // round trip intact and in place.
-    const sentinelFor = (position) => String.fromCharCode(0xe000 + position);
+    // Put the blank placeholder in for each gap, read the whole expression as
+    // one, then put the words in. Two things force this shape: reading the
+    // pieces *between* the gaps separately does not work, because a fragment
+    // cut at a gap is not a whole expression and the math parser fills what is
+    // missing with a placeholder of its own; and the words cannot go in before
+    // parsing, because the parser passes `\text{...}` through untouched. The
+    // placeholder parses as an ordinary variable, so the gaps come out of the
+    // round trip intact and in the order they went in. It is the same
+    // placeholder `text` and `math` use for a blank, so all three agree.
+    //
+    // A row of an aligned display carries its alignment marker, which is
+    // layout and not mathematics: it is dropped as `Md.text` drops it, so the
+    // row is spoken as the equation it is.
+    const withPlaceholders = (math.stateValues.latexTemplate ?? "")
+        .replaceAll("\\amp", "")
+        .replaceAll("&", "")
+        .replace(SLOT_PATTERN, BLANK_PLACEHOLDER);
 
-    const withSentinels = (math.stateValues.latexTemplate ?? "").replace(
-        SLOT_PATTERN,
-        (_match, rawIdx) => sentinelFor(embedded.indexOf(Number(rawIdx))),
+    // `latexToText` hands back the LaTeX itself when it cannot be parsed,
+    // which still has the placeholders in it, so the reader is still told
+    // where the gap is.
+    const described = latexToText(withPlaceholders).trim();
+
+    let position = 0;
+    const named = described.replaceAll(BLANK_PLACEHOLDER, () =>
+        position++ === ordinal - 1 ? thisBlank : plainBlank,
     );
 
-    let described;
-    try {
-        described = latexToText(withSentinels).trim();
-    } catch (e) {
-        // An expression the math parser cannot read still has a gap in it, and
-        // the reader still needs to be told which one this is.
-        return thisBlank;
-    }
-
-    for (let position = 0; position < embedded.length; position++) {
-        described = described.replaceAll(
-            sentinelFor(position),
-            position === ordinal - 1 ? thisBlank : plainBlank,
-        );
-    }
-
-    return described || thisBlank;
+    return named || thisBlank;
 }

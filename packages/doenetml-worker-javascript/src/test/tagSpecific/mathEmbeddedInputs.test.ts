@@ -260,6 +260,49 @@ describe("Inputs embedded in displayed math @group1", async () => {
         ).eq(0);
     });
 
+    it("a row of an aligned display names the input it holds", async () => {
+        // The name comes from the row, not the whole display: an `<mrow>` is a
+        // kind of `<m>`, so it is the nearest math ancestor the input sees.
+        // The alignment marker is layout, not mathematics, and is not spoken,
+        // whichever way it is written.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <md name="md">
+      <mrow>q \\amp = \\sin(x)</mrow>
+      <mrow>w \\amp = <textInput name="tiMacro" /></mrow>
+      <mrow>z &amp;= <textInput name="tiAmpersand" /></mrow>
+    </md>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tiMacro")].stateValues
+                .shortDescription,
+        ).eq("w = blank");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tiAmpersand")]
+                .stateValues.shortDescription,
+        ).eq("z = blank");
+    });
+
+    it("the expression is spoken as text, not as LaTeX", async () => {
+        // The name is the expression read through the math parser, so a
+        // control sequence is spoken as what it means, and the blank is put
+        // back in its place afterwards.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <m name="m">\\frac{<textInput name="ti" />}{2} = \\sin(x)</m>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const ti = stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
+
+        expect(ti.shortDescription).eq("blank/2 = sin(x)");
+    });
+
     it("an author's own description still wins", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

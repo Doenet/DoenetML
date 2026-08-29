@@ -7,6 +7,7 @@ import React, {
     useRef,
     useState,
 } from "react";
+import { MATH_INPUT_SLOT_PATTERN as SLOT_PATTERN } from "@doenet/utils";
 
 /**
  * Placing a live input inside typeset math.
@@ -28,9 +29,6 @@ import React, {
  * otherwise the reservation would feed the control's width, which would feed
  * the reservation.
  */
-
-/** Matches the marker core emits; see `utils/embeddedMathInputs.ts`. */
-const SLOT_PATTERN = /\\doenetInputSlot\{(\d+)\}/g;
 
 /** A control's box, in integer CSS pixels, split at its baseline. */
 export interface SlotBox {
@@ -134,11 +132,8 @@ export function useMathSlots({
 }: {
     rootId: string;
     template: string;
-    describeSlot: (
-        componentIdx: number,
-        ordinal: number,
-        total: number,
-    ) => string;
+    /** The spoken name of the `ordinal`-th of `total` slots. */
+    describeSlot: (ordinal: number, total: number) => string;
 }) {
     const rootRef = useRef<HTMLSpanElement>(null);
     // Coordinates are read against the layer, not the root. The root is an
@@ -167,7 +162,6 @@ export function useMathSlots({
     const slotLabel = useCallback(
         (componentIdx: number) =>
             describeSlot(
-                componentIdx,
                 componentIndices.indexOf(componentIdx) + 1,
                 componentIndices.length,
             ),

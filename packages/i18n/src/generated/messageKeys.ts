@@ -296,6 +296,8 @@ export type MessageKey =
     | "ion-name-oxidation-state"
     | "chemistry-invalid-symbol"
     | "chemistry-invalid-ionic-compound"
+    | "math-embedded-input-blank"
+    | "math-embedded-input-blank-ordinal"
     | "line-segment-attributes-ignored-with-endpoints"
     | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
     | "line-segment-midpoint-offset-without-midpoint"
@@ -872,6 +874,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "ion-name-oxidation-state",
     "chemistry-invalid-symbol",
     "chemistry-invalid-ionic-compound",
+    "math-embedded-input-blank",
+    "math-embedded-input-blank-ordinal",
     "line-segment-attributes-ignored-with-endpoints",
     "line-segment-attributes-ignored-with-endpoint-and-midpoint",
     "line-segment-midpoint-offset-without-midpoint",
