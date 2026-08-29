@@ -22,8 +22,8 @@
 # singular, so **«ae» is the only linker this catalog uses**, and it is
 # repeated before each modifier: «te line ae bubura ae uraura» for *thick red
 # line*. It is a word of its own, so nothing is welded to a placeable. This is
-# the postnominal order the batch's five other Micronesian catalogs write —
-# `mh`, `chk`, `pon`, `kos` and `na` — and that `ch`, `sm` and `to` already had.
+# the postnominal order the batch's four other Micronesian catalogs write —
+# `mh`, `chk`, `pon` and `kos` — and that `ch`, `sm` and `to` already had.
 #
 # **No grammatical gender.** `noun-gender` answers one token, and no adjective
 # here forks on `$gender`; the linker «ae» is invariable and does not agree
@@ -48,7 +48,7 @@
 #
 # **Loans.** Where this seed could not establish a Kiribati word it keeps the
 # **English word in English spelling** and says so, rather than inventing a
-# respelling — the method `locales/na` states for its whole lexicon, applied
+# respelling — the method `locales/kos` states for its whole residue, applied
 # here only where it is needed. The geometry nouns (`line`, `ray`, `vector`,
 # `curve`, `function`, `parabola`, `polygon`, `polyline`, `triangle`,
 # `rectangle`, `circle`, `region`, `point`, `square`, `diamond`, `cross`,

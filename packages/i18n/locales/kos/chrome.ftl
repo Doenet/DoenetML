@@ -30,14 +30,14 @@
 # ## What this seed could not establish, said plainly
 #
 # Kosraean has less published lexical material within reach than any of the
-# other Micronesian languages of this batch except Nauruan, and almost none of
-# it is technical. **Every word this seed could not establish is left as the
+# other Micronesian languages of this batch, and almost none of it is
+# technical. **Every word this seed could not establish is left as the
 # English word, in English spelling, and is a loan rather than Kosraean.** It
 # is deliberately *not* respelled into the Kosraean alphabet: `b`, `c`, `d`,
 # `g`, `h`, `j`, `q`, `v`, `x` and `z` are not Kosraean letters, and a loan
 # carrying them is visibly a loan, where a respelling would present this seed's
-# invented loan phonology as a fact about the language. This is `locales/na`'s
-# method applied to a smaller residue, and it **disagrees on purpose** with
+# invented loan phonology as a fact about the language. That policy is stated
+# here for the whole residue, and it **disagrees on purpose** with
 # `locales/pon`, `locales/mh`, `locales/chk` and `locales/gil`, which respell
 # their loans into their own alphabets because they had a dictionary's worth of
 # evidence for how those languages take a loan. This seed does not.
@@ -109,7 +109,7 @@
 # forks on `$gender`. Nothing here changes shape between standing alone and
 # standing inside a clause either, so **no message forks on `$role`**. This is
 # `locales/sm`'s and `locales/tpi`'s answer, and it is the answer the whole
-# Micronesian group of this batch gives — `mh`, `chk`, `pon`, `gil` and `na`.
+# Micronesian group of this batch gives — `mh`, `chk`, `pon` and `gil`.
 #
 # ## Number
 #
@@ -126,8 +126,8 @@
 #
 # Kosraean is SVO and head-initial: a describing word **follows** the noun it
 # describes, so `content.ftl`'s composition messages put `{ $noun }` ahead of
-# `{ $description }`. That is the same order `mh`, `chk`, `pon`, `gil`, `na`,
-# `ch`, `sm` and `to` write, and this catalog joins the agreement rather than
+# `{ $description }`. That is the same order `mh`, `chk`, `pon`, `gil`, `ch`,
+# `sm` and `to` write, and this catalog joins the agreement rather than
 # arriving at it alone.
 
 

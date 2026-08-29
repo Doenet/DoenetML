@@ -24,10 +24,9 @@
 # borrowed — which is the point. Respelling would have dressed this seed's
 # invented loan phonology up as a fact about Kosraean, and there is no
 # published evidence within reach for how Kosraean actually takes a
-# mathematical loan. `locales/na` reached the same conclusion for the same
-# reason; `locales/pon`, `locales/mh`, `locales/chk` and `locales/gil` respell
-# theirs, and this catalog **parts company with those four deliberately**, not
-# by oversight.
+# mathematical loan. `locales/pon`, `locales/mh`, `locales/chk` and
+# `locales/gil` respell theirs, and this catalog **parts company with those
+# four deliberately**, not by oversight.
 #
 # The loans in this file: `line`, `ray`, `vector`, `curve`, `function`,
 # `slope field`, `vector field`, `parabola`, `polyline`, `polygon`, `triangle`,

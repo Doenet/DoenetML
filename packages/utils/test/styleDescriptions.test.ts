@@ -4011,10 +4011,11 @@ describe("the Oceania batch's word order", () => {
      *
      * Eight of the eleven make the count a following clause and so reach
      * `[noun-tail]` — «e 5 ona tafa», «e 5 tapa tōna», «me pali 5», «mi 5
-     * peekin» and the rest — while `tkl`, Tuvaluan's closest relative in the
-     * batch and the catalog whose header warns that the two are expected to
-     * look alike, folds it into the head instead («poligoni tutuha e 5 ona itu
-     * …»), so its adjectives trail the whole phrase. `locales/tkl` and
+     * peekin» and the rest — while `mh`, `gil` and `tkl` fold it into the head
+     * and leave `[tail]` empty. `tkl` is the sharp one: it is Tuvaluan's
+     * closest relative in the batch, and its own header warns that the two are
+     * expected to look alike, yet it heads the count («poligoni tutuha e 5 ona
+     * itu …») where `tvl` tails it, so its adjectives trail the whole phrase. `locales/tkl` and
      * `locales/tvl` each state their choice, and these rows are why a reviewer
      * can tell the difference is deliberate rather than an oversight in one of
      * them.

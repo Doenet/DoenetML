@@ -33,7 +33,7 @@
 # a noun, this file writes **one unselected form**: the count still arrives and
 # is still formatted, and only the branching is gone. That is `locales/sm`'s
 # answer and the answer the sibling Micronesian catalogs of this batch — `mh`,
-# `chk`, `kos`, `gil` and `na` — take as well. `one` and `*[other]` are kept
+# `chk`, `kos` and `gil` — take as well. `one` and `*[other]` are kept
 # only where the two English branches differ in something else besides the
 # noun's number, so that no branch goes missing.
 #

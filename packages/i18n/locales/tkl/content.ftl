@@ -186,8 +186,8 @@ style-filled =
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ma te { $pattern }
-        [plain-tail] { $noun } { $nounTail } { $filled } { $color }
-        [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ma te { $pattern }
+        [plain-tail] { $noun } { $filled } { $color } { $nounTail }
+        [pattern-tail] { $noun } { $filled } { $color } { $nounTail } ma te { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
 # «he» is the indefinite article and carries what English writes as "a", so

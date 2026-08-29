@@ -40,10 +40,9 @@
 # respell and why that parts company on purpose with `locales/pon`,
 # `locales/mh`, `locales/chk` and `locales/gil`, which do.
 #
-# This is a smaller debt than `locales/na`'s, which left all 220 sentences in
-# English because Nauruan offered it no frame to build one in; it is a larger
-# debt than `locales/pon`'s, which had a dictionary. Kosrae sits between the
-# two and this file says so. A speaker replacing the loans is doing the work
+# This is a larger debt than `locales/pon`'s, which had a dictionary to draw
+# its nouns from where this seed had none, and this file says so rather than
+# leaving a reader to infer it. A speaker replacing the loans is doing the work
 # this file was written to make easy, and needs no permission for any of it.
 #
 # ## Number

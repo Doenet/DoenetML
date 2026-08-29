@@ -20,7 +20,7 @@
 # **Word order and the linker.** The noun comes first and what describes it
 # follows, joined by the singular linker **«ae»** — «te variant ae imwina»,
 # *the next variant*. That is the order the batch's other Micronesian catalogs
-# (`mh`, `chk`, `pon`, `kos`, `na`) write too.
+# (`mh`, `chk`, `pon`, `kos`) write too.
 #
 # **No grammatical gender and no `$role` fork.** Nothing here agrees with
 # anything.

@@ -42,8 +42,8 @@
 # reach settled Rarotongan terms for *vector*, *function*, *parabola*,
 # *polygon*, *polyline*, *slope field* or *vector field*. Those seven keep the
 # **English word, in English spelling**, and are marked here rather than given
-# an invented Polynesian form — the `locales/na` policy applied to one seam
-# instead of to a whole file. Everything a Rarotongan speaker has a word for —
+# an invented Polynesian form — the `locales/kos` policy applied to one seam
+# instead of to a whole residue. Everything a Rarotongan speaker has a word for —
 # line, point, edge, region, triangle, square, circle, curve — is written in
 # Rarotongan. That seam is the first thing to judge.
 #

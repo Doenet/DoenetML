@@ -60,8 +60,8 @@
 # description is built around in these files is singular, so **«ae» is the only
 # linker used**, and it is used wherever a modifier attaches: «te line ae
 # bubura ae uraura». It is a separate word, so nothing here welds it to a
-# placeable. This is the same postnominal order the batch's five other
-# Micronesian catalogs write — `mh`, `chk`, `pon`, `kos` and `na` — and that
+# placeable. This is the same postnominal order the batch's four other
+# Micronesian catalogs write — `mh`, `chk`, `pon` and `kos` — and that
 # `ch`, `sm` and `to` already had.
 #
 # **No grammatical gender**, so `noun-gender` answers one token and no
@@ -72,7 +72,7 @@
 # **Loans.** Kiribati schooling in mathematics and computing is in English, and
 # this seed keeps the technical vocabulary it could not establish **in English
 # spelling** rather than dressing a guess up as Kiribati — the method
-# `locales/na` states for its whole lexicon, applied here only where it is
+# `locales/kos` states for its whole residue, applied here only where it is
 # needed. `document`, `page`, `keyboard`, `row`, `column`, `box`, `arrow`,
 # `point`, `interval`, `line` (the source line), `credit`, `renderer`,
 # `statistics`, `accessibility`, `expression` and `math` are loans of that kind

@@ -1894,7 +1894,7 @@ Jensen. That recovery reached `content.ftl` and stopped there, because the style
 tables are single words and the other three namespaces are sentences: their
 `chrome.ftl`, `editor.ftl` and `diagnostics.ftl` stayed byte-identical to
 English, translating none of their 67, 64 and 220 messages. Shipping them would
-have put roughly 7,500 lines of English under four locale directories where the
+have put over 5,000 lines of English under four locale directories where the
 existing English fallback already puts identical text on screen, so all four are
 held back for a later batch with better lexical sources. Every key, placeable and
 variant key is in place in them, so nothing structural stands in the way; what
@@ -1948,7 +1948,7 @@ where Tongan writes the fakauʻa, and Wallisian writes /ŋ/ as a single `g`, so
 "correcting" a `g` to `ng` would convert that file into Tongan. `rar` sits
 beside `locales/mi` and `locales/ty` with a ten-row correspondence table and the
 instruction not to edit it back toward Māori. `bi` sits beside `locales/tpi`
-with fourteen rows and the rule stated outright that resemblance is not
+with fifteen rows and the rule stated outright that resemblance is not
 evidence. And `tkl` and `tvl` sit beside each other and beside `locales/sm`,
 each warning that the two are expected to look alike and that **their agreement
 is not evidence either is right**, since one process produced both — the
