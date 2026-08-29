@@ -937,7 +937,7 @@ select-random-value-fluke = By extremely unlikely fluke, couldn't select random 
 # its current value is typeset in its place instead, which is what happened
 # before inputs could be embedded.
 math-embedded-input-shape-unsuitable =
-    `<{ $component }>` is not drawn inside the math, and its value is typeset in its place. { $reason ->
+    `<{ $component }>` is not drawn inside the math; the expression is typeset as it was before inputs could be embedded. { $reason ->
         [not-inline] Only an `inline` choice input fits inside an expression; without `inline` it is a block of buttons.
         [expanded] An `expanded` text input is a multi-line box, which is too large to sit inside an expression.
         [on-graph] On a graph the expression is drawn as a single picture, which has no room for a control.

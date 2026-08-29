@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateTextInputValue } from "../utils/actions";
+import { updateSelectedIndices, updateTextInputValue } from "../utils/actions";
+import { MATH_BLANK_LATEX } from "@doenet/utils";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
@@ -159,6 +160,39 @@ describe("Inputs embedded in displayed math @group1", async () => {
         expect(m.embeddedInputComponentIndices).eqls([]);
         expect(m.childIndicesToRender).eqls([]);
         expect(m.latexTemplate).eq(m.latex);
+    });
+
+    it("a choice input contributes its selection, or a blank", async () => {
+        // A choice input has no `latex` or `text` of its own, so its selected
+        // choices are what stand in for it — preselected or chosen later.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <m name="unchosen">x = <choiceInput inline name="ci1">
+      <choice>1</choice><choice>2</choice>
+    </choiceInput></m>
+    <m name="chosen">y = <choiceInput inline name="ci2" preselectChoice="2">
+      <choice>1</choice><choice>2</choice>
+    </choiceInput></m>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const unchosenIdx = await resolvePathToNodeIdx("unchosen");
+        const chosenIdx = await resolvePathToNodeIdx("chosen");
+
+        expect(stateVariables[unchosenIdx].stateValues.latex).eq(
+            `x = ${MATH_BLANK_LATEX}`,
+        );
+        expect(stateVariables[chosenIdx].stateValues.latex).eq("y = 2");
+        expect(stateVariables[chosenIdx].stateValues.text).eq("y = 2");
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci1"),
+            selectedIndices: [1],
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[unchosenIdx].stateValues.latex).eq("x = 1");
     });
 
     it("only an inline choice input is embedded", async () => {

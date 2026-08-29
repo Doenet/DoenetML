@@ -14,7 +14,7 @@ import { MATH_BLANK_LATEX } from "@doenet/utils";
 import { createInputStringFromChildren } from "../utils/parseMath";
 import {
     convertLatexWithBlanks,
-    isBlankChild,
+    embeddedChildContent,
     latexWithBlanksAsPlaceholders,
     slotToken,
 } from "../utils/embeddedMathInputs";
@@ -106,7 +106,7 @@ export class M extends InlineComponent {
                 inlineChildren: {
                     dependencyType: "child",
                     childGroups: ["inline"],
-                    variableNames: ["latex", "text"],
+                    variableNames: ["latex", "text", "selectedValues"],
                     variablesOptional: true,
                 },
                 embeddedInputComponentIndices: {
@@ -133,14 +133,17 @@ export class M extends InlineComponent {
                     format: "latex",
                     createDisplayedMathString: true,
                     // An embedded input that has been filled in contributes its
-                    // value, as any child does. One left empty contributes a
-                    // blank rather than nothing, so that the expression keeps
-                    // the shape the author wrote instead of quietly losing a
-                    // term.
-                    displayedMathSlotForChild: (child) =>
-                        embedded.has(child.componentIdx) && isBlankChild(child)
-                            ? MATH_BLANK_LATEX
-                            : null,
+                    // value — a choice input its selected choices, which the
+                    // string builder would not otherwise see. One left empty
+                    // contributes a blank rather than nothing, so that the
+                    // expression keeps the shape the author wrote instead of
+                    // quietly losing a term.
+                    displayedMathSlotForChild: (child) => {
+                        if (!embedded.has(child.componentIdx)) {
+                            return null;
+                        }
+                        return embeddedChildContent(child) || MATH_BLANK_LATEX;
+                    },
                 }).string;
 
                 return { setValue: { latex } };

@@ -78,7 +78,10 @@ A `<textInput/>{:dn}` or an inline `<choiceInput/>{:dn}` written inside an
 `<mrow>{:dn}` is rendered *in place*, inside the aligned display, so the reader
 completes the missing step where it belongs. The rows stay aligned around it:
 the space the input needs is measured before the display is typeset, and the
-`&` alignment points line up as they would around any other content.
+`&` alignment points line up as they would around any other content. The same
+inputs qualify as inside `<m>{:dn}`: not a `<mathInput/>{:dn}`, a
+non-`inline` `<choiceInput/>{:dn}`, an `expanded` or percentage-`width`
+`<textInput/>{:dn}`, or any input in a display drawn on a `<graph>{:dn}`.
 
 
 

@@ -92,10 +92,13 @@ nowhere inside an equation to put one.
 
 Only inputs whose size is settled before the mathematics is laid out can be
 embedded this way: a `<mathInput/>{:dn}` cannot, because it changes size as the
-reader types, and neither can a non-`inline` `<choiceInput/>{:dn}` or an
-`expanded` `<textInput/>{:dn}`, which are too large to sit in a line of
-mathematics. Those are still accepted, but they are not drawn inside the
-expression.
+reader types. A non-`inline` `<choiceInput/>{:dn}` or an `expanded`
+`<textInput/>{:dn}` is too large to sit in a line of mathematics, a
+`<textInput/>{:dn}` whose `width` is a percentage has nothing to measure
+against inside an expression, and mathematics drawn on a `<graph>{:dn}` is a
+single picture with no room for a control. All of those are still accepted,
+but they are not drawn inside the expression, and the last three warn to say
+so.
 
 
 

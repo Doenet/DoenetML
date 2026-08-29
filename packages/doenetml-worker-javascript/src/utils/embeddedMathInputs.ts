@@ -55,17 +55,29 @@ export function convertLatexWithBlanks(
 }
 
 /**
- * Whether a child contributes nothing to the expression it sits in.
- *
- * Mirrors what the string builder does with a child: it uses `latex` if there
- * is one, else `text`, and skips whatever is empty once trimmed.
+ * What an embedded input contributes to the `latex` of the expression it sits
+ * in: its `latex` if it has one, else its `text`, else — for a choice input,
+ * which has neither — the choices it has selected, each as LaTeX when the
+ * choices are math and as written otherwise. Empty when it has nothing to say,
+ * which is what makes it a blank.
  */
-export function isBlankChild(child: any): boolean {
-    const content =
-        typeof child?.stateValues?.latex === "string"
-            ? child.stateValues.latex
-            : typeof child?.stateValues?.text === "string"
-              ? child.stateValues.text
-              : "";
-    return content.trim() === "";
+export function embeddedChildContent(child: any): string {
+    const sv = child?.stateValues ?? {};
+    if (typeof sv.latex === "string") {
+        return sv.latex.trim();
+    }
+    if (typeof sv.text === "string") {
+        return sv.text.trim();
+    }
+    if (Array.isArray(sv.selectedValues)) {
+        return sv.selectedValues
+            .map((value: any) =>
+                typeof value?.toLatex === "function"
+                    ? value.toLatex()
+                    : String(value ?? ""),
+            )
+            .filter((value: string) => value.trim() !== "")
+            .join(", ");
+    }
+    return "";
 }

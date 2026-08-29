@@ -161,6 +161,33 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             });
     });
 
+    it("a math label kept out of sight is not a tab stop", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">y = <textInput name="ti">
+      <label>the <m>x^2</m> coefficient</label>
+    </textInput> x^2</m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // MathJax gives every expression it typesets a tab stop; the hidden
+        // label's is taken away, so a keyboard user does not land on nothing.
+        cy.get(`${cesc("#m")} .doenet-math-slot label mjx-container`).should(
+            "have.attr",
+            "tabindex",
+            "-1",
+        );
+        cy.get(`${cesc("#m")} .doenet-math-slot input`).should(
+            "have.attr",
+            "aria-labelledby",
+        );
+    });
+
     it("an aligned display keeps its rows aligned around a blank", () => {
         cy.window().then(async (win) => {
             win.postMessage(

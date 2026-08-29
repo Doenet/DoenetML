@@ -22,6 +22,7 @@ import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
 import { useInMathSlot } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 interface TextInputSVs {
     [key: string]: any;
@@ -87,6 +88,12 @@ export default function TextInput(props: UseDoenetRendererProps) {
     // short description. Read here, with the other hooks, so it is read on
     // every render whether or not the field goes on to draw anything.
     const inMathSlot = useInMathSlot();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
 
     let pointerAtDown = useRef<[number, number] | null>(null);
     let pointAtDown = useRef<[number, number, number] | null>(null);
@@ -771,6 +778,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
     return (
         <span
             id={id}
+            ref={inMathSlot ? slotRootRef : undefined}
             // `display: inline` so the label and input flow with the
             // surrounding paragraph text: text before and after the input wraps
             // together with it, and a wrapping label keeps the input after its

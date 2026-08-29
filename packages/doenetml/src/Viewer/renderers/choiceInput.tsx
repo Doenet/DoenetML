@@ -23,6 +23,7 @@ import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMedia
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
 import { useInMathSlot } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 // type guard
 const isMultiValue = <T,>(
@@ -112,6 +113,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     // through its short description. Read here, with the other hooks, so it is
     // read on every render whether or not the control goes on to draw anything.
     const inMathSlot = useInMathSlot();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -623,6 +630,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         return (
             <span
+                ref={inMathSlot ? slotRootRef : undefined}
                 // `display: inline` so the label and select flow with the
                 // surrounding paragraph text and a wrapping label keeps the
                 // select after its end rather than beside its first line
