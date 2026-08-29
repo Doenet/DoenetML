@@ -90,10 +90,8 @@ function slotIndicesInTemplate(template: string): number[] {
  * long the label is.
  *
  * A zero-sized box goes in alongside, carrying an id of its own. A box with no
- * height and no depth sits on the line's baseline, which is what the control
- * has to be aligned to; reading it out of the typeset output means the
- * alignment is taken from the very output being measured, rather than from a
- * reservation that may since have been superseded.
+ * height and no depth sits on the line's baseline, so its position in the
+ * typeset output is where the control's baseline goes; see `SlotPosition`.
  *
  * Returns `null` while any slot is still unmeasured, so that the expression is
  * typeset once, with real sizes, rather than being typeset to a guess and
@@ -186,8 +184,8 @@ export function useMathSlots({
     >(new Map());
 
     // What the expression is typeset from while a reader is editing one of its
-    // controls: the template as it stood when the editing began, held until the
-    // value is committed.
+    // controls: the template as it stood when the editing began, or when the
+    // last committed value came back, whichever is later.
     //
     // The reason is the caret. An expression can be re-typeset because anything
     // in it changed — a dragged point feeding it, another input's value — and a
