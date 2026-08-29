@@ -37,11 +37,21 @@
 #   lexicon                 мархта, инкса, кда, фкя, аньцек, лама, сяда, и
 #                           (myv: марто, кисэ, бути, вейке, ансяк, ламо, седе,
 #                           ды)
+#   numerals                фкя, кафта, колма (myv: вейке, кавто, колмо), and
+#                           the ablative on them in -да: фкяда, кафтада
+#                           (myv: вейкеде, кавтодо)
 #
 # **Where the seed did not know Moksha's own word it left the shape Moksha and
 # Erzya share**, rather than inventing one. Those are the first thing a speaker
 # should correct, and they are the reason this catalog reads closer to
-# `locales/myv` than a Moksha speaker will want it to.
+# `locales/myv` than a Moksha speaker will want it to. Three residues are known
+# rather than guessed at, and are the next things to fix: the ablative is still
+# written Erzya-style `-де/-до` outside the numerals («нетнеде»,
+# «сюлмафкстнеде», «3-де») where Moksha writes `-да`; the abessive is `-втомо`
+# («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; and "equal" is
+# «вейкетть», an Erzya form this seed could not confidently replace. The
+# numerals and their ablative have been corrected, so what is left is in the
+# other endings rather than in the stems.
 #
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.

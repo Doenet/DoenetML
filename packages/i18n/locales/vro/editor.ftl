@@ -157,7 +157,7 @@ help-suggestions-header =
         [none] { " — siiä ei passiq midägi." }
         [text] { " — siiä saa kirotaq teksti." }
         [text-and-components] { " — siiä saa kirotaq teksti vai pruuvkõq:" }
-       *[components] { " — või pruuvi:" }
+       *[components] { " — vai pruuvi:" }
     }
 
 help-suggestions-footer = Vajotagõq { $shortcut }, et nätäq kõiki { $total } komponenti.

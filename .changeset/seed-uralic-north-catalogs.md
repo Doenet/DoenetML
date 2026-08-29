@@ -29,10 +29,12 @@ Livvi-Karelian, Khanty and Mansi now supply their own names to
 `<document lang>`'s autocomplete instead of appearing as bare codes.
 
 Every string is machine-generated and has not been read by a speaker; each
-catalog says so in its header. Four carry an additional confidence caveat worth
+catalog says so in its header. Five carry an additional confidence caveat worth
 naming: `locales/kca` (Khanty) and `locales/mns` (Mansi) record that much of
 their editor and diagnostics vocabulary is coined rather than attested,
-`locales/sjd` (Kildin Sami) is the least certain of the five Sami catalogs, and
+`locales/sjd` (Kildin Sami) is the least certain of the five Sami catalogs,
 `locales/vro` (Võro) records that two of its messages read with the wrong case
-because the seed declined to invent the forms. Correcting any of this needs no
-permission.
+because the seed declined to invent the forms, and `locales/mdf` (Moksha) names
+the three Erzya endings it still carries — the ablative, the abessive and the
+word for "equal" — where the seed could not establish the Moksha form.
+Correcting any of this needs no permission.

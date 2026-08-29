@@ -34,11 +34,21 @@
 #   lexicon                 мархта, инкса, кда, фкя, аньцек, лама, сяда, и
 #                           (myv: марто, кисэ, бути, вейке, ансяк, ламо, седе,
 #                           ды)
+#   numerals                фкя, кафта, колма (myv: вейке, кавто, колмо), and
+#                           the ablative on them in -да: фкяда, кафтада
+#                           (myv: вейкеде, кавтодо)
 #
 # **Where the seed did not know Moksha's own word it left the shape Moksha and
 # Erzya share**, rather than inventing one. Those are the first thing a speaker
 # should correct, and they are the reason this catalog reads closer to
-# `locales/myv` than a Moksha speaker will want it to.
+# `locales/myv` than a Moksha speaker will want it to. Three residues are known
+# rather than guessed at, and are the next things to fix: the ablative is still
+# written Erzya-style `-де/-до` outside the numerals («нетнеде»,
+# «сюлмафкстнеде», «3-де») where Moksha writes `-да`; the abessive is `-втомо`
+# («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; and "equal" is
+# «вейкетть», an Erzya form this seed could not confidently replace. The
+# numerals and their ablative have been corrected, so what is left is in the
+# other endings rather than in the stems.
 #
 # Attribute names, element names and every other DoenetML identifier —
 # `through`, `endpoint`, `midpointOffset`, `numDimensions`, `<answer>`,
@@ -54,8 +64,8 @@
 
 line-segment-attributes-ignored-with-endpoints =
     { $attributesCount ->
-        [one] кавто пень точкатне невтезь кда, { $attributes } аф ловови
-       *[other] кавто пень точкатне невтезь кда, { $attributes } аф ловови
+        [one] кафта пень точкатне невтезь кда, { $attributes } аф ловови
+       *[other] кафта пень точкатне невтезь кда, { $attributes } аф ловови
     }
 
 line-segment-attributes-ignored-with-endpoint-and-midpoint =
@@ -70,7 +80,7 @@ line-segment-midpoint-offset-without-midpoint = куншка точкавтом�
 
 line-points-undetermined-dimensions = Онксозо асодавикс точкатнень пачк ютыця виде линия.
 
-line-points-too-few-dimensions = Виде линиясь сехте аламо кавто онксса точкатнень пачк ютомо эряви.
+line-points-too-few-dimensions = Виде линиясь сехте аламо кафта онксса точкатнень пачк ютомо эряви.
 
 line-points-depend-on-variables = Виде линиясь полавтовиця онкстнеде лепштявиця точкатнень пачк юты: { $variables }.
 
@@ -184,9 +194,9 @@ circle-overprescribed-radius-center-points = Максф радиус, куншк
 
 circle-center-with-multiple-points = Максф куншка мархта 1-де лама точкань пачк ютыця круготь ловомс аф маштови.
 
-circle-radius-too-small = Круготь ловомс аф маштови: кавто точкатнень ютксост { $distance } кда, максф радиусось { $radius } пек вишкине.
+circle-radius-too-small = Круготь ловомс аф маштови: кафта точкатнень ютксост { $distance } кда, максф радиусось { $radius } пек вишкине.
 
-circle-radius-with-many-points = Максф радиус мархта кавтодо лама точкань пачк ютыця круг теемс аф маштови.
+circle-radius-with-many-points = Максф радиус мархта кафтада лама точкань пачк ютыця круг теемс аф маштови.
 
 circle-invalid-center-or-through-points = Кругонь куншказо эли точканзо аф видеть.
 
@@ -194,7 +204,7 @@ circle-radius-center-with-multiple-points = Максф куншка мархта
 
 circle-change-radius-non-numerical = Ловома аф точкат мархта кругонь радиусонзо полавтомс аф маштови
 
-circle-radius-with-points-non-numerical = Ловома питнеть арасть кда, максф радиус мархта вейкеде лама точкань пачк ютыця круг теемс аф маштови.
+circle-radius-with-points-non-numerical = Ловома питнеть арасть кда, максф радиус мархта фкяда лама точкань пачк ютыця круг теемс аф маштови.
 
 circle-change-center-non-numerical = Ловома аф точкань пачк ютыця кругонь куншканзо полавтомась аф тиф.
 
@@ -233,7 +243,7 @@ function-ignoring-empty =
        *[other] Функциянь шава { $type } питнезэ аф ловови.
     }
 
-function-points-too-close = Функциясоть фкяст-фкяст пек маласа кавто точкат улить. Функциять содамс аф маштови.
+function-points-too-close = Функциясоть фкяст-фкяст пек маласа кафта точкат улить. Функциять содамс аф маштови.
 
 function-iterates-input-output-mismatch =
     { $inputs ->
@@ -287,7 +297,7 @@ parabola-vertex-too-many-points = Максф пря мархта 1-де лама
 
 parabola-too-many-points = 3-де лама точкань пачк ютыця парабола аф тиф.
 
-intersection-too-many-items = Кавтодо лама объектэнь вастневемась аф тиф
+intersection-too-many-items = Кафтада лама объектэнь вастневемась аф тиф
 
 ## Other math components
 
@@ -311,7 +321,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: grid="{ $grid }" питнеть чарькодемс аф маштови. Сон none, medium, dense эли шава таркаса явовтозь кавто плюс ловома улемс эряви, кода grid="1 0.5". Сеткась аф артови.
+graph-grid-invalid = `<graph>`: grid="{ $grid }" питнеть чарькодемс аф маштови. Сон none, medium, dense эли шава таркаса явовтозь кафта плюс ловома улемс эряви, кода grid="1 0.5". Сеткась аф артови.
 
 ## PreFigure renderer
 
@@ -646,7 +656,7 @@ schema-attribute-value-not-allowed =
 
 select-variant-name-option-count-mismatch = select ланкс аф виде вариантонь лем. { $variantName } вариантонь лемесь { $numOptions } кочкамоса вастневи, аф кочкамс эрявикс ламоксчись { $numToSelect }.
 
-select-variant-name-without-options = select ланкс вариантт максф, аньцек маштовикс вариантонь лемнентень вейкеяк кочкамо аш: { $variantName }.
+select-variant-name-without-options = select ланкс вариантт максф, аньцек маштовикс вариантонь лемнентень фкявок кочкамо аш: { $variantName }.
 
 select-variant-name-not-possible = select ланкс максф { $variantName } вариантонь лемесь маштовикс вариантонь лем аш.
 

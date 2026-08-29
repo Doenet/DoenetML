@@ -17,7 +17,7 @@
 # that one. Neither catalog can serve the other's reader and neither pretends
 # to. What is written here is the **Karelian Proper (Viena / Northern)**
 # literary norm: «musta», «valkie», «vihrie», «pisteh», the adessive in
-# `-lla/-llä`. Livvi writes «musta», «valgei», «vihandu», «pistoi» and an
+# `-lla/-llä`. Livvi writes «musta», «valgei», «vihandu», «pisto» and an
 # adessive-allative in a bare `-l`. A reader of either norm can very largely
 # read the other, and that is exactly why the two files must not be copies of
 # each other — a copy would put one norm's endings in front of the other's
