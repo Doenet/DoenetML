@@ -650,11 +650,15 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     // The label element is not drawn inside an expression, so nothing may point
     // at it. An author who labelled the input still meant that text to name it,
-    // so it becomes the accessible name directly.
+    // so it becomes the accessible name directly, and a short description
+    // given alongside it stays the description, just as it does when the label
+    // is drawn.
     const labelIsRendered = hasLabel && !inMathSlot;
-    if (inMathSlot && hasLabel && typeof SVs.label === "string") {
-        shortDescription = SVs.label;
-    }
+    const mathSlotName =
+        inMathSlot && hasLabel && typeof SVs.label === "string"
+            ? SVs.label
+            : undefined;
+    const hasAccessibleName = labelIsRendered || mathSlotName !== undefined;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -697,9 +701,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 onFocus={handleFocus}
                 className={inputClass}
                 aria-labelledby={labelIsRendered ? labelId : undefined}
-                aria-label={!labelIsRendered ? shortDescription : undefined}
+                aria-label={hasAccessibleName ? mathSlotName : shortDescription}
                 aria-description={
-                    labelIsRendered ? shortDescription : undefined
+                    hasAccessibleName ? shortDescription : undefined
                 }
                 aria-details={descriptionId}
                 style={{
@@ -723,9 +727,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 onFocus={handleFocus}
                 className={inputClass}
                 aria-labelledby={labelIsRendered ? labelId : undefined}
-                aria-label={!labelIsRendered ? shortDescription : undefined}
+                aria-label={hasAccessibleName ? mathSlotName : shortDescription}
                 aria-description={
-                    labelIsRendered ? shortDescription : undefined
+                    hasAccessibleName ? shortDescription : undefined
                 }
                 aria-details={descriptionId}
                 style={{

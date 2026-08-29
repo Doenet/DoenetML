@@ -131,6 +131,31 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             .should("contain", "blank");
     });
 
+    it("a label names an embedded input and its short description describes it", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">x = <textInput name="ti">
+      <label>the missing term</label>
+      <shortDescription>a monomial in x</shortDescription>
+    </textInput> + 3</m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // The label element is not drawn inside the expression, so its text
+        // becomes the accessible name directly, and the short description keeps
+        // its usual role as the description.
+        cy.get(`${cesc("#m")} .doenet-math-slot input`)
+            .should("have.attr", "aria-label", "the missing term")
+            .and("have.attr", "aria-description", "a monomial in x")
+            .and("not.have.attr", "aria-labelledby");
+        cy.get(`${cesc("#m")} label`).should("not.exist");
+    });
+
     it("an aligned display keeps its rows aligned around a blank", () => {
         cy.window().then(async (win) => {
             win.postMessage(

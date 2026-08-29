@@ -318,10 +318,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let shortDescription = SVs.shortDescription || undefined;
     // The label element is not drawn inside an expression, so nothing may point
     // at it. An author who labelled the control still meant that text to name
-    // it, so it becomes the accessible name directly.
-    if (inMathSlot && hasLabel && typeof SVs.label === "string") {
-        shortDescription = SVs.label;
-    }
+    // it, so it becomes the accessible name directly, and a short description
+    // given alongside it stays the description, just as it does when the label
+    // is drawn.
+    const mathSlotName =
+        inMathSlot && hasLabel && typeof SVs.label === "string"
+            ? SVs.label
+            : undefined;
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
     const inlineLabelledByIds = [
         hasLabel && !inMathSlot ? labelId : null,
@@ -329,6 +332,8 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     ]
         .filter(Boolean)
         .join(" ");
+    const inlineHasAccessibleName =
+        inlineLabelledByIds !== "" || mathSlotName !== undefined;
 
     // For inline, the default is a small check work button,
     // for non-inline, the default is a full check work button
@@ -566,12 +571,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             isOptionDisabled={(opt) => !!opt.isDisabled}
                             aria-labelledby={inlineLabelledByIds || undefined}
                             aria-label={
-                                !inlineLabelledByIds
-                                    ? shortDescription
-                                    : undefined
+                                inlineHasAccessibleName
+                                    ? mathSlotName
+                                    : shortDescription
                             }
                             aria-description={
-                                inlineLabelledByIds
+                                inlineHasAccessibleName
                                     ? shortDescription
                                     : undefined
                             }
