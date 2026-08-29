@@ -146,7 +146,7 @@ export function substituteSlots({
  * control sequence, and the angle brackets that would open a tag once the TeX
  * is handed to MathJax as markup. The label is the translated word for a
  * blank, and a translation is free text that is written into TeX, so it is
- * made safe here rather than trusted to be.
+ * made safe here.
  */
 function escapeForTex(label: string): string {
     return label.replace(/[\\{}$&#^_~%<>]/g, " ");
@@ -225,8 +225,8 @@ export function useMathSlots({
     // Core resolves a committed action once it has finished the action and sent
     // out every renderer update the action caused, so this is the point at
     // which the expression knows there is nothing further coming — whether or
-    // not anything about it changed. Counted rather than flagged so that two
-    // commits in a row are two events, each with a catch-up of its own.
+    // not anything about it changed. Counted, so that two commits in a row are
+    // two events, each with a catch-up of its own.
     const [commitsSettled, setCommitsSettled] = useState(0);
     const noteSettled = useCallback(
         () => setCommitsSettled((count) => count + 1),

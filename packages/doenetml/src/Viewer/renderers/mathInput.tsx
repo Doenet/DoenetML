@@ -792,10 +792,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     function onFocusChanged(focused: boolean) {
         setFocused(focused);
-        // The right boundary for an expression around this field, rather than
-        // raw focus: a blur that hands focus to the keyboard tray does not come
-        // through here, so the expression stays still while the reader types on
-        // the tray, and `endEditing` releases it however focus finally leaves.
+        // This is the boundary the expression around this field follows: a
+        // blur that hands focus to the keyboard tray does not come through
+        // here, so the expression stays still while the reader types on the
+        // tray, and `endEditing` releases it however focus finally leaves.
         slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,
@@ -1563,10 +1563,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
               tContent,
           );
 
-    // Inside an expression the label is kept out of sight rather than left
-    // out, so `aria-labelledby` names the field from it exactly as it does
-    // elsewhere — a label that is itself math is then spoken as MathJax reads
-    // it, not as its LaTeX.
+    // Inside an expression the label stays in the document, out of sight, so
+    // `aria-labelledby` names the field from it exactly as it does elsewhere —
+    // a label that is itself math is then spoken as MathJax reads it.
     const labelComponent = hasLabel ? (
         <label
             id={labelId}
