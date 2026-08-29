@@ -40,7 +40,17 @@ import { reserveForSlot, sameBox, SlotBox } from "./mathSlotReserve";
 
 interface SlotPosition {
     left: number;
-    top: number;
+    /**
+     * Where the reserved box sits on the line, which is what a control is
+     * placed against: its own baseline goes here, so room reserved above the
+     * control falls above it rather than carrying it down the page.
+     *
+     * Read as the box's own baseline rather than as its top plus the room
+     * reserved above the control, because the two agree only once the
+     * expression has been typeset around the current reservation — and a
+     * control grows a frame or more before that happens.
+     */
+    baseline: number;
 }
 
 /** The template an expression is typeset from while a control in it is used. */
@@ -166,6 +176,12 @@ export function useMathSlots({
     // against, and measuring from it makes the two agree by construction.
     const layerRef = useRef<HTMLSpanElement>(null);
     const [sizes, setSizes] = useState<ReadonlyMap<number, SlotBox>>(new Map());
+    // Reading a position needs the box that was typeset there, to know where
+    // its baseline falls; kept in a ref so that reading one does not depend on
+    // the sizes, whose identity would otherwise churn the observers watching
+    // for a reflow (see `math.tsx`).
+    const sizesRef = useRef(sizes);
+    sizesRef.current = sizes;
     const [positions, setPositions] = useState<
         ReadonlyMap<number, SlotPosition>
     >(new Map());
@@ -289,7 +305,8 @@ export function useMathSlots({
      * The lookup is scoped to this expression's root, so it sees neither the
      * off-screen buffer `DynamicMath` typesets into nor another viewer on the
      * same page that happens to mint the same ids. Position only — the box's
-     * size came from the control in the first place.
+     * size came from the control in the first place, and is read back here
+     * only to say where on the box the line's baseline runs.
      */
     const readPositions = useCallback(() => {
         const root = rootRef.current;
@@ -307,9 +324,12 @@ export function useMathSlots({
                 continue;
             }
             const rect = reserved.getBoundingClientRect();
+            // The box was typeset with its height above the line's baseline,
+            // so that is how far below its top the baseline falls.
+            const height = sizesRef.current.get(componentIdx)?.height ?? 0;
             next.set(componentIdx, {
                 left: rect.left - originRect.left,
-                top: rect.top - originRect.top,
+                baseline: rect.top - originRect.top + height,
             });
         }
         setPositions((previous) =>
@@ -334,7 +354,11 @@ function samePositions(
     }
     for (const [key, value] of b) {
         const other = a.get(key);
-        if (!other || other.left !== value.left || other.top !== value.top) {
+        if (
+            !other ||
+            other.left !== value.left ||
+            other.baseline !== value.baseline
+        ) {
             return false;
         }
     }
@@ -410,10 +434,10 @@ export function MathSlot({
     const baselineRef = useRef<HTMLSpanElement>(null);
     const editing = useRef(false);
     const reserved = useRef<SlotBox | null>(null);
-    // How far the control sits below the top of the box reserved for it. Zero
-    // unless the reservation is roomier than the control, which is what it is
-    // while the control is being edited.
-    const [belowReservedTop, setBelowReservedTop] = useState(0);
+    // How much of the control stands above its own baseline, which is what it
+    // is positioned by: it keeps its baseline on the expression's however much
+    // it grows, so the room a reservation holds above it stays above it.
+    const [heightAboveBaseline, setHeightAboveBaseline] = useState(0);
 
     const reportSize = context?.reportSize;
     const position = context?.positions.get(componentIdx);
@@ -441,10 +465,7 @@ export function MathSlot({
                 editing: editing.current && !exact,
             });
             reserved.current = box;
-            // The control keeps its baseline on the expression's, so a roomier
-            // reservation grows above and to the right of it rather than
-            // carrying it along.
-            setBelowReservedTop(box.height - measured.height);
+            setHeightAboveBaseline(measured.height);
             reportSize(componentIdx, box);
         },
         [componentIdx, reportSize],
@@ -508,7 +529,7 @@ export function MathSlot({
                 position
                     ? {
                           left: position.left,
-                          top: position.top + belowReservedTop,
+                          top: position.baseline - heightAboveBaseline,
                       }
                     : // Laid out so it can be measured, but neither drawn,
                       // announced, nor focusable until it has somewhere to be.

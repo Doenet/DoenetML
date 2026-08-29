@@ -558,6 +558,29 @@ The `text` property of a `<mathInput/>{:dn}` stores its content as a string.
 
 ---
 
+### Property Example: latex
+
+
+```doenet-example
+<p>
+  <mathInput name="mi1">
+    <label>Enter an expression such as <c>sqrt(2)/3</c></label>
+  </mathInput>
+</p>
+
+<p><c>latex</c> = $mi1.latex</p>
+<p><c>mi1</c> = $mi1</p> 
+```
+
+
+
+The `latex` property of a `<mathInput/>{:dn}` stores its content as LaTeX code, 
+updated when the reader presses Enter or leaves the input.
+
+
+
+---
+
 ### Property Example: rawRendererValue
 
 
