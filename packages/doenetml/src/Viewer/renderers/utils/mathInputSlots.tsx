@@ -45,9 +45,9 @@ interface SlotPosition {
      * placed against: its own baseline goes here, so room reserved above the
      * control falls above it rather than carrying it down the page.
      *
-     * Read as the box's own baseline rather than as its top plus the room
-     * reserved above the control, because the two agree only once the
-     * expression has been typeset around the current reservation — and a
+     * Read directly off the typeset output. The box's top plus the room
+     * reserved above the control gives the same answer only once the
+     * expression has been typeset around the current reservation, and a
      * control grows a frame or more before that happens.
      */
     baseline: number;
@@ -57,11 +57,6 @@ interface SlotPosition {
 interface HeldTemplate {
     template: string;
     embeddedComponentIndices: readonly number[];
-    /**
-     * Whether this is a stand-in, kept only until the commit that produced it
-     * has settled; see `noteSlotCommit`.
-     */
-    awaitingCommit: boolean;
 }
 
 interface MathSlotContextValue {
@@ -206,13 +201,14 @@ export function useMathSlots({
     const liveTemplate = useRef({ template, embeddedComponentIndices });
     liveTemplate.current = { template, embeddedComponentIndices };
 
-    /** Hold the template as it stands now, unless nothing is being edited. */
-    const holdTemplate = useCallback((awaitingCommit: boolean) => {
-        setHeld(
-            editingSlots.current.size > 0
-                ? { ...liveTemplate.current, awaitingCommit }
-                : null,
-        );
+    /**
+     * Hold the template as it stands now, or release it if nothing is being
+     * edited. Called at every boundary — editing starting or ending, a value
+     * committed, a commit settled — so the hold is always the newest template
+     * the expression has been allowed to see.
+     */
+    const holdTemplate = useCallback(() => {
+        setHeld(editingSlots.current.size > 0 ? liveTemplate.current : null);
     }, []);
 
     const setSlotEditing = useCallback(
@@ -223,7 +219,7 @@ export function useMathSlots({
             } else {
                 slots.delete(componentIdx);
             }
-            holdTemplate(false);
+            holdTemplate();
         },
         [holdTemplate],
     );
@@ -232,7 +228,7 @@ export function useMathSlots({
     // out every renderer update the action caused, so this is the point at
     // which the expression knows there is nothing further coming — whether or
     // not anything about it changed. Counted rather than flagged so that two
-    // commits in a row are two events.
+    // commits in a row are two events, each with a catch-up of its own.
     const [commitsSettled, setCommitsSettled] = useState(0);
     const noteSettled = useCallback(
         () => setCommitsSettled((count) => count + 1),
@@ -241,7 +237,7 @@ export function useMathSlots({
 
     const noteSlotCommit = useCallback(
         (settled?: Promise<unknown>) => {
-            holdTemplate(true);
+            holdTemplate();
             settled?.then(noteSettled, noteSettled);
         },
         [holdTemplate, noteSettled],
@@ -250,26 +246,19 @@ export function useMathSlots({
     // A commit asks the expression to catch up, but what it is to catch up to
     // is still on its way: the value goes to core, and the LaTeX that shows it
     // comes back a round trip later. So a commit holds what is on screen for
-    // now, and catches up once the action it started has settled.
+    // now, and catches up again once the action it started has settled.
     //
-    // Settling is the signal rather than "the next template that differs",
-    // because a template need not change at all for a commit to be complete:
-    // `x = ␣` reads the same whatever is typed into the field. Waiting for a
-    // difference leaves such an expression armed indefinitely, and then the
-    // next change from anywhere is taken for the commit's answer — in an
-    // expression that shows what the reader is typing, that is their own very
-    // next keystroke, reflowing under the caret.
-    //
-    // Re-anchoring here rather than in the promise's own callback is
-    // deliberate: this runs after a render, so the template it reads is the one
-    // core has just sent, where the callback can still see the previous one.
+    // A commit need not change the template at all — `x = ␣` reads the same
+    // whatever is typed into the field — so completion is taken from the
+    // action settling, which happens either way. The catch-up is an effect on
+    // the settle count so that it runs after the render that follows the
+    // settle, where the template it reads is the one core sent with the
+    // action's updates.
     useLayoutEffect(() => {
-        setHeld((previous) =>
-            previous?.awaitingCommit
-                ? { ...liveTemplate.current, awaitingCommit: false }
-                : previous,
-        );
-    }, [commitsSettled]);
+        if (commitsSettled > 0) {
+            holdTemplate();
+        }
+    }, [commitsSettled, holdTemplate]);
 
     const activeTemplate = held?.template ?? template;
     const activeEmbedded =
@@ -292,9 +281,8 @@ export function useMathSlots({
         [rootId],
     );
 
-    // Deliberately not `${rootId}_mathSlot_${componentIdx}_base`: the reserved
-    // box is found by its `_mathSlot_` id, and a marker sharing that substring
-    // would be picked up wherever a box is looked for.
+    // A reserved box is found by the `_mathSlot_` in its id, so the marker's
+    // id keeps clear of that substring.
     const slotBaselineElementId = useCallback(
         (componentIdx: number) => `${rootId}_mathBaseline_${componentIdx}`,
         [rootId],
@@ -353,10 +341,8 @@ export function useMathSlots({
      *
      * Both coordinates come out of the output being measured — the left edge
      * from the reserved box, the baseline from the zero-sized marker typeset on
-     * it. Nothing here consults the sizes most recently reported, which need
-     * not be the ones this output was typeset from: a swap can land after a
-     * newer size has been reported, and pairing that size with this box's edge
-     * would put the control off the line until the next swap.
+     * it — so they describe the same typeset, even when a newer size has been
+     * reported since and the swap that reflects it is still on its way.
      */
     const readPositions = useCallback(() => {
         const root = rootRef.current;
