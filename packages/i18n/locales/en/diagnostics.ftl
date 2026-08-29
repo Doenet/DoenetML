@@ -925,3 +925,20 @@ select-prime-numbers-excluded-too-many-combinations = Excluded over 70% of combi
 select-random-combination-fluke = By extremely unlikely fluke, couldn't select combination of random values
 
 select-random-value-fluke = By extremely unlikely fluke, couldn't select random value
+
+## Inputs embedded in math
+
+# Translators: $component is the input's own DoenetML tag and stays in English,
+# as do the attribute names `inline`, `expanded` and `width`. An input written
+# inside `<m>` is drawn in the place it is written, inside the typeset
+# expression. That needs a control whose size is settled before the math is
+# laid out and which is small enough to sit in a line of it; $reason says which
+# of those this input fails. When it fails, the input is not drawn at all and
+# its current value is typeset in its place instead, which is what happened
+# before inputs could be embedded.
+math-embedded-input-shape-unsuitable =
+    `<{ $component }>` is not drawn inside the math, and its value is typeset in its place. { $reason ->
+        [not-inline] Only an `inline` choice input fits inside an expression; without `inline` it is a block of buttons.
+        [expanded] An `expanded` text input is a multi-line box, which is too large to sit inside an expression.
+       *[relative-width] Its `width` is a percentage, which has nothing to measure against inside an expression. Give an absolute width instead.
+    }

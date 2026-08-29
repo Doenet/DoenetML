@@ -11,6 +11,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import { latexToAst, superSubscriptsToUnicode } from "../utils/math";
+import { convertLatexWithBlanks } from "../utils/embeddedMathInputs";
 
 export class Md extends InlineComponent {
     constructor(args) {
@@ -28,6 +29,10 @@ export class Md extends InlineComponent {
         summary: "Display math with multiple aligned rows",
     };
     static rendererType = "math";
+
+    // The rows themselves are rendered, so that any inputs embedded in them can
+    // be drawn; `childIndicesToRender` narrows that to the rows that have any.
+    static renderChildren = true;
 
     static canBeInList = false;
 
@@ -170,6 +175,106 @@ export class Md extends InlineComponent {
             },
         };
 
+        /**
+         * `latex` with each row's embedded-input markers left in.
+         *
+         * Composed exactly as `latex` is — same `\\` join, same `\tag{}` and
+         * `\notag ` prefixes — because the whole display is typeset as one
+         * expression and the rows must align the same way either variable is
+         * used.
+         */
+        stateVariableDefinitions.latexTemplate = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                mrowChildren: {
+                    dependencyType: "child",
+                    childGroups: ["mrows"],
+                    variableNames: [
+                        "latexTemplate",
+                        "hide",
+                        "equationTag",
+                        "numbered",
+                    ],
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let latexTemplate = "";
+                for (let child of dependencyValues.mrowChildren) {
+                    if (child.stateValues.hide) {
+                        continue;
+                    }
+                    if (latexTemplate.length > 0) {
+                        latexTemplate += "\\\\";
+                    }
+                    if (child.stateValues.numbered) {
+                        latexTemplate += `\\tag{${child.stateValues.equationTag}}`;
+                    } else {
+                        latexTemplate += `\\notag `;
+                    }
+                    latexTemplate += child.stateValues.latexTemplate;
+                }
+
+                return { setValue: { latexTemplate } };
+            },
+        };
+
+        // Only rows that hold an embedded input are rendered. A display with no
+        // inputs therefore renders exactly as it did before they were possible.
+        stateVariableDefinitions.childIndicesToRender = {
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+                mrowChildren: {
+                    dependencyType: "child",
+                    childGroups: ["mrows"],
+                    variableNames: ["embeddedInputComponentIndices"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const rowsWithInputs = new Set(
+                    dependencyValues.mrowChildren
+                        .filter(
+                            (child) =>
+                                child.stateValues.embeddedInputComponentIndices
+                                    ?.length > 0,
+                        )
+                        .map((child) => child.componentIdx),
+                );
+
+                const childIndicesToRender = [];
+                for (const [
+                    ind,
+                    child,
+                ] of dependencyValues.allChildren.entries()) {
+                    if (
+                        typeof child === "object" &&
+                        rowsWithInputs.has(child.componentIdx)
+                    ) {
+                        childIndicesToRender.push(ind);
+                    }
+                }
+
+                return { setValue: { childIndicesToRender } };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
+        };
+
+        // The rendered children of an `<md>` are its rows, which hold the inputs;
+        // the rows are what wrap them in positioned slots.
+        stateVariableDefinitions.typesetsOwnChildren = {
+            forRenderer: true,
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { typesetsOwnChildren: false } }),
+        };
+
+        stateVariableDefinitions.typesetByParent = {
+            forRenderer: true,
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { typesetByParent: false } }),
+        };
+
         stateVariableDefinitions.text = {
             description: "The math content rendered as a plain text string.",
             public: true,
@@ -185,24 +290,30 @@ export class Md extends InlineComponent {
             definition: function ({ dependencyValues }) {
                 let expressionText;
                 try {
-                    expressionText = dependencyValues.latex
-                        .replaceAll("\\notag", "")
-                        .replaceAll("\\amp", "")
-                        .split("\\\\")
-                        .map((x) => {
-                            let result = x.match(/\\tag\{(\w+)\}(.*)/);
-                            if (result) {
-                                x = result[2];
-                            }
-                            let text = me
-                                .fromAst(latexToAst.convert(x))
-                                .toString();
-                            if (result) {
-                                text += ` (${result[1]})`;
-                            }
-                            return text;
-                        })
-                        .join("\\\\\n");
+                    // The whole pipeline below parses each row, so blanks go in
+                    // as an ordinary symbol and come back out as a word.
+                    expressionText = convertLatexWithBlanks(
+                        dependencyValues.latex,
+                        (latex) =>
+                            latex
+                                .replaceAll("\\notag", "")
+                                .replaceAll("\\amp", "")
+                                .split("\\\\")
+                                .map((x) => {
+                                    let result = x.match(/\\tag\{(\w+)\}(.*)/);
+                                    if (result) {
+                                        x = result[2];
+                                    }
+                                    let text = me
+                                        .fromAst(latexToAst.convert(x))
+                                        .toString();
+                                    if (result) {
+                                        text += ` (${result[1]})`;
+                                    }
+                                    return text;
+                                })
+                                .join("\\\\\n"),
+                    );
                 } catch (e) {
                     // just return latex if can't parse with math-expressions
                     return { setValue: { text: dependencyValues.latex } };
@@ -330,6 +441,27 @@ export class Mrow extends M {
         stateVariableDefinitions.renderMode.definition = () => ({
             setValue: { renderMode: "display" },
         });
+
+        /**
+         * Inside an `<md>` the whole display is typeset as one expression, so a
+         * row draws no math of its own — it exists only to place the inputs
+         * embedded in it. An `<mrow>` written anywhere else is ordinary display
+         * math and keeps typesetting itself.
+         */
+        stateVariableDefinitions.typesetByParent = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                mdParent: {
+                    dependencyType: "parentIdentity",
+                    parentComponentType: "md",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    typesetByParent: dependencyValues.mdParent !== null,
+                },
+            }),
+        };
 
         stateVariableDefinitions.numbered = {
             forRenderer: true,

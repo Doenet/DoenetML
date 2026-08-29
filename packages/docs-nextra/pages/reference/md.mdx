@@ -52,6 +52,33 @@ the `&` symbol is entered in each row.
 
 
 An `<md>{:dn}` block cannot contain an `<answer>{:dn}` or a `<mathInput/>{:dn}`.
+A `<mathInput/>{:dn}` changes size as the reader types, and the aligned display
+cannot re-flow around it. A `<textInput/>{:dn}` or an inline
+`<choiceInput/>{:dn}` can be used instead — see the next example.
+
+
+
+---
+
+### Example: filling in a step of a derivation
+
+
+```doenet-editor-horiz
+<md>
+  <mrow>f(x) &= x^2 + 2x</mrow>
+  <mrow>f'(x) &= <textInput name="step">
+    <shortDescription>the derivative of f</shortDescription>
+  </textInput></mrow>
+  <mrow>f''(x) &= 2</mrow>
+</md>
+```
+
+
+A `<textInput/>{:dn}` or an inline `<choiceInput/>{:dn}` written inside an
+`<mrow>{:dn}` is rendered *in place*, inside the aligned display, so the reader
+completes the missing step where it belongs. The rows stay aligned around it:
+the space the input needs is measured before the display is typeset, and the
+`&` alignment points line up as they would around any other content.
 
 
 

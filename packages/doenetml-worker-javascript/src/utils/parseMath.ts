@@ -18,6 +18,7 @@ export function createInputStringFromChildren({
     createInternalLists = false,
     parser,
     createDisplayedMathString = false,
+    displayedMathSlotForChild,
 }: {
     children: any;
     codePre: string;
@@ -25,6 +26,13 @@ export function createInputStringFromChildren({
     createInternalLists?: boolean;
     parser?: (arg0: string) => any;
     createDisplayedMathString?: boolean;
+    /**
+     * Returns the marker to stand in for `child` instead of its content, or
+     * `null` to render the child as usual. Keyed on the child object rather
+     * than its index so that it survives the composite regrouping below, which
+     * reorders and regroups children but never changes their identity.
+     */
+    displayedMathSlotForChild?: (child: any) => string | null;
 }) {
     let nonStringInd = 0;
     let nonStringIndByChild: (null | number)[] = [];
@@ -49,6 +57,7 @@ export function createInputStringFromChildren({
         nextInternalListInd: nonStringInd,
         parser,
         createDisplayedMathString,
+        displayedMathSlotForChild,
     });
 
     let joinString = createDisplayedMathString ? " " : "";
@@ -71,6 +80,7 @@ function createInputStringFromChildrenSub({
     nextInternalListInd,
     parser,
     createDisplayedMathString,
+    displayedMathSlotForChild,
 }: {
     compositeReplacementRange: CompositeReplacementRange[] | undefined;
     children: any;
@@ -84,6 +94,7 @@ function createInputStringFromChildrenSub({
     nextInternalListInd: number;
     parser?: (arg0: string) => any;
     createDisplayedMathString: boolean;
+    displayedMathSlotForChild?: (child: any) => string | null;
 }): {
     newChildren: string[];
     newPotentialListComponents: boolean[];
@@ -127,6 +138,7 @@ function createInputStringFromChildrenSub({
                                 format,
                                 codePre,
                                 createDisplayedMathString,
+                                displayedMathSlotForChild,
                             }),
                         );
                     }
@@ -170,6 +182,7 @@ function createInputStringFromChildrenSub({
                     nextInternalListInd,
                     parser,
                     createDisplayedMathString,
+                    displayedMathSlotForChild,
                 });
 
                 Object.assign(internalLists, newInternalLists);
@@ -311,6 +324,7 @@ function createInputStringFromChildrenSub({
                     format,
                     codePre,
                     createDisplayedMathString,
+                    displayedMathSlotForChild,
                 }),
             );
         }
@@ -344,6 +358,7 @@ function baseStringFromChildren({
     format,
     codePre,
     createDisplayedMathString,
+    displayedMathSlotForChild,
 }: {
     children: any[];
     startInd: number;
@@ -352,9 +367,15 @@ function baseStringFromChildren({
     format: "latex" | "text";
     codePre: string;
     createDisplayedMathString: boolean;
+    displayedMathSlotForChild?: (child: any) => string | null;
 }) {
     if (createDisplayedMathString) {
-        return displayedMathStringFromChildren({ children, startInd, endInd });
+        return displayedMathStringFromChildren({
+            children,
+            startInd,
+            endInd,
+            displayedMathSlotForChild,
+        });
     }
     let str = "";
 
@@ -399,10 +420,12 @@ function displayedMathStringFromChildren({
     children,
     startInd,
     endInd,
+    displayedMathSlotForChild,
 }: {
     children: any[];
     startInd: number;
     endInd: number;
+    displayedMathSlotForChild?: (child: any) => string | null;
 }) {
     let pieces = [];
     for (let ind = startInd; ind <= endInd; ind++) {
@@ -413,6 +436,14 @@ function displayedMathStringFromChildren({
             if (childTrim) {
                 pieces.push(childTrim);
             }
+            continue;
+        }
+
+        // An embedded input contributes a marker rather than its content: it is
+        // rendered in place, so its value must not also be typeset.
+        const slot = displayedMathSlotForChild?.(child);
+        if (slot) {
+            pieces.push(slot);
         } else if (typeof child.stateValues.latex === "string") {
             let latex = child.stateValues.latex.trim();
             if (latex) {

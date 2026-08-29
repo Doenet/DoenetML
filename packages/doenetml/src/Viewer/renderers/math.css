@@ -1,0 +1,46 @@
+/*
+ * Inputs drawn inside typeset math.
+ *
+ * The controls live in a layer over the expression rather than inside it, so
+ * that re-typesetting the math never unmounts a focused input. Only the root
+ * of an expression that actually has embedded inputs gets these classes; math
+ * without any keeps the DOM it has always had.
+ */
+
+.doenet-viewer .doenet-math-root {
+    position: relative;
+}
+
+/*
+ * The layer spans the expression, so a slot's coordinates read directly as an
+ * offset into the math. It must not swallow clicks meant for the expression
+ * underneath; the slots themselves take them back.
+ */
+.doenet-viewer .doenet-math-slot-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/*
+ * `width: max-content` is load-bearing, not cosmetic. An absolutely positioned
+ * box with `width: auto` is shrink-to-fit against its containing block, whose
+ * width tracks the math, whose width tracks the space reserved for this very
+ * control. Sizing to content instead cuts that loop, and it also stops the
+ * inline choice input's width-measuring ghost from being clipped.
+ */
+.doenet-viewer .doenet-math-slot {
+    position: absolute;
+    width: max-content;
+    white-space: nowrap;
+    pointer-events: auto;
+}
+
+/*
+ * The spoken name of a blank. It is inside the typeset expression so that
+ * MathJax reads it in place, but `\rlap` has already collapsed it to zero
+ * width, and this keeps it from being painted over the control.
+ */
+.doenet-viewer .doenet-math-slot-label {
+    visibility: hidden;
+}

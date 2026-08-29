@@ -21,6 +21,7 @@ import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
+import { useInMathSlot } from "./utils/mathInputSlots";
 
 interface TextInputSVs {
     [key: string]: any;
@@ -613,15 +614,23 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
-    const checkWorkComponent = createCheckWorkComponent(
-        SVs,
-        id,
-        validationState,
-        submitActionWithPending,
-        SVs.forceFullCheckWorkButton,
-        isPending,
-        tContent,
-    );
+    // Inside an expression there is no room for anything but the field itself:
+    // a visible label or a check-work button drawn among the symbols would read
+    // as part of the math. The expression names the field instead, through its
+    // short description.
+    const inMathSlot = useInMathSlot();
+
+    const checkWorkComponent = inMathSlot
+        ? null
+        : createCheckWorkComponent(
+              SVs,
+              id,
+              validationState,
+              submitActionWithPending,
+              SVs.forceFullCheckWorkButton,
+              isPending,
+              tContent,
+          );
 
     let input;
     let label: React.ReactNode = SVs.label;
@@ -637,6 +646,14 @@ export default function TextInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
+
+    // The label element is not drawn inside an expression, so nothing may point
+    // at it. An author who labelled the input still meant that text to name it,
+    // so it becomes the accessible name directly.
+    const labelIsRendered = hasLabel && !inMathSlot;
+    if (inMathSlot && hasLabel && typeof SVs.label === "string") {
+        shortDescription = SVs.label;
+    }
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -678,9 +695,11 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 onBlur={handleBlur}
                 onFocus={handleFocus}
                 className={inputClass}
-                aria-labelledby={hasLabel ? labelId : undefined}
-                aria-label={!hasLabel ? shortDescription : undefined}
-                aria-description={hasLabel ? shortDescription : undefined}
+                aria-labelledby={labelIsRendered ? labelId : undefined}
+                aria-label={!labelIsRendered ? shortDescription : undefined}
+                aria-description={
+                    labelIsRendered ? shortDescription : undefined
+                }
                 aria-details={descriptionId}
                 style={{
                     margin: "0px 4px 4px 4px",
@@ -702,9 +721,11 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 onBlur={handleBlur}
                 onFocus={handleFocus}
                 className={inputClass}
-                aria-labelledby={hasLabel ? labelId : undefined}
-                aria-label={!hasLabel ? shortDescription : undefined}
-                aria-description={hasLabel ? shortDescription : undefined}
+                aria-labelledby={labelIsRendered ? labelId : undefined}
+                aria-label={!labelIsRendered ? shortDescription : undefined}
+                aria-description={
+                    labelIsRendered ? shortDescription : undefined
+                }
                 aria-details={descriptionId}
                 style={{
                     margin: "0px 4px 4px 4px",
@@ -734,20 +755,21 @@ export default function TextInput(props: UseDoenetRendererProps) {
         </span>
     );
 
-    const labelComponent = hasLabel ? (
-        <label
-            id={labelId}
-            htmlFor={inputKey}
-            style={{
-                marginInlineEnd:
-                    SVs.labelPosition === "end" ? undefined : "2px",
-                marginInlineStart:
-                    SVs.labelPosition === "end" ? "2px" : undefined,
-            }}
-        >
-            {label}
-        </label>
-    ) : null;
+    const labelComponent =
+        hasLabel && !inMathSlot ? (
+            <label
+                id={labelId}
+                htmlFor={inputKey}
+                style={{
+                    marginInlineEnd:
+                        SVs.labelPosition === "end" ? undefined : "2px",
+                    marginInlineStart:
+                        SVs.labelPosition === "end" ? "2px" : undefined,
+                }}
+            >
+                {label}
+            </label>
+        ) : null;
 
     return (
         <span

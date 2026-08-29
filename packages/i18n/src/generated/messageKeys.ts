@@ -515,6 +515,7 @@ export type MessageKey =
     | "select-prime-numbers-excluded-too-many-combinations"
     | "select-random-combination-fluke"
     | "select-random-value-fluke"
+    | "math-embedded-input-shape-unsuitable"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1090,6 +1091,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "select-prime-numbers-excluded-too-many-combinations",
     "select-random-combination-fluke",
     "select-random-value-fluke",
+    "math-embedded-input-shape-unsuitable",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

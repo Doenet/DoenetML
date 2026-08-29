@@ -32,8 +32,19 @@ interface LoadedMathJax {
  * never raw and never blank.
  *
  * `latex` is the full inline string including delimiters, e.g. `\(x^2\)`.
+ *
+ * `onTypeset` runs after each swap, once the new output is in the document and
+ * its geometry can be measured. It fires per swap rather than once at the end
+ * of the loop: under coalescing the loop may swap several times, and a caller
+ * positioning something against the output has to follow every one of them.
  */
-export function DynamicMath({ latex }: { latex: string }) {
+export function DynamicMath({
+    latex,
+    onTypeset,
+}: {
+    latex: string;
+    onTypeset?: () => void;
+}) {
     const visibleRef = useRef<HTMLSpanElement>(null);
     const bufferRef = useRef<HTMLSpanElement | null>(null);
     // Latest requested value, the one currently displayed, and a re-entrancy
@@ -45,6 +56,10 @@ export function DynamicMath({ latex }: { latex: string }) {
     // False once unmounted, so an in-flight `renderPendingLatex` stops before touching a
     // detached node or re-creating the off-screen buffer after cleanup.
     const mounted = useRef(true);
+    // Held in a ref so that a caller passing an inline arrow function does not
+    // re-run the [latex] effect on every render.
+    const onTypesetRef = useRef(onTypeset);
+    onTypesetRef.current = onTypeset;
 
     // Arm/re-arm the unmount guard and clean up the off-screen buffer. Runs
     // before the [latex] effect below on every (re)mount, so the loop there
@@ -149,6 +164,7 @@ export function DynamicMath({ latex }: { latex: string }) {
 
                     current.current = next;
                     lastTypesetAt.current = performance.now();
+                    onTypesetRef.current?.();
                 }
             } finally {
                 busy.current = false;

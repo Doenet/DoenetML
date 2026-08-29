@@ -50,6 +50,10 @@ export default class MathInput extends Input {
     static variableForImplicitProp = "value";
     static variableForIndexAsProp = "vector";
 
+    // `canBeEmbeddedInMath` stays false: a math input changes width *and* height
+    // on nearly every keystroke, while the caret is inside it, which needs a
+    // growth policy the other inputs do not. Tracked separately in issue #1760.
+
     static processWhenJustUpdatedForNewComponent = true;
 
     static createAttributesObject() {

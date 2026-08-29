@@ -118,6 +118,29 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("an unfilled input inside an <m> becomes a fillin", async () => {
+        // An input written inside an expression is a blank the reader writes
+        // on, so it exports as PreTeXt's own <fillin> rather than as nothing.
+        source = `<p><m>x = <textInput /> + 3</m></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<m>x = <fillin characters="8"></fillin> + 3</m>`,
+        );
+    });
+
+    it("an input with a value inside an <m> exports the value", async () => {
+        source = `<p><m>x = <textInput prefill="y^2" /> + 3</m></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<m>x = y^2 + 3</m>`);
+        expect(exported).not.toContain("fillin");
+    });
+
+    it("an unfilled input inside an <md> becomes a fillin", async () => {
+        source = `<md><mrow>f(x) \amp = x^2</mrow><mrow>f'(x) \amp = <textInput /></mrow></md>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<fillin characters="8"></fillin>`,
+        );
+    });
+
     it("renders mathInput nested inside answer", async () => {
         source = `<answer><mathInput /><mathInput /></answer>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(

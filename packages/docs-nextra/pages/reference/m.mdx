@@ -71,6 +71,36 @@ be *defined* within an `<m>{:dn}` component.
 
 ---
 
+### Example: an input inside `<m>{:dn}`
+
+
+```doenet-editor-horiz
+<p><m>x = <textInput name="ti" /> + 3</m></p>
+<p>You entered: <text extend="$ti" /></p>
+```
+
+
+A `<textInput/>{:dn}` or an inline `<choiceInput/>{:dn}` written inside an
+`<m>{:dn}` is rendered *in place*, inside the typeset expression, so the reader
+fills in the blank where it belongs rather than beside the mathematics.
+
+Give the input a `<shortDescription>{:dn}` when the expression alone does not
+say what is being asked for. Without one, the input is described to a screen
+reader by the expression it sits in — the example above reads as "x equals
+blank plus 3" — and a visible `<label>{:dn}` is not drawn, since there is
+nowhere inside an equation to put one.
+
+Only inputs whose size is settled before the mathematics is laid out can be
+embedded this way: a `<mathInput/>{:dn}` cannot, because it changes size as the
+reader types, and neither can a non-`inline` `<choiceInput/>{:dn}` or an
+`expanded` `<textInput/>{:dn}`, which are too large to sit in a line of
+mathematics. Those are still accepted, but they are not drawn inside the
+expression.
+
+
+
+---
+
 ### Example: `<m>{:dn}` in combination with `<answer>{:dn}`
 
 

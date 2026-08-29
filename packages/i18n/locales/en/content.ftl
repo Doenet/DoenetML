@@ -576,3 +576,15 @@ ion-name-oxidation-state = { $name } ({ $numeral })
 # message.
 chemistry-invalid-symbol = Invalid Chemical Symbol
 chemistry-invalid-ionic-compound = Invalid Ionic Compound
+
+## Inputs embedded in math
+
+# Names the gap an input fills when it is drawn inside a typeset expression, so
+# that a screen reader reads "x equals blank plus 3" rather than skipping over
+# it. Written into the mathematics itself and never shown on screen, so keep it
+# to a word or two.
+math-embedded-input-blank = blank
+
+# The same, when one expression has more than one gap, so that a reader can tell
+# which one they have reached.
+math-embedded-input-blank-ordinal = blank { $ordinal } of { $total }

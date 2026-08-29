@@ -22,6 +22,7 @@ import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
+import { useInMathSlot } from "./utils/mathInputSlots";
 
 // type guard
 const isMultiValue = <T,>(
@@ -307,10 +308,22 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         );
     }
 
+    // Inside an expression there is no room for anything but the control
+    // itself: a visible label or a check-work button drawn among the symbols
+    // would read as part of the math. The expression names the control instead,
+    // through its short description.
+    const inMathSlot = useInMathSlot();
+
     let shortDescription = SVs.shortDescription || undefined;
+    // The label element is not drawn inside an expression, so nothing may point
+    // at it. An author who labelled the control still meant that text to name
+    // it, so it becomes the accessible name directly.
+    if (inMathSlot && hasLabel && typeof SVs.label === "string") {
+        shortDescription = SVs.label;
+    }
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
     const inlineLabelledByIds = [
-        hasLabel ? labelId : null,
+        hasLabel && !inMathSlot ? labelId : null,
         ...externalLabelRendererIds,
     ]
         .filter(Boolean)
@@ -322,15 +335,17 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         ? SVs.forceFullCheckWorkButton
         : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
 
-    const checkWorkComponent = createCheckWorkComponent(
-        SVs,
-        id,
-        validationState,
-        submitActionWithPending,
-        fullCheckWork,
-        isPending,
-        tContent,
-    );
+    const checkWorkComponent = inMathSlot
+        ? null
+        : createCheckWorkComponent(
+              SVs,
+              id,
+              validationState,
+              submitActionWithPending,
+              fullCheckWork,
+              isPending,
+              tContent,
+          );
 
     if (SVs.inline) {
         // since we color correctness for inline choiceInput,
@@ -566,20 +581,21 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </div>
         );
 
-        const labelComponent = hasLabel ? (
-            <label
-                id={labelId}
-                htmlFor={inlineInputId}
-                style={{
-                    marginInlineEnd:
-                        SVs.labelPosition === "end" ? undefined : "4px",
-                    marginInlineStart:
-                        SVs.labelPosition === "end" ? "4px" : undefined,
-                }}
-            >
-                {label}
-            </label>
-        ) : null;
+        const labelComponent =
+            hasLabel && !inMathSlot ? (
+                <label
+                    id={labelId}
+                    htmlFor={inlineInputId}
+                    style={{
+                        marginInlineEnd:
+                            SVs.labelPosition === "end" ? undefined : "4px",
+                        marginInlineStart:
+                            SVs.labelPosition === "end" ? "4px" : undefined,
+                    }}
+                >
+                    {label}
+                </label>
+            ) : null;
 
         const inputRow = (
             <span

@@ -209,6 +209,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0122": "field-function-wrong-num-outputs",
     "doenet-w0123": "field-function-attribute-ignored-with-child",
     "doenet-w0124": "field-variables-ignored",
+    "doenet-w0125": "math-embedded-input-shape-unsuitable",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

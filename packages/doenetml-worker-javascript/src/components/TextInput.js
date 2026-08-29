@@ -33,6 +33,10 @@ export default class Textinput extends Input {
     };
     static variableForImplicitProp = "value";
 
+    // Width comes from the `width` attribute, not from what has been typed, so
+    // the box an embedded field needs is known before the math is typeset.
+    static canBeEmbeddedInMath = true;
+
     static processWhenJustUpdatedForNewComponent = true;
 
     static createAttributesObject() {
