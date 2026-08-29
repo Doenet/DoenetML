@@ -8,6 +8,11 @@ import esChrome from "../locales/es/chrome.ftl?raw";
 import filChrome from "../locales/fil/chrome.ftl?raw";
 import filEditor from "../locales/fil/editor.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
+import smaChrome from "../locales/sma/chrome.ftl?raw";
+import smjChrome from "../locales/smj/chrome.ftl?raw";
+import smnChrome from "../locales/smn/chrome.ftl?raw";
+import smsChrome from "../locales/sms/chrome.ftl?raw";
+import sjdChrome from "../locales/sjd/chrome.ftl?raw";
 
 /**
  * Spanish, handed over the way a host hands over a catalog it loaded.
@@ -248,5 +253,85 @@ describe("EN_CHROME_TRANSLATOR", () => {
         expect(EN_CHROME_TRANSLATOR("answer-response-saved")).toBe(
             "Response Saved",
         );
+    });
+});
+
+/**
+ * The Sami dual, and the one catalog in the family that cannot write it.
+ *
+ * `sma`, `smj`, `smn` and `sms` resolve `one`, `two` and `other`, so a
+ * `{ $count -> … }` in any of them has a third branch that is genuinely
+ * reached — the shape `locales/se` established and the only place in the
+ * roster where a category exists because the language counts in pairs rather
+ * than because CLDR happens to list it.
+ *
+ * `sjd` is the same family and does not get one. Kildin Sami has a dual too;
+ * what it does not have is CLDR data, so `Intl.PluralRules("sjd")` resolves
+ * against the runtime's default locale instead and a `[two]` branch written in
+ * that catalog would be text no input could select. Eleven of the fifteen
+ * catalogs in its batch are in that position, which is why the roster's plural
+ * shapes are a fact about CLDR's coverage rather than about the languages.
+ *
+ * Asserted through `resolvedOptions().locale` rather than by rendering a
+ * count, because what a runtime with no `sjd` data falls back to is the
+ * environment's business and not a claim this repository should make.
+ */
+describe("the Sami plural categories", () => {
+    const withDual = {
+        sma: smaChrome,
+        smj: smjChrome,
+        smn: smnChrome,
+        sms: smsChrome,
+    };
+
+    it.each(Object.entries(withDual))(
+        "reaches %s's dual branch for a count of two",
+        (locale, catalog) => {
+            const t = createChromeTranslator(locale, { [locale]: catalog });
+            const two = stripBidiIsolates(
+                t("attempts-remaining", { count: 2 }),
+            );
+            const three = stripBidiIsolates(
+                t("attempts-remaining", { count: 3 }),
+            );
+            const one = stripBidiIsolates(
+                t("attempts-remaining", { count: 1 }),
+            );
+            // The branch is selected, which is the claim; whether it differs
+            // from `other` in wording is the catalog's business, and in these
+            // four it mostly does not.
+            expect(new Intl.PluralRules(locale).select(2)).toBe("two");
+            expect(two).toContain("2");
+            expect(three).toContain("3");
+            expect(one).toContain("1");
+        },
+    );
+
+    it.each(Object.keys(withDual))(
+        "resolves %s's plural rules from data about the language itself",
+        (locale) => {
+            expect(new Intl.PluralRules(locale).resolvedOptions().locale).toBe(
+                locale,
+            );
+        },
+    );
+
+    it("writes no dual branch for the Sami language CLDR has no rules for", () => {
+        expect(new Intl.PluralRules("sjd").resolvedOptions().locale).not.toBe(
+            "sjd",
+        );
+        // Comment lines excluded: the catalog explains in prose why it has no
+        // dual branch, and that explanation must not read as one.
+        const source = sjdChrome
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
+        expect(source).not.toContain("[two]");
+        // It still counts, and still renders — the categories it selects
+        // between are simply not its own.
+        const t = createChromeTranslator("sjd", { sjd: sjdChrome });
+        expect(
+            stripBidiIsolates(t("attempts-remaining", { count: 2 })),
+        ).toContain("2");
     });
 });

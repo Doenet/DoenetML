@@ -3720,3 +3720,160 @@ describe("Dagestanian agreement that no message can reach", () => {
         }
     });
 });
+
+describe("the Uralic north batch", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    /**
+     * Fifteen catalogs, and the batch is the answer to the question the
+     * Caucasus one left open. That batch was the first whose members did not
+     * agree about where an adjective goes — ten in front of the noun, five
+     * behind — which made the obvious next question whether a batch can still
+     * be pinned as one shape at all. This one can: all fifteen are prenominal,
+     * across two scripts, five countries and four branches of Uralic, and the
+     * agreement is not a family effect either, since the Sami catalogs share
+     * it with the Ob-Ugric ones and with Finnic.
+     *
+     * Held the same way as that batch's rows — `startsWith` over
+     * {@link placementNouns} against what the catalog actually renders, rather
+     * than between the row's own two literals, which would only restate the
+     * table to itself. What it catches is a catalog quietly reordered for one
+     * noun while the row it was pinned on still passes.
+     */
+    const prenominal: [string, string, string][] = [
+        ["sma", "asse straejmies rööpses linje", "asse straejmies rööpses"],
+        [
+            "smj",
+            "assje sárggålasj ruoppsis linnjá",
+            "assje sárggålasj ruoppsis",
+        ],
+        ["smn", "assâd sárgálâš ruopsis linjá", "assâd sárgálâš ruopsis"],
+        ["sms", "âsses säʹrǧǧlaž rukses linjj", "âsses säʹrǧǧlaž rukses"],
+        ["sjd", "эhкесь са̄рркма рупсесь линия", "эhкесь са̄рркма рупсесь"],
+        ["vep", "sanged katkaidud rusked suor", "sanged katkaidud rusked"],
+        [
+            "olo",
+            "sangei katkoviivaine ruskei suoru",
+            "sangei katkoviivaine ruskei",
+        ],
+        ["krl", "pakšu katkoviivani ruskie suora", "pakšu katkoviivani ruskie"],
+        ["vro", "paks katkõlinõ verrev sirgõ", "paks katkõlinõ verrev"],
+        [
+            "fit",
+            "paksu katkoviivainen punanen suora",
+            "paksu katkoviivainen punanen",
+        ],
+        ["mdf", "эчке сезнеф якстерь виде линия", "эчке сезнеф якстерь"],
+        ["koi", "кыз вундалӧм гӧрд веськыд визь", "кыз вундалӧм гӧрд"],
+        ["mrj", "кӹжгӹ кӹрӹлтшӹ якшар виквӓш линий", "кӹжгӹ кӹрӹлтшӹ якшар"],
+        ["kca", "вөн сєвӑрман вўрты веськат хӑнши", "вөн сєвӑрман вўрты"],
+        ["mns", "яныг сагрым вигыр линия", "яныг сагрым вигыр"],
+    ];
+
+    /**
+     * The nouns the placement rule is checked over — one of each shape the
+     * `noun` table names, rather than the single `line` the rows above spell
+     * out.
+     */
+    const placementNouns: NounKey[] = [
+        "line",
+        "circle",
+        "square",
+        "polygon",
+        "point",
+        "region",
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s description in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The same string with the noun withheld, which is what makes this
+            // a claim about placement rather than about two unrelated
+            // renderings.
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+            for (const key of placementNouns) {
+                const described = describeStrokedShape(t, words, {
+                    noun: { key },
+                    withNoun: true,
+                });
+                const alone = describeStrokedShape(t, words, {
+                    noun: { key },
+                    withNoun: false,
+                });
+                expect(
+                    described.startsWith(alone),
+                    `${locale}/${key}: ${described} / ${alone}`,
+                ).toBe(true);
+            }
+        });
+    }
+
+    /**
+     * A regular polygon's side count. Unlike the Caucasus batch, which split
+     * two ways over this, all fifteen fold it into the head — every one of
+     * these languages builds a numeral into the noun the way `chm` and `kv`
+     * already do — so `noun-regular-polygon`'s `[tail]` branch renders empty
+     * throughout and `$part` goes unused.
+     *
+     * Splitting on the count is what makes this an assertion rather than a
+     * `toContain`: a catalog that writes the number into the head *and* leaves
+     * it in the tail renders it twice, and only counting the pieces says so.
+     */
+    it.each(prenominal.map(([locale]) => locale))(
+        "renders %s's side count exactly once, with no stray spacing",
+        (locale) => {
+            const description = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            });
+            expect(description.split("5")).toHaveLength(2);
+            expect(description.trimEnd()).toBe(description);
+            expect(description).not.toContain("  ");
+        },
+    );
+
+    /**
+     * None of the fifteen forks on `$gender`, and this is the batch where that
+     * is worth asserting rather than merely stating. No Uralic language has
+     * grammatical gender, so `noun-gender` returns one token in every catalog
+     * here — which means the description of a line and of a circle differ in
+     * the noun and in nothing else. That is what the Chechen, Ingush, Avar and
+     * Kurdish catalogs above do *not* satisfy, and running the same check over
+     * both groups is what keeps "this language does not agree" a claim about
+     * the file rather than a remark in its header.
+     */
+    it.each(prenominal.map(([locale]) => locale))(
+        "leaves %s's adjectives unchanged whatever noun follows them",
+        (locale) => {
+            const t = forLocale(locale);
+            const rendered = placementNouns.map((key) =>
+                describeStrokedShape(t, words, {
+                    noun: { key },
+                    withNoun: false,
+                }),
+            );
+            expect(new Set(rendered).size).toBe(1);
+        },
+    );
+});
