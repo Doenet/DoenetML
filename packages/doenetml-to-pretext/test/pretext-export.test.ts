@@ -135,7 +135,7 @@ describe("Pretext export", async () => {
     });
 
     it("an unfilled input inside an <md> becomes a fillin", async () => {
-        source = `<md><mrow>f(x) \amp = x^2</mrow><mrow>f'(x) \amp = <textInput /></mrow></md>`;
+        source = `<md><mrow>f(x) \\amp = x^2</mrow><mrow>f'(x) \\amp = <textInput /></mrow></md>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
             `<fillin characters="8"></fillin>`,
         );

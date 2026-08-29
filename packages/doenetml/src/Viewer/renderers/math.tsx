@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useCallback, useContext, useEffect, useRef } from "react";
 import JXG from "jsxgraph";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
@@ -448,7 +448,7 @@ function MathWithEmbeddedInputs({
 }) {
     const tContent = useContentT();
 
-    const describeSlot = React.useCallback(
+    const describeSlot = useCallback(
         (ordinal: number, total: number) =>
             total > 1
                 ? tContent(
@@ -477,9 +477,15 @@ function MathWithEmbeddedInputs({
 
     // MathJax's own fonts arrive after the first typeset and shift everything.
     useEffect(() => {
-        document.fonts?.ready.then(readPositions).catch(() => {
-            // A failure here only means the positions stay as first measured.
-        });
+        async function readPositionsOnceFontsLoad() {
+            try {
+                await document.fonts?.ready;
+            } catch {
+                // The positions simply stay as first measured.
+            }
+            readPositions();
+        }
+        readPositionsOnceFontsLoad().catch(() => {});
     }, [readPositions]);
 
     return (

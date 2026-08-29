@@ -81,6 +81,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const board = useContext(BoardContext);
 
+    // Inside an expression there is no room for anything but the field itself:
+    // a visible label or a check-work button drawn among the symbols would read
+    // as part of the math. The expression names the field instead, through its
+    // short description. Read here, with the other hooks, so it is read on
+    // every render whether or not the field goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
     let pointerAtDown = useRef<[number, number] | null>(null);
     let pointAtDown = useRef<[number, number, number] | null>(null);
     let dragged = useRef(false);
@@ -613,12 +620,6 @@ export default function TextInput(props: UseDoenetRendererProps) {
     let disabled = SVs.disabled;
 
     const inputKey = id + "_input";
-
-    // Inside an expression there is no room for anything but the field itself:
-    // a visible label or a check-work button drawn among the symbols would read
-    // as part of the math. The expression names the field instead, through its
-    // short description.
-    const inMathSlot = useInMathSlot();
 
     const checkWorkComponent = inMathSlot
         ? null
