@@ -36,38 +36,37 @@ import {
 const en: Translator = createTranslator([], {});
 
 /**
- * Spanish handed over exactly as the worker gets it: only English is bundled,
- * so every other language reaches the core as `LocaleData.resources`, loaded on
- * the main thread and sent through `setLocaleData`.
+ * Any other locale on the roster, loaded the way the worker receives it: only
+ * English is bundled, so every translation reaches the core as
+ * `LocaleData.resources`, read on the main thread and sent through
+ * `setLocaleData`.
+ *
+ * Defined once rather than redeclared per `describe`, which is what a dozen
+ * blocks below used to do with byte-identical copies: the shape a catalog is
+ * loaded in is a property of this file, not of the language a block is about.
+ * `readCatalog` is a function declaration and so is in scope here despite
+ * being written below.
  */
-const es: Translator = createTranslatorFromLocaleData(
-    { locale: "es", resources: { es: readCatalog("es", "content") } },
-    "es",
-);
+const forLocale = (locale: string): Translator =>
+    createTranslatorFromLocaleData(
+        { locale, resources: { [locale]: readCatalog(locale, "content") } },
+        locale,
+    );
+
+/** The reference translation, used throughout the tables below. */
+const es: Translator = forLocale("es");
 
 /** The same, for a right-to-left language that agrees its adjectives. */
-const he: Translator = createTranslatorFromLocaleData(
-    { locale: "he", resources: { he: readCatalog("he", "content") } },
-    "he",
-);
+const he: Translator = forLocale("he");
 
 /** One whose adjectives follow the noun rather than preceding it. */
-const ar: Translator = createTranslatorFromLocaleData(
-    { locale: "ar", resources: { ar: readCatalog("ar", "content") } },
-    "ar",
-);
+const ar: Translator = forLocale("ar");
 
 /** One that agrees them *and* inflects them for the position they land in. */
-const ur: Translator = createTranslatorFromLocaleData(
-    { locale: "ur", resources: { ur: readCatalog("ur", "content") } },
-    "ur",
-);
+const ur: Translator = forLocale("ur");
 
 /** One whose case marking shows up in a single gender and a single position. */
-const ps: Translator = createTranslatorFromLocaleData(
-    { locale: "ps", resources: { ps: readCatalog("ps", "content") } },
-    "ps",
-);
+const ps: Translator = forLocale("ps");
 
 /** One of this repository's catalogs, read the way a host would supply it. */
 function readCatalog(locale: string, namespace: string): string {
@@ -310,13 +309,7 @@ describe("closed shapes", () => {
      * everything else, including 5.
      */
     it("picks the Filipino linker from the side count", () => {
-        const fil: Translator = createTranslatorFromLocaleData(
-            {
-                locale: "fil",
-                resources: { fil: readCatalog("fil", "content") },
-            },
-            "fil",
-        );
+        const fil: Translator = forLocale("fil");
         const sided = (numSides: number) =>
             describeStrokedShape(
                 fil,
@@ -673,10 +666,7 @@ describe("Pashto", () => {
 });
 
 describe("Tajik", () => {
-    const tg: Translator = createTranslatorFromLocaleData(
-        { locale: "tg", resources: { tg: readCatalog("tg", "content") } },
-        "tg",
-    );
+    const tg: Translator = forLocale("tg");
 
     // Tajik is Persian in Cyrillic, so its adjectives follow the noun and the
     // link between them is the izafat. Persian's is an unwritten vowel after a
@@ -734,10 +724,7 @@ describe("Tajik", () => {
 });
 
 describe("Irish", () => {
-    const ga: Translator = createTranslatorFromLocaleData(
-        { locale: "ga", resources: { ga: readCatalog("ga", "content") } },
-        "ga",
-    );
+    const ga: Translator = forLocale("ga");
 
     // The Celtic answer to agreement: a feminine singular noun does not give
     // its adjectives an ending, it softens the front of them. «líne» is
@@ -800,10 +787,7 @@ describe("Irish", () => {
  * below would collapse onto one prefix.
  */
 describe("Swahili noun classes", () => {
-    const sw: Translator = createTranslatorFromLocaleData(
-        { locale: "sw", resources: { sw: readCatalog("sw", "content") } },
-        "sw",
-    );
+    const sw: Translator = forLocale("sw");
 
     const words = {
         lineWidthWord: "thick",
@@ -874,10 +858,7 @@ describe("Swahili noun classes", () => {
 });
 
 describe("Ojibwe animacy", () => {
-    const oj: Translator = createTranslatorFromLocaleData(
-        { locale: "oj", resources: { oj: readCatalog("oj", "content") } },
-        "oj",
-    );
+    const oj: Translator = forLocale("oj");
 
     const words = {
         lineWidthWord: "thick",
@@ -962,12 +943,6 @@ describe("Ojibwe animacy", () => {
 });
 
 describe("the Indigenous Americas batch's word order", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -1085,12 +1060,6 @@ describe("the Indigenous Americas batch's word order", () => {
 });
 
 describe("the Austronesian batch's word order", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -1256,10 +1225,7 @@ describe("the Austronesian batch's word order", () => {
 });
 
 describe("Klingon, which builds its phrase out of a relative clause", () => {
-    const tlh: Translator = createTranslatorFromLocaleData(
-        { locale: "tlh", resources: { tlh: readCatalog("tlh", "content") } },
-        "tlh",
-    );
+    const tlh: Translator = forLocale("tlh");
 
     const words = {
         lineWidthWord: "thick",
@@ -1519,12 +1485,6 @@ describe("a phrase rendered in two positions", () => {
      * and are here to hold the cases where the two positions legitimately read
      * alike.
      */
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const de = forLocale("de");
     const ru = forLocale("ru");
     const pl = forLocale("pl");
@@ -2368,12 +2328,6 @@ describe("the role argument", () => {
  * it behind the adjectives rather than stranding them behind the sides.
  */
 describe("a regular polygon's side count", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const polygon: NounSpec = { key: "regular-polygon", numSides: 5 };
     const words = { colorWord: "red", lineWidthWord: "thick" };
 
@@ -2442,15 +2396,6 @@ describe("a regular polygon's side count", () => {
  * in the same script agree with everything.
  */
 describe("the South Asian batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            {
-                locale,
-                resources: { [locale]: readCatalog(locale, "content") },
-            },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -2681,12 +2626,6 @@ describe("the South Asian batch", () => {
  * uniform so that an affix could be written beside a placeable at all.
  */
 describe("the African and Berber batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -2851,12 +2790,6 @@ describe("the African and Berber batch", () => {
 });
 
 describe("the West and Central African batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -2999,12 +2932,6 @@ describe("the West and Central African batch", () => {
 });
 
 describe("the West and Central African batch, continued", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -3151,12 +3078,6 @@ describe("the West and Central African batch, continued", () => {
 });
 
 describe("the Angolan, Sierra Leonean and Songhay batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -3263,12 +3184,6 @@ describe("the Angolan, Sierra Leonean and Songhay batch", () => {
 });
 
 describe("the Russian Federation's Cyrillic batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -3361,10 +3276,7 @@ describe("the Russian Federation's Cyrillic batch", () => {
  * concludes that Chechen agrees nothing.
  */
 describe("Chechen noun classes", () => {
-    const ce: Translator = createTranslatorFromLocaleData(
-        { locale: "ce", resources: { ce: readCatalog("ce", "content") } },
-        "ce",
-    );
+    const ce: Translator = forLocale("ce");
 
     const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
 
@@ -3408,12 +3320,6 @@ describe("Chechen noun classes", () => {
 });
 
 describe("the Caucasus and Kurdish batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     const words = {
         lineWidthWord: "thick",
         lineStyleWord: "dashed",
@@ -3623,10 +3529,7 @@ describe("the Caucasus and Kurdish batch", () => {
  * `locales/inh` to match its neighbour without answering it.
  */
 describe("Ingush noun classes", () => {
-    const inh: Translator = createTranslatorFromLocaleData(
-        { locale: "inh", resources: { inh: readCatalog("inh", "content") } },
-        "inh",
-    );
+    const inh: Translator = forLocale("inh");
 
     const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
 
@@ -3676,10 +3579,7 @@ describe("Ingush noun classes", () => {
      * noun and a `b` noun alike.
      */
     it("has no counterpart in locales/ce, which leaves the same word flat", () => {
-        const ce: Translator = createTranslatorFromLocaleData(
-            { locale: "ce", resources: { ce: readCatalog("ce", "content") } },
-            "ce",
-        );
+        const ce: Translator = forLocale("ce");
         const dashed = (key: NounKey) =>
             describeStrokedShape(
                 ce,
@@ -3716,10 +3616,7 @@ describe("Ingush noun classes", () => {
  * changes in three places and the other does not change at all.
  */
 describe("Kurmanji ezafe agreement", () => {
-    const ku: Translator = createTranslatorFromLocaleData(
-        { locale: "ku", resources: { ku: readCatalog("ku", "content") } },
-        "ku",
-    );
+    const ku: Translator = forLocale("ku");
 
     const words = {
         lineWidthWord: "thick",
@@ -3781,12 +3678,6 @@ describe("Kurmanji ezafe agreement", () => {
  * family will expect these three to vary by noun, and they must not.
  */
 describe("Dagestanian agreement that no message can reach", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
     it.each([
         ["av", "багӀараб"],
         ["lbe", "ятӀулсса"],

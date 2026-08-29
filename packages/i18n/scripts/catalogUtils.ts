@@ -639,9 +639,8 @@ function renderUnionMembers(values: string[]): string {
  * to be wrong should have the field deleted rather than guessed at again, and
  * the endonym then falls back to the tag, so the label reads "Baoulé (bci)" —
  * an admitted gap rather than a guess, and legible either way. `englishName` is
- * required because an English
- * name is what identifies a language to someone choosing one and costs nothing
- * to be sure of.
+ * required because an English name is what identifies a language to someone
+ * choosing one and costs nothing to be sure of.
  *
  * Keep this table as small as it can be. Two tests hold it to that: one fails
  * if any locale's label is still just its code, so a future batch cannot

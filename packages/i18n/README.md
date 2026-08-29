@@ -2777,19 +2777,18 @@ headers, the graph-controls panel, the editor chrome.
 ### Writing a right-to-left catalog
 
 Eleven ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug`, `yi`, `ks`, `dv` and
-`ckb`. Nothing
-about the file format changes for any of them. A `.ftl` pattern is a sequence of
-characters in **logical** order — the order the text is spoken — and `dir`
-decides where each run is drawn, so a translation is written the way it is read
+`ckb`. Nothing about the file format changes for any of them. A `.ftl` pattern
+is a sequence of characters in **logical** order — the order the text is spoken
+— and `dir` decides where each run is drawn, so a translation is written as read
 and never reordered by hand to look right in an editor. Brackets, quotes and
 dashes are the same characters in every one of these scripts and are written
 opening-first; the bidi algorithm turns them around at render time. Digits stay
 Latin, as [everywhere else](#digits-are-latin-separators-are-not), which is why
 an Arabic sentence and the mathematics beside it count in the same characters.
 
-**Direction is not a language family.** These eleven share a writing direction and
-almost nothing else, and the catalogs differ from each other far more than they
-differ from `de` or `es`:
+**Direction is not a language family.** These eleven share a writing direction
+and almost nothing else, and the catalogs differ from each other far more than
+they differ from `de` or `es`:
 
 | | Adjectives | Gender | Plural categories |
 | --- | --- | --- | --- |
@@ -2803,25 +2802,24 @@ differ from `de` or `es`:
 | `dv` | precede the noun | none | two |
 | `ckb` | follow the noun | none | two |
 
-`ur` is the outlier worth knowing about: its grammar is `hi`'s, so
-`locales/hi` is the closest thing to a parallel text for it and a correction to
-one is usually a correction to both. `ug` is Turkic and agrees with nothing,
-and `dv` is Indo-Aryan and agrees with nothing either — the two reach the same
-answer from opposite families. `ks` is the one of the eleven whose catalog
-records a gap rather than a decision: it *does* agree an adjective for gender
-and this seed does not, which its header says outright. `ckb` is the only one
-whose *sibling* is on the roster in the other direction — `locales/ku` is the
-same macrolanguage in Latin, left to right — and the only one that solves the
-affix problem by writing the linker into its `noun` table; see
-[The Kurdish pair](#the-kurdish-pair).
-`yi` is Germanic, and it forks on `$role` for a reason none of the other ten
-does: `ur`, `ps` and `sd` fork because an Indo-Aryan or Iranian adjective takes
-an oblique before a postposition, and Yiddish's adjectives take a **dative**
-after «מיט» and «אויף» — so its catalog has the shape `locales/de` and
-`locales/bs` have rather than `locales/hi`'s, which is the paragraph above put
-as sharply as it goes. Its one spelling convention worth stating is that
-Yiddish's three digraphs are written as **two letters each** — «וו», «וי»,
-«יי» — and never as the precomposed ligatures
+`ur` is the outlier worth knowing about: its grammar is `hi`'s, so `locales/hi`
+is the closest thing to a parallel text for it and a correction to one is
+usually a correction to both. `ug` is Turkic and agrees with nothing, and `dv`
+is Indo-Aryan and agrees with nothing either — the two reach the same answer
+from opposite families. `ks` is the one of the eleven whose catalog records a
+gap rather than a decision: it *does* agree an adjective for gender and this
+seed does not, which its header says outright. `ckb` is the only one whose
+*sibling* is on the roster in the other direction — `locales/ku` is the same
+macrolanguage in Latin, left to right — and the only one that solves the affix
+problem by writing the linker into its `noun` table; see [The Kurdish
+pair](#the-kurdish-pair). `yi` is Germanic, and it forks on `$role` for a
+reason none of the other ten does: `ur`, `ps` and `sd` fork because an
+Indo-Aryan or Iranian adjective takes an oblique before a postposition, and
+Yiddish's adjectives take a **dative** after «מיט» and «אויף» — so its catalog
+has the shape `locales/de` and `locales/bs` have rather than `locales/hi`'s,
+which is the paragraph above put as sharply as it goes. Its one spelling
+convention worth stating is that Yiddish's three digraphs are written as **two
+letters each** — «וו», «וי», «יי» — and never as the precomposed ligatures
 U+05F0–U+05F2, which render identically and compare unequal. CLDR spells the
 endonym «ייִדיש» that way, so the roster's own label and the catalogs match.
 
