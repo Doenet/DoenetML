@@ -5,18 +5,25 @@ import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 /**
- * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri and
- * Dhivehi — the seven #1614 existed to make renderable, the one the European
- * regional and minority batch added, the two the South Asian batch added, and
- * the whole of it as of today.
+ * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri,
+ * Dhivehi and Central Kurdish — the seven #1614 existed to make renderable, the
+ * one the European regional and minority batch added, the two the South Asian
+ * batch added, the one the Caucasus and Kurdish batch added, and the whole of
+ * it as of today.
  *
  * Written out rather than derived, so that the two tests below can hold it
  * from opposite sides: one says these tags are right-to-left whether or not a
  * catalog exists, the other says the roster contains exactly these and no
- * other right-to-left locale. None of the last three needed anything from
- * `direction.ts` — `yi`, `ks` and `dv` were all listed there already, and
- * Thaana was already in `RTL_SCRIPTS` — so this line is the only place seeding
- * them had to be recorded.
+ * other right-to-left locale. None of the last four needed anything from
+ * `direction.ts` — `yi`, `ks`, `dv` and `ckb` were all listed there already,
+ * and Thaana was already in `RTL_SCRIPTS` — so this line is the only place
+ * seeding them had to be recorded.
+ *
+ * `ku` is deliberately not here and is the pair worth reading beside `ckb`:
+ * two catalogs of one macrolanguage, one Latin and left-to-right, the other
+ * Perso-Arabic and right-to-left. Direction is a fact about a script rather
+ * than about a language, which is why `direction.ts` keys on the script and
+ * why `ku` needed no entry there either.
  */
 const RTL_LANGUAGES = [
     "ar",
@@ -29,6 +36,7 @@ const RTL_LANGUAGES = [
     "yi",
     "ks",
     "dv",
+    "ckb",
 ];
 
 describe("directionOf", () => {

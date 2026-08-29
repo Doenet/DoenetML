@@ -1103,21 +1103,156 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The near misses, and this batch's are unusually sharp because two of
-         * them are the *other half* of a pair whose first half now has a
-         * catalog. `mdf` is Moksha, Erzya's sister: ISO 639-3 gives the two
-         * separate codes and no macrolanguage over them, so `locales/myv` can
-         * do nothing for a Moksha reader and must not pretend to. `krc`, `kum`
-         * and `nog` are Turkic neighbours of `ba` in the Caucasus and the
-         * Volga; `ady`, `kbd` and `av` are Caucasian neighbours of `ce` in
-         * three different families; `sel` is Uralic beside `udm` and `kv`
-         * without belonging to either.
+         * The near misses. `mdf` is Moksha, Erzya's sister: ISO 639-3 gives the
+         * two separate codes and no macrolanguage over them, so `locales/myv`
+         * can do nothing for a Moksha reader and must not pretend to. `sel` is
+         * Uralic beside `udm` and `kv` without belonging to either.
+         *
+         * Both fall to English, which is the membership rule working rather
+         * than a gap in it — Moksha is not Erzya, however close a map makes
+         * them look.
+         *
+         * This list was six codes longer when the Russian Federation batch
+         * wrote it: `krc`, `kum`, `nog`, `ady`, `kbd` and `av` were named here
+         * as neighbours of `ba` and `ce` that fall back rather than being
+         * guessed at. All six have catalogs of their own as of the Caucasus and
+         * Kurdish batch, so they moved to that batch's rows below. What they
+         * were pinning still holds and is worth keeping straight: they reach a
+         * catalog now because one was *written* for them, not because anything
+         * in `negotiate.ts` learned to fold a neighbour onto a neighbour.
+         */
+        it.each(["mdf", "sel"])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+    });
+
+    /**
+     * The Caucasus and Kurdish batch. Fifteen catalogs, and the negotiation
+     * question it raises that no earlier batch did is what happens when a
+     * macrolanguage and one of its own members both have a catalog.
+     *
+     * `ku` is Northern Kurdish (Kurmanji) in Latin and `ckb` is Central Kurdish
+     * (Sorani) in the Perso-Arabic script. ISO 639-3 makes `ckb` a member of
+     * the `ku` macrolanguage, so the naive entry would fold it — and would
+     * serve a Sorani reader a script they do not read while their own catalog
+     * sat on disk. `MACROLANGUAGE_MEMBERS` therefore lists `ku`'s other two
+     * members and excludes `ckb`, which is `locales/mnk` excluding `bam` and
+     * `dyu` arriving on a key that is the macrolanguage rather than a member of
+     * one.
+     *
+     * The other thirteen are individual languages that filter unaided, so the
+     * batch adds no `LANGUAGE_ALIASES` entry at all.
+     */
+    describe("the Caucasus and Kurdish batch", () => {
+        it.each([
+            // The macrolanguage. `kmr` is the member ICU folds on its own;
+            // `sdh` reaches the catalog only because the map names it.
+            ["ku", "ku"],
+            ["kmr", "ku"],
+            ["sdh", "ku"],
+            // …and the member that is deliberately not folded, because it
+            // answers for itself.
+            ["ckb", "ckb"],
+            // The ISO 639-3 codes ICU canonicalizes to a 639-1 code on its own.
+            ["abk", "ab"],
+            ["ava", "av"],
+            ["kur", "ku"],
+            // The eleven with no 639-1 code, which arrive under the same tag
+            // the directory is named for.
+            ["ady", "ady"],
+            ["kbd", "kbd"],
+            ["dar", "dar"],
+            ["lbe", "lbe"],
+            ["tab", "tab"],
+            ["inh", "inh"],
+            ["lez", "lez"],
+            ["krc", "krc"],
+            ["kum", "kum"],
+            ["nog", "nog"],
+            ["tly", "tly"],
+            // Region tags, which filter without help. `ab` maximizes to
+            // Georgia and `tly` to Azerbaijan rather than to Russia or Iran,
+            // which is CLDR's data rather than an error and costs negotiation
+            // nothing either way.
+            ["ab-GE", "ab"],
+            ["ab-RU", "ab"],
+            ["ady-RU", "ady"],
+            ["kbd-RU", "kbd"],
+            ["av-RU", "av"],
+            ["lez-RU", "lez"],
+            ["lez-AZ", "lez"],
+            ["dar-RU", "dar"],
+            ["lbe-RU", "lbe"],
+            ["tab-RU", "tab"],
+            ["inh-RU", "inh"],
+            ["krc-RU", "krc"],
+            ["kum-RU", "kum"],
+            ["nog-RU", "nog"],
+            ["tly-AZ", "tly"],
+            ["tly-IR", "tly"],
+            ["ku-TR", "ku"],
+            ["ku-SY", "ku"],
+            ["ckb-IQ", "ckb"],
+            ["ckb-IR", "ckb"],
+            // Script asymmetries. The eleven Caucasian catalogs are Cyrillic,
+            // `ku` and `tly` are Latin and `ckb` is Perso-Arabic, so a reader
+            // arriving under the other script of their own language reaches the
+            // catalog and gets the one it is written in — the answer
+            // `locales/pa`, `locales/sr` and `locales/ha` already give, and the
+            // answer to it is a second catalog rather than a rename of this
+            // one.
+            ["ku-Arab", "ku"],
+            ["tly-Cyrl", "tly"],
+            ["tly-Arab", "tly"],
+            ["ab-Latn", "ab"],
+            ["ckb-Latn", "ckb"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * `sdh` is this batch's script debt, and — like `locales/bua`'s to
+         * `bxu` — it is recorded rather than fixed. Southern Kurdish maximizes
+         * to `sdh-Arab-IR`, so CLDR's own data says such a reader most likely
+         * arrives in the Perso-Arabic script, and what published membership
+         * hands them is Kurmanji in Latin.
+         *
+         * Routing it to `locales/ckb` instead would read better on the page and
+         * would be exactly the judgement `MACROLANGUAGE_MEMBERS` exists to
+         * avoid: Southern Kurdish is not Sorani, and "shares a script with"
+         * is not a membership fact. The answer is a `sdh` catalog.
+         */
+        it("serves Southern Kurdish the Latin catalog although CLDR expects it in Perso-Arabic", () => {
+            expect(new Intl.Locale("sdh").maximize().script).toBe("Arab");
+            expect(negotiateLocales([normalizeLocaleTag("sdh")], available)) //
+                .toEqual(["ku", "en"]);
+        });
+
+        /**
+         * The near misses. `lki` (Laki) is the sharpest: it is written in the
+         * same script as `ckb`, is often described as a variety of Southern
+         * Kurdish, and ISO 639-3's macrolanguage mapping still gives it a code
+         * outside `kur` — so it falls back, exactly as `alq` does beside `oj`.
+         * `zza` (Zaza) is the same shape one family over. `agx` (Aghul) is
+         * Lezgic beside `lez` and `tab`, `ddo` (Tsez) is Avar's neighbour in
+         * Dagestan, and `xmf` (Mingrelian) and `sva` (Svan) are Kartvelian
+         * beside `ab` without belonging to any macrolanguage with a catalog.
          *
          * Every one falls to English, which is the membership rule working
-         * rather than a gap in it — Moksha is not Erzya, however close a map
-         * makes them look, and Kabardian is not Chechen at all.
+         * rather than a gap in it — the moment "is spoken next to" decides the
+         * map, nothing in it is checkable any more.
          */
-        it.each(["mdf", "krc", "kum", "nog", "ady", "kbd", "av", "sel"])(
+        it.each(["lki", "zza", "agx", "ddo", "xmf", "sva"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(
