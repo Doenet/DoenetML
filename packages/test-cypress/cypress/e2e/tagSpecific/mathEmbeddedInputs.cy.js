@@ -350,6 +350,51 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("the room survives focus passing through the keyboard tray", () => {
+        // Tapping a key on the virtual keyboard takes focus out of the field,
+        // but the reader is still using it — so the expression must not settle
+        // yet. This is why the field reports editing from its own focus
+        // handling rather than from raw focus events on the slot.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">x = <mathInput name="mi" /> + 3</m></p>
+    <p name="elsewhere">elsewhere</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        cy.get(`${cesc("#mi")} textarea`).type("abcdefghijklmn", {
+            force: true,
+        });
+
+        let reservedWhileEditing;
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should(($reserved) => {
+            reservedWhileEditing = $reserved[0].getBoundingClientRect().width;
+        });
+
+        cy.get("#virtual-keyboard-tray button").first().focus({ force: true });
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should(($reserved) => {
+            expect($reserved[0].getBoundingClientRect().width).to.be.closeTo(
+                reservedWhileEditing,
+                1,
+            );
+        });
+
+        // Focus leaving both the field and the tray is what ends the editing.
+        cy.get(cesc("#elsewhere")).click({ force: true });
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should(($reserved) => {
+            expect($reserved[0].getBoundingClientRect().width).to.be.lessThan(
+                reservedWhileEditing,
+            );
+        });
+    });
+
     it("a math input fills in a row of an aligned display", () => {
         cy.window().then(async (win) => {
             win.postMessage(
