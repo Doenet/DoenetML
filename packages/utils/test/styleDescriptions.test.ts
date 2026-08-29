@@ -3406,3 +3406,366 @@ describe("Chechen noun classes", () => {
         ).toBe("дуьзна доцу");
     });
 });
+
+describe("the Caucasus and Kurdish batch", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    /**
+     * Fifteen catalogs, and the first batch whose members **do not agree about
+     * where an adjective goes**. Every previous batch could be pinned as one
+     * shape — the Russian Federation's twelve are prenominal to a catalog, and
+     * that row was asserted as an identity. Here ten put the description in
+     * front of the noun and five put it behind, and the five are not a
+     * subfamily anyone would guess from the map: all three Northwest Caucasian
+     * catalogs (`ab`, `ady`, `kbd`), plus both Kurdish ones, which are Iranian
+     * and sit at the other end of the batch.
+     *
+     * Held from both sides — `startsWith` for one group and `endsWith` for the
+     * other — so that the noun is being *appended to* or *prefixed to* a
+     * description rather than woven into it. What this catches is someone
+     * "correcting" a catalog into English's order because the neighbouring
+     * files are in it.
+     */
+    const prenominal: [string, string, string][] = [
+        ["av", "кӀудияб бекараб багӀараб мухъ", "кӀудияб бекараб багӀараб"],
+        ["lez", "яцӀу атӀай яру дуьз цӀар", "яцӀу атӀай яру"],
+        [
+            "dar",
+            "халаси кӀапӀбикибси хӀунтӀена линия",
+            "халаси кӀапӀбикибси хӀунтӀена",
+        ],
+        [
+            "lbe",
+            "хъунмасса кьуркьусса ятӀулсса линия",
+            "хъунмасса кьуркьусса ятӀулсса",
+        ],
+        ["tab", "яцӀу штрихрин уьру дюз цӀар", "яцӀу штрихрин уьру"],
+        ["inh", "дуькъа кагдаь цӀе нийса сиз", "дуькъа кагдаь цӀе"],
+        ["krc", "къалын юзюклю къызыл тюз сызыкъ", "къалын юзюклю къызыл"],
+        ["kum", "къалын уьзюклю къызыл тюз сызыкъ", "къалын уьзюклю къызыл"],
+        ["nog", "калын уьзик кызыл туьз сызык", "калын уьзик кызыл"],
+        ["tly", "kuluftə tirəyinə sıə xət", "kuluftə tirəyinə sıə"],
+    ];
+
+    const postnominal: [string, string, string][] = [
+        ["ab", "аҵәаӷәа аҭбаа ахәҭа-хәҭа аҟаԥшь", "аҭбаа ахәҭа-хәҭа аҟаԥшь"],
+        [
+            "ady",
+            "линие занкӀэ Ӏужъу зэпыугъэ плъыжьы",
+            "Ӏужъу зэпыугъэ плъыжьы",
+        ],
+        ["kbd", "линэ занщӀэ Ӏув зэпыуда плъыжь", "Ӏув зэпыуда плъыжь"],
+        ["ku", "xêz ya stûr ya qutbirr ya sor", "ya stûr ya qutbirr ya sor"],
+        ["ckb", "هێڵی سوور و پچڕپچڕ و ئەستوور", "سوور و پچڕپچڕ و ئەستوور"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s description in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s description behind the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            // The same string with the noun withheld, which is what makes this
+            // a claim about placement rather than about two unrelated
+            // renderings.
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * A regular polygon's side count, and the batch's second split. Thirteen
+     * catalogs fold it into the head — `noun-regular-polygon`'s `[tail]` branch
+     * renders empty, as it does in every catalog of the Russian Federation
+     * batch — while `kbd` and `ckb` cannot, and put it in a trailing
+     * complement instead.
+     *
+     * Both had the same reason and reached it in different scripts. Kabardian
+     * incorporates a numeral into the noun («къуапитху»), which is a word this
+     * catalog cannot build around a formatted `{ $numSides }`, so it writes
+     * «къуапэ 5 иӀэу» after the description; Sorani's noun carries its ezafe
+     * and takes the count in a «بە … ەوە» phrase behind it. That is what
+     * `$part` exists for, and these two are the reason it is not dead weight.
+     */
+    it.each([...prenominal, ...postnominal].map(([locale]) => locale))(
+        "renders %s's side count exactly once, with no stray spacing",
+        (locale) => {
+            const description = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "regular-polygon", numSides: 5 },
+                withNoun: true,
+            });
+            expect(description).toContain("5");
+            expect(description.trimEnd()).toBe(description);
+            expect(description).not.toContain("  ");
+        },
+    );
+
+    /**
+     * Which of the two shapes a catalog chose, asserted where the answer is
+     * visible: in the five catalogs whose adjectives come *last*, a head-only
+     * rendering still ends with the adjectives, while a catalog using the tail
+     * has appended something behind them.
+     *
+     * `ab` and `ady` fold the count into the head and so still end with the
+     * colour; `kbd` and `ckb` do not. That is the whole of the split, held on
+     * the group where the string position actually distinguishes it.
+     */
+    it.each([
+        ["ab", true],
+        ["ady", true],
+        ["ku", true],
+        ["kbd", false],
+        ["ckb", false],
+    ])("puts %s's side count in the head: %s", (locale, inHead) => {
+        const t = forLocale(locale);
+        // Taken from the *same* noun, because `ku`'s ezafe agrees with it:
+        // a polygon is masculine and a line feminine, so comparing across two
+        // nouns would fail on gender rather than on placement.
+        const adjectivesOnly = describeStrokedShape(t, words, {
+            noun: { key: "regular-polygon", numSides: 5 },
+            withNoun: false,
+        });
+        const regular = describeStrokedShape(t, words, {
+            noun: { key: "regular-polygon", numSides: 5 },
+            withNoun: true,
+        });
+        expect(regular.endsWith(adjectivesOnly)).toBe(inHead);
+    });
+});
+
+/**
+ * Ingush noun classes, and the reason this block is not a copy of the Chechen
+ * one above it.
+ *
+ * Ingush and Chechen are the two Vainakh languages and share the в-/й-/б-/д-
+ * class system, so `locales/inh` forks `style-filled-word` exactly as
+ * `locales/ce` does. It also forks **`line-style.dashed`**, which `locales/ce`
+ * leaves flat although «кагйина» is the same kind of participle and the same
+ * `$gender` reaches it — `describeStroke` hands every adjective the noun's
+ * gender, so the branch is live rather than decorative.
+ *
+ * That divergence is a question for a speaker of either language rather than a
+ * bug in either file, and these rows are what would notice if someone flattened
+ * `locales/inh` to match its neighbour without answering it.
+ */
+describe("Ingush noun classes", () => {
+    const inh: Translator = createTranslatorFromLocaleData(
+        { locale: "inh", resources: { inh: readCatalog("inh", "content") } },
+        "inh",
+    );
+
+    const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
+
+    // «го» is `d` and «тӀадам» is `b`. The `withNoun: false` half is the one
+    // that could not pass by accident: with the noun withheld, the prefix is
+    // all that distinguishes the two classes.
+    it.each([
+        ["circle", "сийна дизза го", "сийна дизза"],
+        ["point", "сийна бизза тӀадам", "сийна бизза"],
+    ])("agrees the filled participle with «%s»", (key, withNoun, alone) => {
+        expect(
+            describeClosedShape(inh, blueFill, {
+                filled: true,
+                noun: { key: key as NounKey },
+                withNoun: true,
+            }),
+        ).toBe(withNoun);
+        expect(
+            describeClosedShape(inh, blueFill, {
+                filled: true,
+                noun: { key: key as NounKey },
+                withNoun: false,
+            }),
+        ).toBe(alone);
+    });
+
+    /** The second fork, and the one `locales/ce` does not write. */
+    it.each([
+        ["line", "кагдаь цӀе нийса сиз"],
+        ["point", "кагбаь цӀе тӀадам"],
+    ])("agrees the dashed participle with «%s»", (key, expected) => {
+        expect(
+            describeStrokedShape(
+                inh,
+                { lineStyleWord: "dashed", colorWord: "red" },
+                { noun: { key: key as NounKey }, withNoun: true },
+            ),
+        ).toBe(expected);
+    });
+
+    /**
+     * The same rule that keeps `locales/ce`'s `style-unfilled` flat:
+     * `describeFill` renders it with no arguments, so there is no noun to take
+     * a class from and a `$gender` select could only ever reach its default.
+     */
+    it("says unfilled without agreeing with anything", () => {
+        expect(
+            describeFill(inh, { fillColorWord: "blue" }, { filled: false }),
+        ).toBe("дизза доаца");
+    });
+});
+
+/**
+ * Kurmanji's ezafe, which is the batch's one agreement mechanism that is not a
+ * Caucasian noun class — and the roster's sixth thing `$gender` has been asked
+ * to carry, after a European gender, a Bantu noun class, Ojibwe's animacy,
+ * Fula's suffixed concord and Chechen's class prefix.
+ *
+ * Kurmanji has masculine and feminine nouns, and an attributive adjective
+ * follows its noun linked by an ezafe. The bound ezafe cannot be welded onto
+ * `{ $noun }`, so `locales/ku` writes the free particle — «ya» after a feminine
+ * noun and «yê» after a masculine one — and repeats it before each further
+ * adjective. A line is feminine and a polygon masculine, so one description
+ * changes in three places and the other does not change at all.
+ */
+describe("Kurmanji ezafe agreement", () => {
+    const ku: Translator = createTranslatorFromLocaleData(
+        { locale: "ku", resources: { ku: readCatalog("ku", "content") } },
+        "ku",
+    );
+
+    const words = {
+        lineWidthWord: "thick",
+        lineStyleWord: "dashed",
+        colorWord: "red",
+    };
+
+    it.each([
+        ["line", "xêz ya stûr ya qutbirr ya sor"],
+        ["circle", "bazine ya stûr ya qutbirr ya sor"],
+        ["square", "çargoşe yê stûr yê qutbirr yê sor"],
+        ["polygon", "pirgoşe yê stûr yê qutbirr yê sor"],
+    ])("links «%s» to its adjectives with the right ezafe", (key, expected) => {
+        expect(
+            describeStrokedShape(ku, words, {
+                noun: { key: key as NounKey },
+                withNoun: true,
+            }),
+        ).toBe(expected);
+    });
+
+    /**
+     * «dagirtî» is a past participle and does not inflect, so the agreement in
+     * a filled shape is carried by the particle beside it rather than by the
+     * word itself — and `style-unfilled`, rendered with no arguments, has no
+     * particle and no noun and stays bare.
+     */
+    it("carries a filled shape's agreement in the particle, not the participle", () => {
+        const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
+        expect(
+            describeClosedShape(ku, blueFill, {
+                filled: true,
+                noun: { key: "circle" },
+                withNoun: true,
+            }),
+        ).toBe("bazine ya dagirtî ya şîn");
+        expect(
+            describeFill(ku, { fillColorWord: "blue" }, { filled: false }),
+        ).toBe("nedagirtî");
+    });
+});
+
+/**
+ * The three catalogs that agree in the language and render one form anyway,
+ * which is the batch's most easily "corrected" property and the reason it is
+ * pinned.
+ *
+ * Avar agrees *more* than Chechen — three singular classes plus a plural, and
+ * every attributive adjective takes the marker as a suffix, where Chechen's
+ * colour and width words take none at all. It still forks nothing, because
+ * every noun this core names is a thing rather than a person and so is class
+ * III: `[v]`, `[j]` and `[l]` branches would be variants nothing could select.
+ * Lak reached the same place from four classes, and Dargwa wrote its select out
+ * with only the `[b]` branch reachable.
+ *
+ * That is the reachability rule `locales/ve`, `locales/ts`, `locales/ki` and
+ * `locales/bem` already apply to their unreached Bantu classes, arriving here
+ * from languages that agree more rather than less. A reader who knows the
+ * family will expect these three to vary by noun, and they must not.
+ */
+describe("Dagestanian agreement that no message can reach", () => {
+    const forLocale = (locale: string): Translator =>
+        createTranslatorFromLocaleData(
+            { locale, resources: { [locale]: readCatalog(locale, "content") } },
+            locale,
+        );
+
+    it.each([
+        ["av", "багӀараб"],
+        ["lbe", "ятӀулсса"],
+        ["dar", "хӀунтӀена"],
+    ])(
+        "renders %s's colour word identically for every noun it is given",
+        (locale, expected) => {
+            const t = forLocale(locale);
+            for (const key of ["line", "point", "circle", "region", "text"]) {
+                expect(
+                    describeStrokedShape(
+                        t,
+                        { colorWord: "red" },
+                        { noun: { key: key as NounKey }, withNoun: false },
+                    ),
+                    `${locale}/${key}`,
+                ).toBe(expected);
+            }
+        },
+    );
+
+    /**
+     * Dargwa is the one of the three whose select is actually written, so this
+     * says what the other two say by absence: the `[v]` and `[r]` branches are
+     * unreachable through the public API, and the catalog renders `[b]` for
+     * every noun until a speaker fills the class table in.
+     */
+    it("reaches only Dargwa's b-class branch", () => {
+        const dar = forLocale("dar");
+        const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
+        for (const key of ["circle", "point", "line", "region"]) {
+            expect(
+                describeClosedShape(dar, blueFill, {
+                    filled: true,
+                    noun: { key: key as NounKey },
+                    withNoun: false,
+                }),
+                key,
+            ).toBe("хьанцӀа бицӀибси");
+        }
+    });
+});

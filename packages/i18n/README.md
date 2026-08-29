@@ -66,35 +66,37 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
-`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ba`, `ban`, `bci`, `be`, `bem`, `bg`,
-`bho`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bua`, `bum`, `ca`,
-`ce`, `ceb`, `ch`, `chm`, `co`, `cs`, `cv`, `cy`, `da`, `dag`, `de`, `dje`,
-`doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`,
-`fa`, `ff`, `fi`, `fil`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`,
-`gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`,
-`hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbp`, `kg`,
-`ki`, `kk`, `km`, `kmb`, `kn`, `ko`, `kok`, `kpe`, `kr`, `kri`, `ks`, `ktu`,
-`kv`, `ky`, `lb`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`, `lv`, `mad`,
-`mai`, `men`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mos`, `mr`,
-`ms`, `mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `nl`, `nso`, `ny`, `nyn`,
-`oc`, `oj`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`, `ps`, `pt`, `qu`,
-`quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sd`,
-`se`, `sg`, `shi`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`,
-`su`, `sus`, `sv`, `sw`, `ta`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
-`tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`, `ug`,
-`uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`, `wo`, `xal`, `xh`, `yi`,
-`yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
+English is the source of truth. Every translation — `ab`, `ace`, `ady`,
+`af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`, `az`, `ba`, `ban`,
+`bci`, `be`, `bem`, `bg`, `bho`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`,
+`brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`, `chm`, `ckb`, `co`,
+`cs`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`, `doi`, `dv`, `dyo`,
+`dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`,
+`fil`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`,
+`ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`,
+`ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbd`, `kbp`, `kg`, `ki`,
+`kk`, `km`, `kmb`, `kn`, `ko`, `kok`, `kpe`, `kr`, `krc`, `kri`, `ks`,
+`ktu`, `ku`, `kum`, `kv`, `ky`, `lb`, `lbe`, `lez`, `lg`, `ln`, `lo`, `lom`,
+`lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `men`, `mg`, `mi`, `min`, `mk`,
+`ml`, `mn`, `mni`, `mnk`, `mos`, `mr`, `ms`, `mt`, `my`, `myv`, `nah`, `nb`,
+`nds`, `ne`, `nl`, `nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `om`, `or`, `os`,
+`pa`, `pam`, `pcm`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`, `ro`, `ru`,
+`rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sk`,
+`sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sus`, `sv`, `sw`,
+`ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tlh`,
+`tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`, `ug`, `uk`,
+`umb`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`, `wo`, `xal`, `xh`, `yi`, `yo`,
+`zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
 seed**, which each file's own header says at the top, and which is what #1521's
 translation platform is for. None has been read by a speaker. Correcting one
 needs no permission and no coordination: a wrong string is just wrong, and the
 English is one key away.
 
-A hundred and forty-one of them are deliberately partial. A hundred and forty
-are partial in the same place — the two chemistry tables — while Klingon is
-partial almost everywhere, for a different reason: see
+A hundred and fifty-six of them are deliberately partial. A hundred and
+fifty-five are partial in the same place — the two chemistry tables — while
+Klingon is partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and forty are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and fifty-five are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -110,7 +112,9 @@ Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
 Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè, Temne,
 Mende, Umbundu, Kimbundu, Zarma, Baoulé, Bini, Bulu, Jola-Fonyi, Efik, Ewondo,
 Kpelle, Loma, Susu, Urhobo, Bashkir, Chuvash, Yakut, Tuvinian, Buriat,
-Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic and Chechen
+Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic, Chechen, Abkhazian, Adyghe,
+Kabardian, Avaric, Lezghian, Dargwa, Lak, Tabasaran, Ingush, Karachay-Balkar,
+Kumyk, Nogai, Talysh, Kurdish and Central Kurdish
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -275,6 +279,28 @@ table in English. Nothing about the two languages predicts that, and nothing
 about the medium of instruction is a property of a language. `locales/sw` and
 `locales/ki` are the same pair in Kenya, one education system and two different
 answers.
+
+**All fifteen of the Caucasus and Kurdish batch are partial, and fourteen of
+the fifteen are one school system.** Secondary chemistry across the North
+Caucasus is taught in Russian, so for the eleven Cyrillic catalogs the fallback
+*is* the curriculum, exactly as it was for the twelve of the Russian Federation
+batch — one sentence for eleven education ministries that are really one.
+`locales/tly` is a two-country version of the same case and the only one that
+has to name two: Talysh schooling is Azerbaijani-medium in Azerbaijan and
+Persian-medium in Iran, so there is no single curriculum to point at.
+`locales/ku` is a third variant, Kurmanji-medium secondary schooling barely
+existing at all — Turkish in Turkey, Arabic in Syria.
+
+**`locales/ckb` is the fifteenth and the one claim about a language, and it
+stands beside `locales/ku` the way `locales/bo` stands beside `locales/dz`.**
+Central Kurdish *is* the medium of secondary science teaching in the Kurdistan
+Region of Iraq, and its schools print the periodic table in Sorani — so the
+names exist, and this is the Khmer and Tibetan case rather than the
+school-system one: what is missing is a settled convention this seed could
+reproduce rather than invent, published lists differing in how far they
+transliterate and from which source language. Two catalogs of one
+macrolanguage, two different reasons for the same gap, and the Kurdish pair
+makes the point in two scripts and two directions at once.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -1375,6 +1401,203 @@ error this seed is least able to check. `locales/lom` set the precedent for
 saying that in a file's own header rather than leaving a reader to discover it,
 and 118 unreviewed element coinages would have been the least defensible thing
 in the file.
+
+### Fifteen catalogs across the Caucasus, and the batch that stops agreeing about word order
+
+Abkhaz, Adyghe, Kabardian, Avar, Lezgian, Dargwa, Lak, Tabasaran, Ingush,
+Karachay-Balkar, Kumyk, Nogai, Talysh, Kurmanji Kurdish and Central Kurdish —
+fifteen catalogs from **six families** (Northwest Caucasian: `ab`, `ady`,
+`kbd`; Northeast Caucasian: `av`, `lez`, `dar`, `lbe`, `tab`; Nakh: `inh`;
+Turkic: `krc`, `kum`, `nog`; Iranian: `tly`, `ku`, `ckb`), and three scripts.
+It picks up where the Russian Federation batch stopped in the most literal way
+available: **six of these fifteen were named in that batch's own test** as
+neighbours of `ba` and `ce` that fall back to English rather than being guessed
+at. `krc`, `kum`, `nog`, `ady`, `kbd` and `av` reach a catalog now because one
+was written for them, not because `negotiate.ts` learned to fold a neighbour
+onto a neighbour, and `negotiate.test.ts` says so where those rows used to be.
+
+**This is the first batch that cannot be pinned as one word order.** Every
+earlier one could: the Russian Federation's twelve are prenominal to a catalog,
+and `styleDescriptions.test.ts` asserts that as an identity. Here ten put the
+description in front of the noun and five put it behind — and the five are not
+a group anyone reading a map would predict. All three Northwest Caucasian
+catalogs are postnominal, and so are **both** Kurdish ones, which are Iranian
+and sit at the other end of the batch from them. Northeast Caucasian, Nakh and
+Turkic are prenominal throughout. So a family predicts word order inside this
+batch and the region does not, which is the mirror image of what the batch says
+about agreement below — and the test holds both groups from opposite sides,
+`startsWith` for one and `endsWith` for the other, so that the noun is being
+appended to a description or prefixed to it rather than woven into it.
+
+**Agreement splits four ways, and only two of the four are a fork.**
+
+`locales/inh` and `locales/ku` genuinely agree. Ingush is Chechen's sister and
+forks the в-/й-/б-/д- class system the same way `locales/ce` does — and forks
+one message more: **`line-style.dashed`, which `locales/ce` leaves flat**
+although «кагйина» is the same kind of participle and `describeStroke` hands
+every adjective the same `$gender`. The branch is live rather than decorative,
+and the divergence is a question for a speaker of either language rather than a
+defect in either file; the test pins both forks so nobody flattens one catalog
+to match its neighbour without answering it. `locales/ku` is the other, and its
+mechanism is not a class at all — see [The Kurdish pair](#the-kurdish-pair).
+
+**`locales/av` agrees more than Chechen does and still forks nothing, which is
+the sharpest thing in the batch.** Avar has three singular classes and a
+plural, the marker is a *suffix* rather than a prefix, and — unlike Chechen,
+where the colour and width words take no marker at all — **every attributive
+adjective carries it**. On the face of it every style word in the file should
+fork. None does, because every noun this core names is a thing rather than a
+person and so is class III: `[v]`, `[j]` and `[l]` would be variants nothing
+can select. That is the reachability rule `locales/ve`, `locales/ts`,
+`locales/ki` and `locales/bem` already apply to their unreached Bantu classes,
+arriving for the first time from a language that agrees *more* rather than
+less. `locales/lbe` reaches the same place from four classes. `locales/dar` is
+the one of the three whose select is actually written out — `[v]` вицӀибси,
+`[r]` рицӀибси, `*[b]` бицӀибси, with only the last reachable — left standing
+so that filling in a class table costs a speaker one line rather than a
+rewrite.
+
+**`locales/lez` is the Northeast Caucasian language that lost its classes**,
+and its header says so where a reader who knows the family will look for a fork
+and must not find one. `locales/tab`'s classes survive on numerals, verbs and
+pronouns and never reach an attributive adjective. `locales/ab`'s agreement is
+a verb prefix and nothing the core names is human. The three Turkic catalogs
+and `locales/ckb` never had classes to lose. Six catalogs, six different
+reasons for the same flat `noun-gender`, in one region.
+
+#### The Kurdish pair
+
+`locales/ku` and `locales/ckb` are **one macrolanguage and two catalogs**, and
+they differ in every dimension this package has: script, direction, and whether
+the language agrees.
+
+Kurmanji is Latin (Hawar), left to right, and has masculine and feminine nouns
+linked to their adjectives by an ezafe. The bound ezafe cannot be welded onto
+`{ $noun }` — the constraint [An affix cannot be welded to a
+placeable](#an-affix-cannot-be-welded-to-a-placeable) describes — so
+`locales/ku` writes the free particle «ya» after a feminine noun and «yê» after
+a masculine one, repeating it before each further adjective, and three messages
+fork on `$gender`: `style-stroke`, `style-filled` and `style-filled-with-noun`.
+A line is feminine and a polygon masculine, so one description changes in three
+places and the other does not change at all, which is what the test pins.
+`style-filled-word` is flat, because «dagirtî» is a past participle and does
+not inflect — the agreement beside it is carried entirely by the particle.
+
+Sorani is Perso-Arabic, right to left, and **has no gender at all**, having
+lost the distinction Kurmanji keeps. So `locales/ckb` forks nothing while its
+sibling writes a full gender table. It solved the ezafe problem the other way
+round: rather than a free particle, **every entry in its `noun` table is
+written with its ezafe already on it**, so the composition messages add nothing
+and the adjectives chain with a free «و». Sorani's ezafe is always written,
+where Persian's is an unwritten vowel a space can carry, which is why
+`locales/fa`'s answer was not available to it.
+
+`locales/ckb` is the roster's eleventh right-to-left catalog and needed nothing
+from `direction.ts`: direction is keyed on the script, `ckb` maximizes to
+`ckb-Arab-IQ`, and `ku` maximizes to `ku-Latn-TR`. One macrolanguage rendering
+in both directions is the plainest demonstration this repository has that
+direction is a fact about a script rather than about a language.
+
+#### Negotiation
+
+**`ku` is the first key in `MACROLANGUAGE_MEMBERS` that is the macrolanguage
+and still excludes one of its own members.** ISO 639-3 gives Kurdish three —
+`ckb`, `kmr`, `sdh` — and the map lists two of them. `ckb` is left out because
+it has a catalog of its own, and folding it would serve a Sorani reader
+Kurmanji in a script they do not read. That is `locales/mnk` excluding `bam`
+and `dyu`, arriving for the first time on a key that is the macrolanguage
+rather than a member of one. `kmr` is the member ICU folds unaided; `sdh`
+reaches a catalog only because the map names it.
+
+`sdh` is the batch's **script debt**, and it is recorded rather than fixed:
+Southern Kurdish maximizes to `sdh-Arab-IR`, so CLDR's own data says such a
+reader most likely arrives in the Perso-Arabic script, and what published
+membership hands them is Latin Kurmanji. Routing it to `locales/ckb` on script
+alone would read better and would be exactly the judgement these maps exist to
+avoid — sharing a script is not a membership fact. That is `locales/bua`'s debt
+to `bxu` in Mongolian script and `locales/kr`'s to `kby` in Ajami, and the
+answer to it is a `sdh` catalog.
+
+`lki` (Laki) is the near miss worth naming, because everything except the
+published mapping points the other way: it is written in the same script as
+`ckb`, and it is often described as a variety of Southern Kurdish. ISO 639-3's
+macrolanguage mapping still gives it a code outside `kur`, so it falls back —
+`alq` beside `oj` and `kbl` beside `kr` land the same way. `zza`, `agx`, `ddo`,
+`xmf` and `sva` are the same shape in five other families, and
+`negotiate.test.ts` pins every one.
+
+**The other thirteen filter unaided, so the batch adds no `LANGUAGE_ALIASES`
+entry at all**, and every regional and script tag over them — `ab-GE`,
+`lez-AZ`, `tly-IR`, `ku-SY`, `ckb-IQ`, `ab-Latn`, `ku-Arab`, `tly-Cyrl` —
+reaches its catalog on ICU data alone. Three catalogs carry a script asymmetry
+their headers record: `ku` is Latin and answers `ku-Arab`, `tly` is Latin and
+answers both `tly-Cyrl` and `tly-Arab`, and the eleven Cyrillic ones answer a
+Latin tag with Cyrillic. As ever the answer to a mismatch is a second catalog
+beside the first rather than a rename of it.
+
+**`lbe` and `tab` need `LOCALE_NAME_FALLBACKS` entries, and they part company
+over the endonym.** CLDR has no language data for either tag, so without the
+table `<document lang>`'s autocomplete would offer a reader "lbe" and "tab" and
+nothing else. Lak gets both fields — its own headers name the language «лакку
+маз» and three of the four repeat it — while Tabasaran gets only an English
+name, because no header of its commits to a self-name in any script and a wrong
+endonym is worse than none. Its label therefore reads "Tabasaran (tab)", which
+is `locales/bci`'s and `locales/lom`'s shape rather than a new one.
+
+Four of the batch's CLDR names will look wrong and are not, the
+`ny`-reads-Nyanja rule again: `ab` renders as **Abkhazian**, `av` as
+**Avaric**, `lez` as **Lezghian**, and `ku` — whose endonym ICU gives as
+"kurdî (kurmancî)" — labels itself **"Kurdish (kurdî (kurmancî))"**, nested
+parenthesis and all. `supportedLocales.ts` is derived rather than hand-written,
+which is the whole point: adding fifteen languages cost no per-language prose,
+and the price of that is that ICU's rendering stands even when it reads oddly.
+Each catalog's header says which language it is.
+
+#### What the batch could not do, and says so
+
+**`piecewise-condition-if` splits, and the wall is syntax rather than family.**
+The renderer places the key *before* the mathematics it introduces. Abkhaz,
+Adyghe, Kabardian and Lak all mark a condition on a clause-final verb form and
+have no free word to put in front, so all four record the `locales/sah` shape
+beside the key rather than inventing a workaround — the same limit five
+catalogs of the previous batch recorded. The other eleven land correctly, and
+**nine of the eleven do it with the same borrowed word**: «эгер» in Lezgian,
+Dargwa, Tabasaran, Karachay-Balkar, Kumyk and Nogai, «əqər» in Talysh, «eger»
+in Kurmanji and «ئەگەر» in Sorani, all of them Persian and all of them
+clause-initial in languages whose own conditional is a suffix that would close
+the clause. Avar's «нагагь» and Ingush's «нагахьа» are the two that land on
+native words. Three Northwest Caucasian catalogs and Lak on one side of that
+line, and every Turkic and Iranian one on the other — which is the shape the
+previous batch found too, where two Turkic catalogs fell on each side and the
+wall turned out to be syntax rather than ancestry.
+
+**Two catalogs put a regular polygon's side count in a trailing complement**,
+where thirteen fold it into the noun and leave `noun-regular-polygon`'s `[tail]`
+branch empty. `locales/kbd` cannot incorporate the numeral into a word it does
+not own — Kabardian would write «къуапитху», and the count arrives as a
+formatted `{ $numSides }` — so it appends «къуапэ 5 иӀэу» behind the
+description; `locales/ckb`'s noun carries its ezafe and takes the count in a
+«بە … ەوە» phrase behind it. Those two are why `$part` is not dead weight, and
+the test names them against the thirteen.
+
+**`locales/ady` and `locales/kbd` both record a limit the affix rule creates
+from the other direction.** A postnominal adjective in Circassian is normally
+written *together* with its noun as one word, and the noun is a placeable, so
+both catalogs write it as a separate word one space away from the compound a
+speaker would write. Splitting the key would not help: the affix belongs to
+whichever word lands last, and that word is a placeable too.
+
+Three catalogs are candid about vocabulary rather than grammar, and they are
+where a speaker should start. **`locales/tly` is the least certain catalog in
+the batch** and says so — Talysh is endangered, its written output is small,
+and its Latin orthography is not fully settled even within the tradition this
+catalog writes. **`locales/dar` discloses that seven of its twelve colour slots
+are plain Russian words**, its header naming that the file's most valuable
+edit; that is a decision to leave a visible gap rather than coin seven terms,
+`locales/xal`'s judgement in a different part of a file. **`locales/nog` names
+`editor.ftl` as the file with the most invented vocabulary it contains**, built
+from general Kipchak on the Kazakh and Karakalpak pattern because Nogai has no
+published equivalents. Correcting any of it needs no permission.
 
 ### A language with no word for it
 

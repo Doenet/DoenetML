@@ -673,6 +673,15 @@ export const LOCALE_NAME_FALLBACKS: Record<
     bci: { englishName: "Baoulé" },
     lom: { englishName: "Loma" },
     urh: { englishName: "Urhobo" },
+    // The two locales of the Caucasus and Kurdish batch CLDR has no data for.
+    // Both are Dagestanian languages written in Cyrillic, and they part company
+    // over the endonym for the reason `locales/bci` and `locales/lom` did:
+    // `locales/lbe`'s own header names the language «лакку маз» and three of its
+    // four files repeat it, while no `locales/tab` header commits to a
+    // self-name in any script. So Lak gets an endonym and Tabasaran does not,
+    // and its label is the English name alone rather than a guess.
+    lbe: { englishName: "Lak", endonym: "лакку маз" },
+    tab: { englishName: "Tabasaran" },
 };
 
 /**

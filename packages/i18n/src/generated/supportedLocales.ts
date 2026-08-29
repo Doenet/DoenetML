@@ -842,7 +842,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Lëtzebuergesch",
         label: "Luxembourgish (Lëtzebuergesch)",
     },
-    { locale: "lbe", englishName: "lbe", endonym: "lbe", label: "lbe" },
+    {
+        locale: "lbe",
+        englishName: "Lak",
+        endonym: "лакку маз",
+        label: "Lak (лакку маз)",
+    },
     {
         locale: "lez",
         englishName: "Lezghian",
@@ -1245,7 +1250,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "தமிழ்",
         label: "Tamil (தமிழ்)",
     },
-    { locale: "tab", englishName: "tab", endonym: "tab", label: "tab" },
+    {
+        locale: "tab",
+        englishName: "Tabasaran",
+        endonym: "tab",
+        label: "Tabasaran (tab)",
+    },
     {
         locale: "te",
         englishName: "Telugu",
