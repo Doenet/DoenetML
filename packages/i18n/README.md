@@ -282,9 +282,9 @@ answers.
 
 **All fifteen of the Caucasus and Kurdish batch are partial, and fourteen of
 the fifteen are one school system.** Secondary chemistry across the North
-Caucasus is taught in Russian, so for the eleven Cyrillic catalogs the fallback
+Caucasus is taught in Russian, so for the twelve Cyrillic catalogs the fallback
 *is* the curriculum, exactly as it was for the twelve of the Russian Federation
-batch — one sentence for eleven education ministries that are really one.
+batch — one sentence for twelve education ministries that are really one.
 `locales/tly` is a two-country version of the same case and the only one that
 has to name two: Talysh schooling is Azerbaijani-medium in Azerbaijan and
 Persian-medium in Iran, so there is no single curriculum to point at.
@@ -1406,7 +1406,7 @@ in the file.
 
 Abkhaz, Adyghe, Kabardian, Avar, Lezgian, Dargwa, Lak, Tabasaran, Ingush,
 Karachay-Balkar, Kumyk, Nogai, Talysh, Kurmanji Kurdish and Central Kurdish —
-fifteen catalogs from **six families** (Northwest Caucasian: `ab`, `ady`,
+fifteen catalogs from **five families** (Northwest Caucasian: `ab`, `ady`,
 `kbd`; Northeast Caucasian: `av`, `lez`, `dar`, `lbe`, `tab`; Nakh: `inh`;
 Turkic: `krc`, `kum`, `nog`; Iranian: `tly`, `ku`, `ckb`), and three scripts.
 It picks up where the Russian Federation batch stopped in the most literal way
@@ -1461,9 +1461,12 @@ rewrite.
 and its header says so where a reader who knows the family will look for a fork
 and must not find one. `locales/tab`'s classes survive on numerals, verbs and
 pronouns and never reach an attributive adjective. `locales/ab`'s agreement is
-a verb prefix and nothing the core names is human. The three Turkic catalogs
-and `locales/ckb` never had classes to lose. Six catalogs, six different
-reasons for the same flat `noun-gender`, in one region.
+a verb prefix and nothing the core names is human. `locales/ady`,
+`locales/kbd`, the three Turkic catalogs, `locales/tly` and `locales/ckb` never
+had classes to lose, and each header says so where a reader would look for the
+fork its neighbours have. Thirteen catalogs, five different reasons for the
+same flat `noun-gender`, in one region; `locales/inh` and `locales/ku` are the
+only two whose `noun-gender` answers per noun.
 
 #### The Kurdish pair
 
@@ -1529,11 +1532,11 @@ macrolanguage mapping still gives it a code outside `kur`, so it falls back —
 **The other thirteen filter unaided, so the batch adds no `LANGUAGE_ALIASES`
 entry at all**, and every regional and script tag over them — `ab-GE`,
 `lez-AZ`, `tly-IR`, `ku-SY`, `ckb-IQ`, `ab-Latn`, `ku-Arab`, `tly-Cyrl` —
-reaches its catalog on ICU data alone. Three catalogs carry a script asymmetry
-their headers record: `ku` is Latin and answers `ku-Arab`, `tly` is Latin and
-answers both `tly-Cyrl` and `tly-Arab`, and the eleven Cyrillic ones answer a
-Latin tag with Cyrillic. As ever the answer to a mismatch is a second catalog
-beside the first rather than a rename of it.
+reaches its catalog on ICU data alone. The script asymmetries the headers
+record: `ku` is Latin and answers `ku-Arab`, `tly` is Latin and answers both
+`tly-Cyrl` and `tly-Arab`, `ckb` is Perso-Arabic and answers `ckb-Latn`, and
+the twelve Cyrillic ones answer a Latin tag with Cyrillic. As ever the answer
+to a mismatch is a second catalog beside the first rather than a rename of it.
 
 **`lbe` and `tab` need `LOCALE_NAME_FALLBACKS` entries, and they part company
 over the endonym.** CLDR has no language data for either tag, so without the
@@ -1577,8 +1580,11 @@ branch empty. `locales/kbd` cannot incorporate the numeral into a word it does
 not own — Kabardian would write «къуапитху», and the count arrives as a
 formatted `{ $numSides }` — so it appends «къуапэ 5 иӀэу» behind the
 description; `locales/ckb`'s noun carries its ezafe and takes the count in a
-«بە … ەوە» phrase behind it. Those two are why `$part` is not dead weight, and
-the test names them against the thirteen.
+«بە … ەوە» phrase behind it. Those two are why `$part` is not dead weight.
+`styleDescriptions.test.ts` holds all fifteen to rendering the count exactly
+once, and names `kbd` and `ckb` against `ab`, `ady` and `ku` — the three other
+postnominal catalogs, which are where the tail is what the string ends with and
+so the only group in which the split is visible from the outside.
 
 **`locales/ady` and `locales/kbd` both record a limit the affix rule creates
 from the other direction.** A postnominal adjective in Circassian is normally

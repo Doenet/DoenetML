@@ -1202,7 +1202,7 @@ describe("negotiateLocales", () => {
             ["ku-SY", "ku"],
             ["ckb-IQ", "ckb"],
             ["ckb-IR", "ckb"],
-            // Script asymmetries. The eleven Caucasian catalogs are Cyrillic,
+            // Script asymmetries. The twelve Caucasian catalogs are Cyrillic,
             // `ku` and `tly` are Latin and `ckb` is Perso-Arabic, so a reader
             // arriving under the other script of their own language reaches the
             // catalog and gets the one it is written in — the answer

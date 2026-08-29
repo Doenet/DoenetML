@@ -3543,9 +3543,12 @@ describe("the Caucasus and Kurdish batch", () => {
      * rendering still ends with the adjectives, while a catalog using the tail
      * has appended something behind them.
      *
-     * `ab` and `ady` fold the count into the head and so still end with the
-     * colour; `kbd` and `ckb` do not. That is the whole of the split, held on
-     * the group where the string position actually distinguishes it.
+     * `ab`, `ady` and `ku` fold the count into the head and so still end with
+     * the adjectives; `kbd` and `ckb` do not. That is the whole of the split,
+     * held on the group where the string position actually distinguishes it.
+     * The ten prenominal catalogs all fold it in too, but their adjectives
+     * come first, so a trailing complement would be invisible to `endsWith`
+     * and the row above is what covers them.
      */
     it.each([
         ["ab", true],
