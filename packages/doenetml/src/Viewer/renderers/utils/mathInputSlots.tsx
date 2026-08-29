@@ -8,7 +8,7 @@ import React, {
     useState,
 } from "react";
 import { MATH_INPUT_SLOT_PATTERN as SLOT_PATTERN } from "@doenet/utils";
-import { reserveForSlot, SlotBox } from "./mathSlotReserve";
+import { reserveForSlot, sameBox, SlotBox } from "./mathSlotReserve";
 
 /**
  * Placing a live input inside typeset math.
@@ -41,6 +41,17 @@ import { reserveForSlot, SlotBox } from "./mathSlotReserve";
 interface SlotPosition {
     left: number;
     top: number;
+}
+
+/** The template an expression is typeset from while a control in it is used. */
+interface HeldTemplate {
+    template: string;
+    embeddedComponentIndices: readonly number[];
+    /**
+     * Whether this is a stand-in, kept only until the template that reflects a
+     * just-committed value arrives; see `noteSlotCommit`.
+     */
+    awaitingCommit: boolean;
 }
 
 interface MathSlotContextValue {
@@ -170,13 +181,19 @@ export function useMathSlots({
     // still; the control's own growth is held separately, by what it reports
     // (see `reserveForSlot`). The embedded list is held alongside the template
     // so the two always describe the same set of markers.
-    const [held, setHeld] = useState<{
-        template: string;
-        embeddedComponentIndices: readonly number[];
-    } | null>(null);
+    const [held, setHeld] = useState<HeldTemplate | null>(null);
     const editingSlots = useRef(new Set<number>());
     const liveTemplate = useRef({ template, embeddedComponentIndices });
     liveTemplate.current = { template, embeddedComponentIndices };
+
+    /** Hold the template as it stands now, unless nothing is being edited. */
+    const holdTemplate = useCallback((awaitingCommit: boolean) => {
+        setHeld(
+            editingSlots.current.size > 0
+                ? { ...liveTemplate.current, awaitingCommit }
+                : null,
+        );
+    }, []);
 
     const setSlotEditing = useCallback(
         (componentIdx: number, editing: boolean) => {
@@ -186,14 +203,28 @@ export function useMathSlots({
             } else {
                 slots.delete(componentIdx);
             }
-            setHeld(slots.size > 0 ? liveTemplate.current : null);
+            holdTemplate(false);
         },
-        [],
+        [holdTemplate],
     );
 
-    const noteSlotCommit = useCallback(() => {
-        setHeld(editingSlots.current.size > 0 ? liveTemplate.current : null);
-    }, []);
+    const noteSlotCommit = useCallback(
+        () => holdTemplate(true),
+        [holdTemplate],
+    );
+
+    // A commit asks the expression to catch up, but what it is to catch up to
+    // is still on its way: the value goes to core, and the LaTeX that shows it
+    // comes back a round trip later. So a commit holds what is on screen for
+    // now and re-anchors the hold on the next template core sends — which is
+    // the one carrying the value the reader just entered.
+    useLayoutEffect(() => {
+        setHeld((previous) =>
+            previous?.awaitingCommit && previous.template !== template
+                ? { template, embeddedComponentIndices, awaitingCommit: false }
+                : previous,
+        );
+    }, [template, embeddedComponentIndices]);
 
     const activeTemplate = held?.template ?? template;
     const activeEmbedded =
@@ -227,15 +258,9 @@ export function useMathSlots({
 
     const reportSize = useCallback((componentIdx: number, box: SlotBox) => {
         setSizes((previous) => {
-            const existing = previous.get(componentIdx);
             // Quantized already, so equality here means nothing moved and a
             // re-typeset would be wasted.
-            if (
-                existing &&
-                existing.width === box.width &&
-                existing.height === box.height &&
-                existing.depth === box.depth
-            ) {
+            if (sameBox(previous.get(componentIdx) ?? null, box)) {
                 return previous;
             }
             const next = new Map(previous);
@@ -342,12 +367,14 @@ export function useInMathSlot() {
 }
 
 /**
- * How a control tells the expression around it that it is being edited.
+ * How a control tells the expression around it that it is being edited, and
+ * that the reader has committed a value to it.
  *
- * A control whose size never changes need not say anything; the calls are
- * no-ops outside a slot, so a renderer can make them unconditionally. A math
- * field, which grows as the reader types, uses them to buy itself room and to
- * hold the expression still until the value is committed.
+ * Editing holds the rest of the expression still, so that nothing else in the
+ * document re-typesets it under the reader's hands, and committing lets it
+ * catch up without waiting for focus to leave. A math field, which grows as
+ * the reader types, uses the same signal to buy itself room. The calls are
+ * no-ops outside a slot, so a renderer can make them unconditionally.
  */
 export interface MathSlotEditing {
     /** Editing began, or ended — a commit or a move away. */

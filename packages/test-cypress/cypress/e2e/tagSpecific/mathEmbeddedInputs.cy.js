@@ -286,10 +286,8 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
 
-        let containerWhileTyping;
         cy.get(`${cesc("#mi")} textarea`).type("77", { force: true });
         cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
-            containerWhileTyping = $container[0];
             // The left-hand side is still the blank it started as.
             expect($container[0].textContent).not.to.contain("77");
         });
@@ -302,6 +300,90 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             expect($container[0].textContent).to.contain("77");
         });
         cy.get(`${cesc("#mi")} textarea`).should("be.focused");
+    });
+
+    it("the expression shows a committed value the reader entered", () => {
+        // `$mi` is the *committed* value, so the LaTeX that shows it does not
+        // come back from core until after the commit. Catching up therefore
+        // means taking whatever core sends next, not what it had already sent
+        // when Enter was pressed.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">$mi = <mathInput name="mi" /></m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        cy.get(`${cesc("#mi")} textarea`).type("77", { force: true });
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).not.to.contain("77");
+        });
+
+        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("77");
+        });
+        cy.get(`${cesc("#mi")} textarea`).should("be.focused");
+    });
+
+    it("the expression shows a committed text value the reader entered", () => {
+        // A text input is held still for the same reason, so it needs the same
+        // catching up when the reader commits with Enter.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">$ti = <textInput name="ti" /></m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        cy.get(`${cesc("#m")} .doenet-math-slot input`).type("77");
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).not.to.contain("77");
+        });
+
+        cy.get(`${cesc("#m")} .doenet-math-slot input`).type("{enter}");
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("77");
+        });
+        cy.get(`${cesc("#m")} .doenet-math-slot input`).should("be.focused");
+    });
+
+    it("the expression shows a choice the reader picked", () => {
+        // Picking from the list is itself the commit, and the list keeps the
+        // focus afterwards, so the expression has to catch up there too.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">$ci.selectedValue = <choiceInput inline name="ci">
+      <choice>7</choice><choice>8</choice>
+    </choiceInput></m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        cy.get("#ci_input").type("{downarrow}", { force: true });
+        cy.get('[id^="react-select-"][id$="-option-1"]:visible').click();
+
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("8");
+        });
     });
 
     it("the room a field is given is not taken back while it is being used", () => {

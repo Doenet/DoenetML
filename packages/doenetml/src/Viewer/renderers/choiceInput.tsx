@@ -225,6 +225,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 },
                 baseVariableValue: newSelectedIndices,
             });
+            // Picking is itself the commit, and the control keeps the focus
+            // afterwards, so an expression around it catches up here rather
+            // than waiting for focus to leave.
+            slotEditing.commit();
         }
     }
 
