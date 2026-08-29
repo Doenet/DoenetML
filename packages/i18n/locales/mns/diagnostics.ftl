@@ -117,9 +117,9 @@ variant-index-must-be-integer = { $index } вариант индекс тēлы�
 
 ## `<sideBySide>`
 
-side-by-side-absolute-widths = `<{ $component }>` абсолютной савитыт мāгыс ат вāрвēс. Хосаныл ёт-ёт вāруӈкве ēри.
+side-by-side-absolute-widths = `<{ $component }>` абсолютный савитыт мāгыс ат вāрвēс. Хосаныл ёт-ёт вāруӈкве ēри.
 
-side-by-side-absolute-margins = `<{ $component }>` абсолютной савитыт мāгыс ат вāрвēс. Вāтаныл ёт-ёт вāруӈкве ēри.
+side-by-side-absolute-margins = `<{ $component }>` абсолютный савитыт мāгыс ат вāрвēс. Вāтаныл ёт-ёт вāруӈкве ēри.
 
 side-by-side-no-block-child = Ат ёмас `<{ $component }>`: тав сяр мāнь аква блок няврамыӈ ōлуӈкве ēри.
 

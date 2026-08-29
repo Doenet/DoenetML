@@ -176,11 +176,13 @@ style-fill =
        *[plain] { $color } ханьщи
     }
 style-unfilled = ат тагыл
-# «тāрмыл» — "on" — is a postposition and follows the background colour, so
-# nothing stands between the two words.
+# «тāрмыл» — "on" — is a postposition, and a postposition needs a noun to
+# govern: `$background` renders as a bare colour word, so «фон» stands between
+# the two to be what «тāрмыл» is said of. The same shape `locales/kca`,
+# `locales/koi`, `locales/mdf` and `locales/mrj` write.
 style-text =
     { $parts ->
-        [background] { $background } тāрмыл { $color }
+        [background] { $background } фон тāрмыл { $color }
        *[plain] { $color }
     }
 style-background-none = ат ōлы

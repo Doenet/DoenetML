@@ -31,6 +31,17 @@
 # is a fact about which colour words Kildin inherited and which it borrowed,
 # and it is the same unevenness `locales/se` records for the Latin-script
 # Sami colours.
+#
+# **`line-style.dotted` is the least certain word in the style tables.** It
+# stands in `style-stroke`, in front of a noun, where Kildin wants an
+# attributive; the seed first wrote the comitative «точкагуэйм», which is the
+# form `fill-style` supplies and means "with dots" — a "with" in a slot that
+# has nothing to be with. What stands there now, «точечнэ», is built by this
+# catalog's own productive pattern for a borrowed adjective — Russian stem plus
+# `-нэ`, as in «горизонтальнэ», «диагональнэ», «относительнэ» — rather than by
+# the native derivation «са̄рркма» beside it uses, because no native Kildin
+# word for "dotted" could be established. A reviewer should expect to replace
+# it with a native form.
 
 
 ## Style vocabulary
@@ -53,7 +64,7 @@ line-width =
     .thin = сēггесь
 line-style =
     .dashed = са̄рркма
-    .dotted = точкагуэйм
+    .dotted = точечнэ
 # Comitative plurals. The `-гуэйм` ending is Kildin's own word for "with",
 # which is why `style-filled` below places these straight after the colour and
 # writes no preposition of its own: the ending already said it.

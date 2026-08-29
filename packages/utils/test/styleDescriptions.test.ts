@@ -3789,4 +3789,128 @@ describe("the Uralic north batch", () => {
             expect(new Set(rendered).size).toBe(1);
         },
     );
+
+    /**
+     * The four Finnic catalogs fork on `$role`, and the other eleven do not.
+     *
+     * Each of the four documents the same table in its header — nominative
+     * standalone, adessive (Veps and Livvi: the merged adessive-allative in a
+     * bare `-l`) inside `style-border-clause` — so the border's adjectives have
+     * to *change shape* between the two positions, and the eleven that say they
+     * have no case to inflect for have to leave them alone. Asserting the pair
+     * rather than the ending keeps this a claim about the fork being reached:
+     * a catalog whose branch keys were misspelled would fall to `*[standalone]`
+     * and render the two positions identically, which no header here allows.
+     */
+    const forksOnRole = new Set(["vep", "olo", "krl", "fit"]);
+
+    it.each(prenominal.map(([locale]) => locale))(
+        "inflects %s's border adjectives for the clause exactly when its header says so",
+        (locale) => {
+            const t = forLocale(locale);
+            const standalone = describeBorder(t, words);
+            const embedded = describeClosedShape(
+                t,
+                { ...words, fillColorWord: "blue" },
+                { filled: true, noun: { key: "circle" }, withNoun: true },
+            );
+            expect(embedded.includes(standalone)).toBe(
+                !forksOnRole.has(locale),
+            );
+        },
+    );
+
+    /**
+     * Veps, Livvi, Karelian and Meänkieli put the *background* colour in the
+     * same case as the border's, and leave the text colour beside it in the
+     * nominative — the fourth row of each header's table. Two positions, two
+     * forms, from one colour key.
+     */
+    it.each([...forksOnRole])(
+        "gives %s's background colour the clause form and its text colour the citation form",
+        (locale) => {
+            const t = forLocale(locale);
+            expect(describeColor(t, "red", "text", "text-clause")).toBe(
+                describeColor(t, "red", "text"),
+            );
+            expect(
+                describeColor(t, "red", "background", "background-clause"),
+            ).not.toBe(describeColor(t, "red", "background"));
+        },
+    );
+
+    /**
+     * A postposition needs a noun to be said of, and `$background` renders as a
+     * bare colour word. The five Cyrillic catalogs that phrase the background
+     * with a postposition each supply that noun themselves — «фон» in `koi`,
+     * `mdf`, `mrj` and `mns`, «ԓыпӑс» in `kca` — so the sentence is not the
+     * colour alone standing in front of "on". Pinned because leaving the noun
+     * out renders without any error at all: the message resolves, and only a
+     * reader sees that it says "blue on red".
+     */
+    it.each([
+        ["koi", "фон"],
+        ["mdf", "фон"],
+        ["mrj", "фон"],
+        ["mns", "фон"],
+        ["kca", "ԓыпӑс"],
+    ])("names what %s's background postposition governs", (locale, head) => {
+        const t = forLocale(locale);
+        const sentence = describeText(t, {
+            color: describeColor(t, "red", "text", "text-clause"),
+            background: describeColor(
+                t,
+                "yellow",
+                "background",
+                "background-clause",
+            ),
+        });
+        expect(sentence).toContain(head);
+        // And only in the branch that has a background to name.
+        expect(
+            describeText(t, { color: describeColor(t, "red", "text") }),
+        ).not.toContain(head);
+    });
+
+    /**
+     * `fill-style`'s words carry their own "with" in five of these catalogs —
+     * the comitative in the four Sami ones and in Võro — which is why
+     * `style-filled` writes no preposition in front of them. That ending
+     * belongs to the fill patterns and to nothing else: `line-style`'s words
+     * stand attributively in front of a noun inside `style-stroke`, where a
+     * "with" has nothing to be with. Kildin is what this pins — its `.dotted`
+     * was the comitative «точкагуэйм», byte-identical to its own
+     * `fill-style.dots`, which read as "thick with-dots red line".
+     */
+    it.each([
+        ["sma", "jgujmie"],
+        ["smj", "jn"],
+        ["smn", "guin"],
+        ["sms", "vuiʹm"],
+        ["sjd", "гуэйм"],
+        ["vro", "ga"],
+    ])(
+        "keeps %s's comitative ending out of its stroke adjectives",
+        (locale, ending) => {
+            const t = forLocale(locale);
+            // The dash pattern alone, so that what is checked is the word
+            // itself rather than the phrase it happens to sit in.
+            const stroke = describeStrokedShape(
+                t,
+                { lineStyleWord: "dotted" },
+                { noun: { key: "line" }, withNoun: false },
+            );
+            expect(stroke).not.toContain(ending);
+            // The same ending is present where it belongs, which is what makes
+            // this a claim about placement rather than about the ending being
+            // absent from the catalog.
+            expect(
+                describeFill(
+                    t,
+                    { fillColorWord: "red", fillStyleWord: "dots" },
+                    { filled: true },
+                ),
+            ).toContain(ending);
+        },
+    );
 });

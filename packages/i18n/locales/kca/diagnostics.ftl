@@ -116,9 +116,9 @@ variant-index-must-be-integer = { $index } вариант индекс тэԓ а
 
 ## `<sideBySide>`
 
-side-by-side-absolute-widths = `<{ $component }>` абсолютной мєтаӑт пата ӑнт вєрса. Кўԓӑтԓаԓ пиԓа пиԓа вөты мосӑԓ.
+side-by-side-absolute-widths = `<{ $component }>` абсолютный мєтаӑт пата ӑнт вєрса. Кўԓӑтԓаԓ пиԓа пиԓа вөты мосӑԓ.
 
-side-by-side-absolute-margins = `<{ $component }>` абсолютной мєтаӑт пата ӑнт вєрса. Эԓтыԓаԓ пиԓа пиԓа вөты мосӑԓ.
+side-by-side-absolute-margins = `<{ $component }>` абсолютный мєтаӑт пата ӑнт вєрса. Эԓтыԓаԓ пиԓа пиԓа вөты мосӑԓ.
 
 side-by-side-no-block-child = Ям ӑнтөм `<{ $component }>`: ԓўв мєт ай ит блок нӑврємӑԓ вөты мосӑԓ.
 

@@ -364,11 +364,11 @@ component-action-unavailable = `{ $reference }` компонентсэть { $ac
 
 ## `<dataFrame>`
 
-data-frame-inconsistent-row-lengths = Даннойтнень ладост аф виде. Рядтнень кувалмост аф вейкетть. Муезь componentIdx :{ $componentIdx }
+data-frame-inconsistent-row-lengths = Даннайтнень ладост аф виде. Рядтнень кувалмост аф вейкетть. Муезь componentIdx :{ $componentIdx }
 
-data-frame-duplicate-column-names = Даннойтнеса баганонь лемтне омбоцеде вастневить. Муезь componentIdx :{ $componentIdx }
+data-frame-duplicate-column-names = Даннайтнеса баганонь лемтне омбоцеде вастневить. Муезь componentIdx :{ $componentIdx }
 
-data-frame-missing-column-name = Даннойтнеса баганонь лем аф сатни. Муезь componentIdx :{ $componentIdx }
+data-frame-missing-column-name = Даннайтнеса баганонь лем аф сатни. Муезь componentIdx :{ $componentIdx }
 
 ## `<answer>` and scoring
 
