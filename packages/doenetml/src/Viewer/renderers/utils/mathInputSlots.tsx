@@ -45,17 +45,14 @@ interface SlotPosition {
 }
 
 interface MathSlotContextValue {
-    slotElementId(componentIdx: number): string;
     reportSize(componentIdx: number, box: SlotBox): void;
     positions: ReadonlyMap<number, SlotPosition>;
-    /** How this slot should be described to a screen reader. */
-    slotLabel(componentIdx: number): string;
 }
 
 const MathSlotContext = createContext<MathSlotContextValue | null>(null);
 
 /** The component indices marked in a template, in the order they appear. */
-export function slotIndicesInTemplate(template: string): number[] {
+function slotIndicesInTemplate(template: string): number[] {
     return [...template.matchAll(SLOT_PATTERN)].map((match) =>
         Number(match[1]),
     );
@@ -130,8 +127,7 @@ function escapeForTex(label: string): string {
 
 /**
  * Owns the slot registry for one typeset expression: collects the sizes its
- * slots report, hands back the positions read off the typeset output, and
- * supplies the ids and labels both halves agree on.
+ * slots report and hands back the positions read off the typeset output.
  */
 export function useMathSlots({
     rootId,
@@ -253,8 +249,8 @@ export function useMathSlots({
     }, [componentIndices, slotElementId]);
 
     const contextValue = useMemo<MathSlotContextValue>(
-        () => ({ slotElementId, reportSize, positions, slotLabel }),
-        [slotElementId, reportSize, positions, slotLabel],
+        () => ({ reportSize, positions }),
+        [reportSize, positions],
     );
 
     return { rootRef, layerRef, latexForTypeset, readPositions, contextValue };

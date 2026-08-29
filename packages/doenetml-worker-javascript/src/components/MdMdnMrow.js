@@ -209,12 +209,12 @@ export class Md extends InlineComponent {
             }),
         };
 
-        // Only rows that hold an embedded input are rendered. A display with no
-        // inputs therefore renders exactly as it did before they were possible.
         /**
          * The inputs embedded in this display's rows, in row order, so the
          * renderer knows which markers in the template are its own — and, as
          * the same computation, which rows to render: only those holding one.
+         * A display with no inputs therefore renders exactly as it did before
+         * they were possible.
          */
         stateVariableDefinitions.embeddedInputComponentIndices = {
             forRenderer: true,

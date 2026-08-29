@@ -934,8 +934,9 @@ select-random-value-fluke = By extremely unlikely fluke, couldn't select random 
 # expression. That needs a control whose size is settled before the math is
 # laid out and which is small enough to sit in a line of it; $reason says which
 # of those this input fails. When it fails, the input is not drawn at all and
-# its current value is typeset in its place instead, which is what happened
-# before inputs could be embedded.
+# the expression is typeset as it was before inputs could be embedded: a text
+# input's current value stands in its place, and a choice input contributes
+# nothing.
 math-embedded-input-shape-unsuitable =
     `<{ $component }>` is not drawn inside the math; the expression is typeset as it was before inputs could be embedded. { $reason ->
         [not-inline] Only an `inline` choice input fits inside an expression; without `inline` it is a block of buttons.
