@@ -38,12 +38,12 @@
 # carrying them is visibly a loan, where a respelling would present this seed's
 # invented loan phonology as a fact about the language. That policy is stated
 # here for the whole residue, and it **disagrees on purpose** with
-# `locales/pon`, `locales/mh`, `locales/chk` and `locales/gil`, which respell
+# `locales/pon`, `locales/mh` and `locales/chk`, which respell
 # their loans into their own alphabets because they had a dictionary's worth of
 # evidence for how those languages take a loan. This seed does not.
 #
-# The Kosraean words the four files commit to, all of which a reviewer should
-# check before anything else:
+# The Kosraean words the four files of this catalog commit to, all of which a
+# reviewer should check before anything else:
 #
 #   pwaye        true, right, correct        tia          not
 #   tia pwaye    false, incorrect            ku           can; or

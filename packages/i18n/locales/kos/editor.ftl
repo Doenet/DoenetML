@@ -23,7 +23,7 @@
 # respellings. Kosraean has no `b`, `c`, `d`, `g`, `h`, `j`, `q`, `v`, `x` or
 # `z`, so they are visibly borrowed, which is the intent — see `content.ftl`'s
 # header for why this catalog does not respell and why that parts company with
-# `pon`, `mh`, `chk` and `gil`.
+# `pon`, `mh` and `chk`.
 #
 # NUMBER. A Kosraean noun takes no ending after a numeral, and
 # `Intl.PluralRules("kos")` has no CLDR data of its own, so no message here

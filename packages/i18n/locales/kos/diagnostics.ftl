@@ -38,7 +38,7 @@
 # `contrast`, `mode` — are **English words kept as loans in English spelling**,
 # not respellings. `content.ftl`'s header says why this catalog does not
 # respell and why that parts company on purpose with `locales/pon`,
-# `locales/mh`, `locales/chk` and `locales/gil`, which do.
+# `locales/mh` and `locales/chk`, which do.
 #
 # This is a larger debt than `locales/pon`'s, which had a dictionary to draw
 # its nouns from where this seed had none, and this file says so rather than

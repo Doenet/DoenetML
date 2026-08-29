@@ -4015,8 +4015,9 @@ describe("the Oceania batch's word order", () => {
      * and leave `[tail]` empty. `tkl` is the sharp one: it is Tuvaluan's
      * closest relative in the batch, and its own header warns that the two are
      * expected to look alike, yet it heads the count («poligoni tutuha e 5 ona
-     * itu …») where `tvl` tails it, so its adjectives trail the whole phrase. `locales/tkl` and
-     * `locales/tvl` each state their choice, and these rows are why a reviewer
+     * itu …») where `tvl` tails it, so its adjectives trail the whole phrase.
+     * `locales/tkl` and `locales/tvl` each state their choice, and these rows
+     * are why a reviewer
      * can tell the difference is deliberate rather than an oversight in one of
      * them.
      *
