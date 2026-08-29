@@ -683,15 +683,18 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // an admitted gap rather than a guess.
     lbe: { englishName: "Lak", endonym: "лакку маз" },
     tab: { englishName: "Tabasaran" },
-    // The four locales of the Uralic north batch CLDR has no English name for.
-    // All four are severely endangered languages of the Russian north, three of
-    // them written in Cyrillic, and each gets an endonym only where its own
-    // catalog header commits to one — `locales/lom`'s rule, applied a second
-    // time to a whole group rather than to a single file.
+    // The four locales of the Uralic north batch CLDR has no data for. Three
+    // are written in Cyrillic, and they part company over the endonym the way
+    // `locales/lbe` and `locales/tab` do: `locales/sjd`, `locales/kca` and
+    // `locales/mns` each name their language in their own headers, and those
+    // spellings — breves, macrons and all — are copied here letter for letter,
+    // while no `locales/olo` header commits to a self-name, so its label reads
+    // "Livvi-Karelian (olo)" rather than guessing between the Livvi and the
+    // Finnish spelling of it.
     sjd: { englishName: "Kildin Sami", endonym: "кӣллт са̄мь кӣлл" },
-    olo: { englishName: "Livvi-Karelian", endonym: "livvinkarjala" },
-    kca: { englishName: "Khanty", endonym: "ханты ясанг" },
-    mns: { englishName: "Mansi", endonym: "маньси лāтыӈ" },
+    olo: { englishName: "Livvi-Karelian" },
+    kca: { englishName: "Khanty", endonym: "хӑнты ясӑӈ" },
+    mns: { englishName: "Mansi", endonym: "мāньси лāтыӈ" },
 };
 
 /**

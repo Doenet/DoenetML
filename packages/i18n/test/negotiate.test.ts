@@ -1111,35 +1111,21 @@ describe("negotiateLocales", () => {
          * without belonging to either, so it falls to English — the membership
          * rule working rather than a gap in it.
          *
-         * `mdf` stood here too, and for the sharpest reason on the list:
-         * Moksha is Erzya's sister, ISO 639-3 gives the two separate codes and
-         * no macrolanguage over them, so `locales/myv` could do nothing for a
-         * Moksha reader and this row pinned that it did not pretend to. The
-         * Uralic north batch wrote `locales/mdf`, so the row moved there —
-         * and, exactly as with the six below, what it was pinning still holds:
-         * a Moksha reader arrives at a catalog now because one was *written*,
-         * not because `negotiate.ts` learned to fold a sister onto a sister.
-         *
-         * This list was six codes longer still when the Russian Federation
-         * batch wrote it: `krc`, `kum`, `nog`, `ady`, `kbd` and `av` were named here
-         * as neighbours of `ba` and `ce` that fall back rather than being
-         * guessed at. All six have catalogs of their own as of the Caucasus and
-         * Kurdish batch, so they moved to that batch's rows below. What they
-         * were pinning still holds and is worth keeping straight: they reach a
-         * catalog now because one was *written* for them, not because anything
-         * in `negotiate.ts` learned to fold a neighbour onto a neighbour.
+         * This list was seven codes longer when it was written: `krc`, `kum`,
+         * `nog`, `ady`, `kbd` and `av` were named here as neighbours of `ba`
+         * and `ce`, and `mdf` as Erzya's sister that `locales/myv` could do
+         * nothing for. All seven have catalogs of their own as of the Caucasus
+         * and Uralic north batches, so their rows moved to those batches'
+         * `describe` blocks below. What they were pinning still holds and is
+         * worth keeping straight: they reach a catalog now because one was
+         * *written* for them, not because anything in `negotiate.ts` learned to
+         * fold a neighbour onto a neighbour.
          */
-        it.each(["sel"])(
-            "leaves %s on English rather than folding it onto a neighbour",
-            (requested) => {
-                expect(
-                    negotiateLocales(
-                        [normalizeLocaleTag(requested)],
-                        available,
-                    ),
-                ).toEqual(["en"]);
-            },
-        );
+        it("leaves sel on English rather than folding it onto a neighbour", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("sel")], available),
+            ).toEqual(["en"]);
+        });
     });
 
     /**
@@ -1286,12 +1272,9 @@ describe("negotiateLocales", () => {
      * fold was the right answer while Komi-Permyak and Hill Mari had nowhere
      * else to go; the moment they had a file of their own it became the thing
      * the map exists to prevent, a reader served a neighbouring standard while
-     * their own sat on disk.
-     *
-     * The rows below hold both halves of that: `koi` and `mrj` reach
-     * themselves, and `kpv` and `mhr` — the members that still have no catalog
-     * — still reach `kv` and `chm`. Removing too much from either list fails
-     * here.
+     * their own sat on disk. The members that stayed — `kpv` and `mhr`, which
+     * still have no catalog — keep their rows in the Russian Federation batch
+     * above, so removing too much from either list fails there.
      */
     describe("the Uralic north batch", () => {
         it.each([
@@ -1301,13 +1284,8 @@ describe("negotiateLocales", () => {
             ["koi", "koi"],
             ["mrj", "mrj"],
             ["mdf", "mdf"],
-            // …and the members that did not leave, because they still have no
-            // catalog of their own. The macrolanguage tags themselves are
-            // untouched by any of it.
-            ["kpv", "kv"],
-            ["mhr", "chm"],
+            // …and the macrolanguage tags themselves, untouched by any of it.
             ["kv", "kv"],
-            ["kom", "kv"],
             ["chm", "chm"],
             // The twelve remaining catalogs, none of which has a 639-1 code, so
             // each arrives under the tag its directory is named for.

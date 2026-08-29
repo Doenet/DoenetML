@@ -81,6 +81,16 @@ function readCatalog(locale: string, namespace: string): string {
     );
 }
 
+/**
+ * The three style words most of the tests below describe a shape with, held in
+ * English so that what changes between locales is the catalog and nothing else.
+ */
+const words = {
+    lineWidthWord: "thick",
+    lineStyleWord: "dashed",
+    colorWord: "red",
+};
+
 const line: NounSpec = { key: "line" };
 const circle: NounSpec = { key: "circle" };
 
@@ -789,12 +799,6 @@ describe("Irish", () => {
 describe("Swahili noun classes", () => {
     const sw: Translator = forLocale("sw");
 
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     // One set of style words against four nouns, one from each class a shape
     // lands in. The stems are the same throughout —
     // -nene "thick" and -ekundu "red" — and only the concord prefix moves.
@@ -859,12 +863,6 @@ describe("Swahili noun classes", () => {
 
 describe("Ojibwe animacy", () => {
     const oj: Translator = forLocale("oj");
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
 
     // The third mechanism `$gender` has been asked to carry, after a gender and
     // a noun class: Ojibwe's is **animate against inanimate**, and the words
@@ -943,12 +941,6 @@ describe("Ojibwe animacy", () => {
 });
 
 describe("the Indigenous Americas batch's word order", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Six of the eight put their adjectives **in front of** the noun, which is
      * English's order — and after six Romance catalogs in the previous batch
@@ -1060,12 +1052,6 @@ describe("the Indigenous Americas batch's word order", () => {
 });
 
 describe("the Austronesian batch's word order", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Fifteen languages of one region and two orders, which is the useful thing
      * to pin: the five Philippine catalogs and Tok Pisin put their adjectives
@@ -1226,12 +1212,6 @@ describe("the Austronesian batch's word order", () => {
 
 describe("Klingon, which builds its phrase out of a relative clause", () => {
     const tlh: Translator = forLocale("tlh");
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
 
     /**
      * Klingon has no adjectives, and TKD describes putting one verb of quality
@@ -2396,12 +2376,6 @@ describe("a regular polygon's side count", () => {
  * in the same script agree with everything.
  */
 describe("the South Asian batch", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Sanskrit inflects an adjective for gender, number *and* case, and each
      * clause position governs a different case. What holds the fork together
@@ -2626,12 +2600,6 @@ describe("the South Asian batch", () => {
  * uniform so that an affix could be written beside a placeable at all.
  */
 describe("the African and Berber batch", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -2790,12 +2758,6 @@ describe("the African and Berber batch", () => {
 });
 
 describe("the West and Central African batch", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -2932,12 +2894,6 @@ describe("the West and Central African batch", () => {
 });
 
 describe("the West and Central African batch, continued", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -3078,12 +3034,6 @@ describe("the West and Central African batch, continued", () => {
 });
 
 describe("the Angolan, Sierra Leonean and Songhay batch", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     const described = (locale: string, key: NounKey) =>
         describeStrokedShape(forLocale(locale), words, {
             noun: { key },
@@ -3184,12 +3134,6 @@ describe("the Angolan, Sierra Leonean and Songhay batch", () => {
 });
 
 describe("the Russian Federation's Cyrillic batch", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Twelve catalogs from five families — Turkic, Mongolic, Uralic, Iranian
      * and Nakh — sharing nothing but a script, and the useful thing to pin is
@@ -3320,12 +3264,6 @@ describe("Chechen noun classes", () => {
 });
 
 describe("the Caucasus and Kurdish batch", () => {
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Fifteen catalogs, and the first batch whose members **do not agree about
      * where an adjective goes**. Every previous batch could be pinned as one
@@ -3618,12 +3556,6 @@ describe("Ingush noun classes", () => {
 describe("Kurmanji ezafe agreement", () => {
     const ku: Translator = forLocale("ku");
 
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     it.each([
         ["line", "xêz ya stûr ya qutbirr ya sor"],
         ["circle", "bazine ya stûr ya qutbirr ya sor"],
@@ -3722,18 +3654,6 @@ describe("Dagestanian agreement that no message can reach", () => {
 });
 
 describe("the Uralic north batch", () => {
-    const forLocale = (locale: string): Translator =>
-        createTranslatorFromLocaleData(
-            { locale, resources: { [locale]: readCatalog(locale, "content") } },
-            locale,
-        );
-
-    const words = {
-        lineWidthWord: "thick",
-        lineStyleWord: "dashed",
-        colorWord: "red",
-    };
-
     /**
      * Fifteen catalogs, and the batch is the answer to the question the
      * Caucasus one left open. That batch was the first whose members did not

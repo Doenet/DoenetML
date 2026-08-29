@@ -88,8 +88,8 @@ English is the source of truth. Every translation — `ab`, `ace`, `ady`,
 `tk`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`,
 `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`, `vro`, `war`, `wo`,
 `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an
-**unreviewed machine-generated
-seed**, which each file's own header says at the top, and which is what #1521's
+**unreviewed machine-generated seed**, which each file's own header says at the
+top, and which is what #1521's
 translation platform is for. None has been read by a speaker. Correcting one
 needs no permission and no coordination: a wrong string is just wrong, and the
 English is one key away.
@@ -1757,9 +1757,12 @@ maximization rather than merely the absent entry, so a change in ICU data fails
 there and invites someone to reconsider.
 
 **Four locales need `LOCALE_NAME_FALLBACKS` entries** — `sjd`, `olo`, `kca` and
-`mns`, which CLDR has no language data for at all — and each gets an endonym
-because its own catalog header commits to one, which is `locales/lbe`'s half of
-that table rather than `locales/tab`'s. Two more of the batch's CLDR names will
+`mns`, which CLDR has no language data for at all — and they split over the
+endonym the way `locales/lbe` and `locales/tab` do. Three of the headers name
+their own language, so those spellings are copied into the table letter for
+letter; no `locales/olo` header commits to a self-name, so Livvi-Karelian's
+label reads "Livvi-Karelian (olo)" rather than guessing between the Livvi and
+the Finnish spelling of it. Two more of the batch's CLDR names will
 look wrong and are not, the `ny`-reads-Nyanja rule again: `mrj` renders as
 **Western Mari** where every header in it says Hill Mari, and `fit` as
 **Tornedalen Finnish** where the language calls itself Meänkieli. The table
@@ -1775,8 +1778,7 @@ introduces. Komi-Permyak's «кӧ», Hill Mari's «гӹнь», Khanty's «ки»
 beside the key rather than inventing a workaround — the same limit
 `locales/kv`, `locales/udm` and `locales/chm` recorded in the Russian
 Federation batch, which means every Permic and Mari catalog in the roster now
-sits on that line. The
-other eleven land correctly, and they include both of the batch's Cyrillic
+sits on that line. The other eleven land correctly, and they include both of the batch's Cyrillic
 non-Ugric files: Moksha's «кда» and Kildin Sami's «кōhт» open their clauses, as
 the four Latin Sami catalogs' «jis»/«jus»/«jõs» and Finnic's
 «ku»/«gu»/«kun»/«jos» do. Two Ob-Ugric and two Volga-Permic catalogs on one

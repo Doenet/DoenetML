@@ -7,12 +7,12 @@ import { EN_CATALOGS } from "../src/catalogs";
 import esChrome from "../locales/es/chrome.ftl?raw";
 import filChrome from "../locales/fil/chrome.ftl?raw";
 import filEditor from "../locales/fil/editor.ftl?raw";
-import { extractKeys } from "../scripts/catalogUtils";
 import smaChrome from "../locales/sma/chrome.ftl?raw";
 import smjChrome from "../locales/smj/chrome.ftl?raw";
 import smnChrome from "../locales/smn/chrome.ftl?raw";
 import smsChrome from "../locales/sms/chrome.ftl?raw";
 import sjdChrome from "../locales/sjd/chrome.ftl?raw";
+import { extractKeys } from "../scripts/catalogUtils";
 
 /**
  * Spanish, handed over the way a host hands over a catalog it loaded.
@@ -255,68 +255,49 @@ describe("EN_CHROME_TRANSLATOR", () => {
         );
     });
 });
-
 /**
  * The Sami dual, and the one catalog in the family that cannot write it.
  *
  * `sma`, `smj`, `smn` and `sms` resolve `one`, `two` and `other`, so a
- * `{ $count -> … }` in them can have a third branch that is genuinely reached
- * — the shape `locales/se` established and the only place in the roster where
- * a category exists because the language counts in pairs rather than because
- * CLDR happens to list it. The three messages that write it out are
- * `attempts-remaining` here and the editor's two accessibility counters,
- * exactly where `locales/se` writes it; the diagnostics messages that print a
- * count inside a longer clause keep English's two branches and record the
- * omission in their header.
+ * `{ $count -> … }` in them can carry a third branch that is genuinely
+ * reached — the shape `locales/se` established, and the only place in the
+ * roster where a category exists because the language counts in pairs rather
+ * than because CLDR happens to list it. `sjd` is the same family and gets no
+ * such branch: Kildin Sami has a dual too, but CLDR has no plural data for the
+ * tag, so `Intl.PluralRules("sjd")` resolves against the runtime's default
+ * locale and a `[two]` branch there would be text no input could select.
  *
- * `sjd` is the same family and does not get one. Kildin Sami has a dual too;
- * what it does not have is CLDR data, so `Intl.PluralRules("sjd")` resolves
- * against the runtime's default locale instead and a `[two]` branch written in
- * that catalog would be text no input could select. Eleven of the fifteen
- * catalogs in its batch are in that position, which is why the roster's plural
- * shapes are a fact about CLDR's coverage rather than about the languages.
- *
- * Asserted through `resolvedOptions().locale` rather than by rendering a
- * count, because what a runtime with no `sjd` data falls back to is the
- * environment's business and not a claim this repository should make.
+ * Pinned on the plural rules and on the presence of the branch in the source,
+ * because in these four `[two]` and `[other]` are worded alike everywhere they
+ * appear — they are two categories, not one with a spelling variant — so no
+ * rendered string could tell them apart. What a runtime with no `sjd` data
+ * falls back to is the environment's business and not a claim made here, hence
+ * `resolvedOptions().locale` rather than a rendered count.
  */
 describe("the Sami plural categories", () => {
-    const withDual = {
-        sma: smaChrome,
-        smj: smjChrome,
-        smn: smnChrome,
-        sms: smsChrome,
-    };
+    /** Comment lines dropped: the headers discuss `[two]` in prose. */
+    const branches = (catalog: string) =>
+        catalog
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
 
-    it.each(Object.entries(withDual))(
-        "reaches %s's dual branch for a count of two",
+    it.each([
+        ["sma", smaChrome],
+        ["smj", smjChrome],
+        ["smn", smnChrome],
+        ["sms", smsChrome],
+    ])(
+        "writes %s's dual branch, which its own CLDR data selects",
         (locale, catalog) => {
+            const rules = new Intl.PluralRules(locale);
+            expect(rules.resolvedOptions().locale).toBe(locale);
+            expect(rules.select(2)).toBe("two");
+            expect(branches(catalog)).toContain("[two]");
             const t = createChromeTranslator(locale, { [locale]: catalog });
-            const two = stripBidiIsolates(
-                t("attempts-remaining", { count: 2 }),
-            );
-            const three = stripBidiIsolates(
-                t("attempts-remaining", { count: 3 }),
-            );
-            const one = stripBidiIsolates(
-                t("attempts-remaining", { count: 1 }),
-            );
-            // The branch is selected, which is the claim; whether it differs
-            // from `other` in wording is the catalog's business, and in these
-            // four it mostly does not.
-            expect(new Intl.PluralRules(locale).select(2)).toBe("two");
-            expect(two).toContain("2");
-            expect(three).toContain("3");
-            expect(one).toContain("1");
-        },
-    );
-
-    it.each(Object.keys(withDual))(
-        "resolves %s's plural rules from data about the language itself",
-        (locale) => {
-            expect(new Intl.PluralRules(locale).resolvedOptions().locale).toBe(
-                locale,
-            );
+            expect(
+                stripBidiIsolates(t("attempts-remaining", { count: 2 })),
+            ).toContain("2");
         },
     );
 
@@ -324,13 +305,7 @@ describe("the Sami plural categories", () => {
         expect(new Intl.PluralRules("sjd").resolvedOptions().locale).not.toBe(
             "sjd",
         );
-        // Comment lines excluded: the catalog explains in prose why it has no
-        // dual branch, and that explanation must not read as one.
-        const source = sjdChrome
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-        expect(source).not.toContain("[two]");
+        expect(branches(sjdChrome)).not.toContain("[two]");
         // It still counts, and still renders — the categories it selects
         // between are simply not its own.
         const t = createChromeTranslator("sjd", { sjd: sjdChrome });

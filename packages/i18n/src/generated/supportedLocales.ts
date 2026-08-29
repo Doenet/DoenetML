@@ -777,8 +777,8 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     {
         locale: "kca",
         englishName: "Khanty",
-        endonym: "ханты ясанг",
-        label: "Khanty (ханты ясанг)",
+        endonym: "хӑнты ясӑӈ",
+        label: "Khanty (хӑнты ясӑӈ)",
     },
     { locale: "kg", englishName: "Kongo", endonym: "Kongo", label: "Kongo" },
     {
@@ -996,8 +996,8 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     {
         locale: "mns",
         englishName: "Mansi",
-        endonym: "маньси лāтыӈ",
-        label: "Mansi (маньси лāтыӈ)",
+        endonym: "мāньси лāтыӈ",
+        label: "Mansi (мāньси лāтыӈ)",
     },
     { locale: "mos", englishName: "Mossi", endonym: "Mossi", label: "Mossi" },
     {
@@ -1085,8 +1085,8 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     {
         locale: "olo",
         englishName: "Livvi-Karelian",
-        endonym: "livvinkarjala",
-        label: "Livvi-Karelian (livvinkarjala)",
+        endonym: "olo",
+        label: "Livvi-Karelian (olo)",
     },
     {
         locale: "om",
