@@ -74,3 +74,32 @@ is found to be
  (note that you could also use the `<evaluate>{:dn}` component here.)
 
 
+---
+
+### Example: filling in the parts of an integral
+
+
+```doenet-editor-horiz
+<me>
+  \int_{<mathInput name="lower" minWidth="20" />}^{<mathInput name="upper" minWidth="20" />}
+  <mathInput name="integrand" />
+  \, d<mathInput name="variable" minWidth="20" />
+</me>
+```
+
+
+A `<textInput/>{:dn}`, a `<mathInput/>{:dn}`, or an inline
+`<choiceInput/>{:dn}` written inside an `<me>{:dn}` is rendered *in place*,
+inside the typeset expression — including in a subscript or a superscript, so
+the reader can fill in the bounds of an integral where the bounds go. Wrap the
+input in braces, as `_{...}` and `^{...}`, the way you would any other
+subscript or superscript.
+
+A field is drawn at its ordinary size wherever it sits, so it stays comfortable
+to type in even where the mathematics around it is small. Give the ones holding
+a single symbol a small `minWidth` so they do not leave a wide gap.
+
+The same restrictions apply as inside `<m>{:dn}`: a non-`inline`
+`<choiceInput/>{:dn}`, an `expanded` `<textInput/>{:dn}` or one whose `width`
+is in `%` or `em`, and any input in an expression drawn on a `<graph>{:dn}`
+cannot be placed inside the expression.

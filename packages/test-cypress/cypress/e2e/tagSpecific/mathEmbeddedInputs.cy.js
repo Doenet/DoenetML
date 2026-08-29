@@ -495,6 +495,58 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("an input can sit in a subscript or a superscript", () => {
+        // Filling in the bounds of an integral: the reserved box is typeset in
+        // the script position, so the field lands above and below the integral
+        // sign rather than beside it.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <me name="me">
+      \\int_{<mathInput name="lower" minWidth="20" />}^{<mathInput name="upper" minWidth="20" />}
+      <mathInput name="integrand" /> \\, dx
+    </me>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#me")} [id*='_mathSlot_']`).should("have.length", 3);
+
+        cy.get(cesc("#me")).should(($root) => {
+            const root = $root[0];
+            const slots = [...root.querySelectorAll(".doenet-math-slot")];
+            const reserved = [
+                ...root.querySelectorAll("[id*='_mathSlot_']"),
+            ].map((box) => box.getBoundingClientRect());
+
+            // Every field is on a reserved box of its own.
+            for (const slot of slots) {
+                const slotRect = slot.getBoundingClientRect();
+                expect(
+                    reserved.some(
+                        (box) =>
+                            Math.abs(box.left - slotRect.left) < 2 &&
+                            Math.abs(box.top - slotRect.top) < 2,
+                    ),
+                    "a field is on a reserved box",
+                ).to.eq(true);
+            }
+
+            // And the scripts are stacked around the integrand rather than in
+            // line with it.
+            const tops = reserved.map((box) => box.top).sort((a, b) => a - b);
+            expect(tops[0], "the upper bound is highest").to.be.lessThan(
+                tops[1],
+            );
+            expect(tops[1], "the lower bound is lowest").to.be.lessThan(
+                tops[2],
+            );
+        });
+    });
+
     it("an embedded input is named by the expression it sits in", () => {
         cy.window().then(async (win) => {
             win.postMessage(
