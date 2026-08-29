@@ -90,15 +90,13 @@ reader by the expression it sits in — the example above reads as "x equals
 blank plus 3" — and a visible `<label>{:dn}` is not drawn, since there is
 nowhere inside an equation to put one.
 
-Only inputs whose size is settled before the mathematics is laid out can be
-embedded this way: a `<mathInput/>{:dn}` cannot, because it changes size as the
-reader types. A non-`inline` `<choiceInput/>{:dn}` or an `expanded`
-`<textInput/>{:dn}` is too large to sit in a line of mathematics, a
-`<textInput/>{:dn}` whose `width` is a percentage has nothing to measure
-against inside an expression, and mathematics drawn on a `<graph>{:dn}` is a
-single picture with no room for a control. All of those are still accepted,
-but they are not drawn inside the expression, and the last three warn to say
-so.
+Not every input can be placed inside an expression. A `<mathInput/>{:dn}`
+cannot, because it changes size as the reader types. A non-`inline`
+`<choiceInput/>{:dn}` or an `expanded` `<textInput/>{:dn}` is too large to sit
+in a line of mathematics, a `<textInput/>{:dn}` needs a `width` given in
+absolute units rather than a percentage, and mathematics drawn on a
+`<graph>{:dn}` has no room for an input. All of those are still accepted, but
+they are not drawn inside the expression, and the last three warn to say so.
 
 
 
