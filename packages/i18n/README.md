@@ -1924,11 +1924,21 @@ front — `pau`, which is Austronesian like all the rest, and `bi`, which follow
 catalogs write a linker out themselves: `chk`'s relative «mi», `gil`'s «ae»,
 `yap`'s «ni», and `pau`'s prenominal «el».
 
-The sharper split is over the side count. `tvl` and `rar` make it a following
-clause and reach `[noun-tail]`, while `tkl` — Tuvaluan's closest relative here —
-folds it into the head instead. That is a disagreement *inside* a subfamily,
-which no earlier batch's had, and both files state their choice so a reviewer
-can tell it is deliberate.
+The sharper split is over the side count. Eight of the fifteen — `chk`, `pon`,
+`kos`, `niu`, `tvl`, `rar`, `wls` and `bi` — make it a following clause and so
+reach `[noun-tail]`, which is the widest use `[noun-tail]` has had in one batch.
+The other seven fold it into the head: `mh`, `gil` and `tkl` because their own
+grammar puts it there, and `na`, `yap`, `pau` and `rtm` because the noun is
+still English. `tkl` is the interesting one, because it is Tuvaluan's closest
+relative here and `tvl` went the other way — a disagreement *inside* a
+subfamily, which no earlier batch's had, and both files state their choice so a
+reviewer can tell it is deliberate.
+
+A catalog that reaches `[noun-tail]` has to place the tail the same way in
+`style-with-noun` and in `style-filled-with-noun`, or the same polygon is
+assembled two ways in one language depending on whether it is filled. `gil` and
+`yap` put the tail immediately after the noun in both; the rest put it after the
+adjectives in both.
 
 #### Pairs that are deliberately not copies of each other
 
@@ -1999,9 +2009,11 @@ is the first thing a reviewer with the print edition should fix.
 
 `locales/na` carries an unresolved question about its own orthography: its
 header calls the tilde vowels and «ñ» the 1938 reform, while published accounts
-of that reform say it did the reverse. Both words the style pass added are
-spelled with «ng», following their sources. The question governs the spelling of
-every «ng» in the file and is flagged there rather than decided.
+of that reform say it did the reverse. Only one of the two words the style pass
+added contains the digraph at all — «etangang», spelled with «ng» after its
+source, where «ebabobo» has none — so the file's two data points do not settle
+it. The question governs the spelling of every «ng» in the file and is flagged
+there rather than decided.
 
 `locales/chk` names «pwóón» — its word for *answer*, the highest-frequency word
 in the catalog — as one it could not confirm, and `locales/gil` names its colour

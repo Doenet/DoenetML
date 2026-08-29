@@ -201,8 +201,8 @@ style-filled =
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ke { $pattern }
-        [plain-tail] { $noun } { $nounTail } { $filled } { $color }
-        [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ke { $pattern }
+        [plain-tail] { $noun } { $filled } { $color } { $nounTail }
+        [pattern-tail] { $noun } { $filled } { $color } { $nounTail } ke { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
 # Kosraean has no article, so the two `-article` branches read like the ones

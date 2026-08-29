@@ -92,9 +92,10 @@
 # 1938 reform. Descriptions of that reform say the reverse — that the 1938
 # committee *replaced* «ñ» with «ng» and «ã» with «e» — which would make the
 # tilde set the older Delaporte/Kayser convention that modern printed Nauruan
-# has largely gone back to. Both words added above are spelled with «ng»,
-# following their sources. If the header's account is the right one they should
-# be «etañañ» and unchanged respectively. This seed could not settle which
+# has largely gone back to. Only one of the two words added above contains the
+# digraph at all: «etangang» is spelled with «ng» following its source, and if
+# the header's account is the right one it should be «etañañ»; «ebabobo» has no
+# «ng» and is unaffected either way. This seed could not settle which
 # system the file means to be in, and a reviewer should settle it before
 # converting anything, because it decides the spelling of every «ng» here.
 #

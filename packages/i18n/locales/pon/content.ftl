@@ -173,8 +173,8 @@ style-filled =
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } iangahki { $pattern }
-        [plain-tail] { $noun } { $nounTail } { $filled } { $color }
-        [pattern-tail] { $noun } { $nounTail } { $filled } { $color } iangahki { $pattern }
+        [plain-tail] { $noun } { $filled } { $color } { $nounTail }
+        [pattern-tail] { $noun } { $filled } { $color } { $nounTail } iangahki { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
 # Pohnpeian has no article, so the two `-article` branches read like the ones

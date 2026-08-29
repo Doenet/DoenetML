@@ -4022,14 +4022,15 @@ describe("the Oceania batch's word order", () => {
      * disagreement runs *inside* a subfamily rather than between them, which
      * no earlier batch's did.
      *
-     * `tvl` and `rar` make the count a following clause and so reach
-     * `[noun-tail]` («e 5 ona tafa», «e 5 tapa tōna»), while `tkl` — Tuvaluan's
-     * closest relative in the batch, and the catalog whose header warns that
-     * the two are expected to look alike — folds it into the head instead
-     * («poligoni tutuha e 5 ona itu …»), so its adjectives trail the whole
-     * phrase. `locales/tkl` and `locales/tvl` each state their choice, and
-     * these rows are why a reviewer can tell the difference is deliberate
-     * rather than an oversight in one of them.
+     * Eight of the fifteen make the count a following clause and so reach
+     * `[noun-tail]` — «e 5 ona tafa», «e 5 tapa tōna», «me pali 5», «mi 5
+     * peekin» and the rest — while `tkl`, Tuvaluan's closest relative in the
+     * batch and the catalog whose header warns that the two are expected to
+     * look alike, folds it into the head instead («poligoni tutuha e 5 ona itu
+     * …»), so its adjectives trail the whole phrase. `locales/tkl` and
+     * `locales/tvl` each state their choice, and these rows are why a reviewer
+     * can tell the difference is deliberate rather than an oversight in one of
+     * them.
      *
      * The catalogs still holding an English `noun-regular-polygon` render
      * "5-sided regular polygon" from the fallback, which is what the declared
@@ -4063,6 +4064,125 @@ describe("the Oceania batch's word order", () => {
                     withNoun: true,
                 }),
             ).toBe(expected);
+        },
+    );
+
+    /**
+     * The same phrase again with the shape filled, which is where a catalog
+     * can quietly disagree with itself. `style-with-noun` and
+     * `style-filled-with-noun` are two separate messages, so a catalog that
+     * reaches `[noun-tail]` has to place the tail the same way in both, or the
+     * same polygon is assembled two ways in one language depending on nothing
+     * but whether it is filled. `locales/pon` and `locales/kos` each said in
+     * their headers that the tail closes the phrase and then placed it right
+     * after the noun in the filled message; these rows are what holds the two
+     * messages together.
+     *
+     * The fill pattern is asserted alongside, because `[pattern-tail]` is the
+     * one branch carrying the tail *and* a trailing clause, and so the one
+     * where an ordering mistake can survive the plain case.
+     */
+    it.each([
+        [
+            "mh",
+            "polygon jejjet 5 kona obrak būļu",
+            "polygon jejjet 5 kona obrak būļu kōn taim̧ōn ko",
+        ],
+        [
+            "chk",
+            "poriikon mi wewe fengen mi ur mi puruu mi 5 peekin",
+            "poriikon mi wewe fengen mi ur mi puruu mi 5 peekin fiti taimon",
+        ],
+        [
+            "pon",
+            "poliken pahrek audaud pluh me pali 5",
+            "poliken pahrek audaud pluh me pali 5 iangahki taimen",
+        ],
+        [
+            "kos",
+            "regular polygon sessesla folfol ma oasr siska 5",
+            "regular polygon sessesla folfol ma oasr siska 5 ke diamond",
+        ],
+        [
+            "gil",
+            "te regular polygon ae 5 itera ae kanoaki ae buruu",
+            "te regular polygon ae 5 itera ae kanoaki ae buruu ma taian diamond",
+        ],
+        [
+            "na",
+            "5-sided regular polygon filled blue",
+            "5-sided regular polygon filled blue ma diamonds",
+        ],
+        [
+            "yap",
+            "5-sided regular polygon ni filled yarraq",
+            "5-sided regular polygon ni filled yarraq nge diamonds",
+        ],
+        [
+            "pau",
+            "filled blue el 5-sided regular polygon",
+            "filled blue el 5-sided regular polygon me a delsemiich",
+        ],
+        [
+            "niu",
+            "polikone tatai puke lanu moana mo e 5 e tapa",
+            "polikone tatai puke lanu moana mo e 5 e tapa mo e tau taimane",
+        ],
+        [
+            "tkl",
+            "poligoni tutuha e 5 ona itu fakatumu lanu moana",
+            "poligoni tutuha e 5 ona itu fakatumu lanu moana ma te taimane",
+        ],
+        [
+            "tvl",
+            "poligona tutusa fakafonu lanu moana e 5 ona tafa",
+            "poligona tutusa fakafonu lanu moana e 5 ona tafa mo taimane",
+        ],
+        [
+            "rar",
+            "polygon ʻaiteite kī ninamu e 5 tapa tōna",
+            "polygon ʻaiteite kī ninamu e 5 tapa tōna ma taimana",
+        ],
+        [
+            "wls",
+            "poligone tatau fonu lanumoana ʻe tapa 5",
+            "poligone tatau fonu lanumoana ʻe tapa 5 mo te taimane",
+        ],
+        [
+            "rtm",
+            "5-sided regular polygon filled blue",
+            "5-sided regular polygon filled blue ma diamond",
+        ],
+        [
+            "bi",
+            "fulap blu poligon we i gat 5 saed we oli sem mak",
+            "fulap blu poligon we i gat 5 saed we oli sem mak wetem ol daemon",
+        ],
+    ])(
+        "places the side count the same way in %s's filled phrase",
+        (locale, plain, withPattern) => {
+            const filled = {
+                lineWidthWord: "",
+                lineStyleWord: "",
+                colorWord: "blue",
+                fillColorWord: "blue",
+                fillStyleWord: "",
+            };
+            const noun = { key: "regular-polygon", numSides: 5 } as const;
+            expect(
+                describeClosedShape(forLocale(locale), filled, {
+                    filled: true,
+                    noun,
+                    withNoun: true,
+                }),
+            ).toBe(plain);
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    { ...filled, fillStyleWord: "diamonds" },
+                    { filled: true, noun, withNoun: true },
+                ),
+            ).toBe(withPattern);
         },
     );
 });
