@@ -65471,6 +65471,10 @@
                             "description": "Bhojpuri (भोजपुरी)"
                         },
                         {
+                            "value": "bi",
+                            "description": "Bislama"
+                        },
+                        {
                             "value": "bik",
                             "description": "Bikol"
                         },
@@ -65525,6 +65529,10 @@
                         {
                             "value": "ch",
                             "description": "Chamorro"
+                        },
+                        {
+                            "value": "chk",
+                            "description": "Chuukese"
                         },
                         {
                             "value": "chm",
@@ -65671,6 +65679,10 @@
                             "description": "Scottish Gaelic (Gàidhlig)"
                         },
                         {
+                            "value": "gil",
+                            "description": "Gilbertese"
+                        },
+                        {
                             "value": "gl",
                             "description": "Galician (galego)"
                         },
@@ -65811,6 +65823,10 @@
                             "description": "Konkani (कोंकणी)"
                         },
                         {
+                            "value": "kos",
+                            "description": "Kosraean"
+                        },
+                        {
                             "value": "kpe",
                             "description": "Kpelle"
                         },
@@ -65919,6 +65935,10 @@
                             "description": "Malagasy"
                         },
                         {
+                            "value": "mh",
+                            "description": "Marshallese"
+                        },
+                        {
                             "value": "mi",
                             "description": "Māori"
                         },
@@ -65979,6 +65999,10 @@
                             "description": "Erzya"
                         },
                         {
+                            "value": "na",
+                            "description": "Nauru"
+                        },
+                        {
                             "value": "nah",
                             "description": "Nahuatl (Nāhuatl)"
                         },
@@ -65993,6 +66017,10 @@
                         {
                             "value": "ne",
                             "description": "Nepali (नेपाली)"
+                        },
+                        {
+                            "value": "niu",
+                            "description": "Niuean"
                         },
                         {
                             "value": "nl",
@@ -66047,12 +66075,20 @@
                             "description": "Pampanga"
                         },
                         {
+                            "value": "pau",
+                            "description": "Palauan"
+                        },
+                        {
                             "value": "pcm",
                             "description": "Nigerian Pidgin (Naijíriá Píjin)"
                         },
                         {
                             "value": "pl",
                             "description": "Polish (polski)"
+                        },
+                        {
+                            "value": "pon",
+                            "description": "Pohnpeian"
                         },
                         {
                             "value": "ps",
@@ -66071,6 +66107,10 @@
                             "description": "Kʼicheʼ"
                         },
                         {
+                            "value": "rar",
+                            "description": "Rarotongan"
+                        },
+                        {
                             "value": "rm",
                             "description": "Romansh (rumantsch)"
                         },
@@ -66081,6 +66121,10 @@
                         {
                             "value": "ro",
                             "description": "Romanian (română)"
+                        },
+                        {
+                            "value": "rtm",
+                            "description": "Rotuman"
                         },
                         {
                             "value": "ru",
@@ -66243,6 +66287,10 @@
                             "description": "Turkmen (türkmen dili)"
                         },
                         {
+                            "value": "tkl",
+                            "description": "Tokelauan"
+                        },
+                        {
                             "value": "tlh",
                             "description": "Klingon"
                         },
@@ -66273,6 +66321,10 @@
                         {
                             "value": "tt",
                             "description": "Tatar (татар)"
+                        },
+                        {
+                            "value": "tvl",
+                            "description": "Tuvalu"
                         },
                         {
                             "value": "ty",
@@ -66331,6 +66383,10 @@
                             "description": "Waray"
                         },
                         {
+                            "value": "wls",
+                            "description": "Wallisian (Fakaʻuvea)"
+                        },
+                        {
                             "value": "wo",
                             "description": "Wolof"
                         },
@@ -66341,6 +66397,10 @@
                         {
                             "value": "xh",
                             "description": "Xhosa (IsiXhosa)"
+                        },
+                        {
+                            "value": "yap",
+                            "description": "Yapese"
                         },
                         {
                             "value": "yi",
