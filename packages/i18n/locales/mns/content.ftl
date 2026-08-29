@@ -69,6 +69,25 @@
 # `locales/myv`, `locales/chm`, `locales/mrj`.
 
 
+# **«сыр» carries three senses, exactly as `locales/kca`'s «сир» does.** The
+# coinage list below declares it for *type*; `diagnostics.ftl` also uses it
+# for a colour («текст сыр ос кӣвыр сыр», «(сэмыл сыр)») and it is the
+# comparison word «аквсыр», "the same". No Mansi word for a colour could be
+# established, so it stands and a reviewer should separate the two — the
+# dark-mode contrast messages read "change the colour's colour" until one
+# does. That the two Ob-Ugric catalogs agree about this is not evidence that
+# either is right; it is the same seeding decision made twice.
+#
+# **«вēлтнэ вāрмаль» is declared below for *variable* and is also doing duty
+# for *conversion*.** Eleven of its sixteen uses are the variable; the four
+# `prefigure-*-conversion-*` messages are the other sense, where
+# `locales/kca` writes a distinct «нух-мӑнӑпса». No Mansi noun for a
+# conversion could be established, so the phrase stands in both; a reviewer
+# should coin one. The twelfth use, in `circle-change-center-non-numerical`,
+# was a third sense again and is now the verb «вēлтуӈкве», which
+# `circle-change-radius-non-numerical` beside it already used.
+
+
 ## Style vocabulary
 
 color =

@@ -66,6 +66,23 @@
 # `locales/chm`, `locales/mrj`, `locales/mns`.
 
 
+# **«сир» carries three senses, and one message reads "the colour's colour".**
+# The coinage list below declares «сир», "kind", for *type*. The seed also
+# reached for it as the word for a colour in `diagnostics.ftl`'s contrast
+# messages — «текст сир па ԓыпӑс сир», «(питы сир)» — and it is the
+# comparison word «ит сир», "the same", besides. No Khanty word for a colour
+# could be established, and the file's stated policy is to leave a loan
+# standing rather than invent, so «сир» stands in all three; a reviewer
+# should give the colour its own word, which would clear the self-reference
+# in `style-definition-dark-mode-text-canvas-contrast` at a stroke.
+#
+# «пас» and «вєр» are loaded the same way, though neither produces a
+# contradiction: «пас» is a point, a mark, a note, an annotation and a
+# character, and «вєр» is a value, a matter, a task, an object and the
+# `<accessibility>` of «юхӑтты рӑхты вєр». Both are declared below and used
+# consistently, which is why they are worth naming here rather than fixing.
+
+
 ## Style vocabulary
 
 color =

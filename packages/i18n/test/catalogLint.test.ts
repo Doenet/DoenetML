@@ -18,11 +18,13 @@ import {
     numberingSystemOverrides,
     readCatalog,
     remainingLiteralDiagnostics,
+    symbolicVariantKeys,
     renderMessageKeysModule,
     renderSupportedLocalesModule,
 } from "../scripts/catalogUtils";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 import { CATALOG_NAMESPACES } from "../src/namespaces";
+import { DEFAULT_LOCALE } from "../src/catalogs";
 
 describe("extractKeys", () => {
     it("reads message ids, attributes, and both together", () => {
@@ -713,4 +715,85 @@ describe("counted messages", () => {
             expect(offenders, namespace).toEqual([]);
         }
     });
+});
+
+describe("symbolicVariantKeys", () => {
+    it("lists a message's selector keys and leaves the plural ones out", () => {
+        expect(
+            symbolicVariantKeys(`
+picked =
+    { $parts ->
+        [width-color] { $width } { $color }
+       *[color] { $color }
+    }
+counted =
+    { $count ->
+        [one] one
+       *[other] many
+    }
+plain = Nothing to select
+`),
+        ).toEqual(new Map([["picked", ["color", "width-color"]]]));
+    });
+});
+
+/**
+ * A selector key is an interface, not prose.
+ *
+ * `$parts`, `$context`, `$status`, `$role` and the rest are symbols the core
+ * passes in; Fluent matches a variant by comparing them letter for letter, and
+ * falls back to the default when nothing matches. So a translated key does not
+ * fail — it silently unreaches its branch and renders the default for every
+ * input that should have chosen it, which no other check here would notice.
+ * `locales/fit` shipped that in the Uralic north seed, having applied
+ * Meänkieli's `on` → `oon` spelling rule to `[text-on-background]` and
+ * `[text-on-canvas]` along with the sentence around them.
+ *
+ * Plural categories are the deliberate exception and are excluded: CLDR gives
+ * each language its own set, so a catalog resolving `one` and `other` where
+ * English resolves `one`, `two` and `other` is right rather than wrong. Every
+ * other key English selects on must still be there. A catalog may add keys
+ * English does not have — `locales/ku` and the Dagestanian catalogs nest a
+ * `$gender` select inside a `$parts` one, so their style messages carry an `m`
+ * and an `f` English has no use for — so this is a subset check rather than an
+ * equality one. What it forbids is a branch going missing.
+ */
+describe("every catalog's selector keys", () => {
+    const english = new Map(
+        CATALOG_NAMESPACES.map((namespace) => [
+            namespace,
+            symbolicVariantKeys(readCatalog(DEFAULT_LOCALE, namespace) ?? ""),
+        ]),
+    );
+
+    it.each(listLocales().filter((locale) => locale !== DEFAULT_LOCALE))(
+        "%s translates the prose and not the keys",
+        (locale) => {
+            const offenders: string[] = [];
+            for (const namespace of CATALOG_NAMESPACES) {
+                const source = readCatalog(locale, namespace);
+                if (source === null) {
+                    continue;
+                }
+                for (const [id, keys] of symbolicVariantKeys(source)) {
+                    const expected = english.get(namespace)?.get(id);
+                    if (expected === undefined) {
+                        // A key English does not have is already reported as
+                        // an unknown key by the coverage check above.
+                        continue;
+                    }
+                    const missing = expected.filter(
+                        (key) => !keys.includes(key),
+                    );
+                    if (missing.length > 0) {
+                        offenders.push(
+                            `${namespace}/${id}: no branch for ` +
+                                `[${missing.join("] [")}]`,
+                        );
+                    }
+                }
+            }
+            expect(offenders).toEqual([]);
+        },
+    );
 });

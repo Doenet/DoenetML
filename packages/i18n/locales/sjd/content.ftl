@@ -44,6 +44,23 @@
 # it with a native form.
 
 
+# **Two words here carry two concepts each.** «лӣстт» is a *page* in
+# `chrome.ftl` and `editor.ftl` and a *list* in `diagnostics.ftl`; this file
+# borrows Russian technical nouns freely, so «список» would separate them.
+# And `.part` and `.section` in the `section-name` table are both «Ча̄ссҍ»,
+# so `section-title-prefix` renders the same label for two different block
+# types. Neither could be settled and both stand.
+#
+# Two that were settled: `editor.ftl` called a set of values «мēрр», this
+# catalog's word for a measure or a bound, where `diagnostics.ftl` writes
+# «значения» in nineteen places — it is «значенияhь» now, the plural
+# `eigen-decomposition-failed` already used. And `error-heading` and
+# `diagnostic-heading-error` were the bare «Пāстэй», which is the adjective
+# "wrong" and is also `boolean-false` and `answer-incorrect`; they are
+# «Пāстэй сāhь» now, the noun phrase `document-contains-errors` and
+# `editor-tab-errors` already used.
+
+
 ## Style vocabulary
 
 color =

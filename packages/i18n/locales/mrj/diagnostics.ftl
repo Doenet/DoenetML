@@ -20,20 +20,39 @@
 # «ончаш», «икшыве», «мут», «сандене», «возаш» are Hill Mari's «агыл», «дӓ»,
 # «гӹц», «доно», «-влӓ», «цын», «анжаш», «тетя», «шамак», «седӹндон», «сирӓш»,
 # and every one of those words occurs on this page. See `content.ftl`'s header.
+#
+# **The passive participle is the fifteenth pair, and it was the last Meadow
+# form left in the batch.** Hill Mari forms it in `-мы/-мӹ` by vowel harmony
+# and has no `-мо/-ме/-мӧ`, which is Meadow's shape; the seed wrote the Meadow
+# suffix in a dozen places — «анжыктымо», «айырымо», «ванжыктарыме»,
+# «темыме», «келӹштарыме», «питӹрыме», «колтымо», and «Темлыме»,
+# «пӧртӹлтымӧ» and «ешӓрыме» in `editor.ftl` — beside the eighty places it
+# wrote the Hill one («ӹштӹмӹ», «сирӹмӹ», «пумы», «карангдымы»). All are
+# `-мы/-мӹ` now; a reviewer should check the harmony class of each, which is
+# the part a seed can get wrong even with the right suffix. «таҥастарымашыжӹ»
+# went the same way, to «тӓнгӓстӓрӹмӓшӹжӹ», the stem `editor.ftl` already
+# wrote.
+#
+# **«тӹс» carries both "colour" and "type", and one message reads "the
+# colour's colour" because of it.** The header above declares the technical
+# nouns as Russian, so *type* would be «тип»; it is «тӹс» throughout instead,
+# and «тӹс» is also the word for a colour in the contrast diagnostics. The
+# seed could establish no other Hill Mari word for either, so both stand and
+# a reviewer should separate them.
 
 
 ## `<lineSegment>`
 
 line-segment-attributes-ignored-with-endpoints =
     { $attributesCount ->
-        [one] кок мычаш тӧчкӓ анжыктымо годым { $attributes } шотыш ак нӓл
-       *[other] кок мычаш тӧчкӓ анжыктымо годым { $attributes } шотыш ак нӓл
+        [one] кок мычаш тӧчкӓ анжыктымы годым { $attributes } шотыш ак нӓл
+       *[other] кок мычаш тӧчкӓ анжыктымы годым { $attributes } шотыш ак нӓл
     }
 
 line-segment-attributes-ignored-with-endpoint-and-midpoint =
     { $attributesCount ->
-        [one] мычаш тӧчкӓ дӓ покшал тӧчкӓ кокты анжыктымо годым { $attributes } шотыш ак нӓл
-       *[other] мычаш тӧчкӓ дӓ покшал тӧчкӓ кокты анжыктымо годым { $attributes } шотыш ак нӓл
+        [one] мычаш тӧчкӓ дӓ покшал тӧчкӓ кокты анжыктымы годым { $attributes } шотыш ак нӓл
+       *[other] мычаш тӧчкӓ дӓ покшал тӧчкӓ кокты анжыктымы годым { $attributes } шотыш ак нӓл
     }
 
 line-segment-midpoint-offset-without-midpoint = покшал тӧчкӓ гӹц посна midpointOffset нималан ак логал
@@ -231,7 +250,7 @@ sequence-invalid-endpoint-letters = Буква рӓдӹн «{ $attribute }» а�
 
 sequence-invalid-endpoint = Рӓдӹн «{ $attribute }» акшӹ цын агыл.
 
-select-from-sequence-coprime-not-numbers = цот-влӓ айырымо агылеп, седӹндон coprime шотыш ак нӓл
+select-from-sequence-coprime-not-numbers = цот-влӓ айырымы агылеп, седӹндон coprime шотыш ак нӓл
 
 select-from-sequence-coprime-with-exclude-combinations = excludeCombinations пумы, седӹндон coprime шотыш ак нӓл
 
@@ -283,7 +302,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: grid="{ $grid }" акым ынгылаш ак ли. Тӹдӹ none, medium, dense ӓли йӓрӓ вер доно айырымо кок плюс цот лишӓш, примерӹн grid="1 0.5". Сетке ак сӱретлалт.
+graph-grid-invalid = `<graph>`: grid="{ $grid }" акым ынгылаш ак ли. Тӹдӹ none, medium, dense ӓли йӓрӓ вер доно айырымы кок плюс цот лишӓш, примерӹн grid="1 0.5". Сетке ак сӱретлалт.
 
 ## `<slopeField>` and `<vectorField>`
 
@@ -302,9 +321,9 @@ field-function-wrong-num-outputs =
 field-function-attribute-ignored-with-child = `function` атрибут шотыш ак нӓл, вет функций компонент кӧргӹштӓт пумы; кӧргӹштӹшӹжӹ кычылталтеш. Функцийым кок корны гӹц веле иктӹжӹ доно пу.
 
 field-variables-ignored =
-    `<{ $component }>`: `variables` атрибут компонент кӧргӹштӹ вигак сирӹмӹ выражений вашталтшывлӓм лӹмдӓ. { $reason ->
+    `<{ $component }>`: `variables` атрибут компонент кӧргӹштӹ вигак сирӹмӹ попымаш вашталтшывлӓм лӹмдӓ. { $reason ->
         [function-child] Тиштӹ функций `<function>` тетя семӹнь пумы, а тӹдӹ ӹшке вашталтшывлӓжӹм лӹмдӓ, седӹндон `variables` шотыш ак нӓл.
-       *[no-expression] Тиштӹ тӹгӓй выражений пумы агыл, седӹндон `variables` шотыш ак нӓл.
+       *[no-expression] Тиштӹ тӹгӓй попымаш пумы агыл, седӹндон `variables` шотыш ак нӓл.
     }
 
 ## PreFigure renderer
@@ -351,7 +370,7 @@ data-frame-missing-column-name = Даннӧй-влӓӹште меҥге лӹм �
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Тидӹ вашмутын award акшӹ answer тегын ӹшке колтымо вашмутшы вӹкӹ ӓнгӹртӓ, тидӹ вычыдымы пӓшӓлан канда.
+answer-award-depends-on-own-response = Тидӹ вашмутын award акшӹ answer тегын ӹшке колтымы вашмутшы вӹкӹ ӓнгӹртӓ, тидӹ вычыдымы пӓшӓлан канда.
 
 answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` доно контейнер кӧргӹшӹ `<answer>` вӹкӹ `maxNumAttempts` шӹндӹмаш ак логал, вет цацымаш-влӓын цотӹштым контейнер пӓлемдӓ. `maxNumAttempts` акым контейнер вӹкӹ шӹндӹ.
 
@@ -467,7 +486,7 @@ prefigure-descendant-unsupported = { $subject }: графикын prefigure сӱ
 
 prefigure-descendant-invalid-geometry = { $subject }: мычашдымы ӓли тӹчмӓш агыл геометрий; тукымжы кодалте.
 
-prefigure-curve-label-omitted = { $subject }: ванжыктарыме кадыр элемент-влӓӹште пӓлӹ-влӓ ӹштӹмӹ агылеп; пӓлӹ кодалте.
+prefigure-curve-label-omitted = { $subject }: ванжыктарымы кадыр элемент-влӓӹште пӓлӹ-влӓ ӹштӹмӹ агылеп; пӓлӹ кодалте.
 
 prefigure-curve-unsupported-definition-type = { $subject }: ӹштӹмӹ агыл кадыр функций пӓлемдӹмӓшын тӹсшӹ «{ $definitionType }»; тукымжы кодалте.
 
@@ -479,13 +498,13 @@ prefigure-label-position-unsupported =
     { $subject }: ӹштӹмӹ агыл labelPosition «{ $labelPosition }» { $labelKind ->
         [line-family] линий тукымын пӓлӹжлан
        *[point] тӧчкӓн пӓлӹжлан
-    }; PreFigure-ын тӹнг таҥастарымашыжӹ кычылталтеш.
+    }; PreFigure-ын тӹнг тӓнгӓстӓрӹмӓшӹжӹ кычылталтеш.
 
-prefigure-fill-style-unsupported = { $subject }: темыме стиль «{ $fillStyle }» PreFigure вӹкӹ ӹштӹмӹ агыл; тӹчмӓш темымӓшкӹ ванжа.
+prefigure-fill-style-unsupported = { $subject }: темӹмӹ стиль «{ $fillStyle }» PreFigure вӹкӹ ӹштӹмӹ агыл; тӹчмӓш темымӓшкӹ ванжа.
 
 prefigure-line-style-unknown = { $subject }: пӓлӹдӹмӹ линий стиль «{ $lineStyle }» PreFigure лыкмаш гӹц карангдымы.
 
-prefigure-marker-style-mapped-to-diamond = { $subject }: маркер стиль «{ $markerStyle }» PreFigure «diamond» стиль доно келӹштарыме.
+prefigure-marker-style-mapped-to-diamond = { $subject }: маркер стиль «{ $markerStyle }» PreFigure «diamond» стиль доно келӹштӓрӹмӹ.
 
 prefigure-marker-style-unsupported = { $subject }: маркер стиль «{ $markerStyle }» PreFigure вӹкӹ ӹштӹмӹ агыл; тӹнг стиль кычылталтеш.
 
@@ -549,11 +568,11 @@ parse-attribute-value-quote-mismatch = Цын агыл DoenetML: атрибут�
 
 parse-open-tag-name-missing = Цын агыл DoenetML: лӹмдӹмӹ тег моалте, примерӹн `<`
 
-parse-tag-not-closed = Цын агыл DoenetML: `{ $tag }` тег питӹрыме агыл (`>` ак ситӹ гай).
+parse-tag-not-closed = Цын агыл DoenetML: `{ $tag }` тег питӹрӹмӹ агыл (`>` ак ситӹ гай).
 
 parse-self-closing-tag-name-missing = Цын агыл DoenetML: лӹмдӹмӹ тег моалте `<{ $content }>`
 
-parse-self-closing-tag-not-closed = Цын агыл DoenetML: `{ $tag }` тег питӹрыме агыл (`/>` ак ситӹ гай).
+parse-self-closing-tag-not-closed = Цын агыл DoenetML: `{ $tag }` тег питӹрӹмӹ агыл (`/>` ак ситӹ гай).
 
 parse-tag-invalid-attributes = Цын агыл DoenetML: `{ $tag }` тег келшӹшӹ агыл. Тӹдӹн атрибутшы-влӓ цын ак ли кердӹт.
 
@@ -656,7 +675,7 @@ select-from-sequence-index-excluded = selectfromsequence вӹкӹ пумы ин�
 
 select-from-sequence-indices-excluded-combination = selectfromsequence вӹкӹ пумы индекс-влӓ карангдымы ушымаш ыльы
 
-select-from-sequence-coprime-not-positive-integers = Плюс тӹчмӓш цот-влӓ айырымо агылеп, седӹндон икте-весылан проста ушымаш-влӓм айыраш ак ли.
+select-from-sequence-coprime-not-positive-integers = Плюс тӹчмӓш цот-влӓ айырымы агылеп, седӹндон икте-весылан проста ушымаш-влӓм айыраш ак ли.
 
 select-from-sequence-coprime-common-factor = Икте-весылан проста цот-влӓм айыраш ак ли. Цилӓ линӓт кердшӹ ак-влӓын икань шеледышӹшт улы. (Пумы "from" ӓли "to" ак-влӓ "step" доно икте-весылан проста лишӓш.)
 

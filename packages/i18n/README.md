@@ -89,9 +89,9 @@ English is the source of truth. Every translation — `ab`, `ace`, `ady`,
 `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`, `vro`, `war`, `wo`,
 `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an
 **unreviewed machine-generated seed**, which each file's own header says at the
-top, and which is what #1521's translation platform is for. None has been read by a speaker. Correcting one
-needs no permission and no coordination: a wrong string is just wrong, and the
-English is one key away.
+top, and which is what #1521's translation platform is for. None has been read
+by a speaker. Correcting one needs no permission and no coordination: a wrong
+string is just wrong, and the English is one key away.
 
 A hundred and seventy-one of them are deliberately partial. A hundred and
 seventy are partial in the same place — the two chemistry tables — while

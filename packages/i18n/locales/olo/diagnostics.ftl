@@ -146,7 +146,7 @@ accessibility-input-short-description-or-label = Suavutettavuon täh `<{ $compon
 
 accessibility-answer-input-short-description-or-label = Suavutettavuon täh syötön luadii `<answer>` tarviččou lyhyön kuvavuksen libo nimikkehen.
 
-accessibility-short-description-contains-math = Lyhyzis kuvavuksis ei pidäs olla matemaatiekallizii komponentoi, moizii kui `<{ $component }>`. Kirjuta matemuatiekku sanoil.
+accessibility-short-description-contains-math = Lyhyzis kuvavuksis ei pidäs olla matemaatiekallizii komponentoi, moizii kui `<{ $component }>`. Kirjuta matemaatiekku sanoil.
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
@@ -168,15 +168,15 @@ circle-radius-too-small = Ymbyrüy ei sua laskie: konzu pistoloin keskine loitot
 
 circle-radius-with-many-points = Ymbyrüy ei sua luadie enämbän gu kahten piston kauti, konzu radiusu on miäritetty.
 
-circle-invalid-center-or-through-points = Ymbyrän keskipisto libo pistot ollah viärät.
+circle-invalid-center-or-through-points = Ymbyrün keskipisto libo pistot ollah viärät.
 
-circle-radius-center-with-multiple-points = Miäritetyn keskipiston ymbyrän radiusua ei sua laskie enämbän gu 1 piston kauti.
+circle-radius-center-with-multiple-points = Miäritetyn keskipiston ymbyrün radiusua ei sua laskie enämbän gu 1 piston kauti.
 
-circle-change-radius-non-numerical = Ymbyrän radiusua ei sua muuttua, konzu pistot ei olla numeerizet
+circle-change-radius-non-numerical = Ymbyrün radiusua ei sua muuttua, konzu pistot ei olla numeerizet
 
 circle-radius-with-points-non-numerical = Ymbyrüy ei sua luadie enämbän gu yhten piston kauti miäritetyl radiusal, konzu numeerizii arvoloi ei ole.
 
-circle-change-center-non-numerical = Ei-numeerizien pistoloin kauti menijän ymbyrän keskipiston muuttamistu ei ole toteutettu.
+circle-change-center-non-numerical = Ei-numeerizien pistoloin kauti menijän ymbyrün keskipiston muuttamistu ei ole toteutettu.
 
 ## `<function>`
 
@@ -449,17 +449,17 @@ variant-coprime-undetermined = kohtehen { $component } ainavolaadutoi variantoi 
 
 variant-attribute-not-constant = kohtehen { $component } ainavolaadutoi variantoi ei sua miärittiä, sendäh gu { $attribute } ei ole vakivo.
 
-variant-attribute-not-number = kohtehen { $component } ainavolaadutoi variantoi ei sua miärittiä, sendäh gu { $attribute } ei ole luvun.
+variant-attribute-not-number = kohtehen { $component } ainavolaadutoi variantoi ei sua miärittiä, sendäh gu { $attribute } ei ole lugu.
 
 variant-attribute-wrong-type-for-sequence =
     tyypin { $type } kohtehen { $component } ainavolaadutoi variantoi ei sua miärittiä, sendäh gu { $attribute } ei ole { $expected ->
         [letters-combination] kirjaimuyhtevys
         [math-expression] päijy matemaatiekalline ilmavundu
-        [integer] kogonaine luvun
-       *[number] luvun
+        [integer] kogonaine lugu
+       *[number] lugu
     }.
 
-variant-length-not-integer = kohtehen { $component } ainavolaadutoi variantoi ei sua miärittiä, sendäh gu length ei ole kogonaine luvun.
+variant-length-not-integer = kohtehen { $component } ainavolaadutoi variantoi ei sua miärittiä, sendäh gu length ei ole kogonaine lugu.
 
 variant-sort-not-implemented = kohtehen { $component } ainavolaadutoi variantoi sortan kel ei ole toteutettu
 

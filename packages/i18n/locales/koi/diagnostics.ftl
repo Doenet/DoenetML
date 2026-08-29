@@ -372,7 +372,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = `{ $attribute }` атрибутлы абу веськыд дон `{ $value }`. Атрибут `$` пасысь заводитчысь йитӧдэзысь лоны колӧ.
 
-math-input-invalid-function-names = <mathInput>: { $attribute } пытшкса абу веськыд функция нимэз эз лыддьысьны: { $names }. Быд нимлӧн тыдалана юкӧныс этша дырйи 2 пас лоны колӧ (шыпасэз либо визьэз); сы бӧрын колана абу `|<mathspeak альтернатива>` содтӧд воны вермас.
+math-input-invalid-function-names = <mathInput>: { $attribute } пытшкса абу веськыд функция нимэз эз лыддьысьны: { $names }. Быд нимлӧн тыдалана юкӧныс этша дырйи 2 шыпас лоны колӧ (шыпасэз либо визьэз); сы бӧрын колана абу `|<mathspeak альтернатива>` содтӧд воны вермас.
 
 ## Building components from the source
 

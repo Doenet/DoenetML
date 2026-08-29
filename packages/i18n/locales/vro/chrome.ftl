@@ -31,9 +31,13 @@
 #         as Estonian typos will "correct" them into the wrong language.
 #
 # Võro also suffixes its negation — «olõ-i» beside «ei olõ» — and both are
-# standard. This catalog writes the analytic «ei olõ» throughout, which is the
+# standard. This catalog writes the analytic form throughout, which is the
 # safer of the two for a seed; a speaker may well prefer the suffixed form in
-# the short button strings.
+# the short button strings. It is written «ei olõq», with the final q that
+# marks the Võro connegative, in all four files: `diagnostics.ftl` had it in
+# every one of its fifty-five negations while the other three files dropped it
+# in seven, which is the one spelling this catalog has to choose rather than
+# leave to a reviewer.
 #
 # Võro counts in two plural categories, `one` and `other`, the same two English
 # and Estonian have, so every `{ $count -> … }` below keeps the shape it had.
@@ -56,7 +60,7 @@ answer-percent-short = { $percent } %
 max-credit-available = Suurmb võimalik punktisumma: { $percent }%
 attempts-remaining =
     { $count ->
-        [0] katsit inämb ei olõ
+        [0] katsit inämb ei olõq
         [one] perrä om jäänüq { $count } katsõq
        *[other] perrä om jäänüq { $count } katsõt
     }

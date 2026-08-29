@@ -50,6 +50,24 @@
 # languages reach for.
 
 
+# **`style-filled-word` is «devdum» and `style-fill` writes «devddo», and
+# that is deliberate rather than a slip.** English has no word at all in
+# `style-fill` — it renders a fill as the bare colour — so a catalog that
+# puts one there is choosing its own noun, and the five Sami catalogs part
+# company over it: `locales/sma` repeats its participle («deavhteme»),
+# `locales/smn` derives a verbal noun beside its participle («tevdim» beside
+# «tevdum»), and this file does the third thing. A reviewer should confirm
+# «devddo» is the derivation Lule Sami wants; nothing here contradicts it.
+#
+# «tjielggidus» is *expression* in `chrome.ftl` and in the math diagnostics,
+# and *description* in the five short-description ones. `locales/sma` and
+# `locales/smn` separate the two; this file needs a speaker to. The renderer
+# and parse-tree-node collisions `locales/sma`'s header records are here in
+# the same shape and for the same reason. «tjuoggá» being both a geometric
+# point and a credit point is *not* recorded as a defect — Norwegian and
+# Swedish do the same and it is very likely idiomatic.
+
+
 ## Style vocabulary
 
 color =

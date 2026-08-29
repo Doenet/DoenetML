@@ -33,6 +33,28 @@
 # is a fact about which colour words Sami inherited and which it borrowed.
 
 
+# **`style-unfilled` was «teâvvtõõttâm» and is now «teâvvteʹmes», by this
+# file's own pattern rather than by attestation.** Skolt Sami forms a
+# caritive in `-teʹmes` — «kuõskteʹmes», «tuärjjteʹmes», «tobddteʹmes»,
+# «sorjjteʹmes» and «jåʹttteʹmes» are all in these four files — and
+# «teâvvtõõttâm» is a positive participle of the same stem as «teâvvtum»,
+# "filled", so "unfilled" was spelled almost like "filled". The replacement
+# is built by the productive rule and a reviewer should confirm it; this is
+# the same decision, and the same caveat, that `locales/sjd` records for its
+# «точечнэ».
+#
+# «linjj» is a geometric line, a matrix row and a source line all three.
+# `locales/sjd` and `locales/vep` each keep the line and the row apart
+# («линия»/«ридт», «suor»/«rid») and this catalog does not. It is used
+# consistently in each sense, so it is recorded rather than changed.
+#
+# «čuõkkâz», the canonical noun for a point, is also what
+# `parser-node-unconvertible` calls a parse-tree node. That message is
+# inherited from `locales/se`, and the four other Sami catalogs of this batch
+# have it too; an AST node is not a point, and none of the five could
+# establish a word for one.
+
+
 ## Style vocabulary
 
 color =
@@ -144,7 +166,7 @@ style-fill =
         [pattern] { $color } teâvvtõs { $pattern }
        *[plain] { $color } teâvvtõs
     }
-style-unfilled = teâvvtõõttâm
+style-unfilled = teâvvteʹmes
 style-text =
     { $parts ->
         [background] { $color } { $background } tuâǥǥažvuiʹm

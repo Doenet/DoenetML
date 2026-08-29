@@ -97,7 +97,7 @@ editor-tab-errors = Йоҥылыш-влӓ
 editor-tab-warnings = Шижтӓрӹмӓш-влӓ
 editor-tab-info = Увер
 editor-tab-accessibility = Шон кердмӓш
-editor-tab-responses = Колтымо вашмут-влӓ
+editor-tab-responses = Колтымы вашмут-влӓ
 
 editor-tab-with-count = { $label }: { $count }
 
@@ -127,11 +127,11 @@ editor-none-found = Нимат моалт агыл
 
 ## Submitted responses
 
-editor-no-responses = Кӹзӹтеш колтымо вашмут уке
+editor-no-responses = Кӹзӹтеш колтымы вашмут уке
 editor-response-answer-id = Вашмутын Id-жӹ
 editor-response-response = Вашмут
 editor-response-credit = Балл
-editor-response-submitted = Колтымо
+editor-response-submitted = Колтымы
 
 
 ## The context-help panel
@@ -198,7 +198,7 @@ help-allowed-values =
        *[other] Лишӹ ак-влӓ:
     }
 
-help-suggested-values = Темлыме ак-влӓ:
+help-suggested-values = Темлӹмӹ ак-влӓ:
 
 help-inserts = Ешӓра:
 
@@ -213,8 +213,8 @@ help-type = Тӹс:
 help-resolved-style = Лӓкшӹ стиль (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Лӓкшӹ функцийын лӹмжӹ-влӓ:
-help-reset-list = Тидӹ пасун пӧртӹлтымӧ лӹмержӹ:
-help-added-on-input = Тидӹ пасуэш ешӓрыме:
+help-reset-list = Тидӹ пасун пӧртӹлтӹмӹ лӹмержӹ:
+help-added-on-input = Тидӹ пасуэш ешӓрӹмӹ:
 help-removed-on-input = Тидӹ пасу гӹц карангдымы:
 
 help-reset-overrides = { $reset } — { $additional } дӓ { $removed } вӹлнӹ сеҥа.

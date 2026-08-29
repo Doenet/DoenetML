@@ -46,8 +46,8 @@ editor-update-viewer-title =
 
 editor-variant = Variantu
 editor-variant-filter = Suodata…
-editor-variant-next = Vallli seuruai variantu
-editor-variant-previous = Vallli ielline variantu
+editor-variant-next = Valliče seuruai variantu
+editor-variant-previous = Valliče ielline variantu
 
 
 ## The accessibility status button
@@ -99,7 +99,7 @@ editor-version-title = DoenetML-versii { $version }
 
 editor-tab-help = Kontekstan mugaine abu
 editor-tab-help-short = Kontekstu
-editor-tab-errors = Viet
+editor-tab-errors = Viat
 editor-tab-warnings = Varaitukset
 editor-tab-info = Tiedo
 editor-tab-accessibility = Suavutettavus

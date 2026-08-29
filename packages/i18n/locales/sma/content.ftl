@@ -45,6 +45,25 @@
 # borrowed from, since the language has no established term for one.
 
 
+# **Two words here carry more than one concept, and the seed could coin no
+# replacement.** «vuesiehtimmie» is *example* in the `section-name` table and
+# is also *reference* throughout `editor.ftl` — so `help-reference-page`
+# reads "Example page" — and *display* in `accessibility-name-display-part`.
+# `locales/smj` and `locales/smn` keep the two apart («gehtjalvis» and
+# «åvdåmærkka», «čujottâs» and «ovdâmerkkâ») and this file does not.
+# «buerkiestimmie» is *definition* in the same table and *description* in the
+# five short-description diagnostics, which those two catalogs also separate.
+# Both need a speaker rather than a guess.
+#
+# Two more are inherited from `locales/se` and are shared with all four Sami
+# catalogs of this batch: the renderer is «vuesiehtimmiemoduvle» in
+# `chrome.ftl` and «vuesiehtæjja» in `diagnostics.ftl`, where
+# `editor-update-viewer-title` uses that second word for the *viewer*; and
+# `parser-node-unconvertible` calls a parse-tree node «tjuvtjie», the
+# canonical noun for a geometric point. Fixing either properly means fixing
+# `locales/se` in the same pass.
+
+
 ## Style vocabulary
 
 color =

@@ -198,11 +198,11 @@ help-style-number-annotation = { " " }(styleNumber { $styleNumber })
 
 help-allowed-values =
     { $perItem ->
-        [true] Лōhкэм мēрр (ыhт ча̄зя):
-       *[other] Лōhкэм мēрр:
+        [true] Лōhкэм значенияhь (ыhт ча̄зя):
+       *[other] Лōhкэм значенияhь:
     }
 
-help-suggested-values = Ноаллэсэсс мēрр:
+help-suggested-values = Ноаллэсэсс значенияhь:
 
 help-inserts = Пыййе сӣзе:
 

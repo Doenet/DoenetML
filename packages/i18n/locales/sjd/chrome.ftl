@@ -129,14 +129,14 @@ viewer-initializing = Алльктэ…
 
 ## Errors
 
-error-heading = Пāстэй
+error-heading = Пāстэй сāhь
 error-found-at =
     { $span ->
         [line] Кāввнма { $startLine } линиесьт.
        *[lines] Кāввнма { $startLine }–{ $endLine } линиенҍ.
     }
 document-contains-errors = Тэнн документэсьт ля пāстэй сāhь!
-diagnostic-heading-error = Пāстэй
+diagnostic-heading-error = Пāстэй сāhь
 diagnostic-heading-warning = Ва̄рртэм
 diagnostic-heading-information = Тēдт
 diagnostic-heading-hint = Ноаллэсэсс

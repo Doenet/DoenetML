@@ -258,8 +258,8 @@ help-type = Лад:
 help-resolved-style = Лисьф стиль (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Лисьф функциянь лемть:
-help-reset-list = Те таркань мекев велявтомань список:
-help-added-on-input = Те таркаса поладозь:
-help-removed-on-input = Те таркаста сяф:
+help-reset-list = Тя таркань мекев велявтомань список:
+help-added-on-input = Тя таркаса поладозь:
+help-removed-on-input = Тя таркаста сяф:
 
 help-reset-overrides = { $reset } — { $additional } и { $removed } лангса изни.

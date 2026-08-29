@@ -144,7 +144,7 @@ error-found-at =
         [line] Муезь ряд: { $startLine }.
        *[lines] Муезь рядт: { $startLine }–{ $endLine }.
     }
-document-contains-errors = Те документсэть улить ильведефкст!
+document-contains-errors = Тя документсэть улить ильведефкст!
 diagnostic-heading-error = Ильведефкс
 diagnostic-heading-warning = Икелев пелькстамо
 diagnostic-heading-information = Тевпаро

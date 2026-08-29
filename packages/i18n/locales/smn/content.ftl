@@ -48,6 +48,23 @@
 # Sami languages reach for.
 
 
+# **This is the most internally consistent of the five Sami catalogs**, and
+# the source line / geometric line split declared below is honoured in every
+# one of its ten messages. One inconsistency was found and fixed:
+# `editor-accessibility-title` called the accessibility advisories
+# «lasetiäđuh», "additional information", where
+# `editor-accessibility-label` beside it counts «lasi juksâmvuođâ ravvim» —
+# English writes "additional accessibility recommendations" in both, and
+# `locales/sma` and `locales/smj` use one word in both. It is «ravvim» in
+# both now, which does not collide with `hint-title = Räävi`.
+#
+# The renderer and parse-tree-node collisions `locales/sma`'s header records
+# are here too, inherited from `locales/se`. «saargâ» being both a matrix
+# column and the stroke of a hatch pattern is left alone: it is used
+# consistently in each sense, and `locales/sma` and `locales/smj` borrowed
+# («kolovne», «kolonna») where this one did not.
+
+
 ## Style vocabulary
 
 color =

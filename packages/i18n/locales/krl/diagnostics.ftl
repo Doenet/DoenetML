@@ -47,11 +47,11 @@ line-segment-midpoint-offset-without-midpoint = midpointOffset ei vaikuta mitän
 
 ## `<line>`
 
-line-points-undetermined-dimensions = Suora kulkou pisteijen kautti, kumpasien ulottuvuukšien miärä ei ole tietty.
+line-points-undetermined-dimensions = Suora kulkou pistehien kautti, kumpasien ulottuvuukšien miärä ei ole tietty.
 
-line-points-too-few-dimensions = Suoran pitäy kulkie vähintänä kakšiulotteisien pisteijen kautti.
+line-points-too-few-dimensions = Suoran pitäy kulkie vähintänä kakšiulotteisien pistehien kautti.
 
-line-points-depend-on-variables = Suora kulkou pisteijen kautti, kumpaset ripušetah muuttujista: { $variables }.
+line-points-depend-on-variables = Suora kulkou pistehien kautti, kumpaset ripušetah muuttujista: { $variables }.
 
 line-equation-invalid-format = Viärä muoto suoran yhtälöllä muuttujissa { $variable1 } ta { $variable2 }.
 
@@ -163,7 +163,7 @@ circle-overprescribed-radius-center-points = Ympyryä ei voi laškie, kun šäve
 
 circle-center-with-multiple-points = Ympyryä, kumpasella on miäritelty keškipisteh, ei voi laškie enemmän kuin 1 pistehen kautti.
 
-circle-radius-too-small = Ympyryä ei voi laškie: kun pisteijen välini etähisys on { $distance }, miäritelty šäveh { $radius } on liijan pieni.
+circle-radius-too-small = Ympyryä ei voi laškie: kun pistehien välini etähisys on { $distance }, miäritelty šäveh { $radius } on liijan pieni.
 
 circle-radius-with-many-points = Ympyryä ei voi luuvva enemmän kuin kahen pistehen kautti, kun šäveh on miäritelty.
 
@@ -175,7 +175,7 @@ circle-change-radius-non-numerical = Ympyrän šävehtä ei voi muuttua, kun pis
 
 circle-radius-with-points-non-numerical = Ympyryä ei voi luuvva enemmän kuin yhen pistehen kautti miäritellyllä šävehellä, kun numeerisie arvoja ei ole.
 
-circle-change-center-non-numerical = Ei-numeerisien pisteijen kautti kulkovan ympyrän keškipistehen muuttamista ei ole toteutettu.
+circle-change-center-non-numerical = Ei-numeerisien pistehien kautti kulkovan ympyrän keškipistehen muuttamista ei ole toteutettu.
 
 ## `<function>`
 
@@ -358,7 +358,7 @@ data-frame-missing-column-name = Datašta puuttuu paččahannimi.  Löyty kohaš
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Tämän vastaukšen award perustuu answer-tunnukšen omah työnnettyh vaštaukšeh, mi vetäy vuottamattomah toimintah.
+answer-award-depends-on-own-response = Tämän vastaukšen award perustuu answer-tunnukšen omah työnnettyh vastaukšeh, mi vetäy vuottamattomah toimintah.
 
 answer-max-num-attempts-in-section-wide-check-work = `maxNumAttempts`-arvon azettamini `<answer>`-elementtih, kumpani on `sectionWideCheckWork`-šäilijön šisällä, ei vaikuta mitänä, šentäh kun šäilijö ohjuau yritykšien miäryä. Azeta `maxNumAttempts` šäilijöh.
 
@@ -421,13 +421,13 @@ style-definition-insufficient-contrast =
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vuajitah vähintänä { $threshold }:1).
 
 style-definition-dark-mode-text-background-contrast =
-    Vaikka tyylimiärittely { $styleNumber } antau valkiel tilalla kyllin kontrastie antavat värit, näistä arvoista johetuilla tumman tilan väreillä tekstin värin ta taustavärin kontrasti on riittämätöin ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vuajitah vähintänä { $threshold }:1). { $suggestion ->
+    Vaikka tyylimiärittely { $styleNumber } antau valkiešša tilašša kyllin kontrastie antavat värit, näistä arvoista johetuilla tumman tilan väreillä tekstin värin ta taustavärin kontrasti on riittämätöin ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vuajitah vähintänä { $threshold }:1). { $suggestion ->
         [available] Kyllin kontrastin šuamiseksi tummašša tilašša joko lisyä kontrastie valkiešša tilašša (ezim. { $lightAttribute }="{ $lightColor }") tahi korvua tumman tilan väri (ezim. { $darkAttribute }="{ $darkColor }").
        *[none] Kyllin kontrastin šuamiseksi tummašša tilašša lisyä kontrastie valkiešša tilašša tahi korvua johetut värit azetukšilla textColorDarkMode ta/tahi backgroundColorDarkMode.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
-    Vaikka tyylimiärittely { $styleNumber } antau valkiel tilalla kyllin kontrastie antavan tekstivärin, täštä arvošta johetun tumman tilan tekstivärin kontrasti piirtoalustah nähen on riittämätöin ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vuajitah vähintänä { $threshold }:1). { $suggestion ->
+    Vaikka tyylimiärittely { $styleNumber } antau valkiešša tilašša kyllin kontrastie antavan tekstivärin, täštä arvošta johetun tumman tilan tekstivärin kontrasti piirtoalustah nähen on riittämätöin ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vuajitah vähintänä { $threshold }:1). { $suggestion ->
         [available] Kyllin kontrastin šuamiseksi tummašša tilašša joko lisyä kontrastie valkiešša tilašša (ezim. textColor="{ $lightColor }") tahi korvua tumman tilan väri (ezim. textColorDarkMode="{ $darkColor }").
        *[none] Kyllin kontrastin šuamiseksi tummašša tilašša lisyä kontrastie valkiešša tilašša tahi korvua johettu väri azetukšella textColorDarkMode.
     }

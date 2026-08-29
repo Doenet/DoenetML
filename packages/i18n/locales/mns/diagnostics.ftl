@@ -177,7 +177,7 @@ circle-change-radius-non-numerical = Савитыӈ ат ōлнэ пāсыӈ к�
 
 circle-radius-with-points-non-numerical = Савит вāрмалит ат ōлēгыт ке, мим радиус ёт аква ныл сав пāс хосыт минан круг вāруӈкве ат рōви.
 
-circle-change-center-non-numerical = Савитыӈ ат ōлнэ пāсыт хосыт минан круг кӯтювэ вēлтнэ вāрмаль ат вāрвēс.
+circle-change-center-non-numerical = Савитыӈ ат ōлнэ пāсыт хосыт минан круг кӯтювэ вēлтуӈкве ат вāрвēс.
 
 ## `<function>`
 
@@ -444,7 +444,7 @@ variant-num-to-select-not-constant-number = { $component } палт мōт щё�
 
 variant-with-replacement-not-constant-boolean = { $component } палт мōт щёс ат ōлнэ вариантыт пāсыстаӈкве ат рōви. withReplacement ат вēлтнэ логика вāрмаль ат ōлы.
 
-variant-select-weight-disables-unique = матыр уртнэ вāрмаль палт selectWeight манос selectForVariants мивēс ке, select палт мōт щёс ат ōлнэ вариантыт лēщатавēт
+variant-select-weight-disables-unique = матыр уртнэ вāрмаль палт selectWeight манос selectForVariants мивēс ке, select палт мōт щёс ат ōлнэ вариантыт ат вāравēт
 
 variant-coprime-undetermined = { $component } палт мōт щёс ат ōлнэ вариантыт пāсыстаӈкве ат рōви. coprime хōталь-ке ёмас ōлы манос ат ōлы — ты пāсыстаӈкве ат рōви.
 

@@ -59,7 +59,7 @@ editor-accessibility-title =
         [advisories] Koorkâl { $action ->
             [close] peittiđ
            *[open] räppiđ
-        } juksâmvuođâ raporttâ. WCAG AA rihkkoosah iä kavnum, mut láá lasetiäđuh juksâmvuođâ pirri.
+        } juksâmvuođâ raporttâ. WCAG AA rihkkoosah iä kavnum, mut láá lasi juksâmvuođâ ravvimeh.
        *[clean] Koorkâl { $action ->
             [close] peittiđ
            *[open] räppiđ

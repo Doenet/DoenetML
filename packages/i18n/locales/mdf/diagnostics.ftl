@@ -153,7 +153,7 @@ variant-index-must-be-integer = { $index } вариантонь индексэс
 
 side-by-side-absolute-widths = `<{ $component }>` абсолютнай онкстненень аф тиф. Келест вейсэндявикс улить.
 
-side-by-side-absolute-margins = `<{ $component }>` абсолютнай онкстненень аф тиф. Чирест вейсэндявикс улить.
+side-by-side-absolute-margins = `<{ $component }>` абсолютнай онкстненень аф тиф. Ширест вейсэндявикс улить.
 
 side-by-side-no-block-child = Аф виде `<{ $component }>`: сонь сехте аламо фкя блок эйкакшозо улемс эряви.
 
@@ -235,7 +235,7 @@ function-ignoring-non-numerical =
         [minimum] Функциянь ловома аф минимумозо аф ловови.
         [extremum] Функциянь ловома аф экстремумозо аф ловови.
         [point] Функциянь ловома аф точказо аф ловови.
-        [slope] Функциянь ловома аф чирезэ аф ловови.
+        [slope] Функциянь ловома аф ширезэ аф ловови.
        *[other] Функциянь ловома аф { $type } питнезэ аф ловови.
     }
 
@@ -252,11 +252,11 @@ function-points-too-close = Функциясоть фкяст-фкяст пек 
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-        [one] Функциянь итерациятне маштовить аньцек совавтоматнень ламоксчист лисематнень ламоксчинтень вейкетть кда. Те функциясоть { $inputs } совавтома и { $outputs ->
+        [one] Функциянь итерациятне маштовить аньцек совавтоматнень ламоксчист лисематнень ламоксчинтень вейкетть кда. Тя функциясоть { $inputs } совавтома и { $outputs ->
             [one] { $outputs } лисема
            *[other] { $outputs } лисема
         } ули.
-       *[other] Функциянь итерациятне маштовить аньцек совавтоматнень ламоксчист лисематнень ламоксчинтень вейкетть кда. Те функциясоть { $inputs } совавтома и { $outputs ->
+       *[other] Функциянь итерациятне маштовить аньцек совавтоматнень ламоксчист лисематнень ламоксчинтень вейкетть кда. Тя функциясоть { $inputs } совавтома и { $outputs ->
             [one] { $outputs } лисема
            *[other] { $outputs } лисема
         } ули.
@@ -354,7 +354,7 @@ copy-prop-not-found = { $component } ладса компонентсэть { $pr
 
 collect-no-source = collect ланкс лисьма изь муеве.
 
-collect-invalid-component-type = `<{ $component }>` ладса компоненттнень пурнамс аф маштови, эдь те аф виде компонентэнь лад.
+collect-invalid-component-type = `<{ $component }>` ладса компоненттнень пурнамс аф маштови, эдь тя аф виде компонентэнь лад.
 
 reference-index-unavailable = `{ $reference }` индекс ланкс сюлмафкс теемс аф маштови
 
@@ -372,7 +372,7 @@ data-frame-missing-column-name = Даннайтнеса баганонь лем 
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Те каршо валонь award питнезэ answer тегень эсенза кучф каршо вал ланкс аштевти, те аф учовикс тевтненень пачти.
+answer-award-depends-on-own-response = Тя каршо валонь award питнезэ answer тегень эсенза кучф каршо вал ланкс аштевти, тя аф учовикс тевтненень пачти.
 
 answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` мархта контейнер потса `<answer>` ланкс `maxNumAttempts` путомась аф токши, эдь снартнематнень ламоксчист контейнерэсь содасы. `maxNumAttempts` питнеть контейнер ланкс путык.
 

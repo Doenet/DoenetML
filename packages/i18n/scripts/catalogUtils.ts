@@ -8,6 +8,7 @@ import {
     Visitor,
     type FunctionReference,
     type TextElement,
+    type Variant,
 } from "@fluent/syntax";
 import * as prettier from "prettier";
 
@@ -263,6 +264,69 @@ class MultilineTextVisitor extends Visitor {
                     ? `an indented comment line is part of the pattern: ${JSON.stringify(continuation.slice(0, 40))}`
                     : `continues with ${JSON.stringify(continuation.slice(0, 40))}`,
             );
+        }
+        this.genericVisit(node);
+    }
+}
+
+/**
+ * The plural categories, plus the numeric literals a `{ $count -> … }` may
+ * name. These are the variant keys a translation is *supposed* to change:
+ * CLDR gives each language its own set, and a catalog that resolves `one` and
+ * `other` where English resolves `one`, `two` and `other` is correct rather
+ * than broken. Every other variant key is a symbol the core passes in, and
+ * must survive translation letter for letter.
+ */
+const PLURAL_VARIANT_KEYS = new Set([
+    "zero",
+    "one",
+    "two",
+    "few",
+    "many",
+    "other",
+]);
+
+/**
+ * The symbolic variant keys each message selects on, keyed by message id.
+ *
+ * A Fluent selector is matched against the value the caller passes — `$parts`,
+ * `$context`, `$status` — so its keys are part of the interface and not part
+ * of the prose. Translating one silently unreaches that branch: the message
+ * still parses, still lints, and quietly renders its default for every input
+ * that should have chosen the translated key. `locales/fit` did exactly that,
+ * applying Meänkieli's `on` → `oon` spelling rule to
+ * `[text-on-background]`, and nothing caught it until a reader would have.
+ *
+ * Numeric and plural-category keys are left out, because those are the ones a
+ * language is entitled to differ on. What comes back is comparable across
+ * locales: the same message should list the same symbols in English and in
+ * every translation of it.
+ */
+export function symbolicVariantKeys(source: string): Map<string, string[]> {
+    const keys = new Map<string, string[]>();
+    for (const entry of parseFtl(source, {}).body) {
+        if (entry.type !== "Message" && entry.type !== "Term") {
+            continue;
+        }
+        const visitor = new VariantKeyVisitor();
+        visitor.visit(entry);
+        if (visitor.found.length > 0) {
+            keys.set(entry.id.name, visitor.found.sort());
+        }
+    }
+    return keys;
+}
+
+/** Every symbolic (non-numeric, non-plural) variant key under one entry. */
+class VariantKeyVisitor extends Visitor {
+    found: string[] = [];
+
+    visitVariant(node: Variant) {
+        if (
+            node.key.type === "Identifier" &&
+            !PLURAL_VARIANT_KEYS.has(node.key.name)
+        ) {
+            this.found.push(node.key.name);
         }
         this.genericVisit(node);
     }

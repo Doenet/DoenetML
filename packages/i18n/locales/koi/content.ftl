@@ -31,6 +31,25 @@
 # rather than on a placeable.
 
 
+# **Three of this catalog's nouns carry two concepts each, and the seed could
+# settle none of them.** «пас» is the canonical noun for a *point* and is
+# also the word for a *label*, which makes
+# `prefigure-label-position-unsupported` read «паслӧн пасыслы», "the point's
+# point"; «нимпас» is the obvious candidate for the label but is not attested
+# here. «юкӧн» is the canonical noun for a *line segment* and is also
+# *section* and *snippet*, so a geometric segment and a document section read
+# alike; a head — «визь юкӧн» — would separate them. And «визь» is a *line*,
+# a *row*, a *source line* and, in `math-input-invalid-function-names`, a
+# *hyphen*. All three are used consistently in each of their senses, so
+# nothing in the files contradicts them, which is why they need saying here.
+# («шыпас» is the word for a character, and that message now writes it rather
+# than the «пас» it began with.)
+#
+# «юрбитан» for a column is used consistently across all four files and is
+# almost certainly wrong — it is built on «юрбитны», to pray. Nothing here
+# can correct it, so a reviewer should.
+
+
 ## Style vocabulary
 
 color =

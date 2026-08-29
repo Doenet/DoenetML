@@ -21,6 +21,13 @@
 # «komponent», «atribuut», «funktsioon», «indeks» — because that is what a
 # Võro-speaking author meets in the DoenetML documentation and in school.
 #
+# «hüväpoolõ» and «hüväpoolidsõ», for the right-hand side of an equation and
+# for a right-hand label position, are the one term here a review pass could
+# not settle. «hüvä» is "good"; the side of a body is «hää» in Estonian and
+# South Estonian alike, so these two are probably «hääpoolõ» and
+# «hääpoolidsõ». They are left as they stand rather than replaced by a guess,
+# which is what this batch does with a form it cannot establish.
+#
 # Võro counts in the same two categories English does, so every selection below
 # keeps both branches — but a noun after a numeral stands in the partitive
 # singular, so the two branches often differ only in the verb, and where the
@@ -288,14 +295,14 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: grid="{ $grid }" ei olõq arvosaadav. Väärtüs piät olõma none, medium, dense vai kats tühikuga eräldedüt positiivset arvo, näütüses grid="1 0.5". Ruudustikku ei joonistõdaq.
+graph-grid-invalid = `<graph>`: grid="{ $grid }" ei olõq arvosaadav. Väärtüs piät olõma none, medium, dense vai kats tühikuga eräldedüt positiivset arvo, näüdüses grid="1 0.5". Ruudustikku ei joonistõdaq.
 
 ## Vector and slope fields
 
 field-function-wrong-num-outputs =
     `<{ $component }>` vajas funktsiooni, minkal om { $expected ->
-        [one] üts vällämine, tõsu y' egän punktin, näütüses `y - x`
-       *[other] kats vällämist, vektor egän punktin, näütüses `(y, -x)`
+        [one] üts vällämine, tõsu y' egän punktin, näüdüses `y - x`
+       *[other] kats vällämist, vektor egän punktin, näüdüses `(y, -x)`
     }, a annõt funktsioonil om { $found ->
         [one] { $found } vällämine
        *[other] { $found } vällämist
@@ -420,13 +427,13 @@ style-definition-insufficient-contrast =
 
 style-definition-dark-mode-text-background-contrast =
     Ku ka stiilimäärätüsen { $styleNumber } annõduil värmel om hellä tiimi jaos küländ kontrasti, sis naist tuudõduq tummõ tiimi värmiq annaseq teksti ja tagapõhja vaihõl ülearvo väiku kontrasti ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vaja om vähämbält { $threshold }:1). { $suggestion ->
-        [available] Et tummõn tiimin olõsiq küländ kontrasti, kas suurõndagõq hellä tiimi kontrasti (näütüses { $lightAttribute }="{ $lightColor }") vai säädkeq tummõ tiimi värm esiq (näütüses { $darkAttribute }="{ $darkColor }").
+        [available] Et tummõn tiimin olõsiq küländ kontrasti, kas suurõndagõq hellä tiimi kontrasti (näüdüses { $lightAttribute }="{ $lightColor }") vai säädkeq tummõ tiimi värm esiq (näüdüses { $darkAttribute }="{ $darkColor }").
        *[none] Et tummõn tiimin olõsiq küländ kontrasti, suurõndagõq hellä tiimi kontrasti vai säädkeq tuudõduq värmiq esiq textColorDarkMode ja/vai backgroundColorDarkMode abiga.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
     Ku ka stiilimäärätüsen { $styleNumber } annõdul teksti värmil om hellä tiimi jaos küländ kontrasti, sis tuust tuudõt tummõ tiimi teksti värm and lõuendi kotsilõ ülearvo väiku kontrasti ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; vaja om vähämbält { $threshold }:1). { $suggestion ->
-        [available] Et tummõn tiimin olõsiq küländ kontrasti, kas suurõndagõq hellä tiimi kontrasti (näütüses textColor="{ $lightColor }") vai säädkeq tummõ tiimi värm esiq (näütüses textColorDarkMode="{ $darkColor }").
+        [available] Et tummõn tiimin olõsiq küländ kontrasti, kas suurõndagõq hellä tiimi kontrasti (näüdüses textColor="{ $lightColor }") vai säädkeq tummõ tiimi värm esiq (näüdüses textColorDarkMode="{ $darkColor }").
        *[none] Et tummõn tiimin olõsiq küländ kontrasti, suurõndagõq hellä tiimi kontrasti vai säädkeq tuudõt värm esiq textColorDarkMode abiga.
     }
 
@@ -552,7 +559,7 @@ parse-attribute-value-invalid = Vigalinõ DoenetML: vigalinõ atribuudi väärt�
 
 parse-attribute-value-quote-mismatch = Vigalinõ DoenetML: vigalinõ atribuudi väärtüs `{ $value }`. Jutumärgiq ei klapiq. Paistus puudu olõvat `{ $quote }`
 
-parse-open-tag-name-missing = Vigalinõ DoenetML: löüti nimeldäq silt, näütüses `<`
+parse-open-tag-name-missing = Vigalinõ DoenetML: löüti nimeldäq silt, näüdüses `<`
 
 parse-tag-not-closed = Vigalinõ DoenetML: silt `{ $tag }` ei olõq kinniq pant (paistus puudu olõvat `>`).
 
@@ -562,7 +569,7 @@ parse-self-closing-tag-not-closed = Vigalinõ DoenetML: silt `{ $tag }` ei olõq
 
 parse-tag-invalid-attributes = Vigalinõ DoenetML: silt `{ $tag }` ei olõq sobiv. Täl või ollaq valõq atribuudiq.
 
-parse-close-tag-name-missing = Vigalinõ DoenetML: löüti nimeldäq kinnipandva silt, näütüses `</`
+parse-close-tag-name-missing = Vigalinõ DoenetML: löüti nimeldäq kinnipandva silt, näüdüses `</`
 
 parse-attribute-value-unquoted = Atribuutõ väärtüseq piäväq olõma jutumärke seen: `{ $attribute }="{ $value }"`
 

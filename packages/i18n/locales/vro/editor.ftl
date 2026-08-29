@@ -109,9 +109,9 @@ editor-format-as-xml = Vormindaq XML-is
 
 editor-diagnostic-line = Rida nr { $line }
 
-editor-no-errors = Vikõ ei olõ
-editor-no-warnings = Hoiatuisi ei olõ
-editor-no-info = Teedüsteatit ei olõ
+editor-no-errors = Vikõ ei olõq
+editor-no-warnings = Hoiatuisi ei olõq
+editor-no-info = Teedüsteatit ei olõq
 
 editor-show-info-annotations = Näütäq teedüsteatit toimõndajan
 editor-show-accessibility-annotations = Näütäq ligipääsemise teatit toimõndajan
@@ -126,7 +126,7 @@ editor-none-found = Midägi es lövvätäq
 
 ## Submitted responses
 
-editor-no-responses = Ärqsaadõtuid vastussit viil ei olõ
+editor-no-responses = Ärqsaadõtuid vastussit viil ei olõq
 editor-response-answer-id = Vastussõ Id
 editor-response-response = Vastus
 editor-response-credit = Punktiq
@@ -137,7 +137,7 @@ editor-response-submitted = Ärq saadõt
 
 help-placeholder = Viigeq kursor sildi nime, atribuudi vai { $ref } pääle, et nätäq dokumentatsiooni.
 
-help-unsupported-ref-chain = Api mitmõosalidsi viidete, nigu { $example }, kotsilõ ei olõ viil toetõt.
+help-unsupported-ref-chain = Api mitmõosalidsi viidete, nigu { $example }, kotsilõ ei olõq viil toetõt.
 
 help-unresolved-ref =
     { $reason ->

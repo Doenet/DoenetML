@@ -38,6 +38,19 @@
 # «puolisuora», «murtoviiva» and «vektorikenttä» are the Finnish terms, which
 # is what a Karelian text on the subject would in fact use.
 #
+# Two spellings this catalog could not settle, left as they stand rather than
+# replaced by a guess. Karelian's s → š/ž shift reaches the root of "add"
+# unevenly: `chrome.ftl` and `editor.ftl` write «Ližiä» and «Ližäy» in the
+# button labels, while «lisyä», «lisäšuositus» and «lisätietuo» keep the plain
+# `s` in the same four files. And the oblique stem of «lauseke», an
+# expression, is geminate in `chrome.ftl` («lausekkehen») and single in
+# `diagnostics.ftl` («lausekehta»). A reviewer should pick one of each.
+#
+# «šäveh», the word this catalog uses for a circle's radius, is the third.
+# «šäveh» is a tune; the geometry word is more likely «šäteh», beside Finnish
+# «säde». It is used consistently in all six of its messages, so nothing here
+# contradicts it, which is exactly why it needs saying.
+#
 # Karelian has no grammatical gender and does not inflect an attributive
 # adjective for it, so `$gender` goes unused — the answer every Uralic catalog
 # in this batch gives. `$role` is used: like Finnish, a Karelian attributive
@@ -179,7 +192,7 @@ fill-style =
     .vertical = pistyviivoja
     .diagonal = vinoviivoja
     .backdiagonal = vaštakkaisie vinoviivoja
-    .dots = pisteitä
+    .dots = pistehie
     .diamonds = vinonelivöitä
 noun =
     .line = suora

@@ -60,6 +60,22 @@
 # reviewer should expect to change those before anything else.
 
 
+# **The `noun` table splits "line" between two stems, and the header did not
+# say so.** `.line` is «suor» and every `<line>`, `<ray>` and `<angle>`
+# diagnostic uses it, but `.line-segment` is «viivpala» and `.polyline` is
+# «katkaidud viiv», built on «viiv». There is a defensible reading — «suor» a
+# straight line, «viiv» a drawn stroke, which is what `line-color` and
+# `line-style` mean by it — but the `noun` table is the geometric list, so a
+# segment and a polyline arguably want «suorpala» and «katkaidud suor». The
+# seed could not settle it and the entries stand; this note is the record.
+#
+# «homaiduz» is `<note>` and is also the accessibility heading, where this
+# catalog's own «varutez» is what every other panel calls the same thing; and
+# `editor-response-answer-id` writes «Vastusen tunduz», where «tunduz» is the
+# word `diagnostics.ftl` uses throughout for an XML tag. Both are left as
+# they stand.
+
+
 ## Style vocabulary
 
 color =

@@ -154,7 +154,7 @@ style-text =
         [background] { $color } { $background } tagapõhja pääl
        *[plain] { $color }
     }
-style-background-none = ei olõ
+style-background-none = ei olõq
 
 ## Boolean words
 

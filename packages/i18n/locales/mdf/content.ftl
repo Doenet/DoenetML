@@ -52,7 +52,25 @@
 # abstract-noun suffix here and declined to invent the case forms. The numerals
 # and their ablative have been corrected — every `-да` on a digit below is the
 # Moksha ending — so what is left is in the other endings rather than in the
-# stems.
+# stems. The demonstrative was a fifth and is fixed: this file's «тя» stood
+# beside an Erzya «те» in nine messages across the other three files, and all
+# nine read «тя» now, though the case endings on the nouns they modify —
+# «документсэть», «функциясоть», «таркань» — are the inessive residue named
+# above rather than anything the demonstrative fixed.
+#
+# The word for a part is a sixth, and it is the one place this file and the
+# other three disagree outright: `noun.line-segment`, `.part` and `.section`
+# here are «пяльксня», «Пялькс» and «Пяльксня» — the Moksha `я` the vowel
+# correspondences above call for — while `chrome.ftl`, `editor.ftl` and
+# `diagnostics.ftl` write the Erzya «пелькс» in nine places, in six different
+# cases («пельксэнь», «пелькскень», «пелькстнень», «пельксэзэ»,
+# «Пелькскесь», «пелькстне»). The stem is wrong in all nine, but Moksha's
+# connecting vowels in those cases could not be established, and correcting
+# only the stem would produce forms no norm has, so they are left as they
+# stand. This is the same decision the «лама» row records.
+#
+# «Пяльксня» is also both a line segment and a section, so the two will read
+# alike wherever both appear; a reviewer should give one of them a head.
 
 
 ## Style vocabulary

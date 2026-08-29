@@ -15,6 +15,27 @@
 # (kattelin, esikattelu), the illative carries its h (kohtheesen), and «olla»
 # is «oon» in the third person singular where Finnish writes «on».
 #
+# **That last rule belongs to the prose and not to the keys.** A Fluent
+# variant key is matched against the value the core passes, not translated, so
+# `style-definition-insufficient-contrast` writing `[text-oon-background]` and
+# `[text-oon-canvas]` — the `on` → `oon` rule applied to the selector — made
+# both branches unreachable and sent every such warning to the default. They
+# are `[text-on-background]` and `[text-on-canvas]` again, with the Meänkieli
+# prose beside them untouched, and `chrome.test.ts` now holds every catalog's
+# variant keys against English so the class cannot come back.
+#
+# **One block here is written in a heavier orthography than the rest of the
+# file, and the seed could not decide which is the norm.** The field and
+# function messages near the end write the h-infix passive and a degeminated
+# stem — «ohitethaan», «annethaan», «käytethään», «suohraan», «sijhaan»,
+# «lausekheen», «kirjotettu», «annetula funktiola», «sisälä», «yhelä» — where
+# the other fifty passives in this file, and the identical phrase «sen sijaan»
+# two hundred lines above, write «ohitetaan», «suoraan», «sijaan»,
+# «lausekkeen» and the geminate. Both are real Meänkieli; which one this
+# catalog should keep is a norm question a speaker has to settle, so the block
+# is left as it stands rather than levelled to a guess, and the rules above
+# deliberately do not claim an h-infix or a degemination rule.
+#
 # Attribute names, element names and every other DoenetML identifier —
 # `through`, `endpoint`, `midpointOffset`, `numDimensions`, `<answer>`,
 # `selectFromSequence` — are part of the language, not prose, and stay in
@@ -376,11 +397,11 @@ attribute-invalid-for-component = Virheellinen attribuutti ”{ $attribute }” 
 
 style-definition-insufficient-contrast =
     Tyylimäärittelyn { $styleNumber } kontrasti oon riittämätön { $context ->
-        [text-oon-background] tekstin värin ja taustavärin välillä
+        [text-on-background] tekstin värin ja taustavärin välillä
         [high-contrast] korkian kontrastin värin ja piirtoalustan välillä
         [line] viivan värin ja piirtoalustan välillä
         [marker] merkin värin ja piirtoalustan välillä
-       *[text-oon-canvas] tekstin värin ja piirtoalustan välillä
+       *[text-on-canvas] tekstin värin ja piirtoalustan välillä
     }{ $mode ->
         [dark] { " (tumma tila)" }
        *[light] { "" }

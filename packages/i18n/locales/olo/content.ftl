@@ -25,6 +25,13 @@
 # copies of each other — a copy would put one norm's endings in front of the
 # other's reader while claiming to be their own.
 #
+# Two spellings a review pass could not settle, left as they stand rather than
+# replaced by a guess. «kiinolizien» in `diagnostics.ftl`'s message about
+# dependent variables and «kiinolližus» in its two circular-dependency
+# messages are the same stem written with `z` and with `lž`; and a constant is
+# «vakioluvu» and «vakiototevusarvo» in two messages and «vakivo» in two more,
+# on two different stems. A reviewer should pick one of each.
+#
 # Livvi has no grammatical gender and does not inflect an attributive adjective
 # for it, so `$gender` goes unused — the answer every Uralic catalog in this
 # batch gives. `$role` is used: a Livvi attributive adjective agrees with its
