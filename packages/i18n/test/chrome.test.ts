@@ -260,10 +260,14 @@ describe("EN_CHROME_TRANSLATOR", () => {
  * The Sami dual, and the one catalog in the family that cannot write it.
  *
  * `sma`, `smj`, `smn` and `sms` resolve `one`, `two` and `other`, so a
- * `{ $count -> … }` in any of them has a third branch that is genuinely
- * reached — the shape `locales/se` established and the only place in the
- * roster where a category exists because the language counts in pairs rather
- * than because CLDR happens to list it.
+ * `{ $count -> … }` in them can have a third branch that is genuinely reached
+ * — the shape `locales/se` established and the only place in the roster where
+ * a category exists because the language counts in pairs rather than because
+ * CLDR happens to list it. The three messages that write it out are
+ * `attempts-remaining` here and the editor's two accessibility counters,
+ * exactly where `locales/se` writes it; the diagnostics messages that print a
+ * count inside a longer clause keep English's two branches and record the
+ * omission in their header.
  *
  * `sjd` is the same family and does not get one. Kildin Sami has a dual too;
  * what it does not have is CLDR data, so `Intl.PluralRules("sjd")` resolves

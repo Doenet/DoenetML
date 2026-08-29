@@ -25,6 +25,15 @@
 # ignored" — Skolt marks number on the verb too, so `one` and `*[other]` are
 # kept; the dual is not written out beside them, because the verb's dual is not
 # what a list of two attribute names selects.
+#
+# Three messages here do print a count —
+# `function-domain-insufficient-dimensions`,
+# `function-iterates-input-output-mismatch` and
+# `field-function-wrong-num-outputs` — and they keep English's two branches
+# anyway, as `locales/se` does. A count of two therefore renders `*[other]`,
+# whose noun is right after any numeral and whose verb wants the dual. That is
+# a debt this seed leaves rather than a decision it made, and it is three
+# branches of work for a speaker.
 
 
 ## `<lineSegment>`

@@ -309,7 +309,7 @@ makes the point in two scripts and two directions at once.
 
 **All fifteen of the Uralic north are partial, and the batch is the first where
 the school-system case and the `locales/se` case arrive together in one
-family.** Eleven are the ordinary case in three mediums: Russian for Kildin
+family.** Twelve are the ordinary case in three mediums: Russian for Kildin
 Sami, Veps, Livvi, Karelian, Moksha, Komi-Permyak, Hill Mari, Khanty and Mansi,
 Estonian for Võro, Finnish for Inari and Skolt Sami. `locales/fit` is the same
 case in Sweden, and it is the one place where Meänkieli parts company with
@@ -1655,11 +1655,14 @@ headers.** No Uralic language has grammatical gender, so `noun-gender` returns
 one token in every file — the flat answer eleven of the Russian Federation's
 twelve gave. What is new is that it is *asserted*: the same suite checks that a
 catalog's adjectives come out identical whatever noun follows them, which is
-exactly what `locales/ce`, `locales/inh`, `locales/av` and `locales/ku` fail,
-and it turns "this language does not agree" from a remark in a header into a
-property of the file.
+exactly what `locales/inh` and `locales/ku` fail — their descriptions come out
+in two different shapes depending on the noun — and it turns "this language
+does not agree" from a remark in a header into a property of the file.
+(`locales/ce` and `locales/av` write a `$gender` fork too, but the branches no
+noun key can reach; that is the separate thing the "Dagestanian agreement that
+no message can reach" rows pin.)
 
-**Five catalogs do use `$role`, and none of them for gender.** Finnic
+**Four catalogs do use `$role`, and none of them for gender.** Finnic
 adjectives agree in *case*, so `locales/vep`, `locales/olo`, `locales/krl` and
 `locales/fit` fork on the syntactic position the way `locales/fi` does — a
 nominative standing alone, an adessive inside a border clause. `locales/vro` is
@@ -1673,18 +1676,28 @@ it costs a speaker a handful of lines to pay off.
 
 **`sma`, `smj`, `smn` and `sms` resolve `one`, `two` and `other`** — the `se`
 shape, and the only place in the roster where a plural category exists because
-a language counts in pairs. Each writes all three branches wherever a count is
-printed, keeping `two` and `other` apart even where they coincide in wording,
-because they are two categories rather than one with a spelling variant.
+a language counts in pairs. Each writes all three branches where the count and
+its noun are the whole quantified phrase — `attempts-remaining` and the
+editor's two accessibility counters, exactly the three messages `locales/se`
+writes them in — keeping `two` and `other` apart even though they coincide in
+wording, because they are two categories rather than one with a spelling
+variant. Three diagnostics messages print a count inside a longer clause —
+`function-domain-insufficient-dimensions`,
+`function-iterates-input-output-mismatch` and
+`field-function-wrong-num-outputs` — and keep English's two-branch shape, as
+`locales/se` does for the first two: a count of two falls to `*[other]`, whose
+noun is right after any numeral and whose verb wants the dual. Each
+`diagnostics.ftl` header records that as a debt rather than a decision, and a
+speaker can pay it off in a dozen lines.
 
-**`sjd` is the same family and gets two.** Kildin Sami has a dual as surely as
-the others do; what it does not have is CLDR plural data, so
-`Intl.PluralRules("sjd")` resolves against the *runtime's* default locale and a
-`[two]` branch in that catalog would be text nothing could select. Its header
-says so, `chrome.test.ts` pins both halves — the four resolving from their own
-data, `sjd` resolving from something else — and the assertion is made through
-`resolvedOptions().locale` rather than by rendering a count, because what a
-runtime with no `sjd` data falls back to is the environment's business.
+**`sjd` is the family's fifth, and gets only `one` and `other`.** Kildin Sami
+has a dual as surely as the others do; what it does not have is CLDR plural
+data, so `Intl.PluralRules("sjd")` resolves against the *runtime's* default
+locale and a `[two]` branch in that catalog would be text nothing could select.
+Its header says so, `chrome.test.ts` pins both halves — the four resolving from
+their own data, `sjd` resolving from something else — and the assertion is made
+through `resolvedOptions().locale` rather than by rendering a count, because
+what a runtime with no `sjd` data falls back to is the environment's business.
 
 That is not a fact about Kildin Sami, and it is not rare: **eleven of these
 fifteen tags have no CLDR plural data at all**, as `myv`, `kv`, `chm` and `tlh`
@@ -1760,8 +1773,9 @@ rather than branch.** The renderer places the key *before* the mathematics it
 introduces. Komi-Permyak's «кӧ», Hill Mari's «гӹнь», Khanty's «ки» and Mansi's
 «ке» are all clause-final enclitics, so all four record the `locales/dv` shape
 beside the key rather than inventing a workaround — the same limit
-`locales/kv`, `locales/udm` and `locales/chm` recorded a batch earlier, which
-means every Permic and Mari catalog in the roster now sits on that line. The
+`locales/kv`, `locales/udm` and `locales/chm` recorded in the Russian
+Federation batch, which means every Permic and Mari catalog in the roster now
+sits on that line. The
 other eleven land correctly, and they include both of the batch's Cyrillic
 non-Ugric files: Moksha's «кда» and Kildin Sami's «кōhт» open their clauses, as
 the four Latin Sami catalogs' «jis»/«jus»/«jõs» and Finnic's

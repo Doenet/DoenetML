@@ -1324,10 +1324,10 @@ describe("negotiateLocales", () => {
             ["kca", "kca"],
             ["mns", "mns"],
             // Region tags, which filter without help. The batch spans five
-            // countries, and three of the catalogs maximize outside Russia —
-            // `sma` and `smj` to Sweden, `smn` and `sms` to Finland, `vro` to
-            // Estonia, `fit` to Sweden — which is CLDR's data rather than an
-            // error and costs negotiation nothing.
+            // countries, and six of the catalogs maximize outside Russia —
+            // `sma`, `smj` and `fit` to Sweden, `smn` and `sms` to Finland,
+            // `vro` to Estonia — which is CLDR's data rather than an error and
+            // costs negotiation nothing.
             ["sma-SE", "sma"],
             ["sma-NO", "sma"],
             ["smj-SE", "smj"],

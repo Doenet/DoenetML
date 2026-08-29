@@ -3858,10 +3858,13 @@ describe("the Uralic north batch", () => {
      * is worth asserting rather than merely stating. No Uralic language has
      * grammatical gender, so `noun-gender` returns one token in every catalog
      * here — which means the description of a line and of a circle differ in
-     * the noun and in nothing else. That is what the Chechen, Ingush, Avar and
-     * Kurdish catalogs above do *not* satisfy, and running the same check over
-     * both groups is what keeps "this language does not agree" a claim about
-     * the file rather than a remark in its header.
+     * the noun and in nothing else. That is what the Ingush and Kurdish
+     * catalogs above do *not* satisfy — each renders two different adjective
+     * shapes across these six nouns — and running the same check over both
+     * groups is what keeps "this language does not agree" a claim about the
+     * file rather than a remark in its header. (Chechen and Avar fork on
+     * `$gender` too, but on branches no noun key reaches; that is the separate
+     * thing "Dagestanian agreement that no message can reach" pins.)
      */
     it.each(prenominal.map(([locale]) => locale))(
         "leaves %s's adjectives unchanged whatever noun follows them",
