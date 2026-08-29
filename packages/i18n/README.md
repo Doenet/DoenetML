@@ -382,7 +382,10 @@ per-language prose. CLDR has no language data at all for a few of the tags this
 repository ships catalogs for, though, and a `<document lang>` autocomplete
 offering a reader "ktu" and expecting them to know what it is helps nobody. So
 `LOCALE_NAME_FALLBACKS`, in `scripts/catalogUtils.ts`, supplies a name for the
-locales CLDR has none for: today `nah`, `dag`, `ktu`, `mnk` and `kbp`.
+locales CLDR has none for. Which locales those are is the table's own business
+and is not repeated here: it grows with every batch that seeds a tag ICU has
+never heard of, and a copy of the list in this file would be a copy that goes
+stale.
 
 It fills a gap and never overrides one. ICU is asked with `fallback: "none"`, so
 it answers `undefined` where it has nothing — rather than its own rendering of
@@ -2092,6 +2095,40 @@ always falls through to its English fallback.
 
 Namespaces share one bundle per context, so ids must be unique across the
 catalogs a context loads. `lint:i18n` enforces that.
+
+### A variant key is an interface, not prose
+
+A key is not the only identifier a catalog has to leave alone. Fluent matches a
+variant by comparing the selector's value to the key *letter for letter*, so
+`$parts`, `$role`, `$reason`, `$context` and the rest are symbols the core
+passes in and a translated key is not a translation — it is a branch nothing can
+reach:
+
+```ftl
+style-definition-insufficient-contrast =
+    { $context ->
+        [text-on-background] …
+       *[text-on-canvas] …
+    }
+```
+
+Rename `[text-on-background]` and the message still parses, still lints, still
+resolves — and quietly renders the default for every input that should have
+chosen it. `locales/fit` shipped exactly that, having applied Meänkieli's
+`on` → `oon` spelling rule to the keys along with the sentence around them.
+
+`symbolicVariantKeys` in `scripts/catalogUtils.ts` lists the keys a catalog
+selects on, and `catalogLint.test.ts` holds every translation's list against
+English, one test per locale. Plural categories are excluded, because those are
+the keys a language *is* entitled to differ on: CLDR gives each its own set, so
+a catalog resolving `one` and `other` where English resolves `one`, `two` and
+`other` is right rather than broken — see [The dual, and the one Sami language
+that cannot write it](#the-dual-and-the-one-sami-language-that-cannot-write-it).
+The check is a subset rather than an equality for the mirror-image reason: a
+catalog may legitimately select on more than English does — `locales/ku` and the
+Dagestanian catalogs nest a `$gender` select inside `$parts`, and the four
+Finnic catalogs fork on `$role` — so what it forbids is a branch going *missing*,
+which is the only shape the failure takes.
 
 ## Call sites
 

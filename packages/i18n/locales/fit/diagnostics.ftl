@@ -21,8 +21,8 @@
 # `[text-oon-canvas]` — the `on` → `oon` rule applied to the selector — made
 # both branches unreachable and sent every such warning to the default. They
 # are `[text-on-background]` and `[text-on-canvas]` again, with the Meänkieli
-# prose beside them untouched, and `chrome.test.ts` now holds every catalog's
-# variant keys against English so the class cannot come back.
+# prose beside them untouched, and `catalogLint.test.ts` now holds every
+# catalog's variant keys against English so the class cannot come back.
 #
 # **One block here is written in a heavier orthography than the rest of the
 # file, and the seed could not decide which is the norm.** The field and

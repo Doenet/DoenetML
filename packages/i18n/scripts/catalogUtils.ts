@@ -287,7 +287,8 @@ const PLURAL_VARIANT_KEYS = new Set([
 ]);
 
 /**
- * The symbolic variant keys each message selects on, keyed by message id.
+ * The symbolic variant keys each entry selects on, keyed as Fluent addresses
+ * the entry — a message by its id, a term by its id with the leading `-`.
  *
  * A Fluent selector is matched against the value the caller passes — `$parts`,
  * `$context`, `$status` — so its keys are part of the interface and not part
@@ -310,8 +311,14 @@ export function symbolicVariantKeys(source: string): Map<string, string[]> {
         }
         const visitor = new VariantKeyVisitor();
         visitor.visit(entry);
-        if (visitor.found.length > 0) {
-            keys.set(entry.id.name, visitor.found.sort());
+        if (visitor.found.size > 0) {
+            // Sorted and deduplicated: a message with two selects — the
+            // `$parts` fork with a `$gender` one nested inside it — names a
+            // key once per branch it appears on, and what the caller compares
+            // is the set, not how often each one occurs.
+            const id =
+                entry.type === "Term" ? `-${entry.id.name}` : entry.id.name;
+            keys.set(id, [...visitor.found].sort());
         }
     }
     return keys;
@@ -319,14 +326,14 @@ export function symbolicVariantKeys(source: string): Map<string, string[]> {
 
 /** Every symbolic (non-numeric, non-plural) variant key under one entry. */
 class VariantKeyVisitor extends Visitor {
-    found: string[] = [];
+    found = new Set<string>();
 
     visitVariant(node: Variant) {
         if (
             node.key.type === "Identifier" &&
             !PLURAL_VARIANT_KEYS.has(node.key.name)
         ) {
-            this.found.push(node.key.name);
+            this.found.add(node.key.name);
         }
         this.genericVisit(node);
     }
