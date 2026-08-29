@@ -72,31 +72,33 @@ English is the source of truth. Every translation — `ab`, `ace`, `ady`,
 `brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`, `chm`, `ckb`, `co`,
 `cs`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`, `doi`, `dv`, `dyo`,
 `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`,
-`fil`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`,
-`ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`,
-`ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbd`, `kbp`, `kg`, `ki`,
-`kk`, `km`, `kmb`, `kn`, `ko`, `kok`, `kpe`, `kr`, `krc`, `kri`, `ks`,
-`ktu`, `ku`, `kum`, `kv`, `ky`, `lb`, `lbe`, `lez`, `lg`, `ln`, `lo`, `lom`,
-`lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `men`, `mg`, `mi`, `min`, `mk`,
-`ml`, `mn`, `mni`, `mnk`, `mos`, `mr`, `ms`, `mt`, `my`, `myv`, `nah`, `nb`,
-`nds`, `ne`, `nl`, `nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `om`, `or`, `os`,
-`pa`, `pam`, `pcm`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`, `ro`, `ru`,
-`rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sk`,
-`sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sus`, `sv`, `sw`,
-`ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tlh`,
-`tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`, `ug`, `uk`,
-`umb`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`, `wo`, `xal`, `xh`, `yi`, `yo`,
-`zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
+`fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`,
+`gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`,
+`ig`, `ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbd`, `kbp`,
+`kca`, `kg`, `ki`, `kk`, `km`, `kmb`, `kn`, `ko`, `koi`, `kok`, `kpe`, `kr`,
+`krc`, `kri`, `krl`, `ks`, `ktu`, `ku`, `kum`, `kv`, `ky`, `lb`, `lbe`,
+`lez`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`,
+`mdf`, `men`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`,
+`mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `nl`,
+`nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`,
+`pcm`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`,
+`sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sjd`, `sk`, `sl`,
+`sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`,
+`sus`, `sv`, `sw`, `ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
+`tk`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`,
+`ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`, `vro`, `war`, `wo`,
+`xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an
+**unreviewed machine-generated
 seed**, which each file's own header says at the top, and which is what #1521's
 translation platform is for. None has been read by a speaker. Correcting one
 needs no permission and no coordination: a wrong string is just wrong, and the
 English is one key away.
 
-A hundred and fifty-six of them are deliberately partial. A hundred and
-fifty-five are partial in the same place — the two chemistry tables — while
+A hundred and seventy-one of them are deliberately partial. A hundred and
+seventy are partial in the same place — the two chemistry tables — while
 Klingon is partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and fifty-five are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and seventy are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -114,7 +116,9 @@ Mende, Umbundu, Kimbundu, Zarma, Baoulé, Bini, Bulu, Jola-Fonyi, Efik, Ewondo,
 Kpelle, Loma, Susu, Urhobo, Bashkir, Chuvash, Yakut, Tuvinian, Buriat,
 Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic, Chechen, Abkhazian, Adyghe,
 Kabardian, Avaric, Lezghian, Dargwa, Lak, Tabasaran, Ingush, Karachay-Balkar,
-Kumyk, Nogai, Talysh, Kurdish and Central Kurdish
+Kumyk, Nogai, Talysh, Kurdish, Central Kurdish, Southern Sami, Lule Sami,
+Inari Sami, Skolt Sami, Kildin Sami, Veps, Livvi-Karelian, Karelian, Võro,
+Tornedalen Finnish, Moksha, Komi-Permyak, Hill Mari, Khanty and Mansi
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -302,6 +306,24 @@ reproduce rather than invent, published lists differing in how far they
 transliterate and from which source language. Two catalogs of one
 macrolanguage, two different reasons for the same gap, and the Kurdish pair
 makes the point in two scripts and two directions at once.
+
+**All fifteen of the Uralic north are partial, and the batch is the first where
+the school-system case and the `locales/se` case arrive together in one
+family.** Eleven are the ordinary case in three mediums: Russian for Kildin
+Sami, Veps, Livvi, Karelian, Moksha, Komi-Permyak, Hill Mari, Khanty and Mansi,
+Estonian for Võro, Finnish for Inari and Skolt Sami. `locales/fit` is the same
+case in Sweden, and it is the one place where Meänkieli parts company with
+`locales/fi`, which supplies the whole table: Finland teaches chemistry in
+Finnish and Sweden does not teach it in Meänkieli.
+
+**`locales/sma` and `locales/smj` are the two that inherit `locales/se`'s
+problem exactly**, and this is the second time it has arisen — the batch that
+seeded Northern Sami recorded that a Sami pupil meets the Norwegian, Swedish or
+Finnish names depending on which side of a border their school is. Southern and
+Lule Sami are both spoken across the Norwegian-Swedish border, so both inherit
+it in full, and `locales/smj`'s header says so in as many words. Three Sami
+catalogs, one problem, and the answer is the same each time: choosing a list
+would report a fact about a border rather than about the language.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -1605,6 +1627,175 @@ edit; that is a decision to leave a visible gap rather than coin seven terms,
 `editor.ftl` as the file with the most invented vocabulary it contains**, built
 from general Kipchak on the Kazakh and Karakalpak pattern because Nogai has no
 published equivalents. Correcting any of it needs no permission.
+
+### Fifteen catalogs of the Uralic north, and the first member lists to shrink
+
+Southern, Lule, Inari, Skolt and Kildin Sami; Veps, Livvi, Karelian, Võro and
+Meänkieli; Moksha, Komi-Permyak and Hill Mari; Khanty and Mansi — fifteen
+catalogs from **one family**, which is what makes the batch useful, because
+every earlier batch was assembled around a region (the Caucasus), a script (the
+Russian Federation) or a continent. This one holds the family constant and
+varies everything else: two scripts, five countries, four branches, and a range
+from a national minority language of Sweden to two Siberian languages with a
+few hundred speakers each.
+
+Held that way, the family predicts a great deal about grammar and almost
+nothing about delivery.
+
+**All fifteen agree about word order, and that is the answer to the question
+the Caucasus batch left open.** That batch was the first whose members did not
+agree — ten prenominal, five postnominal — which made it fair to ask whether a
+batch can be pinned as one shape at all any more. This one can: every catalog
+here puts the description in front of the noun, across both scripts and all
+four branches, and `styleDescriptions.test.ts` holds all fifteen to it over six
+nouns rather than the one the rows spell out.
+
+**None of the fifteen forks on `$gender`, and the test says so rather than the
+headers.** No Uralic language has grammatical gender, so `noun-gender` returns
+one token in every file — the flat answer eleven of the Russian Federation's
+twelve gave. What is new is that it is *asserted*: the same suite checks that a
+catalog's adjectives come out identical whatever noun follows them, which is
+exactly what `locales/ce`, `locales/inh`, `locales/av` and `locales/ku` fail,
+and it turns "this language does not agree" from a remark in a header into a
+property of the file.
+
+**Five catalogs do use `$role`, and none of them for gender.** Finnic
+adjectives agree in *case*, so `locales/vep`, `locales/olo`, `locales/krl` and
+`locales/fit` fork on the syntactic position the way `locales/fi` does — a
+nominative standing alone, an adessive inside a border clause. `locales/vro` is
+the honest failure beside them and says so in its own header: Võro needs the
+same fork and the seed declined to invent the oblique forms it would take, so
+two messages read with a nominative where a genitive or adessive belongs. That
+is a recorded debt of exactly the kind `locales/ewo` set the precedent for, and
+it costs a speaker a handful of lines to pay off.
+
+#### The dual, and the one Sami language that cannot write it
+
+**`sma`, `smj`, `smn` and `sms` resolve `one`, `two` and `other`** — the `se`
+shape, and the only place in the roster where a plural category exists because
+a language counts in pairs. Each writes all three branches wherever a count is
+printed, keeping `two` and `other` apart even where they coincide in wording,
+because they are two categories rather than one with a spelling variant.
+
+**`sjd` is the same family and gets two.** Kildin Sami has a dual as surely as
+the others do; what it does not have is CLDR plural data, so
+`Intl.PluralRules("sjd")` resolves against the *runtime's* default locale and a
+`[two]` branch in that catalog would be text nothing could select. Its header
+says so, `chrome.test.ts` pins both halves — the four resolving from their own
+data, `sjd` resolving from something else — and the assertion is made through
+`resolvedOptions().locale` rather than by rendering a count, because what a
+runtime with no `sjd` data falls back to is the environment's business.
+
+That is not a fact about Kildin Sami, and it is not rare: **eleven of these
+fifteen tags have no CLDR plural data at all**, as `myv`, `kv`, `chm` and `tlh`
+already did before them. The roster's plural shapes are a map of CLDR's
+coverage, not of how the world's languages count, and the four Sami catalogs
+are here to make the difference visible from inside one family.
+
+#### Negotiation: the first entries to shrink
+
+**`MACROLANGUAGE_MEMBERS` lost two members in this batch, and no previous batch
+has ever removed one.** `koi` (Komi-Permyak) was folded onto `locales/kv` and
+`mrj` (Hill Mari) onto `locales/chm`, both added by the Russian Federation
+batch, both correct at the time: neither had anywhere else to go, and a reader
+served a neighbouring standard beats a reader served English. The moment each
+had a catalog of its own the fold became the thing the map exists to prevent —
+`applyLanguageAlias` rewrites the tag *before* negotiation, so a `locales/koi`
+on disk would have been unreachable while every Komi-Permyak reader kept
+getting Zyrian.
+
+So `kv` now lists `kpv` alone and `chm` lists `mhr` alone. That is `ku`
+excluding `ckb` and `mnk` excluding `bam` and `dyu`, arriving for the first
+time as a *removal* rather than as an omission, and `negotiate.test.ts` holds
+both directions: `koi` and `mrj` reach themselves even when their
+macrolanguage's catalog is also on offer, while `kpv` and `mhr` — the members
+that still have no catalog — still reach `kv` and `chm`.
+
+**`mdf` moved for the same reason without ever having been folded.** The
+Russian Federation batch pinned Moksha on English and explained why at length:
+Moksha and Erzya are two languages with two ISO 639-3 codes and no
+macrolanguage over them, so `locales/myv` could do nothing for a Moksha reader
+and must not pretend to. `locales/myv`'s own header ends that argument by
+saying the answer is "a `locales/mdf` beside this one, not a widening of this
+one". This batch wrote that file. The row moved rather than being deleted,
+because what it was pinning still holds — Moksha reaches a catalog now because
+one was written for it, not because `negotiate.ts` learned to fold a sister
+onto a sister.
+
+**Seven near misses, more than any earlier batch, because the north is full of
+languages one code away from a catalog.** `sje` (Pite), `sju` (Ume) and `sjt`
+(Ter) are Sami beside four Sami catalogs; `izh` (Ingrian), `liv` (Livonian) and
+`vot` (Votic) are Finnic beside five. `fkv` (Kven) is the sharpest: it stands
+to `fit` roughly as Meänkieli stands to Finnish, is written in a closely
+related orthography, and is a separate ISO 639-3 language on the other side of
+a national border — so folding it would be a judgement about how close two
+varieties are rather than a published fact, which is `lki` beside `ckb` and
+`alq` beside `oj`.
+
+**`smi` is left to miss for `son`'s reason rather than `nah`'s**, and the
+difference is CLDR's rather than a preference. Both are collection codes, and
+this repository aliases `nah` because it names one written standard the group's
+members can be served with. `smi` covers ten languages in two scripts across
+four countries, and `new Intl.Locale("smi").maximize()` adds neither script nor
+region — CLDR has no opinion about which of them a bare `smi` means, exactly as
+it has none about `son`. Picking Northern Sami because it is the largest would
+be the judgement these maps exist to avoid. The test asserts the absent
+maximization rather than merely the absent entry, so a change in ICU data fails
+there and invites someone to reconsider.
+
+**Four locales need `LOCALE_NAME_FALLBACKS` entries** — `sjd`, `olo`, `kca` and
+`mns`, which CLDR has no language data for at all — and each gets an endonym
+because its own catalog header commits to one, which is `locales/lbe`'s half of
+that table rather than `locales/tab`'s. Two more of the batch's CLDR names will
+look wrong and are not, the `ny`-reads-Nyanja rule again: `mrj` renders as
+**Western Mari** where every header in it says Hill Mari, and `fit` as
+**Tornedalen Finnish** where the language calls itself Meänkieli. The table
+fills gaps and never overrides ICU, so both stand as CLDR writes them and each
+catalog's header says which language it is.
+
+#### What the batch could not do, and says so
+
+**`piecewise-condition-if` splits four against eleven, and the wall is syntax
+rather than branch.** The renderer places the key *before* the mathematics it
+introduces. Komi-Permyak's «кӧ», Hill Mari's «гӹнь», Khanty's «ки» and Mansi's
+«ке» are all clause-final enclitics, so all four record the `locales/dv` shape
+beside the key rather than inventing a workaround — the same limit
+`locales/kv`, `locales/udm` and `locales/chm` recorded a batch earlier, which
+means every Permic and Mari catalog in the roster now sits on that line. The
+other eleven land correctly, and they include both of the batch's Cyrillic
+non-Ugric files: Moksha's «кда» and Kildin Sami's «кōhт» open their clauses, as
+the four Latin Sami catalogs' «jis»/«jus»/«jõs» and Finnic's
+«ku»/«gu»/«kun»/«jos» do. Two Ob-Ugric and two Volga-Permic catalogs on one
+side, every Sami and Finnic one on the other.
+
+**`locales/kca` and `locales/mns` record a second limit that no earlier catalog
+has**: their causal postposition follows the clause it marks, so English's "X
+is ignored because Y" cannot be written as one sentence and both files write
+two. That is the affix rule from a new direction — not a bound morpheme that
+cannot reach a placeable, but a free word whose position the message shape does
+not offer — and both `diagnostics.ftl` headers name it as a real loss rather
+than a stylistic choice.
+
+**Four catalogs are candid about vocabulary rather than grammar, and they are
+where a speaker should start.** `locales/kca` and `locales/mns` say plainly
+that much of their editor and diagnostics vocabulary is **coined rather than
+attested**, and each lists its coinages by name in its own header — the
+`locales/nog` disclosure applied to two whole files. `locales/sjd` marks itself
+the least certain of the five Sami catalogs, for `locales/xal`'s reasons:
+severely endangered, small written output, Russian technical nouns where
+written Kildin uses them. `locales/sms` records that a large share of its
+lexicon is *derived* from Northern Sami by regular sound correspondence rather
+than found in Skolt, and names the two words it is least sure of. Correcting
+any of it needs no permission.
+
+**Two pairs of catalogs are deliberately not copies of each other, and both say
+so.** `krl` and `olo` are Karelian Proper and Livvi, two ISO 639-3 languages
+with no macrolanguage over them, close enough that a reader of one can largely
+read the other — which is exactly why neither file is a respelling of the
+other: `krl` has «š», the adessive `-lla/-llä`, «ta» and «kun»; `olo` has plain
+«s», the merged `-l`, «da» and «gu», and takes its technical nouns from Russian
+where `krl` takes Finnic ones. `mdf` and `myv` are the same relationship one
+branch over. Neither pair can serve the other's reader and neither pretends to.
 
 ### A language with no word for it
 
