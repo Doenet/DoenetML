@@ -91,11 +91,18 @@ root, an exponent — and a `<textInput/>{:dn}` when a line of ordinary text wil
 do. The expression makes room as a `<mathInput/>{:dn}` grows, and settles once
 the reader presses Enter or moves on.
 
-Give the input a `<shortDescription>{:dn}` when the expression alone does not
-say what is being asked for. Without one, the input is described to a screen
-reader by the expression it sits in — the example above reads as "x equals
-blank plus 3" — and a visible `<label>{:dn}` is not drawn, since there is
-nowhere inside an equation to put one.
+Without a `<shortDescription>{:dn}`, the input is described to a screen reader
+by the expression it sits in — the example above reads as "x equals blank plus
+3" — and a visible `<label>{:dn}` is not drawn, since there is nowhere inside
+an equation to put one.
+
+Write a `<shortDescription>{:dn}` when the expression does not read as a
+sentence with the blank in it. Two cases where it will not: when the input sits
+somewhere that reading left to right loses, such as a subscript, a superscript,
+a fraction, or a root; and when an expression holds so many blanks that a
+reader is left counting which one they are on. Where the expression does read
+plainly, as `x = <textInput/> + 3` does, it names the input better than a
+description would, and none is needed.
 
 Not every input can be placed inside an expression. A non-`inline`
 `<choiceInput/>{:dn}` or an `expanded` `<textInput/>{:dn}` is too large to sit

@@ -81,9 +81,17 @@ is found to be
 
 ```doenet-editor-horiz
 <me>
-  \int_{<mathInput name="lower" minWidth="20" />}^{<mathInput name="upper" minWidth="20" />}
-  <mathInput name="integrand" />
-  \, d<mathInput name="variable" minWidth="20" />
+  \int_{<mathInput name="lower" minWidth="20">
+    <shortDescription>the lower limit</shortDescription>
+  </mathInput>}^{<mathInput name="upper" minWidth="20">
+    <shortDescription>the upper limit</shortDescription>
+  </mathInput>}
+  <mathInput name="integrand">
+    <shortDescription>the function being integrated</shortDescription>
+  </mathInput>
+  \, d<mathInput name="variable" minWidth="20">
+    <shortDescription>the variable of integration</shortDescription>
+  </mathInput>
 </me>
 ```
 
@@ -98,6 +106,10 @@ subscript or superscript.
 A field is drawn at its ordinary size wherever it sits, so it stays comfortable
 to type in even where the mathematics around it is small. Give the ones holding
 a single symbol a small `minWidth` so they do not leave a wide gap.
+
+Each field here is given a `<shortDescription>{:dn}`, because this is a case
+where the expression cannot name them well on its own — see
+[`<m>{:dn}`](m.mdx) for when one is worth writing.
 
 The same restrictions apply as inside `<m>{:dn}`: a non-`inline`
 `<choiceInput/>{:dn}`, an `expanded` `<textInput/>{:dn}` or one whose `width`
