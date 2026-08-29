@@ -760,21 +760,20 @@ export default function TextInput(props: UseDoenetRendererProps) {
         </span>
     );
 
-    const labelComponent =
-        hasLabel && !inMathSlot ? (
-            <label
-                id={labelId}
-                htmlFor={inputKey}
-                style={{
-                    marginInlineEnd:
-                        SVs.labelPosition === "end" ? undefined : "2px",
-                    marginInlineStart:
-                        SVs.labelPosition === "end" ? "2px" : undefined,
-                }}
-            >
-                {label}
-            </label>
-        ) : null;
+    const labelComponent = labelIsRendered ? (
+        <label
+            id={labelId}
+            htmlFor={inputKey}
+            style={{
+                marginInlineEnd:
+                    SVs.labelPosition === "end" ? undefined : "2px",
+                marginInlineStart:
+                    SVs.labelPosition === "end" ? "2px" : undefined,
+            }}
+        >
+            {label}
+        </label>
+    ) : null;
 
     return (
         <span

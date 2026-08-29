@@ -38,7 +38,7 @@ export const BLANK_PLACEHOLDER = "\uFF3F";
 
 /** `latex` with each blank written as something a parser can read. */
 export function latexWithBlanksAsPlaceholders(latex: string): string {
-    return latex.replaceAll(MATH_BLANK_LATEX, BLANK_PLACEHOLDER);
+    return latex.split(MATH_BLANK_LATEX).join(BLANK_PLACEHOLDER);
 }
 
 /**

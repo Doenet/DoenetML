@@ -321,13 +321,14 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     // it, so it becomes the accessible name directly, and a short description
     // given alongside it stays the description, just as it does when the label
     // is drawn.
+    const labelIsRendered = hasLabel && !inMathSlot;
     const mathSlotName =
         inMathSlot && hasLabel && typeof SVs.label === "string"
             ? SVs.label
             : undefined;
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
     const inlineLabelledByIds = [
-        hasLabel && !inMathSlot ? labelId : null,
+        labelIsRendered ? labelId : null,
         ...externalLabelRendererIds,
     ]
         .filter(Boolean)
@@ -587,21 +588,20 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </div>
         );
 
-        const labelComponent =
-            hasLabel && !inMathSlot ? (
-                <label
-                    id={labelId}
-                    htmlFor={inlineInputId}
-                    style={{
-                        marginInlineEnd:
-                            SVs.labelPosition === "end" ? undefined : "4px",
-                        marginInlineStart:
-                            SVs.labelPosition === "end" ? "4px" : undefined,
-                    }}
-                >
-                    {label}
-                </label>
-            ) : null;
+        const labelComponent = labelIsRendered ? (
+            <label
+                id={labelId}
+                htmlFor={inlineInputId}
+                style={{
+                    marginInlineEnd:
+                        SVs.labelPosition === "end" ? undefined : "4px",
+                    marginInlineStart:
+                        SVs.labelPosition === "end" ? "4px" : undefined,
+                }}
+            >
+                {label}
+            </label>
+        ) : null;
 
         const inputRow = (
             <span
