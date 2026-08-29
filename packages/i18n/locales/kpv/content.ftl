@@ -20,11 +20,10 @@
 # it means.
 #
 # Komi-Zyrian has no grammatical gender and does not inflect an attributive
-# adjective,
-# so `$gender` and `$role` go unused here, exactly as in `locales/udm`, its
-# nearest relative in this batch. What both Permic catalogs use instead is the
-# noun's own case suffix in the two clause messages, and in both it falls on a
-# word the catalog writes rather than on a placeable.
+# adjective, so `$gender` and `$role` go unused here, exactly as in
+# `locales/udm`, its nearest relative in this batch. What both Permic catalogs
+# use instead is the noun's own case suffix in the two clause messages, and in
+# both it falls on a word the catalog writes rather than on a placeable.
 
 
 ## Style vocabulary

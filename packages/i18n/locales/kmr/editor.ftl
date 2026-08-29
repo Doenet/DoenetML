@@ -1,8 +1,7 @@
 # Northern Kurdish (Kurmanji) editor and language-server surfaces. Translated
-# from
-# `locales/en/editor.ftl`, which is the source of truth: `lint:i18n` rejects a
-# key that does not exist there, and reports a key that exists there but not
-# here as missing coverage.
+# from `locales/en/editor.ftl`, which is the source of truth: `lint:i18n`
+# rejects a key that does not exist there, and reports a key that exists there
+# but not here as missing coverage.
 #
 # Message ids are never translated — only the text to the right of `=`.
 #

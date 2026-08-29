@@ -9,18 +9,18 @@
 #
 # Komi-Permyak (`koi`) is a member of the Komi macrolanguage (`kv`) and until
 # now was folded onto `locales/kpv` by `MACROLANGUAGE_MEMBERS` in
-# `src/negotiate.ts`, which serves a Komi-Permyak reader the Komi-Zyrian
-# catalog — the compromise that file's own header records. Komi-Permyak is a
-# written standard of its own, with its own orthographic conventions and its
-# own school publishing in Perm Krai, so it now has a catalog of its own and
-# that fold is removed.
+# `src/negotiate.ts`, which served a Komi-Permyak reader the Komi-Zyrian
+# catalog — a compromise that catalog's header recorded for as long as it
+# lasted. Komi-Permyak is a written standard of its own, with its own
+# orthographic conventions and its own school publishing in Perm Krai, so it
+# now has a catalog of its own and that fold is removed.
 #
 # Where this file's spelling parts from `locales/kpv`'s, in the words it
 # actually contains:
 #
 #   plural -эз, not Zyrian -яс      уджэз, задачаэз, координатаэз
-#                                   (kv: уджъяс, задачаяс, координатаяс)
-#   no letter і                     вӧли (kv: вӧлі)
+#                                   (kpv: уджъяс, задачаяс, координатаяс)
+#   no letter і                     вӧли (kpv: вӧлі)
 #   «либо» for Zyrian «либӧ»
 #   «веж» for green, where Zyrian writes «турунвиж»
 #

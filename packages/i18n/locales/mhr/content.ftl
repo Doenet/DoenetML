@@ -22,9 +22,8 @@
 # as before; one that says `lang="mhr"` now says precisely what it means.
 #
 # Meadow Mari has no grammatical gender and does not inflect an attributive
-# adjective,
-# so `$gender` and `$role` go unused here, as in the other three Uralic
-# catalogs of this batch.
+# adjective, so `$gender` and `$role` go unused here, as in the other three
+# Uralic catalogs of this batch.
 
 
 ## Style vocabulary

@@ -1,7 +1,7 @@
 # Northern Kurdish (Kurmanji) diagnostics. Translated from
-# `locales/en/diagnostics.ftl`, which is
-# the source of truth: `lint:i18n` rejects a key that does not exist there, and
-# reports a key that exists there but not here as missing coverage.
+# `locales/en/diagnostics.ftl`, which is the source of truth: `lint:i18n`
+# rejects a key that does not exist there, and reports a key that exists there
+# but not here as missing coverage.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.

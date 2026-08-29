@@ -18,9 +18,8 @@
 # `locales/kpv/content.ftl` for the full note.
 #
 # Komi-Zyrian counts in the same two categories English does, so every
-# selection below
-# keeps both branches — though a noun after a numeral stays singular, so the
-# two read alike.
+# selection below keeps both branches — though a noun after a numeral stays
+# singular, so the two read alike.
 
 
 ## The viewer's controls

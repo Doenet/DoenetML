@@ -22,9 +22,9 @@
 # `mrj` is a member of the `chm` macrolanguage together with Meadow Mari
 # (`mhr`), and until this catalog existed `MACROLANGUAGE_MEMBERS` in
 # `negotiate.ts` folded a Hill Mari reader onto `locales/mhr`, which is written
-# in Meadow. That fold is the compromise `locales/mhr`'s own header records;
-# with a catalog of its own here it is no longer needed, and it is removed
-# alongside this seed rather than by it.
+# in Meadow. That fold was a compromise `locales/mhr`'s own header recorded for
+# as long as it lasted; with a catalog of its own here it is no longer needed,
+# and it is removed alongside this seed rather than by it.
 #
 # Hill Mari has no grammatical gender and does not inflect an attributive
 # adjective, so `$gender` and `$role` go unused here, exactly as in
