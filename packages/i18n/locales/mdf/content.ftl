@@ -40,14 +40,19 @@
 # **Where the seed did not know Moksha's own word it left the shape Moksha and
 # Erzya share**, rather than inventing one. Those are the first thing a speaker
 # should correct, and they are the reason this catalog reads closer to
-# `locales/myv` than a Moksha speaker will want it to. Three residues are known
+# `locales/myv` than a Moksha speaker will want it to. Four residues are known
 # rather than guessed at, and are the next things to fix: the ablative is still
 # written Erzya-style `-де/-до` outside the numerals («нетнеде»,
 # «сюлмафкстнеде») where Moksha writes `-да`; the abessive is `-втомо`
-# («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; and "equal" is
-# «вейкетть», an Erzya form this seed could not confidently replace. The
-# numerals and their ablative have been corrected, so what is left is in the
-# other endings rather than in the stems.
+# («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; "equal" is
+# «вейкетть», an Erzya form this seed could not confidently replace; and the
+# lexicon row's «лама» reached only the bare word — everything built on it is
+# still Erzya-shaped («ламоксчист», «ламоксчинтень», «аламо»,
+# «коламо», «ламось»), because the seed could not establish Moksha's
+# abstract-noun suffix here and declined to invent the case forms. The numerals
+# and their ablative have been corrected — every `-да` on a digit below is the
+# Moksha ending — so what is left is in the other endings rather than in the
+# stems.
 
 
 ## Style vocabulary

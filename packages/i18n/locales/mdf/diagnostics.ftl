@@ -41,14 +41,19 @@
 # **Where the seed did not know Moksha's own word it left the shape Moksha and
 # Erzya share**, rather than inventing one. Those are the first thing a speaker
 # should correct, and they are the reason this catalog reads closer to
-# `locales/myv` than a Moksha speaker will want it to. Three residues are known
+# `locales/myv` than a Moksha speaker will want it to. Four residues are known
 # rather than guessed at, and are the next things to fix: the ablative is still
 # written Erzya-style `-де/-до` outside the numerals («нетнеде»,
 # «сюлмафкстнеде») where Moksha writes `-да`; the abessive is `-втомо`
-# («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; and "equal" is
-# «вейкетть», an Erzya form this seed could not confidently replace. The
-# numerals and their ablative have been corrected, so what is left is in the
-# other endings rather than in the stems.
+# («таркавтомо», «точкавтомо») where Moksha writes `-фтома`; "equal" is
+# «вейкетть», an Erzya form this seed could not confidently replace; and the
+# lexicon row's «лама» reached only the bare word — everything built on it is
+# still Erzya-shaped («ламоксчист», «ламоксчинтень», «аламо»,
+# «коламо», «ламось»), because the seed could not establish Moksha's
+# abstract-noun suffix here and declined to invent the case forms. The numerals
+# and their ablative have been corrected — every `-да` on a digit below is the
+# Moksha ending — so what is left is in the other endings rather than in the
+# stems.
 #
 # Attribute names, element names and every other DoenetML identifier —
 # `through`, `endpoint`, `midpointOffset`, `numDimensions`, `<answer>`,
@@ -192,7 +197,7 @@ circle-too-many-through-points = 3-да лама точкань пачк юты�
 
 circle-overprescribed-radius-center-points = Максф радиус, куншка и точкат мархта круготь ловомс аф маштови.
 
-circle-center-with-multiple-points = Максф куншка мархта 1-де лама точкань пачк ютыця круготь ловомс аф маштови.
+circle-center-with-multiple-points = Максф куншка мархта 1-да лама точкань пачк ютыця круготь ловомс аф маштови.
 
 circle-radius-too-small = Круготь ловомс аф маштови: кафта точкатнень ютксост { $distance } кда, максф радиусось { $radius } пек вишкине.
 
@@ -200,7 +205,7 @@ circle-radius-with-many-points = Максф радиус мархта кафта
 
 circle-invalid-center-or-through-points = Кругонь куншказо эли точканзо аф видеть.
 
-circle-radius-center-with-multiple-points = Максф куншка мархта 1-де лама точкань пачк ютыця кругонь радиусонзо ловомс аф маштови.
+circle-radius-center-with-multiple-points = Максф куншка мархта 1-да лама точкань пачк ютыця кругонь радиусонзо ловомс аф маштови.
 
 circle-change-radius-non-numerical = Ловома аф точкат мархта кругонь радиусонзо полавтомс аф маштови
 
@@ -293,7 +298,7 @@ angle-too-many-lines = { $count } виде линиянь юткса ужоть 
 
 angle-invalid-through-point = `<angle>` элементэнь through питнесэть аф виде точка
 
-parabola-vertex-too-many-points = Максф пря мархта 1-де лама точкань пачк ютыця парабола аф тиф.
+parabola-vertex-too-many-points = Максф пря мархта 1-да лама точкань пачк ютыця парабола аф тиф.
 
 parabola-too-many-points = 3-да лама точкань пачк ютыця парабола аф тиф.
 
@@ -678,7 +683,7 @@ select-from-sequence-coprime-common-factor = Вейкест-фкяст инкс�
 
 select-from-sequence-coprime-single-number = 1 аш фкя ловомаста фкяст-фкяст инкса простай вейсэндяфкстнень кочкамс аф маштови.
 
-select-from-sequence-excluded-too-many-combinations = selectFromSequence потса вейсэндяфкстнеде 70%-де ламось сяф
+select-from-sequence-excluded-too-many-combinations = selectFromSequence потса вейсэндяфкстнеде 70%-да ламось сяф
 
 select-from-sequence-coprime-none-found = Вейкест-фкяст инкса простай ловоматнень кочкамс изь маштово. Весе маштовикс питнетнень вейсэнь явицяст ули.
 
@@ -692,7 +697,7 @@ select-prime-numbers-values-not-prime = select prime number ланкс макс�
 
 select-prime-numbers-values-excluded-combination = selectPrimeNumbers ланкс максф питнетне сяф вейсэндяфкс ульнесть
 
-select-prime-numbers-excluded-too-many-combinations = selectPrimeNumbers потса вейсэндяфкстнеде 70%-де ламось сяф
+select-prime-numbers-excluded-too-many-combinations = selectPrimeNumbers потса вейсэндяфкстнеде 70%-да ламось сяф
 
 select-random-combination-fluke = Пек аф маштовикс тевень кувалт эрьва кодамо питнетнень вейсэндяфксост кочкамс изь маштово
 

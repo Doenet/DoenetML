@@ -57,9 +57,9 @@ vector-dimension-mismatch = numDimensions-ristiriita vektorissa.
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Kohteeseen `<{ $component }>` ei voi vetää, koska sillä ei ole nearestPoint-tilamuuttujaa.
+attract-to-without-nearest-point = Kohtheesen `<{ $component }>` ei voi vetää, koska sillä ei ole nearestPoint-tilamuuttujaa.
 
-constrain-to-without-nearest-point = Kohteeseen `<{ $component }>` ei voi rajoittaa, koska sillä ei ole nearestPoint-tilamuuttujaa.
+constrain-to-without-nearest-point = Kohtheesen `<{ $component }>` ei voi rajoittaa, koska sillä ei ole nearestPoint-tilamuuttujaa.
 
 constrain-to-interior-without-nearest-point = Kohteen `<{ $component }>` sisäosaan ei voi rajoittaa, koska sillä ei ole nearestPoint-tilamuuttujaa.
 

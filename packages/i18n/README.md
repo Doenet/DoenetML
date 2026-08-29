@@ -1386,13 +1386,15 @@ header says which language it is. `os` is also the one locale here whose
 maximization names a country outside Russia — `os-Cyrl-GE`, Georgia — which is
 CLDR's data rather than an error and costs negotiation nothing.
 
-`mdf` is the near miss worth naming, because it is the other half of a pair
-whose first half now has a catalog. Moksha and Erzya are two languages with two
-ISO 639-3 codes and no macrolanguage over them, so `locales/myv` can do nothing
-for a Moksha reader and must not pretend to — the rule working rather than a
-gap in it, exactly as `fat` and `alq` land. `krc`, `kum`, `nog`, `ady`, `kbd`,
-`av` and `sel` fall to English for the same reason, and `negotiate.test.ts`
-pins every one of them.
+`mdf` was the near miss worth naming, because it was the other half of a pair
+whose first half had a catalog. Moksha and Erzya are two languages with two
+ISO 639-3 codes and no macrolanguage over them, so `locales/myv` could do
+nothing for a Moksha reader and must not pretend to — the rule working rather
+than a gap in it, exactly as `fat` and `alq` land. `krc`, `kum`, `nog`, `ady`,
+`kbd`, `av` and `sel` fell to English for the same reason. Only `sel` still
+does: the other seven have catalogs of their own as of the Caucasus and Kurdish
+and the Uralic north batches, and `negotiate.test.ts` pins each of them in the
+`describe` for the batch that wrote it.
 
 #### The chemistry gap
 
