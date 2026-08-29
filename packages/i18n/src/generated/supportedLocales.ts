@@ -68,6 +68,7 @@ export type SupportedLocale =
     | "ff"
     | "fi"
     | "fil"
+    | "fit"
     | "fj"
     | "fo"
     | "fon"
@@ -101,6 +102,7 @@ export type SupportedLocale =
     | "kab"
     | "kbd"
     | "kbp"
+    | "kca"
     | "kg"
     | "ki"
     | "kk"
@@ -108,11 +110,13 @@ export type SupportedLocale =
     | "kmb"
     | "kn"
     | "ko"
+    | "koi"
     | "kok"
     | "kpe"
     | "kr"
     | "krc"
     | "kri"
+    | "krl"
     | "ks"
     | "ktu"
     | "ku"
@@ -132,6 +136,7 @@ export type SupportedLocale =
     | "lv"
     | "mad"
     | "mai"
+    | "mdf"
     | "men"
     | "mg"
     | "mi"
@@ -141,8 +146,10 @@ export type SupportedLocale =
     | "mn"
     | "mni"
     | "mnk"
+    | "mns"
     | "mos"
     | "mr"
+    | "mrj"
     | "ms"
     | "mt"
     | "my"
@@ -158,6 +165,7 @@ export type SupportedLocale =
     | "nyn"
     | "oc"
     | "oj"
+    | "olo"
     | "om"
     | "or"
     | "os"
@@ -184,9 +192,14 @@ export type SupportedLocale =
     | "sg"
     | "shi"
     | "si"
+    | "sjd"
     | "sk"
     | "sl"
     | "sm"
+    | "sma"
+    | "smj"
+    | "smn"
+    | "sms"
     | "sn"
     | "so"
     | "sq"
@@ -225,7 +238,9 @@ export type SupportedLocale =
     | "urh"
     | "uz"
     | "ve"
+    | "vep"
     | "vi"
+    | "vro"
     | "war"
     | "wo"
     | "xal"
@@ -585,6 +600,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Filipino",
         label: "Filipino",
     },
+    {
+        locale: "fit",
+        englishName: "Tornedalen Finnish",
+        endonym: "Tornedalen Finnish",
+        label: "Tornedalen Finnish",
+    },
     { locale: "fj", englishName: "Fijian", endonym: "Fijian", label: "Fijian" },
     {
         locale: "fo",
@@ -753,6 +774,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Kabɩyɛ",
         label: "Kabiyè (Kabɩyɛ)",
     },
+    {
+        locale: "kca",
+        englishName: "Khanty",
+        endonym: "ханты ясанг",
+        label: "Khanty (ханты ясанг)",
+    },
     { locale: "kg", englishName: "Kongo", endonym: "Kongo", label: "Kongo" },
     {
         locale: "ki",
@@ -791,6 +818,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Korean (한국어)",
     },
     {
+        locale: "koi",
+        englishName: "Komi-Permyak",
+        endonym: "Komi-Permyak",
+        label: "Komi-Permyak",
+    },
+    {
         locale: "kok",
         englishName: "Konkani",
         endonym: "कोंकणी",
@@ -810,6 +843,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Karachay-Balkar",
     },
     { locale: "kri", englishName: "Krio", endonym: "Krio", label: "Krio" },
+    {
+        locale: "krl",
+        englishName: "Karelian",
+        endonym: "Karelian",
+        label: "Karelian",
+    },
     {
         locale: "ks",
         englishName: "Kashmiri",
@@ -904,6 +943,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "मैथिली",
         label: "Maithili (मैथिली)",
     },
+    {
+        locale: "mdf",
+        englishName: "Moksha",
+        endonym: "Moksha",
+        label: "Moksha",
+    },
     { locale: "men", englishName: "Mende", endonym: "Mende", label: "Mende" },
     {
         locale: "mg",
@@ -948,12 +993,24 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Mandinkakaŋo",
         label: "Mandinka (Mandinkakaŋo)",
     },
+    {
+        locale: "mns",
+        englishName: "Mansi",
+        endonym: "маньси лāтыӈ",
+        label: "Mansi (маньси лāтыӈ)",
+    },
     { locale: "mos", englishName: "Mossi", endonym: "Mossi", label: "Mossi" },
     {
         locale: "mr",
         englishName: "Marathi",
         endonym: "मराठी",
         label: "Marathi (मराठी)",
+    },
+    {
+        locale: "mrj",
+        englishName: "Western Mari",
+        endonym: "Western Mari",
+        label: "Western Mari",
     },
     {
         locale: "ms",
@@ -1025,6 +1082,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Occitan (occitan)",
     },
     { locale: "oj", englishName: "Ojibwa", endonym: "Ojibwa", label: "Ojibwa" },
+    {
+        locale: "olo",
+        englishName: "Livvi-Karelian",
+        endonym: "livvinkarjala",
+        label: "Livvi-Karelian (livvinkarjala)",
+    },
     {
         locale: "om",
         englishName: "Oromo",
@@ -1182,6 +1245,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Sinhala (සිංහල)",
     },
     {
+        locale: "sjd",
+        englishName: "Kildin Sami",
+        endonym: "кӣллт са̄мь кӣлл",
+        label: "Kildin Sami (кӣллт са̄мь кӣлл)",
+    },
+    {
         locale: "sk",
         englishName: "Slovak",
         endonym: "slovenčina",
@@ -1194,6 +1263,30 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Slovenian (slovenščina)",
     },
     { locale: "sm", englishName: "Samoan", endonym: "Samoan", label: "Samoan" },
+    {
+        locale: "sma",
+        englishName: "Southern Sami",
+        endonym: "Southern Sami",
+        label: "Southern Sami",
+    },
+    {
+        locale: "smj",
+        englishName: "Lule Sami",
+        endonym: "Lule Sami",
+        label: "Lule Sami",
+    },
+    {
+        locale: "smn",
+        englishName: "Inari Sami",
+        endonym: "anarâškielâ",
+        label: "Inari Sami (anarâškielâ)",
+    },
+    {
+        locale: "sms",
+        englishName: "Skolt Sami",
+        endonym: "Skolt Sami",
+        label: "Skolt Sami",
+    },
     {
         locale: "sn",
         englishName: "Shona",
@@ -1382,12 +1475,14 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Uzbek (o‘zbek)",
     },
     { locale: "ve", englishName: "Venda", endonym: "Venda", label: "Venda" },
+    { locale: "vep", englishName: "Veps", endonym: "Veps", label: "Veps" },
     {
         locale: "vi",
         englishName: "Vietnamese",
         endonym: "Tiếng Việt",
         label: "Vietnamese (Tiếng Việt)",
     },
+    { locale: "vro", englishName: "Võro", endonym: "Võro", label: "Võro" },
     { locale: "war", englishName: "Waray", endonym: "Waray", label: "Waray" },
     { locale: "wo", englishName: "Wolof", endonym: "Wolof", label: "Wolof" },
     {
