@@ -60,6 +60,10 @@ interface HeldTemplate {
     /**
      * Whether this is a stand-in, kept only until the template that reflects a
      * just-committed value arrives; see `noteSlotCommit`.
+     *
+     * "Reflects a just-committed value" is an assumption, not something the
+     * renderer is told: core sends templates, not acknowledgements. What this
+     * therefore means in practice is *the next template change of any origin*.
      */
     awaitingCommit: boolean;
 }
@@ -94,6 +98,12 @@ function slotIndicesInTemplate(template: string): number[] {
  * from being drawn. It costs a constant sliver of width, independent of how
  * long the label is.
  *
+ * A zero-sized box goes in alongside, carrying an id of its own. A box with no
+ * height and no depth sits on the line's baseline, which is what the control
+ * has to be aligned to; reading it out of the typeset output means the
+ * alignment is taken from the very output being measured, rather than from a
+ * reservation that may since have been superseded.
+ *
  * Returns `null` while any slot is still unmeasured, so that the expression is
  * typeset once, with real sizes, rather than being typeset to a guess and
  * visibly reflowing.
@@ -103,6 +113,7 @@ export function substituteSlots({
     componentIndices,
     sizes,
     slotElementId,
+    slotBaselineElementId,
     slotLabel,
 }: {
     template: string;
@@ -110,6 +121,7 @@ export function substituteSlots({
     componentIndices: readonly number[];
     sizes: ReadonlyMap<number, SlotBox>;
     slotElementId: (componentIdx: number) => string;
+    slotBaselineElementId: (componentIdx: number) => string;
     slotLabel: (componentIdx: number) => string;
 }): string | null {
     let missing = false;
@@ -130,6 +142,8 @@ export function substituteSlots({
             return (
                 `\\cssId{${slotElementId(componentIdx)}}{\\mathord{` +
                 `\\class{doenet-math-slot-label}{\\rlap{\\text{${label}}}}` +
+                `\\cssId{${slotBaselineElementId(componentIdx)}}{` +
+                `\\Space{0px}{0px}{0px}}` +
                 `\\Space{${box.width}px}{${box.height}px}{${box.depth}px}}}`
             );
         },
@@ -176,12 +190,6 @@ export function useMathSlots({
     // against, and measuring from it makes the two agree by construction.
     const layerRef = useRef<HTMLSpanElement>(null);
     const [sizes, setSizes] = useState<ReadonlyMap<number, SlotBox>>(new Map());
-    // Reading a position needs the box that was typeset there, to know where
-    // its baseline falls; kept in a ref so that reading one does not depend on
-    // the sizes, whose identity would otherwise churn the observers watching
-    // for a reflow (see `math.tsx`).
-    const sizesRef = useRef(sizes);
-    sizesRef.current = sizes;
     const [positions, setPositions] = useState<
         ReadonlyMap<number, SlotPosition>
     >(new Map());
@@ -232,8 +240,24 @@ export function useMathSlots({
     // A commit asks the expression to catch up, but what it is to catch up to
     // is still on its way: the value goes to core, and the LaTeX that shows it
     // comes back a round trip later. So a commit holds what is on screen for
-    // now and re-anchors the hold on the next template core sends — which is
-    // the one carrying the value the reader just entered.
+    // now and re-anchors the hold on the next template core sends.
+    //
+    // That next template is taken to be the one carrying the committed value,
+    // which is an inference rather than a fact — nothing identifies an update
+    // as the answer to a particular commit. Two consequences, both bounded:
+    // an expression whose template does not depend on the value (`x = ␣` has
+    // the same template whatever is typed into it) stays armed, and then some
+    // later change is let through instead; and a change from elsewhere that
+    // arrives first is let through in the committed value's place. Either way
+    // it is one re-typeset, at a point where the reader has just finished
+    // entering something, and the hold closes again behind it.
+    //
+    // Closing that gap properly needs core to say which update answers which
+    // commit. Clearing the flag on any further activity from the control is
+    // *not* the fix: a control's own size settling after a commit is
+    // indistinguishable from the reader resuming, so it disarms before the
+    // value it was waiting for arrives, and the expression goes stale until
+    // the field is left — which is the bug this whole mechanism exists to fix.
     useLayoutEffect(() => {
         setHeld((previous) =>
             previous?.awaitingCommit && previous.template !== template
@@ -260,6 +284,14 @@ export function useMathSlots({
 
     const slotElementId = useCallback(
         (componentIdx: number) => `${rootId}_mathSlot_${componentIdx}`,
+        [rootId],
+    );
+
+    // Deliberately not `${rootId}_mathSlot_${componentIdx}_base`: the reserved
+    // box is found by its `_mathSlot_` id, and a marker sharing that substring
+    // would be picked up wherever a box is looked for.
+    const slotBaselineElementId = useCallback(
+        (componentIdx: number) => `${rootId}_mathBaseline_${componentIdx}`,
         [rootId],
     );
 
@@ -294,9 +326,17 @@ export function useMathSlots({
                       componentIndices,
                       sizes,
                       slotElementId,
+                      slotBaselineElementId,
                       slotLabel,
                   }),
-        [activeTemplate, componentIndices, sizes, slotElementId, slotLabel],
+        [
+            activeTemplate,
+            componentIndices,
+            sizes,
+            slotElementId,
+            slotBaselineElementId,
+            slotLabel,
+        ],
     );
 
     /**
@@ -304,9 +344,14 @@ export function useMathSlots({
      *
      * The lookup is scoped to this expression's root, so it sees neither the
      * off-screen buffer `DynamicMath` typesets into nor another viewer on the
-     * same page that happens to mint the same ids. Position only — the box's
-     * size came from the control in the first place, and is read back here
-     * only to say where on the box the line's baseline runs.
+     * same page that happens to mint the same ids.
+     *
+     * Both coordinates come out of the output being measured — the left edge
+     * from the reserved box, the baseline from the zero-sized marker typeset on
+     * it. Nothing here consults the sizes most recently reported, which need
+     * not be the ones this output was typeset from: a swap can land after a
+     * newer size has been reported, and pairing that size with this box's edge
+     * would put the control off the line until the next swap.
      */
     const readPositions = useCallback(() => {
         const root = rootRef.current;
@@ -323,19 +368,23 @@ export function useMathSlots({
             if (!reserved) {
                 continue;
             }
-            const rect = reserved.getBoundingClientRect();
-            // The box was typeset with its height above the line's baseline,
-            // so that is how far below its top the baseline falls.
-            const height = sizesRef.current.get(componentIdx)?.height ?? 0;
+            const baselineMarker = root.querySelector(
+                `#${CSS.escape(slotBaselineElementId(componentIdx))}`,
+            );
+            if (!baselineMarker) {
+                continue;
+            }
             next.set(componentIdx, {
-                left: rect.left - originRect.left,
-                baseline: rect.top - originRect.top + height,
+                left: reserved.getBoundingClientRect().left - originRect.left,
+                baseline:
+                    baselineMarker.getBoundingClientRect().bottom -
+                    originRect.top,
             });
         }
         setPositions((previous) =>
             samePositions(previous, next) ? previous : next,
         );
-    }, [componentIndices, slotElementId]);
+    }, [componentIndices, slotElementId, slotBaselineElementId]);
 
     const contextValue = useMemo<MathSlotContextValue>(
         () => ({ reportSize, positions, setSlotEditing, noteSlotCommit }),
