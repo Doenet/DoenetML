@@ -22,7 +22,7 @@ import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
-import { useInMathSlot } from "./utils/mathInputSlots";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
 import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 // type guard
@@ -120,6 +120,11 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const slotRootRef = useRef<HTMLSpanElement>(null);
     useMathJaxOutOfTabOrder(slotRootRef);
 
+    // A select's width is fixed by its widest choice, so an expression around
+    // it never has to make room; what it does have to do is stay still while
+    // the reader has it open. Outside a slot this is a no-op.
+    const slotEditing = useMathSlotEditing();
+
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
 
@@ -150,6 +155,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     });
 
     function onFocusChanged(focused: boolean) {
+        slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,
             args: { focused },

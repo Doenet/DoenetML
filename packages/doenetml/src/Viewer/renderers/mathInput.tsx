@@ -50,6 +50,8 @@ import {
 } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import { useChromeLangDir, useContentT, useT } from "../../utils/i18n";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 const PARSE_ERROR_PLACEHOLDER_LATEX = "\uff3f";
@@ -114,6 +116,7 @@ function useMathInputPreview({
     errorMessageRawRenderer,
     focused,
     previewUpdateDelayMs,
+    placement,
     onEscapeFromPreview,
 }: {
     id: string;
@@ -123,6 +126,8 @@ function useMathInputPreview({
     errorMessageRawRenderer: string | null;
     focused: boolean;
     previewUpdateDelayMs: number;
+    /** Which side of the field the preview opens on. */
+    placement: Ariakit.PopoverStoreProps["placement"];
     onEscapeFromPreview: () => void;
 }) {
     const [interactingWithPreview, setInteractingWithPreview] = useState(false);
@@ -137,7 +142,7 @@ function useMathInputPreview({
 
     const previewRef = useRef<HTMLDivElement | null>(null);
     const previewPopover = Ariakit.usePopoverStore({
-        placement: "right",
+        placement,
     });
 
     const previewId = `${id}-preview`;
@@ -472,6 +477,27 @@ export default function MathInput(props: UseDoenetRendererProps) {
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
     const legacyKeyboardTray = useContext(LegacyKeyboardTrayContext);
+
+    // Inside an expression there is no room for anything but the field itself:
+    // a visible label or a check-work button drawn among the symbols would read
+    // as part of the math. The expression names the field instead, through its
+    // short description. Read here, with the other hooks, so it is read on
+    // every render whether or not the field goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
+    // A field that grows as the reader types would otherwise re-typeset the
+    // expression around it on every keystroke. Telling the slot when the field
+    // is being edited is what buys it room to grow into and holds the rest of
+    // the expression still until the value is committed. Outside a slot these
+    // are no-ops.
+    const slotEditing = useMathSlotEditing();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
+
     const [mathField, setMathField] = useState<MathField | null>(null);
     // `EditableMathField`'s `handlers.enter` callback can hold stale captures.
     // Keep the latest MathField instance in a ref for enter handling.
@@ -554,6 +580,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
         errorMessageRawRenderer: SVs.errorMessageRawRenderer,
         focused,
         previewUpdateDelayMs: PREVIEW_UPDATE_DELAY_MS,
+        // Beside the field is where the rest of the equation is, once the
+        // field is inside one.
+        placement: inMathSlot ? "top" : "right",
         onEscapeFromPreview: () => {
             textareaRef.current?.focus();
         },
@@ -605,6 +634,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const submitActionWithPendingRef = useRef(submitActionWithPending);
     submitActionWithPendingRef.current = submitActionWithPending;
 
+    // For the same reason: an enter handler held from an earlier render would
+    // otherwise commit against the slot this field sat in then.
+    const slotEditingRef = useRef(slotEditing);
+    slotEditingRef.current = slotEditing;
+
     const handlePressEnter = React.useCallback(() => {
         if (!mathFieldRef.current) {
             return;
@@ -614,6 +648,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
         });
+        // Enter commits without blurring, so an expression around this field
+        // catches up here rather than waiting for focus to leave. The caret
+        // survives the re-typeset because the field is drawn over the
+        // expression, not inside it.
+        slotEditingRef.current.commit();
 
         if (
             showCheckWork.current &&
@@ -751,6 +790,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     function onFocusChanged(focused: boolean) {
         setFocused(focused);
+        // The right boundary for an expression around this field, rather than
+        // raw focus: a blur that hands focus to the keyboard tray does not come
+        // through here, so the expression stays still while the reader types on
+        // the tray, and `endEditing` releases it however focus finally leaves.
+        slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,
             args: { focused },
@@ -1505,26 +1549,37 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     // ===== Inline (non-graph) branch =====
 
-    const checkWorkComponent = createCheckWorkComponent(
-        SVs,
-        id,
-        validationState.current,
-        submitActionWithPending,
-        SVs.forceFullCheckWorkButton,
-        isPending,
-        tContent,
-    );
+    const checkWorkComponent = inMathSlot
+        ? null
+        : createCheckWorkComponent(
+              SVs,
+              id,
+              validationState.current,
+              submitActionWithPending,
+              SVs.forceFullCheckWorkButton,
+              isPending,
+              tContent,
+          );
 
+    // Inside an expression the label is kept out of sight rather than left
+    // out, so `aria-labelledby` names the field from it exactly as it does
+    // elsewhere — a label that is itself math is then spoken as MathJax reads
+    // it, not as its LaTeX.
     const labelComponent = hasLabel ? (
         <label
             id={labelId}
             htmlFor={inputKey}
-            style={{
-                marginInlineEnd:
-                    SVs.labelPosition === "end" ? undefined : "2px",
-                marginInlineStart:
-                    SVs.labelPosition === "end" ? "2px" : undefined,
-            }}
+            className={inMathSlot ? "visually-hidden" : undefined}
+            style={
+                inMathSlot
+                    ? undefined
+                    : {
+                          marginInlineEnd:
+                              SVs.labelPosition === "end" ? undefined : "2px",
+                          marginInlineStart:
+                              SVs.labelPosition === "end" ? "2px" : undefined,
+                      }
+            }
         >
             {label}
         </label>
@@ -1575,6 +1630,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         <React.Fragment>
             <span
                 id={id}
+                ref={inMathSlot ? slotRootRef : undefined}
                 // `display: inline` keeps the label and input row as ordinary
                 // inline content so the whole input flows with its paragraph:
                 // text before and after the input wraps together with the label

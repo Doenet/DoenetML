@@ -60,20 +60,21 @@ an `<mrow>{:dn}`.  Equations and content will align vertically where the `&` sym
 
 ---
 
-### Example: `<mrow>{:dn}` cannot contain `<answer>{:dn}` or `<mathInput/>{:dn}`
+### Example: `<mrow>{:dn}` cannot contain `<answer>{:dn}`
 
 
 ```doenet-editor-horiz
 <p>The following will not render as intended:</p>
 <md>
   <mrow>x = <answer name="ans1"><label>What is x?</label>x</answer></mrow>
-  <mrow>y = <mathInput><label>Enter y</label></mathInput></mrow>
 </md>
 ```
 
 
 
-An `<mrow>{:dn}` component cannot contain an `<answer>{:dn}` or a `<mathInput/>{:dn}`.
+An `<mrow>{:dn}` component cannot contain an `<answer>{:dn}`. An input on its
+own can be written into a row, and is drawn inside the aligned display where it
+was written — see [`<md>`](md.mdx).
 
 
 
@@ -107,7 +108,7 @@ An `<mrow>{:dn}` component cannot contain an `<answer>{:dn}` or a `<mathInput/>{
 Computational DoenetML components, such as `<math>{:dn}`, or `<derivative>{:dn}`, can be nested within or referenced within an `<mrow>{:dn}` component.
 
 
-Exceptions: The `<answer>{:dn}` component, the `<mathInput/>{:dn}` component, and other `<md>{:dn}` components cannot be nested within an `<mrow>{:dn}` component.
+Exceptions: The `<answer>{:dn}` component and other `<md>{:dn}` components cannot be nested within an `<mrow>{:dn}` component.
 
 
 

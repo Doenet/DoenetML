@@ -21,7 +21,7 @@ import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
-import { useInMathSlot } from "./utils/mathInputSlots";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
 import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 interface TextInputSVs {
@@ -94,6 +94,12 @@ export default function TextInput(props: UseDoenetRendererProps) {
     // on nothing a keyboard user can see; the ref is attached only there.
     const slotRootRef = useRef<HTMLSpanElement>(null);
     useMathJaxOutOfTabOrder(slotRootRef);
+
+    // A field's own width is fixed, so an expression around it never has to
+    // make room; what it does have to do is stay still, rather than
+    // re-typesetting under the reader's cursor because something else in it
+    // changed. Outside a slot this is a no-op.
+    const slotEditing = useMathSlotEditing();
 
     let pointerAtDown = useRef<[number, number] | null>(null);
     let pointAtDown = useRef<[number, number, number] | null>(null);
@@ -182,6 +188,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     function onFocusChanged(isFocused: boolean) {
         focused.current = isFocused;
+        slotEditing.setEditing(isFocused);
         callAction({
             action: actions.focusChanged,
             args: { focused: isFocused },

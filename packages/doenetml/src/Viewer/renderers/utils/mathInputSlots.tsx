@@ -8,6 +8,7 @@ import React, {
     useState,
 } from "react";
 import { MATH_INPUT_SLOT_PATTERN as SLOT_PATTERN } from "@doenet/utils";
+import { reserveForSlot, SlotBox } from "./mathSlotReserve";
 
 /**
  * Placing a live input inside typeset math.
@@ -28,16 +29,14 @@ import { MATH_INPUT_SLOT_PATTERN as SLOT_PATTERN } from "@doenet/utils";
  * the reserved box and its *size* from its own content, never the reverse —
  * otherwise the reservation would feed the control's width, which would feed
  * the reservation.
+ *
+ * A control that changes size as the reader types — a math field — would
+ * re-typeset the expression on every keystroke under that rule, so while such a
+ * control is being used it is given more room than it needs and the rest of the
+ * expression is held still. `mathSlotReserve` decides how much room; this module
+ * holds the template, and `MathSlot` positions the control by its baseline so
+ * that the extra room falls beside it rather than moving it.
  */
-
-/** A control's box, in integer CSS pixels, split at its baseline. */
-export interface SlotBox {
-    width: number;
-    /** Height above the baseline. */
-    height: number;
-    /** Depth below the baseline. */
-    depth: number;
-}
 
 interface SlotPosition {
     left: number;
@@ -47,6 +46,10 @@ interface SlotPosition {
 interface MathSlotContextValue {
     reportSize(componentIdx: number, box: SlotBox): void;
     positions: ReadonlyMap<number, SlotPosition>;
+    /** Whether this slot's control is being edited; see `useMathSlots`. */
+    setSlotEditing(componentIdx: number, editing: boolean): void;
+    /** The reader committed a value, so the expression may catch up. */
+    noteSlotCommit(): void;
 }
 
 const MathSlotContext = createContext<MathSlotContextValue | null>(null);
@@ -156,16 +159,56 @@ export function useMathSlots({
         ReadonlyMap<number, SlotPosition>
     >(new Map());
 
+    // What the expression is typeset from while a reader is editing one of its
+    // controls: the template as it stood when the editing began, held until the
+    // value is committed.
+    //
+    // The reason is the caret. An expression can be re-typeset because anything
+    // in it changed — a dragged point feeding it, another input's value — and a
+    // re-typeset moves every reserved box, and so every control, while someone
+    // is typing into one of them. Holding the template is what makes the layout
+    // still; the control's own growth is held separately, by what it reports
+    // (see `reserveForSlot`). The embedded list is held alongside the template
+    // so the two always describe the same set of markers.
+    const [held, setHeld] = useState<{
+        template: string;
+        embeddedComponentIndices: readonly number[];
+    } | null>(null);
+    const editingSlots = useRef(new Set<number>());
+    const liveTemplate = useRef({ template, embeddedComponentIndices });
+    liveTemplate.current = { template, embeddedComponentIndices };
+
+    const setSlotEditing = useCallback(
+        (componentIdx: number, editing: boolean) => {
+            const slots = editingSlots.current;
+            if (editing) {
+                slots.add(componentIdx);
+            } else {
+                slots.delete(componentIdx);
+            }
+            setHeld(slots.size > 0 ? liveTemplate.current : null);
+        },
+        [],
+    );
+
+    const noteSlotCommit = useCallback(() => {
+        setHeld(editingSlots.current.size > 0 ? liveTemplate.current : null);
+    }, []);
+
+    const activeTemplate = held?.template ?? template;
+    const activeEmbedded =
+        held?.embeddedComponentIndices ?? embeddedComponentIndices;
+
     // The template is trusted only as far as core's own list goes: a marker
     // is a slot when core embedded that input, not merely because the text
     // matches. So an author who happens to write the marker's spelling, or a
     // host that defines a macro of that name, gets it typeset as written.
     const componentIndices = useMemo(
         () =>
-            slotIndicesInTemplate(template).filter((componentIdx) =>
-                embeddedComponentIndices.includes(componentIdx),
+            slotIndicesInTemplate(activeTemplate).filter((componentIdx) =>
+                activeEmbedded.includes(componentIdx),
             ),
-        [template, embeddedComponentIndices],
+        [activeTemplate, activeEmbedded],
     );
 
     const slotElementId = useCallback(
@@ -204,15 +247,15 @@ export function useMathSlots({
     const latexForTypeset = useMemo(
         () =>
             componentIndices.length === 0
-                ? template
+                ? activeTemplate
                 : substituteSlots({
-                      template,
+                      template: activeTemplate,
                       componentIndices,
                       sizes,
                       slotElementId,
                       slotLabel,
                   }),
-        [template, componentIndices, sizes, slotElementId, slotLabel],
+        [activeTemplate, componentIndices, sizes, slotElementId, slotLabel],
     );
 
     /**
@@ -250,8 +293,8 @@ export function useMathSlots({
     }, [componentIndices, slotElementId]);
 
     const contextValue = useMemo<MathSlotContextValue>(
-        () => ({ reportSize, positions }),
-        [reportSize, positions],
+        () => ({ reportSize, positions, setSlotEditing, noteSlotCommit }),
+        [reportSize, positions, setSlotEditing, noteSlotCommit],
     );
 
     return { rootRef, layerRef, latexForTypeset, readPositions, contextValue };
@@ -299,6 +342,32 @@ export function useInMathSlot() {
 }
 
 /**
+ * How a control tells the expression around it that it is being edited.
+ *
+ * A control whose size never changes need not say anything; the calls are
+ * no-ops outside a slot, so a renderer can make them unconditionally. A math
+ * field, which grows as the reader types, uses them to buy itself room and to
+ * hold the expression still until the value is committed.
+ */
+export interface MathSlotEditing {
+    /** Editing began, or ended — a commit or a move away. */
+    setEditing(editing: boolean): void;
+    /** A value was committed without editing ending, as Enter does. */
+    commit(): void;
+}
+
+const notInASlot: MathSlotEditing = {
+    setEditing() {},
+    commit() {},
+};
+
+const MathSlotEditingContext = createContext(notInASlot);
+
+export function useMathSlotEditing() {
+    return useContext(MathSlotEditingContext);
+}
+
+/**
  * One embedded input: measured while hidden, then positioned over the box that
  * measurement reserved.
  */
@@ -312,27 +381,85 @@ export function MathSlot({
     const context = useContext(MathSlotContext);
     const wrapperRef = useRef<HTMLSpanElement>(null);
     const baselineRef = useRef<HTMLSpanElement>(null);
+    const editing = useRef(false);
+    const reserved = useRef<SlotBox | null>(null);
+    // How far the control sits below the top of the box reserved for it. Zero
+    // unless the reservation is roomier than the control, which is what it is
+    // while the control is being edited.
+    const [belowReservedTop, setBelowReservedTop] = useState(0);
 
     const reportSize = context?.reportSize;
     const position = context?.positions.get(componentIdx);
 
-    const measure = useCallback(() => {
-        const wrapper = wrapperRef.current;
-        const baseline = baselineRef.current;
-        if (!wrapper || !baseline || !reportSize) {
-            return;
-        }
-        const rect = wrapper.getBoundingClientRect();
-        // An empty zero-height inline-block sits with its bottom edge on the
-        // line box's baseline, which is what splits the box into the height and
-        // depth MathJax needs to reserve.
-        const baselineY = baseline.getBoundingClientRect().bottom;
-        reportSize(componentIdx, {
-            width: Math.ceil(rect.width),
-            height: Math.max(0, Math.ceil(baselineY - rect.top)),
-            depth: Math.max(0, Math.ceil(rect.bottom - baselineY)),
-        });
-    }, [componentIdx, reportSize]);
+    const measure = useCallback(
+        ({ exact = false } = {}) => {
+            const wrapper = wrapperRef.current;
+            const baseline = baselineRef.current;
+            if (!wrapper || !baseline || !reportSize) {
+                return;
+            }
+            const rect = wrapper.getBoundingClientRect();
+            // An empty zero-height inline-block sits with its bottom edge on
+            // the line box's baseline, which is what splits the box into the
+            // height and depth MathJax needs to reserve.
+            const baselineY = baseline.getBoundingClientRect().bottom;
+            const measured = {
+                width: Math.ceil(rect.width),
+                height: Math.max(0, Math.ceil(baselineY - rect.top)),
+                depth: Math.max(0, Math.ceil(rect.bottom - baselineY)),
+            };
+            const box = reserveForSlot({
+                measured,
+                reserved: exact ? null : reserved.current,
+                editing: editing.current && !exact,
+            });
+            reserved.current = box;
+            // The control keeps its baseline on the expression's, so a roomier
+            // reservation grows above and to the right of it rather than
+            // carrying it along.
+            setBelowReservedTop(box.height - measured.height);
+            reportSize(componentIdx, box);
+        },
+        [componentIdx, reportSize],
+    );
+
+    const setSlotEditing = context?.setSlotEditing;
+    const noteSlotCommit = context?.noteSlotCommit;
+
+    const slotEditing = useMemo<MathSlotEditing>(
+        () => ({
+            setEditing(nowEditing: boolean) {
+                if (editing.current === nowEditing) {
+                    return;
+                }
+                editing.current = nowEditing;
+                setSlotEditing?.(componentIdx, nowEditing);
+                if (!nowEditing) {
+                    // Give back whatever room went unused. Entering needs no
+                    // such step: the control still fits what is reserved, and
+                    // asks for more only when it outgrows it.
+                    measure({ exact: true });
+                }
+            },
+            commit() {
+                measure({ exact: true });
+                noteSlotCommit?.();
+            },
+        }),
+        [componentIdx, measure, setSlotEditing, noteSlotCommit],
+    );
+
+    // A control unmounted mid-edit — hidden, or replaced — would otherwise hold
+    // the expression frozen with nothing left to release it.
+    useLayoutEffect(
+        () => () => {
+            if (editing.current) {
+                editing.current = false;
+                setSlotEditing?.(componentIdx, false);
+            }
+        },
+        [componentIdx, setSlotEditing],
+    );
 
     useLayoutEffect(() => {
         measure();
@@ -352,15 +479,20 @@ export function MathSlot({
             className="doenet-math-slot"
             style={
                 position
-                    ? { left: position.left, top: position.top }
+                    ? {
+                          left: position.left,
+                          top: position.top + belowReservedTop,
+                      }
                     : // Laid out so it can be measured, but neither drawn,
                       // announced, nor focusable until it has somewhere to be.
                       { left: 0, top: 0, visibility: "hidden" }
             }
         >
-            <InMathSlotContext.Provider value={true}>
-                {children}
-            </InMathSlotContext.Provider>
+            <MathSlotEditingContext.Provider value={slotEditing}>
+                <InMathSlotContext.Provider value={true}>
+                    {children}
+                </InMathSlotContext.Provider>
+            </MathSlotEditingContext.Provider>
             <span
                 ref={baselineRef}
                 aria-hidden="true"

@@ -162,6 +162,294 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("a math input sits in its slot and its value reaches core", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">x = <mathInput name="mi" /> + 3</m></p>
+    <p name="entered">$mi.latex</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        // Nothing but the field is drawn inside the expression: no label and
+        // no check-work button.
+        cy.get(`${cesc("#m")} .doenet-math-slot`).within(() => {
+            cy.get("label").should("not.exist");
+            cy.get("button").should("not.exist");
+        });
+
+        cy.get(cesc("#m")).then(($root) => {
+            const root = $root[0];
+            const slotRect = root
+                .querySelector(".doenet-math-slot")
+                .getBoundingClientRect();
+            const reservedRect = root
+                .querySelector("[id*='_mathSlot_']")
+                .getBoundingClientRect();
+            expect(Math.abs(slotRect.left - reservedRect.left)).to.be.lessThan(
+                2,
+            );
+            expect(Math.abs(slotRect.top - reservedRect.top)).to.be.lessThan(2);
+        });
+
+        // The value reaches core as LaTeX, so the expression it sits in can
+        // report it as the mathematics it is rather than as plain text.
+        cy.get(`${cesc("#mi")} textarea`).type("\\sqrt{2}{rightarrow}{enter}", {
+            force: true,
+        });
+        cy.get("#entered").should("have.text", "\\sqrt{2}");
+    });
+
+    it("the expression makes room in steps, not on every keystroke", () => {
+        // The claim the whole growth policy rests on. A math field grows on
+        // nearly every keystroke; re-typesetting the expression around each new
+        // size would reflow the equation under the reader's hands, so the room
+        // reserved for it is given out in steps that several keystrokes fit
+        // inside.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">x = <mathInput name="mi" /> + 3</m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        const reserved = [];
+        const field = [];
+        for (const character of "abcdefghijkl") {
+            cy.get(`${cesc("#mi")} textarea`).type(character, { force: true });
+            // A re-typeset is asynchronous and throttled, so let one happen if
+            // it is going to: the point is how few of them there are.
+            cy.wait(150);
+            cy.get(cesc("#m")).then(($root) => {
+                const root = $root[0];
+                reserved.push(
+                    Math.round(
+                        root
+                            .querySelector("[id*='_mathSlot_']")
+                            .getBoundingClientRect().width,
+                    ),
+                );
+                field.push(
+                    Math.round(
+                        root
+                            .querySelector(".mq-editable-field")
+                            .getBoundingClientRect().width,
+                    ),
+                );
+            });
+        }
+
+        cy.then(() => {
+            expect(
+                new Set(field).size,
+                "the field itself grew as the reader typed",
+            ).to.be.greaterThan(5);
+            expect(
+                new Set(reserved).size,
+                "but the expression was typeset again only a few times",
+            ).to.be.lessThan(5);
+            expect(
+                reserved.every(
+                    (width, ind) => ind === 0 || width >= reserved[ind - 1],
+                ),
+                "and the room it reserved only ever grew",
+            ).to.eq(true);
+        });
+    });
+
+    it("the expression is held still until the value is committed", () => {
+        // `$mi.immediateValue` changes on every keystroke, so without the hold
+        // core would push new LaTeX — and MathJax would re-typeset the
+        // expression — under the reader's cursor.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">$mi.immediateValue = <mathInput name="mi" /></m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        let containerWhileTyping;
+        cy.get(`${cesc("#mi")} textarea`).type("77", { force: true });
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            containerWhileTyping = $container[0];
+            // The left-hand side is still the blank it started as.
+            expect($container[0].textContent).not.to.contain("77");
+        });
+
+        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
+
+        // Committing lets the expression catch up, without the field having
+        // been blurred to do it.
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("77");
+        });
+        cy.get(`${cesc("#mi")} textarea`).should("be.focused");
+    });
+
+    it("the room a field is given is not taken back while it is being used", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">x = <mathInput name="mi" /> + 3</m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        // Long enough to outgrow the field's own minimum width, which four
+        // characters do not.
+        cy.get(`${cesc("#mi")} textarea`).type("abcdefghijklmn", {
+            force: true,
+        });
+
+        let reservedWhileTyping;
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should(($reserved) => {
+            reservedWhileTyping = $reserved[0].getBoundingClientRect().width;
+        });
+
+        // Deleting what was typed must not close the expression back up around
+        // a field the reader is still in the middle of using.
+        cy.get(`${cesc("#mi")} textarea`).type("{backspace}".repeat(14), {
+            force: true,
+        });
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should(($reserved) => {
+            expect($reserved[0].getBoundingClientRect().width).to.be.closeTo(
+                reservedWhileTyping,
+                1,
+            );
+        });
+
+        // Leaving does close it up.
+        cy.get(`${cesc("#mi")} textarea`).blur();
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should(($reserved) => {
+            expect($reserved[0].getBoundingClientRect().width).to.be.lessThan(
+                reservedWhileTyping,
+            );
+        });
+    });
+
+    it("a math input fills in a row of an aligned display", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <md name="md">
+      <mrow>f(x) \\amp = x^2</mrow>
+      <mrow>f'(x) \\amp = <mathInput name="mi" /></mrow>
+      <mrow>f''(x) \\amp = 2</mrow>
+    </md>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
+
+        cy.get(cesc("#md")).then(($root) => {
+            const root = $root[0];
+            const slotRect = root
+                .querySelector(".doenet-math-slot")
+                .getBoundingClientRect();
+            const reservedRect = root
+                .querySelector("[id*='_mathSlot_']")
+                .getBoundingClientRect();
+            expect(Math.abs(slotRect.left - reservedRect.left)).to.be.lessThan(
+                2,
+            );
+            expect(Math.abs(slotRect.top - reservedRect.top)).to.be.lessThan(2);
+        });
+
+        // The whole display is one expression, so the field sits inside the
+        // single container the `<md>` typesets.
+        cy.get(`${cesc("#md")} mjx-container`).should("have.length", 1);
+    });
+
+    it("an aligned display makes room above and below a growing field", () => {
+        // The hard direction. A fraction grows the field into the rows the
+        // reader is working from, so the display has to spread them rather than
+        // let the field cover them.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <md name="md">
+      <mrow>f(x) \\amp = x^2</mrow>
+      <mrow>f'(x) \\amp = <mathInput name="mi" /></mrow>
+      <mrow>f''(x) \\amp = 2</mrow>
+    </md>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
+
+        let heightBefore;
+        let displayBefore;
+        cy.get(cesc("#md")).should(($root) => {
+            heightBefore = $root[0]
+                .querySelector("[id*='_mathSlot_']")
+                .getBoundingClientRect().height;
+            displayBefore = $root[0]
+                .querySelector("mjx-container")
+                .getBoundingClientRect().height;
+        });
+
+        // MathQuill turns this into a fraction, which is taller and deeper than
+        // the line it sits on.
+        cy.get(`${cesc("#mi")} textarea`).type("1/2", { force: true });
+
+        cy.get(cesc("#md")).should(($root) => {
+            const root = $root[0];
+            const reserved = root.querySelector("[id*='_mathSlot_']");
+            const reservedRect = reserved.getBoundingClientRect();
+            expect(
+                reservedRect.height,
+                "the display reserved more room for the field",
+            ).to.be.greaterThan(heightBefore);
+            expect(
+                root.querySelector("mjx-container").getBoundingClientRect()
+                    .height,
+                "so the rows moved apart",
+            ).to.be.greaterThan(displayBefore);
+
+            // And the field is still sitting on the room reserved for it,
+            // rather than having been carried up with it.
+            const slotRect = root
+                .querySelector(".doenet-math-slot")
+                .getBoundingClientRect();
+            expect(Math.abs(slotRect.left - reservedRect.left)).to.be.lessThan(
+                2,
+            );
+            expect(slotRect.bottom).to.be.at.most(reservedRect.bottom + 2);
+            expect(slotRect.top).to.be.at.least(reservedRect.top - 2);
+        });
+    });
+
     it("an embedded input is named by the expression it sits in", () => {
         cy.window().then(async (win) => {
             win.postMessage(
