@@ -637,8 +637,9 @@ function renderUnionMembers(values: string[]): string {
  * seed catalogs they accompany; they are the best available answer, not a
  * speaker's. `endonym` is therefore optional: an entry whose endonym turns out
  * to be wrong should have the field deleted rather than guessed at again, and
- * the label falls back to the English name alone — the shape every locale whose
- * two names coincide already has. `englishName` is required because an English
+ * the endonym then falls back to the tag, so the label reads "Baoulé (bci)" —
+ * an admitted gap rather than a guess, and legible either way. `englishName` is
+ * required because an English
  * name is what identifies a language to someone choosing one and costs nothing
  * to be sure of.
  *
@@ -679,7 +680,8 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // `locales/lbe`'s own header names the language «лакку маз» and three of its
     // four files repeat it, while no `locales/tab` header commits to a
     // self-name in any script. So Lak gets an endonym and Tabasaran does not,
-    // and its label is the English name alone rather than a guess.
+    // and Tabasaran's label reads "Tabasaran (tab)" — `locales/bci`'s shape,
+    // an admitted gap rather than a guess.
     lbe: { englishName: "Lak", endonym: "лакку маз" },
     tab: { englishName: "Tabasaran" },
 };

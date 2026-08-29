@@ -3435,6 +3435,11 @@ describe("the Caucasus and Kurdish batch", () => {
      * description rather than woven into it. What this catches is someone
      * "correcting" a catalog into English's order because the neighbouring
      * files are in it.
+     *
+     * Each row's two strings pin one rendering exactly; the placement rule is
+     * then checked over {@link placementNouns} against what the catalog
+     * actually renders, so that a file reordered for a single noun fails even
+     * though the row it was pinned on still passes.
      */
     const prenominal: [string, string, string][] = [
         ["av", "кӀудияб бекараб багӀараб мухъ", "кӀудияб бекараб багӀараб"],
@@ -3469,46 +3474,71 @@ describe("the Caucasus and Kurdish batch", () => {
         ["ckb", "هێڵی سوور و پچڕپچڕ و ئەستوور", "سوور و پچڕپچڕ و ئەستوور"],
     ];
 
-    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
-        it(`puts ${locale}'s description in front of the noun`, () => {
-            const t = forLocale(locale);
-            expect(
-                describeStrokedShape(t, words, {
-                    noun: { key: "line" },
-                    withNoun: true,
-                }),
-            ).toBe(withNoun);
-            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
-            expect(
-                describeStrokedShape(t, words, {
-                    noun: { key: "line" },
-                    withNoun: false,
-                }),
-            ).toBe(adjectivesOnly);
-        });
-    }
+    /**
+     * The nouns the placement rule is checked over — one of each shape the
+     * `noun` table names, rather than the single `line` the rows above spell
+     * out. `ku`'s ezafe makes the spread matter for a second reason: a polygon
+     * is masculine and a line feminine, so these six cover both agreements.
+     */
+    const placementNouns: NounKey[] = [
+        "line",
+        "circle",
+        "square",
+        "polygon",
+        "point",
+        "region",
+    ];
 
-    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
-        it(`puts ${locale}'s description behind the noun`, () => {
-            const t = forLocale(locale);
-            expect(
-                describeStrokedShape(t, words, {
-                    noun: { key: "line" },
-                    withNoun: true,
-                }),
-            ).toBe(withNoun);
-            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
-            // The same string with the noun withheld, which is what makes this
-            // a claim about placement rather than about two unrelated
-            // renderings.
-            expect(
-                describeStrokedShape(t, words, {
-                    noun: { key: "line" },
-                    withNoun: false,
-                }),
-            ).toBe(adjectivesOnly);
-        });
-    }
+    /**
+     * One row's worth of both claims: the exact rendering for `line`, and the
+     * placement rule over every noun in {@link placementNouns}. The second is
+     * asserted between two *rendered* strings — never between the row's own two
+     * literals, which would only ever restate the table to itself.
+     */
+    const itPlaces = (
+        group: [string, string, string][],
+        where: "in front of" | "behind",
+    ) => {
+        for (const [locale, withNoun, adjectivesOnly] of group) {
+            it(`puts ${locale}'s description ${where} the noun`, () => {
+                const t = forLocale(locale);
+                expect(
+                    describeStrokedShape(t, words, {
+                        noun: { key: "line" },
+                        withNoun: true,
+                    }),
+                ).toBe(withNoun);
+                // The same string with the noun withheld, which is what makes
+                // this a claim about placement rather than about two unrelated
+                // renderings.
+                expect(
+                    describeStrokedShape(t, words, {
+                        noun: { key: "line" },
+                        withNoun: false,
+                    }),
+                ).toBe(adjectivesOnly);
+                for (const key of placementNouns) {
+                    const described = describeStrokedShape(t, words, {
+                        noun: { key },
+                        withNoun: true,
+                    });
+                    const alone = describeStrokedShape(t, words, {
+                        noun: { key },
+                        withNoun: false,
+                    });
+                    expect(
+                        where === "in front of"
+                            ? described.startsWith(alone)
+                            : described.endsWith(alone),
+                        `${locale}/${key}: ${described} / ${alone}`,
+                    ).toBe(true);
+                }
+            });
+        }
+    };
+
+    itPlaces(prenominal, "in front of");
+    itPlaces(postnominal, "behind");
 
     /**
      * A regular polygon's side count, and the batch's second split. Thirteen
@@ -3531,7 +3561,11 @@ describe("the Caucasus and Kurdish batch", () => {
                 noun: { key: "regular-polygon", numSides: 5 },
                 withNoun: true,
             });
-            expect(description).toContain("5");
+            // Exactly once, which is what the title claims and what `toContain`
+            // alone would not catch: a catalog that writes the count into the
+            // head and *also* leaves it in the `[tail]` branch renders it
+            // twice, and only splitting on it says so.
+            expect(description.split("5")).toHaveLength(2);
             expect(description.trimEnd()).toBe(description);
             expect(description).not.toContain("  ");
         },
@@ -3631,6 +3665,29 @@ describe("Ingush noun classes", () => {
                 { noun: { key: key as NounKey }, withNoun: true },
             ),
         ).toBe(expected);
+    });
+
+    /**
+     * The other side of that divergence, which the row above cannot see. What
+     * makes `locales/inh`'s second fork worth a paragraph is that its sister
+     * catalog does not write it, and nothing said so until here: flattening
+     * `locales/inh` is caught above, but *forking* `locales/ce` to match would
+     * quietly retire the claim instead. Chechen renders «кагйина» for a `d`
+     * noun and a `b` noun alike.
+     */
+    it("has no counterpart in locales/ce, which leaves the same word flat", () => {
+        const ce: Translator = createTranslatorFromLocaleData(
+            { locale: "ce", resources: { ce: readCatalog("ce", "content") } },
+            "ce",
+        );
+        const dashed = (key: NounKey) =>
+            describeStrokedShape(
+                ce,
+                { lineStyleWord: "dashed", colorWord: "red" },
+                { noun: { key }, withNoun: false },
+            );
+        expect(dashed("line")).toBe(dashed("point"));
+        expect(dashed("line")).toBe("кагйина цӀен");
     });
 
     /**
