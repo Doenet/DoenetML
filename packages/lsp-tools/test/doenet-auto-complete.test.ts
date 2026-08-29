@@ -3343,20 +3343,30 @@ describe("AutoCompleter", () => {
 
         it("Documents each suggested locale with its name", async () => {
             // The descriptions are derived at codegen time from
-            // `Intl.DisplayNames`, so a new locale carries help text without
-            // anyone writing any. An empty one would render as a blank
-            // autocomplete row.
+            // `Intl.DisplayNames` — or, for the handful of tags CLDR has no
+            // data for, from `LOCALE_NAME_FALLBACKS` — so a new locale carries
+            // help text without anyone writing any. Every row is checked
+            // against the roster's own label rather than one row being spot-
+            // checked for non-emptiness, because the failure this guards
+            // against is a *stale* schema rather than a blank one: a locale
+            // whose name arrived after the last `build:schema` run documents
+            // itself with its bare tag, which is truthy and reads as a defect
+            // in the roster rather than in the generated file.
             const source = `<document lang="`;
             const ac = new AutoCompleter(source, doenetSchema.elements);
             const items = await ac.getCompletionItems(source.length);
-            const spanish = items.find((i) => i.label === "es");
-            expect(spanish?.documentation).toBeTruthy();
-            const documentation = spanish?.documentation;
-            const text =
-                typeof documentation === "string"
+            const documentationOf = (locale: string) => {
+                const documentation = items.find(
+                    (i) => i.label === locale,
+                )?.documentation;
+                return typeof documentation === "string"
                     ? documentation
                     : (documentation?.value ?? "");
-            expect(text).toContain("Spanish");
+            };
+            expect(documentationOf("es")).toContain("Spanish");
+            for (const { locale, label } of SUPPORTED_LOCALES) {
+                expect(documentationOf(locale)).toBe(label);
+            }
         });
 
         it("Still offers to quote a bare tag that isn't on the list", async () => {
