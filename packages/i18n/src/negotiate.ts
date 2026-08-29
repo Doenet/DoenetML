@@ -78,8 +78,10 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * Those two are the shape {@link LANGUAGE_ALIASES}'s `man` entry explains, and
  * it is why the members listed under `mnk` exclude `bam` and `dyu`: those two
  * have catalogs of their own, and folding them here would serve a Bambara
- * reader Mandinka. `ku` excludes `ckb` for that same reason, and is the first
- * key here to exclude a member while still *being* the macrolanguage.
+ * reader Mandinka. `ku` excludes `ckb` for that same reason, and was the first
+ * key here to exclude a member while still *being* the macrolanguage; `kv` and
+ * `chm` joined it in the Uralic north batch, where `koi` and `mrj` acquired
+ * catalogs of their own and so stopped being folded onto their siblings.
  *
  * The two member cases part company over their macrolanguage, and the reason
  * is CLDR rather than a preference: `man` is aliased onto `mnk` because
@@ -278,16 +280,20 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // `tda`, and the answer to it is a second catalog rather than a change
     // here.
     bua: ["bxm", "bxr", "bxu"],
-    // Komi. The catalog is Komi-Zyrian, which is what ICU folds `kpv` onto;
-    // `koi` (Komi-Permyak) is the member it does not, and it is a written
-    // standard of its own, so serving it Zyrian is the compromise every entry
-    // in this map makes and `locales/kv`'s header records.
-    kv: ["koi", "kpv"],
-    // Mari. The catalog is Meadow Mari, which is what ICU folds `mhr` onto;
-    // `mrj` (Hill Mari) is the member it does not, and, like `koi` above, it is
-    // a written standard with an orthography of its own rather than a spelling
-    // of this one.
-    chm: ["mhr", "mrj"],
+    // Komi. The catalog is Komi-Zyrian, which is what ICU folds `kpv` onto.
+    //
+    // `koi` (Komi-Permyak) was listed here until the Uralic north batch, and it
+    // is deliberately absent now: it has a catalog of its own, so folding it
+    // would serve a Komi-Permyak reader Zyrian while their own file sat on
+    // disk. That is `ku` excluding `ckb` and `mnk` excluding `bam` and `dyu`,
+    // and it is the first time an entry here has *shrunk* — the compromise a
+    // member fold makes is worth making only until the member is written.
+    kv: ["kpv"],
+    // Mari. The catalog is Meadow Mari, which is what ICU folds `mhr` onto.
+    // `mrj` (Hill Mari) left this list in the same batch and for the same
+    // reason `koi` left `kv`'s: it has an orthography and a catalog of its own
+    // rather than being a spelling of this one.
+    chm: ["mhr"],
     // Kurdish. `locales/ku` is Northern Kurdish (Kurmanji) in the Hawar Latin
     // alphabet, which is what ICU folds `kmr` onto and what a bare `ku`
     // maximizes to (`ku-Latn-TR`). ISO 639-3 gives the macrolanguage three

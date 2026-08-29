@@ -7,6 +7,11 @@ import { EN_CATALOGS } from "../src/catalogs";
 import esChrome from "../locales/es/chrome.ftl?raw";
 import filChrome from "../locales/fil/chrome.ftl?raw";
 import filEditor from "../locales/fil/editor.ftl?raw";
+import smaChrome from "../locales/sma/chrome.ftl?raw";
+import smjChrome from "../locales/smj/chrome.ftl?raw";
+import smnChrome from "../locales/smn/chrome.ftl?raw";
+import smsChrome from "../locales/sms/chrome.ftl?raw";
+import sjdChrome from "../locales/sjd/chrome.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
 
 /**
@@ -248,5 +253,65 @@ describe("EN_CHROME_TRANSLATOR", () => {
         expect(EN_CHROME_TRANSLATOR("answer-response-saved")).toBe(
             "Response Saved",
         );
+    });
+});
+
+/**
+ * The Sami dual, and the one catalog in the family that cannot write it.
+ *
+ * `sma`, `smj`, `smn` and `sms` resolve `one`, `two` and `other`, so a
+ * `{ $count -> … }` in them can carry a third branch that is genuinely
+ * reached — the shape `locales/se` established, and the only place in the
+ * roster where a category exists because the language counts in pairs rather
+ * than because CLDR happens to list it. `sjd` is the same family and gets no
+ * such branch: Kildin Sami has a dual too, but CLDR has no plural data for the
+ * tag, so `Intl.PluralRules("sjd")` resolves against the runtime's default
+ * locale and a `[two]` branch there would be text no input could select.
+ *
+ * Pinned on the plural rules and on the presence of the branch in the source,
+ * because in these four `[two]` and `[other]` are worded alike everywhere they
+ * appear — they are two categories, not one with a spelling variant — so no
+ * rendered string could tell them apart. What a runtime with no `sjd` data
+ * falls back to is the environment's business and not a claim made here, hence
+ * `resolvedOptions().locale` rather than a rendered count.
+ */
+describe("the Sami plural categories", () => {
+    /** Comment lines dropped: the headers discuss `[two]` in prose. */
+    const branches = (catalog: string) =>
+        catalog
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
+
+    it.each([
+        ["sma", smaChrome],
+        ["smj", smjChrome],
+        ["smn", smnChrome],
+        ["sms", smsChrome],
+    ])(
+        "writes %s's dual branch, which its own CLDR data selects",
+        (locale, catalog) => {
+            const rules = new Intl.PluralRules(locale);
+            expect(rules.resolvedOptions().locale).toBe(locale);
+            expect(rules.select(2)).toBe("two");
+            expect(branches(catalog)).toContain("[two]");
+            const t = createChromeTranslator(locale, { [locale]: catalog });
+            expect(
+                stripBidiIsolates(t("attempts-remaining", { count: 2 })),
+            ).toContain("2");
+        },
+    );
+
+    it("writes no dual branch for the Sami language CLDR has no rules for", () => {
+        expect(new Intl.PluralRules("sjd").resolvedOptions().locale).not.toBe(
+            "sjd",
+        );
+        expect(branches(sjdChrome)).not.toContain("[two]");
+        // It still counts, and still renders — the categories it selects
+        // between are simply not its own.
+        const t = createChromeTranslator("sjd", { sjd: sjdChrome });
+        expect(
+            stripBidiIsolates(t("attempts-remaining", { count: 2 })),
+        ).toContain("2");
     });
 });

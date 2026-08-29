@@ -65635,6 +65635,10 @@
                             "description": "Filipino"
                         },
                         {
+                            "value": "fit",
+                            "description": "Tornedalen Finnish"
+                        },
+                        {
                             "value": "fj",
                             "description": "Fijian"
                         },
@@ -65767,6 +65771,10 @@
                             "description": "Kabiyè (Kabɩyɛ)"
                         },
                         {
+                            "value": "kca",
+                            "description": "Khanty (хӑнты ясӑӈ)"
+                        },
+                        {
                             "value": "kg",
                             "description": "Kongo"
                         },
@@ -65795,6 +65803,10 @@
                             "description": "Korean (한국어)"
                         },
                         {
+                            "value": "koi",
+                            "description": "Komi-Permyak"
+                        },
+                        {
                             "value": "kok",
                             "description": "Konkani (कोंकणी)"
                         },
@@ -65813,6 +65825,10 @@
                         {
                             "value": "kri",
                             "description": "Krio"
+                        },
+                        {
+                            "value": "krl",
+                            "description": "Karelian"
                         },
                         {
                             "value": "ks",
@@ -65891,6 +65907,10 @@
                             "description": "Maithili (मैथिली)"
                         },
                         {
+                            "value": "mdf",
+                            "description": "Moksha"
+                        },
+                        {
                             "value": "men",
                             "description": "Mende"
                         },
@@ -65927,12 +65947,20 @@
                             "description": "Mandinka (Mandinkakaŋo)"
                         },
                         {
+                            "value": "mns",
+                            "description": "Mansi (мāньси лāтыӈ)"
+                        },
+                        {
                             "value": "mos",
                             "description": "Mossi"
                         },
                         {
                             "value": "mr",
                             "description": "Marathi (मराठी)"
+                        },
+                        {
+                            "value": "mrj",
+                            "description": "Western Mari"
                         },
                         {
                             "value": "ms",
@@ -65993,6 +66021,10 @@
                         {
                             "value": "oj",
                             "description": "Ojibwa"
+                        },
+                        {
+                            "value": "olo",
+                            "description": "Livvi-Karelian (olo)"
                         },
                         {
                             "value": "om",
@@ -66099,6 +66131,10 @@
                             "description": "Sinhala (සිංහල)"
                         },
                         {
+                            "value": "sjd",
+                            "description": "Kildin Sami (кӣллт са̄мь кӣлл)"
+                        },
+                        {
                             "value": "sk",
                             "description": "Slovak (slovenčina)"
                         },
@@ -66109,6 +66145,22 @@
                         {
                             "value": "sm",
                             "description": "Samoan"
+                        },
+                        {
+                            "value": "sma",
+                            "description": "Southern Sami"
+                        },
+                        {
+                            "value": "smj",
+                            "description": "Lule Sami"
+                        },
+                        {
+                            "value": "smn",
+                            "description": "Inari Sami (anarâškielâ)"
+                        },
+                        {
+                            "value": "sms",
+                            "description": "Skolt Sami"
                         },
                         {
                             "value": "sn",
@@ -66263,8 +66315,16 @@
                             "description": "Venda"
                         },
                         {
+                            "value": "vep",
+                            "description": "Veps"
+                        },
+                        {
                             "value": "vi",
                             "description": "Vietnamese (Tiếng Việt)"
+                        },
+                        {
+                            "value": "vro",
+                            "description": "Võro"
                         },
                         {
                             "value": "war",

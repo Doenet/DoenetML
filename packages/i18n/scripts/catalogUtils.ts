@@ -8,6 +8,7 @@ import {
     Visitor,
     type FunctionReference,
     type TextElement,
+    type Variant,
 } from "@fluent/syntax";
 import * as prettier from "prettier";
 
@@ -263,6 +264,76 @@ class MultilineTextVisitor extends Visitor {
                     ? `an indented comment line is part of the pattern: ${JSON.stringify(continuation.slice(0, 40))}`
                     : `continues with ${JSON.stringify(continuation.slice(0, 40))}`,
             );
+        }
+        this.genericVisit(node);
+    }
+}
+
+/**
+ * The plural categories, plus the numeric literals a `{ $count -> … }` may
+ * name. These are the variant keys a translation is *supposed* to change:
+ * CLDR gives each language its own set, and a catalog that resolves `one` and
+ * `other` where English resolves `one`, `two` and `other` is correct rather
+ * than broken. Every other variant key is a symbol the core passes in, and
+ * must survive translation letter for letter.
+ */
+const PLURAL_VARIANT_KEYS = new Set([
+    "zero",
+    "one",
+    "two",
+    "few",
+    "many",
+    "other",
+]);
+
+/**
+ * The symbolic variant keys each entry selects on, keyed as Fluent addresses
+ * the entry — a message by its id, a term by its id with the leading `-`.
+ *
+ * A Fluent selector is matched against the value the caller passes — `$parts`,
+ * `$context`, `$status` — so its keys are part of the interface and not part
+ * of the prose. Translating one silently unreaches that branch: the message
+ * still parses, still lints, and quietly renders its default for every input
+ * that should have chosen the translated key. `locales/fit` did exactly that,
+ * applying Meänkieli's `on` → `oon` spelling rule to
+ * `[text-on-background]`, and nothing caught it until a reader would have.
+ *
+ * Numeric and plural-category keys are left out, because those are the ones a
+ * language is entitled to differ on. What comes back is comparable across
+ * locales: the same message should list the same symbols in English and in
+ * every translation of it.
+ */
+export function symbolicVariantKeys(source: string): Map<string, string[]> {
+    const keys = new Map<string, string[]>();
+    for (const entry of parseFtl(source, {}).body) {
+        if (entry.type !== "Message" && entry.type !== "Term") {
+            continue;
+        }
+        const visitor = new VariantKeyVisitor();
+        visitor.visit(entry);
+        if (visitor.found.size > 0) {
+            // Sorted and deduplicated: a message with two selects — the
+            // `$parts` fork with a `$gender` one nested inside it — names a
+            // key once per branch it appears on, and what the caller compares
+            // is the set, not how often each one occurs.
+            const id =
+                entry.type === "Term" ? `-${entry.id.name}` : entry.id.name;
+            keys.set(id, [...visitor.found].sort());
+        }
+    }
+    return keys;
+}
+
+/** Every symbolic (non-numeric, non-plural) variant key under one entry. */
+class VariantKeyVisitor extends Visitor {
+    found = new Set<string>();
+
+    visitVariant(node: Variant) {
+        if (
+            node.key.type === "Identifier" &&
+            !PLURAL_VARIANT_KEYS.has(node.key.name)
+        ) {
+            this.found.add(node.key.name);
         }
         this.genericVisit(node);
     }
@@ -683,6 +754,18 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // an admitted gap rather than a guess.
     lbe: { englishName: "Lak", endonym: "лакку маз" },
     tab: { englishName: "Tabasaran" },
+    // The four locales of the Uralic north batch CLDR has no data for. Three
+    // are written in Cyrillic, and they part company over the endonym the way
+    // `locales/lbe` and `locales/tab` do: `locales/sjd`, `locales/kca` and
+    // `locales/mns` each name their language in their own headers, and those
+    // spellings — breves, macrons and all — are copied here letter for letter,
+    // while no `locales/olo` header commits to a self-name, so its label reads
+    // "Livvi-Karelian (olo)" rather than guessing between the Livvi and the
+    // Finnish spelling of it.
+    sjd: { englishName: "Kildin Sami", endonym: "кӣллт са̄мь кӣлл" },
+    olo: { englishName: "Livvi-Karelian" },
+    kca: { englishName: "Khanty", endonym: "хӑнты ясӑӈ" },
+    mns: { englishName: "Mansi", endonym: "мāньси лāтыӈ" },
 };
 
 /**
