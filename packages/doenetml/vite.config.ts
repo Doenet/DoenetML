@@ -8,6 +8,7 @@ import dts from "vite-plugin-dts";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
 import {
+    ignoreWireitCachesPlugin,
     prefigureDynamicImportIgnorePlugin,
     suppressLogPlugin,
 } from "../../scripts/vite-plugins";
@@ -23,6 +24,7 @@ export default defineConfig(({ mode }) => {
     return {
         base: "./",
         plugins: [
+            ignoreWireitCachesPlugin(),
             react(),
             dts({ rollupTypes: false }),
             viteStaticCopy({

@@ -6,11 +6,13 @@ import peg from "peggy";
 import * as esbuild from "esbuild";
 import { visualizer } from "rollup-plugin-visualizer";
 import arraybuffer from "vite-plugin-arraybuffer";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
     plugins: [
+        ignoreWireitCachesPlugin(),
         arraybuffer(),
         dts(),
         //{ rollupTypes: true }
