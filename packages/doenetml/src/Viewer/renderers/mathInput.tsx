@@ -710,18 +710,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
         for (const event of virtualKeyboardEvents) {
             if (event.type === "keystroke" && event.command === "Enter") {
-                // The "Enter" key was pressed
-                callAction({
-                    action: actions.updateValue,
-                    baseVariableValue: rendererValue.current,
-                });
-
-                if (
-                    showCheckWork.current &&
-                    validationState.current === "unvalidated"
-                ) {
-                    submitActionWithPendingRef.current();
-                }
+                // The tray's Enter key is the keyboard's Enter key: it
+                // commits, submits, and lets any expression around this
+                // field catch up, all in one place.
+                handlePressEnter();
                 continue;
             }
             switch (event.type) {

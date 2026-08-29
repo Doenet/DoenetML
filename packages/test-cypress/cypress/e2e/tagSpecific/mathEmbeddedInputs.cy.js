@@ -302,6 +302,36 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         cy.get(`${cesc("#mi")} textarea`).should("be.focused");
     });
 
+    it("Enter on the keyboard tray commits like Enter on the keyboard", () => {
+        // The tray's Enter key goes through a different path from a key press
+        // in the field, and the expression has to catch up on both.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><m name="m">$mi.immediateValue = <mathInput name="mi" /></m></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        cy.get(`${cesc("#mi")} textarea`).type("77", { force: true });
+        cy.get(".open-keyboard-button").click();
+        cy.get("#virtual-keyboard-tray.open").should("exist");
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).not.to.contain("77");
+        });
+
+        cy.focused().should("match", `${cesc("#mi")} textarea`);
+        cy.get("#virtual-keyboard-tray .key-enter").click({ force: true });
+        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
+            expect($container[0].textContent).to.contain("77");
+        });
+    });
+
     it("the expression shows a committed value the reader entered", () => {
         // `$mi` is the *committed* value, so the LaTeX that shows it does not
         // come back from core until after the commit. Catching up therefore
