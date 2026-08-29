@@ -64,7 +64,7 @@ line-points-too-few-dimensions = Linnjá hæhttu tjuoggáj tjadá mannat gånnå
 
 line-points-depend-on-variables = Linnjá manná tjuoggáj tjadá ma li sorjavattja variábelijs: { $variables }.
 
-line-equation-invalid-format = Gusstuhis hábme linnjá dásádussaj variábelij { $variable1 } ja { $variable2 } .
+line-equation-invalid-format = Gusstuhis hábme linnjá dásádussaj variábelij { $variable1 } ja { $variable2 }.
 
 ## `<ray>`
 
