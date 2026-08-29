@@ -23,6 +23,21 @@
 # each other — a copy would put one norm's endings in front of the other's
 # reader while claiming to be their own.
 #
+# **This file agrees with `locales/fi` more often than with `locales/olo`, and
+# that is the shape of the language rather than a copy.** Karelian Proper is
+# the closest living relative of Finnish, so its everyday words and its
+# international loans very often coincide with the Finnish ones letter for
+# letter — «oikein», «väärin», «vastaus», «sivu», «tyyppi», «attribuutti» —
+# while Livvi has diverged from both. Where Karelian has a form of its own the
+# seed uses it and the two part company: this file writes «valkie», «vihrie»,
+# «ruskie», «harmua», «pakšu» and «pisteh» against Finnish «valkoinen»,
+# «vihreä», «punainen», «harmaa», «paksu» and «piste», so a string here that
+# matches Finnish matches it because Karelian says the same thing, not because
+# Finnish was left in place. School mathematics is the one place the debt is
+# one-directional: Karelian has no geometry vocabulary of its own, so «jana»,
+# «puolisuora», «murtoviiva» and «vektorikenttä» are the Finnish terms, which
+# is what a Karelian text on the subject would in fact use.
+#
 # Karelian has no grammatical gender and does not inflect an attributive
 # adjective for it, so `$gender` goes unused — the answer every Uralic catalog
 # in this batch gives. `$role` is used: like Finnish, a Karelian attributive

@@ -44,7 +44,24 @@
 # terms, and a coined geometry vocabulary would serve no reader), and why the
 # colour words past сэмыл, яӈк, вигыр, восрам and атыр are Russian: Mansi's own
 # colour vocabulary does not partition the spectrum the way these twelve
-# `color` attributes need.
+# `color` attributes need. A borrowed colour word is given in its Russian
+# citation form — «жёлтый», not an oblique «жёлтой» — because `style-filled`
+# sets it in front of a noun uninflected, the position an unadapted loan
+# occupies in a Mansi sentence.
+#
+# **The Russian in this file goes further than that, and a speaker should read
+# the surplus as a gap rather than as a decision.** Alongside the technical,
+# geometric and colour vocabulary above, these are still bare Russian:
+# «Ошибка» for *error*, «строка» for a source *line*, «Страница» for a *page*,
+# «Рисунок» for a *figure*, «массив элемент» for an array entry, and the
+# school-genre section names «Определение», «Пример», «Упражнение», «Задача»,
+# «Доказательство» and «Решение». Every other Cyrillic catalog in this batch
+# either translates these or adapts the ending — `locales/mrj` writes
+# «Йоҥылыш», «Ластык» and «Упражнений», `locales/mdf` «Ильведефкс» and «Лопа»,
+# `locales/koi` «Тшыкӧдчӧм» and «Лист бок» — and this seed could establish no
+# Mansi form for them, so it left the loan standing rather than coin one.
+# `locales/kca` renders the same set with the same Russian words for the same
+# reason; the two agreeing is not evidence that either is right.
 #
 # Mansi has no grammatical gender and does not inflect an attributive
 # adjective, so `$gender` and `$role` go unused here, as in every other Uralic
@@ -57,16 +74,16 @@
 color =
     .black = сэмыл
     .white = яӈк
-    .gray = серой
+    .gray = серый
     .red = вигыр
-    .orange = оранжевой
-    .yellow = жёлтой
+    .orange = оранжевый
+    .yellow = жёлтый
     .green = восрам
     .cyan = яӈк атыр
     .blue = атыр
-    .purple = фиолетовой
-    .pink = розовой
-    .brown = коричневой
+    .purple = фиолетовый
+    .pink = розовый
+    .brown = коричневый
 line-width =
     .thick = яныг
     .thin = мāнь

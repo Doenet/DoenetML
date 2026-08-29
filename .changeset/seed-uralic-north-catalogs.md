@@ -31,7 +31,10 @@ Livvi-Karelian, Khanty and Mansi now supply their own names to
 Every string is machine-generated and has not been read by a speaker; each
 catalog says so in its header. Five carry an additional confidence caveat worth
 naming: `locales/kca` (Khanty) and `locales/mns` (Mansi) record that much of
-their editor and diagnostics vocabulary is coined rather than attested,
+their editor and diagnostics vocabulary is coined rather than attested, and
+that a further set of words — "error", "line", "page", "figure" and the
+school-genre section names — is still unadapted Russian because the seed could
+establish no Khanty or Mansi form,
 `locales/sjd` (Kildin Sami) is the least certain of the five Sami catalogs,
 `locales/vro` (Võro) records that two of its messages read with the wrong case
 because the seed declined to invent the forms, and `locales/mdf` (Moksha) names

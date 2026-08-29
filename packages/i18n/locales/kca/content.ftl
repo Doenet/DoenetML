@@ -41,7 +41,24 @@
 # the geometric and colour vocabulary past питы, нови, вўрты and васты is
 # Russian. Khanty's own colour words do not partition the spectrum the way this
 # catalog's twelve `color` attributes need, and inventing eight more would have
-# been a worse answer than the loans a Khanty text would actually use.
+# been a worse answer than the loans a Khanty text would actually use. A
+# borrowed colour word is given in its Russian citation form — «жёлтый», not an
+# oblique «жёлтой» — because `style-filled` sets it in front of a noun
+# uninflected, the position an unadapted loan occupies in a Khanty sentence.
+#
+# **The Russian in this file goes further than that, and a speaker should read
+# the surplus as a gap rather than as a decision.** Alongside the technical,
+# geometric and colour vocabulary above, these are still bare Russian:
+# «Ошибка» for *error*, «строка» for a source *line*, «Страница» for a *page*,
+# «Рисунок» for a *figure*, «массив элемент» for an array entry, and the
+# school-genre section names «Определение», «Пример», «Упражнение», «Задача»,
+# «Доказательство» and «Решение». Every other Cyrillic catalog in this batch
+# either translates these or adapts the ending — `locales/mrj` writes
+# «Йоҥылыш», «Ластык» and «Упражнений», `locales/mdf` «Ильведефкс» and «Лопа»,
+# `locales/koi` «Тшыкӧдчӧм» and «Лист бок» — and this seed could establish no
+# Khanty form for them, so it left the loan standing rather than coin one.
+# `locales/mns` renders the same set with the same Russian words for the same
+# reason; the two agreeing is not evidence that either is right.
 #
 # Khanty has no grammatical gender and does not inflect an attributive
 # adjective, so `$gender` and `$role` go unused here, as in every other Uralic
@@ -54,16 +71,16 @@
 color =
     .black = питы
     .white = нови
-    .gray = серой
+    .gray = серый
     .red = вўрты
-    .orange = оранжевой
-    .yellow = жёлтой
+    .orange = оранжевый
+    .yellow = жёлтый
     .green = васты
     .cyan = нови синий
     .blue = синий
-    .purple = фиолетовой
-    .pink = розовой
-    .brown = коричневой
+    .purple = фиолетовый
+    .pink = розовый
+    .brown = коричневый
 line-width =
     .thick = вөн
     .thin = ай
