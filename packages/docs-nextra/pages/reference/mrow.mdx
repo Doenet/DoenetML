@@ -73,8 +73,33 @@ an `<mrow>{:dn}`.  Equations and content will align vertically where the `&` sym
 
 
 An `<mrow>{:dn}` component cannot contain an `<answer>{:dn}`. An input on its
-own can be written into a row, and is drawn inside the aligned display where it
-was written — see [`<md>{:dn}`](md.mdx).
+own can be written into a row, though, and an `<answer>{:dn}` outside the
+display can check it — see the next example.
+
+
+
+---
+
+### Example: an input inside `<mrow>{:dn}`, checked by an `<answer>{:dn}` outside
+
+
+```doenet-editor-horiz
+<md>
+  <mrow>2x + 1 &= 7</mrow>
+  <mrow>x &= <mathInput name="x" /></mrow>
+</md>
+<p><answer><award><when>$x = 3</when></award></answer></p>
+```
+
+
+
+A `<textInput/>{:dn}`, a `<mathInput/>{:dn}`, or an inline
+`<choiceInput/>{:dn}` written inside an `<mrow>{:dn}` is drawn inside the
+aligned display where it was written, so the reader completes the step on the
+line it belongs to. The `<answer>{:dn}` refers to the input by name and checks
+what was entered. The input needs no `<shortDescription>{:dn}`: its own row
+describes it to a screen reader, as "x = blank". See [`<md>{:dn}`](md.mdx) for
+more on inputs inside a display.
 
 
 

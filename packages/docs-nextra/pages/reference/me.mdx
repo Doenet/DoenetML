@@ -92,6 +92,8 @@ is found to be
   \, d<mathInput name="variable" minWidth="20">
     <shortDescription>the variable of integration</shortDescription>
   </mathInput>
+  =
+  \int_{$lower}^{$upper} $integrand \, d$variable
 </me>
 ```
 
@@ -105,13 +107,16 @@ subscript or superscript.
 
 A field is drawn at its ordinary size wherever it sits, so it stays comfortable
 to type in even where the mathematics around it is small. Give the ones holding
-a single symbol a small `minWidth` so they do not leave a wide gap.
+a single symbol a small `minWidth` so they do not leave a wide gap. The
+right-hand side here refers to the four fields, so the integral is typeset in
+the usual way as its parts are filled in.
 
 Each field here is given a `<shortDescription>{:dn}`, because this is a case
 where the expression cannot name them well on its own — see
 [`<m>{:dn}`](m.mdx) for when one is worth writing.
 
 The same restrictions apply as inside `<m>{:dn}`: a non-`inline`
-`<choiceInput/>{:dn}`, an `expanded` `<textInput/>{:dn}` or one whose `width`
-is in `%` or `em`, and any input in an expression drawn on a `<graph>{:dn}`
-cannot be placed inside the expression.
+`<choiceInput/>{:dn}`, an `expanded` `<textInput/>{:dn}` or one given a
+relative width (in `%` or `em`), and any input in an expression drawn on a
+`<graph>{:dn}` cannot be placed inside the expression. Those inputs are not
+shown, and a warning explains the problem.

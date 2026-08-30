@@ -73,62 +73,64 @@ example.
 
 ---
 
-### Example: an input inside `<m>{:dn}`
+### Example: a `<mathInput/>{:dn}` inside `<m>{:dn}`
 
 
 ```doenet-editor-horiz
-<p><m>x = <textInput name="ti" /> + 3</m></p>
-<p>You entered: <text extend="$ti" /></p>
+<p><m>x^2 + <mathInput name="b" /> x + 4 = (x + 2)^2</m></p>
+<p>You entered: <m>$b</m></p>
 ```
 
 
-A `<textInput/>{:dn}`, a `<mathInput/>{:dn}`, or an inline
-`<choiceInput/>{:dn}` written inside an `<m>{:dn}` is rendered *in place*,
+A `<mathInput/>{:dn}` written inside an `<m>{:dn}` is rendered *in place*,
 inside the typeset expression, so the reader fills in the blank where it
-belongs rather than beside the mathematics. Use a `<mathInput/>{:dn}` when the
-answer is mathematics the reader should write as mathematics — a fraction, a
-root, an exponent — and a `<textInput/>{:dn}` when a line of ordinary text will
-do. The expression makes room as a `<mathInput/>{:dn}` grows, and settles once
-the reader presses Enter or moves on.
+belongs rather than beside the mathematics, and writes the answer as
+mathematics — a fraction, a root, an exponent. The expression makes room as
+the answer grows, and closes back up as it shrinks. A `<textInput/>{:dn}` can
+be written there in the same way, when a line of ordinary text will do.
 
-Without a `<shortDescription>{:dn}`, the input is described to a screen reader
-by the expression it sits in — the example above reads as "x equals blank plus
-3" — and a visible `<label>{:dn}` is not drawn, since there is nowhere inside
-an equation to put one.
+This is the one place an input does not need a `<shortDescription>{:dn}` or a
+`<label>{:dn}`. Everywhere else, an input without one of them is an
+accessibility violation, and the document reports it as one. Inside an
+expression, the expression itself describes the input to a screen reader —
+the input above is described as "x² + blank x + 4 = (x + 2)²" — so nothing is
+reported. A `<label>{:dn}` given anyway still names the input, but is not
+drawn, since there is nowhere inside an equation to put it.
 
-Write a `<shortDescription>{:dn}` when the expression does not read as a
-sentence with the blank in it. Two cases where it will not: when the input sits
-in a subscript or a superscript, which reading aloud does not carry; and when
-an expression holds so many blanks that a reader is left counting which one
-they are on. Where the expression does read plainly — `x = <textInput/> + 3`,
-or a blank in a fraction or under a root — it names the input better than a
-description would, and none is needed.
+Even so, write a `<shortDescription>{:dn}` when the expression does not read
+as a sentence with the blank in it. Two cases where it will not: when the
+input sits in a subscript or a superscript, which reading aloud does not carry;
+and when an expression holds so many blanks that a reader is left counting
+which one they are on. Where the expression does read plainly — the example
+above, or a blank in a fraction or under a root — it names the input better
+than a description would.
 
 Not every input can be placed inside an expression. A non-`inline`
 `<choiceInput/>{:dn}` or an `expanded` `<textInput/>{:dn}` is too large to sit
-in a line of mathematics, a `<textInput/>{:dn}` needs a `width` given in
-absolute units such as `px` rather than `%` or `em`, and mathematics drawn on a
-`<graph>{:dn}` has no room for an input. Those are still accepted, but they are
-not drawn inside the expression, and they warn to say so.
+in a line of mathematics, a `<textInput/>{:dn}` given a relative width (in `%`
+or `em`) cannot be added to mathematics, and mathematics drawn on a
+`<graph>{:dn}` has no room for an input. Those inputs are not shown, and a
+warning explains the problem.
 
 
 
 ---
 
-### Example: a `<mathInput/>{:dn}` inside `<m>{:dn}`
+### Example: a `<choiceInput/>{:dn}` inside `<m>{:dn}`
 
 
 ```doenet-editor-horiz
-<p><m>\int_0^1 x^2 \, dx = <mathInput name="area">
-  <shortDescription>the value of the integral</shortDescription>
-</mathInput></m></p>
-<p>You entered: <m>$area</m></p>
+<p>The line through <m>(0, 1)</m> and <m>(2, 5)</m> is
+<m>y = <choiceInput inline name="slope">
+  <choice>2</choice><choice>-2</choice><choice>1/2</choice>
+</choiceInput> x + 1</m>.</p>
+<p>You chose: $slope.selectedValue</p>
 ```
 
 
-The reader writes their answer as mathematics, in the place the answer belongs.
-The expression makes room as the answer grows, and closes back up around it
-once the reader presses Enter or moves on.
+An `inline` `<choiceInput/>{:dn}` sits in the expression as a drop-down list,
+for a blank whose answer is one of a few possibilities. It is described to a
+screen reader as "y = blank x + 1".
 
 
 

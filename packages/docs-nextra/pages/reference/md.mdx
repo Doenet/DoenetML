@@ -51,7 +51,30 @@ the `&` symbol is entered in each row.
 
 
 An `<md>{:dn}` block cannot contain an `<answer>{:dn}`. An input on its own can
-be written into a row, though — see the next example.
+be written into a row, though, and an `<answer>{:dn}` outside the display can
+check it — see the next example.
+
+
+
+---
+
+### Example: an input inside `<md>{:dn}`, checked by an `<answer>{:dn}` outside
+
+
+```doenet-editor-horiz
+<md>
+  <mrow>2x + 1 &= 7</mrow>
+  <mrow>x &= <mathInput name="x" /></mrow>
+</md>
+<p><answer><award><when>$x = 3</when></award></answer></p>
+```
+
+
+
+The input is drawn inside the aligned display where it was written, and the
+`<answer>{:dn}` refers to it by name and checks what was entered. The input
+needs no `<shortDescription>{:dn}`: its own row describes it to a screen
+reader, as "x = blank".
 
 
 
@@ -76,11 +99,19 @@ A `<textInput/>{:dn}`, a `<mathInput/>{:dn}`, or an inline
 inside the aligned display, so the reader completes the missing step where it
 belongs, and the rows stay aligned at the `&` around it. Use a
 `<mathInput/>{:dn}` when the missing step is mathematics the reader should
-write as mathematics; the display makes room for it as it grows, and settles
-once the reader presses Enter or moves on. The same restrictions apply as
-inside `<m>{:dn}`: a non-`inline` `<choiceInput/>{:dn}`, an `expanded`
-`<textInput/>{:dn}` or one whose `width` is in `%` or `em`, and any input in a
-display drawn on a `<graph>{:dn}` cannot be placed inside the display.
+write as mathematics; the display makes room for it as it grows, and closes
+back up as it shrinks.
+
+Without a `<shortDescription>{:dn}`, the input is described to a screen reader
+by its own row alone — here, "f'(x) = blank" — not by the whole display, so no
+accessibility violation is reported. In this example, the
+`<shortDescription>{:dn}` given replaces that default.
+
+The same restrictions apply as inside `<m>{:dn}`: a non-`inline`
+`<choiceInput/>{:dn}`, an `expanded` `<textInput/>{:dn}` or one given a
+relative width (in `%` or `em`), and any input in a display drawn on a
+`<graph>{:dn}` cannot be placed inside the display. Those inputs are not
+shown, and a warning explains the problem.
 
 
 
