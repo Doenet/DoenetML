@@ -1,5 +1,5 @@
-# Komi viewer chrome. Translated from `locales/en/chrome.ftl`, which is the
-# source of truth: `lint:i18n` rejects a key that does not exist there, and
+# Komi-Zyrian viewer chrome. Translated from `locales/en/chrome.ftl`, which is
+# the source of truth: `lint:i18n` rejects a key that does not exist there, and
 # reports a key that exists there but not here as missing coverage.
 #
 # Message ids are never translated — only the text to the right of `=`.
@@ -7,7 +7,13 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Komi counts in two plural categories, `one` and `other`, so every
+# **Komi-Zyrian**, the literary standard of the Komi Republic. The directory is
+# named `kpv` rather than the macrolanguage `kv` because Komi-Permyak ships
+# beside it as `locales/koi`; `negotiate.ts` aliases `kv` onto `kpv`, so a
+# document written with either tag reaches this catalog. See
+# `locales/kpv/content.ftl` for the full note.
+#
+# Komi-Zyrian counts in two plural categories, `one` and `other`, so every
 # `{ $count -> … }` below keeps the shape it had. A noun after a numeral stays
 # singular, so the two branches differ in nothing but the number they print.
 

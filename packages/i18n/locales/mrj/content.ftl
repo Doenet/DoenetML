@@ -21,14 +21,14 @@
 #
 # `mrj` is a member of the `chm` macrolanguage together with Meadow Mari
 # (`mhr`), and until this catalog existed `MACROLANGUAGE_MEMBERS` in
-# `negotiate.ts` folded a Hill Mari reader onto `locales/chm`, which is written
-# in Meadow. That fold is the compromise `locales/chm`'s own header records;
-# with a catalog of its own here it is no longer needed, and it is removed
-# alongside this seed rather than by it.
+# `negotiate.ts` folded a Hill Mari reader onto `locales/mhr`, which is written
+# in Meadow. That fold was a compromise `locales/mhr`'s own header recorded for
+# as long as it lasted; with a catalog of its own here it is no longer needed,
+# and it is removed alongside this seed rather than by it.
 #
 # Hill Mari has no grammatical gender and does not inflect an attributive
 # adjective, so `$gender` and `$role` go unused here, exactly as in
-# `locales/chm`, `locales/kv`, `locales/udm` and `locales/myv`.
+# `locales/mhr`, `locales/kpv`, `locales/udm` and `locales/myv`.
 
 
 ## Style vocabulary
@@ -216,7 +216,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 
 ## Piecewise functions
 ##
-## `piecewise-condition-if` is the limit `locales/udm` and `locales/kv` already
+## `piecewise-condition-if` is the limit `locales/udm` and `locales/kpv` already
 ## record, in a third Uralic language: Mari's conditional «гӹнь» closes the
 ## clause it conditions, and the renderer places this key before the
 ## mathematics. Erzya beside them does not hit it, so the wall is word order
@@ -231,7 +231,7 @@ piecewise-condition-otherwise = вес семӹнь
 ## `element-name` and `element-anion-name` are deliberately left out, so their
 ## 130 keys fall back to English. Secondary chemistry in the Hill Mari district
 ## of Mari El is taught in Russian, so the element names a Hill Mari-speaking
-## pupil meets are the Russian ones — the same school-system case `locales/chm`
+## pupil meets are the Russian ones — the same school-system case `locales/mhr`
 ## records, and the one this batch shares throughout.
 
 ion-name-oxidation-state = { $name } ({ $numeral })

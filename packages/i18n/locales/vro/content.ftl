@@ -229,7 +229,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## All three are Võro's own words rather than the Estonian ones: «vai» for
 ## «või», «ku» for «kui», «muido» for «muul juhul». «ku» opens the clause it
 ## conditions and so places straight in front of the mathematics, which is
-## where the renderer puts it — none of the trouble `locales/kv` and
+## where the renderer puts it — none of the trouble `locales/kpv` and
 ## `locales/udm` record with their clause-final particle arises here.
 
 piecewise-condition-or = vai

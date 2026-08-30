@@ -280,7 +280,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## nearest free-standing form, «акәзар» — "if it is" — is written out so the
 ## sentence is at least readable, and it belongs after the inequality rather
 ## than in front of it. That is the wall `locales/sah`, `locales/tyv`,
-## `locales/udm`, `locales/kv` and `locales/chm` each record for their own
+## `locales/udm`, `locales/kpv` and `locales/mhr` each record for their own
 ## clause-final conditional; no workaround is invented for it here.
 
 piecewise-condition-or = ма

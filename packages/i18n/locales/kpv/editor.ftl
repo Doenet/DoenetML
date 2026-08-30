@@ -1,4 +1,4 @@
-# Komi editor and language-server surfaces. Translated from
+# Komi-Zyrian editor and language-server surfaces. Translated from
 # `locales/en/editor.ftl`, which is the source of truth: `lint:i18n` rejects a
 # key that does not exist there, and reports a key that exists there but not
 # here as missing coverage.
@@ -11,9 +11,15 @@
 # `WCAG AA`, `DoenetML`, `XML`, `styleNumber` and every attribute or element
 # name are identifiers, not prose, and stay as written.
 #
-# Komi counts in the same two categories English does, so every selection below
-# keeps both branches — though a noun after a numeral stays singular, so the
-# two read alike.
+# **Komi-Zyrian**, the literary standard of the Komi Republic. The directory is
+# named `kpv` rather than the macrolanguage `kv` because Komi-Permyak ships
+# beside it as `locales/koi`; `negotiate.ts` aliases `kv` onto `kpv`, so a
+# document written with either tag reaches this catalog. See
+# `locales/kpv/content.ftl` for the full note.
+#
+# Komi-Zyrian counts in the same two categories English does, so every
+# selection below keeps both branches — though a noun after a numeral stays
+# singular, so the two read alike.
 
 
 ## The viewer's controls

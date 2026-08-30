@@ -252,7 +252,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ##
 ## «кōhт» opens the clause it conditions and so places straight in front of the
 ## mathematics, which is where the renderer puts it — none of the trouble
-## `locales/kv` and `locales/chm` record with a clause-final conditional
+## `locales/kpv` and `locales/mhr` record with a clause-final conditional
 ## particle arises here. That is one of the few places where being a Sami
 ## language rather than a Permic one makes this catalog's life easier.
 
@@ -265,7 +265,7 @@ piecewise-condition-otherwise = нӯббь на̄лле
 ## `element-name` and `element-anion-name` are deliberately left out, so their
 ## 130 keys fall back to English. Secondary chemistry on the Kola Peninsula is
 ## taught in **Russian**, so the element names a Kildin-speaking pupil meets
-## are the Russian ones — the same school-system case `locales/kv`,
+## are the Russian ones — the same school-system case `locales/kpv`,
 ## `locales/koi` and `locales/myv` record, and one that lands harder here,
 ## because Kildin-medium teaching does not reach secondary school at all.
 ## Inventing 118 Kildin coinages would put a word in front of that pupil that

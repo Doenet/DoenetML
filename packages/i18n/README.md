@@ -66,32 +66,32 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `ab`, `ace`, `ady`,
-`af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`, `az`, `ba`, `ban`,
-`bci`, `be`, `bem`, `bg`, `bho`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`,
-`brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`, `chm`, `ckb`, `co`,
-`cs`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`, `doi`, `dv`, `dyo`,
-`dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`,
-`fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`,
-`gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`,
-`ig`, `ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbd`, `kbp`,
-`kca`, `kg`, `ki`, `kk`, `km`, `kmb`, `kn`, `ko`, `koi`, `kok`, `kpe`, `kr`,
-`krc`, `kri`, `krl`, `ks`, `ktu`, `ku`, `kum`, `kv`, `ky`, `lb`, `lbe`,
-`lez`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`,
-`mdf`, `men`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`,
-`mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `nl`,
-`nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`,
-`pcm`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`,
+English is the source of truth. Every translation — `ab`, `ace`, `ady`, `af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`,
+`az`, `ba`, `ban`, `bci`, `be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`,
+`bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`,
+`chk`, `ckb`, `co`, `cs`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`,
+`doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`,
+`fa`, `ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`,
+`gd`, `gil`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`,
+`ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`,
+`kab`, `kbd`, `kbp`, `kca`, `kg`, `ki`, `kk`, `km`, `kmb`, `kmr`, `kn`,
+`ko`, `koi`, `kok`, `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`,
+`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `ln`, `lo`, `lom`, `lt`,
+`lua`, `luo`, `lv`, `mad`, `mai`, `mdf`, `men`, `mg`, `mh`, `mhr`, `mi`,
+`min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`, `mos`, `mr`, `mrj`, `ms`,
+`mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `niu`, `nl`, `nog`, `nso`,
+`ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`,
+`pon`, `ps`, `pt`, `qu`, `quc`, `rar`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`,
 `sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sjd`, `sk`, `sl`,
 `sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`,
 `sus`, `sv`, `sw`, `ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
-`tk`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`,
-`ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`, `vro`, `war`, `wo`,
-`xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an
-**unreviewed machine-generated seed**, which each file's own header says at the
-top, and which is what #1521's translation platform is for. None has been read
-by a speaker. Correcting one needs no permission and no coordination: a wrong
-string is just wrong, and the English is one key away.
+`tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `tvl`, `ty`,
+`tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`,
+`vro`, `war`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`,
+`zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's own
+header says at the top, and which is what #1521's translation platform is for.
+None has been read by a speaker. Correcting one needs no permission and no
+coordination: a wrong string is just wrong, and the English is one key away.
 
 A hundred and seventy-one of them are deliberately partial. A hundred and
 seventy are partial in the same place — the two chemistry tables — while
@@ -292,11 +292,11 @@ that are really one.
 `locales/tly` is a two-country version of the same case and the only one that
 has to name two: Talysh schooling is Azerbaijani-medium in Azerbaijan and
 Persian-medium in Iran, so there is no single curriculum to point at.
-`locales/ku` is a third variant, Kurmanji-medium secondary schooling barely
+`locales/kmr` is a third variant, Kurmanji-medium secondary schooling barely
 existing at all — Turkish in Turkey, Arabic in Syria.
 
 **`locales/ckb` is the fifteenth and the one claim about a language, and it
-stands beside `locales/ku` the way `locales/bo` stands beside `locales/dz`.**
+stands beside `locales/kmr` the way `locales/bo` stands beside `locales/dz`.**
 Central Kurdish *is* the medium of secondary science teaching in the Kurdistan
 Region of Iraq, and its schools print the periodic table in Sorani — so the
 names exist, and this is the Khmer and Tibetan case rather than the
@@ -624,6 +624,79 @@ scale: `to` is the only one of the fifteen whose **endonym** CLDR knows — the
 roster reads "Tongan (lea fakatonga)" — and the other fourteen read their
 English name once. None of the fifteen is right-to-left, so `direction.ts` is
 untouched.
+
+### Naming a catalog when a sibling member has one too
+
+A catalog is named after the **individual language it is written in**, not after
+the macrolanguage that language belongs to, whenever a *sibling* member of that
+macrolanguage also has a catalog here.
+
+The rule exists because a macrolanguage tag makes a promise the file cannot
+keep. `locales/ku` was written in Northern Kurdish (Kurmanji) while
+`locales/ckb` sat beside it in Sorani: `ku` covers both, so the directory name
+claimed a reader it could not serve, and the only thing keeping Sorani readers
+out of it was an explicit exclusion in `MACROLANGUAGE_MEMBERS`. The same held
+for `locales/kv` (Komi-Zyrian, beside `locales/koi`) and `locales/chm` (Meadow
+Mari, beside `locales/mrj`). All three were renamed — to `locales/kmr`,
+`locales/kpv` and `locales/mhr` — so that each tag names what is actually in the
+file.
+
+**An alias adds a fallback; it does not replace the tag.** `available` is not
+only this repository's roster — a host passes its own catalogs in as
+`localeResources`, and [the contract those have is that they
+win](#delivery). So `negotiateLocales` asks for the tag as written *and then*
+its alias, in that order. Rewriting `ku` to `kmr` before matching would step
+over a host that had keyed a catalog on `ku`: its key would never be compared
+against anything, and its reader would get English while the translation sat in
+memory. Keeping the original in front means the host's catalog is preferred,
+the alias still carries the request to the bundled catalog when no host catalog
+answers. That is what makes an alias safe to add to a tag that already worked,
+which all three of these were.
+
+What an alias cannot do is tell the two tags apart. `normalizeLocaleTag` folds
+`kmr` to `ku` before negotiation runs — ICU's canonicalization again — so
+`<document lang="kmr">` and `<document lang="ku">` arrive as the same request,
+and a host offering catalogs under *both* keys is answered with the
+macrolanguage's for either. That predates the aliases rather than following
+from them: `kmr` folded to `ku` before there was a `locales/kmr` to fold it
+onto. Undoing it would mean `normalizeLocaleTag` declining to canonicalize
+these three subtags, which changes what a normalized tag means everywhere and
+is a decision worth taking on its own.
+
+**The rename is only safe with an alias behind it, and the reason is a trap
+worth stating plainly.** ICU canonicalizes each of these member codes straight
+back onto its macrolanguage:
+
+```js
+new Intl.Locale("kmr").toString(); // "ku"
+new Intl.Locale("kpv").toString(); // "kv"
+new Intl.Locale("mhr").toString(); // "chm"
+```
+
+`normalizeLocaleTag` runs that canonicalization, so a hand-typed `<document
+lang="kmr">` has already become `ku` before negotiation sees it. A directory
+named `kmr` is therefore unreachable under **both** names unless something maps
+the macrolanguage *forward* onto the member — which is what the `ku: "kmr"`,
+`kv: "kpv"` and `chm: "mhr"` rows in `LANGUAGE_ALIASES` do. Delete them as
+redundant and three catalogs fall to English with nothing to say why.
+
+That is the mirror of the `koi`/`mrj` case: there an alias had to be *removed*
+for a member's own catalog to win, here one has to be *added* for a member's own
+catalog to be reachable at all. `negotiate.test.ts` asserts both the
+canonicalization and the negotiation result, so neither half can be quietly
+dropped.
+
+Two consequences are worth knowing before applying this rule to a fourth
+catalog. The **roster label does not change**: `Intl.DisplayNames` gives `kmr`
+the same "Kurdish" it gives `ku`, so what the rename buys is a precise tag
+rather than a more precise name. And a member list that had shrunk to exactly
+one member disappears entirely, because that member is now the catalog's own
+name — which is what happened to `kv` and `chm`.
+
+The rule does **not** reach every macrolanguage-named catalog on the roster.
+`ms`, `fa`, `sw` and others ship no sibling member catalog, so nothing about
+their tags overclaims in the way `ku` did, and renaming them would move each off
+the ISO 639-1 code an author is most likely to type for no gain.
 
 ### The South Asian batch
 
@@ -1284,8 +1357,8 @@ already partially does for the Liberian half.
 
 Bashkir, Chuvash, Yakut, Tuvan, Buryat, Kalmyk, Udmurt, Komi, Erzya, Mari,
 Ossetian and Chechen — twelve catalogs from **five families** (Turkic: `ba`,
-`cv`, `sah`, `tyv`; Mongolic: `bua`, `xal`; Uralic: `udm`, `kv`, `myv`, `chm`;
-Iranian: `os`; Nakh: `ce`), all written in Cyrillic, all spoken inside the
+`cv`, `sah`, `tyv`; Mongolic: `bua`, `xal`; Uralic: `udm`, `kpv`, `myv`,
+`mhr`; Iranian: `os`; Nakh: `ce`), all written in Cyrillic, all spoken inside the
 Russian Federation. It is the roster's first batch whose whole membership
 shares a **script** without sharing a family, and that is what makes it useful:
 every question the earlier batches asked about what a family or a region
@@ -1372,6 +1445,12 @@ reach a catalog only because the map names them, which is the failure that map
 exists to prevent. Each catalog says in its own header which standard it is:
 Russia Buriat, Komi-Zyrian, Meadow Mari.
 
+Only `bua` is still keyed that way. The Komi and Mari catalogs are named
+`locales/kpv` and `locales/mhr` today, after the varieties they are written in,
+and their macrolanguage codes reach them through `LANGUAGE_ALIASES` instead —
+see [Naming a catalog when a sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too).
+
 `bxu` is the batch's **script debt** and is recorded rather than fixed: China
 Buriat maximizes to `bxu-Mong-CN`, so CLDR's own data says such a reader most
 likely arrives in the Mongolian script and what `locales/bua` gives them is
@@ -1379,8 +1458,9 @@ Cyrillic. That is `locales/dje`'s debt to `tda` in Tifinagh and `locales/kr`'s
 to `kby` in Ajami, and the answer to it is a second catalog rather than a change
 in `negotiate.ts`.
 
-**The other nine filter unaided, so the batch adds no `LANGUAGE_ALIASES` entry
-at all**, and — for the first time in several batches — **no
+**The other nine filter unaided, so the batch added no `LANGUAGE_ALIASES` entry
+at all** — the `kv` and `chm` rows there arrived later, with the naming rule
+above — and — for the first time in several batches — **no
 `LOCALE_NAME_FALLBACKS` entry either**: CLDR has an English name for every one
 of the twelve. Four of those names will look wrong and are not, the
 `ny`-reads-Nyanja rule again: `sah` renders as **Yakut**, `tyv` as
@@ -1435,7 +1515,7 @@ Abkhaz, Adyghe, Kabardian, Avar, Lezgian, Dargwa, Lak, Tabasaran, Ingush,
 Karachay-Balkar, Kumyk, Nogai, Talysh, Kurmanji Kurdish and Central Kurdish —
 fifteen catalogs from **five families** (Northwest Caucasian: `ab`, `ady`,
 `kbd`; Northeast Caucasian: `av`, `lez`, `dar`, `lbe`, `tab`; Nakh: `inh`;
-Turkic: `krc`, `kum`, `nog`; Iranian: `tly`, `ku`, `ckb`), and three scripts.
+Turkic: `krc`, `kum`, `nog`; Iranian: `tly`, `kmr`, `ckb`), and three scripts.
 It picks up where the Russian Federation batch stopped in the most literal way
 available: **six of these fifteen were named in that batch's own test** as
 neighbours of `ba` and `ce` that fall back to English rather than being guessed
@@ -1458,14 +1538,14 @@ appended to a description or prefixed to it rather than woven into it.
 
 **Agreement splits four ways, and only two of the four are a fork.**
 
-`locales/inh` and `locales/ku` genuinely agree. Ingush is Chechen's sister and
+`locales/inh` and `locales/kmr` genuinely agree. Ingush is Chechen's sister and
 forks the в-/й-/б-/д- class system the same way `locales/ce` does — and forks
 one message more: **`line-style.dashed`, which `locales/ce` leaves flat**
 although «кагйина» is the same kind of participle and `describeStroke` hands
 every adjective the same `$gender`. The branch is live rather than decorative,
 and the divergence is a question for a speaker of either language rather than a
 defect in either file; the test pins both forks so nobody flattens one catalog
-to match its neighbour without answering it. `locales/ku` is the other, and its
+to match its neighbour without answering it. `locales/kmr` is the other, and its
 mechanism is not a class at all — see [The Kurdish pair](#the-kurdish-pair).
 
 **`locales/av` agrees more than Chechen does and still forks nothing, which is
@@ -1492,12 +1572,13 @@ a verb prefix and nothing the core names is human. `locales/ady`,
 `locales/kbd`, the three Turkic catalogs, `locales/tly` and `locales/ckb` never
 had classes to lose, and each header says so where a reader would look for the
 fork its neighbours have. Thirteen catalogs, five different reasons for the
-same flat `noun-gender`, in one region; `locales/inh` and `locales/ku` are the
+same flat `noun-gender`, in one region; `locales/inh` and `locales/kmr` are the
 only two whose `noun-gender` answers per noun.
 
 #### The Kurdish pair
 
-`locales/ku` and `locales/ckb` are **one macrolanguage and two catalogs**, and
+`locales/kmr` and `locales/ckb` are **two members of one macrolanguage, with a
+catalog each and no catalog named after the macrolanguage itself**, and
 they differ in every dimension this package has: script, direction, and whether
 the language agrees.
 
@@ -1505,7 +1586,7 @@ Kurmanji is Latin (Hawar), left to right, and has masculine and feminine nouns
 linked to their adjectives by an ezafe. The bound ezafe cannot be welded onto
 `{ $noun }` — the constraint [An affix cannot be welded to a
 placeable](#an-affix-cannot-be-welded-to-a-placeable) describes — so
-`locales/ku` writes the free particle «ya» after a feminine noun and «yê» after
+`locales/kmr` writes the free particle «ya» after a feminine noun and «yê» after
 a masculine one, repeating it before each further adjective, and three messages
 fork on `$gender`: `style-stroke`, `style-filled` and `style-filled-with-noun`.
 A line is feminine and a polygon masculine, so one description changes in three
@@ -1524,20 +1605,26 @@ where Persian's is an unwritten vowel a space can carry, which is why
 
 `locales/ckb` is the roster's eleventh right-to-left catalog and needed nothing
 from `direction.ts`: direction is keyed on the script, `ckb` maximizes to
-`ckb-Arab-IQ`, and `ku` maximizes to `ku-Latn-TR`. One macrolanguage rendering
-in both directions is the plainest demonstration this repository has that
-direction is a fact about a script rather than about a language.
+`ckb-Arab-IQ`, and `kmr` maximizes to `ku-Latn-TR` — ICU canonicalizes `kmr`
+onto `ku` first, and both roads end in the Latin script. One macrolanguage
+rendering in both directions is the plainest demonstration this repository has
+that direction is a fact about a script rather than about a language.
 
 #### Negotiation
 
-**`ku` is the first key in `MACROLANGUAGE_MEMBERS` that is the macrolanguage
-and still excludes one of its own members.** ISO 639-3 gives Kurdish three —
-`ckb`, `kmr`, `sdh` — and the map lists two of them. `ckb` is left out because
-it has a catalog of its own, and folding it would serve a Sorani reader
-Kurmanji in a script they do not read. That is `locales/mnk` excluding `bam`
-and `dyu`, arriving for the first time on a key that is the macrolanguage
-rather than a member of one. `kmr` is the member ICU folds unaided; `sdh`
-reaches a catalog only because the map names it.
+**`kmr` is a key in `MACROLANGUAGE_MEMBERS` that is a *member* rather than the
+macrolanguage, and still excludes one of its own siblings.** ISO 639-3 gives
+Kurdish three members — `ckb`, `kmr`, `sdh` — and this key names one of them
+and lists a second. `ckb` is left out because it has a catalog of its own, and
+folding it would serve a Sorani reader Kurmanji in a script they do not read.
+That is `locales/mnk` excluding `bam` and `dyu`. `sdh` reaches a catalog only
+because the map names it.
+
+The catalog was originally called `locales/ku`, after the macrolanguage, and
+was renamed to `locales/kmr` under the rule described in [Naming a catalog when
+a sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too). A reader who types
+`ku` still reaches it.
 
 `sdh` is the batch's **script debt**, and it is recorded rather than fixed:
 Southern Kurdish maximizes to `sdh-Arab-IR`, so CLDR's own data says such a
@@ -1556,12 +1643,13 @@ macrolanguage mapping still gives it a code outside `kur`, so it falls back —
 `xmf` and `sva` are the same shape in five other families, and
 `negotiate.test.ts` pins every one.
 
-**The other thirteen filter unaided, so the batch adds no `LANGUAGE_ALIASES`
-entry at all**, and every regional and script tag over them — `ab-GE`,
-`lez-AZ`, `tly-IR`, `ku-SY`, `ckb-IQ`, `ab-Latn`, `ku-Arab`, `tly-Cyrl` —
-reaches its catalog on ICU data alone. The script asymmetries the headers
-record: `ku` is Latin and answers `ku-Arab`, `tly` is Latin and answers both
-`tly-Cyrl` and `tly-Arab`, `ckb` is Perso-Arabic and answers `ckb-Latn`, and
+**The other thirteen filter unaided, so the batch added no `LANGUAGE_ALIASES`
+entry at all** — the `ku: "kmr"` row there arrived later, with the naming rule
+above — and every regional and script tag — `ab-GE`, `lez-AZ`, `tly-IR`,
+`ku-SY`, `ckb-IQ`, `ab-Latn`, `ku-Arab`, `tly-Cyrl` — reaches its catalog on
+ICU data plus that one row. The script asymmetries the headers record: `kmr` is
+Latin and answers `ku-Arab`, `tly` is Latin and answers both `tly-Cyrl` and
+`tly-Arab`, `ckb` is Perso-Arabic and answers `ckb-Latn`, and
 the twelve Cyrillic ones answer a Latin tag with Cyrillic. As ever the answer
 to a mismatch is a second catalog beside the first rather than a rename of it.
 
@@ -1576,9 +1664,14 @@ is `locales/bci`'s and `locales/lom`'s shape rather than a new one.
 
 Four of the batch's CLDR names will look wrong and are not, the
 `ny`-reads-Nyanja rule again: `ab` renders as **Abkhazian**, `av` as
-**Avaric**, `lez` as **Lezghian**, and `ku` — whose endonym ICU gives as
-"kurdî (kurmancî)" — labels itself **"Kurdish (kurdî (kurmancî))"**, nested
-parenthesis and all. `supportedLocales.ts` is derived rather than hand-written,
+**Avaric**, `lez` as **Lezghian**, and `kmr` — which ICU canonicalizes to `ku`
+and whose endonym it therefore gives as "kurdî (kurmancî)" — labels itself
+**"Kurdish (kurdî (kurmancî))"**, nested parenthesis and all. That last one is
+the label consequence of the rename spelled out under [Naming a catalog when a
+sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too): the tag is now the
+member's, and the name CLDR answers with is still the macrolanguage's.
+`supportedLocales.ts` is derived rather than hand-written,
 which is the whole point: adding fifteen languages cost no per-language prose,
 and the price of that is that ICU's rendering stands even when it reads oddly.
 Each catalog's header says which language it is.
@@ -1609,7 +1702,7 @@ formatted `{ $numSides }` — so it appends «къуапэ 5 иӀэу» behind t
 description; `locales/ckb`'s noun carries its ezafe and takes the count in a
 «بە … ەوە» phrase behind it. Those two are why `$part` is not dead weight.
 `styleDescriptions.test.ts` holds all fifteen to rendering the count exactly
-once, and names `kbd` and `ckb` against `ab`, `ady` and `ku` — the three other
+once, and names `kbd` and `ckb` against `ab`, `ady` and `kmr` — the three other
 postnominal catalogs, which are where the tail is what the string ends with and
 so the only group in which the split is visible from the outside.
 
@@ -1659,7 +1752,7 @@ headers.** No Uralic language has grammatical gender, so `noun-gender` returns
 one token in every file — the flat answer eleven of the Russian Federation's
 twelve gave. What is new is that it is *asserted*: the same suite checks that a
 catalog's adjectives come out identical whatever noun follows them, which is
-exactly what `locales/inh` and `locales/ku` fail — their descriptions come out
+exactly what `locales/inh` and `locales/kmr` fail — their descriptions come out
 in two different shapes depending on the noun — and it turns "this language
 does not agree" from a remark in a header into a property of the file.
 (`locales/ce` and `locales/av` write a `$gender` fork too, but the branches no
@@ -1704,16 +1797,16 @@ through `resolvedOptions().locale` rather than by rendering a count, because
 what a runtime with no `sjd` data falls back to is the environment's business.
 
 That is not a fact about Kildin Sami, and it is not rare: **eleven of these
-fifteen tags have no CLDR plural data at all**, as `myv`, `kv`, `chm` and `tlh`
-already did before them. The roster's plural shapes are a map of CLDR's
+fifteen tags have no CLDR plural data at all**, as `myv`, `kpv`, `mhr` and
+`tlh` already did before them. The roster's plural shapes are a map of CLDR's
 coverage, not of how the world's languages count, and the four Sami catalogs
 are here to make the difference visible from inside one family.
 
 #### Negotiation: the first entries to shrink
 
 **`MACROLANGUAGE_MEMBERS` lost two members in this batch, and no previous batch
-has ever removed one.** `koi` (Komi-Permyak) was folded onto `locales/kv` and
-`mrj` (Hill Mari) onto `locales/chm`, both added by the Russian Federation
+has ever removed one.** `koi` (Komi-Permyak) was folded onto `locales/kpv` and
+`mrj` (Hill Mari) onto `locales/mhr`, both added by the Russian Federation
 batch, both correct at the time: neither had anywhere else to go, and a reader
 served a neighbouring standard beats a reader served English. The moment each
 had a catalog of its own the fold became the thing the map exists to prevent —
@@ -1721,12 +1814,18 @@ had a catalog of its own the fold became the thing the map exists to prevent —
 on disk would have been unreachable while every Komi-Permyak reader kept
 getting Zyrian.
 
-So `kv` now lists `kpv` alone and `chm` lists `mhr` alone. That is `ku`
-excluding `ckb` and `mnk` excluding `bam` and `dyu`, arriving for the first
-time as a *removal* rather than as an omission, and `negotiate.test.ts` holds
-both directions: `koi` and `mrj` reach themselves even when their
-macrolanguage's catalog is also on offer, while `kpv` and `mhr` — the members
-that still have no catalog — still reach `kv` and `chm`.
+So `kv` was left listing `kpv` alone and `chm` listing `mhr` alone. That was
+`kmr` excluding `ckb` and `mnk` excluding `bam` and `dyu`, arriving for the
+first time as a *removal* rather than as an omission, and `negotiate.test.ts`
+asserts it as a removal: `koi` and `mrj` reach themselves even when the
+neighbouring standard's catalog is also on offer.
+
+Those two one-member lists are gone now, and their disappearance finished the
+argument this batch started. A list folding a macrolanguage's last unwritten
+member onto a catalog written *in* that member is not a fold at all, so when
+the catalogs were renamed to `locales/kpv` and `locales/mhr` both rows became
+`LANGUAGE_ALIASES` entries instead. See [Naming a catalog when a sibling
+member has one too](#naming-a-catalog-when-a-sibling-member-has-one-too).
 
 **`mdf` moved for the same reason without ever having been folded.** The
 Russian Federation batch pinned Moksha on English and explained why at length:
@@ -1780,7 +1879,7 @@ rather than branch.** The renderer places the key *before* the mathematics it
 introduces. Komi-Permyak's «кӧ», Hill Mari's «гӹнь», Khanty's «ки» and Mansi's
 «ке» are all clause-final enclitics, so all four record the `locales/dv` shape
 beside the key rather than inventing a workaround — the same limit
-`locales/kv`, `locales/udm` and `locales/chm` recorded in the Russian
+`locales/kpv`, `locales/udm` and `locales/mhr` recorded in the Russian
 Federation batch, which means every Permic and Mari catalog in the roster now
 sits on that line. The other eleven land correctly, and they include both of
 the batch's Cyrillic non-Ugric files: Moksha's «кда» and Kildin Sami's «кōhт»
@@ -2305,7 +2404,7 @@ a catalog resolving `one` and `other` where English resolves `one`, `two` and
 `other` is right rather than broken — see [The dual, and the one Sami language
 that cannot write it](#the-dual-and-the-one-sami-language-that-cannot-write-it).
 The check is a subset rather than an equality for the mirror-image reason: a
-catalog may legitimately select on more than English does — `locales/ku` and the
+catalog may legitimately select on more than English does — `locales/kmr` and the
 Dagestanian catalogs nest a `$gender` select inside `$parts`, and the four
 Finnic catalogs fork on `$role` — so what it forbids is a branch going *missing*,
 which is the only shape the failure takes.
@@ -3235,7 +3334,7 @@ is Indo-Aryan and agrees with nothing either — the two reach the same answer
 from opposite families. `ks` is the one of the eleven whose catalog records a
 gap rather than a decision: it *does* agree an adjective for gender and this
 seed does not, which its header says outright. `ckb` is the only one whose
-*sibling* is on the roster in the other direction — `locales/ku` is the same
+*sibling* is on the roster in the other direction — `locales/kmr` is the same
 macrolanguage in Latin, left to right — and the only one that solves the affix
 problem by writing the linker into its `noun` table; see [The Kurdish
 pair](#the-kurdish-pair). `yi` is Germanic, and it forks on `$role` for a

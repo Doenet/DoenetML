@@ -1,26 +1,29 @@
-# Komi content catalog: the prose the core computes into the document.
+# Komi-Zyrian content catalog: the prose the core computes into the document.
 # Selected by `documentLocale` — the language the activity was written in.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Written in Cyrillic with Komi's own ӧ and і, which is the orthography the
-# Komi Republic's schools and publishing use and what CLDR fills a bare `kv`
-# in as.
+# This is **Komi-Zyrian** (`kpv`), the literary standard of the Komi Republic,
+# written in Cyrillic with Komi's own ӧ and і — the orthography the Republic's
+# schools and publishing use, and what CLDR fills a bare `kv` in as.
 #
-# `kv` is an ISO 639-3 **macrolanguage** over Komi-Zyrian (`kpv`) and
-# Komi-Permyak (`koi`), so it joins `MACROLANGUAGE_MEMBERS` in `negotiate.ts`
-# and both reach this catalog. What is written here is **Komi-Zyrian**, the
-# literary standard of the Komi Republic and what CLDR's own data means by a
-# bare `kv`. Serving a Komi-Permyak reader Zyrian is a real compromise — the
-# same one `locales/qu`, `locales/bik` and `locales/bua` already make — and a
-# deployment that wants Permyak supplies it as `localeResources`.
+# **Why the directory is `kpv` and not `kv`.** `kv` is an ISO 639-3
+# **macrolanguage** over Komi-Zyrian (`kpv`) and Komi-Permyak (`koi`), and
+# Komi-Permyak now has a catalog of its own in `locales/koi`. A directory named
+# for the macrolanguage would claim to cover a sibling it cannot serve, so this
+# one is named for the individual language actually written in it. Nothing is
+# lost to a reader who types the old tag: ICU canonicalizes `kpv` straight back
+# onto `kv`, so `negotiate.ts` carries `kv: "kpv"` in `LANGUAGE_ALIASES` and
+# **both tags reach this catalog**. A document that says `lang="kv"` keeps
+# working exactly as before; one that says `lang="kpv"` now says precisely what
+# it means.
 #
-# Komi has no grammatical gender and does not inflect an attributive adjective,
-# so `$gender` and `$role` go unused here, exactly as in `locales/udm`, its
-# nearest relative in this batch. What both Permic catalogs use instead is the
-# noun's own case suffix in the two clause messages, and in both it falls on a
-# word the catalog writes rather than on a placeable.
+# Komi-Zyrian has no grammatical gender and does not inflect an attributive
+# adjective, so `$gender` and `$role` go unused here, exactly as in
+# `locales/udm`, its nearest relative in this batch. What both Permic catalogs
+# use instead is the noun's own case suffix in the two clause messages, and in
+# both it falls on a word the catalog writes rather than on a placeable.
 
 
 ## Style vocabulary

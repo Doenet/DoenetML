@@ -15,7 +15,7 @@
 # uses for them: «компонент», «атрибут», «функций», «индекс».
 #
 # `mrj` is Hill Mari (Western Mari, кырык мары йӹлмӹ). This is the largest of
-# the four files and the one where the distance from `locales/chm` is easiest
+# the four files and the one where the distance from `locales/mhr` is easiest
 # to check: Meadow Mari's «огыл», «да», «деч», «дене», «-влак», «чын»,
 # «ончаш», «икшыве», «мут», «сандене», «возаш» are Hill Mari's «агыл», «дӓ»,
 # «гӹц», «доно», «-влӓ», «цын», «анжаш», «тетя», «шамак», «седӹндон», «сирӓш»,

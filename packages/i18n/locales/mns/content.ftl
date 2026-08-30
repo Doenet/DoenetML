@@ -65,8 +65,8 @@
 #
 # Mansi has no grammatical gender and does not inflect an attributive
 # adjective, so `$gender` and `$role` go unused here, as in every other Uralic
-# catalog in the roster — `locales/kca`, `locales/kv`, `locales/udm`,
-# `locales/myv`, `locales/chm`, `locales/mrj`.
+# catalog in the roster — `locales/kca`, `locales/kpv`, `locales/udm`,
+# `locales/myv`, `locales/mhr`, `locales/mrj`.
 
 
 # **«сыр» carries three senses, exactly as `locales/kca`'s «сир» does.** The
@@ -276,8 +276,8 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 
 ## Piecewise functions
 ##
-## `piecewise-condition-if` is the same limit `locales/kv`, `locales/udm`,
-## `locales/chm`, `locales/mrj` and `locales/kca` record: Mansi's conditional
+## `piecewise-condition-if` is the same limit `locales/kpv`, `locales/udm`,
+## `locales/mhr`, `locales/mrj` and `locales/kca` record: Mansi's conditional
 ## «ке» is an enclitic that closes the clause it conditions, and the renderer
 ## places this key before the mathematics. Nothing can be written here that
 ## will stand in front of the condition and still be Mansi, so «ке» is printed

@@ -303,7 +303,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## Ingush's conditional «нагахьа» opens the clause it conditions, so this key
 ## lands where the renderer puts it — before the mathematics it introduces —
 ## and needs none of the caveat `locales/sah`, `locales/tyv`, `locales/udm`,
-## `locales/kv` and `locales/chm` record for a clause-final "if". Chechen's
+## `locales/kpv` and `locales/mhr` record for a clause-final "if". Chechen's
 ## «нагахь санна» is clause-initial too, so the two Vainakh catalogs agree
 ## here as well.
 

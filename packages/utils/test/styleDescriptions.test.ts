@@ -3152,9 +3152,9 @@ describe("the Russian Federation's Cyrillic batch", () => {
         ],
         ["xal", "зузан тасрха улан шулун зурас", "зузан тасрха улан"],
         ["udm", "зӧк чигем горд шонер чур", "зӧк чигем горд"],
-        ["kv", "кыз вундалӧм гӧрд веськыд визь", "кыз вундалӧм гӧрд"],
+        ["kpv", "кыз вундалӧм гӧрд веськыд визь", "кыз вундалӧм гӧрд"],
         ["myv", "эчке сезнезь якстере виде линия", "эчке сезнезь якстере"],
-        ["chm", "кӱжгӧ кӱрылтшӧ йошкар вияш линий", "кӱжгӧ кӱрылтшӧ йошкар"],
+        ["mhr", "кӱжгӧ кӱрылтшӧ йошкар вияш линий", "кӱжгӧ кӱрылтшӧ йошкар"],
         ["os", "бæзджын скъуыдтæ сырх раст хахх", "бæзджын скъуыдтæ сырх"],
         ["ce", "дуькъа кагйина цӀен нийса сиз", "дуькъа кагйина цӀен"],
     ];
@@ -3304,14 +3304,14 @@ describe("the Caucasus and Kurdish batch", () => {
             "Ӏужъу зэпыугъэ плъыжьы",
         ],
         ["kbd", "линэ занщӀэ Ӏув зэпыуда плъыжь", "Ӏув зэпыуда плъыжь"],
-        ["ku", "xêz ya stûr ya qutbirr ya sor", "ya stûr ya qutbirr ya sor"],
+        ["kmr", "xêz ya stûr ya qutbirr ya sor", "ya stûr ya qutbirr ya sor"],
         ["ckb", "هێڵی سوور و پچڕپچڕ و ئەستوور", "سوور و پچڕپچڕ و ئەستوور"],
     ];
 
     /**
      * The nouns the placement rule is checked over — one of each shape the
      * `noun` table names, rather than the single `line` the rows above spell
-     * out. `ku`'s ezafe makes the spread matter for a second reason: a polygon
+     * out. `kmr`'s ezafe makes the spread matter for a second reason: a polygon
      * is masculine and a line feminine, so these six cover both agreements.
      */
     const placementNouns: NounKey[] = [
@@ -3411,7 +3411,7 @@ describe("the Caucasus and Kurdish batch", () => {
      * rendering still ends with the adjectives, while a catalog using the tail
      * has appended something behind them.
      *
-     * `ab`, `ady` and `ku` fold the count into the head and so still end with
+     * `ab`, `ady` and `kmr` fold the count into the head and so still end with
      * the adjectives; `kbd` and `ckb` do not. That is the whole of the split,
      * held on the group where the string position actually distinguishes it.
      * The ten prenominal catalogs all fold it in too, but their adjectives
@@ -3421,12 +3421,12 @@ describe("the Caucasus and Kurdish batch", () => {
     it.each([
         ["ab", true],
         ["ady", true],
-        ["ku", true],
+        ["kmr", true],
         ["kbd", false],
         ["ckb", false],
     ])("puts %s's side count in the head: %s", (locale, inHead) => {
         const t = forLocale(locale);
-        // Taken from the *same* noun, because `ku`'s ezafe agrees with it:
+        // Taken from the *same* noun, because `kmr`'s ezafe agrees with it:
         // a polygon is masculine and a line feminine, so comparing across two
         // nouns would fail on gender rather than on placement.
         const adjectivesOnly = describeStrokedShape(t, words, {
@@ -3538,13 +3538,13 @@ describe("Ingush noun classes", () => {
  *
  * Kurmanji has masculine and feminine nouns, and an attributive adjective
  * follows its noun linked by an ezafe. The bound ezafe cannot be welded onto
- * `{ $noun }`, so `locales/ku` writes the free particle — «ya» after a feminine
+ * `{ $noun }`, so `locales/kmr` writes the free particle — «ya» after a feminine
  * noun and «yê» after a masculine one — and repeats it before each further
  * adjective. A line is feminine and a polygon masculine, so one description
  * changes in three places and the other does not change at all.
  */
 describe("Kurmanji ezafe agreement", () => {
-    const ku: Translator = forLocale("ku");
+    const kmr: Translator = forLocale("kmr");
 
     it.each([
         ["line", "xêz ya stûr ya qutbirr ya sor"],
@@ -3553,7 +3553,7 @@ describe("Kurmanji ezafe agreement", () => {
         ["polygon", "pirgoşe yê stûr yê qutbirr yê sor"],
     ])("links «%s» to its adjectives with the right ezafe", (key, expected) => {
         expect(
-            describeStrokedShape(ku, words, {
+            describeStrokedShape(kmr, words, {
                 noun: { key: key as NounKey },
                 withNoun: true,
             }),
@@ -3569,14 +3569,14 @@ describe("Kurmanji ezafe agreement", () => {
     it("carries a filled shape's agreement in the particle, not the participle", () => {
         const blueFill = { fillColorWord: "blue", fillStyleWord: "" };
         expect(
-            describeClosedShape(ku, blueFill, {
+            describeClosedShape(kmr, blueFill, {
                 filled: true,
                 noun: { key: "circle" },
                 withNoun: true,
             }),
         ).toBe("bazine ya dagirtî ya şîn");
         expect(
-            describeFill(ku, { fillColorWord: "blue" }, { filled: false }),
+            describeFill(kmr, { fillColorWord: "blue" }, { filled: false }),
         ).toBe("nedagirtî");
     });
 });

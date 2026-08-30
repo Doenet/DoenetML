@@ -13,12 +13,13 @@
 # its publishing use and what CLDR gives `ckb`. `ckb` maximizes to
 # `ckb-Arab-IQ`, so `directionOf` reports it **right to left**.
 #
-# Northern Kurdish (Kurmanji) has a catalog of its own, `locales/ku`, written
+# Northern Kurdish (Kurmanji) has a catalog of its own, `locales/kmr`, written
 # left to right in the Latin alphabet. A Sorani reader reaches this file
-# instead: `ckb` is a member of the `ku` macrolanguage, and the roster's
-# `MACROLANGUAGE_MEMBERS` entry deliberately excludes it from the fold onto
-# `ku` for that reason — the same exclusion `locales/mnk` makes for `bam` and
-# `dyu`.
+# instead: `ckb` is a member of the `ku` macrolanguage, and the roster folds
+# only `sdh` onto Kurmanji — `ckb` is deliberately left out of that fold, the
+# same exclusion `locales/mnk` makes for `bam` and `dyu`. Because Sorani ships
+# beside it, the Kurmanji catalog is named `kmr` rather than `ku`; the
+# macrolanguage tag still reaches it, through `LANGUAGE_ALIASES`.
 #
 # Two plural categories, `one` and `other`. A Sorani noun after a numeral
 # stays singular, so almost nothing needs the branch; a message wanting a

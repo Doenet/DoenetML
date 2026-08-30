@@ -9,8 +9,9 @@
 # Written in the Kurdo-Arabic alphabet, the fully vowelled Arabic-script
 # orthography of the Kurdistan Region of Iraq. `ckb` maximizes to
 # `ckb-Arab-IQ` and is right to left. Northern Kurdish (Kurmanji) has its own
-# left-to-right Latin catalog in `locales/ku`; a Sorani reader reaches this
-# one, which is why `ckb` is kept out of the roster's fold onto `ku`.
+# left-to-right Latin catalog in `locales/kmr`; a Sorani reader reaches this
+# one, which is why `ckb` is kept out of the roster's fold onto Kurmanji — and
+# why that catalog is named `kmr` rather than for the `ku` macrolanguage.
 #
 # Sorani has no grammatical gender, so nothing here agrees with anything. Two
 # plural categories, `one` and `other`, and a noun after a numeral stays

@@ -217,7 +217,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ##
 ## Ossetian's conditional «кæд» is clause-initial, so this key lands where the
 ## renderer puts it — unlike `locales/sah`, `locales/tyv`, `locales/udm`,
-## `locales/kv` and `locales/chm`, five catalogs of this batch whose
+## `locales/kpv` and `locales/mhr`, five catalogs of this batch whose
 ## conditional closes its clause and which record a limit there.
 
 piecewise-condition-or = кæнæ

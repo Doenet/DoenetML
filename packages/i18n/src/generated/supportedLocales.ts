@@ -43,7 +43,6 @@ export type SupportedLocale =
     | "ceb"
     | "ch"
     | "chk"
-    | "chm"
     | "ckb"
     | "co"
     | "cs"
@@ -111,21 +110,21 @@ export type SupportedLocale =
     | "kk"
     | "km"
     | "kmb"
+    | "kmr"
     | "kn"
     | "ko"
     | "koi"
     | "kok"
     | "kos"
     | "kpe"
+    | "kpv"
     | "kr"
     | "krc"
     | "kri"
     | "krl"
     | "ks"
     | "ktu"
-    | "ku"
     | "kum"
-    | "kv"
     | "ky"
     | "lb"
     | "lbe"
@@ -144,6 +143,7 @@ export type SupportedLocale =
     | "men"
     | "mg"
     | "mh"
+    | "mhr"
     | "mi"
     | "min"
     | "mk"
@@ -481,7 +481,6 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Chuukese",
         label: "Chuukese",
     },
-    { locale: "chm", englishName: "Mari", endonym: "Mari", label: "Mari" },
     {
         locale: "ckb",
         englishName: "Central Kurdish",
@@ -835,6 +834,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Kimbundu",
     },
     {
+        locale: "kmr",
+        englishName: "Kurdish",
+        endonym: "kurdî (kurmancî)",
+        label: "Kurdish (kurdî (kurmancî))",
+    },
+    {
         locale: "kn",
         englishName: "Kannada",
         endonym: "ಕನ್ನಡ",
@@ -870,6 +875,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Kpelle",
         label: "Kpelle",
     },
+    { locale: "kpv", englishName: "Komi", endonym: "Komi", label: "Komi" },
     { locale: "kr", englishName: "Kanuri", endonym: "Kanuri", label: "Kanuri" },
     {
         locale: "krc",
@@ -896,14 +902,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Kikongo ya leta",
         label: "Kituba (Kikongo ya leta)",
     },
-    {
-        locale: "ku",
-        englishName: "Kurdish",
-        endonym: "kurdî (kurmancî)",
-        label: "Kurdish (kurdî (kurmancî))",
-    },
     { locale: "kum", englishName: "Kumyk", endonym: "Kumyk", label: "Kumyk" },
-    { locale: "kv", englishName: "Komi", endonym: "Komi", label: "Komi" },
     {
         locale: "ky",
         englishName: "Kyrgyz",
@@ -997,6 +996,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "Marshallese",
         label: "Marshallese",
     },
+    { locale: "mhr", englishName: "Mari", endonym: "Mari", label: "Mari" },
     { locale: "mi", englishName: "Māori", endonym: "Māori", label: "Māori" },
     {
         locale: "min",

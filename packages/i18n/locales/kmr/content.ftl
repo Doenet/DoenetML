@@ -1,4 +1,5 @@
-# Kurdish content catalog: the prose the core computes into the document.
+# Northern Kurdish (Kurmanji) content catalog: the prose the core computes
+# into the document.
 # Selected by `documentLocale` — the language the activity was written in.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
@@ -11,6 +12,18 @@
 # (kurmancî)». So this catalog is **left to right**, and the letters here are
 # the twenty-two consonants and nine vowels of Hawar — `ê`, `î`, `û`, `ç`, `ş`
 # are letters of the alphabet and not decorated Latin ones.
+#
+# **Why the directory is `kmr` and not `ku`.** `ku` is the ISO 639-3
+# **macrolanguage** over Northern Kurdish (`kmr`), Central Kurdish (`ckb`) and
+# Southern Kurdish (`sdh`), and Central Kurdish has a catalog of its own in
+# `locales/ckb`. A directory named for the macrolanguage would claim to cover a
+# sibling it cannot serve, so this one is named for the individual language
+# actually written in it. Nothing is lost to a reader who types the old tag:
+# ICU canonicalizes `kmr` straight back onto `ku`, so `negotiate.ts` carries
+# `ku: "kmr"` in `LANGUAGE_ALIASES` and **both tags reach this catalog**. A
+# document that says `lang="ku"` keeps working exactly as before; one that says
+# `lang="kmr"` now says precisely what it means. Southern Kurdish (`sdh`) has
+# no catalog, and folds onto this one through `MACROLANGUAGE_MEMBERS`.
 #
 # **A reader arriving under `ku-Arab` reaches this catalog and gets Latin.**
 # That is the same script asymmetry `locales/pa`, `locales/sr` and `locales/ha`
@@ -33,7 +46,7 @@
 #
 # So the colour, width and dash tables below fork nowhere, and the composition
 # messages fork everywhere. That is the opposite shape from French, and it is
-# the reason `ku` is in this batch.
+# the reason Kurmanji is in this batch.
 #
 # **The ezafe cannot be welded to a placeable, and that decided the design of
 # this file.** The bound ezafe attaches to the *noun*; in `style-with-noun` and

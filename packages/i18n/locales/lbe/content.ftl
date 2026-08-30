@@ -270,7 +270,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 ## conditional converb, «духьурча» "if it is" — so the word belongs after the
 ## mathematics rather than in front of it, and the renderer places this message
 ## before. That is the limit `locales/sah`, `locales/tyv`, `locales/udm`,
-## `locales/kv` and `locales/chm` record for the same reason; splitting the key
+## `locales/kpv` and `locales/mhr` record for the same reason; splitting the key
 ## into a prefix and a suffix would fix it and nothing in the composition
 ## messages exposes the distinction today. The Lak form is written out anyway,
 ## so a reader sees a Lak word in the wrong position rather than an English one.

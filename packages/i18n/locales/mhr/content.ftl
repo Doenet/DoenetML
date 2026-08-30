@@ -1,26 +1,29 @@
-# Mari content catalog: the prose the core computes into the document.
+# Meadow Mari content catalog: the prose the core computes into the document.
 # Selected by `documentLocale` — the language the activity was written in.
 #
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# Written in Cyrillic with Meadow Mari's own ӧ, ӱ and ҥ, which is the
-# orthography Mari El's schools and publishing use and what CLDR fills a bare
-# `chm` in as. Hill Mari's ӓ and ӹ are deliberately absent: they belong to the
-# other standard, and this catalog is not written in it — see below.
+# This is **Meadow Mari** (`mhr`), the larger of the two Mari literary
+# standards, written in Cyrillic with its own ӧ, ӱ and ҥ — the orthography Mari
+# El's schools and publishing use, and what CLDR fills a bare `chm` in as. Hill
+# Mari's ӓ and ӹ are deliberately absent: they belong to the other standard,
+# and this catalog is not written in it.
 #
-# `chm` is an ISO 639-3 **macrolanguage** over Meadow Mari (`mhr`) and Hill
-# Mari (`mrj`), so it joins `MACROLANGUAGE_MEMBERS` in `negotiate.ts` and both
-# reach this catalog. What is written here is **Meadow Mari**, the larger of
-# the two literary standards and what a bare `chm` is normally taken to mean.
-# Hill Mari is a written standard of its own with its own orthography, so
-# serving it Meadow Mari is a real compromise — the same one `locales/kv` makes
-# for Komi-Permyak, one batch-mate away — and a deployment that wants Hill Mari
-# supplies it as `localeResources`.
+# **Why the directory is `mhr` and not `chm`.** `chm` is an ISO 639-3
+# **macrolanguage** over Meadow Mari (`mhr`) and Hill Mari (`mrj`), and Hill
+# Mari — a written standard of its own, with its own orthography — now has a
+# catalog of its own in `locales/mrj`. A directory named for the macrolanguage
+# would claim to cover a sibling it cannot serve, so this one is named for the
+# individual language actually written in it. Nothing is lost to a reader who
+# types the old tag: ICU canonicalizes `mhr` straight back onto `chm`, so
+# `negotiate.ts` carries `chm: "mhr"` in `LANGUAGE_ALIASES` and **both tags
+# reach this catalog**. A document that says `lang="chm"` keeps working exactly
+# as before; one that says `lang="mhr"` now says precisely what it means.
 #
-# Mari has no grammatical gender and does not inflect an attributive adjective,
-# so `$gender` and `$role` go unused here, as in the other three Uralic
-# catalogs of this batch.
+# Meadow Mari has no grammatical gender and does not inflect an attributive
+# adjective, so `$gender` and `$role` go unused here, as in the other three
+# Uralic catalogs of this batch.
 
 
 ## Style vocabulary
@@ -206,7 +209,7 @@ paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
 
 ## Piecewise functions
 ##
-## `piecewise-condition-if` is the limit `locales/udm` and `locales/kv` already
+## `piecewise-condition-if` is the limit `locales/udm` and `locales/kpv` already
 ## record, in a third Uralic language: Mari's conditional «гын» closes the
 ## clause it conditions, and the renderer places this key before the
 ## mathematics. Erzya beside them does not hit it, so the wall is word order
