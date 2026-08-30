@@ -73,12 +73,14 @@ const RTL_LANGUAGES = new Set([
     "ae", // Avestan
     "ar", // Arabic
     "arc", // Aramaic
+    "bal", // Balochi
     "bcc", // Southern Balochi
     "bqi", // Bakhtiari
     "ckb", // Central Kurdish
     "dv", // Divehi
     "fa", // Persian
     "glk", // Gilaki
+    "haz", // Hazaragi
     "he", // Hebrew
     "iw", // Hebrew (retired)
     "ji", // Yiddish (retired)

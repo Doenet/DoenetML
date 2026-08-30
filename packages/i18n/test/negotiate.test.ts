@@ -1246,7 +1246,14 @@ describe("negotiateLocales", () => {
          * same script as `ckb`, is often described as a variety of Southern
          * Kurdish, and ISO 639-3's macrolanguage mapping still gives it a code
          * outside `kur` — so it falls back, exactly as `alq` does beside `oj`.
-         * `zza` (Zaza) is the same shape one family over. `agx` (Aghul) is
+         * `zza` (Zaza) used to sit in this list as the same shape one family
+         * over, and it has left it: the Silk Road batch gave Zazaki a catalog
+         * of its own, so it is now a hit rather than a near miss, asserted
+         * with the rest of that batch below. `lki` stays exactly where it was,
+         * which is the point — Laki did not become reachable because a
+         * neighbour did.
+         *
+         * `agx` (Aghul) is
          * Lezgic beside `lez` and `tab`, `ddo` (Tsez) is Avar's neighbour in
          * Dagestan, and `xmf` (Mingrelian) and `sva` (Svan) are Kartvelian
          * beside `ab` without belonging to any macrolanguage with a catalog.
@@ -1255,7 +1262,7 @@ describe("negotiateLocales", () => {
          * rather than a gap in it — the moment "is spoken next to" decides the
          * map, nothing in it is checkable any more.
          */
-        it.each(["lki", "zza", "agx", "ddo", "xmf", "sva"])(
+        it.each(["lki", "agx", "ddo", "xmf", "sva"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(

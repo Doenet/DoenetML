@@ -65411,6 +65411,10 @@
                             "description": "Akan"
                         },
                         {
+                            "value": "alt",
+                            "description": "Southern Altai"
+                        },
+                        {
                             "value": "am",
                             "description": "Amharic (አማርኛ)"
                         },
@@ -65445,6 +65449,10 @@
                         {
                             "value": "ba",
                             "description": "Bashkir (башҡорт)"
+                        },
+                        {
+                            "value": "bal",
+                            "description": "Baluchi"
                         },
                         {
                             "value": "ban",
@@ -65543,6 +65551,10 @@
                             "description": "Corsican"
                         },
                         {
+                            "value": "crh",
+                            "description": "Crimean Tatar"
+                        },
+                        {
                             "value": "cs",
                             "description": "Czech (čeština)"
                         },
@@ -65573,6 +65585,10 @@
                         {
                             "value": "dje",
                             "description": "Zarma (Zarmaciine)"
+                        },
+                        {
+                            "value": "dng",
+                            "description": "Dungan (dng)"
                         },
                         {
                             "value": "doi",
@@ -65671,6 +65687,10 @@
                             "description": "Ga (Gã)"
                         },
                         {
+                            "value": "gag",
+                            "description": "Gagauz"
+                        },
+                        {
                             "value": "gd",
                             "description": "Scottish Gaelic (Gàidhlig)"
                         },
@@ -65681,6 +65701,10 @@
                         {
                             "value": "gl",
                             "description": "Galician (galego)"
+                        },
+                        {
+                            "value": "glk",
+                            "description": "Gilaki"
                         },
                         {
                             "value": "gn",
@@ -65697,6 +65721,10 @@
                         {
                             "value": "haw",
                             "description": "Hawaiian (ʻŌlelo Hawaiʻi)"
+                        },
+                        {
+                            "value": "haz",
+                            "description": "Hazaragi (haz)"
                         },
                         {
                             "value": "he",
@@ -65767,6 +65795,10 @@
                             "description": "Georgian (ქართული)"
                         },
                         {
+                            "value": "kaa",
+                            "description": "Kara-Kalpak"
+                        },
+                        {
                             "value": "kab",
                             "description": "Kabyle (Taqbaylit)"
                         },
@@ -65789,6 +65821,10 @@
                         {
                             "value": "ki",
                             "description": "Kikuyu (Gikuyu)"
+                        },
+                        {
+                            "value": "kjh",
+                            "description": "Khakas (хакас тілі)"
                         },
                         {
                             "value": "kk",
@@ -65895,6 +65931,10 @@
                             "description": "Loma (lom)"
                         },
                         {
+                            "value": "lrc",
+                            "description": "Northern Luri (لۊری شومالی)"
+                        },
+                        {
                             "value": "lt",
                             "description": "Lithuanian (lietuvių)"
                         },
@@ -65997,6 +66037,10 @@
                         {
                             "value": "myv",
                             "description": "Erzya"
+                        },
+                        {
+                            "value": "mzn",
+                            "description": "Mazanderani (مازرونی)"
                         },
                         {
                             "value": "nah",
@@ -66155,6 +66199,10 @@
                             "description": "Sango (Sängö)"
                         },
                         {
+                            "value": "sgh",
+                            "description": "Shughni (sgh)"
+                        },
+                        {
                             "value": "shi",
                             "description": "Tachelhit (ⵜⴰⵛⵍⵃⵉⵜ)"
                         },
@@ -66311,6 +66359,10 @@
                             "description": "Tatar (татар)"
                         },
                         {
+                            "value": "ttt",
+                            "description": "Muslim Tat"
+                        },
+                        {
                             "value": "tvl",
                             "description": "Tuvalu"
                         },
@@ -66371,6 +66423,10 @@
                             "description": "Waray"
                         },
                         {
+                            "value": "wbl",
+                            "description": "Wakhi (Xik zik)"
+                        },
+                        {
                             "value": "wls",
                             "description": "Wallisian (Fakaʻuvea)"
                         },
@@ -66409,6 +66465,10 @@
                         {
                             "value": "zu",
                             "description": "Zulu (isiZulu)"
+                        },
+                        {
+                            "value": "zza",
+                            "description": "Zaza"
                         }
                     ],
                     "suggestedValuesOnly": true,
