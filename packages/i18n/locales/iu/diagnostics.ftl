@@ -456,21 +456,17 @@ circle-radius-with-points-non-numerical = ᑭᓯᑦᓯᐅᑎᖃᙱᒻᒪᑕ ᐊ�
 
 circle-change-center-non-numerical = ᓱᓕ ᐋᖅᑭᒃᑕᐅᓯᒪᙱᑦᑐᖅ: ᑭᓯᑦᓯᐅᑎᖃᙱᒻᒪᑕ center ᐊᓯᔾᔨᖅᑕᐅᔪᓐᓇᙱᑦᑐᖅ.
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] domain-ᒥ interval { $intervals }, ᑭᓯᐊᓂ input { $inputs }. ᓈᒻᒪᙱᑦᑐᖅ.
-        [two] domain-ᒥ interval { $intervals }, ᑭᓯᐊᓂ input { $inputs }. ᓈᒻᒪᙱᑦᑐᖅ.
-       *[other] domain-ᒥ interval { $intervals }, ᑭᓯᐊᓂ input { $inputs }. ᓈᒻᒪᙱᑦᑐᖅ.
-    }
+# The count select is dropped rather than written three ways over: neither
+# «interval» nor «input» is an Inuktitut noun that could take a dual or
+# plural ending, so all three branches would have been the same sentence.
+function-domain-insufficient-dimensions = domain-ᒥ interval { $intervals }, ᑭᓯᐊᓂ input { $inputs }. ᓈᒻᒪᙱᑦᑐᖅ.
 
 function-points-too-close = ᐊᖅᑯᑏᒃ ᖃᓂᓗᐊᖅᑑᒃ. ᐊᔪᕐᓇᖅᑐᖅ.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] input { $inputs } ᐊᒻᒪ output { $outputs } ᐊᔾᔨᒌᙱᒻᒪᑎᒃ ᐊᔪᕐᓇᖅᑐᖅ.
-        [two] input { $inputs } ᐊᒻᒪ output { $outputs } ᐊᔾᔨᒌᙱᒻᒪᑎᒃ ᐊᔪᕐᓇᖅᑐᖅ.
-       *[other] input { $inputs } ᐊᒻᒪ output { $outputs } ᐊᔾᔨᒌᙱᒻᒪᑎᒃ ᐊᔪᕐᓇᖅᑐᖅ.
-    }
+# Dropped for the same reason as `function-domain-insufficient-dimensions`
+# above: «input» and «output» are roman-letter loans that take no Inuktitut
+# number ending, so the three branches would have repeated one another.
+function-iterates-input-output-mismatch = input { $inputs } ᐊᒻᒪ output { $outputs } ᐊᔾᔨᒌᙱᒻᒪᑎᒃ ᐊᔪᕐᓇᖅᑐᖅ.
 
 sequence-invalid-length = ᑕᑭᓂᖓ ᑕᒻᒪᖅᓯᒪᔪᖅ. ᑭᓯᑦᓯᐅᑎᑦᓯᐊᕙᐅᔭᕆᐊᓕᒃ.
 

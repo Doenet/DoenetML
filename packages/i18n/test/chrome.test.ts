@@ -1057,15 +1057,32 @@ describe("the Americas batch's plural categories", () => {
                     /field-function-wrong-num-outputs =[\s\S]*?\[one\]/,
                 );
             }
-            // Branch or prose, both fields have to be named. Collapsing to
-            // the vector example alone would state the wrong requirement to
-            // a reader whose function needs one output.
-            const message = catalog.match(
-                /field-function-wrong-num-outputs =[\s\S]*?\n(?=[a-z-]+ =)/,
-            )?.[0];
-            expect(message).toBeDefined();
-            expect(message).toContain("`y - x`");
-            expect(message).toContain("`(y, -x)`");
         },
     );
+
+    /**
+     * Branch or prose, both fields have to be named. Collapsing to the vector
+     * example alone would state the wrong requirement to a reader whose
+     * function needs one output, which is the defect `locales/miq` shipped
+     * with and this assertion exists to keep out of the other fourteen.
+     *
+     * It runs over all fifteen rather than the twelve without CLDR rules: the
+     * three with rules write the same message and could lose the same half of
+     * it. `iu` is the one catalog that leaves the message to English, which is
+     * the 373-of-575 decision its header records, so its absence is asserted
+     * by name rather than skipped silently.
+     */
+    it.each(AMERICAS)("names both fields in %s", (...row) => {
+        const [locale] = row as Row;
+        const message = both(row as Row).match(
+            /field-function-wrong-num-outputs =[\s\S]*?\n(?=[a-z-]+ =)/,
+        )?.[0];
+        if (locale === "iu") {
+            expect(message).toBeUndefined();
+            return;
+        }
+        expect(message).toBeDefined();
+        expect(message).toContain("`y - x`");
+        expect(message).toContain("`(y, -x)`");
+    });
 });

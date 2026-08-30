@@ -85,10 +85,7 @@ editor-accessibility-label =
             [close] matuniarlugu
            *[open] ammarniarlugu
         } tooruk.
-        [advisories] WCAG AA unioqqutitsinernik nassaarineqanngilaq. Atorsinnaanermut siunnersuutit allat { $count ->
-            [one] { $count }
-           *[other] { $count }
-        } nassaarineqarput. Atorsinnaanermut nalunaarusiaq { $action ->
+        [advisories] WCAG AA unioqqutitsinernik nassaarineqanngilaq. Atorsinnaanermut siunnersuutit allat { $count } nassaarineqarput. Atorsinnaanermut nalunaarusiaq { $action ->
             [close] matuniarlugu
            *[open] ammarniarlugu
         } tooruk.

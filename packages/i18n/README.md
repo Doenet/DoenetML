@@ -2943,6 +2943,23 @@ and says nothing, which is the same defect as a `[one]` in a locale that cannot
 select one, met from the other side, so the test asserts the three forms differ
 rather than merely that three branches exist.
 
+The seed shipped five branches of exactly that kind, and all five were in `kl`
+and `iu` — which is where they matter, since those are two of the three
+catalogs here whose branches a runtime can actually select. Each wrote a count
+select whose branches were the same sentence: «interval» and «input» are
+roman-letter loans in `iu` that take no Inuktitut number ending, and `kl`'s
+«input-eqarpoq» does not change with the count because the numeral carries it.
+All five are now single forms, which is the honest shape for a message whose
+wording does not turn on the count, and `catalogLint.test.ts` holds every
+select in the batch to having at least two branches that differ.
+
+The floor is *some* branch differing rather than all of them, and the
+difference matters: `style-border-clause` forks four ways on an article
+English has and six of these languages do not, so `[with-article]` and
+`[with]` land on one string in `kl`, `cab`, `miq`, `srn`, `djk` and `srm`
+while `[and]` stays apart. That is a distinction the target language does not
+draw, not one the translation lost.
+
 #### One character, and the homoglyph question in a new form
 
 `locales/yua` and `locales/kek` state in their headers that the glottal stop

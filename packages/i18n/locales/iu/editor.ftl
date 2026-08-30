@@ -86,11 +86,7 @@ editor-accessibility-label =
             [close] ᒪᑐᓗᒍ
            *[open] ᐅᒃᑯᐃᕐᓗᒍ
         } ᓇᕿᓪᓗᒍ.
-        [advisories] WCAG AA ᒪᓕᒃᑕᐅᙱᑦᑐᖃᙱᑦᑐᖅ. ᐊᑐᕈᓐᓇᕐᓂᕐᒧᑦ ᐅᖃᐅᓯᒃᓴᖅ { $count ->
-            [one] { $count }
-            [two] { $count }
-           *[other] { $count }
-        } ᓇᓂᔭᐅᔪᑦ. ᐊᑐᕈᓐᓇᕐᓂᕐᒧᑦ ᐅᓂᒃᑳᖅ { $action ->
+        [advisories] WCAG AA ᒪᓕᒃᑕᐅᙱᑦᑐᖃᙱᑦᑐᖅ. ᐊᑐᕈᓐᓇᕐᓂᕐᒧᑦ ᐅᖃᐅᓯᒃᓴᖅ { $count } ᓇᓂᔭᐅᔪᑦ. ᐊᑐᕈᓐᓇᕐᓂᕐᒧᑦ ᐅᓂᒃᑳᖅ { $action ->
             [close] ᒪᑐᓗᒍ
            *[open] ᐅᒃᑯᐃᕐᓗᒍ
         } ᓇᕿᓪᓗᒍ.

@@ -7,6 +7,7 @@ import {
     type Message,
     type Pattern,
     type SelectExpression,
+    type Variant,
 } from "@fluent/syntax";
 
 import {
@@ -1338,6 +1339,157 @@ describe("catalogs of one lexifier that are not each other's copy", () => {
             const { shared, differ } = differing(a, b, ["diagnostics"]);
             expect(shared).toBe(220);
             expect(differ).toBeGreaterThanOrEqual(floor);
+        },
+    );
+});
+
+/**
+ * A select every branch of which renders the same string is a distinction the
+ * catalog has silently dropped. It parses, it lints, every property above
+ * passes it, and it reads to a skimmer as a locale that carefully wrote out
+ * three forms — but the reader gets one string whatever the count, and the
+ * header claiming the forms differ is now false about its own file.
+ *
+ * The Americas seed shipped five of them and they were the batch's second
+ * semantic defect, after `locales/miq`'s collapsed
+ * `field-function-wrong-num-outputs`. All five were in `kl` and `iu`, which is
+ * where they matter: those two are the batch's catalogs whose plural branches
+ * a runtime can actually select, so a repeated branch is a live branch saying
+ * nothing. They are now written as a single form, which is the honest shape
+ * for a message whose wording does not turn on the count.
+ *
+ * **Identical branches are forbidden; merely non-distinct ones are not.**
+ * `style-border-clause` forks four ways on an article English has and six of
+ * these languages do not, so `[with-article]` and `[with]` land on one string
+ * in `kl`, `cab`, `miq`, `srn`, `djk` and `srm` while `[and]` stays apart.
+ * That is a distinction the target language does not draw, not one the
+ * translation lost, so the floor is *some* branch differing rather than all
+ * of them.
+ */
+describe("selects in the Americas batch that still say something", () => {
+    /** The fifteen tags this batch adds, in the order the README lists them. */
+    const AMERICAS_LOCALES = [
+        "kl",
+        "iu",
+        "yua",
+        "kek",
+        "cab",
+        "miq",
+        "pap",
+        "srn",
+        "jam",
+        "gcf",
+        "acf",
+        "gcr",
+        "bzj",
+        "djk",
+        "srm",
+    ];
+
+    /** A variant's key as written — `[one]`, `[0]` — for a failure message. */
+    const variantKey = (variant: Variant): string =>
+        variant.key.type === "Identifier"
+            ? variant.key.name
+            : variant.key.value;
+
+    /** Every select in one catalog, nested ones included. */
+    const selects = (locale: string, namespace: string) => {
+        const source = readCatalog(locale, namespace);
+        const found: SelectExpression[] = [];
+        if (source === null) {
+            return found;
+        }
+        const walk = (pattern: Pattern) => {
+            for (const element of pattern.elements) {
+                if (
+                    element.type === "Placeable" &&
+                    element.expression.type === "SelectExpression"
+                ) {
+                    found.push(element.expression);
+                    for (const variant of element.expression.variants) {
+                        walk(variant.value);
+                    }
+                }
+            }
+        };
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type !== "Message" && entry.type !== "Term") {
+                continue;
+            }
+            for (const pattern of [
+                entry.value,
+                ...entry.attributes.map((attribute) => attribute.value),
+            ]) {
+                if (pattern) {
+                    walk(pattern);
+                }
+            }
+        }
+        return found;
+    };
+
+    /**
+     * A variant's pattern as a comparable string. Written out rather than
+     * handed to `serialize`, which needs a whole `Resource` of real AST nodes
+     * and throws on a synthesized one: text is taken verbatim, and a placeable
+     * is reduced to a canonical token so that two branches differing only in
+     * *which* variable they interpolate still count as different.
+     */
+    const patternText = (pattern: Pattern): string =>
+        pattern.elements
+            .map((element) => {
+                if (element.type === "TextElement") {
+                    return element.value;
+                }
+                const expression = element.expression;
+                if (expression.type === "VariableReference") {
+                    return `{$${expression.id.name}}`;
+                }
+                if (expression.type === "SelectExpression") {
+                    return `{select:${expression.variants
+                        .map(
+                            (variant) =>
+                                `${variantKey(variant)}=${patternText(
+                                    variant.value,
+                                )}`,
+                        )
+                        .join("|")}}`;
+                }
+                if (
+                    expression.type === "StringLiteral" ||
+                    expression.type === "NumberLiteral"
+                ) {
+                    return expression.value;
+                }
+                if (expression.type === "MessageReference") {
+                    return `{${expression.id.name}}`;
+                }
+                if (expression.type === "TermReference") {
+                    return `{-${expression.id.name}}`;
+                }
+                return `{${expression.type}}`;
+            })
+            .join("");
+
+    it.each(AMERICAS_LOCALES)(
+        "leaves no select in %s with every branch the same",
+        (locale) => {
+            const uniform: string[] = [];
+            for (const namespace of CATALOG_NAMESPACES) {
+                for (const select of selects(locale, namespace)) {
+                    const rendered = select.variants.map((variant) =>
+                        patternText(variant.value),
+                    );
+                    if (new Set(rendered).size === 1) {
+                        uniform.push(
+                            `${namespace}: ${select.variants
+                                .map((variant) => variantKey(variant))
+                                .join("/")}`,
+                        );
+                    }
+                }
+            }
+            expect(uniform).toEqual([]);
         },
     );
 });

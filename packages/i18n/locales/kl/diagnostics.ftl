@@ -231,17 +231,10 @@ function-ignoring-empty =
 
 function-points-too-close = Funktioni punktinik marlunnik qanittuararsuunnik imaqarpoq. Funktioni aalajangersarneqarsinnaanngilaq.
 
-function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] Funktionip iterate-i input-it amerlassusaat output-it amerlassusaannut naapertuuppata taamaallaat pisinnaapput. Funktioni una { $inputs } input-eqarpoq { $outputs ->
-            [one] output-ilu { $outputs }
-           *[other] output-ilu { $outputs }
-        }.
-       *[other] Funktionip iterate-i input-it amerlassusaat output-it amerlassusaannut naapertuuppata taamaallaat pisinnaapput. Funktioni una { $inputs } input-eqarpoq { $outputs ->
-            [one] output-ilu { $outputs }
-           *[other] output-ilu { $outputs }
-        }.
-    }
+# Both of English's count selects are dropped rather than written twice over:
+# «input-eqarpoq» and «output-ilu» do not change with the count here — the
+# number word carries it — so a branch would have repeated itself.
+function-iterates-input-output-mismatch = Funktionip iterate-i input-it amerlassusaat output-it amerlassusaannut naapertuuppata taamaallaat pisinnaapput. Funktioni una { $inputs } input-eqarpoq output-ilu { $outputs }.
 
 ## `<sequence>`
 
