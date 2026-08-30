@@ -257,7 +257,7 @@ describe("Inputs embedded in displayed math @group1", async () => {
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0125");
-        expect(warnings[0].message).contain("percentage or `em`");
+        expect(warnings[0].message).contain("relative width");
     });
 
     it("a block choice input warns for its own reason", async () => {
@@ -272,7 +272,7 @@ describe("Inputs embedded in displayed math @group1", async () => {
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0125");
-        expect(warnings[0].message).contain("block of buttons");
+        expect(warnings[0].message).contain("not `inline`");
     });
 
     it("math on a graph embeds nothing and says why", async () => {

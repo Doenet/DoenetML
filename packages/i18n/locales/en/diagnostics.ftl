@@ -938,9 +938,9 @@ select-random-value-fluke = By extremely unlikely fluke, couldn't select random 
 # input's current value stands in its place, and a choice input contributes
 # nothing.
 math-embedded-input-shape-unsuitable =
-    `<{ $component }>` is not drawn inside the math; the expression is typeset as it was before inputs could be embedded. { $reason ->
-        [not-inline] Only an `inline` choice input fits inside an expression; without `inline` it is a block of buttons.
-        [expanded] An `expanded` text input is a multi-line box, which is too large to sit inside an expression.
-        [on-graph] On a graph the expression is drawn as a single picture, which has no room for a control.
-       *[relative-width] Its `width` is relative (a percentage or `em`), which has nothing to measure against inside an expression. Give the width in absolute units, such as `px`, instead.
+    { $reason ->
+        [not-inline] This `<{ $component }>` is not shown because it is inside math and is not `inline`. Add `inline` so it becomes a drop-down list, which fits inside an expression.
+        [expanded] This `<{ $component }>` is not shown because it is inside math and is `expanded`. Remove `expanded`; a multi-line box does not fit inside an expression.
+        [on-graph] This `<{ $component }>` is not shown because it is inside math drawn on a graph, which has no room for an input.
+       *[relative-width] This `<{ $component }>` is not shown because it is inside math and has a relative width. Give the width in absolute units, such as `px`, instead.
     }
