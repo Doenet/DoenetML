@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
     parse,
+    Resource,
+    serialize,
     type Entry,
     type Message,
     type Pattern,
     type SelectExpression,
+    type Variant,
 } from "@fluent/syntax";
 
 import {
@@ -1172,4 +1175,323 @@ describe("plural categories a locale cannot select", () => {
             },
         );
     });
+
+    /**
+     * The Americas batch's headers make a claim of the same checkable kind the
+     * three Silk Road headers do, but about **one character rather than an
+     * alphabet**: `locales/yua` and `locales/kek` state that the glottal stop
+     * and the ejectives are written with U+02BC MODIFIER LETTER APOSTROPHE
+     * throughout, and never with the typographic U+2019 or the ASCII U+0027.
+     *
+     * That is worth holding for the Silk Road block's reason exactly. The
+     * three characters are near-indistinguishable on screen, a text editor
+     * with smart quotes turns one into another without being asked, and the
+     * result breaks no test and defeats every later search — but «tʼaan» and
+     * «t’aan» are different strings, and in Mayan orthography the ejective is
+     * a letter rather than punctuation.
+     *
+     * `locales/iu` gets the other half of the same idea: its header states
+     * that no Inuktitut word is spelled in roman letters, and the roman that
+     * does appear is either DoenetML source or a declared English loan. The
+     * check that fits that claim is not an inventory — the loans are real
+     * roman words — but the absence of the one syllabics character that would
+     * mean the file had drifted into a neighbouring language's inventory.
+     */
+    describe("the character inventories the Americas headers state exactly", () => {
+        /** The message text of a catalog: comment lines and code spans dropped. */
+        const prose = (locale: string): string =>
+            CATALOG_NAMESPACES.map((namespace) =>
+                readCatalog(locale, namespace),
+            )
+                .filter((source): source is string => source !== null)
+                .join("\n")
+                .split("\n")
+                .filter((line) => !line.trimStart().startsWith("#"))
+                .join("\n")
+                .replace(/`[^`]*`/g, " ");
+
+        it.each(["yua", "kek"])(
+            "writes every apostrophe in %s as U+02BC",
+            (locale) => {
+                const text = prose(locale);
+                expect(text).toContain("\u02bc");
+                // The look-alike, named by codepoint so a failure says which
+                // character crept in rather than printing two identical marks.
+                expect(text).not.toContain("\u2019");
+                // U+0027 is deliberately not forbidden: English's own
+                // messages quote enumerated values with straight quotes and
+                // write the derivative as `y'`, and both come through a
+                // translation unchanged. It is the curly one a smart-quote
+                // editor substitutes, and the curly one that would be a
+                // silent respelling of a Mayan letter.
+            },
+        );
+
+        /**
+         * ᐦ (U+1426) is the Cree final `h`. It is not part of the Nunavut
+         * Inuktitut inventory — `locales/iu` writes ᕼ (U+157C) where it needs
+         * an *h* — and its appearance would mean a syllabics string had been
+         * taken from a Cree source. The batch shipped no Cree catalog, which
+         * is exactly why nothing else would catch this.
+         */
+        it("keeps iu's syllabics out of the Cree finals", () => {
+            // ᕼ itself appears only in the headers — the syllabics words
+            // this catalog happens to use need no *h* — so what is asserted
+            // is the absence, which is the half that could rot.
+            expect(prose("iu")).not.toContain("\u1426");
+        });
+
+        /**
+         * `locales/srm`'s headers state that tone is not written, and that the
+         * one accented letter outside its `ë`/`ö` vowels is «á», the preverbal
+         * negator, whose accent marks the word rather than a tone. Any other
+         * acute would mean tone had been half-restored — worse than the stated
+         * absence, because a reader could not tell which words had been done.
+         */
+        it("keeps srm to the one accented letter its header allows", () => {
+            const accented = new Set(
+                [...prose("srm")].filter((letter) =>
+                    /[\u00c0-\u024f]/.test(letter),
+                ),
+            );
+            // Case-folded: «Ë» opens a sentence in several messages, and a
+            // capital is the same letter.
+            expect(
+                [
+                    ...new Set(
+                        [...accented].map((letter) => letter.toLowerCase()),
+                    ),
+                ].sort(),
+            ).toEqual(["á", "ë", "ö"]);
+        });
+    });
+});
+
+/**
+ * Two catalogs can agree without being one catalog, and this batch has both
+ * shapes of that. `jam` and `bzj` are English-lexifier creoles in phonemic
+ * orthographies, so the short everyday words converge — «chruu», «faals»,
+ * «tik dash-dash red lain» — and `gcf` and `gcr` agree word for word on a
+ * styled line. Convergence is the language; a catalog copied to a second tag
+ * is a defect, and the two look alike from a distance.
+ *
+ * What separates them is a *rate*. A copy differs nowhere; these differ in
+ * most of what they both define. The rate over `content.ftl` alone is
+ * asserted in `packages/utils/test/styleDescriptions.test.ts`, beside the
+ * styled-line phrase it is about; what is left here is the whole-catalog
+ * rate, and the French trio, whose agreement is confined to that one phrase.
+ * The floors are floors rather than equalities so that correcting a string
+ * cannot fail the test — only wholesale duplication can.
+ */
+describe("catalogs of one lexifier that are not each other's copy", () => {
+    /** Message id → serialized entry, for every message in one namespace. */
+    const entries = (locale: string, namespace: string) => {
+        const source = readCatalog(locale, namespace);
+        const values = new Map<string, string>();
+        if (source === null) {
+            return values;
+        }
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type === "Message") {
+                values.set(entry.id.name, serialize(new Resource([entry]), {}));
+            }
+        }
+        return values;
+    };
+
+    /** How many of the ids both catalogs define carry different text. */
+    const differing = (a: string, b: string, namespaces: readonly string[]) => {
+        let shared = 0;
+        let differ = 0;
+        for (const namespace of namespaces) {
+            const left = entries(a, namespace);
+            const right = entries(b, namespace);
+            for (const [id, value] of left) {
+                const other = right.get(id);
+                if (other === undefined) {
+                    continue;
+                }
+                shared += 1;
+                differ += value === other ? 0 : 1;
+            }
+        }
+        return { shared, differ };
+    };
+
+    it("keeps jam and bzj apart in most of what both define", () => {
+        const all = differing("jam", "bzj", CATALOG_NAMESPACES);
+        expect(all.shared).toBe(389);
+        expect(all.differ).toBeGreaterThanOrEqual(342);
+    });
+
+    /**
+     * The French-lexifier trio, where the styled-line phrase agrees but the
+     * diagnostics do not: `gcr` writes the indefinite «roun» where `gcf`
+     * writes «on», which alone separates most of the file.
+     */
+    it.each([
+        ["gcf", "gcr", 206],
+        ["gcf", "acf", 180],
+        ["acf", "gcr", 205],
+    ] as [string, string, number][])(
+        "keeps %s and %s apart across their diagnostics",
+        (a, b, floor) => {
+            const { shared, differ } = differing(a, b, ["diagnostics"]);
+            expect(shared).toBe(220);
+            expect(differ).toBeGreaterThanOrEqual(floor);
+        },
+    );
+});
+
+/**
+ * A select every branch of which renders the same string is a distinction the
+ * catalog has silently dropped. It parses, it lints, every property above
+ * passes it, and it reads to a skimmer as a locale that carefully wrote out
+ * three forms — but the reader gets one string whatever the count, and the
+ * header claiming the forms differ is now false about its own file.
+ *
+ * The Americas seed shipped five of them and they were the batch's second
+ * semantic defect, after `locales/miq`'s collapsed
+ * `field-function-wrong-num-outputs`. All five were in `kl` and `iu`, which is
+ * where they matter: those two are the batch's catalogs whose plural branches
+ * a runtime can actually select, so a repeated branch is a live branch saying
+ * nothing. They are now written as a single form, which is the honest shape
+ * for a message whose wording does not turn on the count.
+ *
+ * **Identical branches are forbidden; merely non-distinct ones are not.**
+ * `style-border-clause` forks four ways on two distinctions English draws, an
+ * indefinite article and a linker English spells two ways, and six of these
+ * catalogs collapse one of the two: `kl` and `miq` write no article, so
+ * `[with-article]` lands on `[with]`, while `cab`, `srn`, `djk` and `srm` use
+ * one word for both *with* and *and*, so `[with]` lands on `[and]`. Either
+ * way two branches remain. That is a distinction the target language does not
+ * draw, not one the translation lost, so the floor is *some* branch differing
+ * rather than all of them.
+ */
+describe("selects in the Americas batch that still say something", () => {
+    /** The fifteen tags this batch adds, in the order the README lists them. */
+    const AMERICAS_LOCALES = [
+        "kl",
+        "iu",
+        "yua",
+        "kek",
+        "cab",
+        "miq",
+        "pap",
+        "srn",
+        "jam",
+        "gcf",
+        "acf",
+        "gcr",
+        "bzj",
+        "djk",
+        "srm",
+    ];
+
+    /** A variant's key as written — `[one]`, `[0]` — for a failure message. */
+    const variantKey = (variant: Variant): string =>
+        variant.key.type === "Identifier"
+            ? variant.key.name
+            : variant.key.value;
+
+    /** Every select in one catalog, nested ones included. */
+    const selects = (locale: string, namespace: string) => {
+        const source = readCatalog(locale, namespace);
+        const found: SelectExpression[] = [];
+        if (source === null) {
+            return found;
+        }
+        const walk = (pattern: Pattern) => {
+            for (const element of pattern.elements) {
+                if (
+                    element.type === "Placeable" &&
+                    element.expression.type === "SelectExpression"
+                ) {
+                    found.push(element.expression);
+                    for (const variant of element.expression.variants) {
+                        walk(variant.value);
+                    }
+                }
+            }
+        };
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type !== "Message" && entry.type !== "Term") {
+                continue;
+            }
+            for (const pattern of [
+                entry.value,
+                ...entry.attributes.map((attribute) => attribute.value),
+            ]) {
+                if (pattern) {
+                    walk(pattern);
+                }
+            }
+        }
+        return found;
+    };
+
+    /**
+     * A variant's pattern as a comparable string. Written out rather than
+     * handed to `serialize`, which needs a whole `Resource` of real AST nodes
+     * and throws on a synthesized one: text is taken verbatim, and a placeable
+     * is reduced to a canonical token so that two branches differing only in
+     * *which* variable they interpolate still count as different.
+     */
+    const patternText = (pattern: Pattern): string =>
+        pattern.elements
+            .map((element) => {
+                if (element.type === "TextElement") {
+                    return element.value;
+                }
+                const expression = element.expression;
+                if (expression.type === "VariableReference") {
+                    return `{$${expression.id.name}}`;
+                }
+                if (expression.type === "SelectExpression") {
+                    return `{select:${expression.variants
+                        .map(
+                            (variant) =>
+                                `${variantKey(variant)}=${patternText(
+                                    variant.value,
+                                )}`,
+                        )
+                        .join("|")}}`;
+                }
+                if (
+                    expression.type === "StringLiteral" ||
+                    expression.type === "NumberLiteral"
+                ) {
+                    return expression.value;
+                }
+                if (expression.type === "MessageReference") {
+                    return `{${expression.id.name}}`;
+                }
+                if (expression.type === "TermReference") {
+                    return `{-${expression.id.name}}`;
+                }
+                return `{${expression.type}}`;
+            })
+            .join("");
+
+    it.each(AMERICAS_LOCALES)(
+        "leaves no select in %s with every branch the same",
+        (locale) => {
+            const uniform: string[] = [];
+            for (const namespace of CATALOG_NAMESPACES) {
+                for (const select of selects(locale, namespace)) {
+                    const rendered = select.variants.map((variant) =>
+                        patternText(variant.value),
+                    );
+                    if (new Set(rendered).size === 1) {
+                        uniform.push(
+                            `${namespace}: ${select.variants
+                                .map((variant) => variantKey(variant))
+                                .join("/")}`,
+                        );
+                    }
+                }
+            }
+            expect(uniform).toEqual([]);
+        },
+    );
 });

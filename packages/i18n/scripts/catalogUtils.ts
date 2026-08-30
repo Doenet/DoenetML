@@ -918,6 +918,57 @@ export const LOCALE_NAME_FALLBACKS: Record<
     dng: { englishName: "Dungan" },
     sgh: { englishName: "Shughni" },
     haz: { englishName: "Hazaragi" },
+    // The nine locales of the Americas batch CLDR has no data for, which is
+    // nine of that batch's fifteen and the largest number any batch here has
+    // needed — the next largest is the seven of the West and Central African
+    // batch above — and a fact about which languages get into CLDR rather
+    // than about how many speak these. ICU names the other six — `kl`, `iu`,
+    // `kek`, `pap`, `srn` and `jam` — and stops at the nine below. Six of the
+    // nine are creoles, and a creole is
+    // where the gap concentrates: `pap`, `srn` and `jam` are named only
+    // because they are the three with a national or quasi-official standing
+    // ICU already tracks.
+    //
+    // Every one of the nine gets an endonym, which is where this block parts
+    // company with the Silk Road one above: each of these catalogs names its
+    // language exactly one way, in all four of its files, so there is nothing
+    // to choose between and `locales/olo`'s admitted-gap shape is not needed
+    // anywhere here. The spellings are copied letter for letter from the
+    // catalogs' own headers — the U+02BC modifier apostrophe in «Maayaʼ
+    // tʼàan», the grave that marks Yucatec tone, `acf`'s «w» where the
+    // Antillean standards write «r» — so a corrector who respells a catalog
+    // must respell its roster label with it.
+    //
+    // Two of the nine have an endonym that is the English name over again —
+    // Garifuna and Mískito — and both are written out rather than omitted,
+    // because the accent in «Mískito» is part of the spelling and the label
+    // would otherwise lose it. `srm` is not one of them: "Saramaccan" is the
+    // outside name and «Saamáka tongo» the language's own, so its label reads
+    // "Saramaccan (Saamáka tongo)" like the rest.
+    yua: {
+        englishName: "Yucatec Maya",
+        endonym: "Maaya\u02bc t\u02bc\u00e0an",
+    },
+    cab: { englishName: "Garifuna", endonym: "Garifuna" },
+    miq: { englishName: "M\u00edskito", endonym: "M\u00edskito" },
+    gcf: {
+        englishName: "Guadeloupean Creole French",
+        endonym: "kr\u00e9y\u00f2l gwadloup\u00e9yen",
+    },
+    acf: {
+        englishName: "Saint Lucian Creole French",
+        endonym: "Kw\u00e9y\u00f2l",
+    },
+    gcr: {
+        englishName: "Guianese Creole French",
+        endonym: "kriy\u00f2l gwiyan\u00e8",
+    },
+    bzj: { englishName: "Belize Kriol", endonym: "Bileez Kriol" },
+    // ISO 639-3's reference name is "Aukan"; the catalog's own headers lead
+    // with "Aukan / Ndyuka" and the language is as often called the second.
+    // The roster label takes the endonym, which both names agree on.
+    djk: { englishName: "Aukan", endonym: "Okanisi tongo" },
+    srm: { englishName: "Saramaccan", endonym: "Saam\u00e1ka tongo" },
 };
 
 /**

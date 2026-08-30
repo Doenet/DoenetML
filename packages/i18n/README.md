@@ -67,45 +67,51 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation —
-`ab`, `ace`, `ady`, `af`, `ak`, `alt`, `am`, `ar`, `arn`, `as`, `ast`,
-`av`, `ay`, `az`, `ba`, `bal`, `ban`, `bci`, `be`, `bem`, `bg`, `bho`,
-`bi`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bua`, `bum`,
-`ca`, `ce`, `ceb`, `ch`, `chk`, `ckb`, `co`, `crh`, `cs`, `csb`, `cv`,
-`cy`, `da`, `dag`, `dar`, `de`, `dje`, `dng`, `doi`, `dsb`, `dv`, `dyo`,
-`dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`,
-`fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fur`, `fy`, `ga`, `gaa`,
-`gag`, `gd`, `gil`, `gl`, `glk`, `gn`, `gsw`, `gu`, `ha`, `haw`, `haz`,
-`he`, `hi`, `hil`, `hnj`, `hr`, `hsb`, `ht`, `hu`, `hy`, `id`, `ig`,
-`ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`, `kaa`, `kab`, `kbd`, `kbp`,
-`kca`, `kg`, `ki`, `kjh`, `kk`, `km`, `kmb`, `kmr`, `kn`, `ko`, `koi`,
-`kok`, `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`, `ksh`,
-`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `li`, `lij`, `ln`, `lo`,
+`ab`, `ace`, `acf`, `ady`, `af`, `ak`, `alt`, `am`, `ar`, `arn`,
+`as`, `ast`, `av`, `ay`, `az`, `ba`, `bal`, `ban`, `bci`, `be`,
+`bem`, `bg`, `bho`, `bi`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`,
+`brx`, `bs`, `bua`, `bum`, `bzj`, `ca`, `cab`, `ce`, `ceb`, `ch`,
+`chk`, `ckb`, `co`, `crh`, `cs`, `csb`, `cv`, `cy`, `da`, `dag`,
+`dar`, `de`, `dje`, `djk`, `dng`, `doi`, `dsb`, `dv`, `dyo`, `dyu`,
+`dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`,
+`fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fur`, `fy`, `ga`, `gaa`,
+`gag`, `gcf`, `gcr`, `gd`, `gil`, `gl`, `glk`, `gn`, `gsw`, `gu`,
+`ha`, `haw`, `haz`, `he`, `hi`, `hil`, `hnj`, `hr`, `hsb`, `ht`,
+`hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`, `ja`, `jam`,
+`jv`, `ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`, `kg`, `ki`,
+`kjh`, `kk`, `kl`, `km`, `kmb`, `kmr`, `kn`, `ko`, `koi`, `kok`,
+`kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`, `ksh`, `ktu`,
+`kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `li`, `lij`, `ln`, `lo`,
 `lom`, `lrc`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `mdf`, `men`,
-`mg`, `mh`, `mhr`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`,
-`mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `mzn`, `nah`, `nap`, `nb`,
-`nds`, `ne`, `niu`, `nl`, `nn`, `nog`, `nso`, `ny`, `nyn`, `oc`, `oj`,
-`olo`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`, `pms`, `pon`, `ps`,
-`pt`, `qu`, `quc`, `rar`, `rm`, `rn`, `ro`, `ru`, `rue`, `rw`, `sa`,
-`sah`, `sat`, `sc`, `scn`, `sco`, `sd`, `se`, `sg`, `sgh`, `shi`, `si`,
-`sjd`, `sk`, `sl`, `sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`,
-`sr`, `ss`, `st`, `su`, `sus`, `sv`, `sw`, `szl`, `ta`, `tab`, `te`,
-`tem`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`, `tn`,
-`to`, `tpi`, `tr`, `ts`, `tt`, `ttt`, `tvl`, `ty`, `tyv`, `udm`, `ug`,
-`uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`, `vro`, `war`,
-`wbl`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-
-Hant`, `zu`, `zza`
+`mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`, `ml`, `mn`, `mni`,
+`mnk`, `mns`, `mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `mzn`,
+`nah`, `nap`, `nb`, `nds`, `ne`, `niu`, `nl`, `nn`, `nog`, `nso`,
+`ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`, `pap`,
+`pcm`, `pl`, `pms`, `pon`, `ps`, `pt`, `qu`, `quc`, `rar`, `rm`,
+`rn`, `ro`, `ru`, `rue`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`,
+`sco`, `sd`, `se`, `sg`, `sgh`, `shi`, `si`, `sjd`, `sk`, `sl`, `sm`,
+`sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `srm`, `srn`,
+`ss`, `st`, `su`, `sus`, `sv`, `sw`, `szl`, `ta`, `tab`, `te`, `tem`,
+`tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`, `tn`,
+`to`, `tpi`, `tr`, `ts`, `tt`, `ttt`, `tvl`, `ty`, `tyv`, `udm`,
+`ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`,
+`vro`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `yua`,
+`zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
 — is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-Two hundred and eight of them are deliberately partial. Two hundred and
-seven are partial in the same place — the two chemistry tables — while
-Klingon is partial almost everywhere, for a different reason: see
-[A language with no word for it](#a-language-with-no-word-for-it). The two
-hundred and seven are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
-Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
-Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
+Two hundred and twenty-three of them are deliberately partial. Two hundred
+and twenty-one are partial in the same place — the two chemistry tables —
+while two are partial more widely, each for its own reason: Klingon almost
+everywhere, for the reason in
+[A language with no word for it](#a-language-with-no-word-for-it), and
+Inuktitut over the geometry nouns as well, for the reason in
+[Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws).
+The two hundred and twenty-one are: Somali, Hmong Njua, Amharic, Assamese,
+Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
+Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
 Southern Sotho, Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low
 German, Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern
@@ -129,7 +135,10 @@ Tuvaluan, Rarotongan, Wallisian, Bislama, Scots, Swiss German, Colognian,
 Limburgish, Friulian, Venetian, Ligurian, Piedmontese, Neapolitan, Upper
 Sorbian, Lower Sorbian, Kashubian, Silesian, Rusyn, Crimean Tatar, Gagauz,
 Karakalpak, Khakas, Southern Altai, Balochi, Hazaragi, Muslim Tat, Zazaki,
-Shughni, Dungan and Wakhi
+Shughni, Dungan, Wakhi, Kalaallisut, Yucatec Maya, Qʼeqchiʼ, Garifuna,
+Mískito, Papiamentu, Sranan Tongo, Jamaican Creole, Guadeloupean Creole
+French, Saint Lucian Creole French, Guianese Creole French, Belize Kriol,
+Aukan and Saramaccan
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -2770,6 +2779,265 @@ Persianate words current across the region.
 
 **`locales/ttt` marks itself the least certain of the batch and asks a
 reviewer to assume every line needs work.**
+
+Every string in all fifteen is machine-generated and unread by a speaker, and
+each file says so at the top. Correcting any of it needs no permission.
+
+### Fifteen catalogs of the Americas, and the line the lexifier draws
+
+The roster goes from 286 locales to 301: Kalaallisut (`kl`) and Inuktitut
+(`iu`) in the north; Yucatec Maya (`yua`), Qʼeqchiʼ (`kek`), Garifuna (`cab`)
+and Mískito (`miq`) in Mesoamerica and on the Caribbean coast of Central
+America; and **nine creoles** — Papiamentu (`pap`), Sranan Tongo (`srn`),
+Jamaican Creole (`jam`), Guadeloupean Creole French (`gcf`), Saint Lucian
+Creole French (`acf`), Guianese Creole French (`gcr`), Belize Kriol (`bzj`),
+Aukan (`djk`) and Saramaccan (`srm`).
+
+Nine of fifteen makes this the first batch a *contact* language dominates, and
+that is what most of its properties turn out to be about. A creole is a hard
+case for nearly every list in this package: it belongs to no macrolanguage,
+CLDR mostly does not name it, its technical vocabulary comes from a language it
+is not a variety of, and two creoles of one lexifier can converge on a phrase
+without being one catalog.
+
+#### Six languages that could not be seeded, and why they are not here
+
+The batch was assembled as fifteen and six of the first fifteen were dropped:
+Navajo (`nv`), Cherokee (`chr`), Lakota (`lkt`), Mohawk (`moh`), Plains Cree
+(`cr`) and Miʼkmaq (`mic`). Seeded honestly they came to **6, 13, 16, 20, 26
+and 13 keys of 575** — against the 445 the rest of the batch reaches — and
+they were replaced by the six creoles rather than shipped at that size. The
+reasoning is recorded in #1655, which is the issue for all six, but one part of
+it belongs here because it bears on every future batch:
+
+**A loan register is only honest where a loan register exists.** `locales/sgh`
+records that a Shughni speaker reads a compiler error in Tajik or Russian and
+keeps that register openly, and this batch does the same thing nine times over
+— Danish in `kl`, Dutch in `srn` and `djk`, French in the three
+French-lexifier creoles. It does **not** transfer to Navajo or Mohawk. There
+is no Navajo technical register to record: a speaker doing mathematics does it
+in English and does not Navajo-ize *polygon*. Writing «pálagan» would not be a
+loan register but English respelled, which reads as translation to a tool, as
+noise to a speaker, and which a reviewer has to delete before they can begin.
+That is worse than the English fallback, which at least announces itself. The
+rule the batch settled on: **carry a loan register where speakers already carry
+one, and leave the key out where they do not.**
+
+`locales/iu` is the same judgement applied inside a catalog rather than to
+one — see the coverage note below.
+
+#### Coverage: fourteen at the ceiling, and one that stops short on purpose
+
+Fourteen of the fifteen sit at **445/575**, which is the whole catalog minus
+the two chemistry tables and the same figure the Silk Road batch reached. The
+chemistry reason is the school-system one for all fifteen and is stated in
+each `content.ftl` header: science is taught in Dutch
+in Curaçao, Bonaire and Suriname, in Danish in Greenland, in Spanish in Yucatán
+and Alta Verapaz, in French in Guadeloupe and French Guiana, and in English in
+Belize, Jamaica and Saint Lucia. In none of the fifteen is the fallback a
+guess about the language; it is the language the periodic table is actually
+taught in.
+
+**`iu` is at 373/575, and the 72-key difference is one decision.** Inuktitut
+has no settled syllabic forms for *matrix*, *interval*, *domain*, *variant*,
+*index*, *row* or *column*, so the catalog writes those few technical nouns in
+roman letters inside a syllabic sentence — the `sgh` move — but it **omits the
+`noun` table whole**, all twenty geometry names, rather than doing the same
+thing twenty more times. Writing "line segment" in roman letters inside an
+Inuktitut catalog raises the coverage number without giving the reader anything
+the English fallback did not already give them. That is the one place in the
+roster where a catalog's own header argues that a *lower* number is the better
+answer, and it is why `iu` is named separately in the count of partial catalogs
+above.
+
+The visible consequence is worth knowing before it surprises someone: a style
+description in Inuktitut comes out as «line thick dashed ᐊᐅᐸᖅᑐᖅ», three
+English words and a syllabic colour. That is the fallback working, not a bug,
+and `styleDescriptions.test.ts` leaves `iu` out of both word-order tables for
+exactly that reason — asserting an order over a phrase three quarters of which
+is English would be asserting English's order.
+
+#### Word order: the lexifier decides, and `pap` is the one that surprises
+
+Seven catalogs put the modifiers in front of the noun and seven put them
+behind, and **the line is drawn by the lexifier rather than by geography**. The
+English- and Dutch-lexifier creoles are prenominal — `jam`, `bzj`, `srn`, and
+the two Maroon creoles `djk` and `srm` — and so are `yua` and `kek`, which are
+Mayan and prenominal on their own account. The three French-lexifier creoles
+(`gcf`, `acf`, `gcr`) are postnominal because French is, and `cab` and `miq`
+because Garifuna and Mískito are.
+
+**`pap` is the one that would be guessed wrong from its neighbours.** It sits
+with the French-lexifier creoles rather than with the English- and
+Dutch-lexifier ones it shares a sea with, because its vocabulary is Iberian and
+an Iberian adjective follows its noun: «liña diki di strepi kòrá», the noun
+first.
+
+`kl` is the seventh postnominal catalog and is not a lexifier case at all.
+Kalaallisut builds the phrase by suffixing, so what comes out is a noun
+followed by agreeing participles — «titarneq silissooq avissaartorsimasoq
+aappaluttoq» — and the description is the *tail* of the phrase rather than its
+head, which is the shape `style-with-noun` needs to be read against.
+
+#### Negotiation: the map's third kind of exclusion
+
+`MACROLANGUAGE_MEMBERS` gained exactly **one** entry, and it is there to record
+an exclusion rather than to rescue a member.
+
+`iu` is the only macrolanguage among the fifteen, and ISO 639-3 gives it two
+members: `ike` (Eastern Canadian Inuktitut) and `ikt` (Inuinnaqtun). ICU folds
+`ike` on its own, so `iu: ["ike"]` changes no negotiation result — it is the
+`quz` and `ojg` shape, a member written down so the list is the whole of a
+group. **`ikt` is left out, and the reason is the script**: Inuinnaqtun is
+written in roman letters, and every Inuktitut word in `locales/iu` is
+syllabic — the roman that appears there is DoenetML's own identifiers and the
+handful of declared English loans the coverage section above describes, never
+Inuktitut prose. So folding `ikt` would hand a reader a catalog whose every
+translated sentence is in a script they do not read. This map
+now excludes members for three different reasons, and they are worth keeping
+apart: `kbl` under `kr` and `alq` under `oj` because published membership does
+not cover them; `bam` and `dyu` under `mnk` because they have catalogs of their
+own; and `ikt` because the catalog cannot serve a member membership *does*
+cover.
+
+**Nine creoles and not one macrolanguage question between them.** That is the
+structural fact behind this section: a creole is not a member of its lexifier,
+so nothing folds `gcf` onto `fr` or `jam` onto `en`, and nothing should.
+`negotiate.test.ts` asserts the reverse direction as well — French stays on
+French — because the tempting mistake is to treat a lexifier catalog as a
+fallback for a creole that has none.
+
+`iu` maximizes to `iu-Cans-CA`, so CLDR and the catalog agree about the script
+and a reader arriving under a bare `iu` gets syllabics. `iu-Latn` is the `pa`,
+`sr` and `ha` asymmetry, and the answer to it is a second catalog rather than a
+rename of this one. The other fourteen maximize to `-Latn`.
+
+#### Nine names CLDR does not have, and nine endonyms
+
+`LOCALE_NAME_FALLBACKS` gained **nine** entries — `yua`, `cab`, `miq`, `gcf`,
+`acf`, `gcr`, `bzj`, `djk` and `srm` — which is the largest number a batch
+here has needed, the next largest being the seven of the West and Central
+African batch, and is a fact about which languages CLDR carries rather than
+about how many speak these. ICU names the other six — `kl`, `iu`, `kek`,
+`pap`, `srn` and `jam` — and stops there; six of the nine gaps are creoles,
+and the three creoles ICU *does* name are the three with national or
+quasi-official standing.
+
+Every one of the nine gets an endonym, which is where this block parts company
+with the Silk Road's. Each of these catalogs names its language exactly one way
+in all four of its files, so there is nothing to choose between and
+`locales/olo`'s admitted-gap shape — a label reading "Livvi-Karelian (olo)" —
+is needed nowhere here. The spellings are copied letter for letter from the
+catalogs' own headers, so a corrector who respells a catalog must respell its
+roster label with it.
+
+#### Plurals: three catalogs with rules, and the roster's seventeenth dual
+
+Three of the fifteen have CLDR plural data of their own — `iu`, `kl` and `pap`
+— and the other twelve resolve to the runtime's default locale, so any category
+branch they wrote would be selected by English's rules on English's terms. All
+twelve therefore write one unselected form wherever English forks a count.
+
+**`iu` is the reason that matters.** Inuktitut's rules give it `one`, `two` and
+`other`, and `attempts-remaining` writes all three with a different ending in
+each: ᐆᒃᑐᕐᓂᒃᓴᖅ, ᐆᒃᑐᕐᓂᒃᓵᒃ, ᐆᒃᑐᕐᓂᒃᓴᐃᑦ. Sixteen catalogs on the roster already
+write a `[two]` their own rules select — Arabic, Hebrew, Maltese, Slovene, the
+Celtic four, the Sorbian pair, Santali and the five Sami — and `iu` is the
+seventeenth and the first in the Americas. A dual that repeated the plural
+would be a branch that renders and says nothing, which is the same defect as a
+`[one]` in a locale that cannot
+select one, met from the other side, so the test asserts the three forms differ
+rather than merely that three branches exist.
+
+The seed shipped five branches of exactly that kind, and all five were in `kl`
+and `iu` — which is where they matter, since those are two of the three
+catalogs here whose branches a runtime can actually select. Each wrote a count
+select whose branches were the same sentence: «interval» and «input» are
+roman-letter loans in `iu` that take no Inuktitut number ending, and `kl`'s
+«input-eqarpoq» does not change with the count because the numeral carries it.
+All five are now single forms, which is the honest shape for a message whose
+wording does not turn on the count, and `catalogLint.test.ts` holds every
+select in the batch to having at least two branches that differ.
+
+The floor is *some* branch differing rather than all of them, and the
+difference matters: `style-border-clause` forks four ways on an article
+English has and a linker English spells two ways, and six of these catalogs
+collapse one of those forks. `kl` and `miq` write no article, so
+`[with-article]` lands on `[with]` and `[and-article]` on `[and]`; `cab`,
+`srn`, `djk` and `srm` use one word for both *with* and *and*, so `[with]`
+lands on `[and]` and the two article branches stay together. Either way two
+branches remain, and either way it is a distinction the target language does
+not draw rather than one the translation lost.
+
+#### One character, and the homoglyph question in a new form
+
+`locales/yua` and `locales/kek` state in their headers that the glottal stop
+and the ejectives are written with **U+02BC MODIFIER LETTER APOSTROPHE**
+throughout. In Mayan orthography that mark is a letter, not punctuation, and
+its look-alikes are U+2019 and ASCII U+0027 — indistinguishable on screen,
+substituted silently by any editor with smart quotes, and fatal to a search.
+`catalogLint.test.ts` holds both catalogs to it, the way it holds `alt`, `kjh`
+and `dng` to their Cyrillic inventories.
+
+The straight ASCII apostrophe is deliberately **not** forbidden there, and the
+reason is worth recording because it is the kind of thing a later tightening
+would get wrong: English's own messages quote enumerated values with straight
+quotes and write the derivative as `y'`, and both come through a translation
+unchanged. It is the curly one that would be a silent respelling of a Mayan
+letter.
+
+Two more claims of the same checkable kind: `locales/iu` writes no ᐦ (U+1426),
+the Cree final, since the Nunavut inventory uses ᕼ (U+157C) — a check that
+matters precisely because the batch ships no Cree catalog for it to have been
+copied from — and `locales/srm` allows exactly one accented letter beyond its
+`ë`/`ö` vowels, «á», the preverbal negator, whose accent marks the word rather
+than a tone. Saramaccan is tonal and this seed writes no tone at all; the
+headers say so in all four files, because a half-restored tone system would be
+worse than a stated absence.
+
+#### Two catalogs that agree, and are not one catalog
+
+`jam` and `bzj` produce the same words for a styled line — «tik dash-dash red
+lain» — and the same boolean words, «chruu» and «faals». Both are
+English-lexifier creoles written in a phonemic orthography, so short everyday
+words converge; that is the language, not a copy. What would be worth catching
+is a catalog duplicated under two tags, so the tests assert a *rate* rather
+than a difference: `styleDescriptions.test.ts` holds more than a third of the
+values the two both define in `content.ftl` to differing, beside the phrase
+itself, and `catalogLint.test.ts` holds 342 of their 389 values across all
+four namespaces to it.
+
+The French-lexifier trio is the same question with a sharper answer. `gcf` and
+`gcr` render this phrase identically — the two languages agree on all four
+words — while `acf` differs by one sound, the etymological French /r/ that
+Saint Lucian writes «w»: «tiwè» against «tirè». Underneath, the three are not
+close: `gcr` writes the indefinite «roun» 161 times in its diagnostics where
+`gcf` writes «on» in the same slot and «roun» nowhere at all, and only 14 of
+their 220 shared diagnostics are identical.
+The three headers name the conventions that separate them, so a reviewer can
+tell an intrusion from a coincidence.
+
+#### What the headers admit
+
+Each catalog records where it stands. `locales/cab` marks itself the least
+certain of the fifteen and names the specific words — the colour terms
+«haruti», «wuriti», «funati» and the pair «buiti»/«mabuiti» — a speaker should
+check first. `locales/miq` records that its conditional marker «kaka» is
+clause-final in Mískito while the renderer places it before the inequality, so
+the message reads out of position: a defect in the composition rather than in
+the words, and one only a speaker could have spotted. `locales/jam` flags
+«pwaint» for *point*, built on Cassidy's «bwai» because English /ɔɪ/ has no
+letter in the five-vowel system, as the single most-repeated uncertain form in
+the catalog. `locales/gcr` records that it writes the equative «sé» throughout
+where Guianese also uses «sa».
+
+Three of the fifteen commit to an orthography over a live alternative and say
+so: `pap` writes the phonological spelling of Curaçao and Bonaire over Aruba's
+etymological one, `jam` the Cassidy–JLU system over the English-based spelling
+most written Jamaican actually uses, and `bzj` the National Kriol Council
+orthography over the same ad-hoc English practice. All three say the same
+thing about it — a reviewer who prefers the other system should **respell
+rather than retranslate**, and must convert all four files at once.
 
 Every string in all fifteen is machine-generated and unread by a speaker, and
 each file says so at the top. Correcting any of it needs no permission.
