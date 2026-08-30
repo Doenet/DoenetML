@@ -358,21 +358,15 @@ describe("the Sami plural categories", () => {
  * That is not a defect in the catalogs and the batch does not treat it as one:
  * nouns in these languages are not marked for number after a numeral anyway,
  * so a single unselected form is the *right* translation as well as the safe
- * one. What this block pins is that nobody later adds a category branch to one
- * of these files without noticing that nothing can select it.
+ * one. That no such catalog *writes* an unselectable category branch is held
+ * for the whole roster in `catalogLint.test.ts`, and by `lint:i18n`; what this
+ * block adds is which of these tags is in that position and why.
  *
  * Explicit numeric literals (`[0]`, `[1]`) are a different mechanism — matched
  * against the number itself rather than against a category — and stay legal,
  * which the last assertion holds.
  */
 describe("the Oceania batch's plural categories", () => {
-    /** Comment lines dropped: several headers discuss `[two]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
     const OCEANIA: [string, string][] = [
         ["mh", mhChrome],
         ["chk", chkChrome],
@@ -388,15 +382,10 @@ describe("the Oceania batch's plural categories", () => {
     ];
 
     it.each(OCEANIA)(
-        "leaves %s free of a category branch nothing could select",
-        (locale, catalog) => {
-            // CLDR has no rules for the tag, so the categories on offer are
-            // some other language's.
+        "resolves %s against some other language's rules",
+        (locale) => {
             expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
                 .not.toBe(locale);
-            for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
-                expect(branches(catalog)).not.toContain(category);
-            }
         },
     );
 
@@ -459,10 +448,11 @@ describe("the Oceania batch's plural categories", () => {
  *
  * For the seven with no data, the rule is the Oceania one: no category branch
  * at all, since `Intl.PluralRules` would resolve the tag against the runtime's
- * default locale and select the text by English's rules. `szl`, `csb` and
- * `rue` are the sharpest cases, because those three really do have a
- * `few`/`many` split of their own — the branch that could be written is
- * exactly the branch that would be got wrong.
+ * default locale and select the text by English's rules — enforced for every
+ * catalog by `lint:i18n`, so what is asserted here is only which seven those
+ * are. `szl`, `csb` and `rue` are the sharpest cases, because those three
+ * really do have a `few`/`many` split of their own — the branch that could be
+ * written is exactly the branch that would be got wrong.
  *
  * An explicit `[0]` is a different mechanism — matched against the number
  * rather than against a category — and stays legal in every one of the
@@ -507,13 +497,10 @@ describe("the European regional batch's plural categories", () => {
     });
 
     it.each(WITHOUT_RULES)(
-        "leaves %s free of a category branch nothing could select",
-        (locale, catalog) => {
+        "resolves %s against some other language's rules",
+        (locale) => {
             expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
                 .not.toBe(locale);
-            for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
-                expect(branches(catalog)).not.toContain(category);
-            }
         },
     );
 
