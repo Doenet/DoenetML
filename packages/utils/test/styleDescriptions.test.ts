@@ -4445,10 +4445,13 @@ describe("the Silk Road batch's word order", () => {
      *
      * The fill pattern is asserted alongside, because `[pattern-tail]` is the
      * one branch carrying the tail *and* a trailing clause, and so the one
-     * where an ordering mistake can survive the plain case. Three of the
-     * postpositional catalogs are the ones to watch: `alt` moves the whole
-     * «{ $pattern } биле» phrase to the **front** because «биле» follows its
-     * noun, where `sgh` and `dng` trail it after a comma.
+     * where an ordering mistake can survive the plain case. The pattern clause
+     * splits along a line of its own: six catalogs lead with it — the five
+     * Turkic ones and `glk` — because their pattern word is a postposition
+     * governing «{ $pattern }» («биле» in `alt`, «неӊ» in `kjh`, «menen» in
+     * `kaa`), and the remaining nine trail it, `sgh` and `dng` after a comma.
+     * So a catalog's pattern placement follows neither its adjective order nor
+     * its `[noun-tail]` use.
      */
     it.each([
         [

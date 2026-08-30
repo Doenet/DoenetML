@@ -2143,13 +2143,13 @@ a script, a state or an ocean, and the loosest grouping the roster has had:
 what its members share is a corridor, and almost every property this file
 tracks splits inside it.
 
-#### Four scripts, and every catalog commits to one of two
+#### Three scripts, and five catalogs that had to choose between two
 
 The batch writes **Latin** (`crh`, `gag`, `kaa`, `ttt`, `zza`, `wbl`),
 **Cyrillic** (`kjh`, `alt`, `sgh`, `dng`) and **Perso-Arabic** (`mzn`, `glk`,
-`lrc`, `bal`, `haz`). That count understates it, because **eight of the
-fifteen are written in two scripts today** and each of those eight had to
-choose one and say so:
+`lrc`, `bal`, `haz`). That count understates it, because **five of the fifteen
+are written in two scripts today** and each of those five had to choose one
+and say so:
 
 - `crh` writes the **Latin alphabet standardized in Ukraine in 2021**, and its
   header states plainly that Cyrillic is equally current among readers in
@@ -2390,8 +2390,9 @@ fifteen.
 
 The five split over the endonym the way `locales/lbe` and `locales/tab` do,
 and the split is decided by the catalogs rather than by the table.
-`locales/kjh` and `locales/wbl` each name their language exactly one way in
-every one of their four headers, so «хакас тілі» and «Xik zik» are copied
+`locales/kjh` and `locales/wbl` each name their language exactly one way
+wherever their headers name it at all — `wbl` in all four files, `kjh` in
+`chrome.ftl` and `content.ftl` — so «хакас тілі» and «Xik zik» are copied
 letter for letter. The other three name theirs **two** ways — «хуэйзў хуа»
 beside «хуэйзў йүян», «Шугнонӣ» beside «х̌уг̌нӯн зивод», «هزارگی» beside
 «آزرگی» — so all three take `locales/olo`'s shape and their labels read

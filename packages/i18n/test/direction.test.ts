@@ -42,9 +42,10 @@ const RTL_LANGUAGES = [
     "ks",
     "dv",
     "ckb",
-    // The Silk Road batch's five, which doubles the roster's Perso-Arabic
-    // catalogs less one and splits three ways over what `direction.ts` had to
-    // learn. `mzn`, `glk` and `lrc` were already in its `RTL_LANGUAGES` —
+    // The Silk Road batch's five, which take the roster's right-to-left
+    // catalogs from eleven to sixteen and split two ways over what
+    // `direction.ts` had to learn. `mzn`, `glk` and `lrc` were already in its
+    // `RTL_LANGUAGES` —
     // listed there long before a catalog existed, because `lang` answers for
     // any tag — so seeding them cost that file nothing. `bal` and `haz` are
     // new to it, and they are new for the *fallback* path only: both maximize

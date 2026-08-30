@@ -784,8 +784,9 @@ export const LOCALE_NAME_FALLBACKS: Record<
     //
     // They split over the endonym the way `locales/lbe` and `locales/tab` did,
     // and the split is decided by the catalogs rather than here. `locales/kjh`
-    // and `locales/wbl` each name their language exactly one way in every one
-    // of their four headers, so those spellings are copied letter for letter.
+    // and `locales/wbl` each name their language exactly one way wherever
+    // their headers name it at all — `wbl` in all four files, `kjh` in two —
+    // so those spellings are copied letter for letter.
     // The other three name theirs **two** ways — «хуэйзў хуа» beside «хуэйзў
     // йүян», «Шугнонӣ» beside «х̌уг̌нӯн зивод», «هزارگی» beside «آزرگی» — and
     // picking one of each pair here would settle in the roster what the

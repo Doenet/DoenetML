@@ -1930,11 +1930,15 @@ describe("a host catalog keyed on an aliased tag", () => {
          * beside `az`, which the roster *does* have, and the two are written in
          * different scripts — `locales/az` is Latin for the republic, `azb`
          * maximizes to `azb-Arab-IR` — so folding it would serve an Iranian
-         * reader an alphabet they do not use.
+         * reader an alphabet they do not use. `jdt` (Judeo-Tat) is the last of
+         * them and the one `locales/ttt`'s own header names: a separate written
+         * tradition rather than a variety of Muslim Tat, so it is left to fall
+         * to English rather than served that catalog.
          */
         it.each([
             "luz",
             "bqi",
+            "jdt",
             "sgy",
             "yah",
             "ydg",
