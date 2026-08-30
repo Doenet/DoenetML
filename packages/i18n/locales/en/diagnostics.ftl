@@ -500,7 +500,7 @@ attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a compo
 
 ## Style definition contrast
 
-# $context names the pair being compared, $mode which colour scheme it was
+# $context names the pair being compared, $mode which color scheme it was
 # rendered in. Both are symbolic — the phrase is chosen here so a translator
 # can rewrite it, rather than being handed over already in English.
 style-definition-insufficient-contrast =
@@ -515,8 +515,8 @@ style-definition-insufficient-contrast =
        *[light] { "" }
     } ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1).
 
-# $suggestion says whether a concrete replacement colour could be computed.
-# The attribute names and colour values in the `available` branch are
+# $suggestion says whether a concrete replacement color could be computed.
+# The attribute names and color values in the `available` branch are
 # DoenetML source, not prose, and stay as they are in every language.
 style-definition-dark-mode-text-background-contrast =
     Although style definition { $styleNumber } has specified colors that provide sufficient contrast for light mode, the dark-mode colors derived from these values have insufficient contrast for the text color against the background color ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; requires at least { $threshold }:1). { $suggestion ->
