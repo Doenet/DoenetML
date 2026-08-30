@@ -54,9 +54,9 @@ import zzaChrome from "../locales/zza/chrome.ftl?raw";
 import dngChrome from "../locales/dng/chrome.ftl?raw";
 import sghChrome from "../locales/sgh/chrome.ftl?raw";
 import wblChrome from "../locales/wbl/chrome.ftl?raw";
-// The Silk Road batch's `diagnostics.ftl` too: it is the largest file in each
-// catalog and holds every count select that is not in `chrome.ftl`, so a claim
-// about "no branch this locale could not select" is only checkable across both.
+// The Silk Road batch's `diagnostics.ftl` too: it holds every count select
+// that is not in `chrome.ftl`, so where each catalog's `[one]` falls is only
+// checkable across both files.
 import crhDiagnostics from "../locales/crh/diagnostics.ftl?raw";
 import gagDiagnostics from "../locales/gag/diagnostics.ftl?raw";
 import tttDiagnostics from "../locales/ttt/diagnostics.ftl?raw";
@@ -623,17 +623,18 @@ describe("the European regional batch's plural categories", () => {
  * default locale — English here — so any category branch they wrote would be
  * chosen by English's rules on English's terms.
  *
- * The split is worth pinning in both directions. Fourteen rows hold that no
- * catalog carries a `[zero]`, `[two]`, `[few]` or `[many]` branch nothing
- * could select. A fifteenth holds that `bal` is not swept in with them: if a
- * future ICU build gained rules for, say, `mzn`, or lost the ones it has for
- * `bal`, the first assertion in each row is what says so rather than a silent
- * change in which branch a reader gets.
+ * That no catalog here carries a `[zero]`, `[two]`, `[few]` or `[many]` branch
+ * its own locale could never select is not asserted in this block: the
+ * roster-wide property in `catalogLint.test.ts` holds it for every catalog,
+ * over all four namespaces and off the syntax tree rather than the text. What
+ * is left here is the half that property cannot state — which tags have CLDR
+ * data of their own, and which category each resolves — so that a future ICU
+ * build gaining rules for, say, `mzn`, or losing the ones it has for `bal`,
+ * fails an assertion rather than silently changing which branch a reader gets.
  *
- * **Every row reads `chrome.ftl` and `diagnostics.ftl` together.** That is the
- * whole reason the second import list above exists: each catalog's count
- * selects are split between the two files, and a rule checked against one of
- * them is not the rule the headers state, which is about all four files.
+ * **Every `[one]` row reads `chrome.ftl` and `diagnostics.ftl` together.**
+ * That is the whole reason the second import list above exists: each catalog's
+ * count selects are split between the two files.
  *
  * `[one]` is deliberately not in the forbidden list — it is the one category
  * every runtime default can select — and where it falls is the thing this
@@ -698,18 +699,13 @@ describe("the Silk Road batch's plural categories", () => {
     /** All fifteen, for the assertions that do not care about the split. */
     const SILK_ROAD: Row[] = [...NO_RULES, BAL];
 
-    it.each(NO_RULES)(
-        "leaves %s free of a category branch nothing could select",
-        (locale, chrome, diagnostics) => {
+    it.each(NO_RULES.map(([locale]) => locale))(
+        "resolves %s against some other language's rules",
+        (locale) => {
             // CLDR has no rules for the tag, so the categories on offer are
             // some other language's.
             expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
                 .not.toBe(locale);
-            for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
-                expect(both([locale, chrome, diagnostics])).not.toContain(
-                    category,
-                );
-            }
         },
     );
 
@@ -724,9 +720,6 @@ describe("the Silk Road batch's plural categories", () => {
         const resolved = new Intl.PluralRules(BAL[0]).resolvedOptions();
         expect(resolved.locale).toBe("bal");
         expect([...resolved.pluralCategories].sort()).toEqual(["one", "other"]);
-        for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
-            expect(both(BAL)).not.toContain(category);
-        }
         // Its `chrome.ftl`, which is where the reader-facing counts live, has
         // no `[one]` at all…
         expect(branches(balChrome)).not.toContain("[one]");
@@ -796,8 +789,8 @@ describe("the Silk Road batch's plural categories", () => {
     it("selects sgh's one branch by the runtime default's rules", () => {
         expect(new Intl.PluralRules("sgh").resolvedOptions().locale) //
             .not.toBe("sgh");
-        // The only catalog of the fifteen with a `[one]` in `chrome.ftl`.
         expect(branches(sghChrome)).toContain("[one]");
+        // No other catalog of the fifteen has a `[one]` in `chrome.ftl`.
         for (const [locale, chrome] of SILK_ROAD) {
             if (locale !== "sgh") {
                 expect(branches(chrome)).not.toContain("[one]");

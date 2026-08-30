@@ -24,10 +24,9 @@ The chemistry element tables are left out of twelve of the fifteen and still
 fall back to English. The exceptions are `mzn`, `glk` and `lrc`, which carry
 the Persian table unchanged, because chemistry in Māzandarān, Gilan and
 Lorestan is taught, examined and printed in Persian and that list is the one
-those readers actually use. `locales/glk` and `locales/lrc` join
-`locales/nn` as the only non-English catalogs that translate every key. `locales/ttt` additionally leaves
-ten of the longest diagnostics messages in English and says so in its own
-header.
+those readers actually use. `locales/glk` and `locales/lrc` translate every
+key, as `locales/nn` does. `locales/ttt` additionally leaves ten of the longest
+diagnostics messages in English and says so in its own header.
 
 `<document lang>` autocompletes all fifteen. Khakas, Wakhi, Dungan, Shughni
 and Hazaragi are offered from hand-written entries, since CLDR has no name for

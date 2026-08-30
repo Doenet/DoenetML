@@ -895,9 +895,9 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // commit to a self-name: the ʻokina is U+02BB, the same character the
     // catalog writes throughout, and there is no macron in it.
     wls: { englishName: "Wallisian", endonym: "Fakaʻuvea" },
-    // The five locales of the Silk Road batch CLDR has no data for, which is
-    // the most any batch has needed at once and is a fact about where these
-    // languages are written rather than about how many speak them: ICU names
+    // The five locales of the Silk Road batch CLDR has no data for, which is a
+    // fact about where these languages are written rather than about how many
+    // speak them: ICU names
     // `crh`, `gag`, `kaa`, `alt`, `zza`, `bal`, `mzn`, `glk`, `lrc` and `ttt`,
     // and stops at the five below.
     //

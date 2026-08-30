@@ -24,10 +24,10 @@ import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
  * The Silk Road batch adds five at once — five Iranian languages written in
  * the Perso-Arabic script, four of them beside `locales/fa` and taking much of
  * their technical vocabulary from it, while `locales/bal` takes its letters
- * and its loans from Urdu instead. That is the largest right-to-left addition
- * since the seven, and it is *not* the first batch to add a right-to-left
- * language that is neither Arabic nor Persian: `ug` is Turkic, `yi` Germanic
- * and `ckb` is Iranian but not Persian.
+ * and its loans from Urdu instead. That takes the roster's right-to-left
+ * catalogs from eleven to sixteen. A right-to-left language that is neither
+ * Arabic nor Persian is nothing new here: `ug` is Turkic, `yi` Germanic and
+ * `ckb` Iranian but not Persian.
  *
  * `ku` is deliberately not here and is the pair worth reading beside `ckb`:
  * two catalogs of one macrolanguage, one Latin and left-to-right, the other

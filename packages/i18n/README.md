@@ -346,17 +346,16 @@ for the substances known long before the elements were, and no settled list of
 all 118 over them. `locales/bi` names its three — «aean», «gol», «silva» — as
 where a speaker should start.
 
-**The Silk Road batch is the first that does not split all one way or the
-other: twelve leave the tables out and three supply them.** The twelve are
+**The Silk Road batch splits twelve to three: twelve leave the tables out and
+three supply them.** The twelve are
 the school-system case, in a medium that changes almost catalog by catalog —
 Russian for `kjh`, `alt` and `dng`, Russian and Ukrainian for `crh`, Russian
 and Romanian for `gag`, Uzbek and Russian for `kaa`, Tajik and Russian for `sgh`, Azerbaijani for `ttt`, Turkish
 for `zza`, Urdu, English and Persian for `bal`, Dari and Pashto for `haz`, and
 `wbl`, which is the one with no single fallback at all, a Gojali pupil meeting
 the English names and a Wakhan pupil the Tajik ones. The three that supply
-them are `mzn`, `glk` and `lrc`, and they are a case no earlier batch had:
-see [Fifteen catalogs along the Silk
-Road](#fifteen-catalogs-along-the-silk-road-and-the-first-element-table-borrowed-whole)
+them are `mzn`, `glk` and `lrc`: see [Fifteen catalogs along the Silk
+Road](#fifteen-catalogs-along-the-silk-road-and-three-element-tables-borrowed-whole)
 for why a Persian table in a Mazanderani catalog is a loan the language
 genuinely uses rather than an invented nomenclature.
 
@@ -2386,7 +2385,7 @@ machine translating into them will reach for, and `locales/sco` sits under the
 very language it falls back to. The headers name that risk rather than leaving
 a reviewer to discover it, and correcting any of it needs no permission.
 
-### Fifteen catalogs along the Silk Road, and the first element table borrowed whole
+### Fifteen catalogs along the Silk Road, and three element tables borrowed whole
 
 The roster goes from 271 locales to 286: Crimean Tatar (`crh`), Gagauz
 (`gag`), Karakalpak (`kaa`), Khakas (`kjh`) and Southern Altai (`alt`) —
@@ -2397,7 +2396,7 @@ and Shughni (`sgh`) — Iranian in three other scripts; Dungan (`dng`), which is
 Sinitic written in Cyrillic; and Wakhi (`wbl`), a Pamir language of northern
 Pakistan.
 
-It is the first batch assembled around a **trade route** rather than a family,
+It is assembled around a **trade route** rather than a family,
 a script, a state or an ocean, and the loosest grouping the roster has had:
 what its members share is a corridor, and almost every property this file
 tracks splits inside it.
@@ -2554,8 +2553,8 @@ teaches the periodic table in another language. The mediums are listed in
 [Catalog layout](#catalog-layout) above. Two of the twelve add something to
 that argument:
 
-- **`locales/haz` is the only catalog in the roster whose gap is a *missing
-  sibling* rather than a missing list.** Hazaragi is a variety of Persian, so
+- **`locales/haz`'s gap is a *missing sibling* rather than a missing list.**
+  Hazaragi is a variety of Persian, so
   a Persian table is exactly the kind of loan the three below ship — but the
   table a Hazara pupil meets is the **Dari** one, which differs from
   `locales/fa`'s Iranian names in a scatter of places and belongs in a `prs`
@@ -2573,8 +2572,8 @@ carry `locales/fa`'s character for character.** That has been checked rather
 than asserted: all three files' `element-name` and `element-anion-name` are
 byte-identical to the Persian ones.
 
-This is a case no earlier batch had. Every complete table in the roster until
-now was a language's own list — Afrikaans's, Bosnian's, Swahili's — or, in
+The complete tables the roster already had were each a language's own list —
+Afrikaans's, Bosnian's, Swahili's — or, in
 `locales/jv` and `locales/su`, an adapted one: those two take the Indonesian
 names their schools' textbooks print, but their `element-name` tables are
 *not* `locales/id`'s, because both keep their own words for the substances
@@ -2593,9 +2592,9 @@ them towards and respelling would produce a vocabulary nobody uses.
 That decision has an arithmetic consequence worth recording. **`locales/glk`
 and `locales/lrc` reach 575/575**, which `locales/nn` of the European regional
 batch had reached one batch earlier — `lint:i18n` notes only the catalogs that
-fall short, so those three are the only non-English ones it says nothing about
-at all. All three are ahead of `fa`, `de` and every other "complete" catalog,
-which it still lists at 560/575 because they predate the fifteen newest keys.
+fall short, so those three are the non-English ones it says nothing about at
+all (`npm run lint:i18n -w @doenet/i18n` prints the list). `fa` and `de` it
+still lists at 560/575, because they predate the fifteen newest keys.
 `nn` got there by writing a Norwegian periodic table; these two get there by
 borrowing a Persian one, which is why the arithmetic is worth recording twice. `locales/mzn` is at
 573/575, and its two gaps are deliberate and shared with `fa`: it omits
@@ -2691,13 +2690,12 @@ declines to write down "no gender" as a *finding*, because the Pamir languages
 differ here, and says what it is actually confident of, which is that it has
 no reliable table to fork with.
 
-#### Naming: five gaps, the most any batch has needed
+#### Naming: five gaps
 
 `LOCALE_NAME_FALLBACKS` gained five entries — CLDR names none of `kjh`,
-`haz`, `dng`, `sgh` and `wbl` in any language, their own included. No earlier
-batch needed more than four. That is a fact about where these languages are
-written rather than about how many speak them: ICU knows the other ten of the
-fifteen.
+`haz`, `dng`, `sgh` and `wbl` in any language, their own included. That is a
+fact about where these languages are written rather than about how many speak
+them: ICU knows the other ten of the fifteen.
 
 The five split over the endonym the way `locales/lbe` and `locales/tab` do,
 and the split is decided by the catalogs rather than by the table.
@@ -2772,8 +2770,7 @@ could not establish Wakhi's own basic colour terms, so all twelve are the
 Persianate words current across the region.
 
 **`locales/ttt` marks itself the least certain of the batch and asks a
-reviewer to assume every line needs work**, which is the strongest such
-statement any catalog in the roster makes.
+reviewer to assume every line needs work.**
 
 Every string in all fifteen is machine-generated and unread by a speaker, and
 each file says so at the top. Correcting any of it needs no permission.
@@ -4088,12 +4085,10 @@ they differ from `de` or `es`:
 | `lrc`, `haz` | follow the noun | none | none in CLDR |
 | `bal` | precede the noun | none | two |
 
-The last three rows are the Silk Road batch's, and `mzn`, `glk`, `lrc` and
-`haz` are the first entries in this table CLDR has no plural data for at all:
-every row above them has a category set of its own, and so does `bal`. They are
-not the first rows for a language that is neither Arabic, Persian nor Hebrew —
-`ug` is Turkic and `ckb` is Iranian but not Persian, and both predate them.
-Four of the five sit beside `locales/fa` and take most of their
+The last three rows are the Silk Road batch's. Four of its five have no CLDR
+plural data at all — `mzn`, `glk`, `lrc` and `haz` — while `bal` has a category
+set of its own, as every row above them does. Those four sit beside
+`locales/fa` and take most of their
 technical vocabulary from it, and the two rows they occupy are the point: the
 Caspian pair is head-final and needs no ezafe at all, while Northern Luri and
 Hazaragi are head-initial and build the same phrases the way Persian does. A
