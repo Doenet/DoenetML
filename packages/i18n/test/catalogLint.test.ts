@@ -824,7 +824,7 @@ describe("every catalog's selector keys", () => {
  */
 describe("plural categories a locale cannot select", () => {
     describe("pluralVariantKeys", () => {
-        it("reads the categories a catalog writes, `other` excepted", () => {
+        it("reads the categories a catalog writes", () => {
             expect(
                 pluralVariantKeys(
                     [
@@ -919,11 +919,10 @@ describe("plural categories a locale cannot select", () => {
         it("reads a category name as a category even on a non-count select", () => {
             // Fluent would match `[few]` on a string selector against the
             // literal `"few"`, so this branch is not strictly dead. Reading it
-            // as a category anyway is what keeps this function and
-            // `symbolicVariantKeys` exact complements, and no selector in the
-            // roster is affected: the symbolic selects key on `plain`,
-            // `none`, `dark`, `true` and the like, and the only category word
-            // among their keys is `other`.
+            // as a category anyway keeps this function and
+            // `symbolicVariantKeys` from disagreeing about a key, and no
+            // selector in the roster is affected: the symbolic selects key on
+            // `plain`, `none`, `dark`, `true` and the like.
             expect(
                 pluralVariantKeys(
                     [

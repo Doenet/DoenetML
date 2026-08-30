@@ -3407,13 +3407,11 @@ and the code lock are all committed.
 A catalog may write only the plural categories its own locale can reach, and
 `lint:i18n` enforces it.
 
-This is the quietest defect a catalog can carry. A `[one]` branch in a language
-whose only category is `other` parses, lints, reads as a translation, and never
-renders — Fluent's default variant answers every input instead. `locales/km` was
-seeded with exactly that in two messages. Both `[one]` branches were
-byte-identical to the `*[other]` beside them, which is precisely why nobody
-noticed: the output was right, and the branch was dead. Khmer's own catalog
-header had said "Khmer has a single plural category" the whole time.
+A `[one]` branch in a language whose only category is `other` parses, lints,
+reads as a translation, and never renders — Fluent's default variant answers
+every input instead. `locales/km` was seeded with exactly that in two messages,
+both byte-identical to the `*[other]` beside them, which is why nobody noticed:
+the output was right and the branch was dead.
 
 Two things can put one there, and the rule covers both:
 
@@ -3438,10 +3436,10 @@ selectable in a language whose only category is `other` — which is why
 
 **A category name is read as a category wherever it is written**, including on
 a select whose selector is not a count — where Fluent would match `[few]`
-against the literal string `"few"`. That reading is what makes the rule and the
-symbolic-key check exact complements, and no select in the roster is affected:
-the symbolic ones key on `plain`, `none`, `dark`, `true` and the like, and the
-only category word among their keys is `other`.
+against the literal string `"few"`. Reading it the same way from both sides
+keeps the rule and the symbolic-key check from disagreeing about a key, and no
+select in the roster is affected: the symbolic ones key on `plain`, `none`,
+`dark`, `true` and the like.
 
 **The default variant is exempt whatever it is named.** Fluent answers with it
 whenever no other branch claims the input, so `*[one]` in a single-category
@@ -3456,14 +3454,10 @@ the opposite reason: `zh-Hans` and `zh-Hant` both resolve to plain `zh`, which
 is their own data and not a fallback.
 
 `pluralVariantKeys`, `allowedPluralCategories` and
-`unselectablePluralCategories` in
-`scripts/catalogUtils.ts` are the rule; `catalogLint.test.ts` holds it over the
-whole roster, which is what the per-batch plural blocks in `chrome.test.ts`
-were each reaching for one batch at a time. Those blocks stay, minus the half
-the property now subsumes: what they say that it cannot is *why* a particular
-language writes the branch it writes — which tags have their own CLDR data,
-which category each of them resolves, and that the count still reaches the
-reader either way.
+`unselectablePluralCategories` in `scripts/catalogUtils.ts` are the rule, and
+`catalogLint.test.ts` holds it over the whole roster. The per-batch plural
+blocks in `chrome.test.ts` keep only the half the property cannot state: *why*
+a particular language writes the branch it writes.
 
 ## Pseudo-localization
 
