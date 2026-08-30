@@ -62,8 +62,16 @@ interface HeldTemplate {
 interface MathSlotContextValue {
     reportSize(componentIdx: number, box: SlotBox): void;
     positions: ReadonlyMap<number, SlotPosition>;
-    /** Whether this slot's control is being edited; see `useMathSlots`. */
-    setSlotEditing(componentIdx: number, editing: boolean): void;
+    /**
+     * Whether this slot's control is being edited; see `useMathSlots`. On
+     * ending, `reflows` says whether giving back the control's spare room
+     * re-typesets the expression.
+     */
+    setSlotEditing(
+        componentIdx: number,
+        editing: boolean,
+        reflows?: boolean,
+    ): void;
     /**
      * The reader committed a value, so the expression may catch up; `reflows`
      * says whether giving back the control's spare room re-typesets it.
@@ -235,6 +243,9 @@ export function useMathSlots({
     const pinned = useRef(indent);
     pinned.current = indent;
     const recentreOnTypeset = useRef(false);
+    // Leaving is the same story: the pin comes off when the typeset that
+    // leaving causes has landed, or at once if it causes none.
+    const unpinOnTypeset = useRef(false);
 
     /**
      * Hold the template as it stands now, or release it if nothing is being
@@ -247,7 +258,7 @@ export function useMathSlots({
     }, []);
 
     const setSlotEditing = useCallback(
-        (componentIdx: number, editing: boolean) => {
+        (componentIdx: number, editing: boolean, reflows = false) => {
             const slots = editingSlots.current;
             const wasEditing = slots.size > 0;
             if (editing) {
@@ -255,12 +266,21 @@ export function useMathSlots({
             } else {
                 slots.delete(componentIdx);
             }
+            const before = heldNow.current;
+            const templateChanges =
+                before !== null &&
+                before.template !== liveTemplate.current.template;
             holdTemplate();
             if (slots.size > 0 && !wasEditing) {
+                unpinOnTypeset.current = false;
                 setIndent(displayIndent(rootRef.current));
             } else if (slots.size === 0) {
                 recentreOnTypeset.current = false;
-                setIndent(null);
+                if (reflows || templateChanges) {
+                    unpinOnTypeset.current = true;
+                } else {
+                    setIndent(null);
+                }
             }
         },
         [holdTemplate],
@@ -414,7 +434,10 @@ export function useMathSlots({
             setPositions((previous) =>
                 samePositions(previous, next) ? previous : next,
             );
-            if (typeset && editingSlots.current.size > 0) {
+            if (typeset && unpinOnTypeset.current) {
+                unpinOnTypeset.current = false;
+                setIndent(null);
+            } else if (typeset && editingSlots.current.size > 0) {
                 if (recentreOnTypeset.current) {
                     recentreOnTypeset.current = false;
                     setIndent(centredIndent(root));
@@ -631,12 +654,15 @@ export function MathSlot({
                     return;
                 }
                 editing.current = nowEditing;
-                setSlotEditing?.(componentIdx, nowEditing);
-                if (!nowEditing) {
-                    // Give back whatever room went unused. Entering needs no
-                    // such step: the control still fits what is reserved, and
-                    // asks for more only when it outgrows it.
-                    measure({ exact: true });
+                if (nowEditing) {
+                    // Entering needs no measuring: the control still fits
+                    // what is reserved, and asks for more only when it
+                    // outgrows it.
+                    setSlotEditing?.(componentIdx, true);
+                } else {
+                    // Give back whatever room went unused.
+                    const reflows = measure({ exact: true }) === true;
+                    setSlotEditing?.(componentIdx, false, reflows);
                 }
             },
             commit(settled?: Promise<unknown>) {
