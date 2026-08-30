@@ -6,10 +6,10 @@ import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 /**
  * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri,
- * Dhivehi and Central Kurdish — the seven #1614 existed to make renderable, the
- * one the European regional and minority batch added, the two the South Asian
- * batch added, the one the Caucasus and Kurdish batch added, and the whole of
- * it as of today.
+ * Dhivehi, Central Kurdish and the Silk Road batch's five — the seven #1614
+ * existed to make renderable, the one the European regional and minority batch
+ * added, the two the South Asian batch added, the one the Caucasus and Kurdish
+ * batch added, the five below, and the whole of it as of today.
  *
  * Written out rather than derived, so that the two tests below can hold it
  * from opposite sides: one says these tags are right-to-left whether or not a
@@ -19,10 +19,13 @@ import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
  * and Thaana was already in `RTL_SCRIPTS` — so this line is the only place
  * seeding them had to be recorded.
  *
- * The Silk Road batch is the first to add right-to-left catalogs whose
- * language is *not* Arabic, Persian or a language of South Asia: five Iranian
- * languages written in the Perso-Arabic script, four of them beside a Persian
- * catalog they borrow much of their technical vocabulary from.
+ * The Silk Road batch adds five at once — five Iranian languages written in
+ * the Perso-Arabic script, four of them beside `locales/fa` and taking much of
+ * their technical vocabulary from it, while `locales/bal` takes its letters
+ * and its loans from Urdu instead. That is the largest right-to-left addition
+ * since the seven, and it is *not* the first batch to add a right-to-left
+ * language that is neither Arabic nor Persian: `ug` is Turkic, `yi` Germanic
+ * and `ckb` is Iranian but not Persian.
  *
  * `ku` is deliberately not here and is the pair worth reading beside `ckb`:
  * two catalogs of one macrolanguage, one Latin and left-to-right, the other
@@ -45,9 +48,8 @@ const RTL_LANGUAGES = [
     // The Silk Road batch's five, which take the roster's right-to-left
     // catalogs from eleven to sixteen and split two ways over what
     // `direction.ts` had to learn. `mzn`, `glk` and `lrc` were already in its
-    // `RTL_LANGUAGES` —
-    // listed there long before a catalog existed, because `lang` answers for
-    // any tag — so seeding them cost that file nothing. `bal` and `haz` are
+    // `RTL_LANGUAGES` — listed there long before a catalog existed, because
+    // `lang` answers for any tag — so seeding them cost that file nothing. `bal` and `haz` are
     // new to it, and they are new for the *fallback* path only: both maximize
     // to `-Arab`, so the script rule already answered them, and the entries
     // matter on the path where a tag cannot be parsed at all.

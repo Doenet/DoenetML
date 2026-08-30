@@ -3762,9 +3762,12 @@ they differ from `de` or `es`:
 | `lrc`, `haz` | follow the noun | none | none in CLDR |
 | `bal` | precede the noun | none | two |
 
-The last three rows are the Silk Road batch's, and they are the first entries
-in this table whose language is neither Arabic, Persian, Hebrew nor a language
-of South Asia. Four of the five sit beside `locales/fa` and take most of their
+The last three rows are the Silk Road batch's, and `mzn`, `glk`, `lrc` and
+`haz` are the first entries in this table CLDR has no plural data for at all:
+every row above them has a category set of its own, and so does `bal`. They are
+not the first rows for a language that is neither Arabic, Persian nor Hebrew —
+`ug` is Turkic and `ckb` is Iranian but not Persian, and both predate them.
+Four of the five sit beside `locales/fa` and take most of their
 technical vocabulary from it, and the two rows they occupy are the point: the
 Caspian pair is head-final and needs no ezafe at all, while Northern Luri and
 Hazaragi are head-initial and build the same phrases the way Persian does. A
