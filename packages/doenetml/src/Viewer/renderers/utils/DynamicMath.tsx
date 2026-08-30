@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { loadMathJax } from "@doenet/utils";
 
 /** Minimum time between typesets of a single element (ms). Caps how often a
@@ -6,12 +6,25 @@ import { loadMathJax } from "@doenet/utils";
  * typeset, which is imperceptible for coordinate read-outs. */
 const THROTTLE_MS = 100;
 
+/**
+ * How long an `immediate` typeset may take (ms) before the element goes back
+ * to the throttled path for the rest of the edit. About a frame: an expression
+ * that can be re-typeset within one is drawn in step with the control being
+ * edited inside it; one that cannot would hold up every keystroke instead, so
+ * it lags a beat, as it would without `immediate`.
+ */
+const IMMEDIATE_BUDGET_MS = 12;
+
 /** The parts of a loaded MathJax 3/4 engine this component uses. */
 interface LoadedMathJax {
     startup: { promise: Promise<unknown> };
+    typeset: (nodes: HTMLElement[]) => void;
     typesetPromise: (nodes: HTMLElement[]) => Promise<unknown>;
     typesetClear: (nodes: HTMLElement[]) => void;
 }
+
+/** The engine once it has started, so an immediate typeset need not wait. */
+let startedMathJax: LoadedMathJax | null = null;
 
 /**
  * Renders continuously-updating inline math (e.g. `$P` while a point is
@@ -37,13 +50,22 @@ interface LoadedMathJax {
  * its geometry can be measured. It fires per swap rather than once at the end
  * of the loop: under coalescing the loop may swap several times, and a caller
  * positioning something against the output has to follow every one of them.
+ *
+ * `immediate` is for an expression with a control being edited inside it,
+ * whose every keystroke changes the LaTeX: the typeset then runs synchronously
+ * in the layout phase, so the new output is on screen in the same frame as the
+ * change that asked for it, with no throttle. An element whose typeset takes
+ * longer than a frame drops back to the throttled path until `immediate` is
+ * withdrawn; see `IMMEDIATE_BUDGET_MS`.
  */
 export function DynamicMath({
     latex,
     onTypeset,
+    immediate = false,
 }: {
     latex: string;
     onTypeset?: () => void;
+    immediate?: boolean;
 }) {
     const visibleRef = useRef<HTMLSpanElement>(null);
     const bufferRef = useRef<HTMLSpanElement | null>(null);
@@ -53,6 +75,9 @@ export function DynamicMath({
     const current = useRef<string | null>(null);
     const busy = useRef(false);
     const lastTypesetAt = useRef(0);
+    // Set once an immediate typeset overran its budget; cleared when the
+    // caller withdraws `immediate`.
+    const overBudget = useRef(false);
     // False once unmounted, so an in-flight `renderPendingLatex` stops before touching a
     // detached node or re-creating the off-screen buffer after cleanup.
     const mounted = useRef(true);
@@ -64,7 +89,7 @@ export function DynamicMath({
     // Arm/re-arm the unmount guard and clean up the off-screen buffer. Runs
     // before the [latex] effect below on every (re)mount, so the loop there
     // always starts with `mounted.current === true`.
-    useEffect(() => {
+    useLayoutEffect(() => {
         // Set on setup (not just at declaration) so a StrictMode remount, which
         // reruns this effect after the cleanup below, re-arms the guard.
         mounted.current = true;
@@ -75,13 +100,64 @@ export function DynamicMath({
         };
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
+        if (!immediate) {
+            overBudget.current = false;
+        }
+    }, [immediate]);
+
+    useLayoutEffect(() => {
         pending.current = latex;
+        if (immediate && !overBudget.current && typesetNow()) {
+            return;
+        }
         // On failure, keep the last good render rather than flashing raw LaTeX
         // or going blank.
         renderPendingLatex().catch((e) => {
             console.error("DynamicMath: MathJax typesetting failed", e);
         });
+
+        /**
+         * Typeset the pending value here and now, in the layout phase, so the
+         * swap is painted with the render that requested it. Declines — and
+         * leaves the value to the loop below — when the engine has not started,
+         * when the loop is mid-flight, or when the engine needs to load
+         * something first, which it signals by throwing.
+         */
+        function typesetNow(): boolean {
+            const MathJax = startedMathJax;
+            const visible = visibleRef.current;
+            if (!MathJax || !visible || busy.current || !mounted.current) {
+                return false;
+            }
+            const next = pending.current;
+            if (next === null || next === current.current) {
+                return true;
+            }
+            const buffer = ensureBuffer(bufferRef);
+            const start = performance.now();
+            try {
+                buffer.innerHTML = next;
+                MathJax.typeset([buffer]);
+            } catch {
+                // The engine may already have recorded the buffer's math
+                // before it threw; forget that record while the nodes are
+                // still in the buffer, as the loop below does after a typeset.
+                MathJax.typesetClear([buffer]);
+                buffer.innerHTML = "";
+                return false;
+            }
+            MathJax.typesetClear([buffer]);
+            visible.replaceChildren(...Array.from(buffer.childNodes));
+            current.current = next;
+            pending.current = null;
+            lastTypesetAt.current = performance.now();
+            if (lastTypesetAt.current - start > IMMEDIATE_BUDGET_MS) {
+                overBudget.current = true;
+            }
+            onTypesetRef.current?.();
+            return true;
+        }
 
         /**
          * The typeset-and-swap loop, (re)invoked on every `latex` change. It
@@ -107,6 +183,7 @@ export function DynamicMath({
                 const MathJax =
                     (await loadMathJax()) as unknown as LoadedMathJax;
                 await MathJax.startup.promise;
+                startedMathJax = MathJax;
                 while (
                     mounted.current &&
                     pending.current !== null &&
@@ -170,7 +247,7 @@ export function DynamicMath({
                 busy.current = false;
             }
         }
-    }, [latex]);
+    }, [latex, immediate]);
 
     return <span ref={visibleRef} style={{ display: "inline" }} />;
 }

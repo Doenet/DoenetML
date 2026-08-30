@@ -50,9 +50,12 @@ export default class MathInput extends Input {
     static variableForImplicitProp = "value";
     static variableForIndexAsProp = "vector";
 
-    // `canBeEmbeddedInMath` stays false: a math input changes width *and* height
-    // on nearly every keystroke, while the caret is inside it, which needs a
-    // growth policy the other inputs do not. Tracked separately in issue #1760.
+    // A math input changes width *and* height on nearly every keystroke, while
+    // the caret is inside it, so unlike the other inputs its box cannot simply
+    // be measured once. The renderer re-typesets around it as it grows, keeping
+    // the field itself in place, which is what makes it drawable inside an
+    // expression.
+    static canBeEmbeddedInMath = true;
 
     static processWhenJustUpdatedForNewComponent = true;
 
@@ -788,6 +791,71 @@ export default class MathInput extends Input {
                         text: dependencyValues.valueForDisplay.toString(params),
                     },
                 };
+            },
+        };
+
+        stateVariableDefinitions.latex = {
+            description: "The current input rendered as a LaTeX string.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "latex",
+            },
+            returnDependencies: () => ({
+                valueForDisplay: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueForDisplay",
+                },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
+                hideNaN: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideNaN",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                // The committed value, formatted as `.text` is, so this is
+                // stable while the reader types; `rawRendererValue` is the
+                // editing buffer and changes with every keystroke.
+                //
+                // An input written inside an `<m>` contributes this to the
+                // expression's `latex`, which is why an empty one has to come
+                // back empty rather than as a placeholder: `<m>` puts its own
+                // blank there, the one a PreTeXt export turns into a `<fillin>`.
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
+                params.showBlanks = false;
+
+                let latex;
+                try {
+                    latex = dependencyValues.valueForDisplay.toLatex(params);
+                } catch (e) {
+                    latex = "";
+                }
+
+                if (dependencyValues.hideNaN && latex === "NaN") {
+                    latex = "";
+                }
+
+                return { setValue: { latex } };
             },
         };
 

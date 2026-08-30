@@ -931,16 +931,16 @@ select-random-value-fluke = By extremely unlikely fluke, couldn't select random 
 # Translators: $component is the input's own DoenetML tag and stays in English,
 # as do the attribute names `inline`, `expanded` and `width`. An input written
 # inside `<m>` is drawn in the place it is written, inside the typeset
-# expression. That needs a control whose size is settled before the math is
-# laid out and which is small enough to sit in a line of it; $reason says which
-# of those this input fails. When it fails, the input is not drawn at all and
-# the expression is typeset as it was before inputs could be embedded: a text
-# input's current value stands in its place, and a choice input contributes
-# nothing.
+# expression, which makes room for it as it grows. That needs a control small
+# enough to sit in a line of mathematics, with a width the expression can
+# measure, in an expression that is not drawn on a graph; $reason says which of
+# those this input fails. When it fails, the input is not shown at all, and the
+# expression is typeset with the input's value in its place — a text input's
+# text, a math input's mathematics — or with nothing there for a choice input.
 math-embedded-input-shape-unsuitable =
-    `<{ $component }>` is not drawn inside the math; the expression is typeset as it was before inputs could be embedded. { $reason ->
-        [not-inline] Only an `inline` choice input fits inside an expression; without `inline` it is a block of buttons.
-        [expanded] An `expanded` text input is a multi-line box, which is too large to sit inside an expression.
-        [on-graph] On a graph the expression is drawn as a single picture, which has no room for a control.
-       *[relative-width] Its `width` is relative (a percentage or `em`), which has nothing to measure against inside an expression. Give the width in absolute units, such as `px`, instead.
+    { $reason ->
+        [not-inline] This `<{ $component }>` is not shown because it is inside math and is not `inline`. Add `inline` so it becomes a drop-down list, which fits inside an expression.
+        [expanded] This `<{ $component }>` is not shown because it is inside math and is `expanded`. Remove `expanded`; a multi-line box does not fit inside an expression.
+        [on-graph] This `<{ $component }>` is not shown because it is inside math drawn on a graph, which has no room for an input.
+       *[relative-width] This `<{ $component }>` is not shown because it is inside math and has a relative width. Give the width in absolute units, such as `px`, instead.
     }

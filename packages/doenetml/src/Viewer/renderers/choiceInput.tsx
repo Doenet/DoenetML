@@ -22,7 +22,7 @@ import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
-import { useInMathSlot } from "./utils/mathInputSlots";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
 import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 // type guard
@@ -108,10 +108,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const { darkMode } = useContext(DocContext) || {};
 
     // Inside an expression there is no room for anything but the control
-    // itself: a visible label or a check-work button drawn among the symbols
-    // would read as part of the math. The expression names the control instead,
-    // through its short description. Read here, with the other hooks, so it is
-    // read on every render whether or not the control goes on to draw anything.
+    // itself: a visible label drawn among the symbols would read as part of
+    // the math. The expression names the control instead, through its short
+    // description. Read here, with the other hooks, so it is read on every
+    // render whether or not the control goes on to draw anything.
     const inMathSlot = useInMathSlot();
 
     // A label that is itself math is typeset by MathJax, which gives it a tab
@@ -119,6 +119,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     // on nothing a keyboard user can see; the ref is attached only there.
     const slotRootRef = useRef<HTMLSpanElement>(null);
     useMathJaxOutOfTabOrder(slotRootRef);
+
+    // A select's width is fixed by its widest choice, so an expression around
+    // it never has to make room for it; while the reader has it open the
+    // expression is still re-typeset in step with any change in it. Outside a
+    // slot this is a no-op.
+    const slotEditing = useMathSlotEditing();
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -150,6 +156,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     });
 
     function onFocusChanged(focused: boolean) {
+        slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,
             args: { focused },
@@ -337,17 +344,15 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         ? SVs.forceFullCheckWorkButton
         : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
 
-    const checkWorkComponent = inMathSlot
-        ? null
-        : createCheckWorkComponent(
-              SVs,
-              id,
-              validationState,
-              submitActionWithPending,
-              fullCheckWork,
-              isPending,
-              tContent,
-          );
+    const checkWorkComponent = createCheckWorkComponent(
+        SVs,
+        id,
+        validationState,
+        submitActionWithPending,
+        fullCheckWork,
+        isPending,
+        tContent,
+    );
 
     if (SVs.inline) {
         // since we color correctness for inline choiceInput,

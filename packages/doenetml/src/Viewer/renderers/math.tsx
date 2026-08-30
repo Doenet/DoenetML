@@ -480,13 +480,19 @@ function MathWithEmbeddedInputs({
         [tContent],
     );
 
-    const { rootRef, layerRef, latexForTypeset, readPositions, contextValue } =
-        useMathSlots({
-            rootId: id,
-            template,
-            embeddedComponentIndices,
-            describeSlot,
-        });
+    const {
+        rootRef,
+        layerRef,
+        latexForTypeset,
+        readPositions,
+        contextValue,
+        editing,
+    } = useMathSlots({
+        rootId: id,
+        template,
+        embeddedComponentIndices,
+        describeSlot,
+    });
 
     // The reserved boxes can move relative to the layer without the expression
     // being re-typeset: the page narrows and the expression re-wraps, or
@@ -522,7 +528,7 @@ function MathWithEmbeddedInputs({
             observer.observe(output);
             observedOutput.current = output;
         }
-        readPositions();
+        readPositions({ typeset: true });
     }, [readPositions]);
 
     // MathJax's own fonts arrive after the first typeset and shift everything.
@@ -551,6 +557,7 @@ function MathWithEmbeddedInputs({
                     <DynamicMath
                         latex={beginDelim + latexForTypeset + endDelim}
                         onTypeset={onTypeset}
+                        immediate={editing}
                     />
                 )}
                 <span ref={layerRef} className="doenet-math-slot-layer">

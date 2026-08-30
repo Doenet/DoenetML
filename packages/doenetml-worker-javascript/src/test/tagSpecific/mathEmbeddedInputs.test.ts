@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateSelectedIndices, updateTextInputValue } from "../utils/actions";
+import {
+    updateMathInputValue,
+    updateSelectedIndices,
+    updateTextInputValue,
+} from "../utils/actions";
 import { MATH_BLANK_LATEX } from "@doenet/utils";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
@@ -253,7 +257,7 @@ describe("Inputs embedded in displayed math @group1", async () => {
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0125");
-        expect(warnings[0].message).contain("percentage or `em`");
+        expect(warnings[0].message).contain("relative width");
     });
 
     it("a block choice input warns for its own reason", async () => {
@@ -268,7 +272,7 @@ describe("Inputs embedded in displayed math @group1", async () => {
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0125");
-        expect(warnings[0].message).contain("block of buttons");
+        expect(warnings[0].message).contain("not `inline`");
     });
 
     it("math on a graph embeds nothing and says why", async () => {
@@ -313,10 +317,7 @@ describe("Inputs embedded in displayed math @group1", async () => {
         expect(warnings.length).eq(0);
     });
 
-    it("a math input is not embedded", async () => {
-        // Deliberate: a math input resizes on every keystroke, which needs a
-        // growth policy the other inputs do not. Tracked as issue #1760 — do
-        // not "fix" this by adding `canBeEmbeddedInMath` to MathInput.
+    it("a math input is embedded", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <m name="m">x = <mathInput name="mi" /></m>
@@ -325,9 +326,101 @@ describe("Inputs embedded in displayed math @group1", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        expect(m.embeddedInputComponentIndices).eqls([miIdx]);
+        expect(m.latexTemplate).eq(`x = \\doenetInputSlot{${miIdx}}`);
+        expect(m.latex).eq(`x = ${MATH_BLANK_LATEX}`);
+    });
+
+    it("a math input contributes latex, not text notation", async () => {
+        // A math input has no `latex` of its own until this feature gives it
+        // one, and its `text` is plain-text notation — `sqrt(2)`, which is not
+        // the expression the reader entered once it is typeset as LaTeX.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <m name="m">x = <mathInput name="mi" /></m>
+    `,
+        });
+
+        await updateMathInputValue({
+            latex: "\\sqrt{2}",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
+        const mi = stateVariables[await resolvePathToNodeIdx("mi")].stateValues;
+
+        expect(mi.latex).eq("\\sqrt{2}");
+        expect(mi.text).eq("sqrt(2)");
+        expect(m.latex).eq("x = \\sqrt{2}");
+        expect(m.math.tree).eqls(["=", "x", ["apply", "sqrt", 2]]);
+    });
+
+    it("typing in a math input changes latex but not the template", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <m name="m">x = <mathInput name="mi" /></m>
+    `,
+        });
+
+        const before = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("m")
+        ].stateValues;
+
+        await updateMathInputValue({
+            latex: "y^2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        const after = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("m")
+        ].stateValues;
+
+        expect(after.latex).eq("x = y^{2}");
+        expect(after.latexTemplate).eq(before.latexTemplate);
+    });
+
+    it("a math input on a graph is flattened and says why", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph><m name="m">x = <mathInput name="mi" prefillLatex="y^2" /></m></graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const m = stateVariables[await resolvePathToNodeIdx("m")].stateValues;
 
         expect(m.embeddedInputComponentIndices).eqls([]);
-        expect(m.latexTemplate).eq(m.latex);
+        expect(m.latex).eq("x = y^{2}");
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0125");
+        expect(warnings[0].message).contain("mathInput");
+    });
+
+    it("the expression names a math input too", async () => {
+        // A math input already describes its own contents through MathQuill, so
+        // what the expression adds is where those contents sit in it.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <m name="m">x = <mathInput name="mi" /> + 3</m>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const mi = stateVariables[await resolvePathToNodeIdx("mi")].stateValues;
+
+        expect(mi.shortDescription).eq("x = blank + 3");
+
+        const { accessibility } = getDiagnosticsByType(core);
+        expect(
+            accessibility.filter((d) => d.code === "doenet-a0003").length,
+        ).eq(0);
     });
 
     it("the expression names the input it holds", async () => {

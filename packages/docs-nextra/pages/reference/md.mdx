@@ -38,23 +38,43 @@ the `&` symbol is entered in each row.
 
 ---
 
-### Example: `<md>{:dn}` cannot contain `<answer>{:dn}` or `<mathInput/>{:dn}`
+### Example: `<md>{:dn}` cannot contain `<answer>{:dn}`
 
 
 ```doenet-editor-horiz
 <p>The following will not render as intended:</p>
 <md>
   <mrow>x = <answer name="ans1"><label>What is x?</label>x</answer></mrow>
-  <mrow>y = <mathInput><label>Enter y</label></mathInput></mrow>
 </md>
 ```
 
 
 
-An `<md>{:dn}` block cannot contain an `<answer>{:dn}` or a `<mathInput/>{:dn}`.
-A `<mathInput/>{:dn}` changes size as the reader types, and the aligned display
-cannot re-flow around it. A `<textInput/>{:dn}` or an inline
-`<choiceInput/>{:dn}` can be used instead — see the next example.
+An `<md>{:dn}` block cannot contain an `<answer>{:dn}`. An input on its own can
+be written into a row, though, and an `<answer>{:dn}` outside the display can
+check it — see the next example.
+
+
+
+---
+
+### Example: an input inside `<md>{:dn}`, checked by an `<answer>{:dn}` outside
+
+
+```doenet-editor-horiz
+<md>
+  <mrow>2x + 1 &= 7</mrow>
+  <mrow>x &= <mathInput name="x" /></mrow>
+</md>
+<p><answer><award><when>$x = 3</when></award></answer></p>
+```
+
+
+
+The input is drawn inside the aligned display where it was written, and the
+`<answer>{:dn}` refers to it by name and checks what was entered. The input
+needs no `<shortDescription>{:dn}`: its own row describes it to a screen
+reader, as "x = blank".
 
 
 
@@ -66,21 +86,32 @@ cannot re-flow around it. A `<textInput/>{:dn}` or an inline
 ```doenet-editor-horiz
 <md>
   <mrow>f(x) &= x^2 + 2x</mrow>
-  <mrow>f'(x) &= <textInput name="step">
+  <mrow>f'(x) &= <mathInput name="step">
     <shortDescription>the derivative of f</shortDescription>
-  </textInput></mrow>
+  </mathInput></mrow>
   <mrow>f''(x) &= 2</mrow>
 </md>
 ```
 
 
-A `<textInput/>{:dn}` or an inline `<choiceInput/>{:dn}` written inside an
-`<mrow>{:dn}` is rendered *in place*, inside the aligned display, so the reader
-completes the missing step where it belongs, and the rows stay aligned at the
-`&` around it. The same restrictions apply as inside `<m>{:dn}`: a
-`<mathInput/>{:dn}`, a non-`inline` `<choiceInput/>{:dn}`, an `expanded`
-`<textInput/>{:dn}` or one whose `width` is in `%` or `em`, and any input in a
-display drawn on a `<graph>{:dn}` cannot be placed inside the display.
+A `<textInput/>{:dn}`, a `<mathInput/>{:dn}`, or an inline
+`<choiceInput/>{:dn}` written inside an `<mrow>{:dn}` is rendered *in place*,
+inside the aligned display, so the reader completes the missing step where it
+belongs, and the rows stay aligned at the `&` around it. Use a
+`<mathInput/>{:dn}` when the missing step is mathematics the reader should
+write as mathematics; the display makes room for it as it grows, and closes
+back up as it shrinks.
+
+Without a `<shortDescription>{:dn}`, the input is described to a screen reader
+by its own row alone — here, "f'(x) = blank" — not by the whole display, so no
+accessibility violation is reported. In this example, the
+`<shortDescription>{:dn}` given replaces that default.
+
+The same restrictions apply as inside `<m>{:dn}`: a non-`inline`
+`<choiceInput/>{:dn}`, an `expanded` `<textInput/>{:dn}` or one given a
+relative width (in `%` or `em`), and any input in a display drawn on a
+`<graph>{:dn}` cannot be placed inside the display. Those inputs are not
+shown, and a warning explains the problem.
 
 
 
@@ -115,8 +146,8 @@ Computational DoenetML components, such as `<math>{:dn}`, or `<derivative>{:dn}`
 referenced within an `<md>{:dn}` block.
 
 
-Exceptions: The `<answer>{:dn}` component, the `<mathInput/>{:dn}` component, and other `<md>{:dn}` 
-components cannot be nested within an `<md>{:dn}` block.
+Exceptions: The `<answer>{:dn}` component and other `<md>{:dn}` components 
+cannot be nested within an `<md>{:dn}` block.
 
 
 

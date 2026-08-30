@@ -84845,6 +84845,12 @@
                     "description": "The current input as a text string."
                 },
                 {
+                    "name": "latex",
+                    "type": "latex",
+                    "isArray": false,
+                    "description": "The current input rendered as a LaTeX string."
+                },
+                {
                     "name": "rawRendererValue",
                     "type": "latex",
                     "isArray": false,

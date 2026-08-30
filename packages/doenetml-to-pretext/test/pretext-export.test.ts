@@ -134,6 +134,23 @@ describe("Pretext export", async () => {
         expect(exported).not.toContain("fillin");
     });
 
+    it("a math input inside an <m> exports as mathematics", async () => {
+        // The field contributes its value as LaTeX, so an exported worksheet
+        // shows the expression the reader entered rather than a plain-text
+        // transcription of it.
+        source = `<p><m>x = <mathInput prefillLatex="\\sqrt{2}" /> + 3</m></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<m>x = \\sqrt{2} + 3</m>`);
+        expect(exported).not.toContain("fillin");
+    });
+
+    it("an unfilled math input inside an <m> becomes a fillin", async () => {
+        source = `<p><m>x = <mathInput /> + 3</m></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<m>x = <fillin characters="8"></fillin> + 3</m>`,
+        );
+    });
+
     it("an unfilled input inside an <md> becomes a fillin", async () => {
         source = `<md><mrow>f(x) \\amp = x^2</mrow><mrow>f'(x) \\amp = <textInput /></mrow></md>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
