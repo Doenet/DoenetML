@@ -49,6 +49,7 @@ export type SupportedLocale =
     | "co"
     | "crh"
     | "cs"
+    | "csb"
     | "cv"
     | "cy"
     | "da"
@@ -58,6 +59,7 @@ export type SupportedLocale =
     | "dje"
     | "dng"
     | "doi"
+    | "dsb"
     | "dv"
     | "dyo"
     | "dyu"
@@ -78,6 +80,7 @@ export type SupportedLocale =
     | "fo"
     | "fon"
     | "fr"
+    | "fur"
     | "fy"
     | "ga"
     | "gaa"
@@ -87,6 +90,7 @@ export type SupportedLocale =
     | "gl"
     | "glk"
     | "gn"
+    | "gsw"
     | "gu"
     | "ha"
     | "haw"
@@ -96,6 +100,7 @@ export type SupportedLocale =
     | "hil"
     | "hnj"
     | "hr"
+    | "hsb"
     | "ht"
     | "hu"
     | "hy"
@@ -132,6 +137,7 @@ export type SupportedLocale =
     | "kri"
     | "krl"
     | "ks"
+    | "ksh"
     | "ktu"
     | "kum"
     | "ky"
@@ -139,6 +145,8 @@ export type SupportedLocale =
     | "lbe"
     | "lez"
     | "lg"
+    | "li"
+    | "lij"
     | "ln"
     | "lo"
     | "lom"
@@ -171,11 +179,13 @@ export type SupportedLocale =
     | "myv"
     | "mzn"
     | "nah"
+    | "nap"
     | "nb"
     | "nds"
     | "ne"
     | "niu"
     | "nl"
+    | "nn"
     | "nog"
     | "nso"
     | "ny"
@@ -190,6 +200,7 @@ export type SupportedLocale =
     | "pam"
     | "pcm"
     | "pl"
+    | "pms"
     | "pon"
     | "ps"
     | "pt"
@@ -200,12 +211,14 @@ export type SupportedLocale =
     | "rn"
     | "ro"
     | "ru"
+    | "rue"
     | "rw"
     | "sa"
     | "sah"
     | "sat"
     | "sc"
     | "scn"
+    | "sco"
     | "sd"
     | "se"
     | "sg"
@@ -230,6 +243,7 @@ export type SupportedLocale =
     | "sus"
     | "sv"
     | "sw"
+    | "szl"
     | "ta"
     | "tab"
     | "te"
@@ -261,6 +275,7 @@ export type SupportedLocale =
     | "urh"
     | "uz"
     | "ve"
+    | "vec"
     | "vep"
     | "vi"
     | "vro"
@@ -533,6 +548,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Czech (čeština)",
     },
     {
+        locale: "csb",
+        englishName: "Kashubian",
+        endonym: "Kashubian",
+        label: "Kashubian",
+    },
+    {
         locale: "cv",
         englishName: "Chuvash",
         endonym: "чӑваш чӗлхи",
@@ -585,6 +606,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Dogri",
         endonym: "डोगरी",
         label: "Dogri (डोगरी)",
+    },
+    {
+        locale: "dsb",
+        englishName: "Lower Sorbian",
+        endonym: "dolnoserbšćina",
+        label: "Lower Sorbian (dolnoserbšćina)",
     },
     { locale: "dv", englishName: "Divehi", endonym: "Divehi", label: "Divehi" },
     {
@@ -682,6 +709,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "French (français)",
     },
     {
+        locale: "fur",
+        englishName: "Friulian",
+        endonym: "furlan",
+        label: "Friulian (furlan)",
+    },
+    {
         locale: "fy",
         englishName: "Western Frisian",
         endonym: "Frysk",
@@ -731,6 +764,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Guarani",
     },
     {
+        locale: "gsw",
+        englishName: "Swiss German",
+        endonym: "Schwiizertüütsch",
+        label: "Swiss German (Schwiizertüütsch)",
+    },
+    {
         locale: "gu",
         englishName: "Gujarati",
         endonym: "ગુજરાતી",
@@ -778,6 +817,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Croatian",
         endonym: "hrvatski",
         label: "Croatian (hrvatski)",
+    },
+    {
+        locale: "hsb",
+        englishName: "Upper Sorbian",
+        endonym: "hornjoserbšćina",
+        label: "Upper Sorbian (hornjoserbšćina)",
     },
     {
         locale: "ht",
@@ -966,6 +1011,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Kashmiri (کٲشُر)",
     },
     {
+        locale: "ksh",
+        englishName: "Colognian",
+        endonym: "Kölsch",
+        label: "Colognian (Kölsch)",
+    },
+    {
         locale: "ktu",
         englishName: "Kituba",
         endonym: "Kikongo ya leta",
@@ -1001,6 +1052,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Ganda",
         endonym: "Luganda",
         label: "Ganda (Luganda)",
+    },
+    {
+        locale: "li",
+        englishName: "Limburgish",
+        endonym: "Limburgish",
+        label: "Limburgish",
+    },
+    {
+        locale: "lij",
+        englishName: "Ligurian",
+        endonym: "ligure",
+        label: "Ligurian (ligure)",
     },
     {
         locale: "ln",
@@ -1160,6 +1223,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Nahuatl (Nāhuatl)",
     },
     {
+        locale: "nap",
+        englishName: "Neapolitan",
+        endonym: "Neapolitan",
+        label: "Neapolitan",
+    },
+    {
         locale: "nb",
         englishName: "Norwegian Bokmål",
         endonym: "norsk bokmål",
@@ -1188,6 +1257,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Dutch",
         endonym: "Nederlands",
         label: "Dutch (Nederlands)",
+    },
+    {
+        locale: "nn",
+        englishName: "Norwegian Nynorsk",
+        endonym: "norsk nynorsk",
+        label: "Norwegian Nynorsk (norsk nynorsk)",
     },
     { locale: "nog", englishName: "Nogai", endonym: "Nogai", label: "Nogai" },
     {
@@ -1259,6 +1334,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Polish (polski)",
     },
     {
+        locale: "pms",
+        englishName: "Piedmontese",
+        endonym: "piemontèis",
+        label: "Piedmontese (piemontèis)",
+    },
+    {
         locale: "pon",
         englishName: "Pohnpeian",
         endonym: "Pohnpeian",
@@ -1318,6 +1399,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "русский",
         label: "Russian (русский)",
     },
+    { locale: "rue", englishName: "Rusyn", endonym: "Rusyn", label: "Rusyn" },
     {
         locale: "rw",
         englishName: "Kinyarwanda",
@@ -1354,6 +1436,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "sicilianu",
         label: "Sicilian (sicilianu)",
     },
+    { locale: "sco", englishName: "Scots", endonym: "Scots", label: "Scots" },
     {
         locale: "sd",
         englishName: "Sindhi",
@@ -1482,6 +1565,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Swahili",
         endonym: "Kiswahili",
         label: "Swahili (Kiswahili)",
+    },
+    {
+        locale: "szl",
+        englishName: "Silesian",
+        endonym: "ślōnski",
+        label: "Silesian (ślōnski)",
     },
     {
         locale: "ta",
@@ -1639,6 +1728,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Uzbek (o‘zbek)",
     },
     { locale: "ve", englishName: "Venda", endonym: "Venda", label: "Venda" },
+    {
+        locale: "vec",
+        englishName: "Venetian",
+        endonym: "veneto",
+        label: "Venetian (veneto)",
+    },
     { locale: "vep", englishName: "Veps", endonym: "Veps", label: "Veps" },
     {
         locale: "vi",

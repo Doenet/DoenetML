@@ -23,6 +23,22 @@ import tvlChrome from "../locales/tvl/chrome.ftl?raw";
 import rarChrome from "../locales/rar/chrome.ftl?raw";
 import wlsChrome from "../locales/wls/chrome.ftl?raw";
 import biChrome from "../locales/bi/chrome.ftl?raw";
+import nnChrome from "../locales/nn/chrome.ftl?raw";
+import hsbChrome from "../locales/hsb/chrome.ftl?raw";
+import dsbChrome from "../locales/dsb/chrome.ftl?raw";
+import csbChrome from "../locales/csb/chrome.ftl?raw";
+import szlChrome from "../locales/szl/chrome.ftl?raw";
+import rueChrome from "../locales/rue/chrome.ftl?raw";
+import liChrome from "../locales/li/chrome.ftl?raw";
+import gswChrome from "../locales/gsw/chrome.ftl?raw";
+import kshChrome from "../locales/ksh/chrome.ftl?raw";
+import kshEditor from "../locales/ksh/editor.ftl?raw";
+import scoChrome from "../locales/sco/chrome.ftl?raw";
+import vecChrome from "../locales/vec/chrome.ftl?raw";
+import napChrome from "../locales/nap/chrome.ftl?raw";
+import lijChrome from "../locales/lij/chrome.ftl?raw";
+import pmsChrome from "../locales/pms/chrome.ftl?raw";
+import furChrome from "../locales/fur/chrome.ftl?raw";
 import crhChrome from "../locales/crh/chrome.ftl?raw";
 import gagChrome from "../locales/gag/chrome.ftl?raw";
 import tttChrome from "../locales/ttt/chrome.ftl?raw";
@@ -440,6 +456,161 @@ describe("the Oceania batch's plural categories", () => {
      * `one`/`other` split.
      */
     it.each(OCEANIA)(
+        "selects %s's zero branch by the number itself",
+        (locale, catalog) => {
+            const t = createChromeTranslator(locale, { [locale]: catalog });
+            const none = stripBidiIsolates(
+                t("attempts-remaining", { count: 0 }),
+            );
+            const some = stripBidiIsolates(
+                t("attempts-remaining", { count: 3 }),
+            );
+            expect(none).not.toBe(some);
+        },
+    );
+});
+
+/**
+ * The European regional batch, and the **split** it runs along.
+ *
+ * The two blocks above are this one's two halves arriving together. The Sami
+ * block pins four catalogs that write a `[two]` their own CLDR data selects
+ * against one that cannot; the Oceania block pins eleven that CLDR has no data
+ * for at all. Here **eight of the fifteen have their own rules and seven do
+ * not**, in one batch, which makes the batch the first place the two states
+ * can be asserted side by side against the same set of files.
+ *
+ * The eight are not uniform either, and that is the point of the second and
+ * third assertions. `hsb` and `dsb` resolve a **`two`** — a living grammatical
+ * dual, as `sl`, `sat`, the Sami catalogs and the Semitic and Celtic ones
+ * already write, and the first pair of neighbouring standards to arrive with
+ * one together; `ksh` resolves a **`zero`**; `vec` resolves a **`many`**
+ * that fires only at exact millions. Each of those is written where the
+ * grammar wants it and nowhere else, and this block holds the shape rather
+ * than the wording, because a category and its neighbour are often worded
+ * alike and no rendered string could tell them apart.
+ *
+ * For the seven with no data, the rule is the Oceania one: no category branch
+ * at all, since `Intl.PluralRules` would resolve the tag against the runtime's
+ * default locale and select the text by English's rules. `szl`, `csb` and
+ * `rue` are the sharpest cases, because those three really do have a
+ * `few`/`many` split of their own — the branch that could be written is
+ * exactly the branch that would be got wrong.
+ *
+ * An explicit `[0]` is a different mechanism — matched against the number
+ * rather than against a category — and stays legal in every one of the
+ * fifteen, which the last assertion holds.
+ */
+describe("the European regional batch's plural categories", () => {
+    /** Comment lines dropped: several headers discuss the categories in prose. */
+    const branches = (catalog: string) =>
+        catalog
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
+
+    /** The eight CLDR has rules for. */
+    const WITH_RULES: [string, string][] = [
+        ["nn", nnChrome],
+        ["hsb", hsbChrome],
+        ["dsb", dsbChrome],
+        ["gsw", gswChrome],
+        ["ksh", kshChrome],
+        ["vec", vecChrome],
+        ["lij", lijChrome],
+        ["fur", furChrome],
+    ];
+
+    /** The seven it has none for. */
+    const WITHOUT_RULES: [string, string][] = [
+        ["csb", csbChrome],
+        ["szl", szlChrome],
+        ["rue", rueChrome],
+        ["li", liChrome],
+        ["sco", scoChrome],
+        ["nap", napChrome],
+        ["pms", pmsChrome],
+    ];
+
+    const ALL = [...WITH_RULES, ...WITHOUT_RULES];
+
+    it.each(WITH_RULES)("resolves %s against its own CLDR data", (locale) => {
+        expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+            .toBe(locale);
+    });
+
+    it.each(WITHOUT_RULES)(
+        "leaves %s free of a category branch nothing could select",
+        (locale, catalog) => {
+            expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+                .not.toBe(locale);
+            for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
+                expect(branches(catalog)).not.toContain(category);
+            }
+        },
+    );
+
+    /**
+     * The Sorbian dual. Both catalogs write `[two]` and `[few]` because both
+     * languages count in pairs and then in small groups, and CLDR agrees.
+     */
+    it.each([
+        ["hsb", hsbChrome],
+        ["dsb", dsbChrome],
+    ])("writes %s's dual, which its own rules select", (locale, catalog) => {
+        const rules = new Intl.PluralRules(locale);
+        expect(rules.select(2)).toBe("two");
+        expect(rules.select(3)).toBe("few");
+        expect(branches(catalog)).toContain("[two]");
+        expect(branches(catalog)).toContain("[few]");
+        // The `few` branch itself renders; `one`, `two` and `other` are
+        // covered for all fifteen by the block below.
+        const t = createChromeTranslator(locale, { [locale]: catalog });
+        expect(stripBidiIsolates(t("attempts-remaining", { count: 3 }))) //
+            .toContain("3");
+    });
+
+    /**
+     * Colognian's `zero`, which no other catalog in this batch could write
+     * truthfully. It is a category matched by CLDR, and it is not the same
+     * mechanism as the explicit `[0]` literal `attempts-remaining` uses.
+     */
+    it("gives Colognian a zero category its own rules select", () => {
+        const rules = new Intl.PluralRules("ksh");
+        expect(rules.resolvedOptions().locale).toBe("ksh");
+        expect(rules.select(0)).toBe("zero");
+        expect(rules.select(1)).toBe("one");
+        expect(rules.select(5)).toBe("other");
+        // …and writes it, in the one place English leaves a real count with no
+        // `[0]` literal already standing on it.
+        expect(branches(kshEditor)).toContain("[zero]");
+        // Not beside the `[0]` literal, though: two mechanisms competing for
+        // the same input is the trap the catalog's own header describes.
+        expect(branches(kshChrome)).not.toContain("[zero]");
+    });
+
+    /**
+     * Venetian's `many`, recorded because its absence from the catalogs is
+     * deliberate: it fires at exact millions and at nothing else, and no noun
+     * counted in these files changes shape there.
+     */
+    it("gives Venetian a many that fires only at exact millions", () => {
+        const rules = new Intl.PluralRules("vec");
+        expect(rules.select(1_000_000)).toBe("many");
+        expect(rules.select(1_500_000)).toBe("other");
+        expect(branches(vecChrome)).not.toContain("[many]");
+    });
+
+    it.each(ALL)("still counts and still renders in %s", (locale, catalog) => {
+        const t = createChromeTranslator(locale, { [locale]: catalog });
+        for (const count of [1, 2, 5]) {
+            expect(
+                stripBidiIsolates(t("attempts-remaining", { count })),
+            ).toContain(String(count));
+        }
+    });
+
+    it.each(ALL)(
         "selects %s's zero branch by the number itself",
         (locale, catalog) => {
             const t = createChromeTranslator(locale, { [locale]: catalog });

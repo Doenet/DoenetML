@@ -4152,6 +4152,259 @@ describe("the Oceania batch's word order", () => {
     );
 });
 
+describe("the European regional batch's word order", () => {
+    /**
+     * Fifteen languages of one continent and two orders — and, for the first
+     * time in this file, **the split is exactly the family split**. All five
+     * Germanic catalogs and all five Slavic ones put the adjectives in front
+     * of the noun; all five Romance ones put them behind.
+     *
+     * That is worth pinning precisely because every earlier batch found the
+     * opposite. The Austronesian block above records a word-order split
+     * *inside* one family; the Oceania block records `locales/bi` disagreeing
+     * with ten neighbours it shares a region with, and `locales/tkl`
+     * disagreeing with its own closest relative. Here the families predict the
+     * answer, and these strings are what would notice if a later correction
+     * quietly moved a catalog across the line its family sits on.
+     *
+     * The words themselves are the other half. Several of these catalogs sit
+     * under a roofing language a machine will fall into — `sco` under English,
+     * `gsw` and `ksh` under German, `li` under Dutch, `szl` and `csb` under
+     * Polish — so a catalog whose adjectives were quietly replaced by the
+     * roofing language's would still pass a structural check. Pinning the
+     * words makes that a visible diff.
+     */
+    const prenominal: [string, string, string][] = [
+        ["nn", "tjukk stipla raud linje", "tjukk stipla raud"],
+        ["sco", "thick strokit reid line", "thick strokit reid"],
+        ["gsw", "dicki gstrichleti roti Linie", "dicki gstrichleti roti"],
+        ["ksh", "decke jestreichelte rude Linie", "decke jestreichelte rude"],
+        ["li", "dikke gestreepde roej lien", "dikke gestreepde roej"],
+        [
+            "hsb",
+            "tołsta smužkowana čerwjena runica",
+            "tołsta smužkowana čerwjena",
+        ],
+        [
+            "dsb",
+            "tłusta smužkowana cerwjena rownica",
+            "tłusta smužkowana cerwjena",
+        ],
+        [
+            "csb",
+            "grubô kreskòwónô czerwionô linia",
+            "grubô kreskòwónô czerwionô",
+        ],
+        [
+            "szl",
+            "grubŏ kryskowanŏ czerwōnŏ linijŏ",
+            "grubŏ kryskowanŏ czerwōnŏ",
+        ],
+        ["rue", "груба чаркова червена лінїя", "груба чаркова червена"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun closes the phrase, with nothing of it reaching in among
+            // the adjectives.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const postnominal: [string, string, string][] = [
+        ["fur", "linie grosse trateade rosse", "grosse trateade rosse"],
+        ["vec", "linea grossa trateada rossa", "grossa trateada rossa"],
+        ["lij", "linia gròssa trattezâ rossa", "gròssa trattezâ rossa"],
+        ["pms", "linia gròssa trategià rossa", "gròssa trategià rossa"],
+        ["nap", "linea grossa trattiata rossa", "grossa trattiata rossa"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives behind the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The bare description is the same words without the noun, which is
+            // what says the order above is the composition message's doing and
+            // not the adjectives'. The noun is prepended whole, with nothing of
+            // it reaching in among the adjectives.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * The side count, and the second place the family line predicts the
+     * answer: the ten Romance and Slavic catalogs carry it as a `[tail]`
+     * behind the adjectives and the five Germanic ones fold it into the head.
+     *
+     * A catalog that reaches `[noun-tail]` has to place the tail the same way
+     * in `style-with-noun` and in `style-filled-with-noun`, or the same
+     * polygon is assembled two ways in one language depending on whether it is
+     * filled — the drift `locales/pon` and `locales/kos` were corrected for.
+     * Each row therefore renders the same polygon through **both** messages:
+     * the third column is `style-with-noun`'s unfilled phrase and the first two
+     * are `style-filled-with-noun`'s. Rendering only the filled one would leave
+     * the drift invisible, since `[noun-tail]` lives in the other message
+     * entirely.
+     */
+    it.each([
+        [
+            "nn",
+            "fylt blå regelmessig 5-kant",
+            "fylt blå regelmessig 5-kant med rombar",
+            "tjukk stipla raud regelmessig 5-kant",
+        ],
+        [
+            "sco",
+            "fillt blae regular 5-sidit polygon",
+            "fillt blae regular 5-sidit polygon wi diamonds",
+            "thick strokit reid regular 5-sidit polygon",
+        ],
+        [
+            "gsw",
+            "gfüllts blaus regelmässigs 5-Eck",
+            "gfüllts blaus regelmässigs 5-Eck mit Ruute",
+            "dicks gstrichlets rots regelmässigs 5-Eck",
+        ],
+        [
+            "ksh",
+            "jeföllt blau rääjelmäßig 5-Eck",
+            "jeföllt blau rääjelmäßig 5-Eck met Ruute",
+            "deck jestreichelt rud rääjelmäßig 5-Eck",
+        ],
+        [
+            "li",
+            "gevölde blauwe regelmaotige 5-hook",
+            "gevölde blauwe regelmaotige 5-hook mit roete",
+            "dikke gestreepde roej regelmaotige 5-hook",
+        ],
+        [
+            "fur",
+            "poligon regolâr di 5 bandis plen blu",
+            "poligon regolâr di 5 bandis plen blu cun rombis",
+            "poligon regolâr di 5 bandis gruès trateât ros",
+        ],
+        [
+            "vec",
+            "poligono regolar de 5 bande pien blu",
+            "poligono regolar de 5 bande pien blu co ronbi",
+            "poligono regolar de 5 bande grosso trateà rosso",
+        ],
+        [
+            "lij",
+            "polìgono regolare de 5 lati pin bleu",
+            "polìgono regolare de 5 lati pin bleu con rombi",
+            "polìgono regolare de 5 lati gròsso trattezòu rosso",
+        ],
+        [
+            "pms",
+            "polìgon regolar ëd 5 lati pien bleu",
+            "polìgon regolar ëd 5 lati pien bleu con romb",
+            "polìgon regolar ëd 5 lati gròss trategià ross",
+        ],
+        [
+            "nap",
+            "polìgono regolare 'e 5 late chino blu",
+            "polìgono regolare 'e 5 late chino blu cu rumme",
+            "polìgono regolare 'e 5 late gruosso trattiato russo",
+        ],
+        [
+            "hsb",
+            "pjelnjeny módry prawidłowny wjeleróžk z 5 bokami",
+            "pjelnjeny módry prawidłowny wjeleróžk z 5 bokami z romby",
+            "tołsty smužkowany čerwjeny prawidłowny wjeleróžk z 5 bokami",
+        ],
+        [
+            "dsb",
+            "połnjony módry pšawidłowny wjelerožk z 5 bokami",
+            "połnjony módry pšawidłowny wjelerožk z 5 bokami z romby",
+            "tłusty smužkowany cerwjeny pšawidłowny wjelerožk z 5 bokami",
+        ],
+        [
+            "csb",
+            "wëpełniony mòdri regularny wielobòk ò 5 bòkach",
+            "wëpełniony mòdri regularny wielobòk ò 5 bòkach z rombë",
+            "gruby kreskòwóny czerwiony regularny wielobòk ò 5 bòkach",
+        ],
+        [
+            "szl",
+            "wypołniōny modry regularny wielokōnt ô 5 bokach",
+            "wypołniōny modry regularny wielokōnt ô 5 bokach z rōmby",
+            "gruby kryskowany czerwōny regularny wielokōnt ô 5 bokach",
+        ],
+        [
+            "rue",
+            "выповненый синїй правилный многоуголник о 5 боках",
+            "выповненый синїй правилный многоуголник о 5 боках з ромбы",
+            "грубый чарковый червеный правилный многоуголник о 5 боках",
+        ],
+    ])(
+        "places the side count the same way in %s's two phrases",
+        (locale, plain, withPattern, stroked) => {
+            const filled = {
+                lineWidthWord: "",
+                lineStyleWord: "",
+                colorWord: "blue",
+                fillColorWord: "blue",
+                fillStyleWord: "",
+            };
+            const noun = { key: "regular-polygon", numSides: 5 } as const;
+            expect(
+                describeClosedShape(forLocale(locale), filled, {
+                    filled: true,
+                    noun,
+                    withNoun: true,
+                }),
+            ).toBe(plain);
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    { ...filled, fillStyleWord: "diamonds" },
+                    { filled: true, noun, withNoun: true },
+                ),
+            ).toBe(withPattern);
+            // `[noun-tail]` lives in `style-with-noun`, which nothing above
+            // reaches: the unfilled phrase has to place the tail the same way.
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    {
+                        lineWidthWord: "thick",
+                        lineStyleWord: "dashed",
+                        colorWord: "red",
+                        fillColorWord: "",
+                        fillStyleWord: "",
+                    },
+                    { filled: false, noun, withNoun: true },
+                ),
+            ).toBe(stroked);
+        },
+    );
+});
+
 describe("the Silk Road batch's word order", () => {
     /**
      * Fifteen languages of one corridor and two orders, and the line between
