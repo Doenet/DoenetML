@@ -340,6 +340,66 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // than English — and the answer to it is a second catalog rather than a
     // change here.
     bal: ["bcc", "bgn", "bgp"],
+    // Malay, and the largest entry in this map by some distance. `locales/ms`
+    // is Standard Malay, which is `zsm` — the member `Intl.getCanonicalLocales`
+    // already rewrites to `ms`, listed here for the reason the other
+    // already-folded codes above are. The other thirty-two reach a catalog
+    // only because this list exists.
+    //
+    // The entry is owed by this repository's own roster rather than by
+    // anything ICU does. Three members have catalogs of their own — `ind`
+    // (`locales/id`), `min` (`locales/min`) and now `bjn` (`locales/bjn`) —
+    // and each is deliberately absent, which is the `bam`/`dyu` shape under
+    // `mnk`: a member this repository answers for itself must not be folded
+    // onto a sibling. `ind` would be inert here anyway, since ICU rewrites it
+    // to `id` before negotiation is consulted; `min` and `bjn` would not, and
+    // listing either would take a Minangkabau or Banjar reader off the catalog
+    // written for them and put them on Standard Malay.
+    //
+    // Two costs are worth naming rather than discovering. `mfa` (Pattani
+    // Malay) maximizes to `mfa-Arab-TH`, so a reader most likely arriving in
+    // Jawi is served Rumi — `locales/kr`'s asymmetry with `kby` and
+    // `locales/dje`'s with `tda`, and the answer to it is a second catalog
+    // rather than a change here. And `max` (North Moluccan Malay) and `xmm`
+    // (Manado Malay) are Malay-lexifier *trade creoles* rather than varieties
+    // of Malay; they are listed all the same, because unlike `ktu` under `kg`
+    // ISO 639-3 puts them inside the macrolanguage, and this map follows
+    // membership rather than second-guessing it.
+    ms: [
+        "btj",
+        "bve",
+        "bvu",
+        "coa",
+        "dup",
+        "hji",
+        "jak",
+        "jax",
+        "kvb",
+        "kvr",
+        "kxd",
+        "lce",
+        "lcf",
+        "liw",
+        "max",
+        "meo",
+        "mfa",
+        "mfb",
+        "mqg",
+        "msi",
+        "mui",
+        "orn",
+        "ors",
+        "pel",
+        "pse",
+        "tmw",
+        "urk",
+        "vkk",
+        "vkt",
+        "xmm",
+        "zlm",
+        "zmi",
+        "zsm",
+    ],
     // Komi and Mari have no entry here at all, and that is the whole of what
     // renaming their catalogs cost. Each list had shrunk to a single member —
     // `kv: ["kpv"]`, `chm: ["mhr"]` — once `koi` and `mrj` left it in the

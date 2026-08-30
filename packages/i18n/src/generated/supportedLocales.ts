@@ -24,6 +24,7 @@ export type SupportedLocale =
     | "ba"
     | "bal"
     | "ban"
+    | "bbc"
     | "bci"
     | "be"
     | "bem"
@@ -32,6 +33,7 @@ export type SupportedLocale =
     | "bi"
     | "bik"
     | "bin"
+    | "bjn"
     | "bm"
     | "bn"
     | "bo"
@@ -39,8 +41,10 @@ export type SupportedLocale =
     | "brx"
     | "bs"
     | "bua"
+    | "bug"
     | "bum"
     | "ca"
+    | "cbk"
     | "ce"
     | "ceb"
     | "ch"
@@ -60,6 +64,7 @@ export type SupportedLocale =
     | "dng"
     | "doi"
     | "dsb"
+    | "dtp"
     | "dv"
     | "dyo"
     | "dyu"
@@ -90,6 +95,7 @@ export type SupportedLocale =
     | "gl"
     | "glk"
     | "gn"
+    | "gor"
     | "gsw"
     | "gu"
     | "ha"
@@ -104,6 +110,7 @@ export type SupportedLocale =
     | "ht"
     | "hu"
     | "hy"
+    | "iba"
     | "id"
     | "ig"
     | "ilo"
@@ -138,6 +145,7 @@ export type SupportedLocale =
     | "krl"
     | "ks"
     | "ksh"
+    | "ksw"
     | "ktu"
     | "kum"
     | "ky"
@@ -157,6 +165,7 @@ export type SupportedLocale =
     | "lv"
     | "mad"
     | "mai"
+    | "mak"
     | "mdf"
     | "men"
     | "mg"
@@ -170,9 +179,11 @@ export type SupportedLocale =
     | "mni"
     | "mnk"
     | "mns"
+    | "mnw"
     | "mos"
     | "mr"
     | "mrj"
+    | "mrw"
     | "ms"
     | "mt"
     | "my"
@@ -183,6 +194,7 @@ export type SupportedLocale =
     | "nb"
     | "nds"
     | "ne"
+    | "nia"
     | "niu"
     | "nl"
     | "nn"
@@ -197,6 +209,7 @@ export type SupportedLocale =
     | "or"
     | "os"
     | "pa"
+    | "pag"
     | "pam"
     | "pcm"
     | "pl"
@@ -224,6 +237,7 @@ export type SupportedLocale =
     | "sg"
     | "sgh"
     | "shi"
+    | "shn"
     | "si"
     | "sjd"
     | "sk"
@@ -262,6 +276,7 @@ export type SupportedLocale =
     | "tpi"
     | "tr"
     | "ts"
+    | "tsg"
     | "tt"
     | "ttt"
     | "tvl"
@@ -418,6 +433,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Balinese",
     },
     {
+        locale: "bbc",
+        englishName: "Batak Toba",
+        endonym: "Batak Toba",
+        label: "Batak Toba",
+    },
+    {
         locale: "bci",
         englishName: "Baoulé",
         endonym: "bci",
@@ -456,6 +477,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     { locale: "bik", englishName: "Bikol", endonym: "Bikol", label: "Bikol" },
     { locale: "bin", englishName: "Bini", endonym: "Bini", label: "Bini" },
     {
+        locale: "bjn",
+        englishName: "Banjar",
+        endonym: "Banjar",
+        label: "Banjar",
+    },
+    {
         locale: "bm",
         englishName: "Bambara",
         endonym: "bamanakan",
@@ -492,12 +519,24 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "буряад",
         label: "Buriat (буряад)",
     },
+    {
+        locale: "bug",
+        englishName: "Buginese",
+        endonym: "Buginese",
+        label: "Buginese",
+    },
     { locale: "bum", englishName: "Bulu", endonym: "Bulu", label: "Bulu" },
     {
         locale: "ca",
         englishName: "Catalan",
         endonym: "català",
         label: "Catalan (català)",
+    },
+    {
+        locale: "cbk",
+        englishName: "Chavacano",
+        endonym: "cbk",
+        label: "Chavacano (cbk)",
     },
     {
         locale: "ce",
@@ -612,6 +651,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Lower Sorbian",
         endonym: "dolnoserbšćina",
         label: "Lower Sorbian (dolnoserbšćina)",
+    },
+    {
+        locale: "dtp",
+        englishName: "Central Dusun",
+        endonym: "Central Dusun",
+        label: "Central Dusun",
     },
     { locale: "dv", englishName: "Divehi", endonym: "Divehi", label: "Divehi" },
     {
@@ -764,6 +809,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Guarani",
     },
     {
+        locale: "gor",
+        englishName: "Gorontalo",
+        endonym: "Gorontalo",
+        label: "Gorontalo",
+    },
+    {
         locale: "gsw",
         englishName: "Swiss German",
         endonym: "Schwiizertüütsch",
@@ -842,6 +893,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "հայերեն",
         label: "Armenian (հայերեն)",
     },
+    { locale: "iba", englishName: "Iban", endonym: "Iban", label: "Iban" },
     {
         locale: "id",
         englishName: "Indonesian",
@@ -1017,6 +1069,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Colognian (Kölsch)",
     },
     {
+        locale: "ksw",
+        englishName: "S'gaw Karen",
+        endonym: "ကညီကျိာ်",
+        label: "S'gaw Karen (ကညီကျိာ်)",
+    },
+    {
         locale: "ktu",
         englishName: "Kituba",
         endonym: "Kikongo ya leta",
@@ -1116,6 +1174,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Maithili (मैथिली)",
     },
     {
+        locale: "mak",
+        englishName: "Makasar",
+        endonym: "Makasar",
+        label: "Makasar",
+    },
+    {
         locale: "mdf",
         englishName: "Moksha",
         endonym: "Moksha",
@@ -1178,6 +1242,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "мāньси лāтыӈ",
         label: "Mansi (мāньси лāтыӈ)",
     },
+    {
+        locale: "mnw",
+        englishName: "Mon",
+        endonym: "ဘာသာမန်",
+        label: "Mon (ဘာသာမန်)",
+    },
     { locale: "mos", englishName: "Mossi", endonym: "Mossi", label: "Mossi" },
     {
         locale: "mr",
@@ -1190,6 +1260,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Western Mari",
         endonym: "Western Mari",
         label: "Western Mari",
+    },
+    {
+        locale: "mrw",
+        englishName: "Maranao",
+        endonym: "Basa a Mëranaw",
+        label: "Maranao (Basa a Mëranaw)",
     },
     {
         locale: "ms",
@@ -1246,6 +1322,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "नेपाली",
         label: "Nepali (नेपाली)",
     },
+    { locale: "nia", englishName: "Nias", endonym: "Nias", label: "Nias" },
     {
         locale: "niu",
         englishName: "Niuean",
@@ -1314,6 +1391,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Punjabi",
         endonym: "ਪੰਜਾਬੀ",
         label: "Punjabi (ਪੰਜਾਬੀ)",
+    },
+    {
+        locale: "pag",
+        englishName: "Pangasinan",
+        endonym: "Pangasinan",
+        label: "Pangasinan",
     },
     {
         locale: "pam",
@@ -1467,6 +1550,7 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "ⵜⴰⵛⵍⵃⵉⵜ",
         label: "Tachelhit (ⵜⴰⵛⵍⵃⵉⵜ)",
     },
+    { locale: "shn", englishName: "Shan", endonym: "တႆး", label: "Shan (တႆး)" },
     {
         locale: "si",
         englishName: "Sinhala",
@@ -1655,6 +1739,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Turkish (Türkçe)",
     },
     { locale: "ts", englishName: "Tsonga", endonym: "Tsonga", label: "Tsonga" },
+    {
+        locale: "tsg",
+        englishName: "Tausug",
+        endonym: "Bahasa Sūg",
+        label: "Tausug (Bahasa Sūg)",
+    },
     {
         locale: "tt",
         englishName: "Tatar",

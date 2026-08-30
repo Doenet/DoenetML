@@ -65459,6 +65459,10 @@
                             "description": "Balinese"
                         },
                         {
+                            "value": "bbc",
+                            "description": "Batak Toba"
+                        },
+                        {
                             "value": "bci",
                             "description": "Baoulé (bci)"
                         },
@@ -65491,6 +65495,10 @@
                             "description": "Bini"
                         },
                         {
+                            "value": "bjn",
+                            "description": "Banjar"
+                        },
+                        {
                             "value": "bm",
                             "description": "Bambara (bamanakan)"
                         },
@@ -65519,12 +65527,20 @@
                             "description": "Buriat (буряад)"
                         },
                         {
+                            "value": "bug",
+                            "description": "Buginese"
+                        },
+                        {
                             "value": "bum",
                             "description": "Bulu"
                         },
                         {
                             "value": "ca",
                             "description": "Catalan (català)"
+                        },
+                        {
+                            "value": "cbk",
+                            "description": "Chavacano (cbk)"
                         },
                         {
                             "value": "ce",
@@ -65601,6 +65617,10 @@
                         {
                             "value": "dsb",
                             "description": "Lower Sorbian (dolnoserbšćina)"
+                        },
+                        {
+                            "value": "dtp",
+                            "description": "Central Dusun"
                         },
                         {
                             "value": "dv",
@@ -65723,6 +65743,10 @@
                             "description": "Guarani"
                         },
                         {
+                            "value": "gor",
+                            "description": "Gorontalo"
+                        },
+                        {
                             "value": "gsw",
                             "description": "Swiss German (Schwiizertüütsch)"
                         },
@@ -65777,6 +65801,10 @@
                         {
                             "value": "hy",
                             "description": "Armenian (հայերեն)"
+                        },
+                        {
+                            "value": "iba",
+                            "description": "Iban"
                         },
                         {
                             "value": "id",
@@ -65915,6 +65943,10 @@
                             "description": "Colognian (Kölsch)"
                         },
                         {
+                            "value": "ksw",
+                            "description": "S'gaw Karen (ကညီကျိာ်)"
+                        },
+                        {
                             "value": "ktu",
                             "description": "Kituba (Kikongo ya leta)"
                         },
@@ -65991,6 +66023,10 @@
                             "description": "Maithili (मैथिली)"
                         },
                         {
+                            "value": "mak",
+                            "description": "Makasar"
+                        },
+                        {
                             "value": "mdf",
                             "description": "Moksha"
                         },
@@ -66043,6 +66079,10 @@
                             "description": "Mansi (мāньси лāтыӈ)"
                         },
                         {
+                            "value": "mnw",
+                            "description": "Mon (ဘာသာမန်)"
+                        },
+                        {
                             "value": "mos",
                             "description": "Mossi"
                         },
@@ -66053,6 +66093,10 @@
                         {
                             "value": "mrj",
                             "description": "Western Mari"
+                        },
+                        {
+                            "value": "mrw",
+                            "description": "Maranao (Basa a Mëranaw)"
                         },
                         {
                             "value": "ms",
@@ -66093,6 +66137,10 @@
                         {
                             "value": "ne",
                             "description": "Nepali (नेपाली)"
+                        },
+                        {
+                            "value": "nia",
+                            "description": "Nias"
                         },
                         {
                             "value": "niu",
@@ -66149,6 +66197,10 @@
                         {
                             "value": "pa",
                             "description": "Punjabi (ਪੰਜਾਬੀ)"
+                        },
+                        {
+                            "value": "pag",
+                            "description": "Pangasinan"
                         },
                         {
                             "value": "pam",
@@ -66257,6 +66309,10 @@
                         {
                             "value": "shi",
                             "description": "Tachelhit (ⵜⴰⵛⵍⵃⵉⵜ)"
+                        },
+                        {
+                            "value": "shn",
+                            "description": "Shan (တႆး)"
                         },
                         {
                             "value": "si",
@@ -66409,6 +66465,10 @@
                         {
                             "value": "ts",
                             "description": "Tsonga"
+                        },
+                        {
+                            "value": "tsg",
+                            "description": "Tausug (Bahasa Sūg)"
                         },
                         {
                             "value": "tt",
