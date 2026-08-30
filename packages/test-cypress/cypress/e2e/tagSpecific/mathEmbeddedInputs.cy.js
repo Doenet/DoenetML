@@ -728,6 +728,58 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("a field growing taller moves once, with the room made for it", () => {
+        // A fraction makes the field taller above its baseline. The display
+        // reserves that room and the row's baseline comes down with it, so the
+        // field's top is set from the new baseline and the new height together;
+        // set from the old baseline first, it would rise and then fall.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <md name="md">
+      <mrow>f(x) \\amp = x^2</mrow>
+      <mrow>f'(x) \\amp = <mathInput name="mi" /></mrow>
+      <mrow>f''(x) \\amp = 2</mrow>
+    </md>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
+        cy.get(`${cesc("#mi")} textarea`).type("a", { force: true });
+        cy.wait(300);
+
+        // Sample where the field's top is on every frame from here on.
+        cy.window().then((win) => {
+            const field = win.document.querySelector(
+                `${cesc("#md")} .doenet-math-slot`,
+            );
+            const tops = [];
+            function sample() {
+                const top = Math.round(field.getBoundingClientRect().top);
+                if (tops[tops.length - 1] !== top) {
+                    tops.push(top);
+                }
+                win.requestAnimationFrame(sample);
+            }
+            sample();
+            win.__fieldTops = tops;
+        });
+
+        cy.get(`${cesc("#mi")} textarea`).type("/", { force: true });
+        cy.wait(600);
+
+        cy.window().then((win) => {
+            const tops = win.__fieldTops;
+            expect(tops.length, `top went ${tops.join(" → ")}`).to.be.at.most(
+                2,
+            );
+        });
+    });
+
     it("an input can sit in a subscript or a superscript", () => {
         // Filling in the bounds of an integral: the reserved box is typeset in
         // the script position, so the field lands above and below the integral

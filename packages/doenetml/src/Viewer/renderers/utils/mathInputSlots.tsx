@@ -62,6 +62,8 @@ interface HeldTemplate {
 interface MathSlotContextValue {
     reportSize(componentIdx: number, box: SlotBox): void;
     positions: ReadonlyMap<number, SlotPosition>;
+    /** Goes up each time a typeset lands, so a slot can act on that moment. */
+    typesets: number;
     /**
      * Whether this slot's control is being edited; see `useMathSlots`. On
      * ending, `reflows` says whether giving back the control's spare room
@@ -208,6 +210,7 @@ export function useMathSlots({
     const [positions, setPositions] = useState<
         ReadonlyMap<number, SlotPosition>
     >(new Map());
+    const [typesets, setTypesets] = useState(0);
 
     // What the expression is typeset from while a reader is editing one of its
     // controls: the template as it stood when the editing began, or when the
@@ -434,6 +437,9 @@ export function useMathSlots({
             setPositions((previous) =>
                 samePositions(previous, next) ? previous : next,
             );
+            if (typeset) {
+                setTypesets((count) => count + 1);
+            }
             if (typeset && unpinOnTypeset.current) {
                 unpinOnTypeset.current = false;
                 setIndent(null);
@@ -450,8 +456,14 @@ export function useMathSlots({
     );
 
     const contextValue = useMemo<MathSlotContextValue>(
-        () => ({ reportSize, positions, setSlotEditing, noteSlotCommit }),
-        [reportSize, positions, setSlotEditing, noteSlotCommit],
+        () => ({
+            reportSize,
+            positions,
+            typesets,
+            setSlotEditing,
+            noteSlotCommit,
+        }),
+        [reportSize, positions, typesets, setSlotEditing, noteSlotCommit],
     );
 
     return {
@@ -609,9 +621,16 @@ export function MathSlot({
     // is positioned by: it keeps its baseline on the expression's however much
     // it grows, so the room a reservation holds above it stays above it.
     const [heightAboveBaseline, setHeightAboveBaseline] = useState(0);
+    // A change of size that needs more room moves the expression's baseline
+    // once the room is typeset. Applying the control's new height before then
+    // would move it twice — up, to keep its baseline on the old one, then down
+    // with the new — so while a typeset is on its way the height waits for it,
+    // and further measurements in the meantime wait with it.
+    const heightAwaitingTypeset = useRef<number | null>(null);
 
     const reportSize = context?.reportSize;
     const position = context?.positions.get(componentIdx);
+    const typesets = context?.typesets ?? 0;
 
     const measure = useCallback(
         ({ exact = false } = {}) => {
@@ -637,12 +656,23 @@ export function MathSlot({
             });
             const changed = !sameBox(reserved.current, box);
             reserved.current = box;
-            setHeightAboveBaseline(measured.height);
+            if (changed || heightAwaitingTypeset.current !== null) {
+                heightAwaitingTypeset.current = measured.height;
+            } else {
+                setHeightAboveBaseline(measured.height);
+            }
             reportSize(componentIdx, box);
             return changed;
         },
         [componentIdx, reportSize],
     );
+
+    useLayoutEffect(() => {
+        if (heightAwaitingTypeset.current !== null) {
+            setHeightAboveBaseline(heightAwaitingTypeset.current);
+            heightAwaitingTypeset.current = null;
+        }
+    }, [typesets]);
 
     const setSlotEditing = context?.setSlotEditing;
     const noteSlotCommit = context?.noteSlotCommit;
