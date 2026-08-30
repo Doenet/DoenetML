@@ -211,6 +211,14 @@ answer-submit-label-no-correctness = Manda la rispòsta
 
 ## Sectional blocks
 
+# **The plural pairs below look like copies and are not.** Piedmontese leaves
+# most masculine nouns invariable in the plural, so `.exercise`/`.exercises`
+# («esercissi»), `.problem`/`.problems` («problema»), `.objectives`
+# («obietiv») and `.paragraphs` («paràgraf») are spelled the way the singular
+# is. The other four Romance catalogs in this batch mark the plural — «problemi»
+# in `locales/vec` and `locales/lij`, «problemis» in `locales/fur`,
+# «prubbleme» in `locales/nap` — and a corrector reading one of those should
+# not carry its ending back here.
 section-name =
     .activity = Atività
     .aside = Nòta a part

@@ -4264,88 +4264,106 @@ describe("the European regional batch's word order", () => {
      * in `style-with-noun` and in `style-filled-with-noun`, or the same
      * polygon is assembled two ways in one language depending on whether it is
      * filled — the drift `locales/pon` and `locales/kos` were corrected for.
-     * These rows render the *filled* phrase for all fifteen, so the two
-     * messages cannot come apart unnoticed.
+     * Each row therefore renders the same polygon through **both** messages:
+     * the third column is `style-with-noun`'s unfilled phrase and the first two
+     * are `style-filled-with-noun`'s. Rendering only the filled one would leave
+     * the drift invisible, since `[noun-tail]` lives in the other message
+     * entirely.
      */
     it.each([
         [
             "nn",
             "fylt blå regelmessig 5-kant",
             "fylt blå regelmessig 5-kant med rombar",
+            "tjukk stipla raud regelmessig 5-kant",
         ],
         [
             "sco",
             "fillt blae regular 5-sidit polygon",
             "fillt blae regular 5-sidit polygon wi diamonds",
+            "thick strokit reid regular 5-sidit polygon",
         ],
         [
             "gsw",
             "gfüllts blaus regelmässigs 5-Eck",
             "gfüllts blaus regelmässigs 5-Eck mit Ruute",
+            "dicks gstrichlets rots regelmässigs 5-Eck",
         ],
         [
             "ksh",
             "jeföllt blau rääjelmäßig 5-Eck",
             "jeföllt blau rääjelmäßig 5-Eck met Ruute",
+            "deck jestreichelt rud rääjelmäßig 5-Eck",
         ],
         [
             "li",
             "gevölde blauwe regelmaotige 5-hook",
             "gevölde blauwe regelmaotige 5-hook mit roete",
+            "dikke gestreepde roej regelmaotige 5-hook",
         ],
         [
             "fur",
             "poligon regolâr di 5 bandis plen blu",
             "poligon regolâr di 5 bandis plen blu cun rombis",
+            "poligon regolâr di 5 bandis gruès trateât ros",
         ],
         [
             "vec",
             "poligono regolar de 5 bande pien blu",
             "poligono regolar de 5 bande pien blu co ronbi",
+            "poligono regolar de 5 bande grosso trateà rosso",
         ],
         [
             "lij",
             "polìgono regolare de 5 lati pin bleu",
             "polìgono regolare de 5 lati pin bleu con rombi",
+            "polìgono regolare de 5 lati gròsso trattezòu rosso",
         ],
         [
             "pms",
             "polìgon regolar ëd 5 lati pien bleu",
             "polìgon regolar ëd 5 lati pien bleu con romb",
+            "polìgon regolar ëd 5 lati gròss trategià ross",
         ],
         [
             "nap",
             "polìgono regolare 'e 5 late chino blu",
             "polìgono regolare 'e 5 late chino blu cu rumme",
+            "polìgono regolare 'e 5 late gruosso trattiato russo",
         ],
         [
             "hsb",
             "pjelnjeny módry prawidłowny wjeleróžk z 5 bokami",
             "pjelnjeny módry prawidłowny wjeleróžk z 5 bokami z romby",
+            "tołsty smužkowany čerwjeny prawidłowny wjeleróžk z 5 bokami",
         ],
         [
             "dsb",
             "połnjony módry pšawidłowny wjelerožk z 5 bokami",
             "połnjony módry pšawidłowny wjelerožk z 5 bokami z romby",
+            "tłusty smužkowany cerwjeny pšawidłowny wjelerožk z 5 bokami",
         ],
         [
             "csb",
             "wëpełniony mòdri regularny wielobòk ò 5 bòkach",
             "wëpełniony mòdri regularny wielobòk ò 5 bòkach z rombë",
+            "gruby kreskòwóny czerwiony regularny wielobòk ò 5 bòkach",
         ],
         [
             "szl",
             "wypołniōny modry regularny wielokōnt ô 5 bokach",
             "wypołniōny modry regularny wielokōnt ô 5 bokach z rōmby",
+            "gruby kryskowany czerwōny regularny wielokōnt ô 5 bokach",
         ],
         [
             "rue",
             "выповненый синїй правилный многоуголник о 5 боках",
             "выповненый синїй правилный многоуголник о 5 боках з ромбы",
+            "грубый чарковый червеный правилный многоуголник о 5 боках",
         ],
     ])(
-        "places the side count the same way in %s's filled phrase",
-        (locale, plain, withPattern) => {
+        "places the side count the same way in %s's two phrases",
+        (locale, plain, withPattern, stroked) => {
             const filled = {
                 lineWidthWord: "",
                 lineStyleWord: "",
@@ -4368,6 +4386,21 @@ describe("the European regional batch's word order", () => {
                     { filled: true, noun, withNoun: true },
                 ),
             ).toBe(withPattern);
+            // `[noun-tail]` lives in `style-with-noun`, which nothing above
+            // reaches: the unfilled phrase has to place the tail the same way.
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    {
+                        lineWidthWord: "thick",
+                        lineStyleWord: "dashed",
+                        colorWord: "red",
+                        fillColorWord: "",
+                        fillStyleWord: "",
+                    },
+                    { filled: false, noun, withNoun: true },
+                ),
+            ).toBe(stroked);
         },
     );
 });

@@ -2154,15 +2154,18 @@ and it is the first in which both states arrive together in numbers.
 any of those seven would be text selected by English's rules on English's
 terms. None of the seven writes one. `chrome.test.ts` holds both halves.
 
-Three of the eight write a category no catalog in this repository had written
-before:
+Three of the eight write a category the batch's other twelve could not:
 
 - **`hsb` and `dsb` write a `two`.** Upper and Lower Sorbian have a living
   grammatical dual, and CLDR has it: «jedyn pospyt», «dwaj pospytaj», «tři
-  pospyty», «pjeć pospytow». The Sami catalogs write a `[two]` as well, and the
-  Uralic north's note explains why, but a Sami dual is a category CLDR happens
-  to list; a Sorbian one is an everyday inflection the reader would notice the
-  absence of. These are also the first four-branch plurals in the roster.
+  pospyty», «pjeć pospytow». Neither the dual nor the four-branch plural is
+  new here: `ar`, `he`, `mt`, `br`, `cy`, `ga`, `gd`, `se`, `sat`, the four
+  other Sami catalogs and `sl` all resolve `two` and all write it —
+  `locales/sl` writes a Slavic dual as living as this one — and `pl`, `ru`,
+  `uk`, `be`, `sl` and `gd` already write four branches. What is new is that
+  these two arrive as a **pair of neighbouring written standards** that both
+  have it, which is why their agreement is not evidence either is right; see
+  the note on `dsb` beside `hsb` below.
 - **`ksh` writes a `zero`.** Colognian is the only locale in the batch whose
   own rules select one, and its header spells out the distinction that makes it
   safe: an explicit `[0]` is matched against the *number*, a `[zero]` against

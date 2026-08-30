@@ -12,11 +12,13 @@
 # few living Slavic languages with a grammatical dual, and
 # `Intl.PluralRules("hsb")` resolves to `hsb` with four categories — `one`,
 # `two`, `few`, `other` — so a `[two]` branch in this file is selected by
-# Sorbian's own rules rather than by the runtime's default language. This is
-# the first batch since the Sami one in which any catalog can write `[two]`
-# truthfully, and the first ever in which the dual it selects is an everyday
-# category rather than a lexicalized survival: «jedyn pospyt», «dwaj
-# pospytaj», «tři pospyty», «pjeć pospytow». `chrome.test.ts` renders all four.
+# Sorbian's own rules rather than by the runtime's default language: «jedyn
+# pospyt», «dwaj pospytaj», «tři pospyty», «pjeć pospytow». `chrome.test.ts`
+# renders all four. This is not the roster's first dual — `locales/sl`,
+# `locales/sat`, the Sami catalogs and the Semitic and Celtic ones all write a
+# `[two]` their own data selects — and not its first four-branch plural
+# either; it is the first that arrives as a pair of neighbouring standards,
+# which is what the note in `content.ftl` is about.
 #
 # `locales/dsb` beside it is the same language family and the same four
 # categories, and the two catalogs are deliberately **not** respellings of each

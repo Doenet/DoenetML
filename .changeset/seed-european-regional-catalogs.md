@@ -30,6 +30,5 @@ canonicalization.
 
 Eight of the fifteen have CLDR plural data and use it; the other seven write
 no category branch at all, because nothing could select one correctly. Upper
-and Lower Sorbian are the first catalogs in this repository to write a living
-grammatical dual, and Colognian the first to write a `zero` its own rules
-select.
+and Lower Sorbian write a living grammatical dual, and Colognian a `zero`, both
+selected by their own CLDR rules.

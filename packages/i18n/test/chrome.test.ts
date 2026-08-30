@@ -449,8 +449,9 @@ describe("the Oceania batch's plural categories", () => {
  *
  * The eight are not uniform either, and that is the point of the second and
  * third assertions. `hsb` and `dsb` resolve a **`two`** — a living grammatical
- * dual, not a lexicalized survival, and the first in this repository outside
- * the Sami family; `ksh` resolves a **`zero`**; `vec` resolves a **`many`**
+ * dual, as `sl`, `sat`, the Sami catalogs and the Semitic and Celtic ones
+ * already write, and the first pair of neighbouring standards to arrive with
+ * one together; `ksh` resolves a **`zero`**; `vec` resolves a **`many`**
  * that fires only at exact millions. Each of those is written where the
  * grammar wants it and nowhere else, and this block holds the shape rather
  * than the wording, because a category and its neighbour are often worded
