@@ -385,9 +385,10 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     //
     // **`ikt` is deliberately absent, and the reason is the script rather than
     // the language.** Inuinnaqtun is written in roman letters, and
-    // `locales/iu` contains no roman-letter Inuktitut word anywhere — so
-    // folding `ikt` here would answer a reader who arrived in one script with
-    // a catalog written wholly in another. That is a worse answer than the
+    // `locales/iu` contains no roman-letter Inuktitut word anywhere — its
+    // roman is DoenetML identifiers and a few declared English loans, not
+    // prose — so folding `ikt` here would answer a reader who arrived in one
+    // script with a catalog whose every sentence is in another. That is a worse answer than the
     // English fallback, which at least uses letters the reader has. It is the
     // exclusion `kbl` and `alq` illustrate met from a new direction: those two
     // are excluded because membership does not say they belong, while `ikt`

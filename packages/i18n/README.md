@@ -2889,8 +2889,11 @@ members: `ike` (Eastern Canadian Inuktitut) and `ikt` (Inuinnaqtun). ICU folds
 `ike` on its own, so `iu: ["ike"]` changes no negotiation result — it is the
 `quz` and `ojg` shape, a member written down so the list is the whole of a
 group. **`ikt` is left out, and the reason is the script**: Inuinnaqtun is
-written in roman letters and `locales/iu` is written wholly in syllabics, so
-folding it would hand a reader a catalog in a script they do not read. This map
+written in roman letters, and every Inuktitut word in `locales/iu` is
+syllabic — the roman that appears there is DoenetML's own identifiers and the
+handful of declared English loans the coverage section above describes, never
+Inuktitut prose. So folding `ikt` would hand a reader a catalog whose every
+translated sentence is in a script they do not read. This map
 now excludes members for three different reasons, and they are worth keeping
 apart: `kbl` under `kr` and `alq` under `oj` because published membership does
 not cover them; `bam` and `dyu` under `mnk` because they have catalogs of their

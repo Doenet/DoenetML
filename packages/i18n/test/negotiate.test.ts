@@ -2313,10 +2313,12 @@ describe("resolveDocumentLocale", () => {
      * than the leftovers of one.
      *
      * **`ikt` is left out, and the reason is the script.** Inuinnaqtun is
-     * written in roman letters; `locales/iu` is written wholly in Canadian
-     * Aboriginal syllabics and contains no roman-letter Inuktitut word
-     * anywhere. Folding `ikt` would hand a reader a catalog in a script they
-     * do not read, which is a worse answer than the English fallback. That is
+     * written in roman letters; every Inuktitut word in `locales/iu` is
+     * written in Canadian Aboriginal syllabics, the roman in that catalog
+     * being DoenetML identifiers and a few declared English loans rather than
+     * prose. Folding `ikt` would hand a reader a catalog whose every
+     * translated sentence is in a script they do not read, which is a worse
+     * answer than the English fallback. That is
      * a third kind of exclusion from this map: `kbl` under `kr` and `alq`
      * under `oj` are excluded because published membership does not cover
      * them, `bam` and `dyu` under `mnk` because they have catalogs of their
