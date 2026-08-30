@@ -375,6 +375,26 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // how close two varieties are rather than a published fact — `kbl` under
     // `kr` and `alq` under `oj` land the same way.
     kmr: ["sdh"],
+    // Inuktitut. `locales/iu` is written in Canadian Aboriginal syllabics, the
+    // script Nunavut legislates and schools in, and ISO 639-3 gives the
+    // macrolanguage exactly two members: `ike` (Eastern Canadian Inuktitut)
+    // and `ikt` (Inuinnaqtun). Only `ike` is listed, and it is listed for the
+    // reason the already-folded codes above are — `Intl.getCanonicalLocales`
+    // rewrites it to `iu` before negotiation is consulted, so naming it keeps
+    // this a statement of membership rather than a list of leftovers.
+    //
+    // **`ikt` is deliberately absent, and the reason is the script rather than
+    // the language.** Inuinnaqtun is written in roman letters, and
+    // `locales/iu` contains no roman-letter Inuktitut word anywhere — so
+    // folding `ikt` here would answer a reader who arrived in one script with
+    // a catalog written wholly in another. That is a worse answer than the
+    // English fallback, which at least uses letters the reader has. It is the
+    // exclusion `kbl` and `alq` illustrate met from a new direction: those two
+    // are excluded because membership does not say they belong, while `ikt`
+    // is a published member excluded because the catalog cannot serve it. The
+    // answer to it is a second catalog in roman letters, which is what
+    // `locales/ha` and `locales/kr` say about their own script asymmetries.
+    iu: ["ike"],
 };
 
 /** Flattened once at module load rather than searched per request. */

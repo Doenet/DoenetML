@@ -2298,6 +2298,148 @@ describe("resolveDocumentLocale", () => {
         expect(resolveDocumentLocale("ES-mx", undefined)).toBe("es-MX");
         expect(resolveDocumentLocale(undefined, "PT-br")).toBe("pt-BR");
     });
+
+    /**
+     * The Americas. Fifteen catalogs between Greenland and the Guianas, and
+     * the batch whose one `MACROLANGUAGE_MEMBERS` entry is there to record an
+     * **exclusion** rather than to rescue a member.
+     *
+     * `iu` (Inuktitut) is the only macrolanguage among the fifteen, and ISO
+     * 639-3 gives it exactly two members: `ike` (Eastern Canadian Inuktitut)
+     * and `ikt` (Inuinnaqtun). ICU folds `ike` on its own, so the entry
+     * `iu: ["ike"]` changes no negotiation result at all — it is the shape
+     * `quz`, `ojg` and `gug` already have, a listed member that would have
+     * arrived anyway, written down so the list is the whole of a group rather
+     * than the leftovers of one.
+     *
+     * **`ikt` is left out, and the reason is the script.** Inuinnaqtun is
+     * written in roman letters; `locales/iu` is written wholly in Canadian
+     * Aboriginal syllabics and contains no roman-letter Inuktitut word
+     * anywhere. Folding `ikt` would hand a reader a catalog in a script they
+     * do not read, which is a worse answer than the English fallback. That is
+     * a third kind of exclusion from this map: `kbl` under `kr` and `alq`
+     * under `oj` are excluded because published membership does not cover
+     * them, `bam` and `dyu` under `mnk` because they have catalogs of their
+     * own, and `ikt` because the catalog cannot serve a member it does cover.
+     * The rows below assert both halves, because they fail differently — an
+     * ICU data change breaks the first, an edit to `src/negotiate.ts` the
+     * second.
+     *
+     * The other fourteen are individual languages that reached English on
+     * their own account before this batch and reach their own catalog now.
+     * Nine of the fifteen are creoles, and a creole tag is exactly the kind
+     * this map cannot help: a creole is not a member of its lexifier, so
+     * nothing folds `gcf` onto `fr` or `jam` onto `en`, and nothing should.
+     */
+    describe("the Americas batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const AMERICAS = [
+            "kl",
+            "iu",
+            "yua",
+            "kek",
+            "cab",
+            "miq",
+            "pap",
+            "srn",
+            "jam",
+            "gcf",
+            "acf",
+            "gcr",
+            "bzj",
+            "djk",
+            "srm",
+        ];
+
+        /**
+         * Every one of the fifteen reaches the directory it names when the
+         * whole roster is on offer, and reaches English when only English is —
+         * the second half being what would fail if some entry were quietly
+         * folding one of these tags onto a neighbour instead of letting it
+         * arrive under its own name.
+         */
+        it("gives each of the fifteen its own catalog and nothing else", () => {
+            for (const locale of AMERICAS) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The half ICU does. `ike` never reaches `MACROLANGUAGE_MEMBERS` at
+         * all: `normalizeLocaleTag` has already rewritten it to `iu` before
+         * negotiation is consulted, so its entry in the map documents a fact
+         * rather than carrying the row.
+         */
+        it("has ICU fold ike onto iu before negotiation sees it", () => {
+            expect(normalizeLocaleTag("ike")).toBe("iu");
+            expect(negotiateLocales([normalizeLocaleTag("ike")], available)) //
+                .toEqual(["iu", "en"]);
+        });
+
+        /**
+         * The exclusion, asserted as a negotiation result rather than as an
+         * absent map entry, so that adding `ikt` to the list fails here
+         * instead of silently changing what an Inuinnaqtun reader is served.
+         * ICU leaves the tag exactly as typed, which is what makes the map the
+         * only thing that could fold it.
+         */
+        it("leaves ikt on English rather than serving it a syllabics catalog", () => {
+            expect(normalizeLocaleTag("ikt")).toBe("ikt");
+            expect(negotiateLocales(["ikt"], available)).toEqual(["en"]);
+        });
+
+        /**
+         * `locales/iu` is syllabics and CLDR agrees: `iu` maximizes to
+         * `iu-Cans-CA`, so a reader arriving under a bare `iu` or under
+         * `iu-Cans` gets a script they can read. `iu-Latn` is the asymmetry
+         * `pa`, `sr` and `ha` already have — a reader in the other script
+         * reaching the catalog written in this one — and the answer to it is a
+         * second catalog rather than a rename of the first.
+         */
+        it("agrees with CLDR that iu is written in syllabics", () => {
+            expect(new Intl.Locale("iu").maximize().script).toBe("Cans");
+            expect(negotiateLocales(["iu-Latn"], available)).toEqual([
+                "iu",
+                "en",
+            ]);
+        });
+
+        /**
+         * The fourteen Latin-script catalogs agree with CLDR about their own
+         * script, so none of them has `iu`'s asymmetry. Asserted as a group
+         * because the interesting case is a future ICU build moving one of
+         * them, not any one row today.
+         */
+        it("has CLDR agree that the other fourteen are written in Latin", () => {
+            for (const locale of AMERICAS.filter((tag) => tag !== "iu")) {
+                expect(new Intl.Locale(locale).maximize().script).toBe("Latn");
+            }
+        });
+
+        /**
+         * A creole is not a member of its lexifier, and nothing here pretends
+         * otherwise: a reader who asks for French is served French even though
+         * three French-lexifier creoles now have catalogs, and the same for
+         * English, Dutch and Spanish. This is what would break if someone
+         * decided a missing lexifier catalog should fall back to a creole, or
+         * the reverse.
+         */
+        it.each([
+            ["fr", "fr"],
+            ["en", "en"],
+            ["nl", "nl"],
+            ["es", "es"],
+        ])(
+            "keeps %s on its own catalog rather than on a creole",
+            (tag, expected) => {
+                expect(negotiateLocales([tag], available)[0]).toBe(expected);
+            },
+        );
+    });
 });
 
 describe("resolveUiLocale", () => {

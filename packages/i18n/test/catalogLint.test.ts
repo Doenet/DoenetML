@@ -1172,4 +1172,94 @@ describe("plural categories a locale cannot select", () => {
             },
         );
     });
+
+    /**
+     * The Americas batch's headers make a claim of the same checkable kind the
+     * three Silk Road headers do, but about **one character rather than an
+     * alphabet**: `locales/yua` and `locales/kek` state that the glottal stop
+     * and the ejectives are written with U+02BC MODIFIER LETTER APOSTROPHE
+     * throughout, and never with the typographic U+2019 or the ASCII U+0027.
+     *
+     * That is worth holding for the Silk Road block's reason exactly. The
+     * three characters are near-indistinguishable on screen, a text editor
+     * with smart quotes turns one into another without being asked, and the
+     * result breaks no test and defeats every later search — but «tʼaan» and
+     * «t’aan» are different strings, and in Mayan orthography the ejective is
+     * a letter rather than punctuation.
+     *
+     * `locales/iu` gets the other half of the same idea: its header states
+     * that no Inuktitut word is spelled in roman letters, and the roman that
+     * does appear is either DoenetML source or a declared English loan. The
+     * check that fits that claim is not an inventory — the loans are real
+     * roman words — but the absence of the one syllabics character that would
+     * mean the file had drifted into a neighbouring language's inventory.
+     */
+    describe("the character inventories the Americas headers state exactly", () => {
+        /** The message text of a catalog: comment lines and code spans dropped. */
+        const prose = (locale: string): string =>
+            CATALOG_NAMESPACES.map((namespace) =>
+                readCatalog(locale, namespace),
+            )
+                .filter((source): source is string => source !== null)
+                .join("\n")
+                .split("\n")
+                .filter((line) => !line.trimStart().startsWith("#"))
+                .join("\n")
+                .replace(/`[^`]*`/g, " ");
+
+        it.each(["yua", "kek"])(
+            "writes every apostrophe in %s as U+02BC",
+            (locale) => {
+                const text = prose(locale);
+                expect(text).toContain("\u02bc");
+                // The look-alike, named by codepoint so a failure says which
+                // character crept in rather than printing two identical marks.
+                expect(text).not.toContain("\u2019");
+                // U+0027 is deliberately not forbidden: English's own
+                // messages quote enumerated values with straight quotes and
+                // write the derivative as `y'`, and both come through a
+                // translation unchanged. It is the curly one a smart-quote
+                // editor substitutes, and the curly one that would be a
+                // silent respelling of a Mayan letter.
+            },
+        );
+
+        /**
+         * ᐦ (U+1426) is the Cree final `h`. It is not part of the Nunavut
+         * Inuktitut inventory — `locales/iu` writes ᕼ (U+157C) where it needs
+         * an *h* — and its appearance would mean a syllabics string had been
+         * taken from a Cree source. The batch shipped no Cree catalog, which
+         * is exactly why nothing else would catch this.
+         */
+        it("keeps iu's syllabics out of the Cree finals", () => {
+            // ᕼ itself appears only in the headers — the syllabics words
+            // this catalog happens to use need no *h* — so what is asserted
+            // is the absence, which is the half that could rot.
+            expect(prose("iu")).not.toContain("\u1426");
+        });
+
+        /**
+         * `locales/srm`'s headers state that tone is not written, and that the
+         * one accented letter outside its `ë`/`ö` vowels is «á», the preverbal
+         * negator, whose accent marks the word rather than a tone. Any other
+         * acute would mean tone had been half-restored — worse than the stated
+         * absence, because a reader could not tell which words had been done.
+         */
+        it("keeps srm to the one accented letter its header allows", () => {
+            const accented = new Set(
+                [...prose("srm")].filter((letter) =>
+                    /[\u00c0-\u024f]/.test(letter),
+                ),
+            );
+            // Case-folded: «Ë» opens a sentence in several messages, and a
+            // capital is the same letter.
+            expect(
+                [
+                    ...new Set(
+                        [...accented].map((letter) => letter.toLowerCase()),
+                    ),
+                ].sort(),
+            ).toEqual(["á", "ë", "ö"]);
+        });
+    });
 });

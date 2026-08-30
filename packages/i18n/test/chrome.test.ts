@@ -54,6 +54,40 @@ import zzaChrome from "../locales/zza/chrome.ftl?raw";
 import dngChrome from "../locales/dng/chrome.ftl?raw";
 import sghChrome from "../locales/sgh/chrome.ftl?raw";
 import wblChrome from "../locales/wbl/chrome.ftl?raw";
+// The Americas batch, both files for the same reason as the Silk Road's:
+// each catalog's count selects are split between `chrome.ftl` and
+// `diagnostics.ftl`, so where a category branch falls is only checkable
+// across the two together.
+import yuaChrome from "../locales/yua/chrome.ftl?raw";
+import kekChrome from "../locales/kek/chrome.ftl?raw";
+import cabChrome from "../locales/cab/chrome.ftl?raw";
+import miqChrome from "../locales/miq/chrome.ftl?raw";
+import papChrome from "../locales/pap/chrome.ftl?raw";
+import srnChrome from "../locales/srn/chrome.ftl?raw";
+import jamChrome from "../locales/jam/chrome.ftl?raw";
+import gcfChrome from "../locales/gcf/chrome.ftl?raw";
+import acfChrome from "../locales/acf/chrome.ftl?raw";
+import gcrChrome from "../locales/gcr/chrome.ftl?raw";
+import bzjChrome from "../locales/bzj/chrome.ftl?raw";
+import djkChrome from "../locales/djk/chrome.ftl?raw";
+import srmChrome from "../locales/srm/chrome.ftl?raw";
+import klChrome from "../locales/kl/chrome.ftl?raw";
+import iuChrome from "../locales/iu/chrome.ftl?raw";
+import yuaDiagnostics from "../locales/yua/diagnostics.ftl?raw";
+import kekDiagnostics from "../locales/kek/diagnostics.ftl?raw";
+import cabDiagnostics from "../locales/cab/diagnostics.ftl?raw";
+import miqDiagnostics from "../locales/miq/diagnostics.ftl?raw";
+import papDiagnostics from "../locales/pap/diagnostics.ftl?raw";
+import srnDiagnostics from "../locales/srn/diagnostics.ftl?raw";
+import jamDiagnostics from "../locales/jam/diagnostics.ftl?raw";
+import gcfDiagnostics from "../locales/gcf/diagnostics.ftl?raw";
+import acfDiagnostics from "../locales/acf/diagnostics.ftl?raw";
+import gcrDiagnostics from "../locales/gcr/diagnostics.ftl?raw";
+import bzjDiagnostics from "../locales/bzj/diagnostics.ftl?raw";
+import djkDiagnostics from "../locales/djk/diagnostics.ftl?raw";
+import srmDiagnostics from "../locales/srm/diagnostics.ftl?raw";
+import klDiagnostics from "../locales/kl/diagnostics.ftl?raw";
+import iuDiagnostics from "../locales/iu/diagnostics.ftl?raw";
 // The Silk Road batch's `diagnostics.ftl` too: it holds every count select
 // that is not in `chrome.ftl`, so where each catalog's `[one]` falls is only
 // checkable across both files.
@@ -834,6 +868,190 @@ describe("the Silk Road batch's plural categories", () => {
                 t("attempts-remaining", { count: 3 }),
             );
             expect(none).not.toBe(some);
+        },
+    );
+});
+
+/**
+ * The Americas, and the batch where three catalogs have CLDR rules and one of
+ * the three writes a category the roster had seen only four times before.
+ *
+ * The blocks above give the other proportions: the Sami block is five
+ * catalogs where four have CLDR plural data, the Oceania block eleven where
+ * none does, the European regional block fifteen split eight to seven, and
+ * the Silk Road block fifteen where exactly one does. This batch is fifteen
+ * where **three** do — `Intl.PluralRules` resolves `iu`, `kl` and `pap` to
+ * themselves — and the other twelve resolve to the runtime's default locale,
+ * English here, so any category branch they wrote would be chosen by
+ * English's rules on English's terms.
+ *
+ * **`iu` is the reason this block exists.** Inuktitut's CLDR data gives it
+ * `one`, `two` and `other`, and the catalog writes all three with a different
+ * ending in each: the dual is a fact about Inuktitut grammar rather than a
+ * branch copied from English, and it is the only place in the batch where a
+ * count select carries more than the default. Four catalogs on the roster had
+ * a `[two]` before it — `hsb`, `dsb` and the Sami pair — and none of them is
+ * in the Americas.
+ *
+ * That no catalog here carries a `[zero]`, `[few]` or `[many]` branch its own
+ * locale could never select is not asserted in this block: the roster-wide
+ * property in `catalogLint.test.ts` holds it for every catalog, over all four
+ * namespaces and off the syntax tree rather than the text. What is left here
+ * is the half that property cannot state — which tags have CLDR data of their
+ * own, and which categories each resolves — so that a future ICU build losing
+ * Inuktitut's dual, or gaining rules for one of the twelve, fails an
+ * assertion rather than silently changing which branch a reader gets.
+ *
+ * `[one]` is deliberately not in the forbidden list — it is the one category
+ * every runtime default can select — and where it falls in the twelve without
+ * rules is the thing this summary would not have predicted:
+ *
+ *   * **Eleven of the twelve write exactly one `[one]`**, in
+ *     `field-function-wrong-num-outputs`, and it is not a count select at
+ *     all: it forks on how many outputs a component needs — the English says
+ *     "one output"/"two outputs", the slope field against the vector field —
+ *     rather than on how many of anything a reader has.
+ *   * **`kek` and `miq` collapse even that one**, losing the one-output
+ *     wording, which is recorded rather than forbidden and is on the
+ *     reviewer's list.
+ *   * **No catalog in the batch forks a real count.** Every count message in
+ *     the twelve is a single `*[other]`, which is what a creole with a
+ *     preposed plural particle and a Mayan language with an unmarked noun
+ *     after a numeral both want.
+ *
+ * Explicit numeric literals are a different mechanism — matched against the
+ * number rather than against a category — and every catalog in the batch
+ * keeps English's `[0]` branch, which the last block holds.
+ */
+describe("the Americas batch's plural categories", () => {
+    /** Comment lines dropped: several headers discuss `[one]` in prose. */
+    const branches = (catalog: string) =>
+        catalog
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
+
+    type Row = [string, string, string];
+
+    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
+    const both = ([, chrome, diagnostics]: Row) =>
+        `${branches(chrome)}\n${branches(diagnostics)}`;
+
+    /** The twelve with no CLDR rules of their own. */
+    const NO_RULES: Row[] = [
+        ["yua", yuaChrome, yuaDiagnostics],
+        ["kek", kekChrome, kekDiagnostics],
+        ["cab", cabChrome, cabDiagnostics],
+        ["miq", miqChrome, miqDiagnostics],
+        ["srn", srnChrome, srnDiagnostics],
+        ["jam", jamChrome, jamDiagnostics],
+        ["gcf", gcfChrome, gcfDiagnostics],
+        ["acf", acfChrome, acfDiagnostics],
+        ["gcr", gcrChrome, gcrDiagnostics],
+        ["bzj", bzjChrome, bzjDiagnostics],
+        ["djk", djkChrome, djkDiagnostics],
+        ["srm", srmChrome, srmDiagnostics],
+    ];
+
+    /** The three with them. */
+    const IU: Row = ["iu", iuChrome, iuDiagnostics];
+    const KL: Row = ["kl", klChrome, klDiagnostics];
+    const PAP: Row = ["pap", papChrome, papDiagnostics];
+
+    /** All fifteen, for the assertions that do not care about the split. */
+    const AMERICAS: Row[] = [...NO_RULES, IU, KL, PAP];
+
+    it.each(NO_RULES.map(([locale]) => locale))(
+        "has no CLDR plural rules of its own for %s",
+        (locale) => {
+            expect(Intl.PluralRules.supportedLocalesOf([locale])).toEqual([]);
+        },
+    );
+
+    it.each([
+        ["iu", ["one", "two", "other"]],
+        ["kl", ["one", "other"]],
+        ["pap", ["one", "other"]],
+    ] as [string, string[]][])(
+        "resolves %s against its own rules",
+        (locale, categories) => {
+            expect(Intl.PluralRules.supportedLocalesOf([locale])).toEqual([
+                locale,
+            ]);
+            const resolved = new Intl.PluralRules(locale).resolvedOptions();
+            expect(resolved.locale).toBe(locale);
+            expect([...resolved.pluralCategories].sort()).toEqual(
+                [...categories].sort(),
+            );
+        },
+    );
+
+    /**
+     * The dual, written out. `attempts-remaining` is the one message in the
+     * batch that forks a count three ways, and the three branches have to be
+     * three *different* strings — a dual that repeats the plural is a branch
+     * that renders but says nothing, which is the failure the `[one]`-in-an
+     * -`other`-only-locale rule catches from the other side.
+     */
+    it("writes iu's dual with a distinct form in each branch", () => {
+        const select = /attempts-remaining =\s*\{ \$count ->([\s\S]*?)\n {4}\}/;
+        const body = branches(iuChrome).match(select)?.[1];
+        expect(body).toBeDefined();
+        const forms = ["one", "two", "other"].map(
+            (category) =>
+                body!.match(new RegExp(`\\*?\\[${category}\\]([^\n]*)`))?.[1],
+        );
+        expect(forms.every((form) => form && form.trim().length > 0)).toBe(
+            true,
+        );
+        expect(new Set(forms).size).toBe(3);
+    });
+
+    /**
+     * `[two]` belongs to Inuktitut alone here. The other fourteen would be
+     * writing a branch their own locale can never select — `kl` and `pap`
+     * because their rules have no dual, the twelve because they have no rules
+     * at all.
+     */
+    it.each(AMERICAS.filter(([locale]) => locale !== "iu"))(
+        "leaves %s without a [two] branch",
+        (...row) => {
+            expect(both(row as Row)).not.toMatch(/\[two\]/);
+        },
+    );
+
+    /**
+     * The categories no locale in the batch can select, `iu`'s dual apart.
+     * `[one]` is excluded for the reason the block comment gives.
+     */
+    it.each(AMERICAS)(
+        "leaves %s without a branch its locale cannot select",
+        (...row) => {
+            const catalog = both(row as Row);
+            for (const category of ["zero", "few", "many"]) {
+                expect(catalog).not.toMatch(new RegExp(`\\[${category}\\]`));
+            }
+        },
+    );
+
+    /**
+     * Where the twelve without rules put their one `[one]`, and the two that
+     * put it nowhere. This is a record of the seed rather than a rule: the
+     * message forks the slope-field sentence against the vector-field one, so
+     * a catalog that collapses it loses a distinction English draws.
+     */
+    it.each(NO_RULES)(
+        "keeps %s's [one] out of every count select",
+        (...row) => {
+            const [locale] = row as Row;
+            const catalog = both(row as Row);
+            const ones = [...catalog.matchAll(/\[one\]/g)].length;
+            expect(ones).toBe(locale === "kek" || locale === "miq" ? 0 : 1);
+            if (ones === 1) {
+                expect(catalog).toMatch(
+                    /field-function-wrong-num-outputs =[\s\S]*?\[one\]/,
+                );
+            }
         },
     );
 });
