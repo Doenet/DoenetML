@@ -180,8 +180,11 @@ wait_for_cdn_version() {
             echo "       Not purging: jsDelivr answers a purge by refetching, and a" >&2
             echo "       refetch that cannot see ${version} re-caches the previous" >&2
             echo "       release for another 12 hours." >&2
-            echo "       The version is on npm — this is the CDN being slow or unwell." >&2
-            echo "       Re-running this step is safe." >&2
+            echo "       The version is on npm, so either jsDelivr is slow or unwell —" >&2
+            echo "       in which case re-running this step is safe — or ${version}" >&2
+            echo "       genuinely does not contain these paths, which a 404 looks" >&2
+            echo "       exactly the same as. Check the pinned URL by hand:" >&2
+            echo "         https://cdn.jsdelivr.net/npm/${package}@${version}/" >&2
             return 1
         fi
         if [[ ${elapsed} -ge ${next_report} ]]; then

@@ -96,10 +96,12 @@ jobs:
 
             # Waits for npm to finish processing the publish, and then for
             # jsDelivr to fetch it, before purging — so this is minutes rather
-            # than seconds; see `jsdelivr-purge-lib.sh`. The script bounds both
-            # waits and its purge retries itself (20 + 15 + 9 minutes in the
-            # worst case), and `timeout-minutes` is the backstop that keeps a
-            # wedged request from holding the runner.
+            # than seconds; see `jsdelivr-purge-lib.sh`. The script gives each
+            # wait its own wall-clock budget (20 and 15 minutes) and then sleeps
+            # about another 8 between its purge retries; `timeout-minutes` is
+            # the backstop over the whole of that, since the requests themselves
+            # are bounded one at a time rather than in aggregate, and it keeps a
+            # wedged one from holding the runner.
             #
             # Gated on the publish having *run*, not on it having succeeded:
             # `npm run publish` is four independent workspace publishes and npm
@@ -349,9 +351,10 @@ jobs:
                   OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
             # Last, and deliberately so. The purge waits for npm to finish
-            # processing the publish before it fires, which takes minutes rather
-            # than seconds (see `jsdelivr-purge-lib.sh`), and it now fails the
-            # job when the tag will not move. Neither should stand between a
+            # processing the publish and then for jsDelivr to fetch it before it
+            # fires, which takes minutes rather than seconds (see
+            # `jsdelivr-purge-lib.sh`), and it now fails the job when the tag
+            # will not move. Neither should stand between a
             # published npm release and the extension registries: those do not
             # depend on the CDN, and a purge that has to be re-run should not
             # take the Marketplace publish with it.
@@ -375,8 +378,10 @@ jobs:
             # serves this version under the tag, and fails the step if it never
             # does.
             #
-            # `timeout-minutes` is the backstop on the script's own bounded
-            # waiting, so a wedged request cannot hold the runner.
+            # `timeout-minutes` is the backstop on the script's own waiting —
+            # 20 minutes of registry wait, 15 of CDN wait and roughly 8 of
+            # sleeps between purge retries — so a wedged request cannot hold the
+            # runner.
             - name: Purge jsDelivr cache
               if: >-
                   !cancelled() &&
