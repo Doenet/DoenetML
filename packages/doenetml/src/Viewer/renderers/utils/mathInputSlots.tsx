@@ -64,8 +64,14 @@ interface MathSlotContextValue {
     positions: ReadonlyMap<number, SlotPosition>;
     /** Whether this slot's control is being edited; see `useMathSlots`. */
     setSlotEditing(componentIdx: number, editing: boolean): void;
-    /** The reader committed a value, so the expression may catch up. */
-    noteSlotCommit(settled?: Promise<unknown>): void;
+    /**
+     * The reader committed a value, so the expression may catch up; `reflows`
+     * says whether giving back the control's spare room re-typesets it.
+     */
+    noteSlotCommit(
+        settled: Promise<unknown> | undefined,
+        reflows: boolean,
+    ): void;
 }
 
 const MathSlotContext = createContext<MathSlotContextValue | null>(null);
@@ -207,6 +213,8 @@ export function useMathSlots({
     // (see `reserveForSlot`). The embedded list is held alongside the template
     // so the two always describe the same set of markers.
     const [held, setHeld] = useState<HeldTemplate | null>(null);
+    const heldNow = useRef(held);
+    heldNow.current = held;
     const editingSlots = useRef(new Set<number>());
     const liveTemplate = useRef({ template, embeddedComponentIndices });
     liveTemplate.current = { template, embeddedComponentIndices };
@@ -216,9 +224,14 @@ export function useMathSlots({
     // control is being edited the math is pinned where the centring had put
     // it — aligned left, indented by the margin it had — so the room opens up
     // to the right of the control instead of under it. The pin is measured
-    // once, when editing starts, and holds through every typeset until the
-    // reader leaves the control, when the display is centred again.
+    // when editing starts, and holds until the display is centred again — at
+    // a commit that changes what is typeset, and when the reader leaves. A
+    // commit drops the pin only when a re-typeset is on its way, and the pin
+    // is taken again from that typeset, so the display never sits unpinned
+    // waiting for one that is not coming.
     const [indent, setIndent] = useState<number | null>(null);
+    const pinned = useRef(indent);
+    pinned.current = indent;
 
     /**
      * Hold the template as it stands now, or release it if nothing is being
@@ -261,8 +274,11 @@ export function useMathSlots({
     );
 
     const noteSlotCommit = useCallback(
-        (settled?: Promise<unknown>) => {
+        (settled: Promise<unknown> | undefined, reflows: boolean) => {
             holdTemplate();
+            if (reflows) {
+                setIndent(null);
+            }
             settled?.then(noteSettled, noteSettled);
         },
         [holdTemplate, noteSettled],
@@ -281,6 +297,10 @@ export function useMathSlots({
     // action's updates.
     useLayoutEffect(() => {
         if (commitsSettled > 0) {
+            const before = heldNow.current;
+            if (before && before.template !== liveTemplate.current.template) {
+                setIndent(null);
+            }
             holdTemplate();
         }
     }, [commitsSettled, holdTemplate]);
@@ -357,38 +377,53 @@ export function useMathSlots({
      * it — so they describe the same typeset, even when a newer size has been
      * reported since and the swap that reflects it is still on its way.
      */
-    const readPositions = useCallback(() => {
-        const root = rootRef.current;
-        const layer = layerRef.current;
-        if (!root || !layer) {
-            return;
-        }
-        const originRect = layer.getBoundingClientRect();
-        const next = new Map<number, SlotPosition>();
-        for (const componentIdx of componentIndices) {
-            const reserved = root.querySelector(
-                `#${CSS.escape(slotElementId(componentIdx))}`,
-            );
-            if (!reserved) {
-                continue;
+    const readPositions = useCallback(
+        ({ typeset = false } = {}) => {
+            const root = rootRef.current;
+            const layer = layerRef.current;
+            if (!root || !layer) {
+                return;
             }
-            const baselineMarker = root.querySelector(
-                `#${CSS.escape(slotBaselineElementId(componentIdx))}`,
-            );
-            if (!baselineMarker) {
-                continue;
+            const originRect = layer.getBoundingClientRect();
+            const next = new Map<number, SlotPosition>();
+            for (const componentIdx of componentIndices) {
+                const reserved = root.querySelector(
+                    `#${CSS.escape(slotElementId(componentIdx))}`,
+                );
+                if (!reserved) {
+                    continue;
+                }
+                const baselineMarker = root.querySelector(
+                    `#${CSS.escape(slotBaselineElementId(componentIdx))}`,
+                );
+                if (!baselineMarker) {
+                    continue;
+                }
+                next.set(componentIdx, {
+                    left:
+                        reserved.getBoundingClientRect().left - originRect.left,
+                    baseline:
+                        baselineMarker.getBoundingClientRect().bottom -
+                        originRect.top,
+                });
             }
-            next.set(componentIdx, {
-                left: reserved.getBoundingClientRect().left - originRect.left,
-                baseline:
-                    baselineMarker.getBoundingClientRect().bottom -
-                    originRect.top,
-            });
-        }
-        setPositions((previous) =>
-            samePositions(previous, next) ? previous : next,
-        );
-    }, [componentIndices, slotElementId, slotBaselineElementId]);
+            setPositions((previous) =>
+                samePositions(previous, next) ? previous : next,
+            );
+            // Only a fresh typeset is worth pinning to: between a commit dropping
+            // the pin and the re-typeset it promised, the old output is still on
+            // screen, and a resize report (unpinning changes the container's
+            // content box) would otherwise pin the display to that.
+            if (
+                typeset &&
+                editingSlots.current.size > 0 &&
+                pinned.current === null
+            ) {
+                setIndent(displayIndent(root));
+            }
+        },
+        [componentIndices, slotElementId, slotBaselineElementId],
+    );
 
     const contextValue = useMemo<MathSlotContextValue>(
         () => ({ reportSize, positions, setSlotEditing, noteSlotCommit }),
@@ -547,9 +582,11 @@ export function MathSlot({
                 reserved: exact ? null : reserved.current,
                 editing: editing.current && !exact,
             });
+            const changed = !sameBox(reserved.current, box);
             reserved.current = box;
             setHeightAboveBaseline(measured.height);
             reportSize(componentIdx, box);
+            return changed;
         },
         [componentIdx, reportSize],
     );
@@ -573,8 +610,10 @@ export function MathSlot({
                 }
             },
             commit(settled?: Promise<unknown>) {
-                measure({ exact: true });
-                noteSlotCommit?.(settled);
+                // Giving back the room re-typesets the expression, which is
+                // what lets a centred display centre itself again.
+                const reflows = measure({ exact: true }) === true;
+                noteSlotCommit?.(settled, reflows);
             },
         }),
         [componentIdx, measure, setSlotEditing, noteSlotCommit],

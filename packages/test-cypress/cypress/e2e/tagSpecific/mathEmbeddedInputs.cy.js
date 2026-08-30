@@ -272,8 +272,8 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
     it("a field being typed into stays put while a display makes room", () => {
         // Display math is centred, so every step of room the field is given
         // would move the whole line half a step to the left, caret included.
-        // The field's edge stays where it is, through typing and through
-        // Enter; the display is centred again once the reader leaves.
+        // The field's edge stays where it is while the reader types; Enter
+        // and leaving both centre the display again.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -321,26 +321,7 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             ).to.deep.eq(fieldLeft.map(() => 0));
         });
 
-        // Enter takes back the spare room, and still does not move the field.
-        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
-        cy.wait(300);
-        cy.get(cesc("#m")).then(($root) => {
-            expect(
-                Math.round(
-                    $root[0]
-                        .querySelector(".mq-editable-field")
-                        .getBoundingClientRect().left - fieldLeft[0],
-                ),
-                "the field stayed put through Enter",
-            ).to.eq(0);
-        });
-
-        // Leaving the field lets the display centre itself again.
-        cy.get(cesc("#elsewhere")).click({ force: true });
-        cy.get(cesc("#m")).should(($root) => {
-            expect($root[0].classList.contains("doenet-math-pinned")).to.eq(
-                false,
-            );
+        function expectCentred($root) {
             const container = $root[0].querySelector("mjx-container");
             const math = container.querySelector("mjx-math");
             const outer = container.getBoundingClientRect();
@@ -349,6 +330,25 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
                 Math.abs(inner.left - outer.left - (outer.right - inner.right)),
                 "the math is centred in its line",
             ).to.be.lessThan(2);
+        }
+
+        // Enter takes back the spare room and centres the display, which
+        // stays held there while the reader goes on typing.
+        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
+        cy.get(cesc("#m")).should(($root) => {
+            expectCentred($root);
+            expect($root[0].classList.contains("doenet-math-pinned")).to.eq(
+                true,
+            );
+        });
+
+        // Leaving the field releases the display.
+        cy.get(cesc("#elsewhere")).click({ force: true });
+        cy.get(cesc("#m")).should(($root) => {
+            expect($root[0].classList.contains("doenet-math-pinned")).to.eq(
+                false,
+            );
+            expectCentred($root);
         });
     });
 

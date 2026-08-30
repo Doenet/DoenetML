@@ -528,7 +528,7 @@ function MathWithEmbeddedInputs({
             observer.observe(output);
             observedOutput.current = output;
         }
-        readPositions();
+        readPositions({ typeset: true });
     }, [readPositions]);
 
     // MathJax's own fonts arrive after the first typeset and shift everything.
