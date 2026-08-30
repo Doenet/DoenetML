@@ -32,8 +32,9 @@
 # context-help panel that is a whole sentence of language-server vocabulary —
 # `help-placeholder`, `help-unsupported-ref-chain`, `help-unresolved-ref`,
 # `help-ref-is-reference`, `help-ref-derived-from`,
-# `help-property-is-reference`, `help-suggestions-header` and
-# `help-suggestions-footer` — which falls back to English.
+# `help-property-is-reference`, `help-resolved-style`,
+# `help-suggestions-header` and `help-suggestions-footer` — nine keys, which
+# fall back to English.
 
 
 ## The viewer's controls

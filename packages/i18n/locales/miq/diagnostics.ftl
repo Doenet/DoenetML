@@ -46,12 +46,13 @@
 # «bakrawn», «lait mode», «dark mode», «praim», «kwut mark», «kontena»,
 # «trai», «snipet», «krid», «distraktor».
 #
-# **Confidence.** All 220 messages are translated. Two places lose a
-# distinction English draws, both because the branch keys were `[one]` and
-# `[other]` on something that is not a count Mískito can mark:
-# `field-function-wrong-num-outputs` keeps only the two-output wording of its
-# `$expected` select, and every message that named an input, output, interval,
-# attribute, value or parameter count now says it once rather than twice. The
+# **Confidence.** All 220 messages are translated. One place loses a
+# distinction English draws, because the branch keys were `[one]` and
+# `[other]` on something that is not a count Mískito can mark: every message
+# that named an input, output, interval, attribute, value or parameter count
+# says it once rather than twice. `field-function-wrong-num-outputs` is not
+# one of them any more — it names both the slope field and the vector field,
+# so a reader whose function needs one output is told about one output. The
 # weakest single words are «awtobalur» for *eigenvalue*, «heometria» for
 # *geometry* and «stet bariabilka» for *state variable*; none of the three is
 # said in Mískito outside a sentence like this one, and a speaker should feel

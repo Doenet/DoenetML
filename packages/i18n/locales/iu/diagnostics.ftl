@@ -41,13 +41,18 @@
 # Tajik and Russian loans, and it is deliberate: an invented syllabic spelling
 # would be harder for a speaker to repair than a visible loan.
 #
-# What is still **left out** is the handful of messages whose whole content is
-# such vocabulary — the three `style-definition-*` contrast messages, the
-# `<dataFrame>` shape messages beyond the three below, and
+# What is still **left out** is the ten messages whose whole content is such
+# vocabulary: the three `style-definition-*` contrast messages; the three
+# `<selectFromSequence>`/`<selectPrimeNumbers>` messages about coprimality and
+# primality; `field-function-wrong-num-outputs` and `field-variables-ignored`,
+# which are a paragraph of vector-field vocabulary each;
+# `prefigure-label-position-unsupported`; and
 # `math-input-invalid-function-names`, whose talk of a display segment and a
 # mathspeak alternative has no Inuktitut equivalent at any level. Those fall
 # back to English, and they are the first thing a speaker with a
-# mathematics-teaching background could repay.
+# mathematics-teaching background could repay. The three `<dataFrame>` shape
+# messages are *not* among them — they are written below, being about rows and
+# columns rather than about mathematics.
 
 
 ## `<lineSegment>`

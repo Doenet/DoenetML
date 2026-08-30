@@ -14,10 +14,11 @@
 # from the author's own source.
 #
 # **Orthography.** The ALMG alphabet; see `chrome.ftl`'s header for the
-# inventory. Every apostrophe in a message value is U+02BC MODIFIER LETTER
-# APOSTROPHE `ʼ`, not U+2019 `’` and not U+0027 `'`; the three are homoglyphs
-# in most fonts, so a reviewer should check the codepoint rather than the
-# shape. `q` and `k` are two different sounds, uvular and velar, each written
+# inventory. Every apostrophe inside a Qʼeqchiʼ word is U+02BC MODIFIER LETTER
+# APOSTROPHE `ʼ`, not U+2019 `’`; the two are homoglyphs in most fonts, so a
+# reviewer should check the codepoint rather than the shape. Straight ASCII
+# `'` is English's own punctuation carried through where a message quotes a
+# value back to the author, and is not a Qʼeqchiʼ letter. `q` and `k` are two different sounds, uvular and velar, each written
 # with its own letter, and long vowels are doubled. No colonial-era spelling is
 # mixed in: no `qu` for `k`, no `hu` for `w`, no `k` standing for uvular `q`,
 # no `4` or `ɜ` for an ejective. The language is named «Qʼeqchiʼ», spelled

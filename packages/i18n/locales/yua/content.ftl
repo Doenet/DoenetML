@@ -9,10 +9,11 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # **Orthography.** The ALMY/INALI unified orthography; see `chrome.ftl`'s
-# header for the alphabet and the doubled long vowels. Every apostrophe in
-# these files is **U+02BC MODIFIER LETTER APOSTROPHE `ʼ`**, never U+2019 `’`
-# and never U+0027 `'`; the three are homoglyphs in most fonts, so check the
-# codepoint rather than the shape. The language is named «Maayaʼ tʼàan», whose
+# header for the alphabet and the doubled long vowels. Every apostrophe inside
+# a Maya word is **U+02BC MODIFIER LETTER APOSTROPHE `ʼ`**, never U+2019 `’`;
+# the two are homoglyphs in most fonts, so check the codepoint rather than the
+# shape. Straight ASCII `'` is English's own punctuation carried through where
+# a message quotes a value, and is not a Maya letter. The language is named «Maayaʼ tʼàan», whose
 # grave marks the falling tone and is not part of ordinary ALMY spelling
 # («maayaʼ tʼaan»).
 #

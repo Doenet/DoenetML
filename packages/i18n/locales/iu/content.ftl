@@ -34,7 +34,7 @@
 #   * **`line-width`, `line-style`, `fill-style`** — same reason: no settled
 #     words for thick against thin, dashed against dotted, or the six hatch
 #     patterns.
-#   * **`color` keeps five of twelve.** Inuktitut does not partition the
+#   * **`color` keeps six of twelve.** Inuktitut does not partition the
 #     spectrum where English does, and «ᑐᖑᔪᖅᑐᖅ» covers what English splits
 #     into blue and green. It is written here as `.blue` only, and `.green` is
 #     **left out** rather than given a second guess at the same stem. `.gray`,
@@ -48,6 +48,16 @@
 #   * **`piecewise-condition-if` and `-otherwise`** — Inuktitut marks a
 #     condition with a verb mood, not with a word that stands alone in front
 #     of an equation. «ᐅᕝᕙᓘᓐᓃᑦ» for *or* is a real word and is kept.
+#   * **`style-border-clause` and `style-text`** follow `line-style` and
+#     `fill-style` out: each is a frame whose whole job is to join words this
+#     file does not have.
+#   * **`chemistry-invalid-symbol` and `chemistry-invalid-ionic-compound`**
+#     are left out too. The rest of the batch keeps those two — they are
+#     frames rather than vocabulary — but here they would name a chemistry
+#     whose element table is absent, so they fall back with it.
+#
+#     `ion-name-oxidation-state` *is* written; it composes a numeral and needs
+#     no element name. `noun-regular-polygon` goes out with `noun`.
 
 
 ## Style vocabulary

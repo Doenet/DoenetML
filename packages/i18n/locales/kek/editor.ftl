@@ -6,9 +6,11 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # **Orthography.** The ALMG alphabet; see `chrome.ftl`'s header for the
-# inventory. Every apostrophe in a message value is U+02BC MODIFIER LETTER
-# APOSTROPHE `ʼ`, not U+2019 `’` and not U+0027 `'` — the three are homoglyphs
-# in most fonts, so check the codepoint rather than the shape. `q` and `k` are
+# inventory. Every apostrophe inside a Qʼeqchiʼ word is U+02BC MODIFIER LETTER
+# APOSTROPHE `ʼ`, not U+2019 `’` — the two are homoglyphs in most fonts, so
+# check the codepoint rather than the shape. Straight ASCII `'` is English's
+# own punctuation carried through where a message quotes a value, and is not a
+# Qʼeqchiʼ letter. `q` and `k` are
 # two different sounds and keep separate letters; long vowels are doubled. No
 # colonial-era spelling is mixed in: no `qu` for `k`, no `hu` for `w`, no `k`
 # standing for uvular `q`, no `4` or `ɜ` for an ejective. The language is named

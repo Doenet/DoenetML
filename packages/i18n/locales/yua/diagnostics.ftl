@@ -16,10 +16,12 @@
 # author's own source.
 #
 # **Orthography.** The ALMY/INALI unified orthography; see `chrome.ftl`'s
-# header for the alphabet and the doubled long vowels. Every apostrophe in
-# these files is **U+02BC MODIFIER LETTER APOSTROPHE `ʼ`**, never U+2019 `’`
-# and never U+0027 `'`. The three are homoglyphs in most fonts, so a reviewer
-# who retypes a word should check the codepoint rather than the shape. The
+# header for the alphabet and the doubled long vowels. Every apostrophe inside
+# a Maya word is **U+02BC MODIFIER LETTER APOSTROPHE `ʼ`**, never U+2019 `’`.
+# The two are homoglyphs in most fonts, so a reviewer who retypes a word
+# should check the codepoint rather than the shape. Straight ASCII `'` is
+# English's own punctuation carried through where a message quotes a value
+# back to the author, and is not a Maya letter. The
 # language is named «Maayaʼ tʼàan»; the grave marks the falling tone and is not
 # part of ordinary ALMY spelling («maayaʼ tʼaan»).
 #

@@ -17,9 +17,14 @@
 #     «maʼalob» — never by an acute accent or a macron.
 #   * **The glottal stop and the ejectives are written with U+02BC MODIFIER
 #     LETTER APOSTROPHE `ʼ`**, not U+2019 RIGHT SINGLE QUOTATION MARK `’` and
-#     not U+0027 APOSTROPHE `'`. Every apostrophe in these four files is
-#     U+02BC. The three characters are homoglyphs in most fonts, so a reviewer
-#     who retypes a word should check the codepoint rather than the shape.
+#     not U+0027 APOSTROPHE `'`. Every apostrophe *inside a Maya word* in
+#     these four files is U+02BC. The three characters are homoglyphs in most
+#     fonts, so a reviewer who retypes a word should check the codepoint
+#     rather than the shape. The straight ASCII `'` does still appear, and is
+#     not a respelling: it is English's own punctuation, carried through
+#     unchanged where a message quotes an enumerated value back to the author
+#     or writes the derivative `y'`. `catalogLint.test.ts` forbids U+2019 here
+#     and deliberately permits U+0027 for that reason.
 #
 # The catalog writes the name of the language as «Maayaʼ tʼàan» in all four
 # files, following the way this batch was commissioned. The tone-marked `à` is
