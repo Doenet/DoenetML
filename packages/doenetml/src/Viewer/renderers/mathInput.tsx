@@ -485,9 +485,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // or not the field goes on to draw anything.
     const inMathSlot = useInMathSlot();
 
-    // Telling the slot when the field is being edited is what keeps the room
-    // it has been given, and a centred display's place, until the value is
-    // committed. Outside a slot these are no-ops.
+    // Telling the slot when the field is being edited is what has the
+    // expression re-typeset in step with each keystroke. Outside a slot these
+    // are no-ops.
     const slotEditing = useMathSlotEditing();
 
     // A label that is itself math is typeset by MathJax, which gives it a tab
@@ -646,12 +646,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
         });
-        // Enter commits without blurring, so the room the field no longer
-        // needs is given back here rather than when focus leaves. The caret
-        // survives the re-typeset because the field is drawn over the
-        // expression, not inside it.
-        slotEditingRef.current.commit();
-
         if (
             showCheckWork.current &&
             validationState.current === "unvalidated"

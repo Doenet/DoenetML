@@ -486,7 +486,6 @@ function MathWithEmbeddedInputs({
         latexForTypeset,
         readPositions,
         contextValue,
-        indent,
         editing,
     } = useMathSlots({
         rootId: id,
@@ -550,20 +549,9 @@ function MathWithEmbeddedInputs({
             {anchors}
             <span
                 ref={rootRef}
-                style={
-                    indent === null
-                        ? style
-                        : ({
-                              ...style,
-                              "--doenet-math-indent": `${indent}px`,
-                          } as React.CSSProperties)
-                }
+                style={style}
                 id={id}
-                className={
-                    indent === null
-                        ? "doenet-math-root"
-                        : "doenet-math-root doenet-math-pinned"
-                }
+                className="doenet-math-root"
             >
                 {latexForTypeset !== null && (
                     <DynamicMath

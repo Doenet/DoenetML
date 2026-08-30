@@ -156,10 +156,6 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 action: actions.updateValue,
                 baseVariableValue: rendererValueRef.current,
             });
-            // Enter commits without blurring, so a display around this field
-            // settles here rather than when focus leaves.
-            slotEditing.commit();
-
             if (
                 SVs.showCheckWork &&
                 !SVs.expanded &&

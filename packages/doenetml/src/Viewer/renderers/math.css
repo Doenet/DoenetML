@@ -12,19 +12,6 @@
 }
 
 /*
- * A centred display, while one of its inputs is being edited: held where the
- * centring had put it, so that the room made for the input opens up to its
- * right rather than moving the whole line under the caret.
- */
-.doenet-viewer
-    .doenet-math-root.doenet-math-pinned
-    mjx-container[display="true"] {
-    text-align: left;
-    justify-content: flex-start;
-    padding-left: var(--doenet-math-indent);
-}
-
-/*
  * The layer spans the expression, so a slot's coordinates read directly as an
  * offset into the math. It must not swallow clicks meant for the expression
  * underneath; the slots themselves take them back.
