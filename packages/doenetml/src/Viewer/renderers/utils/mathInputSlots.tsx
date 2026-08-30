@@ -211,15 +211,14 @@ export function useMathSlots({
     const liveTemplate = useRef({ template, embeddedComponentIndices });
     liveTemplate.current = { template, embeddedComponentIndices };
 
-    // Display math is centred, so each step of room a control is given moves
-    // the whole line half a step to the left, caret and all. While a control
-    // is being edited its left edge is anchored where a typeset first put it,
-    // and the expression is moved back by however far the next typeset moved
-    // that edge, so the room opens up around the control instead of under it.
-    // The anchor and the shift are dropped at every boundary, with the hold,
-    // and the expression settles back into place when the value is committed.
-    const anchor = useRef<{ componentIdx: number; pageX: number } | null>(null);
-    const [shift, setShift] = useState(0);
+    // Display math is centred, so each step of room a control is given would
+    // move the whole line half a step to the left, caret and all. While a
+    // control is being edited the math is pinned where the centring had put
+    // it — aligned left, indented by the margin it had — so the room opens up
+    // to the right of the control instead of under it. The pin is measured
+    // once, when editing starts, and holds through every typeset until the
+    // reader leaves the control, when the display is centred again.
+    const [indent, setIndent] = useState<number | null>(null);
 
     /**
      * Hold the template as it stands now, or release it if nothing is being
@@ -229,36 +228,25 @@ export function useMathSlots({
      */
     const holdTemplate = useCallback(() => {
         setHeld(editingSlots.current.size > 0 ? liveTemplate.current : null);
-        anchor.current = null;
-        setShift(0);
     }, []);
 
     const setSlotEditing = useCallback(
         (componentIdx: number, editing: boolean) => {
             const slots = editingSlots.current;
+            const wasEditing = slots.size > 0;
             if (editing) {
                 slots.add(componentIdx);
             } else {
                 slots.delete(componentIdx);
             }
-            // The edge is anchored before any typeset has had a chance to
-            // move it, as the page shows it now, less whatever shift is still
-            // on screen from the editing that has just ended.
-            const box = editing
-                ? rootRef.current?.querySelector(
-                      `#${CSS.escape(slotElementId(componentIdx))}`,
-                  )
-                : null;
-            const pageX = box
-                ? box.getBoundingClientRect().left -
-                  shiftOnScreen(rootRef.current)
-                : null;
             holdTemplate();
-            if (pageX !== null) {
-                anchor.current = { componentIdx, pageX };
+            if (slots.size > 0 && !wasEditing) {
+                setIndent(displayIndent(rootRef.current));
+            } else if (slots.size === 0) {
+                setIndent(null);
             }
         },
-        [holdTemplate, slotElementId],
+        [holdTemplate],
     );
 
     // Core resolves a committed action once it has finished the action and sent
@@ -400,30 +388,6 @@ export function useMathSlots({
         setPositions((previous) =>
             samePositions(previous, next) ? previous : next,
         );
-
-        // The edge is read on the page, where whatever shift is on screen is
-        // part of it, and the shift is set outright from where the edge would
-        // be without one; so reading twice for one typeset sets it twice to
-        // the same value.
-        const [editingIdx] = editingSlots.current;
-        const editingBox =
-            editingIdx === undefined
-                ? null
-                : root.querySelector(
-                      `#${CSS.escape(slotElementId(editingIdx))}`,
-                  );
-        if (editingIdx !== undefined && editingBox) {
-            const pageX =
-                editingBox.getBoundingClientRect().left - shiftOnScreen(root);
-            if (anchor.current?.componentIdx !== editingIdx) {
-                anchor.current = { componentIdx: editingIdx, pageX };
-            } else {
-                const needed = anchor.current.pageX - pageX;
-                setShift((current) =>
-                    Math.abs(needed - current) < 0.5 ? current : needed,
-                );
-            }
-        }
     }, [componentIndices, slotElementId, slotBaselineElementId]);
 
     const contextValue = useMemo<MathSlotContextValue>(
@@ -437,13 +401,24 @@ export function useMathSlots({
         latexForTypeset,
         readPositions,
         contextValue,
-        shift,
+        indent,
     };
 }
 
-/** The shift the root is drawn with now, whether or not React has caught up. */
-function shiftOnScreen(root: HTMLElement | null): number {
-    return root ? parseFloat(root.style.left) || 0 : 0;
+/**
+ * How far in from its container's left edge a centred display has put the
+ * math, or `null` for inline math, which is not centred and needs no pin.
+ */
+function displayIndent(root: HTMLElement | null): number | null {
+    const container = root?.querySelector('mjx-container[display="true"]');
+    const math = container?.querySelector("mjx-math");
+    if (!container || !math) {
+        return null;
+    }
+    return (
+        math.getBoundingClientRect().left -
+        container.getBoundingClientRect().left
+    );
 }
 
 function samePositions(

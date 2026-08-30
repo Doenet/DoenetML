@@ -486,7 +486,7 @@ function MathWithEmbeddedInputs({
         latexForTypeset,
         readPositions,
         contextValue,
-        shift,
+        indent,
     } = useMathSlots({
         rootId: id,
         template,
@@ -549,11 +549,20 @@ function MathWithEmbeddedInputs({
             {anchors}
             <span
                 ref={rootRef}
-                // The root is positioned already, for the layer, so it can be
-                // moved by the shift without affecting the line around it.
-                style={shift === 0 ? style : { ...style, left: shift }}
+                style={
+                    indent === null
+                        ? style
+                        : ({
+                              ...style,
+                              "--doenet-math-indent": `${indent}px`,
+                          } as React.CSSProperties)
+                }
                 id={id}
-                className="doenet-math-root"
+                className={
+                    indent === null
+                        ? "doenet-math-root"
+                        : "doenet-math-root doenet-math-pinned"
+                }
             >
                 {latexForTypeset !== null && (
                     <DynamicMath
