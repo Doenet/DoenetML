@@ -23,6 +23,21 @@ import tvlChrome from "../locales/tvl/chrome.ftl?raw";
 import rarChrome from "../locales/rar/chrome.ftl?raw";
 import wlsChrome from "../locales/wls/chrome.ftl?raw";
 import biChrome from "../locales/bi/chrome.ftl?raw";
+import crhChrome from "../locales/crh/chrome.ftl?raw";
+import gagChrome from "../locales/gag/chrome.ftl?raw";
+import tttChrome from "../locales/ttt/chrome.ftl?raw";
+import kaaChrome from "../locales/kaa/chrome.ftl?raw";
+import kjhChrome from "../locales/kjh/chrome.ftl?raw";
+import altChrome from "../locales/alt/chrome.ftl?raw";
+import mznChrome from "../locales/mzn/chrome.ftl?raw";
+import glkChrome from "../locales/glk/chrome.ftl?raw";
+import lrcChrome from "../locales/lrc/chrome.ftl?raw";
+import balChrome from "../locales/bal/chrome.ftl?raw";
+import hazChrome from "../locales/haz/chrome.ftl?raw";
+import zzaChrome from "../locales/zza/chrome.ftl?raw";
+import dngChrome from "../locales/dng/chrome.ftl?raw";
+import sghChrome from "../locales/sgh/chrome.ftl?raw";
+import wblChrome from "../locales/wbl/chrome.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
 
 /**
@@ -407,6 +422,159 @@ describe("the Oceania batch's plural categories", () => {
      * `one`/`other` split.
      */
     it.each(OCEANIA)(
+        "selects %s's zero branch by the number itself",
+        (locale, catalog) => {
+            const t = createChromeTranslator(locale, { [locale]: catalog });
+            const none = stripBidiIsolates(
+                t("attempts-remaining", { count: 0 }),
+            );
+            const some = stripBidiIsolates(
+                t("attempts-remaining", { count: 3 }),
+            );
+            expect(none).not.toBe(some);
+        },
+    );
+});
+
+/**
+ * The Silk Road, and the batch that finally has an exception to pin.
+ *
+ * The Oceania block above is eleven catalogs with no CLDR plural data at all;
+ * the Sami block is five where four have it. This batch is fifteen where
+ * **exactly one** does: `Intl.PluralRules("bal")` resolves to `bal` itself,
+ * with `one` and `other`, and the other fourteen resolve to the runtime's
+ * default locale — English here — so any category branch they wrote would be
+ * chosen by English's rules on English's terms.
+ *
+ * The split is worth pinning in both directions. Fourteen rows hold that no
+ * catalog carries a `[zero]`, `[two]`, `[few]` or `[many]` branch nothing
+ * could select. A fifteenth holds that `bal` is not swept in with them: if a
+ * future ICU build gained rules for, say, `mzn`, or lost the ones it has for
+ * `bal`, the first assertion in each row is what says so rather than a silent
+ * change in which branch a reader gets.
+ *
+ * Two things the catalogs did that this summary would not have predicted, and
+ * which the rows below record:
+ *
+ *   * `bal` — the *only* member with real rules — writes no `[one]` branch at
+ *     all, collapsing to a single `*[other]`, because a Balochi noun after a
+ *     numeral is unmarked. Having the data does not oblige a catalog to fork
+ *     on it.
+ *   * `sgh` — which has *no* rules — is the one member that does write `[one]`.
+ *     English's rules will select it, and it says the same thing as the
+ *     `*[other]` beside it, so nothing is mis-selected; `[one]` is deliberately
+ *     not in the forbidden list, since it is the one category every runtime
+ *     default can select.
+ *
+ * Explicit numeric literals are a different mechanism — matched against the
+ * number rather than against a category — and every catalog in the batch keeps
+ * English's `[0]` branch, which the last block holds.
+ */
+describe("the Silk Road batch's plural categories", () => {
+    /** Comment lines dropped: several headers discuss `[one]` in prose. */
+    const branches = (catalog: string) =>
+        catalog
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
+
+    /** The fourteen with no CLDR rules of their own. */
+    const NO_RULES: [string, string][] = [
+        ["crh", crhChrome],
+        ["gag", gagChrome],
+        ["ttt", tttChrome],
+        ["kaa", kaaChrome],
+        ["kjh", kjhChrome],
+        ["alt", altChrome],
+        ["mzn", mznChrome],
+        ["glk", glkChrome],
+        ["lrc", lrcChrome],
+        ["haz", hazChrome],
+        ["zza", zzaChrome],
+        ["dng", dngChrome],
+        ["sgh", sghChrome],
+        ["wbl", wblChrome],
+    ];
+
+    /** The one with them. */
+    const BAL: [string, string] = ["bal", balChrome];
+
+    /** All fifteen, for the assertions that do not care about the split. */
+    const SILK_ROAD: [string, string][] = [...NO_RULES, BAL];
+
+    it.each(NO_RULES)(
+        "leaves %s free of a category branch nothing could select",
+        (locale, catalog) => {
+            // CLDR has no rules for the tag, so the categories on offer are
+            // some other language's.
+            expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+                .not.toBe(locale);
+            for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
+                expect(branches(catalog)).not.toContain(category);
+            }
+        },
+    );
+
+    /**
+     * The exception, asserted as one. `bal` resolves to itself with the two
+     * categories CLDR gives it — and still writes neither, which is the
+     * catalog's own decision and is pinned here so that adding a `[one]` branch
+     * later is a deliberate change rather than a drift.
+     */
+    it("resolves bal against its own CLDR rules, unlike the other fourteen", () => {
+        const resolved = new Intl.PluralRules(BAL[0]).resolvedOptions();
+        expect(resolved.locale).toBe("bal");
+        expect([...resolved.pluralCategories].sort()).toEqual(["one", "other"]);
+        for (const category of [
+            "[zero]",
+            "[two]",
+            "[few]",
+            "[many]",
+            "[one]",
+        ]) {
+            expect(branches(BAL[1])).not.toContain(category);
+        }
+    });
+
+    /**
+     * `sgh` is the mirror of `bal`: no rules of its own, and the one catalog in
+     * the batch that writes a `one` branch anyway. English's rules select it at
+     * `count === 1`, and the branch says the same thing as the default beside
+     * it, so the reader sees Shughni either way — which is why this is recorded
+     * rather than forbidden.
+     */
+    it("selects sgh's one branch by the runtime default's rules", () => {
+        expect(new Intl.PluralRules("sgh").resolvedOptions().locale) //
+            .not.toBe("sgh");
+        expect(branches(sghChrome)).toContain("[one]");
+        const t = createChromeTranslator("sgh", { sgh: sghChrome });
+        expect(stripBidiIsolates(t("attempts-remaining", { count: 1 }))) //
+            .toContain("1");
+    });
+
+    it.each(SILK_ROAD)(
+        "still counts and still renders in %s",
+        (locale, catalog) => {
+            const t = createChromeTranslator(locale, { [locale]: catalog });
+            // The count reaches the reader whatever categories exist: this is
+            // the half that would break if a catalog dropped its default
+            // branch while shedding the categories it could not use.
+            for (const count of [1, 2, 5]) {
+                expect(
+                    stripBidiIsolates(t("attempts-remaining", { count })),
+                ).toContain(String(count));
+            }
+        },
+    );
+
+    /**
+     * The one selector all fifteen may still write, and do. `[0]` is matched
+     * against the number rather than against a category, so it is unaffected
+     * by whether CLDR has heard of the tag — and every catalog in the batch
+     * keeps English's "no attempts remaining" branch, including `bal`, which
+     * dropped the `one`/`other` split it could have used.
+     */
+    it.each(SILK_ROAD)(
         "selects %s's zero branch by the number itself",
         (locale, catalog) => {
             const t = createChromeTranslator(locale, { [locale]: catalog });

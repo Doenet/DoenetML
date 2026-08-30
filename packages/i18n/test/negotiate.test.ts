@@ -1800,6 +1800,264 @@ describe("a host catalog keyed on an aliased tag", () => {
             negotiateLocales([normalizeLocaleTag(asked)], available),
         ).toEqual([expected, "en"]);
     });
+
+    /**
+     * The Silk Road. Fifteen catalogs strung between the Black Sea and the
+     * Pamirs, and the batch that brings back the shape the Oceania one did
+     * without: two of the fifteen are **macrolanguages**, and they are the
+     * only entries this batch added to `MACROLANGUAGE_MEMBERS`.
+     *
+     * `zza` (Zaza) and `bal` (Balochi) each stand over members ICU splits in
+     * half. `Intl.getCanonicalLocales` already folds exactly one member of
+     * each onto the macrolanguage — `diq` onto `zza`, `bcc` onto `bal` — and
+     * leaves the rest unresolvable, which is the same one-of-each split `quz`
+     * and `ojg` showed in earlier batches. So `kiu`, `bgn` and `bgp` reach a
+     * catalog *only* because the map lists them. The rows below assert both
+     * halves separately, because the two mechanisms fail differently: an ICU
+     * data change breaks the first, an edit to `src/negotiate.ts` the second,
+     * and a test that only checked the negotiation result could not tell which
+     * had happened.
+     *
+     * The other thirteen are individual languages that reached English on
+     * their own account before this batch and reach their own catalog now.
+     */
+    describe("the Silk Road batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const SILK_ROAD = [
+            "crh",
+            "gag",
+            "ttt",
+            "kaa",
+            "kjh",
+            "alt",
+            "mzn",
+            "glk",
+            "lrc",
+            "bal",
+            "haz",
+            "zza",
+            "dng",
+            "sgh",
+            "wbl",
+        ];
+
+        /**
+         * Every one of the fifteen reaches the directory it names when the
+         * whole roster is on offer, and reaches English when only English is —
+         * the second half being what would fail if some entry were quietly
+         * folding one of these tags onto a neighbour instead of letting it
+         * arrive under its own name.
+         */
+        it("gives each of the fifteen its own catalog and nothing else", () => {
+            for (const locale of SILK_ROAD) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The half ICU does. `diq` and `bcc` never reach
+         * `MACROLANGUAGE_MEMBERS` at all: `normalizeLocaleTag` has already
+         * rewritten them to the macrolanguage before negotiation is consulted,
+         * so their entries in the map are documentation of a fact rather than
+         * the thing that makes them work. Asserting the canonicalization
+         * itself is what tells a later reader which of the two mechanisms is
+         * carrying the row.
+         */
+        it.each([
+            ["diq", "zza"],
+            ["bcc", "bal"],
+        ])(
+            "has ICU fold %s onto %s before negotiation sees it",
+            (member, macro) => {
+                expect(normalizeLocaleTag(member)).toBe(macro);
+                expect(
+                    negotiateLocales([normalizeLocaleTag(member)], available),
+                ) //
+                    .toEqual([macro, "en"]);
+            },
+        );
+
+        /**
+         * The half this repository does. ICU leaves all three of these tags
+         * exactly as typed — `normalizeLocaleTag("kiu")` is still `"kiu"` —
+         * so without their rows in `MACROLANGUAGE_MEMBERS` each would filter
+         * against a language subtag no directory is named for and fall to
+         * English.
+         *
+         * `kiu` is the sharper one: Northern Zazaki (Kirmanckî) is the very
+         * variety `locales/zza` leans toward, so the member ICU cannot resolve
+         * is the one whose speakers the catalog was written for.
+         */
+        it.each([
+            ["kiu", "zza"],
+            ["bgn", "bal"],
+            ["bgp", "bal"],
+        ])(
+            "reaches %s's catalog as %s only because the map lists it",
+            (member, macro) => {
+                expect(normalizeLocaleTag(member)).toBe(member);
+                expect(
+                    negotiateLocales([normalizeLocaleTag(member)], available),
+                ).toEqual([macro, "en"]);
+            },
+        );
+
+        /**
+         * The near misses, and along this corridor they are denser than any
+         * earlier batch's because every catalog here has a close relative that
+         * did *not* get one.
+         *
+         * `luz` (Southern Luri) and `bqi` (Bakhtiari) sit beside `lrc`
+         * (Northern Luri) and are the other two Luri codes; ISO 639-3 makes
+         * all three separate languages rather than members of a macrolanguage,
+         * so there is nothing to fold and no published fact saying that a
+         * Bakhtiari reader should be served the Northern Luri catalog.
+         *
+         * `sgy` (Sanglechi), `yah` (Yazghulami), `ydg` (Yidgha), `srh`
+         * (Sarikoli) and `isk` (Ishkashimi) are the other Pamiri languages
+         * beside `sgh` (Shughni), and `khw` (Khowar) is the Dardic neighbour
+         * of `wbl` (Wakhi). Sharing the Pamirs is not sharing a language, and
+         * `srh` is the sharpest of them: it maximizes into China, in the Arabic
+         * script, where `locales/sgh` is Cyrillic for Tajikistan.
+         *
+         * `slr` (Salar), `uum` (Urum) and `cjs` (Shor) are Turkic languages
+         * beside the batch's five Turkic catalogs, and `azb` (South
+         * Azerbaijani) is the one that would be easiest to get wrong: it is
+         * beside `az`, which the roster *does* have, and the two are written in
+         * different scripts — `locales/az` is Latin for the republic, `azb`
+         * maximizes to `azb-Arab-IR` — so folding it would serve an Iranian
+         * reader an alphabet they do not use.
+         */
+        it.each([
+            "luz",
+            "bqi",
+            "sgy",
+            "yah",
+            "ydg",
+            "srh",
+            "isk",
+            "khw",
+            "slr",
+            "uum",
+            "cjs",
+            "azb",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * The collection codes, left to miss for `map`'s and `smi`'s reason.
+         * `trk` (Turkic), `ira` (Iranian) and `tut` (Altaic) are ISO 639-5
+         * *collections* rather than languages — this batch alone is five
+         * languages inside `trk` and six inside `ira` — and CLDR has no
+         * opinion about which member a bare one of them means: each maximizes
+         * to nothing at all, no script and no region. A tag that names a
+         * family cannot be answered with one family member's catalog, so all
+         * three are left to fall to English.
+         */
+        it.each(["trk", "ira", "tut"])(
+            "leaves the %s collection code alone, because CLDR has no opinion about it",
+            (collection) => {
+                const maximized = new Intl.Locale(collection).maximize();
+                expect(maximized.region).toBeUndefined();
+                expect(maximized.script).toBeUndefined();
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(collection)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        it.each([
+            // Region tags, which filter without help. Every one of the fifteen
+            // maximizes to a region, and the batch spans eleven countries.
+            ["crh-UA", "crh"],
+            ["gag-MD", "gag"],
+            ["ttt-AZ", "ttt"],
+            ["kaa-UZ", "kaa"],
+            ["kjh-RU", "kjh"],
+            ["alt-RU", "alt"],
+            ["mzn-IR", "mzn"],
+            ["glk-IR", "glk"],
+            ["lrc-IR", "lrc"],
+            ["bal-PK", "bal"],
+            ["haz-AF", "haz"],
+            ["zza-TR", "zza"],
+            ["dng-KG", "dng"],
+            ["sgh-TJ", "sgh"],
+            ["wbl-PK", "wbl"],
+            // Wakhi is spoken across four borders and CLDR picks Pakistan;
+            // a reader who says Afghanistan reaches the same catalog, because
+            // the region subtag is filtered away rather than matched.
+            ["wbl-AF", "wbl"],
+            // Script tags. Both scripts reach the one catalog either way, and
+            // the pair below is the asymmetry CLDR's own maximization creates.
+            ["crh-Latn", "crh"],
+            ["crh-Cyrl", "crh"],
+            ["kaa-Latn", "kaa"],
+            ["zza-Latn", "zza"],
+            ["bal-Arab", "bal"],
+            ["wbl-Latn", "wbl"],
+            ["crh-Latn-UA", "crh"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The script asymmetry, which this batch owes twice over in the same
+         * direction — the `locales/ha` and `locales/kr` shape, in a corridor
+         * where two alphabets are official at once rather than one being an
+         * older layer.
+         *
+         * `crh` maximizes to **`crh-Cyrl-UA`** and `kaa` to **`kaa-Cyrl-UZ`**,
+         * so CLDR's own data says the likeliest Crimean Tatar and Karakalpak
+         * readers arrive in Cyrillic. Both catalogs are written in **Latin** —
+         * the 2021 Ukrainian standard and Karakalpakstan's current schoolbook
+         * alphabet respectively — and both headers say so and tell a reviewer
+         * who prefers Cyrillic to transliterate all four files at once rather
+         * than mix alphabets.
+         *
+         * That is a debt the roster records rather than a bug in negotiation:
+         * region and script subtags are filtered away, so a `-Cyrl` request is
+         * served Latin instead of missing, and the answer to it is a second
+         * catalog rather than a change here. The other Cyrillic-maximizing
+         * members of the batch — `kjh`, `alt`, `dng`, `sgh` — have no such
+         * debt, because their catalogs *are* Cyrillic.
+         */
+        it("serves Latin catalogs to the two tags CLDR maximizes into Cyrillic", () => {
+            expect(new Intl.Locale("crh").maximize().script).toBe("Cyrl");
+            expect(new Intl.Locale("kaa").maximize().script).toBe("Cyrl");
+            for (const locale of ["crh", "kaa"]) {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(`${locale}-Cyrl`)],
+                        available,
+                    ),
+                ).toEqual([locale, "en"]);
+            }
+            // …and the four whose catalogs match their maximization, so that
+            // the pair above reads as the exception it is.
+            for (const locale of ["kjh", "alt", "dng", "sgh"]) {
+                expect(new Intl.Locale(locale).maximize().script).toBe("Cyrl");
+            }
+        });
+    });
 });
 
 describe("resolveDocumentLocale", () => {
