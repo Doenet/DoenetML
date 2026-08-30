@@ -19,11 +19,14 @@ Twelve are written in the Latin script and three — Shan, Mon and S'gaw Karen �
 in the Myanmar script. All fifteen lay out left to right, so nothing about
 direction changes.
 
-The chemistry element tables are left out of all fifteen and still fall back
-to English, which is what the school systems of these regions teach chemistry
-in — Indonesian, Malay, English or Burmese depending on the community, so the
-fallback is the curriculum rather than a gap. Each catalog's header gives its
-own version of that reason.
+The chemistry element tables are left out of all fifteen, so a document in one
+of these languages still shows the element names in English. None of the
+fifteen is a language chemistry is taught in: secondary science in these
+regions runs in Indonesian, Malay, English or Burmese, so there is no settled
+list of element names in Buginese or Mon to write down, and an invented one
+would be worse than the English. Readers in the English-medium systems get
+their own school vocabulary; the rest get a second language rather than a
+first. Each catalog's header says which case it is in.
 
 `<document lang>` autocompletes all fifteen. Chavacano, Tausug, Maranao, Mon
 and S'gaw Karen are offered from hand-written entries, since CLDR has no name

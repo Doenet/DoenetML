@@ -374,15 +374,26 @@ genuinely uses rather than an invented nomenclature.
 sub-Saharan batch and the African and Berber one they split no ways at all:**
 every one of the fifteen is the school-system case, in four mediums. Chemistry
 is taught in Indonesian in Sulawesi, South Kalimantan, Nias and North Sumatra,
-so `bug`, `mak`, `bjn`, `gor`, `nia` and `bbc` meet `locales/id`'s table; in
-Malay in Sabah and Sarawak, so `iba` and `dtp` meet `locales/ms`'s; in English
-across the Philippines from the intermediate grades, which is the `fil` and
-`ceb` case again for `pag`, `cbk`, `tsg` and `mrw`; and in Burmese in Shan and
-Mon States, where Shan- and Mon-medium schooling does not run to the grades
-where the periodic table is taught. `ksw` is the one with no single fallback,
-`locales/wbl`'s shape one batch on: a Karen pupil in Myanmar meets the table in
-Burmese and one in the diaspora in English or Thai, and choosing either would
-hide the split. Four school systems, fifteen catalogs, and not one claim about
+so `bug`, `mak`, `bjn`, `gor`, `nia` and `bbc` meet the table in the language
+`locales/id` carries it in; in Malay in Sabah and Sarawak, so `iba` and `dtp`
+meet the one `locales/ms` does; in English across the Philippines from the
+intermediate grades, which is the `fil` and `ceb` case again for `pag`, `cbk`,
+`tsg` and `mrw`; and in Burmese in Shan and Mon States, where Shan- and
+Mon-medium schooling does not run to the grades where the periodic table is
+taught.
+
+What falls through is English in all fifteen cases, which is the curriculum
+language for the four Philippine catalogs and a *second* language for the ten
+taught in Indonesian, Malay or Burmese. Those ten are not reached by
+`locales/id` or `locales/ms` either: nothing folds `bjn` onto Indonesian or
+`iba` onto Malay, and this batch's `ms` entry in `MACROLANGUAGE_MEMBERS` leaves
+`bjn` out deliberately. So the reason these keys are omitted is that there is no
+settled Buginese or Mon list to write down — not that English is what those
+readers use.
+
+`ksw` is the one with no single fallback, `locales/wbl`'s shape one batch on: a
+Karen pupil in Myanmar meets the table in Burmese and one in the diaspora in
+English or Thai, and choosing either would hide the split. Four school systems, fifteen catalogs, and not one claim about
 a language among them; see [Fifteen languages of Southeast
 Asia](#fifteen-languages-of-southeast-asia-and-the-batch-whose-word-order-follows-a-border)
 for what does divide the batch.

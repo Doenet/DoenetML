@@ -19,7 +19,7 @@
 # `style-stroke` keeps English's internal order of the three adjectives,
 # because that is also Banjar's.
 #
-# **`[noun-tail]` carries the side count.** `noun-regular-polygon` fills `head`
+# **`[noun-tail]` is unused.** `noun-regular-polygon` fills `head`
 # with «poligon baraturan basisi { $numSides }» and leaves `tail` empty, as
 # English does: the count follows the noun here too, so nothing has to be
 # split around the adjectives.
