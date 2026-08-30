@@ -931,12 +931,12 @@ select-random-value-fluke = By extremely unlikely fluke, couldn't select random 
 # Translators: $component is the input's own DoenetML tag and stays in English,
 # as do the attribute names `inline`, `expanded` and `width`. An input written
 # inside `<m>` is drawn in the place it is written, inside the typeset
-# expression. That needs a control whose size is settled before the math is
-# laid out and which is small enough to sit in a line of it; $reason says which
-# of those this input fails. When it fails, the input is not drawn at all and
-# the expression is typeset as it was before inputs could be embedded: a text
-# input's current value stands in its place, and a choice input contributes
-# nothing.
+# expression, which makes room for it as it grows. That needs a control small
+# enough to sit in a line of mathematics, with a width the expression can
+# measure, in an expression that is not drawn on a graph; $reason says which of
+# those this input fails. When it fails, the input is not shown at all, and the
+# expression is typeset with the input's value in its place — a text input's
+# text, a math input's mathematics — or with nothing there for a choice input.
 math-embedded-input-shape-unsuitable =
     { $reason ->
         [not-inline] This `<{ $component }>` is not shown because it is inside math and is not `inline`. Add `inline` so it becomes a drop-down list, which fits inside an expression.

@@ -495,16 +495,20 @@ export function MathSlot({
             if (changed) {
                 revision.current += 1;
             }
+            // Taken now, not when the report runs: several measurements can
+            // be taken before a deferred report runs (a tray button that
+            // writes two characters), and each box must carry its own number.
+            const reportedRevision = revision.current;
             const report = () => {
                 if (changed || heightAwaiting.current !== null) {
                     heightAwaiting.current = {
                         height: box.height,
-                        revision: revision.current,
+                        revision: reportedRevision,
                     };
                 } else {
                     setHeightAboveBaseline(box.height);
                 }
-                reportSize(componentIdx, box, revision.current);
+                reportSize(componentIdx, box, reportedRevision);
             };
             // Flushed so that the expression is re-typeset (see `DynamicMath`'s
             // `immediate`) before this task ends, and so painted in the same
