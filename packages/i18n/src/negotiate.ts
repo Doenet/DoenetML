@@ -317,6 +317,29 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // `tda`, and the answer to it is a second catalog rather than a change
     // here.
     bua: ["bxm", "bxr", "bxu"],
+    // Zaza. The catalog is the Vate written standard, which leans Northern
+    // (Kirmanckî) where the two varieties diverge. `diq` (Southern Zazaki,
+    // Dimli) is the member `Intl.getCanonicalLocales` already rewrites to
+    // `zza`, and it is listed for the reason the other already-folded codes
+    // above are; `kiu` (Northern Zazaki, Kirmanckî) is the one ICU leaves
+    // unresolvable, and it reaches `locales/zza` only because this list
+    // exists — which is the sharper half, since `kiu` names the very variety
+    // the catalog is written in.
+    zza: ["diq", "kiu"],
+    // Balochi. The catalog is Southern Balochi as written in Pakistan, on the
+    // Urdu letter inventory. `bcc` is that variety's own code and the one ICU
+    // already folds onto `bal`; `bgn` (Western Balochi, written in Iran) and
+    // `bgp` (Eastern Balochi) are the two it does not. These three are the
+    // whole of the macrolanguage.
+    //
+    // `bgn` is the compromise worth naming: the Iranian Balochi orthography is
+    // a different convention rather than a spelling variant, and
+    // `locales/bal`'s own headers say so, so a Western Balochi reader is
+    // served a spelling they must adjust to. That is still the trade
+    // region-stripping makes everywhere else — a language they can read rather
+    // than English — and the answer to it is a second catalog rather than a
+    // change here.
+    bal: ["bcc", "bgn", "bgp"],
     // Komi and Mari have no entry here at all, and that is the whole of what
     // renaming their catalogs cost. Each list had shrunk to a single member —
     // `kv: ["kpv"]`, `chm: ["mhr"]` — once `koi` and `mrj` left it in the

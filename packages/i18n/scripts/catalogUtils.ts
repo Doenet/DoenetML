@@ -895,6 +895,29 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // commit to a self-name: the ʻokina is U+02BB, the same character the
     // catalog writes throughout, and there is no macron in it.
     wls: { englishName: "Wallisian", endonym: "Fakaʻuvea" },
+    // The five locales of the Silk Road batch CLDR has no data for, which is a
+    // fact about where these languages are written rather than about how many
+    // speak them: ICU names
+    // `crh`, `gag`, `kaa`, `alt`, `zza`, `bal`, `mzn`, `glk`, `lrc` and `ttt`,
+    // and stops at the five below.
+    //
+    // They split over the endonym the way `locales/lbe` and `locales/tab` did,
+    // and the split is decided by the catalogs rather than here. `locales/kjh`
+    // and `locales/wbl` each name their language exactly one way wherever
+    // their headers name it at all — `wbl` in all four files, `kjh` in two —
+    // so those spellings are copied letter for letter.
+    // The other three name theirs **two** ways — «хуэйзў хуа» beside «хуэйзў
+    // йүян», «Шугнонӣ» beside «х̌уг̌нӯн зивод», «هزارگی» beside «آزرگی» — and
+    // picking one of each pair here would settle in the roster what the
+    // catalog itself deliberately leaves open. So all three take
+    // `locales/olo`'s shape and their labels read "Dungan (dng)", "Shughni
+    // (sgh)" and "Hazaragi (haz)": an admitted gap rather than a guess, and
+    // legible either way.
+    kjh: { englishName: "Khakas", endonym: "хакас тілі" },
+    wbl: { englishName: "Wakhi", endonym: "Xik zik" },
+    dng: { englishName: "Dungan" },
+    sgh: { englishName: "Shughni" },
+    haz: { englishName: "Hazaragi" },
 };
 
 /**

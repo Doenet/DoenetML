@@ -6,10 +6,12 @@ import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 
 /**
  * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri,
- * Dhivehi and Central Kurdish — the seven #1614 existed to make renderable, the
- * one the European regional and minority batch added, the two the South Asian
- * batch added, the one the Caucasus and Kurdish batch added, and the whole of
- * it as of today.
+ * Dhivehi, Central Kurdish and the Silk Road batch's five — the seven #1614
+ * existed to make renderable, the one (`yi`) the early European regional and
+ * minority batch added — not the later fifteen-catalog European regional
+ * batch, which added none — the two the South Asian batch added, the one the
+ * Caucasus and Kurdish batch added, the five below, and the whole of it as of
+ * today.
  *
  * Written out rather than derived, so that the two tests below can hold it
  * from opposite sides: one says these tags are right-to-left whether or not a
@@ -18,6 +20,14 @@ import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
  * `direction.ts` — `yi`, `ks`, `dv` and `ckb` were all listed there already,
  * and Thaana was already in `RTL_SCRIPTS` — so this line is the only place
  * seeding them had to be recorded.
+ *
+ * The Silk Road batch adds five at once — five Iranian languages written in
+ * the Perso-Arabic script, four of them beside `locales/fa` and taking much of
+ * their technical vocabulary from it, while `locales/bal` takes its letters
+ * and its loans from Urdu instead. That takes the roster's right-to-left
+ * catalogs from eleven to sixteen. A right-to-left language that is neither
+ * Arabic nor Persian is nothing new here: `ug` is Turkic, `yi` Germanic and
+ * `ckb` Iranian but not Persian.
  *
  * `ku` is deliberately not here and is the pair worth reading beside `ckb`:
  * two catalogs of one macrolanguage, one Latin and left-to-right, the other
@@ -37,6 +47,19 @@ const RTL_LANGUAGES = [
     "ks",
     "dv",
     "ckb",
+    // The Silk Road batch's five, which take the roster's right-to-left
+    // catalogs from eleven to sixteen and split two ways over what
+    // `direction.ts` had to learn. `mzn`, `glk` and `lrc` were already in its
+    // `RTL_LANGUAGES` — listed there long before a catalog existed, because
+    // `lang` answers for any tag — so seeding them cost that file nothing. `bal` and `haz` are
+    // new to it, and they are new for the *fallback* path only: both maximize
+    // to `-Arab`, so the script rule already answered them, and the entries
+    // matter on the path where a tag cannot be parsed at all.
+    "mzn",
+    "glk",
+    "lrc",
+    "bal",
+    "haz",
 ];
 
 describe("directionOf", () => {
@@ -95,6 +118,31 @@ describe("directionOf", () => {
         expect(directionOf("he_IL")).toBe("rtl");
         expect(directionOf("ar_Arab_EG")).toBe("rtl");
         expect(directionOf("en_US")).toBe("ltr");
+    });
+
+    /**
+     * The path `bal` and `haz` were added to {@link RTL_LANGUAGES} for, and
+     * the only path on which those two entries are load-bearing.
+     *
+     * Both tags maximize to `-Arab`, so every parseable spelling of them is
+     * already answered by the script rule one branch earlier — which means a
+     * test written against `bal` or `haz-AF` would pass with the entries
+     * deleted. A tag `Intl.Locale` throws on never reaches `maximize()` at
+     * all, and the raw-subtag fallback has nothing but the language subtag to
+     * go on. These rows are therefore what fails if either entry is removed.
+     */
+    it("reads the batch's two new fallback languages off an unparseable tag", () => {
+        expect(directionOf("bal_PK")).toBe("rtl");
+        expect(directionOf("haz_AF")).toBe("rtl");
+        // The same tags in a spelling `Intl.Locale` accepts are answered by
+        // the script rule instead, so these hold either way — which is the
+        // reason the rows above exist rather than only these.
+        expect(directionOf("bal")).toBe("rtl");
+        expect(directionOf("haz")).toBe("rtl");
+        // And a Latin-script neighbour of each, to show the fallback is
+        // reading the language rather than defaulting everything to `rtl`.
+        expect(directionOf("crh_UA")).toBe("ltr");
+        expect(directionOf("zza_TR")).toBe("ltr");
     });
 
     it("defaults to left-to-right for nonsense and for nothing at all", () => {

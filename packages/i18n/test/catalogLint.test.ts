@@ -1098,4 +1098,78 @@ describe("plural categories a locale cannot select", () => {
         }
         expect(dead).toEqual([]);
     });
+
+    /**
+     * Three headers in the Silk Road batch do not merely name a script — they set
+     * the catalog's letter inventory out **exactly**, and tell a corrector not to
+     * fold a letter into its Russian look-alike. `locales/alt` allows the Russian
+     * letters plus `ј ҥ ӧ ӱ`, `locales/kjh` plus `і ғ ң ӧ ӱ ӌ`, and `locales/dng`
+     * plus `ә җ ң ў ү`.
+     *
+     * That is the rare header claim a test can hold in full, and it is worth
+     * holding, because the failure it catches is invisible: a homoglyph renders
+     * identically and breaks nothing, so it survives review and then defeats every
+     * search a later corrector runs. The seed shipped two — the Tajik `ҷ` (U+04B7)
+     * where Khakas has `ӌ` (U+04CC), and the Latin `ə` (U+0259) beside the
+     * Cyrillic `ә` (U+04D9) `locales/dng` uses everywhere else.
+     *
+     * Only the three catalogs whose headers make the claim are checked. Most
+     * catalogs make no such promise, and some legitimately mix scripts by letter:
+     * Ossetian's `æ` is U+00E6, a Latin letter inside a Cyrillic alphabet, and the
+     * Mansi and Kildin Sami vowels with macrons are Latin too.
+     */
+    describe("the letter inventories three Silk Road headers state exactly", () => {
+        const RUSSIAN = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+
+        /** Letters each catalog's header allows on top of the Russian alphabet. */
+        const EXTRA: Record<string, string> = {
+            alt: "јҥӧӱ",
+            kjh: "іғңӧӱӌ",
+            dng: "әҗңўү",
+        };
+
+        it.each(Object.keys(EXTRA))(
+            "keeps %s to the Russian letters and the ones its header names",
+            (locale) => {
+                const allowed = new Set(
+                    [...`${RUSSIAN}${EXTRA[locale]}`].flatMap((letter) => [
+                        letter,
+                        letter.toUpperCase(),
+                    ]),
+                );
+                const offenders = new Set<string>();
+                for (const namespace of CATALOG_NAMESPACES) {
+                    const source = readCatalog(locale, namespace);
+                    if (source === null) {
+                        continue;
+                    }
+                    for (const line of source.split("\n")) {
+                        // Headers quote the look-alikes they warn against, and
+                        // every catalog writes DoenetML's own identifiers in
+                        // Latin, so only the prose a reader sees is checked.
+                        if (line.trimStart().startsWith("#")) {
+                            continue;
+                        }
+                        for (const letter of line.replace(/`[^`]*`/g, " ")) {
+                            if (
+                                /\p{L}/u.test(letter) &&
+                                !/[\x00-\x7f]/.test(letter)
+                            ) {
+                                if (!allowed.has(letter)) {
+                                    offenders.add(
+                                        `${letter} (U+${letter
+                                            .codePointAt(0)!
+                                            .toString(16)
+                                            .toUpperCase()
+                                            .padStart(4, "0")})`,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                expect([...offenders]).toEqual([]);
+            },
+        );
+    });
 });

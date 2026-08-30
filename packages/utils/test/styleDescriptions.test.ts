@@ -4404,3 +4404,410 @@ describe("the European regional batch's word order", () => {
         },
     );
 });
+
+describe("the Silk Road batch's word order", () => {
+    /**
+     * Fifteen languages of one corridor and two orders, and the line between
+     * them is neither geography nor family — it is **whether a language builds
+     * its noun phrase with an ezafe**.
+     *
+     * Eleven catalogs put the modifiers in front of the noun. Five of those
+     * are Turkic (`crh`, `gag`, `kaa`, `kjh`, `alt`), which is expected: every
+     * Turkic language is left-branching, and each of those five headers says
+     * so in the same words. The other six are the interesting ones. `dng` is
+     * Sinitic and joins modifier to noun with the attributive particle
+     * «ди» — a word of its own, never welded to a placeable. `sgh` and `wbl`
+     * are Iranian and prenominal anyway: `locales/sgh`'s header calls this
+     * "the one place this is not Tajik", since Shughni stacks adjectives where
+     * Tajik would reach for the izafat. `bal` is Iranian too, and its header
+     * says the prenominal order carries the attributive `-ēn` on the
+     * **adjective**, which is why nothing in that file is welded to `$noun`
+     * either.
+     *
+     * `mzn` and `glk` are the pair worth reading the headers for. Both are
+     * Caspian, both are **head-final**, and both are written almost entirely in
+     * Persian vocabulary — so each file looks like `fa` word for word and is
+     * its exact reverse in arrangement. `locales/mzn`'s header states it
+     * outright: `style-with-noun` reads `{ $description } { $noun }`, "the
+     * English order, arrived at from the other direction, and the exact reverse
+     * of what `fa` writes". The `fa` row below is asserted beside them so the
+     * reversal is visible rather than asserted in prose.
+     *
+     * Four catalogs put the modifiers after the noun, and all four are ezafe
+     * languages: `ttt` (Muslim Tat, repeating «-i» before every modifier),
+     * `lrc` (Northern Luri, whose header calls the language head-initial and
+     * reverses English's adjective order to match), `haz` (Hazaragi, a Persian
+     * variety, with the ezafe an unwritten vowel after a consonant) and `zza`
+     * (Zazaki, whose ezafe is a bound vowel that cannot be welded onto
+     * `{ $noun }` — so every entry in its `noun` table is written with the
+     * ezafe already on it).
+     */
+    const prenominal: [string, string, string][] = [
+        [
+            "crh",
+            "qal\u0131n kesikli q\u0131rm\u0131z\u0131 do\u011fru",
+            "qal\u0131n kesikli q\u0131rm\u0131z\u0131",
+        ],
+        [
+            "gag",
+            "kal\u0131n kesikli k\u0131rm\u0131z\u0131 dooru",
+            "kal\u0131n kesikli k\u0131rm\u0131z\u0131",
+        ],
+        [
+            "kaa",
+            "qal\u0131\u0144 \u00fazik-\u00fazik q\u0131z\u0131l tuwr\u0131 s\u0131z\u0131q",
+            "qal\u0131\u0144 \u00fazik-\u00fazik q\u0131z\u0131l",
+        ],
+        [
+            "kjh",
+            "\u0447\u043e\u043e\u043d \u04f1\u0437\u0456\u043a-\u04f1\u0437\u0456\u043a \u0445\u044b\u0437\u044b\u043b \u0442\u04f1\u0441 \u0441\u044b\u0437\u044b\u0445",
+            "\u0447\u043e\u043e\u043d \u04f1\u0437\u0456\u043a-\u04f1\u0437\u0456\u043a \u0445\u044b\u0437\u044b\u043b",
+        ],
+        [
+            "alt",
+            "\u0458\u043e\u043e\u043d \u04f1\u0437\u04f1\u043a-\u04f1\u0437\u04f1\u043a \u043a\u044b\u0437\u044b\u043b \u0442\u04f1\u0441 \u0441\u044b\u0437\u044b\u043a",
+            "\u0458\u043e\u043e\u043d \u04f1\u0437\u04f1\u043a-\u04f1\u0437\u04f1\u043a \u043a\u044b\u0437\u044b\u043b",
+        ],
+        [
+            "mzn",
+            "\u06a9\u064f\u0644\u0641\u062a \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0650\u0631\u062e \u062e\u0637",
+            "\u06a9\u064f\u0644\u0641\u062a \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0650\u0631\u062e",
+        ],
+        [
+            "glk",
+            "\u0636\u062e\u06cc\u0645 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0648\u0631\u062e \u062e\u0637",
+            "\u0636\u062e\u06cc\u0645 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0648\u0631\u062e",
+        ],
+        [
+            "dng",
+            "\u0446\u0443 \u043f\u0443\u043d\u043a\u0442\u0438\u0440\u043d\u044b\u0439 \u0445\u0443\u043d \u0434\u0438 \u0441\u044f\u043d",
+            "\u0446\u0443 \u043f\u0443\u043d\u043a\u0442\u0438\u0440\u043d\u044b\u0439 \u0445\u0443\u043d",
+        ],
+        [
+            "sgh",
+            "\u0493\u0430\u0444\u0441 \u0445\u0430\u0442-\u0445\u0430\u0442 \u0441\u0443\u0440\u0445 \u0445\u0430\u0442",
+            "\u0493\u0430\u0444\u0441 \u0445\u0430\u0442-\u0445\u0430\u0442 \u0441\u0443\u0440\u0445",
+        ],
+        ["wbl", "mota dash-dor surkh khat", "mota dash-dor surkh"],
+        [
+            "bal",
+            "\u0633\u062a\u0628\u0631\u06cc\u06ba \u062e\u0637 \u0686\u06cc\u0646\u06cc\u06ba \u0633\u06c1\u0631\u06cc\u06ba \u062e\u0637",
+            "\u0633\u062a\u0628\u0631\u06cc\u06ba \u062e\u0637 \u0686\u06cc\u0646\u06cc\u06ba \u0633\u06c1\u0631\u06cc\u06ba",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is appended whole, with nothing of it reaching in among
+            // the adjectives — including for `dng`, whose «ди» belongs to the
+            // join rather than to either side.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const postnominal: [string, string, string][] = [
+        [
+            "ttt",
+            "x\u0259tt-i kuluft-i k\u0259sik-i s\u00fcrx",
+            "kuluft-i k\u0259sik-i s\u00fcrx",
+        ],
+        [
+            "lrc",
+            "\u062e\u0637 \u0633\u0648\u0631 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645",
+            "\u0633\u0648\u0631 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645",
+        ],
+        [
+            "haz",
+            "\u062e\u0637 \u0633\u0631\u062e \u062e\u0637\u200c\u062e\u0637 \u0633\u062a\u0628\u0631",
+            "\u0633\u0631\u062e \u062e\u0637\u200c\u062e\u0637 \u0633\u062a\u0628\u0631",
+        ],
+        [
+            "zza",
+            "xeto s\u00fbr qutbirr st\u00fbr",
+            "s\u00fbr qutbirr st\u00fbr",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The ezafe rides on the noun rather than on the adjective run, so
+            // the description is still the tail of the phrase verbatim — which
+            // is what would break if a catalog started welding a linker onto
+            // `{ $description }`.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * Mazanderani and Gilaki against the Persian they borrow their words from.
+     * Every content word in these three phrases is Persian or a Caspian
+     * cognate of one, and the three arrangements are not the same: `fa` leads
+     * with «خط» and trails the adjectives, `mzn` and `glk` stack the
+     * adjectives first and end on «خط». A reviewer replacing Persian loans with
+     * native words in either catalog must not also "fix" the order back toward
+     * `fa`, and this is the row that says so.
+     */
+    it("reverses Persian's order in the two Caspian catalogs", () => {
+        const persian = describeStrokedShape(forLocale("fa"), words, {
+            noun: { key: "line" },
+            withNoun: true,
+        });
+        expect(persian).toBe(
+            "\u062e\u0637 \u0642\u0631\u0645\u0632 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645",
+        );
+        // Persian leads with the noun; both Caspian catalogs end with it.
+        for (const locale of ["mzn", "glk"]) {
+            const phrase = describeStrokedShape(forLocale(locale), words, {
+                noun: { key: "line" },
+                withNoun: true,
+            });
+            expect(phrase.startsWith("خط")).toBe(false);
+            expect(phrase.endsWith("خط")).toBe(true);
+        }
+        expect(persian.startsWith("خط")).toBe(true);
+    });
+
+    /**
+     * The side count, where the batch splits along a *different* line than the
+     * adjectives do — which is the fact this block exists to catch.
+     *
+     * Eleven catalogs leave `[noun-tail]` empty and fold the count into the
+     * head: «düzgün 5 köşeli poligon», «{ $numSides } бян ди правильный
+     * многоугольник», «{ $numSides }-tarafa regular polygon». Several headers
+     * say so in as many words — `locales/kaa`'s and `locales/kjh`'s both
+     * explain that the count "goes in front of the noun with the rest of the
+     * modifiers, so the whole phrase is one head", and `locales/wbl`'s says
+     * "`[noun-tail]` is unused".
+     *
+     * Four use the tail — and they are **not** the four postnominal catalogs.
+     * `bal` stacks its adjectives in front and still tails the count («گون 5
+     * پہلوان»), while `ttt` trails its adjectives and still heads the count
+     * («poliqoni münəzzəm ba 5 tərəf»). So the two choices are independent, and
+     * a change to one catalog's adjective order must not be assumed to imply
+     * the other.
+     *
+     * `wbl` still renders an English «regular polygon» where its dictionary
+     * gave it no term, and `dng` a **Russian** «правильный многоугольник»
+     * inside a Dungan frame — the loan language differs with the catalog, and
+     * both headers declare the debt — so the loans are pinned
+     * here beside the words that are the language, and replacing one is a
+     * visible diff.
+     */
+    it.each([
+        [
+            "crh",
+            "qal\u0131n kesikli q\u0131rm\u0131z\u0131 d\u00fczg\u00fcn 5 k\u00f6\u015feli poligon",
+        ],
+        [
+            "gag",
+            "kal\u0131n kesikli k\u0131rm\u0131z\u0131 5 k\u00f6\u0219eli d\u00fczg\u00fcn poligon",
+        ],
+        [
+            "kaa",
+            "qal\u0131\u0144 \u00fazik-\u00fazik q\u0131z\u0131l dur\u0131s 5 m\u00fayeshlik",
+        ],
+        [
+            "kjh",
+            "\u0447\u043e\u043e\u043d \u04f1\u0437\u0456\u043a-\u04f1\u0437\u0456\u043a \u0445\u044b\u0437\u044b\u043b \u0442\u0438\u04a3 5 \u043f\u0443\u043b\u0443\u04a3\u043d\u044b\u0433",
+        ],
+        [
+            "alt",
+            "\u0458\u043e\u043e\u043d \u04f1\u0437\u04f1\u043a-\u04f1\u0437\u04f1\u043a \u043a\u044b\u0437\u044b\u043b \u0442\u04f1\u04a5\u0435\u0439 5 \u043c\u04f1\u0439\u04f1\u0448\u0442\u04f1",
+        ],
+        [
+            "mzn",
+            "\u06a9\u064f\u0644\u0641\u062a \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0650\u0631\u062e 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+        ],
+        [
+            "glk",
+            "\u0636\u062e\u06cc\u0645 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0633\u0648\u0631\u062e 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+        ],
+        [
+            "dng",
+            "\u0446\u0443 \u043f\u0443\u043d\u043a\u0442\u0438\u0440\u043d\u044b\u0439 \u0445\u0443\u043d \u0434\u0438 5 \u0431\u044f\u043d \u0434\u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u043c\u043d\u043e\u0433\u043e\u0443\u0433\u043e\u043b\u044c\u043d\u0438\u043a",
+        ],
+        [
+            "sgh",
+            "\u0493\u0430\u0444\u0441 \u0445\u0430\u0442-\u0445\u0430\u0442 \u0441\u0443\u0440\u0445 5-\u0442\u0430\u0440\u0430\u0444\u0430 \u043c\u0443\u043d\u0442\u0430\u0437\u0430\u043c \u0431\u0438\u0441\u0451\u0440\u043a\u0443\u043d\u04b7\u0430",
+        ],
+        ["wbl", "mota dash-dor surkh 5-tarafa regular polygon"],
+        [
+            "bal",
+            "\u0633\u062a\u0628\u0631\u06cc\u06ba \u062e\u0637 \u0686\u06cc\u0646\u06cc\u06ba \u0633\u06c1\u0631\u06cc\u06ba \u0628\u0627\u0642\u0627\u0639\u062f\u06c1 \u0686\u0646\u062f \u067e\u06c1\u0644\u0648 \u06af\u0648\u0646 5 \u067e\u06c1\u0644\u0648\u0627\u0646",
+        ],
+        [
+            "ttt",
+            "poliqoni m\u00fcn\u0259zz\u0259m ba 5 t\u0259r\u0259f-i kuluft-i k\u0259sik-i s\u00fcrx",
+        ],
+        [
+            "lrc",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0633\u0648\u0631 \u062e\u0637\u200c\u0686\u06cc\u0646 \u0636\u062e\u06cc\u0645 \u0628\u0627 5 \u062a\u0627 \u0636\u0644\u0639",
+        ],
+        [
+            "haz",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc\u0650 \u0645\u0646\u0638\u0645 \u0633\u0631\u062e \u062e\u0637\u200c\u062e\u0637 \u0633\u062a\u0628\u0631 \u0642\u062f 5 \u0636\u0644\u0639",
+        ],
+        [
+            "zza",
+            "zafgo\u015feyo muntezem s\u00fbr qutbirr st\u00fbr bi 5 kenaran",
+        ],
+    ])(
+        "places the side count where %s's grammar puts it",
+        (locale, expected) => {
+            expect(
+                describeStrokedShape(forLocale(locale), words, {
+                    noun: { key: "regular-polygon", numSides: 5 },
+                    withNoun: true,
+                }),
+            ).toBe(expected);
+        },
+    );
+
+    /**
+     * The same phrase again with the shape filled, which is where a catalog can
+     * quietly disagree with itself: `style-with-noun` and
+     * `style-filled-with-noun` are two separate messages, so a catalog that
+     * reaches `[noun-tail]` has to place the tail the same way in both, or one
+     * polygon is assembled two ways in one language depending on nothing but
+     * whether it is filled.
+     *
+     * The fill pattern is asserted alongside, because `[pattern-tail]` is the
+     * one branch carrying the tail *and* a trailing clause, and so the one
+     * where an ordering mistake can survive the plain case. The pattern clause
+     * splits along a line of its own: six catalogs lead with it — the five
+     * Turkic ones and `glk` — because their pattern word is a postposition
+     * governing «{ $pattern }» («биле» in `alt`, «неӊ» in `kjh`, «menen» in
+     * `kaa`), and the remaining nine trail it, `sgh` and `dng` after a comma.
+     * So a catalog's pattern placement follows neither its adjective order nor
+     * its `[noun-tail]` use.
+     */
+    it.each([
+        [
+            "crh",
+            "mavi tol\u011fan d\u00fczg\u00fcn 5 k\u00f6\u015feli poligon",
+            "romb\u00e7\u0131qlar desenli mavi tol\u011fan d\u00fczg\u00fcn 5 k\u00f6\u015feli poligon",
+        ],
+        [
+            "gag",
+            "mavi dolu 5 k\u00f6\u0219eli d\u00fczg\u00fcn poligon",
+            "romblar desenli mavi dolu 5 k\u00f6\u0219eli d\u00fczg\u00fcn poligon",
+        ],
+        [
+            "kaa",
+            "k\u00f3k boyal\u01f5an dur\u0131s 5 m\u00fayeshlik",
+            "romblar menen k\u00f3k boyal\u01f5an dur\u0131s 5 m\u00fayeshlik",
+        ],
+        [
+            "kjh",
+            "\u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0493\u0430\u043d \u0442\u0438\u04a3 5 \u043f\u0443\u043b\u0443\u04a3\u043d\u044b\u0433",
+            "\u0440\u043e\u043c\u0431\u0442\u0430\u0440 \u043d\u0435\u04a3 \u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0493\u0430\u043d \u0442\u0438\u04a3 5 \u043f\u0443\u043b\u0443\u04a3\u043d\u044b\u0433",
+        ],
+        [
+            "alt",
+            "\u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0433\u0430\u043d \u0442\u04f1\u04a5\u0435\u0439 5 \u043c\u04f1\u0439\u04f1\u0448\u0442\u04f1",
+            "\u0440\u043e\u043c\u0431\u0442\u043e\u0440 \u0431\u0438\u043b\u0435 \u043a\u04e7\u043a \u0431\u0443\u0434\u0430\u043b\u0433\u0430\u043d \u0442\u04f1\u04a5\u0435\u0439 5 \u043c\u04f1\u0439\u04f1\u0448\u0442\u04f1",
+        ],
+        [
+            "mzn",
+            "\u062a\u0648\u067e\u0631 \u0622\u0628\u06cc 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+            "\u062a\u0648\u067e\u0631 \u0622\u0628\u06cc 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0628\u0627 \u0644\u0648\u0632\u06cc\u200c\u0648\u0646 \u0646\u0642\u0634",
+        ],
+        [
+            "glk",
+            "\u0622\u0628\u06cc \u062a\u0648\u067e\u0631 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+            "\u0644\u0648\u0632\u06cc\u200c\u0627\u0646 \u0647\u0645\u0631\u0627\u0647 \u0622\u0628\u06cc \u062a\u0648\u067e\u0631 5 \u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645",
+        ],
+        [
+            "dng",
+            "\u0442\u044f\u043d\u043c\u0430\u043d \u043b\u0430\u043d \u0434\u0438 5 \u0431\u044f\u043d \u0434\u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u043c\u043d\u043e\u0433\u043e\u0443\u0433\u043e\u043b\u044c\u043d\u0438\u043a",
+            "\u0442\u044f\u043d\u043c\u0430\u043d \u043b\u0430\u043d \u0434\u0438 5 \u0431\u044f\u043d \u0434\u0438 \u043f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u044b\u0439 \u043c\u043d\u043e\u0433\u043e\u0443\u0433\u043e\u043b\u044c\u043d\u0438\u043a, \u044e\u04a3 \u0440\u043e\u043c\u0431 \u0442\u044f\u043d \u0434\u0438",
+        ],
+        [
+            "sgh",
+            "\u043f\u0443\u0440\u0448\u0443\u0434\u0430 \u043a\u0430\u0431\u0443\u0434 5-\u0442\u0430\u0440\u0430\u0444\u0430 \u043c\u0443\u043d\u0442\u0430\u0437\u0430\u043c \u0431\u0438\u0441\u0451\u0440\u043a\u0443\u043d\u04b7\u0430",
+            "\u043f\u0443\u0440\u0448\u0443\u0434\u0430 \u043a\u0430\u0431\u0443\u0434 5-\u0442\u0430\u0440\u0430\u0444\u0430 \u043c\u0443\u043d\u0442\u0430\u0437\u0430\u043c \u0431\u0438\u0441\u0451\u0440\u043a\u0443\u043d\u04b7\u0430, \u0431\u043e \u043d\u0430\u049b\u0448\u0438 \u0440\u043e\u043c\u0431\u04b3\u043e",
+        ],
+        [
+            "wbl",
+            "pur nila 5-tarafa regular polygon",
+            "pur nila 5-tarafa regular polygon ba diamond",
+        ],
+        [
+            "bal",
+            "\u067e\u064f\u0631\u06cc\u06ba \u06a9\u0628\u0648\u062f\u06cc\u06ba \u0628\u0627\u0642\u0627\u0639\u062f\u06c1 \u0686\u0646\u062f \u067e\u06c1\u0644\u0648 \u06af\u0648\u0646 5 \u067e\u06c1\u0644\u0648\u0627\u0646",
+            "\u067e\u064f\u0631\u06cc\u06ba \u06a9\u0628\u0648\u062f\u06cc\u06ba \u0628\u0627\u0642\u0627\u0639\u062f\u06c1 \u0686\u0646\u062f \u067e\u06c1\u0644\u0648 \u06af\u0648\u0646 5 \u067e\u06c1\u0644\u0648\u0627\u0646 \u06af\u0648\u0646 \u0627\u0644\u0645\u0627\u0633",
+        ],
+        [
+            "ttt",
+            "poliqoni m\u00fcn\u0259zz\u0259m ba 5 t\u0259r\u0259f-i pur-i kabud",
+            "poliqoni m\u00fcn\u0259zz\u0259m ba 5 t\u0259r\u0259f-i pur-i kabud ba rombho",
+        ],
+        [
+            "lrc",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0622\u0628\u06cc \u062a\u0648\u067e\u0631 \u0628\u0627 5 \u062a\u0627 \u0636\u0644\u0639",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc \u0645\u0646\u062a\u0638\u0645 \u0622\u0628\u06cc \u062a\u0648\u067e\u0631 \u0628\u0627 5 \u062a\u0627 \u0636\u0644\u0639 \u0628\u0627 \u0646\u0642\u0634 \u0644\u0648\u0632\u06cc\u200c\u06cc\u0644",
+        ],
+        [
+            "haz",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc\u0650 \u0645\u0646\u0638\u0645 \u0622\u0628\u06cc \u067e\u064f\u0631 \u0642\u062f 5 \u0636\u0644\u0639",
+            "\u0686\u0646\u062f\u0636\u0644\u0639\u06cc\u0650 \u0645\u0646\u0638\u0645 \u0622\u0628\u06cc \u067e\u064f\u0631 \u0642\u062f 5 \u0636\u0644\u0639 \u0642\u062f \u0627\u0644\u0645\u0627\u0633\u200c\u0647\u0627",
+        ],
+        [
+            "zza",
+            "zafgo\u015feyo muntezem kewe p\u0131rr bi 5 kenaran",
+            "zafgo\u015feyo muntezem kewe p\u0131rr bi 5 kenaran bi elmas\u00ee",
+        ],
+    ])(
+        "places the side count the same way in %s's filled phrase",
+        (locale, plain, withPattern) => {
+            const filled = {
+                lineWidthWord: "",
+                lineStyleWord: "",
+                colorWord: "blue",
+                fillColorWord: "blue",
+                fillStyleWord: "",
+            };
+            const noun = { key: "regular-polygon", numSides: 5 } as const;
+            expect(
+                describeClosedShape(forLocale(locale), filled, {
+                    filled: true,
+                    noun,
+                    withNoun: true,
+                }),
+            ).toBe(plain);
+            expect(
+                describeClosedShape(
+                    forLocale(locale),
+                    { ...filled, fillStyleWord: "diamonds" },
+                    { filled: true, noun, withNoun: true },
+                ),
+            ).toBe(withPattern);
+        },
+    );
+});
