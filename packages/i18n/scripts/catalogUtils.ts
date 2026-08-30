@@ -919,9 +919,10 @@ export const LOCALE_NAME_FALLBACKS: Record<
     sgh: { englishName: "Shughni" },
     haz: { englishName: "Hazaragi" },
     // The nine locales of the Americas batch CLDR has no data for, which is
-    // nine of that batch's fifteen — a higher share than any batch before it,
-    // and a fact about which languages get into CLDR rather than about how
-    // many speak these. ICU names `pap`, `srn`, `jam`, `kl` and `iu` and
+    // nine of that batch's fifteen and the largest number any batch here has
+    // needed — the next largest is the seven of the West and Central African
+    // batch above — and a fact about which languages get into CLDR rather
+    // than about how many speak these. ICU names `pap`, `srn`, `jam`, `kl` and `iu` and
     // stops at the nine below. Six of the nine are creoles, and a creole is
     // where the gap concentrates: `pap`, `srn` and `jam` are named only
     // because they are the three with a national or quasi-official standing
@@ -937,10 +938,12 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // Antillean standards write «r» — so a corrector who respells a catalog
     // must respell its roster label with it.
     //
-    // Three of the nine have an endonym that is the English name over again
-    // — Garifuna, Mískito, Saramaccan — and they are written out rather than
-    // omitted, because the accent in «Mískito» and «Saamáka tongo» is part of
-    // the spelling and the label would otherwise lose it.
+    // Two of the nine have an endonym that is the English name over again —
+    // Garifuna and Mískito — and both are written out rather than omitted,
+    // because the accent in «Mískito» is part of the spelling and the label
+    // would otherwise lose it. `srm` is not one of them: "Saramaccan" is the
+    // outside name and «Saamáka tongo» the language's own, so its label reads
+    // "Saramaccan (Saamáka tongo)" like the rest.
     yua: {
         englishName: "Yucatec Maya",
         endonym: "Maaya\u02bc t\u02bc\u00e0an",

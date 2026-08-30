@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
     parse,
+    Resource,
+    serialize,
     type Entry,
     type Message,
     type Pattern,
@@ -1262,4 +1264,80 @@ describe("plural categories a locale cannot select", () => {
             ).toEqual(["á", "ë", "ö"]);
         });
     });
+});
+
+/**
+ * Two catalogs can agree without being one catalog, and this batch has both
+ * shapes of that. `jam` and `bzj` are English-lexifier creoles in phonemic
+ * orthographies, so the short everyday words converge — «chruu», «faals»,
+ * «tik dash-dash red lain» — and `gcf` and `gcr` agree word for word on a
+ * styled line. Convergence is the language; a catalog copied to a second tag
+ * is a defect, and the two look alike from a distance.
+ *
+ * What separates them is a *rate*. A copy differs nowhere; these differ in
+ * most of what they both define. The rate over `content.ftl` alone is
+ * asserted in `packages/utils/test/styleDescriptions.test.ts`, beside the
+ * styled-line phrase it is about; what is left here is the whole-catalog
+ * rate, and the French trio, whose agreement is confined to that one phrase.
+ * The floors are floors rather than equalities so that correcting a string
+ * cannot fail the test — only wholesale duplication can.
+ */
+describe("catalogs of one lexifier that are not each other's copy", () => {
+    /** Message id → serialized entry, for every message in one namespace. */
+    const entries = (locale: string, namespace: string) => {
+        const source = readCatalog(locale, namespace);
+        const values = new Map<string, string>();
+        if (source === null) {
+            return values;
+        }
+        for (const entry of parse(source, { withSpans: false }).body) {
+            if (entry.type === "Message") {
+                values.set(entry.id.name, serialize(new Resource([entry]), {}));
+            }
+        }
+        return values;
+    };
+
+    /** How many of the ids both catalogs define carry different text. */
+    const differing = (a: string, b: string, namespaces: readonly string[]) => {
+        let shared = 0;
+        let differ = 0;
+        for (const namespace of namespaces) {
+            const left = entries(a, namespace);
+            const right = entries(b, namespace);
+            for (const [id, value] of left) {
+                const other = right.get(id);
+                if (other === undefined) {
+                    continue;
+                }
+                shared += 1;
+                differ += value === other ? 0 : 1;
+            }
+        }
+        return { shared, differ };
+    };
+
+    it("keeps jam and bzj apart in most of what both define", () => {
+        const all = differing("jam", "bzj", CATALOG_NAMESPACES);
+        expect(all.shared).toBe(389);
+        expect(all.differ).toBeGreaterThanOrEqual(342);
+    });
+
+    /**
+     * The French-lexifier trio, where the styled-line phrase agrees but the
+     * diagnostics do not: `gcr` writes the indefinite «roun» where `gcf`
+     * writes «on», which alone separates most of the file.
+     */
+    it.each([
+        ["gcf", "gcr", 206],
+        ["gcf", "acf", 180],
+        ["acf", "gcr", 205],
+    ] as [string, string, number][])(
+        "keeps %s and %s apart across their diagnostics",
+        (a, b, floor) => {
+            const { shared, differ } = differing(a, b, ["diagnostics"]);
+            expect(shared).toBe(220);
+            expect(differ).toBeGreaterThanOrEqual(floor);
+        },
+    );
 });

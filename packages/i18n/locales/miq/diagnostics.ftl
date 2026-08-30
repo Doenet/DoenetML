@@ -162,7 +162,7 @@ eigen-decomposition-failed = Matris ai awtobalur nani ba kalkulaia sip apia
 matches-pattern-parameter-not-in-pattern = `<matchesPattern>`: parametru { $parameters } ba patronka bilara bara apia, bara baha mita ban blanku wal praki kaisa.
 graph-grid-invalid = `<graph>`: grid="{ $grid }" tanka briaia sip apia. none, medium, dense, apia kaka nambar wal, 0 purara, spes kum ni sirpi mangkan, kaia sa, baku: grid="1 0.5". Krid kum ulban apia.
 field-function-wrong-num-outputs =
-    `<{ $component }>` ba punsion kum output wal brih ba want sa, puntu bani ra bektar ba, baku: `(y, -x)`, sakuna punsion yaban ba output { $found } brisa. { $alternative ->
+    `<{ $component }>` ba punsion kum { $expected } output brih ba want sa — kumi, puntu bani ra slope y' ba, baku: `y - x`, apia kaka wal, puntu bani ra bektar ba, baku: `(y, -x)` — sakuna punsion yaban ba output { $found } brisa. { $alternative ->
         [none] Diara kum ulban apia.
        *[other] `<{ $alternative }>` sika baha punsion dukiara kompanenti ba. Diara kum ulban apia.
     }

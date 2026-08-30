@@ -911,9 +911,12 @@ describe("the Silk Road batch's plural categories", () => {
  *     all: it forks on how many outputs a component needs — the English says
  *     "one output"/"two outputs", the slope field against the vector field —
  *     rather than on how many of anything a reader has.
- *   * **`kek` and `miq` collapse even that one**, losing the one-output
- *     wording, which is recorded rather than forbidden and is on the
- *     reviewer's list.
+ *   * **`kek` and `miq` write no `[one]` at all**: both spell the fork out
+ *     as prose instead, naming the slope field and the vector field side by
+ *     side and interpolating `{ $expected }` between them, so the
+ *     distinction survives without a category branch. That is recorded
+ *     rather than forbidden — a reviewer may prefer the branch — but neither
+ *     catalog loses the one-output wording.
  *   * **No catalog in the batch forks a real count.** Every count message in
  *     the twelve is a single `*[other]`, which is what a creole with a
  *     preposed plural particle and a Mayan language with an unmarked noun
@@ -1037,8 +1040,10 @@ describe("the Americas batch's plural categories", () => {
     /**
      * Where the twelve without rules put their one `[one]`, and the two that
      * put it nowhere. This is a record of the seed rather than a rule: the
-     * message forks the slope-field sentence against the vector-field one, so
-     * a catalog that collapses it loses a distinction English draws.
+     * message forks the slope-field sentence against the vector-field one,
+     * and `kek` and `miq` keep that fork as prose rather than as a branch —
+     * which is why the second assertion holds every catalog to naming both
+     * fields, branch or no branch.
      */
     it.each(NO_RULES)(
         "keeps %s's [one] out of every count select",
@@ -1052,6 +1057,15 @@ describe("the Americas batch's plural categories", () => {
                     /field-function-wrong-num-outputs =[\s\S]*?\[one\]/,
                 );
             }
+            // Branch or prose, both fields have to be named. Collapsing to
+            // the vector example alone would state the wrong requirement to
+            // a reader whose function needs one output.
+            const message = catalog.match(
+                /field-function-wrong-num-outputs =[\s\S]*?\n(?=[a-z-]+ =)/,
+            )?.[0];
+            expect(message).toBeDefined();
+            expect(message).toContain("`y - x`");
+            expect(message).toContain("`(y, -x)`");
         },
     );
 });
