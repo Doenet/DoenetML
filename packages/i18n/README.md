@@ -2395,7 +2395,7 @@ welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable).
 
 **Two catalogs write an affix against a placeable and are not that case.**
 `locales/wbl` puts its postpositions «-ir» and «-dar» straight onto
-`{ $component }` and `{ $startLine }` in about two dozen places, and
+`{ $component }` and `{ $startLine }` in twenty-nine places across three of its four files, and
 `locales/sgh` does the same with Tajik's «-ро». Both affixes have a single
 invariant shape, so this is `{ $numSides }-kulmio`'s adjacency rather than
 `locales/tg`'s agreement, and all three of `locales/wbl`'s headers that
@@ -3218,9 +3218,14 @@ meet is one the ending merely sits beside. `locales/tg`'s own header records
 that, because a new entry in its `noun` or `color` table has to be checked
 against it.
 
-**`locales/ttt` is that paragraph with the mitigation missing, and it is the
-first catalog in the roster to weld a shape-changing affix onto a placeable
-and record the result as wrong.** Muslim Tat builds the same phrases Tajik
+**`locales/ttt` is that paragraph with the mitigation missing.** It welds a
+shape-changing affix onto a placeable and records the result as wrong, which
+is `locales/bo`'s answer rather than a new one: the Tibetan catalog's other
+three files write the default genitive after a placeable, right for most
+syllables and wrong for some, and say so. What is new is that this is the
+*ezafe* case — the construction `locales/tg` mitigates and `locales/zza`
+avoids by writing the vowel into its `noun` table — failing in the open.
+Muslim Tat builds the same phrases Tajik
 does, and its ezafe is `-i` after a consonant and `-yi` after a vowel. Where
 the catalog writes the word itself it writes the right one; where the ezafe
 has to follow `{ $noun }`, `{ $color }` or `{ $width }` it always writes a
