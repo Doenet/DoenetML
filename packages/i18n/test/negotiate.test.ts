@@ -117,12 +117,17 @@ describe("negotiateLocales", () => {
     });
 
     /**
-     * Norwegian's catalog is named `nb`, but `no` is the tag an author is
-     * likeliest to type and one several browsers still send. Nothing in
-     * filtering negotiation connects the two, so the alias is asserted here
-     * against the real roster.
+     * Norwegian's two written standards, which are now two catalogs.
+     *
+     * `nb` is Bokmål and `nn` is Nynorsk; `no` is the macrolanguage over both,
+     * it is the tag an author is likeliest to type and one several browsers
+     * still send, and nothing in filtering negotiation connects it to either.
+     * The alias sends it to `nb`, and that stayed as it was when `locales/nn`
+     * arrived — a reader who says `no` has not said which standard they read,
+     * and Bokmål is what CLDR fills a bare `no` in as. Asserted here against
+     * the real roster so the two halves cannot drift.
      */
-    describe("Norwegian, whose catalog is named for one written standard", () => {
+    describe("Norwegian, whose two written standards are two catalogs", () => {
         it.each(["no", "no-NO", "nb", "nb-NO"])(
             "serves Bokmål to %s",
             (requested) => {
@@ -133,8 +138,11 @@ describe("negotiateLocales", () => {
             },
         );
 
-        it("leaves Nynorsk to fall back to English", () => {
-            expect(negotiateLocales(["nn"], available)).toEqual(["en"]);
+        it.each(["nn", "nn-NO"])("serves Nynorsk to %s", (requested) => {
+            expect(negotiateLocales([requested], available)).toEqual([
+                "nn",
+                "en",
+            ]);
         });
     });
 
@@ -1608,6 +1616,208 @@ describe("negotiateLocales", () => {
             expect(maximized.region).toBeUndefined();
             expect(maximized.script).toBeUndefined();
             expect(negotiateLocales([normalizeLocaleTag("map")], available)) //
+                .toEqual(["en"]);
+        });
+    });
+
+    /**
+     * The European regional batch. Fifteen catalogs across three families, and
+     * like the Oceania batch before it, one that **changes neither map** —
+     * which is worth pinning rather than passing over, because this batch had
+     * the clearest opportunity yet to change one and should not have taken it.
+     *
+     * `nn` is that opportunity. Nynorsk now has a catalog, and
+     * {@link LANGUAGE_ALIASES} still sends `no` to `nb`. A reader who types
+     * `no` has named the macrolanguage over both written standards and has not
+     * said which of the two they read; Bokmål is what CLDR fills a bare `no` in
+     * as, and pointing `no` at the new catalog would be the substitution the
+     * `fat` row is left out for, in the other direction. The rows below hold
+     * both halves: `nn` reaches its own catalog, and `no` still reaches `nb`
+     * with `locales/nn` sitting right there — the second half living in the
+     * Norwegian block above, which is where both standards are asserted.
+     *
+     * Two of the fifteen — `nn` and `li` — have ISO 639-1 codes, so a reader
+     * can also arrive under the alpha-3 (`nno`, `lim`) that
+     * `Intl.getCanonicalLocales` folds. Those rows are pinned because the
+     * folding is ICU's rather than this repository's.
+     */
+    describe("the European regional batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const EUROPEAN_REGIONAL = [
+            "nn",
+            "sco",
+            "gsw",
+            "ksh",
+            "li",
+            "fur",
+            "vec",
+            "lij",
+            "pms",
+            "nap",
+            "hsb",
+            "dsb",
+            "csb",
+            "szl",
+            "rue",
+        ];
+
+        it.each<[string, string]>([
+            // Each of the fifteen arriving as the directory it names.
+            ...EUROPEAN_REGIONAL.map((locale): [string, string] => [
+                locale,
+                locale,
+            ]),
+            // The alpha-3 doors for the two with a 639-1 code, folded by
+            // `Intl.getCanonicalLocales` rather than by anything here.
+            ["nno", "nn"],
+            ["lim", "li"],
+            // Region tags, which filter without help.
+            ["nn-NO", "nn"],
+            ["sco-GB", "sco"],
+            ["gsw-CH", "gsw"],
+            ["ksh-DE", "ksh"],
+            ["li-NL", "li"],
+            ["li-BE", "li"],
+            ["fur-IT", "fur"],
+            ["vec-IT", "vec"],
+            ["lij-IT", "lij"],
+            ["pms-IT", "pms"],
+            ["nap-IT", "nap"],
+            ["hsb-DE", "hsb"],
+            ["dsb-DE", "dsb"],
+            ["csb-PL", "csb"],
+            ["szl-PL", "szl"],
+            ["rue-SK", "rue"],
+            ["rue-UA", "rue"],
+            // Script tags. Fourteen of the fifteen are Latin, so a `-Latn` is
+            // redundant rather than a disambiguation and has to cost nothing;
+            // `rue` is the batch's one Cyrillic catalog and `-Cyrl` has to cost
+            // nothing there for the same reason.
+            ["nn-Latn", "nn"],
+            ["szl-Latn", "szl"],
+            ["rue-Cyrl", "rue"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The batch that changed no map, asserted as such. Each of the fifteen
+         * reaches its own catalog when the whole roster is on offer *and*
+         * English when only English is — the second half being what would fail
+         * if some entry were quietly folding one of these tags onto a
+         * neighbour.
+         */
+        it("folds none of the fifteen onto another catalog", () => {
+            for (const locale of EUROPEAN_REGIONAL) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The near misses, and this batch's are the densest the roster has
+         * had, because Europe's regional languages sit in continua rather than
+         * on islands.
+         *
+         * `bar` (Bavarian), `swg` (Swabian) and `wae` (Walser) are the
+         * neighbours of `gsw`; `wae` is spoken *inside Switzerland* and is
+         * still a language with a code of its own. `pfl` and `yec` sit beside
+         * `ksh` in and around the Rhineland. `stq` and `frr` are the
+         * Frisian languages beside `li`, and `vls` and `zea` the Low Franconian
+         * ones. `lmo`, `rgn`, `cim` and `mhn` are the Italian neighbours of
+         * `vec`, `lij`, `pms`, `nap` and `fur` — `cim` and `mhn` being Germanic
+         * languages spoken inside Italy, so neither the country's catalogs nor
+         * the family's is the right answer. `mwl`, `ext`, `an` and `wa` are
+         * Romance languages with no catalog here at all. `sgs` and `ltg` are
+         * the Baltic pair. `pdc` and `hrx` are German diaspora languages whose
+         * speakers are nowhere near any of these.
+         *
+         * Not one of them is folded, and none should be: the moment membership
+         * becomes a judgement about how close two varieties sound, nothing in
+         * these maps is checkable any more.
+         */
+        it.each([
+            "bar",
+            "swg",
+            "wae",
+            "pfl",
+            "yec",
+            "stq",
+            "frr",
+            "vls",
+            "zea",
+            "lmo",
+            "rgn",
+            "cim",
+            "mhn",
+            "mwl",
+            "ext",
+            "an",
+            "wa",
+            "sgs",
+            "ltg",
+            "pdc",
+            "hrx",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * Alsatian is the batch's `alq`: the nearest miss that is not a miss
+         * at all. `gsw-FR` is Alsatian, and ISO puts it *inside* `gsw` rather
+         * than beside it, so it reaches `locales/gsw` and gets the
+         * Zurich-based koine that catalog is written in. That is the same
+         * trade region-stripping already makes for `es-MX`, and
+         * `locales/gsw`'s own header says which variety it is so a reader can
+         * tell what they were served.
+         */
+        it("serves an Alsatian reader the Swiss German catalog, as ISO groups them", () => {
+            expect(negotiateLocales([normalizeLocaleTag("gsw-FR")], available)) //
+                .toEqual(["gsw", "en"]);
+        });
+
+        /**
+         * `rue` is the batch's one Cyrillic catalog, and CLDR maximizes it to
+         * **Ukraine** — while the codification `locales/rue` is written in is
+         * the Prešov one, standardized in Slovakia. That is CLDR's answer
+         * rather than a wrong one, and it is recorded rather than worked
+         * around: a host that knew only the region would not reach this
+         * catalog through it, and nobody should later "fix" region handling
+         * into assuming otherwise. It is the `und-WF`-maximizes-to-French row
+         * of the Oceania batch, one batch on.
+         */
+        it("maximizes Rusyn to Ukraine, not to the state its codification comes from", () => {
+            expect(new Intl.Locale("rue").maximize().region).toBe("UA");
+            expect(negotiateLocales([normalizeLocaleTag("rue-SK")], available)) //
+                .toEqual(["rue", "en"]);
+        });
+
+        /**
+         * `eml` is left to miss for `map`'s reason. Emilian-Romagnol is the
+         * one tag in this region CLDR has **no data of any kind** for: it
+         * maximizes to nothing at all and `Intl.DisplayNames` has no name for
+         * it in any language. A tag ICU cannot place is the clearest possible
+         * case for leaving it alone rather than guessing which of `lij`, `vec`
+         * or `pms` its reader would rather have.
+         */
+        it("leaves Emilian-Romagnol alone, because CLDR has no opinion about it", () => {
+            const maximized = new Intl.Locale("eml").maximize();
+            expect(maximized.region).toBeUndefined();
+            expect(maximized.script).toBeUndefined();
+            expect(negotiateLocales([normalizeLocaleTag("eml")], available)) //
                 .toEqual(["en"]);
         });
     });

@@ -65547,6 +65547,10 @@
                             "description": "Czech (čeština)"
                         },
                         {
+                            "value": "csb",
+                            "description": "Kashubian"
+                        },
+                        {
                             "value": "cv",
                             "description": "Chuvash (чӑваш чӗлхи)"
                         },
@@ -65577,6 +65581,10 @@
                         {
                             "value": "doi",
                             "description": "Dogri (डोगरी)"
+                        },
+                        {
+                            "value": "dsb",
+                            "description": "Lower Sorbian (dolnoserbšćina)"
                         },
                         {
                             "value": "dv",
@@ -65659,6 +65667,10 @@
                             "description": "French (français)"
                         },
                         {
+                            "value": "fur",
+                            "description": "Friulian (furlan)"
+                        },
+                        {
                             "value": "fy",
                             "description": "Western Frisian (Frysk)"
                         },
@@ -65685,6 +65697,10 @@
                         {
                             "value": "gn",
                             "description": "Guarani"
+                        },
+                        {
+                            "value": "gsw",
+                            "description": "Swiss German (Schwiizertüütsch)"
                         },
                         {
                             "value": "gu",
@@ -65717,6 +65733,10 @@
                         {
                             "value": "hr",
                             "description": "Croatian (hrvatski)"
+                        },
+                        {
+                            "value": "hsb",
+                            "description": "Upper Sorbian (hornjoserbšćina)"
                         },
                         {
                             "value": "ht",
@@ -65855,6 +65875,10 @@
                             "description": "Kashmiri (کٲشُر)"
                         },
                         {
+                            "value": "ksh",
+                            "description": "Colognian (Kölsch)"
+                        },
+                        {
                             "value": "ktu",
                             "description": "Kituba (Kikongo ya leta)"
                         },
@@ -65881,6 +65905,14 @@
                         {
                             "value": "lg",
                             "description": "Ganda (Luganda)"
+                        },
+                        {
+                            "value": "li",
+                            "description": "Limburgish"
+                        },
+                        {
+                            "value": "lij",
+                            "description": "Ligurian (ligure)"
                         },
                         {
                             "value": "ln",
@@ -66003,6 +66035,10 @@
                             "description": "Nahuatl (Nāhuatl)"
                         },
                         {
+                            "value": "nap",
+                            "description": "Neapolitan"
+                        },
+                        {
                             "value": "nb",
                             "description": "Norwegian Bokmål (norsk bokmål)"
                         },
@@ -66021,6 +66057,10 @@
                         {
                             "value": "nl",
                             "description": "Dutch (Nederlands)"
+                        },
+                        {
+                            "value": "nn",
+                            "description": "Norwegian Nynorsk (norsk nynorsk)"
                         },
                         {
                             "value": "nog",
@@ -66079,6 +66119,10 @@
                             "description": "Polish (polski)"
                         },
                         {
+                            "value": "pms",
+                            "description": "Piedmontese (piemontèis)"
+                        },
+                        {
                             "value": "pon",
                             "description": "Pohnpeian"
                         },
@@ -66119,6 +66163,10 @@
                             "description": "Russian (русский)"
                         },
                         {
+                            "value": "rue",
+                            "description": "Rusyn"
+                        },
+                        {
                             "value": "rw",
                             "description": "Kinyarwanda (Ikinyarwanda)"
                         },
@@ -66141,6 +66189,10 @@
                         {
                             "value": "scn",
                             "description": "Sicilian (sicilianu)"
+                        },
+                        {
+                            "value": "sco",
+                            "description": "Scots"
                         },
                         {
                             "value": "sd",
@@ -66233,6 +66285,10 @@
                         {
                             "value": "sw",
                             "description": "Swahili (Kiswahili)"
+                        },
+                        {
+                            "value": "szl",
+                            "description": "Silesian (ślōnski)"
                         },
                         {
                             "value": "ta",
@@ -66353,6 +66409,10 @@
                         {
                             "value": "ve",
                             "description": "Venda"
+                        },
+                        {
+                            "value": "vec",
+                            "description": "Venetian (veneto)"
                         },
                         {
                             "value": "vep",
