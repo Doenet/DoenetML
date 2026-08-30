@@ -11,8 +11,9 @@
 #
 # **CLDR has no name for this tag at all.** `haz` is a valid ISO 639-3 code and
 # `Intl.DisplayNames` returns nothing for it, so the roster's label for this
-# catalog is written by hand rather than read out of CLDR, and no
-# likely-subtags entry fills in a script or a region either. That is a fact
+# catalog is written by hand rather than read out of CLDR. The gap is in the
+# names only: likely-subtags does know the tag, and `haz` maximizes to
+# `haz-Arab-AF`, which is what settles this catalog's direction. That is a fact
 # about the data, not about the language: Hazaragi is spoken by several million
 # people in the Hazarajat and in the Quetta and Mashhad diasporas.
 #
