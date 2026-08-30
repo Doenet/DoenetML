@@ -37,6 +37,7 @@ import {
     catalogParseErrors,
     multilinePatterns,
     numberingSystemOverrides,
+    allowedPluralCategories,
     unselectablePluralCategories,
     collectCallSites,
     collectDiagnosticUsage,
@@ -96,12 +97,18 @@ for (const locale of locales) {
         }
         // 1d: no catalog names a plural category its own locale cannot
         // select. Such a branch parses, lints and never renders — text that
-        // looks translated and is unreachable. `locales/km` carried one for
-        // months: Khmer has only `other`, and its `[one]` branch was dead.
-        for (const category of unselectablePluralCategories(locale, source)) {
-            problems.push(
-                `locales/${locale}/${namespace}.ftl: [${category}] is a plural category ${locale} cannot select, so the branch would never render — see allowedPluralCategories in scripts/catalogUtils.ts`,
-            );
+        // looks translated and is unreachable. `locales/km` was seeded with
+        // one: Khmer has only `other`, and its `[one]` branch was dead.
+        const unselectable = unselectablePluralCategories(locale, source);
+        if (unselectable.length > 0) {
+            const selectable = [...allowedPluralCategories(locale)]
+                .sort()
+                .join(", ");
+            for (const category of unselectable) {
+                problems.push(
+                    `locales/${locale}/${namespace}.ftl: [${category}] is a plural category ${locale} cannot select, so the branch would never render — ${locale} selects only ${selectable}; fold the branch's text into the default variant beside it, or drop the select if the remaining branches are identical (see allowedPluralCategories in scripts/catalogUtils.ts)`,
+                );
+            }
         }
     }
 

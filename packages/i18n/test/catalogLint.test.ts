@@ -862,6 +862,32 @@ describe("plural categories a locale cannot select", () => {
             ).toEqual([]);
         });
 
+        it("leaves the default variant out, since Fluent always falls back to it", () => {
+            // `*[one]` in a language whose only category is `other` is
+            // selected by every count rather than by none, so it is not the
+            // defect this rule is about.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "attempts = { $count ->",
+                        "        [two] both",
+                        "       *[one] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["two"]);
+            expect(
+                unselectablePluralCategories(
+                    "km",
+                    [
+                        "attempts = { $count ->",
+                        "       *[one] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+
         it("descends into a select nested under another", () => {
             expect(
                 pluralVariantKeys(
@@ -899,9 +925,10 @@ describe("plural categories a locale cannot select", () => {
         });
 
         it("gives a locale CLDR has no data for `one` and `other` only", () => {
-            // The branches these catalogs are entitled to: English's split is
-            // what the fallback makes, and around a hundred catalogs record
-            // the trade in their own headers.
+            // The branches these catalogs are entitled to: English's split
+            // is the one the fallback usually makes, and each of the
+            // ninety-odd catalogs that take it records the trade in its own
+            // header.
             expect([...allowedPluralCategories("sco")].sort()).toEqual([
                 "one",
                 "other",

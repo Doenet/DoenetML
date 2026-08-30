@@ -3409,8 +3409,8 @@ A catalog may write only the plural categories its own locale can reach, and
 
 This is the quietest defect a catalog can carry. A `[one]` branch in a language
 whose only category is `other` parses, lints, reads as a translation, and never
-renders — Fluent's default variant answers every input instead. `locales/km`
-carried exactly that in two messages for months. Both `[one]` branches were
+renders — Fluent's default variant answers every input instead. `locales/km` was
+seeded with exactly that in two messages. Both `[one]` branches were
 byte-identical to the `*[other]` beside them, which is precisely why nobody
 noticed: the output was right, and the branch was dead. Khmer's own catalog
 header had said "Khmer has a single plural category" the whole time.
@@ -3421,25 +3421,35 @@ Two things can put one there, and the rule covers both:
   is the authority, and `resolvedOptions().pluralCategories` is the answer.
 - **A locale CLDR does not know.** Its tag resolves to the *runtime's* default
   locale, so every category branch in it is selected by some other language's
-  rules. Around a hundred catalogs are in this position, and none of them writes
-  `zero`, `two`, `few` or `many`.
+  rules. More than a hundred locale directories are in this position, and none
+  of them writes `zero`, `two`, `few` or `many`.
 
-`one` is the deliberate exception in the second case: those hundred catalogs
-keep English's `one`/`other` split because it is the split the fallback makes
-and it reads correctly for them, and each of their headers records the trade.
-Forbidding it would be a change to a hundred catalogs rather than a lint rule.
+`one` is the deliberate exception in the second case: most of those locales keep
+English's `one`/`other` split because English is the package's `DEFAULT_LOCALE`
+and its split is the one the fallback usually makes, and because it reads
+correctly for them — each of their headers records the trade. Forbidding it
+would be a change to ninety-odd catalogs rather than a lint rule.
 
 **Numeric literals are a different mechanism and stay legal.** `[0]` is matched
 against the number itself rather than against a category, so it remains
 selectable in a language whose only category is `other` — which is why
-`locales/km` keeps its zero branch and lost only its `[one]`.
+`locales/km` keeps the `[0]` branch of `attempts-remaining` and lost only the
+`[one]` beside it.
+
+**The default variant is exempt whatever it is named.** Fluent answers with it
+whenever no other branch claims the input, so `*[one]` in a single-category
+language is selected by every count rather than by none.
 
 The tag is canonicalized before it is asked about, because ICU folds three
 directory names onto a macrolanguage — `kmr` to `ku`, `kpv` to `kv`, `mhr` to
 `chm` — and `kmr` genuinely inherits Kurdish's rules while the other two
-inherit nothing, their macrolanguages having no CLDR data either.
+inherit nothing, their macrolanguages having no CLDR data either. Comparing the
+resolved tag against the *language* subtag rather than the whole tag matters for
+the opposite reason: `zh-Hans` and `zh-Hant` both resolve to plain `zh`, which
+is their own data and not a fallback.
 
-`allowedPluralCategories` and `unselectablePluralCategories` in
+`pluralVariantKeys`, `allowedPluralCategories` and
+`unselectablePluralCategories` in
 `scripts/catalogUtils.ts` are the rule; `catalogLint.test.ts` holds it over the
 whole roster, which is what the per-batch plural blocks in `chrome.test.ts`
 were each reaching for one batch at a time. Those blocks stay, minus the half

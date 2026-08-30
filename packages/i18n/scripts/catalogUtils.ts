@@ -332,19 +332,23 @@ export function symbolicVariantKeys(source: string): Map<string, string[]> {
  * One visitor for both readings of a select's keys, because the traversal is
  * the whole of the shared part and the predicate is the whole of the
  * difference: {@link symbolicVariantKeys} takes the keys that are *not* plural
- * categories, {@link pluralVariantKeys} takes the ones that are. Numeric keys
- * (`[0]`, `[1]`) are not `Identifier` nodes at all, so neither reading ever
- * sees one.
+ * categories, {@link pluralVariantKeys} takes the ones that are — and only the
+ * latter cares whether the branch is the default, which is why `accept` is
+ * handed the whole variant and not just its name. Numeric keys (`[0]`, `[1]`)
+ * are not `Identifier` nodes at all, so neither reading ever sees one.
  */
 class VariantKeyVisitor extends Visitor {
     found = new Set<string>();
 
-    constructor(private accept: (name: string) => boolean) {
+    constructor(private accept: (name: string, variant: Variant) => boolean) {
         super();
     }
 
     visitVariant(node: Variant) {
-        if (node.key.type === "Identifier" && this.accept(node.key.name)) {
+        if (
+            node.key.type === "Identifier" &&
+            this.accept(node.key.name, node)
+        ) {
             this.found.add(node.key.name);
         }
         this.genericVisit(node);
@@ -359,17 +363,26 @@ class VariantKeyVisitor extends Visitor {
  * plural key is part of the *language*, and what matters about it is whether
  * the reader's locale can ever select it.
  *
- * `other` is left out because it is always reachable: Fluent's default variant
- * answers every input no rule claims, so writing it can never be dead. Numeric
- * literals — `[0]`, `[1]` — are left out too, and for a sharper reason: they
- * are matched against the *number* rather than against a category, so they
- * stay selectable in a language whose only category is `other`. That
- * distinction is what keeps `locales/km`'s `[0]` branch legal while its `[one]`
- * branch was not.
+ * Two kinds of key are left out because nothing can make them dead:
+ *
+ *   * the *default* variant, whatever it is named. Fluent falls back to it for
+ *     every input no other branch claims, so `*[one]` in a language whose only
+ *     category is `other` is selected by every count rather than by none;
+ *   * `other`, whether or not it is the default. It is the category CLDR gives
+ *     every language, so a locale can always reach it.
+ *
+ * Numeric literals — `[0]`, `[1]` — are left out too, and for a sharper
+ * reason: they are matched against the *number* rather than against a
+ * category, so they stay selectable in a language whose only category is
+ * `other`. That distinction is what keeps `locales/km`'s `[0]` branch legal
+ * while its `[one]` branch was not.
  */
 export function pluralVariantKeys(source: string): string[] {
     const visitor = new VariantKeyVisitor(
-        (name) => PLURAL_VARIANT_KEYS.has(name) && name !== "other",
+        (name, variant) =>
+            PLURAL_VARIANT_KEYS.has(name) &&
+            name !== "other" &&
+            !variant.default,
     );
     visitor.visit(parseFtl(source, {}));
     return [...visitor.found].sort();
@@ -393,12 +406,13 @@ export function pluralVariantKeys(source: string): string[] {
  *     `few` or `many`, and why several of their headers say so in as many
  *     words.
  *
- * `one` is the deliberate exception in the second case. Around a hundred
- * catalogs are for tags CLDR has no data for, and they keep English's
- * `one`/`other` split because it is the split the fallback makes and it reads
- * correctly for them. Forbidding it would be a change to a hundred catalogs
- * rather than a lint rule, and each of those headers already records the
- * trade.
+ * `one` is the deliberate exception in the second case. More than a hundred of
+ * this repository's locale directories are for tags CLDR has no data for, and
+ * most of them keep English's `one`/`other` split because English is the
+ * package's `DEFAULT_LOCALE` and its split is the one the fallback usually
+ * makes, and because it reads correctly for them. Forbidding it would be a change to
+ * ninety-odd catalogs rather than a lint rule, and each of their headers
+ * already records the trade.
  *
  * The tag is canonicalized before it is asked about, because ICU folds three
  * of this repository's directory names onto a macrolanguage — `kmr` to `ku`,
@@ -429,8 +443,14 @@ export function allowedPluralCategories(locale: string): Set<string> {
 }
 
 /**
- * What a locale CLDR has no data for may write: the split its fallback
- * actually makes, which is English's.
+ * What a locale CLDR has no data for may write: English's split.
+ *
+ * Which language actually selects such a branch is the *runtime's* default
+ * locale and so not knowable here — a browser set to Polish would pick the
+ * branch by Polish rules. English is the right answer anyway: it is the
+ * package's `DEFAULT_LOCALE`, the language every one of these catalogs falls
+ * back to when it is incomplete, and the split their headers say they are
+ * assuming. Anything beyond `one` would be a branch no reader is promised.
  */
 const FALLBACK_PLURAL_CATEGORIES = ["one", "other"];
 
