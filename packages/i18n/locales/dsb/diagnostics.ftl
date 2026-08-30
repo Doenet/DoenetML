@@ -1,5 +1,5 @@
 # Lower Sorbian (dolnoserbšćina) diagnostics. Translated from
-# `locales/en/diagnostics.ftl`, which is the seurce of truth: `lint:i18n`
+# `locales/en/diagnostics.ftl`, which is the source of truth: `lint:i18n`
 # rejects a key that does not exist there, and reports a key that exists there
 # but not here as missing coverage.
 #
@@ -14,7 +14,7 @@
 # process produced both. This is the trap `locales/tkl` and `locales/tvl`
 # record for Tokelauan and Tuvaluan, and it is sharper here because the
 # correspondences between Upper and Lower Sorbian are regular enough to apply
-# mechanically: «hdyž»→«gaž», «dokulaž»→«dokulaž», «musy»→«musy»,
+# mechanically: «hdyž»→«gaž», «dokelž»→«dokulaž», «dyrbi»→«musy»,
 # «njemóžu»→«njamóžom», «zo by»→«aby». Those are real, but a file built out of
 # them is a transposition rather than a translation, and a reviewer should read
 # it as one.
@@ -23,11 +23,11 @@
 # `through`, `endpoint`, `midpointOffset`, `numDimensions`, `<answer>`,
 # `selectFromSequence`, `styleNumber` — are part of the language, not prose,
 # and stay in English exactly as written. So does anything quoted back from the
-# author's own seurce, and se do `WCAG AA`, `DoenetML`, `PreFigure` and
+# author's own source, and so do `WCAG AA`, `DoenetML`, `PreFigure` and
 # `prefigure`, which are names.
 #
 # **The dual.** `Intl.PluralRules("dsb")` has Lower Sorbian's own four
-# categories, se a `[two]` branch here is selected truthfully; see
+# categories, so a `[two]` branch here is selected truthfully; see
 # `chrome.ftl`.
 #
 # Every **symbolic** selector — `$type`, `$mode`, `$reason`, `$context`,
@@ -419,7 +419,7 @@ attribute-must-be-references = Njepłaśiwa gódnota `{ $value }` za atribut `{ 
 
 math-input-invalid-function-names = <mathInput>: ignorowach njepłaśiwe mjenja funkcijow w { $attribute }: { $names }. Zwobraznjeny źěl kuždego mjenja musy nanejmjenjej 2 znamjenja měś (pismiki abo mjazyznamješka); po nim móže opcionalny sufiks `|<mathspeak-alternatiwa>` slědować.
 
-## Building components from the seurce
+## Building components from the source
 
 component-type-invalid = Njepłaśiwy typ komponenty: `<{ $componentType }>`
 

@@ -95,11 +95,11 @@ header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-A hundred and eighty-five of them are deliberately partial. A hundred and
-eighty-four are partial in the same place — the two chemistry tables — while
+A hundred and ninety-six of them are deliberately partial. A hundred and
+ninety-five are partial in the same place — the two chemistry tables — while
 Klingon is partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and eighty-four are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and ninety-five are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -119,7 +119,9 @@ Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic, Chechen, Abkhazian, Adyghe,
 Kabardian, Avaric, Lezghian, Dargwa, Lak, Tabasaran, Ingush, Karachay-Balkar,
 Kumyk, Nogai, Talysh, Kurdish, Central Kurdish, Southern Sami, Lule Sami,
 Inari Sami, Skolt Sami, Kildin Sami, Veps, Livvi-Karelian, Karelian, Võro,
-Tornedalen Finnish, Moksha, Komi-Permyak, Hill Mari, Khanty, Mansi, Scots,
+Tornedalen Finnish, Moksha, Komi-Permyak, Hill Mari, Khanty, Mansi,
+Marshallese, Chuukese, Pohnpeian, Kosraean, Gilbertese, Niuean, Tokelauan,
+Tuvaluan, Rarotongan, Wallisian, Bislama, Scots,
 Swiss German, Colognian, Limburgish, Friulian, Venetian, Ligurian,
 Piedmontese, Neapolitan, Upper Sorbian, Lower Sorbian, Kashubian, Silesian and
 Rusyn
@@ -2138,11 +2140,18 @@ Ukrainian across Rusyn's range depending on the state. So in all fourteen the
 fallback *is* the curriculum, and `locales/it`, `locales/de`, `locales/nl`,
 `locales/pl` and `locales/sk` are the parallel texts each header names.
 
-`locales/sco` makes the point sharpest, and in a way no earlier catalog could.
-Everywhere else in this file a school-system gap means the reader meets the
-table in a *neighbouring* language — a Friulian pupil in Italian, a Sorbian one
-in German. A Scots speaker meets it in **the fallback language itself**. The
-gap and the fallback coincide exactly once in the roster, and this is it.
+`locales/sco` is the batch's plainest case of it. For the other thirteen a
+school-system gap means the reader meets the table in a *neighbouring*
+language — a Friulian pupil in Italian, a Sorbian one in German. A Scots
+speaker meets it in **the fallback language itself**, which is not new in the
+roster: `pcm` and `kri` are the same coincidence for two English-lexified
+creoles (see [the chemistry gap, and the case where the fallback is the
+language](#the-chemistry-gap-and-the-case-where-the-fallback-is-the-language)),
+and every catalog whose school system teaches in English — `gil`, `tpi`, `mh`,
+`tkl`, `tvl`, `niu` and `bi` among them — falls back to the language of the
+classroom rather than of a neighbouring state. What is particular to Scots is
+that English is also its *sister* language, which is the difficulty
+`locales/sco`'s header is written around.
 
 #### The plural split, and three categories no catalog here had
 
@@ -2154,7 +2163,8 @@ and it is the first in which both states arrive together in numbers.
 any of those seven would be text selected by English's rules on English's
 terms. None of the seven writes one. `chrome.test.ts` holds both halves.
 
-Three of the eight write a category the batch's other twelve could not:
+Three of the eight write a category the batch's other twelve could not, and a
+fourth has one it deliberately leaves unwritten:
 
 - **`hsb` and `dsb` write a `two`.** Upper and Lower Sorbian have a living
   grammatical dual, and CLDR has it: «jedyn pospyt», «dwaj pospytaj», «tři
@@ -2260,8 +2270,10 @@ Six relationships in this batch could each have produced a respelling of an
 existing catalog, and every one of the six is argued in a header instead.
 
 - **`nn` beside `nb`** is the sharpest, and the one this file has a name for
-  already: two written standards of one language, two directories, exactly as
-  `locales/hr` sits beside `locales/sr` and `locales/tn` beside `locales/st`.
+  already: two standards, two directories, the `hr`-against-`sr` case this file
+  already applies to `locales/tn` beside `locales/st` — and here the two
+  standards really are two written forms of one language rather than two
+  standard languages, which makes the pull between them stronger, not weaker.
   `locales/nn`'s header lists the words a corrector must not "fix" —
   «ikkje», «kva», «frå», «eit», «sida», «berre», «nokon», «fleire».
 - **`dsb` beside `hsb`** is the batch's `tkl`/`tvl`: two standards close enough
@@ -2277,11 +2289,13 @@ existing catalog, and every one of the six is argued in a header instead.
   gravity a seed falls into when it has nothing better. Each header lists the
   everyday words where the two part company, because those are what a reviewer
   can check in a second.
-- **`sco` beside `en`** is that shape at its limit, and it is a failure mode no
-  other catalog in this repository has. English is Scots's sister language
-  *and* its roofing language, so a seed with nothing to say falls into English
-  without anything looking wrong. `locales/sco`'s header answers it the way
-  `locales/bi` answers it for an English-lexified creole: a word is written
+- **`sco` beside `en`** is that shape at its limit. English is Scots's sister
+  language *and* its roofing language, so a seed with nothing to say falls into
+  English without anything looking wrong. `locales/pcm`, `locales/kri` and
+  `locales/bi` meet the same trap from the other side, as creoles English
+  lexified; what no other catalog has is a *sister* language that is also the
+  roof. `locales/sco`'s header answers it the way `locales/bi` answers it for
+  an English-lexified creole: a word is written
   there because a Scots dictionary has it, not because it differs from English,
   and the header lists the words the file leans on so a reviewer can say which
   of them a reader would actually meet.
@@ -2291,7 +2305,7 @@ existing catalog, and every one of the six is argued in a header instead.
 Six of the fifteen write in a spelling a corrector could easily "simplify" into
 a different language, and each says so at the top of its own files: the
 **ślabikŏrzowy szrajbōnek** for `szl` («ō», «ŏ», «ô», «ã», «õ» are letters, not
-decorated Polish ones); the **grafia ofiçiâ** for `lij` («ç», «ñ», the
+decorated Polish ones); the **grafîa ofiçiâ** for `lij` («ç», «ñ», the
 circumflex); the **grafìa piemontèisa** for `pms` («ë», «ò», «ù», «n-»); the
 **grafie uficiâl** for `fur` (the circumflex, «ç», «cj», «gj»); the **unified
 Venetian spelling** for `vec` («x» for the voiced sibilant, and **no «ł»**);
@@ -2305,9 +2319,8 @@ regularizes one of a pair to match the other.
 #### Also here
 
 - **No `LOCALE_NAME_FALLBACKS` entry at all.** CLDR knows every one of the
-  fifteen, in English, and knows **ten** of them in themselves — this is the
-  best-named batch the roster has had, and the first since the table existed to
-  need nothing from it.
+  fifteen, in English, and knows **ten** of them in themselves, so this is the
+  first batch since the table existed to need nothing from it.
 - **No `direction.ts` change.** Fourteen are Latin and `rue` is Cyrillic; all
   fifteen run left to right.
 - **Five** of the fifteen read their **English name once** in
