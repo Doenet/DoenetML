@@ -889,9 +889,10 @@ describe("the Silk Road batch's plural categories", () => {
  * `one`, `two` and `other`, and the catalog writes all three with a different
  * ending in each: the dual is a fact about Inuktitut grammar rather than a
  * branch copied from English, and it is the only place in the batch where a
- * count select carries more than the default. Four catalogs on the roster had
- * a `[two]` before it — `hsb`, `dsb` and the Sami pair — and none of them is
- * in the Americas.
+ * count select carries more than the default. Sixteen catalogs on the roster
+ * already write a `[two]` their own rules select — Arabic, Hebrew, Maltese,
+ * Slovene, the Celtic four, the Sorbian pair, Santali and the five Sami — and
+ * none of them is in the Americas.
  *
  * That no catalog here carries a `[zero]`, `[few]` or `[many]` branch its own
  * locale could never select is not asserted in this block: the roster-wide
@@ -906,7 +907,7 @@ describe("the Silk Road batch's plural categories", () => {
  * every runtime default can select — and where it falls in the twelve without
  * rules is the thing this summary would not have predicted:
  *
- *   * **Eleven of the twelve write exactly one `[one]`**, in
+ *   * **Ten of the twelve write exactly one `[one]`**, in
  *     `field-function-wrong-num-outputs`, and it is not a count select at
  *     all: it forks on how many outputs a component needs — the English says
  *     "one output"/"two outputs", the slope field against the vector field —

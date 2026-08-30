@@ -4890,10 +4890,11 @@ describe("the Americas batch's word order", () => {
      * the same reason.
      *
      * They are not one catalog copied twice, which is the thing worth
-     * catching: two fifths of the values they both define differ, and over all
-     * four namespaces it is four fifths. So what is asserted is not that these
-     * two disagree somewhere — it is that they disagree at a rate a duplicate
-     * could not.
+     * catching: two fifths of the values they both define here differ, and
+     * over all four namespaces, counted off the syntax tree in
+     * `catalogLint.test.ts`, it is 342 of 389. So what is asserted is not that
+     * these two disagree somewhere — it is that they disagree at a rate a
+     * duplicate could not.
      */
     it("has jam and bzj converge on this phrase without being one catalog", () => {
         const jam = prenominal.find(([locale]) => locale === "jam")!;

@@ -2826,7 +2826,7 @@ one, and leave the key out where they do not.**
 `locales/iu` is the same judgement applied inside a catalog rather than to
 one — see the coverage note below.
 
-#### Coverage: thirteen at the ceiling, and one that stops short on purpose
+#### Coverage: fourteen at the ceiling, and one that stops short on purpose
 
 Fourteen of the fifteen sit at **445/575**, which is the whole catalog minus
 the two chemistry tables and the same figure the Silk Road batch reached. The
@@ -2936,9 +2936,10 @@ twelve therefore write one unselected form wherever English forks a count.
 
 **`iu` is the reason that matters.** Inuktitut's rules give it `one`, `two` and
 `other`, and `attempts-remaining` writes all three with a different ending in
-each: ᐆᒃᑐᕐᓂᒃᓴᖅ, ᐆᒃᑐᕐᓂᒃᓵᒃ, ᐆᒃᑐᕐᓂᒃᓴᐃᑦ. Four catalogs on the roster had a
-`[two]` before it — `hsb`, `dsb` and two Sami catalogs — and none of them is in
-the Americas. A dual that repeated the plural would be a branch that renders
+each: ᐆᒃᑐᕐᓂᒃᓴᖅ, ᐆᒃᑐᕐᓂᒃᓵᒃ, ᐆᒃᑐᕐᓂᒃᓴᐃᑦ. Sixteen catalogs on the roster already
+write a `[two]` their own rules select — Arabic, Hebrew, Maltese, Slovene, the
+Celtic four, the Sorbian pair, Santali and the five Sami — and `iu` is the
+seventeenth and the first in the Americas. A dual that repeated the plural would be a branch that renders
 and says nothing, which is the same defect as a `[one]` in a locale that cannot
 select one, met from the other side, so the test asserts the three forms differ
 rather than merely that three branches exist.
@@ -2955,10 +2956,13 @@ select in the batch to having at least two branches that differ.
 
 The floor is *some* branch differing rather than all of them, and the
 difference matters: `style-border-clause` forks four ways on an article
-English has and six of these languages do not, so `[with-article]` and
-`[with]` land on one string in `kl`, `cab`, `miq`, `srn`, `djk` and `srm`
-while `[and]` stays apart. That is a distinction the target language does not
-draw, not one the translation lost.
+English has and a linker English spells two ways, and six of these catalogs
+collapse one of those forks. `kl` and `miq` write no article, so
+`[with-article]` lands on `[with]` and `[and-article]` on `[and]`; `cab`,
+`srn`, `djk` and `srm` use one word for both *with* and *and*, so `[with]`
+lands on `[and]` and the two article branches stay together. Either way two
+branches remain, and either way it is a distinction the target language does
+not draw rather than one the translation lost.
 
 #### One character, and the homoglyph question in a new form
 

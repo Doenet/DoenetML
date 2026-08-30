@@ -1359,12 +1359,14 @@ describe("catalogs of one lexifier that are not each other's copy", () => {
  * for a message whose wording does not turn on the count.
  *
  * **Identical branches are forbidden; merely non-distinct ones are not.**
- * `style-border-clause` forks four ways on an article English has and six of
- * these languages do not, so `[with-article]` and `[with]` land on one string
- * in `kl`, `cab`, `miq`, `srn`, `djk` and `srm` while `[and]` stays apart.
- * That is a distinction the target language does not draw, not one the
- * translation lost, so the floor is *some* branch differing rather than all
- * of them.
+ * `style-border-clause` forks four ways on two distinctions English draws, an
+ * indefinite article and a linker English spells two ways, and six of these
+ * catalogs collapse one of the two: `kl` and `miq` write no article, so
+ * `[with-article]` lands on `[with]`, while `cab`, `srn`, `djk` and `srm` use
+ * one word for both *with* and *and*, so `[with]` lands on `[and]`. Either
+ * way two branches remain. That is a distinction the target language does not
+ * draw, not one the translation lost, so the floor is *some* branch differing
+ * rather than all of them.
  */
 describe("selects in the Americas batch that still say something", () => {
     /** The fifteen tags this batch adds, in the order the README lists them. */

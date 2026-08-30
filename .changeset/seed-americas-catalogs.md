@@ -16,9 +16,8 @@ renders its style descriptions, section headings, boolean words, answer
 buttons, editor chrome and diagnostics in that language instead of falling
 back to English.
 
-Inuktitut is written in Canadian Aboriginal syllabics and is the roster's
-fifth catalog with a dual, so a count in it selects one of three forms rather
-than one of two. It also leaves the geometry nouns to fall back to English
+Inuktitut is written in Canadian Aboriginal syllabics and has a dual, so a
+count in it selects one of three forms rather than one of two. It also leaves the geometry nouns to fall back to English
 rather than writing them in roman letters inside a syllabic sentence, so a
 style description in Inuktitut is part English by design.
 
