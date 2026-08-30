@@ -351,10 +351,11 @@ describe("DoenetSourceObject", () => {
         // *complete* `<m>` element holding it as text. The cursor right after
         // `<m` is still typing the open tag name. `}` is the one that shows up
         // in practice, since the editor closes brackets as you type, so
-        // `<me>\frac{` is already `<me>\frac{|}` when the tag is typed. The
-        // trailing `>` is the well-formed control: it terminates the tag
-        // properly (no error recovery involved) and already reported
-        // `openTagName`, so the recovered shapes must agree with it.
+        // `<me>\frac{` is already `<me>\frac{|}` when the tag is typed. `/`
+        // ends the name the same way, through a self-closing tag whose `>` has
+        // yet to be typed. The trailing `>` is the well-formed control: it
+        // terminates the tag properly (no error recovery involved) and already
+        // reported `openTagName`, so the recovered shapes must agree with it.
         for (const terminator of [
             "}",
             "{",
@@ -364,6 +365,7 @@ describe("DoenetSourceObject", () => {
             "&",
             "%",
             "\\",
+            "/",
             ">",
         ]) {
             const source = `<p><m${terminator}</p>`;

@@ -274,6 +274,12 @@ describe("AutoCompleter", () => {
                 labels: ["b"],
             });
         }
+
+        // `/` ends the tag name too, through a self-closing tag whose `>` has
+        // yet to be typed, and was equally empty before.
+        const selfClosing = new AutoCompleter(`<aa><b/</aa>`, schema.elements);
+        const selfClosingItems = await selfClosing.getCompletionItems(6);
+        expect(selfClosingItems.map((i) => i.label)).toEqual(["b"]);
     });
 
     it("offers the same items with and without a tag-name terminator (#1767)", async () => {

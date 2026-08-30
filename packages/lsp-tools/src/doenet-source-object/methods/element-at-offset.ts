@@ -48,8 +48,11 @@ export function elementAtOffsetWithContext(
         (leftLezerNodeParentName === "OpenTag" ||
             leftLezerNodeParentName === "SelfClosingTag");
 
-    // If our exact node is not the same as our containing element, then we're a child of the containing
-    // element and so we're in the body.
+    // The cursor is in a body when it is not on the containing element itself:
+    // on one of that element's children (the exact node at the offset differs
+    // from it), with no node or parent to place it in, or on the empty-named
+    // element the parser produces for a lone `<` at the top level. A tag name
+    // still being typed is left to the `openTagName` handling below.
     const cursorIsInSomeBody =
         !exactNodeAtOffset ||
         exactNodeAtOffset !== node ||
