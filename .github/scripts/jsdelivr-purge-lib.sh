@@ -32,15 +32,15 @@ PURGE_RETRY_DELAY="${PURGE_RETRY_DELAY:-20}"
 # The retry delay grows by half each attempt up to this cap, so the later
 # attempts wait minutes rather than repeating a 20-second poll that has already
 # been answered the same way four times. 20s base over 8 attempts is a little
-# under nine minutes of purging, against the 100 seconds that five flat
+# under nine minutes of purging, against the 80 seconds that five flat
 # 20-second retries bought.
 PURGE_RETRY_MAX_DELAY="${PURGE_RETRY_MAX_DELAY:-120}"
 CDN_POLL_INTERVAL="${CDN_POLL_INTERVAL:-15}"
 CDN_POLL_TIMEOUT="${CDN_POLL_TIMEOUT:-900}"
 
-# How often the wait below reports that it is still waiting, in seconds. Only
-# affects log volume.
-_REGISTRY_REPORT_INTERVAL=60
+# How often the waits below report that they are still waiting, in seconds.
+# Only affects log volume.
+_WAIT_REPORT_INTERVAL=60
 
 # The version the registry currently serves for a tag, or empty if it cannot be
 # read. Asks the registry's dist-tags endpoint rather than `npm view`, which
@@ -93,7 +93,7 @@ wait_for_registry_tag() {
         fi
         if [[ ${elapsed} -ge ${next_report} ]]; then
             echo "  ${package}@${tag} still => ${seen:-<none>} (${elapsed}s elapsed)"
-            next_report=$((elapsed + _REGISTRY_REPORT_INTERVAL))
+            next_report=$((elapsed + _WAIT_REPORT_INTERVAL))
         fi
         sleep "${REGISTRY_POLL_INTERVAL}"
     done
@@ -137,19 +137,34 @@ _fetch_cdn() {
 # Only `VERIFY_PATHS` are polled: they are the paths small enough to fetch, and
 # a release is ingested as a unit, so the CDN having these has it having the
 # rest. As with the registry wait the budget is wall-clock.
+#
+# `_fetch_cdn` is deliberately not reused here: a 404 is the expected answer
+# while the wait is doing its job, and that helper retries and reports each one
+# as a failure, which would both slow the poll and fill the log with alarming
+# lines about a CDN that is merely still catching up.
 wait_for_cdn_version() {
     local package="$1" version="$2"
     local started=${SECONDS}
     local deadline=$((SECONDS + CDN_POLL_TIMEOUT))
     local next_report=0 path missing elapsed
 
+    # With no paths to poll the loop would return immediately and the wait
+    # would silently do nothing, leaving the purge exposed to the very lag this
+    # exists to cover. `purge_and_verify` refuses the same way.
+    if [[ ${#VERIFY_PATHS[@]} -eq 0 ]]; then
+        echo "Error: wait_for_cdn_version called with no VERIFY_PATHS; there would" >&2
+        echo "       be nothing to poll, and the wait would pass whether or not" >&2
+        echo "       jsDelivr had the release. Set VERIFY_PATHS as a bash array." >&2
+        return 1
+    fi
+
     echo "Waiting for jsDelivr to fetch ${package}@${version}..."
     while true; do
         missing=""
         for path in "${VERIFY_PATHS[@]}"; do
-            if ! curl -fsS --max-time 60 \
+            if ! curl -fs --max-time 60 \
                 "https://cdn.jsdelivr.net/npm/${package}@${version}/${path}" \
-                -o /dev/null 2>/dev/null; then
+                -o /dev/null; then
                 missing="${missing} ${path}"
             fi
         done
@@ -170,7 +185,7 @@ wait_for_cdn_version() {
         fi
         if [[ ${elapsed} -ge ${next_report} ]]; then
             echo "  not yet on the CDN:${missing} (${elapsed}s elapsed)"
-            next_report=$((elapsed + _REGISTRY_REPORT_INTERVAL))
+            next_report=$((elapsed + _WAIT_REPORT_INTERVAL))
         fi
         sleep "${CDN_POLL_INTERVAL}"
     done
@@ -293,7 +308,7 @@ purge_and_verify() {
             # on is jsDelivr's edge picking up a purge across its POPs, which
             # takes longer than the interval that was polling it, and the purge
             # API is rate-limited besides — so re-asking every 20 seconds both
-            # gives up sooner and asks harder than is useful.
+            # gave up sooner and asked harder than was useful.
             delay=$((delay * 3 / 2))
             if [[ ${delay} -gt ${PURGE_RETRY_MAX_DELAY} ]]; then
                 delay=${PURGE_RETRY_MAX_DELAY}
