@@ -59,6 +59,14 @@ const schema = {
     ],
 };
 
+/**
+ * Characters that cannot continue a tag name, so typing one ends the tag name
+ * being typed. These are the ones the report for #1767 tabulated; the fix isn't
+ * keyed to a list, so any other such character (`!`, `#`, `,`, `;`, `"`, …)
+ * behaves the same way.
+ */
+const TAG_NAME_TERMINATORS = ["}", "{", ")", "]", "$", "&", "%", "\\"];
+
 describe("AutoCompleter", () => {
     it("Can suggest completions", async () => {
         let source: string;
@@ -256,7 +264,7 @@ describe("AutoCompleter", () => {
         // the cursor right after `<b` used to look like `<b>`'s body and offer
         // nothing. It should offer element names filtered by the typed text,
         // exactly as it does with no terminator present.
-        for (const terminator of ["}", "{", ")", "]", "$", "&", "%", "\\"]) {
+        for (const terminator of TAG_NAME_TERMINATORS) {
             const source = `<aa><b${terminator}</aa>`;
             const autoCompleter = new AutoCompleter(source, schema.elements);
             const offset = source.indexOf("<b") + 2; // right after `<b`
@@ -274,16 +282,23 @@ describe("AutoCompleter", () => {
         // same replacement ranges on the snippet items (which replace `<m`,
         // leaving the terminator in place). Checked against the real schema,
         // where snippets and ranking are in play.
-        const plain = new AutoCompleter(`<p><m</p>`, doenetSchema.elements);
-        const expected = await plain.getCompletionItems(5);
-        expect(expected.map((i) => i.label)).toContain("math");
 
-        for (const terminator of ["}", "{", ")", "]", "$", "&", "%", "\\"]) {
+        // `withCursor` marks the cursor with `|`, which is stripped before parsing.
+        async function itemsFor(withCursor: string) {
+            const source = withCursor.replace("|", "");
             const autoCompleter = new AutoCompleter(
-                `<p><m${terminator}</p>`,
+                source,
                 doenetSchema.elements,
             );
-            const items = await autoCompleter.getCompletionItems(5);
+            return await autoCompleter.getCompletionItems(
+                withCursor.indexOf("|"),
+            );
+        }
+
+        const expected = await itemsFor(`<p><m|</p>`);
+        expect(expected.map((i) => i.label)).toContain("math");
+        for (const terminator of TAG_NAME_TERMINATORS) {
+            const items = await itemsFor(`<p><m|${terminator}</p>`);
             expect({ terminator, items }).toEqual({
                 terminator,
                 items: expected,
@@ -292,13 +307,11 @@ describe("AutoCompleter", () => {
 
         // The shape from the issue: a tag typed inside a brace group of an
         // `<me>`, where `closeBrackets` has already supplied the `}`. The
-        // suggestions must come from `<me>`'s allowed children.
-        const inMe = new AutoCompleter(
-            `<me>\\frac{<m}</me>`,
-            doenetSchema.elements,
-        );
-        const inMeItems = await inMe.getCompletionItems(12);
-        expect(inMeItems.map((i) => i.label)).toContain("mathInput");
+        // suggestions come from `<me>`'s allowed children, and again match the
+        // terminator-free source exactly.
+        const inMe = await itemsFor(`<me>\\frac{<m|}</me>`);
+        expect(inMe.map((i) => i.label)).toContain("mathInput");
+        expect(inMe).toEqual(await itemsFor(`<me>\\frac{<m|</me>`));
     });
 
     it("matches element names by substring, not only by prefix (#1328)", async () => {

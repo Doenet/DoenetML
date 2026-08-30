@@ -367,9 +367,10 @@ describe("DoenetSourceObject", () => {
             ">",
         ]) {
             const source = `<p><m${terminator}</p>`;
+            const offset = source.indexOf("<m") + 2; // right after `<m`
             const { cursorPosition, node } = new DoenetSourceObject(
                 source,
-            ).elementAtOffsetWithContext(5);
+            ).elementAtOffsetWithContext(offset);
             expect({ terminator, cursorPosition, name: node?.name }).toEqual({
                 terminator,
                 cursorPosition: "openTagName",
@@ -392,9 +393,10 @@ describe("DoenetSourceObject", () => {
         // the (recovered) element's body again, not in its tag name.
         {
             const source = `<p><m}</p>`;
+            const offset = source.indexOf("<m}") + 3; // right after the `}`
             const { cursorPosition, node } = new DoenetSourceObject(
                 source,
-            ).elementAtOffsetWithContext(6);
+            ).elementAtOffsetWithContext(offset);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "m" });
         }

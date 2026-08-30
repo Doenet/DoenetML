@@ -187,6 +187,17 @@ describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
         const help = await helpAt(source, 9);
         expect(help).toMatchObject({ kind: "element", elementName: "text" });
     });
+
+    it("reports element help while a tag name is typed before a terminator (#1767)", async () => {
+        // A character that cannot continue a tag name — here the `}` the
+        // editor auto-inserted for `\frac{` — used to make the half-typed
+        // `<math` look like a finished element the cursor was *inside*, so the
+        // panel listed that element's allowed children instead of describing
+        // the element being named.
+        const source = `<me>\\frac{<math}</me>`;
+        const help = await helpAt(source, source.indexOf("<math}") + 5);
+        expect(help).toMatchObject({ kind: "element", elementName: "math" });
+    });
 });
 
 describe("computeContextHelp — attribute help", () => {
