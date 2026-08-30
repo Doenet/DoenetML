@@ -405,14 +405,17 @@ describe("DoenetSourceObject", () => {
     });
 
     it("Reports openTagName for a tag name ending in a non-word character (#1780)", () => {
-        // Lezer's `TagName` runs over `-`, `.` and `:` as well as word
-        // characters, so `<p><my-|</p>` is a cursor at the end of an open
-        // tag's name. Reading `-` as "not a word character, so look right"
-        // handed the position to whatever followed — the close tag, the
-        // recovered text content, or the `/` of a self-closing tag — and the
-        // element being named was never identified.
-        for (const nameEnd of ["-", ".", ":"]) {
-            for (const after of ["", "}", "/", " ", ' name="a"/>']) {
+        // Lezer's `TagName` runs over much more than `\w` does: `-`, `.`, `:`,
+        // and — `\w` being ASCII-only — accented and non-Latin letters. So
+        // `<p><my-|</p>` is a cursor at the end of an open tag's name. Reading
+        // those endings as "not a word character, so look right" handed the
+        // position to whatever followed — the close tag, the recovered text
+        // content, or the `/` of a self-closing tag — and the element being
+        // named was never identified. The trailing `>` is the well-formed
+        // control: it needs no error recovery and already reported
+        // `openTagName` for a name ending in a word character.
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            for (const after of ["", "}", "/", ">", " ", ' name="a"/>']) {
                 const source = `<p><my${nameEnd}${after}</p>`;
                 const offset = source.indexOf("<my") + 3 + nameEnd.length;
                 const { cursorPosition, node } = new DoenetSourceObject(
@@ -429,13 +432,17 @@ describe("DoenetSourceObject", () => {
         // Regression guard: `atOpenTagNameEnd` covers open tags only, so a
         // half-typed *close* tag name ending the same way is not read as a
         // name being opened — the cursor stays in the enclosing element's body.
-        {
-            const source = `<p></my-</p>`;
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            const source = `<p></my${nameEnd}</p>`;
+            const offset = source.indexOf("</my") + 4 + nameEnd.length;
             const { cursorPosition, node } = new DoenetSourceObject(
                 source,
-            ).elementAtOffsetWithContext(source.indexOf("</my-") + 5);
-            expect(cursorPosition).toEqual("body");
-            expect(node).toMatchObject({ type: "element", name: "p" });
+            ).elementAtOffsetWithContext(offset);
+            expect({ source, cursorPosition, name: node?.name }).toEqual({
+                source,
+                cursorPosition: "body",
+                name: "p",
+            });
         }
 
         // Regression guard: a close tag name being typed is still
@@ -450,14 +457,15 @@ describe("DoenetSourceObject", () => {
         }
 
         // Regression guard: once whitespace separates the cursor from the tag
-        // name, the cursor is in the tag's attribute area rather than its name.
+        // name, the cursor is in the tag's attribute area rather than its name,
+        // hyphenated name or not.
         {
-            const source = `<math >`;
+            const source = `<my- >`;
             const { cursorPosition, node } = new DoenetSourceObject(
                 source,
             ).elementAtOffsetWithContext(source.indexOf(">"));
             expect(cursorPosition).toEqual("openTag");
-            expect(node).toMatchObject({ type: "element", name: "math" });
+            expect(node).toMatchObject({ type: "element", name: "my-" });
         }
     });
 

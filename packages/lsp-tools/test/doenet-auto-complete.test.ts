@@ -358,7 +358,9 @@ describe("AutoCompleter", () => {
 
         // A name matching nothing offers nothing — in particular not the
         // enclosing element's close tag, whose edit would have replaced `<my-`.
-        for (const nameEnd of ["-", ".", ":"]) {
+        // (`ü` because `\w` is ASCII-only, so a name ending in a non-ASCII
+        // letter was read the same way a hyphenated one was.)
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
             const labels = await labelsFor(`<p><my${nameEnd}|</p>`);
             expect({ nameEnd, labels }).toEqual({ nameEnd, labels: [] });
         }
