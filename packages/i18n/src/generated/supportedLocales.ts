@@ -9,6 +9,7 @@ export type SupportedLocale =
     | "en"
     | "ab"
     | "ace"
+    | "acf"
     | "ady"
     | "af"
     | "ak"
@@ -43,7 +44,9 @@ export type SupportedLocale =
     | "bua"
     | "bug"
     | "bum"
+    | "bzj"
     | "ca"
+    | "cab"
     | "cbk"
     | "ce"
     | "ceb"
@@ -61,6 +64,7 @@ export type SupportedLocale =
     | "dar"
     | "de"
     | "dje"
+    | "djk"
     | "dng"
     | "doi"
     | "dsb"
@@ -90,6 +94,8 @@ export type SupportedLocale =
     | "ga"
     | "gaa"
     | "gag"
+    | "gcf"
+    | "gcr"
     | "gd"
     | "gil"
     | "gl"
@@ -117,7 +123,9 @@ export type SupportedLocale =
     | "inh"
     | "is"
     | "it"
+    | "iu"
     | "ja"
+    | "jam"
     | "jv"
     | "ka"
     | "kaa"
@@ -125,10 +133,12 @@ export type SupportedLocale =
     | "kbd"
     | "kbp"
     | "kca"
+    | "kek"
     | "kg"
     | "ki"
     | "kjh"
     | "kk"
+    | "kl"
     | "km"
     | "kmb"
     | "kmr"
@@ -173,6 +183,7 @@ export type SupportedLocale =
     | "mhr"
     | "mi"
     | "min"
+    | "miq"
     | "mk"
     | "ml"
     | "mn"
@@ -211,6 +222,7 @@ export type SupportedLocale =
     | "pa"
     | "pag"
     | "pam"
+    | "pap"
     | "pcm"
     | "pl"
     | "pms"
@@ -251,6 +263,8 @@ export type SupportedLocale =
     | "so"
     | "sq"
     | "sr"
+    | "srm"
+    | "srn"
     | "ss"
     | "st"
     | "su"
@@ -302,6 +316,7 @@ export type SupportedLocale =
     | "xh"
     | "yi"
     | "yo"
+    | "yua"
     | "zgh"
     | "zh-Hans"
     | "zh-Hant"
@@ -356,6 +371,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Acehnese",
         endonym: "Acehnese",
         label: "Acehnese",
+    },
+    {
+        locale: "acf",
+        englishName: "Saint Lucian Creole French",
+        endonym: "Kwéyòl",
+        label: "Saint Lucian Creole French (Kwéyòl)",
     },
     {
         locale: "ady",
@@ -527,10 +548,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "bum", englishName: "Bulu", endonym: "Bulu", label: "Bulu" },
     {
+        locale: "bzj",
+        englishName: "Belize Kriol",
+        endonym: "Bileez Kriol",
+        label: "Belize Kriol (Bileez Kriol)",
+    },
+    {
         locale: "ca",
         englishName: "Catalan",
         endonym: "català",
         label: "Catalan (català)",
+    },
+    {
+        locale: "cab",
+        englishName: "Garifuna",
+        endonym: "Garifuna",
+        label: "Garifuna",
     },
     {
         locale: "cbk",
@@ -633,6 +666,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Zarma",
         endonym: "Zarmaciine",
         label: "Zarma (Zarmaciine)",
+    },
+    {
+        locale: "djk",
+        englishName: "Aukan",
+        endonym: "Okanisi tongo",
+        label: "Aukan (Okanisi tongo)",
     },
     {
         locale: "dng",
@@ -779,6 +818,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Gagauz",
     },
     {
+        locale: "gcf",
+        englishName: "Guadeloupean Creole French",
+        endonym: "kréyòl gwadloupéyen",
+        label: "Guadeloupean Creole French (kréyòl gwadloupéyen)",
+    },
+    {
+        locale: "gcr",
+        englishName: "Guianese Creole French",
+        endonym: "kriyòl gwiyanè",
+        label: "Guianese Creole French (kriyòl gwiyanè)",
+    },
+    {
         locale: "gd",
         englishName: "Scottish Gaelic",
         endonym: "Gàidhlig",
@@ -921,10 +972,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Italian (italiano)",
     },
     {
+        locale: "iu",
+        englishName: "Inuktitut",
+        endonym: "Inuktitut",
+        label: "Inuktitut",
+    },
+    {
         locale: "ja",
         englishName: "Japanese",
         endonym: "日本語",
         label: "Japanese (日本語)",
+    },
+    {
+        locale: "jam",
+        englishName: "Jamaican Creole English",
+        endonym: "Jamaican Creole English",
+        label: "Jamaican Creole English",
     },
     {
         locale: "jv",
@@ -968,6 +1031,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         endonym: "хӑнты ясӑӈ",
         label: "Khanty (хӑнты ясӑӈ)",
     },
+    {
+        locale: "kek",
+        englishName: "Qʼeqchiʼ",
+        endonym: "Qʼeqchiʼ",
+        label: "Qʼeqchiʼ",
+    },
     { locale: "kg", englishName: "Kongo", endonym: "Kongo", label: "Kongo" },
     {
         locale: "ki",
@@ -986,6 +1055,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Kazakh",
         endonym: "қазақ тілі",
         label: "Kazakh (қазақ тілі)",
+    },
+    {
+        locale: "kl",
+        englishName: "Kalaallisut",
+        endonym: "kalaallisut",
+        label: "Kalaallisut (kalaallisut)",
     },
     {
         locale: "km",
@@ -1207,6 +1282,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Minangkabau",
     },
     {
+        locale: "miq",
+        englishName: "Mískito",
+        endonym: "Mískito",
+        label: "Mískito",
+    },
+    {
         locale: "mk",
         englishName: "Macedonian",
         endonym: "македонски",
@@ -1403,6 +1484,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Pampanga",
         endonym: "Pampanga",
         label: "Pampanga",
+    },
+    {
+        locale: "pap",
+        englishName: "Papiamento",
+        endonym: "Papiamento",
+        label: "Papiamento",
     },
     {
         locale: "pcm",
@@ -1623,6 +1710,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Serbian",
         endonym: "српски",
         label: "Serbian (српски)",
+    },
+    {
+        locale: "srm",
+        englishName: "Saramaccan",
+        endonym: "Saamáka tongo",
+        label: "Saramaccan (Saamáka tongo)",
+    },
+    {
+        locale: "srn",
+        englishName: "Sranan Tongo",
+        endonym: "Sranan Tongo",
+        label: "Sranan Tongo",
     },
     { locale: "ss", englishName: "Swati", endonym: "Swati", label: "Swati" },
     {
@@ -1869,6 +1968,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Yoruba",
         endonym: "Èdè Yorùbá",
         label: "Yoruba (Èdè Yorùbá)",
+    },
+    {
+        locale: "yua",
+        englishName: "Yucatec Maya",
+        endonym: "Maayaʼ tʼàan",
+        label: "Yucatec Maya (Maayaʼ tʼàan)",
     },
     {
         locale: "zgh",

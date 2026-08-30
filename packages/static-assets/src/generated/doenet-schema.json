@@ -65399,6 +65399,10 @@
                             "description": "Acehnese"
                         },
                         {
+                            "value": "acf",
+                            "description": "Saint Lucian Creole French (Kwéyòl)"
+                        },
+                        {
                             "value": "ady",
                             "description": "Adyghe"
                         },
@@ -65535,8 +65539,16 @@
                             "description": "Bulu"
                         },
                         {
+                            "value": "bzj",
+                            "description": "Belize Kriol (Bileez Kriol)"
+                        },
+                        {
                             "value": "ca",
                             "description": "Catalan (català)"
+                        },
+                        {
+                            "value": "cab",
+                            "description": "Garifuna"
                         },
                         {
                             "value": "cbk",
@@ -65605,6 +65617,10 @@
                         {
                             "value": "dje",
                             "description": "Zarma (Zarmaciine)"
+                        },
+                        {
+                            "value": "djk",
+                            "description": "Aukan (Okanisi tongo)"
                         },
                         {
                             "value": "dng",
@@ -65723,6 +65739,14 @@
                             "description": "Gagauz"
                         },
                         {
+                            "value": "gcf",
+                            "description": "Guadeloupean Creole French (kréyòl gwadloupéyen)"
+                        },
+                        {
+                            "value": "gcr",
+                            "description": "Guianese Creole French (kriyòl gwiyanè)"
+                        },
+                        {
                             "value": "gd",
                             "description": "Scottish Gaelic (Gàidhlig)"
                         },
@@ -65831,8 +65855,16 @@
                             "description": "Italian (italiano)"
                         },
                         {
+                            "value": "iu",
+                            "description": "Inuktitut"
+                        },
+                        {
                             "value": "ja",
                             "description": "Japanese (日本語)"
+                        },
+                        {
+                            "value": "jam",
+                            "description": "Jamaican Creole English"
                         },
                         {
                             "value": "jv",
@@ -65863,6 +65895,10 @@
                             "description": "Khanty (хӑнты ясӑӈ)"
                         },
                         {
+                            "value": "kek",
+                            "description": "Qʼeqchiʼ"
+                        },
+                        {
                             "value": "kg",
                             "description": "Kongo"
                         },
@@ -65877,6 +65913,10 @@
                         {
                             "value": "kk",
                             "description": "Kazakh (қазақ тілі)"
+                        },
+                        {
+                            "value": "kl",
+                            "description": "Kalaallisut (kalaallisut)"
                         },
                         {
                             "value": "km",
@@ -66055,6 +66095,10 @@
                             "description": "Minangkabau"
                         },
                         {
+                            "value": "miq",
+                            "description": "Mískito"
+                        },
+                        {
                             "value": "mk",
                             "description": "Macedonian (македонски)"
                         },
@@ -66205,6 +66249,10 @@
                         {
                             "value": "pam",
                             "description": "Pampanga"
+                        },
+                        {
+                            "value": "pap",
+                            "description": "Papiamento"
                         },
                         {
                             "value": "pcm",
@@ -66365,6 +66413,14 @@
                         {
                             "value": "sr",
                             "description": "Serbian (српски)"
+                        },
+                        {
+                            "value": "srm",
+                            "description": "Saramaccan (Saamáka tongo)"
+                        },
+                        {
+                            "value": "srn",
+                            "description": "Sranan Tongo"
                         },
                         {
                             "value": "ss",
@@ -66569,6 +66625,10 @@
                         {
                             "value": "yo",
                             "description": "Yoruba (Èdè Yorùbá)"
+                        },
+                        {
+                            "value": "yua",
+                            "description": "Yucatec Maya (Maayaʼ tʼàan)"
                         },
                         {
                             "value": "zgh",

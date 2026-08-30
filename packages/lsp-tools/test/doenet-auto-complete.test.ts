@@ -59,6 +59,14 @@ const schema = {
     ],
 };
 
+/**
+ * Characters that cannot continue a tag name, so typing one ends the tag name
+ * being typed. These are the ones the report for #1767 tabulated; the fix isn't
+ * keyed to a list, so any other such character (`!`, `#`, `,`, `;`, `"`, …)
+ * behaves the same way.
+ */
+const TAG_NAME_TERMINATORS = ["}", "{", ")", "]", "$", "&", "%", "\\"];
+
 describe("AutoCompleter", () => {
     it("Can suggest completions", async () => {
         let source: string;
@@ -248,6 +256,74 @@ describe("AutoCompleter", () => {
         );
         expect(items.map((i) => i.label)).toEqual(["b"]);
         expect(items.map((i) => i.label)).not.toContain("/b>");
+    });
+
+    it("suggests element names when a tag-name terminator follows the cursor (#1767)", async () => {
+        // `<aa><b}</aa>` — error recovery parses the half-typed `<b` plus the
+        // `}` that ends it as a complete `<b>` element holding `}` as text, so
+        // the cursor right after `<b` used to look like `<b>`'s body and offer
+        // nothing. It should offer element names filtered by the typed text,
+        // exactly as it does with no terminator present.
+        for (const terminator of TAG_NAME_TERMINATORS) {
+            const source = `<aa><b${terminator}</aa>`;
+            const autoCompleter = new AutoCompleter(source, schema.elements);
+            const offset = source.indexOf("<b") + 2; // right after `<b`
+            const items = await autoCompleter.getCompletionItems(offset);
+            expect({ terminator, labels: items.map((i) => i.label) }).toEqual({
+                terminator,
+                labels: ["b"],
+            });
+        }
+
+        // `/` ends the tag name too, through a self-closing tag whose `>` has
+        // yet to be typed, and was equally empty before.
+        const selfClosingSource = `<aa><b/</aa>`;
+        const selfClosing = new AutoCompleter(
+            selfClosingSource,
+            schema.elements,
+        );
+        const selfClosingItems = await selfClosing.getCompletionItems(
+            selfClosingSource.indexOf("<b") + 2, // right after `<b`
+        );
+        expect(selfClosingItems.map((i) => i.label)).toEqual(["b"]);
+    });
+
+    it("offers the same items with and without a tag-name terminator (#1767)", async () => {
+        // The terminator sits *after* the cursor, so it must not perturb the
+        // completions at all: the same elements, in the same order, with the
+        // same replacement ranges on the snippet items (which replace `<m`,
+        // leaving the terminator in place). Checked against the real schema,
+        // where snippets and ranking are in play.
+
+        // `withCursor` marks the cursor with `|`, which is stripped before parsing.
+        async function itemsFor(withCursor: string) {
+            const source = withCursor.replace("|", "");
+            const autoCompleter = new AutoCompleter(
+                source,
+                doenetSchema.elements,
+            );
+            return await autoCompleter.getCompletionItems(
+                withCursor.indexOf("|"),
+            );
+        }
+
+        const expected = await itemsFor(`<p><m|</p>`);
+        expect(expected.map((i) => i.label)).toContain("math");
+        for (const terminator of TAG_NAME_TERMINATORS) {
+            const items = await itemsFor(`<p><m|${terminator}</p>`);
+            expect({ terminator, items }).toEqual({
+                terminator,
+                items: expected,
+            });
+        }
+
+        // The shape from the issue: a tag typed inside a brace group of an
+        // `<me>`, where `closeBrackets` has already supplied the `}`. The
+        // suggestions come from `<me>`'s allowed children, and again match the
+        // terminator-free source exactly.
+        const inMe = await itemsFor(`<me>\\frac{<m|}</me>`);
+        expect(inMe.map((i) => i.label)).toContain("mathInput");
+        expect(inMe).toEqual(await itemsFor(`<me>\\frac{<m|</me>`));
     });
 
     it("matches element names by substring, not only by prefix (#1328)", async () => {

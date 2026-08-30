@@ -4812,6 +4812,175 @@ describe("the Silk Road batch's word order", () => {
     );
 });
 
+describe("the Americas batch's word order", () => {
+    /**
+     * Fifteen languages of two hemispheres and two orders, and the line
+     * between them is drawn by the **lexifier** rather than by geography or
+     * family: an English- or Dutch-lexifier creole puts its modifiers in front
+     * of the noun and a French-lexifier one puts them behind, because that is
+     * where each lexifier puts them and the creoles kept the order they were
+     * built from. Seven catalogs fall on each side, with `iu` in neither.
+     *
+     * The seven prenominal ones are the English- and Dutch-lexifier creoles —
+     * `jam`, `bzj`, `srn`, and the two Maroon creoles `djk` and `srm` — plus
+     * `yua` and `kek`, which are Mayan and prenominal on their own account.
+     *
+     * The seven postnominal ones split three ways over *why*, and the split is
+     * worth keeping straight because only two of the three are about a
+     * lexifier. The three French-lexifier creoles (`gcf`, `acf`, `gcr`) take
+     * the order from French. `cab` and `miq` take it from Garifuna and Mískito
+     * themselves. `pap` is the one that would have been guessed wrong from its
+     * neighbours: it sits with the French-lexifier creoles rather than with
+     * the English- and Dutch-lexifier ones beside it in Suriname and Curaçao,
+     * because its own vocabulary is Iberian and an Iberian adjective follows
+     * its noun. `kl` is the seventh and is not a lexifier case at all —
+     * Kalaallisut builds the phrase by suffixing, so what comes out is a noun
+     * followed by agreeing participles, «titarneq silissooq
+     * avissaartorsimasoq aappaluttoq», and its header says so.
+     *
+     * The `acf` row is the one to read beside `gcf`: those two differ here by
+     * a single sound, the etymological French /r/ that Saint Lucian writes
+     * «w» — «tiwè» against «tirè» — which is that catalog's central
+     * orthographic commitment, visible in one word.
+     *
+     * `iu` is in neither table, and that is a fact about coverage rather than
+     * about Inuktitut. `locales/iu` omits `noun` and the width and dash words
+     * whole rather than writing roman-letter loans for them, so the phrase it
+     * produces is mostly English fallback with a syllabic colour word at the
+     * end. Asserting an order over a phrase three quarters of which is English
+     * would be asserting English's order.
+     */
+    const prenominal: [string, string, string][] = [
+        ["yua", "pim rayaʼan chak línea", "pim rayaʼan chak"],
+        ["kek", "pim jachbʼil kaq raqal", "pim jachbʼil kaq"],
+        ["srn", "deki strepistrepi redi lin", "deki strepistrepi redi"],
+        ["jam", "tik dash-dash red lain", "tik dash-dash red"],
+        ["bzj", "tik dash-dash red lain", "tik dash-dash red"],
+        ["djk", "deki koti-koti lebi lin", "deki koti-koti lebi"],
+        ["srm", "dëkë koti-koti lebi lin", "dëkë koti-koti lebi"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // The noun is appended whole, with nothing of it reaching in among
+            // the adjectives — which is what would break if a catalog started
+            // welding a determiner or a linker onto `{ $noun }`.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * `jam` and `bzj` produce the same four words here, which is worth seeing
+     * rather than being surprised by later: both are English-lexifier creoles
+     * written in a phonemic orthography, and «tik dash-dash red lain» is what
+     * both spell. Their boolean words coincide too — «chruu», «faals» — for
+     * the same reason.
+     *
+     * They are not one catalog copied twice, which is the thing worth
+     * catching: two fifths of the values they both define here differ, and
+     * over all four namespaces, counted off the syntax tree in
+     * `catalogLint.test.ts`, it is 342 of 389. So what is asserted is not that
+     * these two disagree somewhere — it is that they disagree at a rate a
+     * duplicate could not.
+     */
+    it("has jam and bzj converge on this phrase without being one catalog", () => {
+        const jam = prenominal.find(([locale]) => locale === "jam")!;
+        const bzj = prenominal.find(([locale]) => locale === "bzj")!;
+        expect(jam[1]).toBe(bzj[1]);
+
+        /** `id = value` pairs of one catalog, comments and blank lines dropped. */
+        const values = (locale: string): Map<string, string> => {
+            const pairs = new Map<string, string>();
+            for (const line of readCatalog(locale, "content").split("\n")) {
+                if (line.trimStart().startsWith("#")) {
+                    continue;
+                }
+                const match = line.match(/^\s*(\.?[a-z0-9-]+)\s*=\s*(\S.*)$/);
+                if (match) {
+                    pairs.set(match[1], match[2]);
+                }
+            }
+            return pairs;
+        };
+        const jamValues = values("jam");
+        const bzjValues = values("bzj");
+        const shared = [...jamValues.keys()].filter((key) =>
+            bzjValues.has(key),
+        );
+        const differing = shared.filter(
+            (key) => jamValues.get(key) !== bzjValues.get(key),
+        );
+        expect(shared.length).toBeGreaterThan(50);
+        expect(differing.length / shared.length).toBeGreaterThan(1 / 3);
+    });
+
+    const postnominal: [string, string, string][] = [
+        ["pap", "liña diki di strepi kòrá", "diki di strepi kòrá"],
+        ["cab", "línia grúesu rayadu funati", "grúesu rayadu funati"],
+        ["miq", "lain tara raya nani pauni", "tara raya nani pauni"],
+        ["gcf", "liy épé an tirè wouj", "épé an tirè wouj"],
+        ["acf", "liy épé an tiwè wouj", "épé an tiwè wouj"],
+        ["gcr", "liy épé an tirè wouj", "épé an tirè wouj"],
+        [
+            "kl",
+            "titarneq silissooq avissaartorsimasoq aappaluttoq",
+            "silissooq avissaartorsimasoq aappaluttoq",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: true,
+                }),
+            ).toBe(withNoun);
+            // Nothing rides on the noun, so the description is still the tail
+            // of the phrase verbatim. The three French-lexifier creoles all
+            // postpose their definite determiner, and this is what would break
+            // if one of them started attaching it to `{ $noun }` here.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, {
+                    noun: { key: "line" },
+                    withNoun: false,
+                }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    /**
+     * The two French-lexifier catalogs that differ by the /r/ rule, held
+     * against each other rather than only against their own strings. `gcf` and
+     * `gcr` produce the same phrase here — the two languages agree on all four
+     * of these words — so the assertion that separates them is `acf`'s «w»,
+     * which is that catalog's central orthographic commitment.
+     */
+    it("writes acf's etymological r as w where gcf and gcr keep it", () => {
+        const [, gcfPhrase] = postnominal.find(([l]) => l === "gcf")!;
+        const [, acfPhrase] = postnominal.find(([l]) => l === "acf")!;
+        const [, gcrPhrase] = postnominal.find(([l]) => l === "gcr")!;
+        expect(gcfPhrase).toBe(gcrPhrase);
+        expect(acfPhrase).not.toBe(gcfPhrase);
+        expect(acfPhrase.replace("tiwè", "tirè")).toBe(gcfPhrase);
+    });
+});
+
 describe("the Southeast Asian batch's word order", () => {
     /**
      * Fifteen languages of maritime and mainland Southeast Asia, and the line
