@@ -216,10 +216,12 @@ jobs:
               run: |
                   node .github/scripts/npm-publish-with-retry.mjs packages/prefigure/dist --tag "${NPM_TAG}"
 
-            # Waits for npm to finish processing the publish before purging, so
-            # this is minutes rather than seconds; see `jsdelivr-purge-lib.sh`.
-            # The script bounds its own waiting, and `timeout-minutes` is the
-            # backstop that keeps a wedged request from holding the runner.
+            # Waits for npm to finish processing the publish, and then for
+            # jsDelivr to fetch it, before purging — so this is minutes rather
+            # than seconds; see `jsdelivr-purge-lib.sh`. The script bounds both
+            # waits and its purge retries itself (20 + 15 + 9 minutes in the
+            # worst case), and `timeout-minutes` is the backstop that keeps a
+            # wedged request from holding the runner.
             - name: Purge jsDelivr cache
               if: >-
                   steps.params.outputs.dry_run != 'true' &&

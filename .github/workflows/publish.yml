@@ -94,10 +94,12 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
-            # Waits for npm to finish processing the publish before purging, so
-            # this is minutes rather than seconds; see `jsdelivr-purge-lib.sh`.
-            # The script bounds its own waiting, and `timeout-minutes` is the
-            # backstop that keeps a wedged request from holding the runner.
+            # Waits for npm to finish processing the publish, and then for
+            # jsDelivr to fetch it, before purging — so this is minutes rather
+            # than seconds; see `jsdelivr-purge-lib.sh`. The script bounds both
+            # waits and its purge retries itself (20 + 15 + 9 minutes in the
+            # worst case), and `timeout-minutes` is the backstop that keeps a
+            # wedged request from holding the runner.
             #
             # Gated on the publish having *run*, not on it having succeeded:
             # `npm run publish` is four independent workspace publishes and npm

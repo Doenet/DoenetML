@@ -31,9 +31,10 @@ PURGE_ATTEMPTS="${PURGE_ATTEMPTS:-8}"
 PURGE_RETRY_DELAY="${PURGE_RETRY_DELAY:-20}"
 # The retry delay grows by half each attempt up to this cap, so the later
 # attempts wait minutes rather than repeating a 20-second poll that has already
-# been answered the same way four times. 20s base over 8 attempts is a little
-# under nine minutes of purging, against the 80 seconds that five flat
-# 20-second retries bought.
+# been answered the same way four times. From a 20s base the eight attempts are
+# separated by 20, 30, 45, 67, 100, 120 and 120 seconds — a little over eight
+# minutes of waiting, against the 80 seconds that five flat 20-second retries
+# bought.
 PURGE_RETRY_MAX_DELAY="${PURGE_RETRY_MAX_DELAY:-120}"
 CDN_POLL_INTERVAL="${CDN_POLL_INTERVAL:-15}"
 CDN_POLL_TIMEOUT="${CDN_POLL_TIMEOUT:-900}"
@@ -335,7 +336,9 @@ purge_and_verify() {
     fi
     if [[ -n "${unreachable}" ]]; then
         echo "  Could not be fetched from the CDN:${unreachable}" >&2
-        echo "  Either jsDelivr is unwell or ${version} does not contain these files." >&2
+        echo "  jsDelivr served every one of these at ${version} before the purge —" >&2
+        echo "  the wait above would have failed otherwise — so this is the CDN" >&2
+        echo "  having become unwell since, not a file missing from the release." >&2
         echo "  Check https://cdn.jsdelivr.net/npm/${package}@${version}/ by hand." >&2
     fi
     if [[ ${purge_failures} -gt 0 ]]; then
