@@ -921,8 +921,9 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // The five locales of the Southeast Asian batch CLDR has no data for. The
     // split is geographic rather than about speaker numbers: ICU names
     // `bug`, `mak`, `bjn`, `gor`, `nia`, `bbc`, `iba`, `dtp`, `pag` and `shn`
-    // — every Indonesian and Malaysian tag in the batch, and the one Myanmar
-    // tag whose language a state is named after — and stops at the five below,
+    // — all six Indonesian tags in the batch, both Malaysian ones, the one
+    // Philippine tag from Luzon rather than the south, and the one Myanmar tag
+    // whose language a state is named after — and stops at the five below,
     // which are three languages of the southern Philippines and two more of
     // Myanmar.
     //

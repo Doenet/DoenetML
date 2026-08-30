@@ -1412,8 +1412,11 @@ describe("the letter inventories the Southeast Asian headers state exactly", () 
 
         // S'gaw Karen's own letters, and the sharper correction: `ၦ` and `ၯ`
         // are **Pwo** letters, not S'gaw ones, and the seeding brief asked for
-        // them by mistake. The catalog uses neither, and `blk` and `kjp` are
-        // left to fall to English in `negotiate.test.ts` for the same reason.
+        // them by mistake. The catalog uses neither. The negotiation side of
+        // the same boundary is in `negotiate.test.ts`, where `kjp` (Eastern
+        // Pwo) and `blk` (Pa'o) fall to English rather than to this catalog —
+        // there because `kar` is an ISO 639-5 collection rather than a
+        // macrolanguage, not because of any letter.
         for (const letter of ["ၢ", "ၣ", "ၤ"]) {
             expect(has("ksw", letter)).toBe(true);
         }

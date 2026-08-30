@@ -36,8 +36,9 @@ in CLDR and never overrides it.
 
 Malay gains its members, so many readers who reached English before now reach
 a catalog: Brunei Malay (`kxd`), Kedah Malay (`meo`), Pattani Malay (`mfa`),
-Central Malay (`pse`), Sabah Malay (`msi`), North Moluccan (`max`) and Manado
-Malay (`xmm`) and twenty-six other varieties now reach `locales/ms`, which is
+Central Malay (`pse`), Sabah Malay (`msi`), North Moluccan Malay (`max`)
+and Manado Malay (`xmm`) and twenty-six other varieties now reach
+`locales/ms`, which is
 Standard Malay, so a reader served through one of those may meet spellings
 they have to adjust to. A Pattani reader who writes in Jawi is served Rumi.
 Indonesian, Minangkabau and Banjar readers are deliberately left out of that

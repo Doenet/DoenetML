@@ -341,7 +341,8 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // change here.
     bal: ["bcc", "bgn", "bgp"],
     // Malay, and the second-largest entry in this map — only Quechua's
-    // forty-three members are more, and nothing else comes close. `locales/ms`
+    // forty-three members are more, with Nahuatl's thirty just behind.
+    // `locales/ms`
     // is Standard Malay, which is `zsm` — the member `Intl.getCanonicalLocales`
     // already rewrites to `ms`, listed here for the reason the other
     // already-folded codes above are. The other thirty-two reach a catalog

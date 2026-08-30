@@ -4852,8 +4852,9 @@ describe("the Southeast Asian batch's word order", () => {
      * Indonesian word reaching six languages through one school system, not
      * six languages arriving at it. `bug` and `mak` are pinned beside them
      * precisely because they do *not* — «pettu-pettu» and «tappolo-polo» —
-     * and seven of the eight supply a colour word of their own where `nia` still
-     * falls back to Indonesian «merah». Replacing a loan should be a visible
+     * and seven of the eight supply a red of their own where `nia` still
+     * falls back to Indonesian «merah» — `nia`'s two native colour words are
+     * black and white, and red is not among them. Replacing a loan should be a visible
      * diff here rather than a silent improvement.
      */
     const postnominal: [string, string, string][] = [
@@ -4963,12 +4964,21 @@ describe("the Southeast Asian batch's word order", () => {
      * of asserting it, since the Silk Road batch split on exactly this and
      * along a different line than its adjectives did.
      *
-     * All fifteen use `[noun-tail]`, because in all fifteen the count follows
-     * the noun whatever the adjectives do: «poligon biasa iya 5 sisina»,
-     * «poligono que tiene 5 lado», «regular polygon 5 ၸဵင်ႇ». So the four
-     * prenominal catalogs put their modifiers in front of a noun that still
-     * carries its count behind it, and no catalog in the batch folds the count
-     * into the head the way eleven Silk Road catalogs did.
+     * In all fifteen the count sits **behind** the noun whatever the
+     * adjectives do — «poligon biasa iya 5 sisina», «poligono que tiene 5
+     * lado», «regular polygon 5 ၸဵင်ႇ» — so the four prenominal catalogs put
+     * their modifiers in front of a noun that still carries its count behind
+     * it.
+     *
+     * Which of `style-with-noun`'s two variants gets there is a separate
+     * question, and on that the batch does split, three against twelve.
+     * `noun-regular-polygon`'s `[tail]` is written only in `pag`, `cbk` and
+     * `mrw` — «ya walaay { $numSides } a gilig», «que tiene { $numSides }
+     * lado», «a aden a { $numSides } a kilid iyan» — and only those three
+     * therefore select `[noun-tail]`. The other twelve leave `[tail]` empty
+     * exactly as `locales/en` does, fold the count into `[head]`, and select
+     * `[noun]`. Both shapes put the count in the same place, which is why the
+     * assertion below is on the rendered phrase rather than on the variant.
      */
     it.each([
         ["bug", "poligon biasa iya 5 sisina tebal pettu-pettu macella'"],
@@ -5001,8 +5011,10 @@ describe("the Southeast Asian batch's word order", () => {
             withNoun: true,
         });
         expect(phrase).toBe(expected);
-        // The count is behind the noun in all fifteen, so none of them can be
-        // rendering `[noun-tail]` as empty.
+        // The count reaches the reader in all fifteen, whichever of the two
+        // variants carries it — a catalog that dropped `{ $numSides }` from
+        // whichever branch it uses would still match the shape of the phrase
+        // above but not this.
         expect(phrase).toContain("5");
     });
 

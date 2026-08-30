@@ -2838,10 +2838,12 @@ Two things are worth reading off that list before the split itself. The
 eight Indonesian and Malaysian catalogs **all write «garis»**, and six of the
 eight write «putus-putus» — which is one Indonesian word rather than six
 languages agreeing, and `bug`'s «pettu-pettu» and `mak`'s «tappolo-polo» are
-the two that are not it. Against that, **seven of the eight supply a colour
-word of their own** — macella', eja, habang, meela, rara, mirah, aragang —
-and `locales/nia` is the one that falls back to Indonesian «merah», which its
-own header calls a gap in the seed rather than a claim about Nias.
+the two that are not it. Against that, **seven of the eight supply a red of
+their own** — macella', eja, habang, meela, rara, mirah, aragang — and
+`locales/nia` is the one that falls back to Indonesian «merah», which its own
+header calls a gap in the seed rather than a claim about Nias. Nias does
+supply two colour words of its own, «aitö» and «afusi»; red is simply not one
+of them.
 
 The three Myanmar catalogs invert further than the Indonesian ones do: all
 three fix the description as **colour, then dash pattern, then thickness**,
@@ -2927,7 +2929,7 @@ catalogs, the same two literals in the same two messages, and nothing else.
 `MACROLANGUAGE_MEMBERS` gained exactly one row, and seeding `bjn` forced it:
 Banjar is one of the 36 ISO 639-3 members of Malay. **`ms` lists 33 of them**,
 which makes it the map's second-largest entry — behind only `qu`'s
-forty-three, and ahead of everything else by some distance — and the three
+forty-three, with `nah`'s thirty just behind it — and the three
 that are missing are the point of the row rather than an oversight — `ind`
 (`locales/id`), `min` (`locales/min`) and `bjn` (`locales/bjn`) are members
 this repository answers for itself, which is the `bam`/`dyu` shape under
@@ -2965,7 +2967,8 @@ that could let either reach the S'gaw catalog even if one were wanted.
 
 `LOCALE_NAME_FALLBACKS` gained five entries — `tsg`, `mrw`, `mnw`, `ksw` and
 `cbk` — and the split is geographic rather than about speaker numbers. ICU
-names every Indonesian and Malaysian tag in the batch and the one Myanmar tag
+names all six Indonesian tags in the batch, both Malaysian ones, `pag` — the
+one Philippine tag from Luzon rather than the south — and the one Myanmar tag
 whose language a state is named after, and stops at three languages of the
 southern Philippines and two more of Myanmar.
 
@@ -3082,10 +3085,10 @@ the names in it ever are.
 #### Confidence, and where the batch is thin
 
 Every header grades itself, and two claim to be thinnest — compatibly, since
-`dtp` is not one of the four `mrw` scopes itself against. `locales/dtp` opens
-"THIS IS THE THINNEST CATALOG OF ITS BATCH, AND IT SAYS SO FIRST RATHER THAN
-LAST"; `locales/mrw` opens "This is
-the thinnest of the four Philippine catalogs added with it", which is a claim
+`dtp` is not one of the four `mrw` scopes itself against.
+`locales/dtp/chrome.ftl` says "THIS IS THE THINNEST CATALOG OF ITS BATCH, AND
+IT SAYS SO FIRST RATHER THAN LAST"; `locales/mrw/chrome.ftl` says "This is the
+thinnest of the four Philippine catalogs added with it", which is a claim
 about four files rather than fifteen. Both are scoped, and both are about
 vocabulary rather than coverage: all fifteen sit at the same 445 keys, so
 "thinnest" here never means a catalog that translates less.
