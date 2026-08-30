@@ -152,16 +152,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
         if (e.key === "Enter") {
             valueToRevertTo.current = rendererValueRef.current;
 
-            const committed = callAction({
+            callAction({
                 action: actions.updateValue,
                 baseVariableValue: rendererValueRef.current,
             });
-            // Enter commits without blurring, so an expression around this
-            // field catches up here rather than waiting for focus to leave.
-            // The action's own promise is what tells it the commit is done
-            // with, since a commit need not change anything the expression is
-            // typeset from.
-            slotEditing.commit(committed);
+            // Enter commits without blurring, so a display around this field
+            // settles here rather than when focus leaves.
+            slotEditing.commit();
 
             if (
                 SVs.showCheckWork &&

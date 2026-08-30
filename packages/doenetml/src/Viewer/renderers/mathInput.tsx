@@ -485,11 +485,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // or not the field goes on to draw anything.
     const inMathSlot = useInMathSlot();
 
-    // A field that grows as the reader types would otherwise re-typeset the
-    // expression around it on every keystroke. Telling the slot when the field
-    // is being edited is what buys it room to grow into and holds the rest of
-    // the expression still until the value is committed. Outside a slot these
-    // are no-ops.
+    // Telling the slot when the field is being edited is what keeps the room
+    // it has been given, and a centred display's place, until the value is
+    // committed. Outside a slot these are no-ops.
     const slotEditing = useMathSlotEditing();
 
     // A label that is itself math is typeset by MathJax, which gives it a tab
@@ -644,17 +642,15 @@ export default function MathInput(props: UseDoenetRendererProps) {
             return;
         }
         // The "Enter" key was pressed
-        const committed = callAction({
+        callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValue.current,
         });
-        // Enter commits without blurring, so an expression around this field
-        // catches up here rather than waiting for focus to leave. The caret
+        // Enter commits without blurring, so the room the field no longer
+        // needs is given back here rather than when focus leaves. The caret
         // survives the re-typeset because the field is drawn over the
-        // expression, not inside it. The action's own promise is what tells the
-        // expression the commit is done with, since a commit need not change
-        // anything the expression is typeset from.
-        slotEditingRef.current.commit(committed);
+        // expression, not inside it.
+        slotEditingRef.current.commit();
 
         if (
             showCheckWork.current &&

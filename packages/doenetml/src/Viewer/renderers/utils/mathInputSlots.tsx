@@ -31,12 +31,11 @@ import { reserveForSlot, sameBox, SlotBox } from "./mathSlotReserve";
  * otherwise the reservation would feed the control's width, which would feed
  * the reservation.
  *
- * A control that changes size as the reader types — a math field — would
- * re-typeset the expression on every keystroke under that rule, so while such a
- * control is being used it is given more room than it needs and the rest of the
- * expression is held still. `mathSlotReserve` decides how much room; this module
- * holds the template, and `MathSlot` positions the control by its baseline so
- * that the extra room falls beside it rather than moving it.
+ * A control that changes size as the reader types — a math field — re-typesets
+ * the expression on every keystroke under that rule. `mathSlotReserve` decides
+ * how much room it is given, and `MathSlot` positions the control by its
+ * baseline so that room kept beyond what it needs falls beside it rather than
+ * moving it.
  */
 
 interface SlotPosition {
@@ -52,12 +51,6 @@ interface SlotPosition {
      * control grows a frame or more before that happens.
      */
     baseline: number;
-}
-
-/** The template an expression is typeset from while a control in it is used. */
-interface HeldTemplate {
-    template: string;
-    embeddedComponentIndices: readonly number[];
 }
 
 interface MathSlotContextValue {
@@ -76,13 +69,10 @@ interface MathSlotContextValue {
         reflows?: boolean,
     ): void;
     /**
-     * The reader committed a value, so the expression may catch up; `reflows`
-     * says whether giving back the control's spare room re-typesets it.
+     * The reader committed a value; `reflows` says whether giving back the
+     * control's spare room re-typesets the expression.
      */
-    noteSlotCommit(
-        settled: Promise<unknown> | undefined,
-        reflows: boolean,
-    ): void;
+    noteSlotCommit(reflows: boolean): void;
 }
 
 const MathSlotContext = createContext<MathSlotContextValue | null>(null);
@@ -213,23 +203,8 @@ export function useMathSlots({
     >(new Map());
     const [typesets, setTypesets] = useState(0);
 
-    // What the expression is typeset from while a reader is editing one of its
-    // controls: the template as it stood when the editing began, or when the
-    // last committed value came back, whichever is later.
-    //
-    // The reason is the caret. An expression can be re-typeset because anything
-    // in it changed — a dragged point feeding it, another input's value — and a
-    // re-typeset moves every reserved box, and so every control, while someone
-    // is typing into one of them. Holding the template is what makes the layout
-    // still; the control's own growth is held separately, by what it reports
-    // (see `reserveForSlot`). The embedded list is held alongside the template
-    // so the two always describe the same set of markers.
-    const [held, setHeld] = useState<HeldTemplate | null>(null);
-    const heldNow = useRef(held);
-    heldNow.current = held;
     const editingSlots = useRef(new Set<number>());
-    const liveTemplate = useRef({ template, embeddedComponentIndices });
-    liveTemplate.current = { template, embeddedComponentIndices };
+    const [editing, setEditing] = useState(false);
 
     // Display math is centred, so each step of room a control is given would
     // move the whole line half a step to the left, caret and all. While a
@@ -251,16 +226,6 @@ export function useMathSlots({
     // leaving causes has landed, or at once if it causes none.
     const unpinOnTypeset = useRef(false);
 
-    /**
-     * Hold the template as it stands now, or release it if nothing is being
-     * edited. Called at every boundary — editing starting or ending, a value
-     * committed, a commit settled — so the hold is always the newest template
-     * the expression has been allowed to see.
-     */
-    const holdTemplate = useCallback(() => {
-        setHeld(editingSlots.current.size > 0 ? liveTemplate.current : null);
-    }, []);
-
     const setSlotEditing = useCallback(
         (componentIdx: number, editing: boolean, reflows = false) => {
             const slots = editingSlots.current;
@@ -270,77 +235,32 @@ export function useMathSlots({
             } else {
                 slots.delete(componentIdx);
             }
-            const before = heldNow.current;
-            const templateChanges =
-                before !== null &&
-                before.template !== liveTemplate.current.template;
-            holdTemplate();
+            setEditing(slots.size > 0);
             if (slots.size > 0 && !wasEditing) {
                 unpinOnTypeset.current = false;
                 setIndent(displayIndent(rootRef.current));
             } else if (slots.size === 0) {
                 recentreOnTypeset.current = false;
-                if (reflows || templateChanges) {
+                if (reflows) {
                     unpinOnTypeset.current = true;
                 } else {
                     setIndent(null);
                 }
             }
         },
-        [holdTemplate],
-    );
-
-    // Core resolves a committed action once it has finished the action and sent
-    // out every renderer update the action caused, so this is the point at
-    // which the expression knows there is nothing further coming — whether or
-    // not anything about it changed. Counted, so that two commits in a row are
-    // two events, each with a catch-up of its own.
-    const [commitsSettled, setCommitsSettled] = useState(0);
-    const noteSettled = useCallback(
-        () => setCommitsSettled((count) => count + 1),
         [],
     );
 
-    const noteSlotCommit = useCallback(
-        (settled: Promise<unknown> | undefined, reflows: boolean) => {
-            holdTemplate();
-            // Centre the display again: with the typeset that giving back
-            // the room produces, or, when there is none to wait for, with
-            // the output on screen, which is then the final one.
-            if (reflows) {
-                recentreOnTypeset.current = true;
-            } else if (editingSlots.current.size > 0) {
-                setIndent(centredIndent(rootRef.current));
-            }
-            settled?.then(noteSettled, noteSettled);
-        },
-        [holdTemplate, noteSettled],
-    );
-
-    // A commit asks the expression to catch up, but what it is to catch up to
-    // is still on its way: the value goes to core, and the LaTeX that shows it
-    // comes back a round trip later. So a commit holds what is on screen for
-    // now, and catches up again once the action it started has settled.
-    //
-    // A commit need not change the template at all — `x = ␣` reads the same
-    // whatever is typed into the field — so completion is taken from the
-    // action settling, which happens either way. The catch-up is an effect on
-    // the settle count so that it runs after the render that follows the
-    // settle, where the template it reads is the one core sent with the
-    // action's updates.
-    useLayoutEffect(() => {
-        if (commitsSettled > 0) {
-            const before = heldNow.current;
-            if (before && before.template !== liveTemplate.current.template) {
-                recentreOnTypeset.current = true;
-            }
-            holdTemplate();
+    const noteSlotCommit = useCallback((reflows: boolean) => {
+        // Centre the display again: with the typeset that giving back the
+        // room produces, or, when there is none to wait for, with the output
+        // on screen, which is then the final one.
+        if (reflows) {
+            recentreOnTypeset.current = true;
+        } else if (editingSlots.current.size > 0) {
+            setIndent(centredIndent(rootRef.current));
         }
-    }, [commitsSettled, holdTemplate]);
-
-    const activeTemplate = held?.template ?? template;
-    const activeEmbedded =
-        held?.embeddedComponentIndices ?? embeddedComponentIndices;
+    }, []);
 
     // The template is trusted only as far as core's own list goes: a marker
     // is a slot when core embedded that input, not merely because the text
@@ -348,10 +268,10 @@ export function useMathSlots({
     // host that defines a macro of that name, gets it typeset as written.
     const componentIndices = useMemo(
         () =>
-            slotIndicesInTemplate(activeTemplate).filter((componentIdx) =>
-                activeEmbedded.includes(componentIdx),
+            slotIndicesInTemplate(template).filter((componentIdx) =>
+                embeddedComponentIndices.includes(componentIdx),
             ),
-        [activeTemplate, activeEmbedded],
+        [template, embeddedComponentIndices],
     );
 
     const slotLabel = useCallback(
@@ -379,9 +299,9 @@ export function useMathSlots({
     const latexForTypeset = useMemo(
         () =>
             componentIndices.length === 0
-                ? activeTemplate
+                ? template
                 : substituteSlots({
-                      template: activeTemplate,
+                      template: template,
                       componentIndices,
                       sizes,
                       slotElementId,
@@ -389,7 +309,7 @@ export function useMathSlots({
                       slotLabel,
                   }),
         [
-            activeTemplate,
+            template,
             componentIndices,
             sizes,
             slotElementId,
@@ -480,7 +400,7 @@ export function useMathSlots({
         contextValue,
         indent,
         /** Whether a control in the expression is being edited. */
-        editing: held !== null,
+        editing,
     };
 }
 
@@ -588,14 +508,11 @@ export interface MathSlotEditing {
     /** The reader began using this control, or has finished with it. */
     setEditing(editing: boolean): void;
     /**
-     * A value was committed without editing ending, as Enter does.
-     *
-     * `settled` is what the action returned: core resolves it once it has
-     * finished the action and sent out every renderer update the action
-     * caused. That is the expression's cue that there is nothing further to
-     * wait for — including when the answer is that nothing changed.
+     * A value was committed without editing ending, as Enter does: room the
+     * control no longer needs is given back, and a centred display centred
+     * again around it.
      */
-    commit(settled?: Promise<unknown>): void;
+    commit(): void;
     /**
      * The control's content just changed, in the event that changed it. A
      * control that grows as it is typed into calls this so its new size is
@@ -723,11 +640,11 @@ export function MathSlot({
                     setSlotEditing?.(componentIdx, false, reflows);
                 }
             },
-            commit(settled?: Promise<unknown>) {
+            commit() {
                 // Giving back the room re-typesets the expression, which is
                 // what lets a centred display centre itself again.
                 const reflows = measure({ exact: true }) === true;
-                noteSlotCommit?.(settled, reflows);
+                noteSlotCommit?.(reflows);
             },
             resized() {
                 measure({ flush: true });

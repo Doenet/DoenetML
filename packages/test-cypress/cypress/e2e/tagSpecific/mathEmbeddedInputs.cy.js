@@ -344,10 +344,11 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
-    it("the expression is held still until the value is committed", () => {
-        // `$mi.immediateValue` changes on every keystroke, so without the hold
-        // core would push new LaTeX — and MathJax would re-typeset the
-        // expression — under the reader's cursor.
+    it("the expression follows what the reader types, keystroke by keystroke", () => {
+        // `$mi.immediateValue` changes with every keystroke, and the expression
+        // shows it as it changes, as it would anywhere else on the page —
+        // with the field moving over by the width of what it writes, since the
+        // author put the reference before it.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -361,50 +362,15 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
 
-        cy.get(`${cesc("#mi")} textarea`).type("77", { force: true });
+        cy.get(`${cesc("#mi")} textarea`).type("7", { force: true });
         cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
-            // The left-hand side is still the blank it started as.
-            expect($container[0].textContent).not.to.contain("77");
+            expect($container[0].textContent).to.contain("7");
         });
-
-        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
-
-        // Committing lets the expression catch up, without the field having
-        // been blurred to do it.
+        cy.get(`${cesc("#mi")} textarea`).type("7", { force: true });
         cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
             expect($container[0].textContent).to.contain("77");
         });
         cy.get(`${cesc("#mi")} textarea`).should("be.focused");
-    });
-
-    it("Enter on the keyboard tray commits like Enter on the keyboard", () => {
-        // The tray's Enter key goes through a different path from a key press
-        // in the field, and the expression has to catch up on both.
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">$mi.immediateValue = <mathInput name="mi" /></m></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
-
-        cy.get(`${cesc("#mi")} textarea`).type("77", { force: true });
-        cy.get(".open-keyboard-button").click();
-        cy.get("#virtual-keyboard-tray.open").should("exist");
-        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
-            expect($container[0].textContent).not.to.contain("77");
-        });
-
-        cy.focused().should("match", `${cesc("#mi")} textarea`);
-        cy.get("#virtual-keyboard-tray .key-enter").click({ force: true });
-        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
-            expect($container[0].textContent).to.contain("77");
-        });
     });
 
     it("the expression shows a committed value the reader entered", () => {
@@ -488,44 +454,6 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
             expect($container[0].textContent).to.contain("8");
-        });
-    });
-
-    it("a commit the expression cannot show still ends the catching up", () => {
-        // A commit waits for the action it started to settle, not for the
-        // template to differ. Nothing here obliges a commit to change the
-        // template — `x = ␣` reads the same whatever is typed — and waiting for
-        // a difference would leave the expression waiting indefinitely, so that
-        // the reader's own next keystroke was taken for the commit's answer.
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">$mi.immediateValue = <mathInput name="mi" /></m></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
-
-        cy.get(`${cesc("#mi")} textarea`).type("77{enter}", { force: true });
-        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
-            expect($container[0].textContent).to.contain("77");
-        });
-
-        // Typing on is held, as it was before the commit.
-        cy.get(`${cesc("#mi")} textarea`).type("99", { force: true });
-        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
-            expect($container[0].textContent).to.contain("77");
-            expect($container[0].textContent).not.to.contain("779");
-        });
-
-        // And the next commit brings it up to date again.
-        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
-        cy.get(`${cesc("#m")} mjx-container`).should(($container) => {
-            expect($container[0].textContent).to.contain("7799");
         });
     });
 
