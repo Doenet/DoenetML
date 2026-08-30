@@ -879,7 +879,7 @@ describe("the Southeast Asian batch's plural categories", () => {
     type Row = [string, string, string];
 
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
-    const both = ([, chrome, diagnostics]: Row) =>
+    const both = (chrome: string, diagnostics: string) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
 
     /**
@@ -904,7 +904,7 @@ describe("the Southeast Asian batch's plural categories", () => {
         ["ksw", kswChrome, kswDiagnostics],
     ];
 
-    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
+    it.each(SOUTHEAST_ASIA)(
         "resolves %s against some other language's rules",
         (locale) => {
             // CLDR has no rules for the tag, so the categories on offer belong
@@ -929,11 +929,10 @@ describe("the Southeast Asian batch's plural categories", () => {
      * finds a category branch in one of these files has found a drift rather
      * than a judgement call.
      */
-    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
+    it.each(SOUTHEAST_ASIA)(
         "gives %s no plural category branch anywhere",
-        (locale) => {
-            const row = SOUTHEAST_ASIA.find(([tag]) => tag === locale)!;
-            const text = both(row);
+        (_locale, chrome, diagnostics) => {
+            const text = both(chrome, diagnostics);
             for (const category of ["zero", "one", "two", "few", "many"]) {
                 expect(text).not.toContain(`[${category}]`);
             }
@@ -948,15 +947,14 @@ describe("the Southeast Asian batch's plural categories", () => {
      * against the number rather than against a category, and so legal in a
      * locale with no rules of its own.
      */
-    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
+    it.each(SOUTHEAST_ASIA)(
         "keeps %s's numeric literals, which no plural rule selects",
-        (locale) => {
-            const row = SOUTHEAST_ASIA.find(([tag]) => tag === locale)!;
-            expect(branches(row[2])).toContain(
+        (_locale, chrome, diagnostics) => {
+            expect(branches(diagnostics)).toContain(
                 "field-function-wrong-num-outputs",
             );
-            expect(both(row)).toContain("[1]");
-            expect(branches(row[1])).toContain("[0]");
+            expect(both(chrome, diagnostics)).toContain("[1]");
+            expect(branches(chrome)).toContain("[0]");
         },
     );
 
@@ -965,12 +963,8 @@ describe("the Southeast Asian batch's plural categories", () => {
      * branch" by dropping `{ $count }` would pass every assertion above and
      * serve a reader a sentence with the number missing from it.
      */
-    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
-        "still renders %s's counts",
-        (locale) => {
-            const row = SOUTHEAST_ASIA.find(([tag]) => tag === locale)!;
-            const t = createChromeTranslator(locale, { [locale]: row[1] });
-            expect(t("attempts-remaining", { count: 3 })).toContain("3");
-        },
-    );
+    it.each(SOUTHEAST_ASIA)("still renders %s's counts", (locale, chrome) => {
+        const t = createChromeTranslator(locale, { [locale]: chrome });
+        expect(t("attempts-remaining", { count: 3 })).toContain("3");
+    });
 });

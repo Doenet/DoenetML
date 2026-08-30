@@ -8,7 +8,7 @@
 # UNREVIEWED SEED. Machine-generated, pending review by a speaker (#1521).
 # Correct anything here freely; nothing in it was written by a translator.
 #
-# **This is the thinnest of the three Philippine catalogs added with it, and
+# **This is the thinnest of the four Philippine catalogs added with it, and
 # it says so first rather than last.** Maranao is the language of the Lanao
 # provinces in Mindanao, and the published lexical material a seed can reach
 # is small and mostly religious and lexicographic rather than technical.

@@ -42,7 +42,6 @@ list, because each has a catalog of its own. Coastal Kadazan (`kzj`) readers
 reach the new `locales/dtp`. No reader is moved off a catalog they already
 reached.
 
-Numbers written into a message now render in Latin digits in every language,
-including the three written in the Myanmar script. Twelve messages across the
-Mon and S'gaw Karen catalogs were seeded with Myanmar digits, which would have
-put "more than ၃ points" on screen beside a count formatted as "3".
+Numbers written into a message render in Latin digits in every language,
+including the three written in the Myanmar script, so a digit inside a sentence
+matches the count formatted beside it and the mathematics around it.

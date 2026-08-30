@@ -46,7 +46,9 @@
 #     တုံ့ပြန်ချက် (feedback), အောက်ခြေမှတ်စု (footnote), အမှတ် (point),
 #     မြား (arrow), ဇယား (table). These are the only Burmese-spelled words in
 #     the file, and they are recognizable as loans precisely because they keep
-#     Burmese letters (က ခ စ န ဖ ဟ အ) that Shan words above never use.
+#     Burmese letters (က ခ စ ဖ ဟ အ) that no Shan word below is written with.
+#     `န` is the one letter both registers use — the Shan «နဵၵ်း» (press)
+#     carries it — so it is not a marker of a loan on its own.
 #   * **English, in the Latin alphabet**, for computing and for the DoenetML
 #     vocabulary: `keyboard`, `row`, `column`, `box`, `credit`, `preview`,
 #     `math expression`, `interval`, `document`, `page`, `renderer`, `load`,

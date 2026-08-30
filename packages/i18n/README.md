@@ -107,11 +107,10 @@ twenty-two are partial in the same place — the two chemistry tables — while
 Klingon is partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The two
 hundred and twenty-two are: Somali, Hmong Njua, Amharic, Assamese, Nepali,
-Burmese,
-Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
-Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
-Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
-Southern Sotho, Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low
+Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu,
+Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala,
+Cebuano, Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala,
+Shona, Southern Sotho, Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low
 German, Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern
 Sami, Yiddish, Haitian Creole, Quechua, Guarani, Aymara, Nahuatl, Kʼicheʼ,
 Mapudungun, Ojibwe, Ilocano, Waray, Hiligaynon, Kapampangan, Bikol, Balinese,
@@ -378,7 +377,9 @@ where the periodic table is taught. `ksw` is the one with no single fallback,
 `locales/wbl`'s shape one batch on: a Karen pupil in Myanmar meets the table in
 Burmese and one in the diaspora in English or Thai, and choosing either would
 hide the split. Four school systems, fifteen catalogs, and not one claim about
-a language among them.
+a language among them; see [Fifteen languages of Southeast
+Asia](#fifteen-languages-of-southeast-asia-and-the-batch-whose-word-order-follows-a-border)
+for what does divide the batch.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -3079,11 +3080,12 @@ the names in it ever are.
 
 #### Confidence, and where the batch is thin
 
-Every header grades itself, and two claim to be thinnest — compatibly, which is
-why neither was edited. `locales/dtp` opens "THIS IS THE THINNEST CATALOG OF
-ITS BATCH, AND IT SAYS SO FIRST RATHER THAN LAST"; `locales/mrw` opens "This is
-the thinnest of the three Philippine catalogs added with it", which is a claim
-about three files rather than fifteen. Both are scoped, and both are about
+Every header grades itself, and two claim to be thinnest — compatibly, since
+`dtp` is not one of the four `mrw` scopes itself against. `locales/dtp` opens
+"THIS IS THE THINNEST CATALOG OF ITS BATCH, AND IT SAYS SO FIRST RATHER THAN
+LAST"; `locales/mrw` opens "This is
+the thinnest of the four Philippine catalogs added with it", which is a claim
+about four files rather than fifteen. Both are scoped, and both are about
 vocabulary rather than coverage: all fifteen sit at the same 445 keys, so
 "thinnest" here never means a catalog that translates less.
 
@@ -3164,7 +3166,7 @@ throughout.
 that is a fact about one education ministry rather than about two languages.
 Sabah, Sarawak and the peninsula teach mathematics out of the same Malay
 textbooks, so both tables are the Dewan Bahasa terms and they differ in four
-entries out of thirty-two — «kawasan» against «pomogunan» for the region,
+entries out of twenty — «kawasan» against «pomogunan» for the region,
 «tanda silang» against «tanda pangkah» for the cross, and two spellings that
 follow from Iban's `be-` where Malay writes `ber-`. `locales/dtp`'s header
 says where to look instead: what differs between the three catalogs is
