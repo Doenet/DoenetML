@@ -1076,11 +1076,10 @@ export function latexToText(latex: string) {
         expression = me.fromAst(latexToAst.convert(latex));
     } catch (e) {
         // The LaTeX is not something math-expressions can read. Hand it back
-        // as it is: it is still the content, and a reader gets more from the
-        // raw LaTeX than from nothing. The fallback is silent, so a systematic
-        // failure of this kind looks to an author like `text` simply returning
-        // LaTeX; if a whole class of expressions lands here, the fix belongs
-        // where the LaTeX is produced, not in the message.
+        // as it is: a reader gets more from the raw LaTeX than from nothing.
+        // The fallback is silent, so a systematic failure of this kind looks
+        // to an author like `text` simply returning LaTeX; if a whole class of
+        // expressions lands here, the fix belongs where the LaTeX is produced.
         return latex;
     }
 
@@ -1237,7 +1236,10 @@ function removeRepeatedSuperSubScripts(latex: string) {
  * and `\\amp` is a row break followed by the letters `amp`.
  */
 export function stripAlignmentMarkers(latex: string) {
+    // The alternation is ordered so that a row break and an escaped ampersand
+    // are matched whole, ahead of the markers; those two are put back, and
+    // what is left of a match — a bare `&` or an `\amp` — is dropped.
     return latex.replace(/\\\\|\\&|\\amp(?![a-zA-Z])|&/g, (match) =>
-        match === "&" || match.startsWith("\\amp") ? "" : match,
+        match === "\\\\" || match === "\\&" ? match : "",
     );
 }
