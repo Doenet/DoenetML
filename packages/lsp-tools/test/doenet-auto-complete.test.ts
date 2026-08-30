@@ -67,6 +67,24 @@ const schema = {
  */
 const TAG_NAME_TERMINATORS = ["}", "{", ")", "]", "$", "&", "%", "\\"];
 
+/**
+ * The completion items offered against the real Doenet schema (so snippets and
+ * ranking are in play) for `withCursor`, a source string whose cursor position
+ * is marked with `|`. The marker is stripped before parsing.
+ */
+async function itemsFor(withCursor: string) {
+    const source = withCursor.replace("|", "");
+    const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
+    return await autoCompleter.getCompletionItems(withCursor.indexOf("|"));
+}
+
+/**
+ * The labels of {@link itemsFor}'s items, in the order they are offered.
+ */
+async function labelsFor(withCursor: string) {
+    return (await itemsFor(withCursor)).map((item) => item.label);
+}
+
 describe("AutoCompleter", () => {
     it("Can suggest completions", async () => {
         let source: string;
@@ -294,19 +312,6 @@ describe("AutoCompleter", () => {
         // same replacement ranges on the snippet items (which replace `<m`,
         // leaving the terminator in place). Checked against the real schema,
         // where snippets and ranking are in play.
-
-        // `withCursor` marks the cursor with `|`, which is stripped before parsing.
-        async function itemsFor(withCursor: string) {
-            const source = withCursor.replace("|", "");
-            const autoCompleter = new AutoCompleter(
-                source,
-                doenetSchema.elements,
-            );
-            return await autoCompleter.getCompletionItems(
-                withCursor.indexOf("|"),
-            );
-        }
-
         const expected = await itemsFor(`<p><m|</p>`);
         expect(expected.map((i) => i.label)).toContain("math");
         for (const terminator of TAG_NAME_TERMINATORS) {
@@ -324,6 +329,45 @@ describe("AutoCompleter", () => {
         const inMe = await itemsFor(`<me>\\frac{<m|}</me>`);
         expect(inMe.map((i) => i.label)).toContain("mathInput");
         expect(inMe).toEqual(await itemsFor(`<me>\\frac{<m|</me>`));
+    });
+
+    it("keeps suggesting a hyphenated snippet name across its hyphens (#1780)", async () => {
+        // Nine of the ten completion snippets have hyphenated names, and the
+        // menu emptied on the hyphen: `<answer-` was read as the close tag
+        // that follows it, so the only item offered was `/p>` — whose edit
+        // spanned the typed `<answer-`. Typing the hyphen must keep the
+        // snippet that the author is reaching for.
+        expect(await labelsFor(`<p><answer-|</p>`)).toEqual(["answer-labeled"]);
+        expect(await labelsFor(`<p><multiple-|</p>`)).toEqual([
+            "multiple-choice-answer",
+            "multiple-choice-select-multiple-answer",
+        ]);
+        // Unchanged one character earlier, where the name still ends in a word
+        // character — the hyphen is the only thing that used to break it.
+        expect(await labelsFor(`<p><multiple|</p>`)).toEqual(
+            await labelsFor(`<p><multiple-|</p>`),
+        );
+
+        // The same at the top level, where the name being typed is all there
+        // is and no close tag follows it.
+        expect(await labelsFor(`<answer-|`)).toEqual(["answer-labeled"]);
+        expect(await labelsFor(`<p>hi</p>\n<multiple-|`)).toEqual([
+            "multiple-choice-answer",
+            "multiple-choice-select-multiple-answer",
+        ]);
+
+        // A name matching nothing offers nothing — in particular not the
+        // enclosing element's close tag, whose edit would have replaced `<my-`.
+        // (`ü` because `\w` is ASCII-only, so a name ending in a non-ASCII
+        // letter was read the same way a hyphenated one was.)
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            const labels = await labelsFor(`<p><my${nameEnd}|</p>`);
+            expect({ nameEnd, labels }).toEqual({ nameEnd, labels: [] });
+        }
+
+        // The enclosing element's close tag is still offered where it belongs:
+        // on a close tag the author is actually typing.
+        expect(await labelsFor(`<p>hello</p|`)).toContain("/p>");
     });
 
     it("matches element names by substring, not only by prefix (#1328)", async () => {

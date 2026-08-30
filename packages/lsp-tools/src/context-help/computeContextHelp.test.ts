@@ -198,6 +198,37 @@ describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
         const help = await helpAt(source, source.indexOf("<math}") + 5);
         expect(help).toMatchObject({ kind: "element", elementName: "math" });
     });
+
+    it("reports no help for a tag name ending in a non-word character (#1780)", async () => {
+        // The panel used to describe the *parent* while the author was still
+        // typing a tag name that ended in anything `\w` does not cover — `-`,
+        // `.`, `:` or a non-ASCII letter — or show an empty allowed-children
+        // panel for the half-typed name as though it were a real element.
+        // Neither element exists, so there is nothing to say.
+        const followers = ["", "}", "/", ">"];
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            for (const after of followers) {
+                const source = `<p><my${nameEnd}${after}</p>`;
+                const offset = source.indexOf("<my") + 3 + nameEnd.length;
+                const help = await helpAt(source, offset);
+                expect({ source, kind: help.kind }).toEqual({
+                    source,
+                    kind: "none",
+                });
+            }
+        }
+
+        // A name that does match an element still gets its help, whatever
+        // follows the cursor.
+        for (const after of followers) {
+            const source = `<p><math${after}</p>`;
+            const help = await helpAt(source, source.indexOf("<math") + 5);
+            expect({ source, help }).toMatchObject({
+                source,
+                help: { kind: "element", elementName: "math" },
+            });
+        }
+    });
 });
 
 describe("computeContextHelp — attribute help", () => {
