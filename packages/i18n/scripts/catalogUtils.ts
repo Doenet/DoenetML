@@ -443,18 +443,35 @@ const FALLBACK_PLURAL_CATEGORIES = ["one", "other"];
  * literally what selects the branch.
  */
 export function allowedPluralCategories(locale: string): Set<string> {
+    return hasOwnPluralData(locale)
+        ? new Set(
+              new Intl.PluralRules(locale).resolvedOptions().pluralCategories,
+          )
+        : new Set(FALLBACK_PLURAL_CATEGORIES);
+}
+
+/**
+ * Whether CLDR resolves this tag against its own rules rather than someone
+ * else's.
+ *
+ * The two cases {@link allowedPluralCategories} distinguishes, told apart on
+ * their own so a diagnostic can say which one a catalog is in: a `false` here
+ * means the categories on offer are the runtime default locale's, not the
+ * language's. See that function for why the comparison is made on the
+ * canonical *language* subtag and why a tag `Intl` refuses counts as no data.
+ */
+export function hasOwnPluralData(locale: string): boolean {
     try {
         const canonicalLanguage = new Intl.Locale(locale)
             .toString()
             .split("-")[0];
         const resolved = new Intl.PluralRules(locale).resolvedOptions();
-        if (resolved.locale.split("-")[0] === canonicalLanguage) {
-            return new Set(resolved.pluralCategories);
-        }
+        return resolved.locale.split("-")[0] === canonicalLanguage;
     } catch {
-        // Fall through: an unparseable tag is the no-data case.
+        // An unparseable tag is the no-data case: `intlLocale` hands the
+        // bundle `DEFAULT_LOCALE` for exactly those.
+        return false;
     }
-    return new Set(FALLBACK_PLURAL_CATEGORIES);
 }
 
 /**

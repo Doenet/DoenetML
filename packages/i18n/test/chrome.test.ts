@@ -450,10 +450,9 @@ describe("the Oceania batch's plural categories", () => {
  * at all, since `Intl.PluralRules` would resolve the tag against the runtime's
  * default locale and select the text by English's rules — enforced for every
  * catalog by `lint:i18n`, so what is asserted here is only which seven those
- * are. `szl`, `csb` and
- * `rue` are the sharpest cases, because those three really do have a
- * `few`/`many` split of their own — the branch that could be written is
- * exactly the branch that would be got wrong.
+ * are. `szl`, `csb` and `rue` are the sharpest cases, because those three
+ * really do have a `few`/`many` split of their own — the branch that could be
+ * written is exactly the branch that would be got wrong.
  *
  * An explicit `[0]` is a different mechanism — matched against the number
  * rather than against a category — and stays legal in every one of the

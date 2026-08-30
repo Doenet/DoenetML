@@ -38,6 +38,7 @@ import {
     multilinePatterns,
     numberingSystemOverrides,
     allowedPluralCategories,
+    hasOwnPluralData,
     unselectablePluralCategories,
     collectCallSites,
     collectDiagnosticUsage,
@@ -104,9 +105,16 @@ for (const locale of locales) {
             const selectable = [...allowedPluralCategories(locale)]
                 .sort()
                 .join(", ");
+            // Which of the two cases the locale is in changes the advice, so
+            // the message says: CLDR either lists the categories itself, or
+            // has no data for the tag and the runtime's default locale picks
+            // the branch.
+            const because = hasOwnPluralData(locale)
+                ? `CLDR gives ${locale} only ${selectable}`
+                : `CLDR has no data for ${locale}, so its branches are selected by the runtime's default locale and only ${selectable} may be written`;
             for (const category of unselectable) {
                 problems.push(
-                    `locales/${locale}/${namespace}.ftl: [${category}] is a plural category ${locale} cannot select, so the branch would never render — ${locale} selects only ${selectable}; fold the branch's text into the default variant beside it, or drop the select if the remaining branches are identical (see allowedPluralCategories in scripts/catalogUtils.ts)`,
+                    `locales/${locale}/${namespace}.ftl: [${category}] is a plural category ${locale} cannot select, so the branch would never render — ${because}; fold the branch's text into the default variant beside it, or drop the select if the remaining branches are identical (see allowedPluralCategories in scripts/catalogUtils.ts)`,
                 );
             }
         }

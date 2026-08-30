@@ -20,6 +20,7 @@ import {
     remainingLiteralDiagnostics,
     symbolicVariantKeys,
     allowedPluralCategories,
+    hasOwnPluralData,
     pluralVariantKeys,
     unselectablePluralCategories,
     renderMessageKeysModule,
@@ -1058,6 +1059,18 @@ describe("plural categories a locale cannot select", () => {
                     ].join("\n"),
                 ),
             ).toEqual([]);
+        });
+    });
+
+    describe("hasOwnPluralData", () => {
+        it("tells the two cases apart, which is what the lint message says", () => {
+            // `km` is CLDR's own answer — one category, and it is Khmer's.
+            // `sco` and `en_US` are not: the categories on offer there belong
+            // to whatever locale the runtime falls back to.
+            expect(hasOwnPluralData("km")).toBe(true);
+            expect(hasOwnPluralData("zh-Hans")).toBe(true);
+            expect(hasOwnPluralData("sco")).toBe(false);
+            expect(hasOwnPluralData("en_US")).toBe(false);
         });
     });
 
