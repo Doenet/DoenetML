@@ -813,10 +813,13 @@ describe("every catalog's selector keys", () => {
  * `*[other]`. Identical, which is exactly why nobody noticed — the output was
  * right and the branch was unreachable.
  *
- * Every seeded batch since the Sami one has hand-written a block asserting
- * this for its own locales. These tests replace fifteen such assertions with
- * one property over the whole roster, so a locale added later cannot
- * reintroduce the defect by not having a batch block of its own.
+ * Every seeded batch since the Sami one has hand-written a substring check
+ * against its own locales' sources. These tests replace those with one
+ * property over the whole roster, read off the syntax tree rather than the
+ * text, so a locale added later cannot reintroduce the defect merely by not
+ * having a batch block of its own. The batch blocks keep the half the property
+ * cannot state: which tags have their own CLDR data, and which category each
+ * of them resolves.
  */
 describe("plural categories a locale cannot select", () => {
     describe("pluralVariantKeys", () => {
@@ -886,6 +889,15 @@ describe("plural categories a locale cannot select", () => {
             ]);
         });
 
+        it("keeps a script subtag from reading as a different language", () => {
+            // `Intl.PluralRules("zh-Hans")` resolves to plain `zh`, which is
+            // its own data and not a fallback — so the naive comparison of
+            // resolved tag against directory name would have called both
+            // Chinese catalogs no-data and let them write `[one]`.
+            expect([...allowedPluralCategories("zh-Hans")]).toEqual(["other"]);
+            expect([...allowedPluralCategories("zh-Hant")]).toEqual(["other"]);
+        });
+
         it("gives a locale CLDR has no data for `one` and `other` only", () => {
             // The branches these catalogs are entitled to: English's split is
             // what the fallback makes, and around a hundred catalogs record
@@ -904,6 +916,18 @@ describe("plural categories a locale cannot select", () => {
             expect(new Intl.PluralRules("kmr").resolvedOptions().locale) //
                 .toBe("ku");
             expect([...allowedPluralCategories("kmr")].sort()).toEqual([
+                "one",
+                "other",
+            ]);
+        });
+
+        it("treats a tag Intl refuses as the no-data case, as the runtime does", () => {
+            // `en_US`, the POSIX spelling a host gets wrong: every `Intl`
+            // constructor throws on it, `intlLocale` hands the bundle
+            // `DEFAULT_LOCALE` instead, and English is then literally what
+            // selects the branch.
+            expect(() => new Intl.Locale("en_US")).toThrow();
+            expect([...allowedPluralCategories("en_US")].sort()).toEqual([
                 "one",
                 "other",
             ]);

@@ -309,7 +309,9 @@ export function symbolicVariantKeys(source: string): Map<string, string[]> {
         if (entry.type !== "Message" && entry.type !== "Term") {
             continue;
         }
-        const visitor = new VariantKeyVisitor();
+        const visitor = new VariantKeyVisitor(
+            (name) => !PLURAL_VARIANT_KEYS.has(name),
+        );
         visitor.visit(entry);
         if (visitor.found.size > 0) {
             // Sorted and deduplicated: a message with two selects — the
@@ -324,15 +326,25 @@ export function symbolicVariantKeys(source: string): Map<string, string[]> {
     return keys;
 }
 
-/** Every symbolic (non-numeric, non-plural) variant key under one entry. */
+/**
+ * Every identifier variant key under a node that `accept` admits.
+ *
+ * One visitor for both readings of a select's keys, because the traversal is
+ * the whole of the shared part and the predicate is the whole of the
+ * difference: {@link symbolicVariantKeys} takes the keys that are *not* plural
+ * categories, {@link pluralVariantKeys} takes the ones that are. Numeric keys
+ * (`[0]`, `[1]`) are not `Identifier` nodes at all, so neither reading ever
+ * sees one.
+ */
 class VariantKeyVisitor extends Visitor {
     found = new Set<string>();
 
+    constructor(private accept: (name: string) => boolean) {
+        super();
+    }
+
     visitVariant(node: Variant) {
-        if (
-            node.key.type === "Identifier" &&
-            !PLURAL_VARIANT_KEYS.has(node.key.name)
-        ) {
+        if (node.key.type === "Identifier" && this.accept(node.key.name)) {
             this.found.add(node.key.name);
         }
         this.genericVisit(node);
@@ -356,25 +368,11 @@ class VariantKeyVisitor extends Visitor {
  * branch was not.
  */
 export function pluralVariantKeys(source: string): string[] {
-    const visitor = new PluralVariantKeyVisitor();
+    const visitor = new VariantKeyVisitor(
+        (name) => PLURAL_VARIANT_KEYS.has(name) && name !== "other",
+    );
     visitor.visit(parseFtl(source, {}));
     return [...visitor.found].sort();
-}
-
-/** Every plural-category variant key in a catalog, `other` excepted. */
-class PluralVariantKeyVisitor extends Visitor {
-    found = new Set<string>();
-
-    visitVariant(node: Variant) {
-        if (
-            node.key.type === "Identifier" &&
-            PLURAL_VARIANT_KEYS.has(node.key.name) &&
-            node.key.name !== "other"
-        ) {
-            this.found.add(node.key.name);
-        }
-        this.genericVisit(node);
-    }
 }
 
 /**
@@ -404,23 +402,37 @@ class PluralVariantKeyVisitor extends Visitor {
  *
  * The tag is canonicalized before it is asked about, because ICU folds three
  * of this repository's directory names onto a macrolanguage — `kmr` to `ku`,
- * `kpv` to `kv`, `mhr` to `chm` — and `kmr` genuinely inherits `ku`'s rules.
+ * `kpv` to `kv`, `mhr` to `chm`. Comparing the resolved tag against the raw
+ * directory name would call all three no-data; comparing it against the
+ * canonical form correctly reports that `kmr` inherits Kurdish's rules while
+ * `kpv` and `mhr` inherit nothing, their macrolanguages having no CLDR data
+ * either.
+ *
+ * A tag `Intl` refuses outright — `en_US`, the POSIX spelling — lands in the
+ * no-data case too, and for a reason the runtime agrees with: `intlLocale`
+ * hands `DEFAULT_LOCALE` to the bundle for exactly those tags, so English is
+ * literally what selects the branch.
  */
 export function allowedPluralCategories(locale: string): Set<string> {
-    let canonicalLanguage: string;
     try {
-        canonicalLanguage = new Intl.Locale(locale).toString().split("-")[0];
+        const canonicalLanguage = new Intl.Locale(locale)
+            .toString()
+            .split("-")[0];
+        const resolved = new Intl.PluralRules(locale).resolvedOptions();
+        if (resolved.locale.split("-")[0] === canonicalLanguage) {
+            return new Set(resolved.pluralCategories);
+        }
     } catch {
-        // A tag `Intl` cannot parse reaches English at runtime, so it is the
-        // no-data case — see `createTranslator` in the package README.
-        return new Set(["one", "other"]);
+        // Fall through: an unparseable tag is the no-data case.
     }
-    const resolved = new Intl.PluralRules(locale).resolvedOptions();
-    const hasOwnData = resolved.locale.split("-")[0] === canonicalLanguage;
-    return hasOwnData
-        ? new Set(resolved.pluralCategories)
-        : new Set(["one", "other"]);
+    return new Set(FALLBACK_PLURAL_CATEGORIES);
 }
+
+/**
+ * What a locale CLDR has no data for may write: the split its fallback
+ * actually makes, which is English's.
+ */
+const FALLBACK_PLURAL_CATEGORIES = ["one", "other"];
 
 /**
  * The plural categories a catalog writes that its own locale cannot select.

@@ -3442,9 +3442,11 @@ inherit nothing, their macrolanguages having no CLDR data either.
 `allowedPluralCategories` and `unselectablePluralCategories` in
 `scripts/catalogUtils.ts` are the rule; `catalogLint.test.ts` holds it over the
 whole roster, which is what the per-batch plural blocks in `chrome.test.ts`
-were each reaching for one batch at a time. Those blocks stay: they say
-something the property cannot, which is *why* a particular language writes the
-branch it writes.
+were each reaching for one batch at a time. Those blocks stay, minus the half
+the property now subsumes: what they say that it cannot is *why* a particular
+language writes the branch it writes — which tags have their own CLDR data,
+which category each of them resolves, and that the count still reaches the
+reader either way.
 
 ## Pseudo-localization
 
