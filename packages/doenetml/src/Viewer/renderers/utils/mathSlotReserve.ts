@@ -8,12 +8,16 @@
  * re-typesetting the expression around each new size would reflow the equation
  * under the reader's hands.
  *
- * So while a control says it is being edited, the reservation is rounded up to
- * a coarse step and never allowed to shrink. A run of ordinary keystrokes then
- * lands inside the room already reserved and reports nothing new, and only
- * outgrowing that room costs a re-typeset — which comes back with a fresh step
- * of headroom. When editing ends the reservation returns to the exact box, so
- * an expression at rest has no slack in it.
+ * So while a control says it is being edited, the reservation is never allowed
+ * to shrink, and its width is rounded up to a coarse step. A run of ordinary
+ * keystrokes then lands inside the room already reserved and reports nothing
+ * new, and only outgrowing that room costs a re-typeset — which comes back
+ * with a fresh step of headroom. Height and depth take no step: they change
+ * only when the control changes shape, a fraction or a root, which is rare
+ * enough that each such change can have the exact room it needs, and the
+ * control then moves the same way every time. When editing ends the
+ * reservation returns to the exact box, so an expression at rest has no slack
+ * in it.
  */
 
 /** A control's box, in integer CSS pixels, split at its baseline. */
@@ -26,13 +30,12 @@ export interface SlotBox {
 }
 
 /**
- * The step sizes, chosen so that a few characters or one change of shape fit
- * inside the room already reserved. Wider steps mean fewer reflows but a more
- * conspicuous gap at the moment a field is focused; these are about four
- * characters across and half a line tall at the default size.
+ * The width step, chosen so that a few characters fit inside the room already
+ * reserved. A wider step means fewer reflows but a more conspicuous gap the
+ * moment a field outgrows its room; this is about four characters at the
+ * default size.
  */
 export const SLOT_WIDTH_STEP = 48;
-export const SLOT_VERTICAL_STEP = 12;
 
 function roundUpTo(value: number, step: number) {
     return Math.ceil(value / step) * step;
@@ -47,10 +50,13 @@ function roundUpTo(value: number, step: number) {
 function reserveDimension(
     measured: number,
     reserved: number | null,
-    step: number,
+    step: number | null,
 ) {
     if (reserved !== null && measured <= reserved) {
         return reserved;
+    }
+    if (step === null) {
+        return measured;
     }
     // A control sitting exactly on a step is given the next one up, so that the
     // very next keystroke does not immediately outgrow it again.
@@ -66,8 +72,8 @@ function reserveDimension(
  *
  * Editing: whatever is already reserved, for as long as the control fits in
  * it — so beginning to type costs nothing, and neither does deleting. Only
- * outgrowing the room asks for more, and then it asks for a whole step of it,
- * which the next several keystrokes then fit inside.
+ * outgrowing the room asks for more: a whole step of width, which the next
+ * several keystrokes then fit inside, and exactly the height or depth needed.
  */
 export function reserveForSlot({
     measured,
@@ -90,13 +96,9 @@ export function reserveForSlot({
         height: reserveDimension(
             measured.height,
             reserved?.height ?? null,
-            SLOT_VERTICAL_STEP,
+            null,
         ),
-        depth: reserveDimension(
-            measured.depth,
-            reserved?.depth ?? null,
-            SLOT_VERTICAL_STEP,
-        ),
+        depth: reserveDimension(measured.depth, reserved?.depth ?? null, null),
     };
 }
 

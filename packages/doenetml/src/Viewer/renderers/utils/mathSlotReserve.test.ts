@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-    reserveForSlot,
-    sameBox,
-    SLOT_VERTICAL_STEP,
-    SLOT_WIDTH_STEP,
-} from "./mathSlotReserve";
+import { reserveForSlot, sameBox, SLOT_WIDTH_STEP } from "./mathSlotReserve";
 
 const box = (width: number, height: number, depth: number) => ({
     width,
@@ -63,12 +58,11 @@ describe("reserveForSlot", () => {
         // Otherwise the very next character would outgrow the reservation and
         // cost a re-typeset, which is what the steps exist to avoid.
         const reserved = reserveForSlot({
-            measured: box(SLOT_WIDTH_STEP, SLOT_VERTICAL_STEP, 0),
+            measured: box(SLOT_WIDTH_STEP, 20, 0),
             reserved: null,
             editing: true,
         });
         expect(reserved.width).eq(2 * SLOT_WIDTH_STEP);
-        expect(reserved.height).eq(2 * SLOT_VERTICAL_STEP);
     });
 
     it("keeps several keystrokes inside one reservation", () => {
@@ -110,8 +104,29 @@ describe("reserveForSlot", () => {
             editing: true,
         });
         expect(grown.width).eq(reserved.width);
-        expect(grown.height).eq(3 * SLOT_VERTICAL_STEP);
-        expect(grown.depth).eq(2 * SLOT_VERTICAL_STEP);
+        expect(grown.height).eq(26);
+        expect(grown.depth).eq(18);
+    });
+
+    it("gives a change of shape exactly the room it needs", () => {
+        // Height and depth change only when the control changes shape, which
+        // is rare enough that each change can be typeset for as it comes; a
+        // step there would only make the control move by a different amount
+        // each time.
+        let reserved = box(96, 20, 8);
+        for (const [height, depth] of [
+            [28, 14],
+            [36, 22],
+            [44, 30],
+        ]) {
+            reserved = reserveForSlot({
+                measured: box(50, height, depth),
+                reserved,
+                editing: true,
+            });
+            expect(reserved.height).eq(height);
+            expect(reserved.depth).eq(depth);
+        }
     });
 });
 

@@ -52,7 +52,7 @@ export default class MathInput extends Input {
 
     // A math input changes width *and* height on nearly every keystroke, while
     // the caret is inside it, so unlike the other inputs its box cannot simply
-    // be measured once. The renderer reserves it room in coarse steps and holds
+    // be measured once. The renderer reserves it width in coarse steps and holds
     // the surrounding layout still while it is being edited, which is what makes
     // the field drawable inside an expression.
     static canBeEmbeddedInMath = true;
