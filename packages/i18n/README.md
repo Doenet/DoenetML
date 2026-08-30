@@ -343,9 +343,9 @@ where a speaker should start.
 
 **The Silk Road batch is the first that does not split all one way or the
 other: twelve leave the tables out and three supply them.** The twelve are
-the school-system case in six mediums — Russian for `kjh`, `alt` and `dng`,
-Russian and Ukrainian for `crh`, Russian and Romanian for `gag`, Uzbek and
-Russian for `kaa`, Tajik and Russian for `sgh`, Azerbaijani for `ttt`, Turkish
+the school-system case, in a medium that changes almost catalog by catalog —
+Russian for `kjh`, `alt` and `dng`, Russian and Ukrainian for `crh`, Russian
+and Romanian for `gag`, Uzbek and Russian for `kaa`, Tajik and Russian for `sgh`, Azerbaijani for `ttt`, Turkish
 for `zza`, Urdu, English and Persian for `bal`, Dari and Pashto for `haz`, and
 `wbl`, which is the one with no single fallback at all, a Gojali pupil meeting
 the English names and a Wakhan pupil the Tajik ones. The three that supply
@@ -2228,7 +2228,7 @@ become reachable because a neighbour did.
 Nothing else moved. `LANGUAGE_ALIASES` is unchanged, and thirteen of the
 fifteen tags are neither macrolanguages nor members of one.
 
-Four tags are worth naming as near misses this batch does **not** fold, and
+Five tags are worth naming as near misses this batch does **not** fold, and
 each is one code away from a catalog it resembles: `bqi` (Bakhtiari) and `luz`
 (Southern Luri) beside `locales/lrc`, which is Northern Luri and an individual
 language with no macrolanguage over it; `srh` (Sarikoli) and `yah`
@@ -2333,10 +2333,12 @@ them towards and respelling would produce a vocabulary nobody uses.
 
 That decision has an arithmetic consequence worth recording. **`locales/glk`
 and `locales/lrc` are the first non-English catalogs in the roster to reach
-575/575** — `lint:i18n` reports them at full coverage, ahead of `fa`, `de` and
-every other complete catalog, all of which sit at 560/575 because they predate
-the fifteen newest keys. `locales/mzn` is at 573/575, and its two gaps are
-deliberate and shared with `fa`: it omits `noun.slope-field` and
+575/575** — `lint:i18n` notes only the catalogs that fall short, so these two
+are the first non-English ones it says nothing about at all. They are ahead of
+`fa`, `de` and every other "complete" catalog, all of which it still lists at
+560/575 because they predate the fifteen newest keys. `locales/mzn` is at
+573/575, and its two gaps are deliberate and shared with `fa`: it omits
+`noun.slope-field` and
 `noun.vector-field`, because Mazanderani has no phrase for either that is not
 a transparent calque of the English. The other twelve sit at 445/575, except
 `alt` and `kjh` at 443 and `ttt` at 435.
@@ -2405,8 +2407,10 @@ written with a period after the figure, `{ $line }. satır`, exactly as
 `locales/crh` and `locales/tr` write theirs.
 
 Only four catalogs use `[noun-tail]` — `lrc`, `haz`, `bal` and `zza` — and the
-other eleven fold a polygon's side count into the head, because a modifier
-precedes in all of them.
+other eleven fold a polygon's side count into the head. For ten of the eleven
+that follows from the adjective order, since a modifier precedes; `locales/ttt`
+is the one that trails its adjectives and heads the count anyway, which is why
+`styleDescriptions.test.ts` pins the two choices as independent.
 
 **Not one of the fifteen forks on `$gender` or `$role`,** which is the second
 batch in a row of which that is true. The reason is different this time.
