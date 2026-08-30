@@ -37,10 +37,11 @@ in CLDR and never overrides it.
 Malay gains its members, so many readers who reached English before now reach
 a catalog: Brunei Malay (`kxd`), Kedah Malay (`meo`), Pattani Malay (`mfa`),
 Central Malay (`pse`), Sabah Malay (`msi`), North Moluccan Malay (`max`)
-and Manado Malay (`xmm`) and twenty-six other varieties now reach
-`locales/ms`, which is
-Standard Malay, so a reader served through one of those may meet spellings
-they have to adjust to. A Pattani reader who writes in Jawi is served Rumi.
+and Manado Malay (`xmm`) and twenty-five other varieties now reach
+`locales/ms`. The list has thirty-three entries; the thirty-third is Standard
+Malay (`zsm`) itself, which already reached that catalog because ICU rewrites
+the tag. `locales/ms` is Standard Malay, so a reader served through one of the
+thirty-two may meet spellings they have to adjust to. A Pattani reader who writes in Jawi is served Rumi.
 Indonesian, Minangkabau and Banjar readers are deliberately left out of that
 list, because each has a catalog of its own. Coastal Kadazan (`kzj`) readers
 reach the new `locales/dtp`. No reader is moved off a catalog they already

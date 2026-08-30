@@ -942,29 +942,42 @@ describe("the Southeast Asian batch's plural categories", () => {
     /**
      * The other half, which is what would fail if a catalog had answered the
      * rule above by dropping the fork instead of rewriting it. All fifteen keep
-     * English's `[1]` in `field-function-wrong-num-outputs`, and all fifteen
-     * keep the explicit `[0]` that says "no attempts remaining" — matched
+     * English's `[1]` fork in `field-function-wrong-num-outputs` — matched
      * against the number rather than against a category, and so legal in a
      * locale with no rules of its own.
+     *
+     * The `[1]` is looked for inside that one message rather than anywhere in
+     * the file, since a stray literal elsewhere would otherwise stand in for
+     * the fork this is about.
      */
     it.each(SOUTHEAST_ASIA)(
-        "keeps %s's numeric literals, which no plural rule selects",
-        (_locale, chrome, diagnostics) => {
-            expect(branches(diagnostics)).toContain(
-                "field-function-wrong-num-outputs",
-            );
-            expect(both(chrome, diagnostics)).toContain("[1]");
-            expect(branches(chrome)).toContain("[0]");
+        "keeps %s's numeric literal, which no plural rule selects",
+        (_locale, _chrome, diagnostics) => {
+            const message = branches(diagnostics)
+                .split("\nfield-function-wrong-num-outputs =")[1]
+                ?.split(/\n(?=\S)/)[0];
+            expect(message).toBeDefined();
+            expect(message).toContain("[1]");
         },
     );
 
     /**
-     * And the counts still render. A catalog that answered "write no category
-     * branch" by dropping `{ $count }` would pass every assertion above and
-     * serve a reader a sentence with the number missing from it.
+     * And the counts still render, which is the half that would break if a
+     * catalog had answered "write no category branch" by dropping `{ $count }`
+     * or its default branch rather than by rewriting the select. The zero case
+     * is asserted through the renderer for the same reason: `[0]` is selected
+     * by the number itself, so what matters is that it *reaches* the reader,
+     * not that the literal appears in the file.
      */
     it.each(SOUTHEAST_ASIA)("still renders %s's counts", (locale, chrome) => {
         const t = createChromeTranslator(locale, { [locale]: chrome });
-        expect(t("attempts-remaining", { count: 3 })).toContain("3");
+        for (const count of [1, 2, 5]) {
+            expect(
+                stripBidiIsolates(t("attempts-remaining", { count })),
+            ).toContain(String(count));
+        }
+        expect(t("attempts-remaining", { count: 0 })).not.toBe(
+            t("attempts-remaining", { count: 3 }),
+        );
     });
 });

@@ -2841,9 +2841,9 @@ languages agreeing, and `bug`'s «pettu-pettu» and `mak`'s «tappolo-polo» are
 the two that are not it. Against that, **seven of the eight supply a red of
 their own** — macella', eja, habang, meela, rara, mirah, aragang — and
 `locales/nia` is the one that falls back to Indonesian «merah», which its own
-header calls a gap in the seed rather than a claim about Nias. Nias does
-supply two colour words of its own, «aitö» and «afusi»; red is simply not one
-of them.
+header calls a gap in the seed rather than a claim about Nias. That file
+attempts two colour words in Nias, «aitö» and «afusi», and marks even those as
+unverified; red is one the seed could not supply, not one the language lacks.
 
 The three Myanmar catalogs invert further than the Indonesian ones do: all
 three fix the description as **colour, then dash pattern, then thickness**,
@@ -2948,8 +2948,8 @@ follows membership rather than second-guessing it.
 
 Nothing else moved. `LANGUAGE_ALIASES` is unchanged, and **`kzj` (Coastal
 Kadazan) needs no row at all**: `Intl.getCanonicalLocales("kzj")` already
-returns `dtp`, so ICU folds it before this file is reached, while `dtb` and
-`drg` — Coastal Kadazan's and Rungus's own codes — miss and fall to English,
+returns `dtp`, so ICU folds it before this file is reached, while `dtb`
+(Labuk-Kinabatangan Kadazan) and `drg` (Rungus) miss and fall to English,
 which `locales/dtp`'s header records as the cost of one tag per catalog.
 
 The near misses this batch does **not** fold are mostly siblings inside one

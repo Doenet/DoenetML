@@ -15,11 +15,17 @@
 # the **standardised Kadazandusun taught in Sabah's schools** — the written
 # standard built on **Bundu-Liwan** Dusun and used in the state's
 # Kadazandusun-language curriculum and dictionaries. `dtp` is one member of a
-# cluster: **Coastal Kadazan is `dtb`** and **Rungus is `drg`**, and a reader
-# of either will find words here that are not theirs. «opurak» for white is
-# the clearest of them — Coastal Kadazan says «oputi'» — and a `dtb` or `drg`
-# reader should expect to respell rather than to find their own variety
-# served. That is the cost of one tag per catalog, not an oversight.
+# cluster: **Coastal Kadazan is `kzj`**, **Labuk-Kinabatangan Kadazan is
+# `dtb`** and **Rungus is `drg`**, and a reader of any of the three will find
+# words here that are not theirs. «opurak» for white is the clearest of them —
+# Coastal Kadazan says «oputi'» — and such a reader should expect to respell
+# rather than to find their own variety served. That is the cost of one tag
+# per catalog, not an oversight.
+#
+# `kzj` alone arrives here without anything in this repository arranging it:
+# ICU canonicalizes the tag onto `dtp`, so a Coastal Kadazan request is served
+# this file. `dtb` and `drg` fall to English, because `dtp` is not an ISO
+# 639-3 macrolanguage and there is no published membership to fold them on.
 #
 # ORTHOGRAPHY. The standard Kadazandusun spelling: `v` is a letter of the
 # alphabet and not a stand-in for `w` («vagu», «avasi»), the glottal stop is

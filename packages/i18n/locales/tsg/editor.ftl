@@ -9,8 +9,9 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # Written in the Latin orthography of the other three files of this locale —
-# three vowels, an apostrophe for the glottal stop, doubled consonants for
-# length, and loans kept in the spelling of the language they came from. See
+# three vowel qualities with a macron for length, an apostrophe for the
+# glottal stop, doubled consonants for a long consonant, and loans kept in the
+# spelling of the language they came from. See
 # `locales/tsg/chrome.ftl` for the argument against writing this catalog in
 # Sulat Sūg, and for the verb-formation assumption every verb here rests on.
 #

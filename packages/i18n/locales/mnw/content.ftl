@@ -47,11 +47,16 @@
 # twelve is a bigger improvement to this catalog than correcting anything
 # else in it.
 #
-# The geometric nouns are the same case one step further out: `<circle>`,
-# `<triangle>` and `<point>` are written with the Burmese school words
-# စက်ဝိုင်း, တြိဂံ and အမှတ်, which is what a Mon pupil meets in a Burmese
-# maths lesson, and everything from `line segment` outwards is left in English
-# in Latin letters. What is Mon here is the frame around them.
+# The geometric nouns are the same case one step further out. Eight entries of
+# the `noun` table are written in the script: `line` မျဉ်း, `circle`
+# စက်ဝိုင်း, `triangle` တြိဂံ, `point` အမှတ်, `region` ဒေသ, `diamond` စိန်ပုံ,
+# `cross` ကြက်ခြေခတ် and `plus` အပေါင်း, every one of them a Burmese school
+# word in Burmese spelling, which is what a Mon pupil meets in a Burmese maths
+# lesson. **The other twelve entries — `line segment`, `ray`, `vector`,
+# `curve`, `function`, `slope field`, `vector field`, `parabola`, `polyline`,
+# `polygon`, `rectangle` and `square` — are left in English in Latin
+# letters**, because that is where a Mon pupil meets those. What is Mon here
+# is the frame around them.
 #
 # ## The conditional, and a limit the catalog cannot fix from inside
 #

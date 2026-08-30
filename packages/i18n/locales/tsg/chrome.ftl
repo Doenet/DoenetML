@@ -24,10 +24,16 @@
 # nothing in this file should be converted piecemeal: **all four files at
 # once, or none.**
 #
-# ORTHOGRAPHY. Tausug has three vowels — **a, i, u** — and this catalog writes
-# only those. The glottal stop is written with an **apostrophe** («puti'»,
-# «sala'», «pana'»), and a doubled consonant is a real length contrast
-# («bunnal», «gaddung»), not a typo. Loanwords are the one place the three
+# ORTHOGRAPHY. Tausug has three vowel qualities — **a, i, u** — and this
+# catalog writes only those, each in a plain and a **macron** form: «ā», «ī»,
+# «ū» mark the long vowel the Tausug dictionary tradition marks, in «Sūg»,
+# «sāya», «katān», «pī'», «siyusūd». The macron is a length mark rather than a
+# stress mark or a fourth vowel, it is written on the same words every time
+# they appear, and **stripping it is a respelling rather than a
+# simplification**. The glottal stop is written with an **apostrophe**
+# («puti'», «sala'», «pana'») — the ASCII `'`, never a curly quote — and a
+# doubled consonant is a real length contrast in a consonant («bunnal»,
+# «gaddung»), not a typo. Loanwords are the one place the three
 # vowels break down: rather than respell a borrowing into an invented Tausug
 # phonology, this catalog **keeps a loan in the spelling of the language it
 # was borrowed from** — «kolum», «pahina», «solusyon», «rombo», «sirkulo»,

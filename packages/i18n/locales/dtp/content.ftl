@@ -6,8 +6,9 @@
 #
 # **Kadazandusun** (Boros Dusun) of Sabah, written in the **standardised
 # Bundu-Liwan-based orthography** taught in Sabah's schools. `dtp` is Central
-# Dusun; **Coastal Kadazan is `dtb`** and **Rungus is `drg`**, and a reader of
-# either variety will need to respell some of what is here. See
+# Dusun; **Coastal Kadazan is `kzj`**, **Labuk-Kinabatangan Kadazan is `dtb`**
+# and **Rungus is `drg`**, and a reader of any of those varieties will need to
+# respell some of what is here. See
 # `locales/dtp/chrome.ftl` for the whole of that note.
 #
 # WORD ORDER. The head noun comes first and its describing word follows, so

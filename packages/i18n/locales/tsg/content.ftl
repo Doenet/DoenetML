@@ -8,9 +8,10 @@
 # Sabah, written in the **Latin** orthography of Philippine schoolbooks and
 # dictionaries rather than in Sulat Sūg, the Jawi-derived Arabic script that
 # is the language's older tradition. `locales/tsg/chrome.ftl` argues that
-# choice and states the spelling rules — three vowels, the apostrophe for the
-# glottal stop, doubled consonants for length, and loanwords kept in the
-# spelling of the language they came from.
+# choice and states the spelling rules — three vowel qualities with a macron
+# for length, the apostrophe for the glottal stop, doubled consonants for a
+# long consonant, and loanwords kept in the spelling of the language they came
+# from.
 #
 # **WORD ORDER, AND WHY IT IS NOT THE ONE ITS TWO NEIGHBOURS IN THIS BATCH
 # USE.** The describing words come **in front of** the noun and every join is

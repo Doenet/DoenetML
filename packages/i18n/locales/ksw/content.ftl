@@ -44,10 +44,14 @@
 # not know them, not because they do not exist. **This is the first place a
 # speaker should look.**
 #
-# The geometric nouns are the same case one step further out: `<circle>` and
-# `<triangle>` are written with the Burmese school words စက်ဝိုင်း and
-# တြိဂံ, which is what a Karen pupil meets in a Burmese maths lesson, and
-# everything from `line segment` outwards is left in English in Latin letters.
+# The geometric nouns are the same case one step further out. Eight entries of
+# the `noun` table are written in the script: `circle` စက်ဝိုင်း, `triangle`
+# တြိဂံ, `line` မျဉ်း, `point` အမှတ်, `diamond` စိန်ပုံ, `cross` ကြက်ခြေခတ်
+# and `plus` အပေါင်း are the Burmese school words a Karen pupil meets in a
+# Burmese maths lesson, and `region` လီၢ်ကဝီၤ is the one that is Karen. **The
+# other twelve entries — `line segment`, `ray`, `vector`, `curve`, `function`,
+# `slope field`, `vector field`, `parabola`, `polyline`, `polygon`,
+# `rectangle` and `square` — are left in English in Latin letters.**
 # What is Karen here is the frame around them — the noun-first order, the
 # nominalizing တၢ်, and the negative circumfix တ…ဘၣ်.
 #

@@ -1232,11 +1232,12 @@ describe("every catalog's digits", () => {
  * Twelve of the fifteen catalogs are written in Latin, and the interesting fact
  * about them is how *little* they need beyond ASCII: seven use nothing at all,
  * and the other five commit to exactly one or three characters apiece. Each of
- * those five is a letter of the language rather than decoration — `nia`'s «ö»,
- * `mrw`'s schwa «ë», `tsg`'s Malay-derived macrons, the «é» `bug` and `mak`
- * write for a vowel their Lontara tradition does not distinguish — and each
- * header says which and warns against folding it away. A catalog that acquired
- * a sixth diacritic would have acquired it by guess.
+ * those five carries a distinction of the language rather than decoration —
+ * `nia`'s «ö», `mrw`'s schwa «ë», `tsg`'s macrons for a long vowel, the «é»
+ * `bug` and `mak` write for a vowel their Lontara tradition does not
+ * distinguish — and each locale's header names its own and warns against
+ * folding it away. A catalog that acquired a sixth diacritic would have
+ * acquired it by guess.
  */
 describe("the letter inventories the Southeast Asian headers state exactly", () => {
     /** Non-ASCII letters each Latin-script catalog's header allows. */

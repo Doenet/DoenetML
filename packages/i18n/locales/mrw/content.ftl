@@ -44,10 +44,13 @@
 # loans wrong as loans.
 #
 # «makapal» (thick) and «manipis» (thin) are Maranao. `line-style`'s two words
-# and **the whole of the `noun` table are English**, for the same reason: the
-# geometry vocabulary a Maranao speaker has is the English one they were
-# taught in. Nothing was coined and nothing was respelled into an invented
-# loan phonology.
+# and **every entry in the `noun` table but one are English**, for the same
+# reason: the geometry vocabulary a Maranao speaker has is the English one
+# they were taught in. The exception is `noun.line`, written «linya» — the
+# everyday Maranao word, which a speaker uses without reaching for English —
+# and it is why the rendered style phrases below end in «linya» rather than in
+# «line». Nothing was coined and nothing was respelled into an invented loan
+# phonology.
 #
 # Maranao has no grammatical gender and no case, so `noun-gender` answers one
 # token for every noun and nothing here selects on `$gender` or `$role`.

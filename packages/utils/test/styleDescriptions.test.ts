@@ -4853,9 +4853,11 @@ describe("the Southeast Asian batch's word order", () => {
      * six languages arriving at it. `bug` and `mak` are pinned beside them
      * precisely because they do *not* — «pettu-pettu» and «tappolo-polo» —
      * and seven of the eight supply a red of their own where `nia` still
-     * falls back to Indonesian «merah» — `nia`'s two native colour words are
-     * black and white, and red is not among them. Replacing a loan should be a visible
-     * diff here rather than a silent improvement.
+     * falls back to Indonesian «merah» — the only two colour words
+     * `locales/nia` attempts in Nias are black and white, and its header calls
+     * the missing red a gap in the seed rather than a fact about the language.
+     * Replacing a loan should be a visible diff here rather than a silent
+     * improvement.
      */
     const postnominal: [string, string, string][] = [
         [

@@ -472,20 +472,15 @@ describe("negotiateLocales", () => {
         //
         // Pangasinan stood here until the Southeast Asian batch, and what
         // replacing it cost is the whole of what seeding `pag` cost this
-        // block: the tag now reaches `locales/pag`, and nothing else in the
-        // Bikol list changed, because Pangasinan was never a member of
-        // anything. A negative control has to name a language the roster does
-        // not have, so the row moves rather than being deleted.
+        // block: nothing else in the Bikol list changed, because Pangasinan
+        // was never a member of anything. A negative control has to name a
+        // language the roster does not have, so the row moves rather than
+        // being deleted; where `pag` goes now is asserted with the rest of its
+        // batch, in "the Southeast Asian batch" below.
         it("leaves Ibanag on English rather than guessing", () => {
             expect(
                 negotiateLocales([normalizeLocaleTag("ibg")], available),
             ).toEqual(["en"]);
-        });
-
-        it("takes Pangasinan to the catalog it now has", () => {
-            expect(
-                negotiateLocales([normalizeLocaleTag("pag")], available),
-            ).toEqual(["pag", "en"]);
         });
     });
 
@@ -2310,12 +2305,19 @@ describe("a host catalog keyed on an aliased tag", () => {
         ];
 
         /**
-         * Every one of the fifteen reaches the directory it names when the
-         * whole roster is on offer, and reaches English when only English is.
-         * The second half is what would fail if the new `ms` row were quietly
-         * folding one of these tags onto Standard Malay instead of letting it
-         * arrive under its own name — which is a live hazard here rather than a
-         * theoretical one, since `bjn` really is a member of `msa`.
+         * Every one of the fifteen reaches the directory it names, and reaches
+         * *only* that directory before English.
+         *
+         * The exact chain rather than a `toContain` is the point: a `["bjn",
+         * "ms", "en"]` would pass a containment check and would mean the new
+         * `ms` row had folded a tag of this batch onto Standard Malay behind
+         * its own catalog. That is a live hazard rather than a theoretical one,
+         * since `bjn` really is a member of `msa`.
+         *
+         * The English-only roster is asserted beside it for a different reason:
+         * it is the fallback these fifteen had before this PR, so it pins that
+         * seeding a catalog did not change what happens on a host that ships
+         * none of them.
          */
         it("gives each of the fifteen its own catalog and nothing else", () => {
             for (const locale of SOUTHEAST_ASIA) {
@@ -2414,8 +2416,9 @@ describe("a host catalog keyed on an aliased tag", () => {
          * Kadazan reader reaches the Kadazandusun catalog for free.
          *
          * `locales/dtp` is written in the Bundu-Liwan-based standard of Sabah
-         * schooling and its header names `dtb` and `drg` as siblings a reader
-         * may have to respell from — «opurak» against Coastal «oputi'». Those
+         * schooling and its header names `dtb` (Labuk-Kinabatangan Kadazan)
+         * and `drg` (Rungus) as siblings a reader may have to respell from —
+         * «opurak» against Coastal «oputi'». Those
          * two are deliberately *not* folded: `dtp` is not an ISO 639-3
          * macrolanguage, so there is no published membership to follow and
          * adding them would be the judgement `MACROLANGUAGE_MEMBERS` exists to
