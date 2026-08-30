@@ -204,17 +204,24 @@ describe("computeContextHelp — cursor on a tag boundary (#1327)", () => {
         // typing a tag name that ended in `-`, `.` or `:`, or show an empty
         // allowed-children panel for the half-typed name as though it were a
         // real element. Neither element exists, so there is nothing to say.
-        for (const source of [`<p><my-</p>`, `<p><my-}</p>`, `<p><my-/</p>`]) {
-            const help = await helpAt(source, source.indexOf("<my-") + 4);
-            expect({ source, kind: help.kind }).toEqual({
-                source,
-                kind: "none",
-            });
+        for (const nameEnd of ["-", ".", ":"]) {
+            for (const after of ["", "}", "/"]) {
+                const source = `<p><my${nameEnd}${after}</p>`;
+                const help = await helpAt(source, source.indexOf("<my") + 4);
+                expect({ source, kind: help.kind }).toEqual({
+                    source,
+                    kind: "none",
+                });
+            }
         }
 
         // A name that does match an element still gets its help, whatever the
-        // cursor's neighbours.
-        const help = await helpAt(`<p><math</p>`, 8);
+        // cursor's neighbors.
+        const matchingSource = `<p><math</p>`;
+        const help = await helpAt(
+            matchingSource,
+            matchingSource.indexOf("<math") + 5,
+        );
         expect(help).toMatchObject({ kind: "element", elementName: "math" });
     });
 });

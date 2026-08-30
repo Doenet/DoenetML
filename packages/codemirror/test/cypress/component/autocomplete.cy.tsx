@@ -237,6 +237,40 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             .should("not.contain", 'name="mcq"');
     });
 
+    it("keeps element snippets listed across the hyphens of their names (#1780)", () => {
+        // Nine of the ten snippets have hyphenated names, so typing one
+        // straight through is the obvious way to reach it. The menu used to
+        // empty on the hyphen — the tag name was read as the text that
+        // followed it rather than as a name being typed — so the snippet
+        // could only be accepted by stopping short of the hyphen.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<answer", { force: true });
+        cy.get(".cm-tooltip-autocomplete li").should(
+            "have.length.greaterThan",
+            1,
+        );
+
+        // `answer-labeled` is the only name that continues past the hyphen, so
+        // the menu narrowing to it alone is also how we know the list shown is
+        // the one queried after the hyphen rather than the one before it.
+        cy.get(".cm-content").type("-", { force: true });
+        cy.get(".cm-tooltip-autocomplete li").should("have.length", 1);
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            "answer-labeled",
+        );
+
+        // Accepting it replaces everything typed, hyphen included.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").click();
+        cy.get(".cm-content").invoke("text").should("contain", "<label>");
+        cy.get(".cm-content").invoke("text").should("not.contain", "answer-");
+    });
+
     it("completes attribute names", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>

@@ -108,11 +108,11 @@ export function elementAtOffsetWithContext(
         // is a word character. This should help with completion contexts, since the author
         // is probably still typing a word, or is expecting completions from the word on the left.
         //
-        // A tag name being typed also takes the node on the left, whatever its
-        // last character is. Lezer's `TagName` runs over `-`, `.` and `:` as
-        // well as word characters, so `<p><my-|</p>` really is a cursor at the
-        // end of an open tag's name; reading `-` as "not a word, so look
-        // right" hands the position to the following close tag instead (#1780).
+        // A tag name being typed takes the node on the left whatever character
+        // it ends on: lezer's `TagName` runs over `-`, `.` and `:` too, so
+        // `<p><my-|</p>` is a cursor at the end of an open tag's name and the
+        // completions belong to that name rather than to whatever follows it
+        // (#1780).
         const lezerNode = atNodeBoundary
             ? prevChar.match(/\w/) || atOpenTagNameEnd
                 ? leftNode

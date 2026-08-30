@@ -427,13 +427,15 @@ describe("DoenetSourceObject", () => {
         }
 
         // Regression guard: `atOpenTagNameEnd` covers open tags only, so a
-        // *close* tag's name is never reclassified as one being opened.
+        // half-typed *close* tag name ending the same way is not read as a
+        // name being opened — the cursor stays in the enclosing element's body.
         {
             const source = `<p></my-</p>`;
-            const { cursorPosition } = new DoenetSourceObject(
+            const { cursorPosition, node } = new DoenetSourceObject(
                 source,
             ).elementAtOffsetWithContext(source.indexOf("</my-") + 5);
-            expect(cursorPosition).not.toEqual("openTagName");
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "p" });
         }
 
         // Regression guard: a close tag name being typed is still
