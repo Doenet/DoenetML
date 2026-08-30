@@ -226,12 +226,15 @@ export function useMathSlots({
     // to the right of the control instead of under it. The pin is measured
     // when editing starts, and holds until the display is centred again — at
     // a commit that changes what is typeset, and when the reader leaves. A
-    // commit drops the pin only when a re-typeset is on its way, and the pin
-    // is taken again from that typeset, so the display never sits unpinned
-    // waiting for one that is not coming.
+    // commit does not drop the pin: the output on screen would centre itself
+    // first, and the narrower one on its way would centre itself again. The
+    // pin is instead moved, when that output lands, to where centring would
+    // put it, in the same pass as the swap; and only when a re-typeset is
+    // known to be coming, so the display never waits on one that is not.
     const [indent, setIndent] = useState<number | null>(null);
     const pinned = useRef(indent);
     pinned.current = indent;
+    const recentreOnTypeset = useRef(false);
 
     /**
      * Hold the template as it stands now, or release it if nothing is being
@@ -256,6 +259,7 @@ export function useMathSlots({
             if (slots.size > 0 && !wasEditing) {
                 setIndent(displayIndent(rootRef.current));
             } else if (slots.size === 0) {
+                recentreOnTypeset.current = false;
                 setIndent(null);
             }
         },
@@ -277,7 +281,7 @@ export function useMathSlots({
         (settled: Promise<unknown> | undefined, reflows: boolean) => {
             holdTemplate();
             if (reflows) {
-                setIndent(null);
+                recentreOnTypeset.current = true;
             }
             settled?.then(noteSettled, noteSettled);
         },
@@ -299,7 +303,7 @@ export function useMathSlots({
         if (commitsSettled > 0) {
             const before = heldNow.current;
             if (before && before.template !== liveTemplate.current.template) {
-                setIndent(null);
+                recentreOnTypeset.current = true;
             }
             holdTemplate();
         }
@@ -410,16 +414,13 @@ export function useMathSlots({
             setPositions((previous) =>
                 samePositions(previous, next) ? previous : next,
             );
-            // Only a fresh typeset is worth pinning to: between a commit dropping
-            // the pin and the re-typeset it promised, the old output is still on
-            // screen, and a resize report (unpinning changes the container's
-            // content box) would otherwise pin the display to that.
-            if (
-                typeset &&
-                editingSlots.current.size > 0 &&
-                pinned.current === null
-            ) {
-                setIndent(displayIndent(root));
+            if (typeset && editingSlots.current.size > 0) {
+                if (recentreOnTypeset.current) {
+                    recentreOnTypeset.current = false;
+                    setIndent(centredIndent(root));
+                } else if (pinned.current === null) {
+                    setIndent(displayIndent(root));
+                }
             }
         },
         [componentIndices, slotElementId, slotBaselineElementId],
@@ -440,19 +441,48 @@ export function useMathSlots({
     };
 }
 
+function displayParts(root: HTMLElement | null) {
+    const container = root?.querySelector('mjx-container[display="true"]');
+    const math = container?.querySelector("mjx-math");
+    return container && math ? { container, math } : null;
+}
+
 /**
  * How far in from its container's left edge a centred display has put the
  * math, or `null` for inline math, which is not centred and needs no pin.
  */
 function displayIndent(root: HTMLElement | null): number | null {
-    const container = root?.querySelector('mjx-container[display="true"]');
-    const math = container?.querySelector("mjx-math");
-    if (!container || !math) {
+    const parts = displayParts(root);
+    if (!parts) {
         return null;
     }
     return (
-        math.getBoundingClientRect().left -
-        container.getBoundingClientRect().left
+        parts.math.getBoundingClientRect().left -
+        parts.container.getBoundingClientRect().left
+    );
+}
+
+/**
+ * How far in centring *would* put the math, worked out for a display that is
+ * pinned somewhere else at the moment.
+ */
+function centredIndent(root: HTMLElement | null): number | null {
+    const parts = displayParts(root);
+    if (!parts) {
+        return null;
+    }
+    // The pin replaces the container's own left padding, so the padding it
+    // would have had is taken to be the right-hand one, which the pin leaves
+    // alone; MathJax pads the two sides alike.
+    const padding =
+        parseFloat(getComputedStyle(parts.container).paddingRight) || 0;
+    const contentWidth = parts.container.clientWidth - 2 * padding;
+    return (
+        padding +
+        Math.max(
+            0,
+            (contentWidth - parts.math.getBoundingClientRect().width) / 2,
+        )
     );
 }
 
