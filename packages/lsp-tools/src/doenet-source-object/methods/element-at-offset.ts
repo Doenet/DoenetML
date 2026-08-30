@@ -104,16 +104,15 @@ export function elementAtOffsetWithContext(
         // XXX Fix this after the CodeMirror update
         // @ts-ignore
         const atNodeBoundary = leftNode.index !== rightNode.index;
-        // If we're at a node boundary, we pick the node to the left if the previous character
-        // is a word character. This should help with completion contexts, since the author
-        // is probably still typing a word, or is expecting completions from the word on the left.
+        // If we're at a node boundary, we pick the node to the left when the author
+        // is probably still typing what sits there: either the previous character is
+        // a word character (so completions should come from the word on the left), or
+        // the cursor is at the end of an open tag's name.
         //
-        // A tag name being typed takes the node on the left whatever character
-        // it ends on. A lezer `TagName` runs over much more than `\w` does —
-        // `-`, `.`, `:`, and, since `\w` is ASCII-only, every accented or
-        // non-Latin letter — so `<p><my-|</p>` is a cursor at the end of an
-        // open tag's name, and the completions belong to that name rather than
-        // to whatever follows it (#1780).
+        // The second is wider than the first. A lezer `TagName` runs over much more
+        // than `\w` does — `-`, `.`, `:`, and, `\w` being ASCII-only, every accented
+        // or non-Latin letter — so `<p><my-|</p>` is a cursor at the end of a name
+        // being typed, and its completions belong to that name (#1780).
         const lezerNode = atNodeBoundary
             ? prevChar.match(/\w/) || atOpenTagNameEnd
                 ? leftNode
