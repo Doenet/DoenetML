@@ -37,7 +37,7 @@
 #
 # **Number.** CLDR *does* have plural rules for `gsw` — `one` and `other` — so
 # a category branch here is selected by Swiss German's own rules, unlike the
-# six catalogs of this batch that CLDR has no data for and where every count
+# seven catalogs of this batch that CLDR has no data for and where every count
 # has to fall through to `other`. There is no `zero`, `two`, `few` or `many`
 # category in `gsw`, so never write one. The split is written out wherever the
 # noun actually changes («Antwort» / «Antworte»); where it does not («Versuech»

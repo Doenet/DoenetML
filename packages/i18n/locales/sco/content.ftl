@@ -18,7 +18,7 @@
 # **The periodic table is left to fall back to English.** Secondary science in
 # Scotland is taught in English, out of English textbooks, so the table a Scots
 # speaker meets in the classroom is the English one and the fallback *is* the
-# curriculum. That is the sentence eleven other catalogs of this batch record,
+# curriculum. That is the sentence thirteen other catalogs of this batch record,
 # and it is the plainest case of it: here the fallback language is the reader's
 # own school language rather than a neighbouring state's.
 

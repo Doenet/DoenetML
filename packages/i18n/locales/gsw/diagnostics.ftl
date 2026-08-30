@@ -25,7 +25,7 @@
 # reads as a perfect: «hät nöd chöne bestimmt werde», never a preterite.
 #
 # **Number.** CLDR *does* have plural rules for `gsw` — `one` and `other` — so
-# a category branch is selected by Swiss German's own rules, unlike the six
+# a category branch is selected by Swiss German's own rules, unlike the seven
 # catalogs of this batch CLDR has no data for and where everything falls
 # through to `other`. There is no `zero`, `two`, `few` or `many` category, so
 # never write one; the branch is written wherever the noun actually changes.

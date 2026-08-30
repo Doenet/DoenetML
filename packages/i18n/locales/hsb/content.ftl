@@ -25,16 +25,17 @@
 #
 # **`locales/dsb` is not a respelling of this file and must not be edited into
 # one.** Lower Sorbian is a separate written standard with its own vocabulary,
-# and the two differ where they most look alike: this file writes «běły»,
-# «čerwjeny», «kruh», «prašenje» and «wotmołwa» where `locales/dsb` writes
-# «běły», «cerwjeny», «krejz», «pšašanje» and «wótegrono». Their agreement is
-# not evidence either is right — one process produced both.
+# and the two differ where they most look alike: this file writes «čerwjeny»,
+# «kruh», «prašenje», «wotmołwa» and «strona» where `locales/dsb` writes
+# «cerwjeny», «krejz», «pšašanje», «wótegrono» and «bok». Where a word *is*
+# shared — «běły» is spelled the same in both — that is not evidence either is
+# right: one process produced both.
 #
 # **The periodic table is left to fall back to English.** Sorbian schooling in
 # Saxony is German-medium above the primary grades, and the periodic table a
 # Sorbian pupil meets is printed in German; `locales/de` is the parallel text.
 # That is a fact about a school system rather than about the language, and it
-# is the same sentence eleven other catalogs of this batch record.
+# is the same sentence thirteen other catalogs of this batch record.
 
 
 ## Style vocabulary

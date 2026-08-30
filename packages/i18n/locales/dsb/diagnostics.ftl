@@ -9,7 +9,7 @@
 # **`locales/hsb` was open beside this file while it was written, and that is
 # the largest risk in it.** The two Sorbian standards are close, and a seed
 # that reads one while writing the other will reproduce the first's choices
-# wherever it has nothing better — se the two catalogs are *expected* to look
+# wherever it has nothing better — so the two catalogs are *expected* to look
 # alike, and **their agreement is not evidence that either is right**. One
 # process produced both. This is the trap `locales/tkl` and `locales/tvl`
 # record for Tokelauan and Tuvaluan, and it is sharper here because the

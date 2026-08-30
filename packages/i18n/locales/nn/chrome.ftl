@@ -28,7 +28,7 @@
 # same two Bokmål has — so a category branch here is selected by Nynorsk's own
 # rules rather than by the runtime's default language. That is the split this
 # batch runs along, and the header of every catalog in it says which side it is
-# on: nine of the fifteen have CLDR data and six do not.
+# on: eight of the fifteen have CLDR data and seven do not.
 #
 # Where a select is dropped it is dropped for a reason in the grammar and not
 # for want of rules: «forsøk» and «svar» are neuter and are spelled the same in

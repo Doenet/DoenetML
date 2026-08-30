@@ -1792,7 +1792,7 @@ describe("negotiateLocales", () => {
         /**
          * `rue` is the batch's one Cyrillic catalog, and CLDR maximizes it to
          * **Ukraine** — while the codification `locales/rue` is written in is
-         * the Presov one, standardized in Slovakia. That is CLDR's answer
+         * the Prešov one, standardized in Slovakia. That is CLDR's answer
          * rather than a wrong one, and it is recorded rather than worked
          * around: a host that knew only the region would not reach this
          * catalog through it, and nobody should later "fix" region handling
