@@ -58,9 +58,16 @@
 # **Word order and the postposition.** Wakhi is verb-final, adjectives precede
 # their noun, and relations are marked by postpositions rather than by
 # prepositions. This catalog uses **«-ir»** (dative/purposive, 'to, for') and
-# **«-dar»** ('in, on'), both written onto the word they follow. Neither is
-# ever welded to a placeable in this file: where a relation would fall on a
-# `{ $placeable }` the sentence is rebuilt around «baroi» ('for') instead.
+# **«-dar»** ('in, on'), both written onto the word they follow. Both have a
+# **single invariant shape** — no vowel harmony, no allomorph picked by the
+# preceding sound — so writing one against a placeable is adjacency rather
+# than agreement, and the README's rule about welding an affix to a placeable
+# does not reach it: `{ $startLine }-dar` is as correct as Finnish's
+# `{ $numSides }-kulmio`. This file does that twice, and `editor.ftl` and
+# `diagnostics.ftl` do it about two dozen times between them. Where the seed
+# wanted a relation it was *less* sure of, it rebuilt the sentence around the
+# free word «baroi» ('for') instead, which is why both constructions appear
+# here.
 #
 # **Counting.** CLDR has **no plural data for `wbl`**, so `Intl.PluralRules`
 # resolves it against the runtime's default locale and a category branch here

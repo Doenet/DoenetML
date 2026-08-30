@@ -71,7 +71,7 @@ line-points-undetermined-dimensions = Сян чуангуәди дянди ра�
 
 line-points-too-few-dimensions = Сян бищү чуангуә җишо лянгә размерность ди дян.
 
-line-points-depend-on-variables = Сян чуангуәди дян кансə җə щə переменная: { $variables }.
+line-points-depend-on-variables = Сян чуангуәди дян кансә җә щә переменная: { $variables }.
 
 line-equation-invalid-format = Юң { $variable1 } гын { $variable2 } щеди сян ди уравнение ди формат будуй.
 
@@ -89,11 +89,11 @@ vector-dimension-mismatch = Вектор ли ди numDimensions дуй буша
 
 ## Attracting and constraining
 
-attract-to-without-nearest-point = Бунын ба та щи дао `<{ $component }>` шаң, инвый та мый ю nearestPoint җə гә состояние ди переменная.
+attract-to-without-nearest-point = Бунын ба та щи дао `<{ $component }>` шаң, инвый та мый ю nearestPoint җә гә состояние ди переменная.
 
-constrain-to-without-nearest-point = Бунын ба та щян зэ `<{ $component }>` шаң, инвый та мый ю nearestPoint җə гә состояние ди переменная.
+constrain-to-without-nearest-point = Бунын ба та щян зэ `<{ $component }>` шаң, инвый та мый ю nearestPoint җә гә состояние ди переменная.
 
-constrain-to-interior-without-nearest-point = Бунын ба та щян зэ `<{ $component }>` ди лийтў, инвый та мый ю nearestPoint җə гә состояние ди переменная.
+constrain-to-interior-without-nearest-point = Бунын ба та щян зэ `<{ $component }>` ди лийтў, инвый та мый ю nearestPoint җә гә состояние ди переменная.
 
 ## `<choiceInput>`
 
@@ -107,17 +107,17 @@ pretzel-indices-count-mismatch = problem ди indices ди шў гын problem �
 
 shuffle-indices-count-mismatch = shuffle ди indices ди шў гын компонент ди шў дуй бушаң, indices бугуанла.
 
-indices-ignored-out-of-range = { $component } ди йищə indices чугуәла фанвый, indices бугуанла.
+indices-ignored-out-of-range = { $component } ди йищә indices чугуәла фанвый, indices бугуанла.
 
-pretzel-indices-repeated = pretzel ди йищə indices чуңфўла, indices бугуанла.
+pretzel-indices-repeated = pretzel ди йищә indices чуңфўла, indices бугуанла.
 
 pretzel-circuit-first-index = pretzel зэ circuit режим ли дийигә индекс бищү сы 1, indices бугуанла.
 
 ## `<shuffle>` and `<sort>`
 
-string-children-need-type = `<{ $component }>` яо гын строка ди зынэр йикуәр гунзуо, бищү дин ща `type` җə гә атрибут.
+string-children-need-type = `<{ $component }>` яо гын строка ди зынэр йикуәр гунзуо, бищү дин ща `type` җә гә атрибут.
 
-invalid-type-defaulting-to-math = { $component } компонент ди type { $type } будуй. Бищү сы math, text, number хуәҗə boolean. Щян ан math юң.
+invalid-type-defaulting-to-math = { $component } компонент ди type { $type } будуй. Бищү сы math, text, number хуәҗә boolean. Щян ан math юң.
 
 string-not-valid-component-to-arrange = Строка "{ $value }" бунын { $component }. Бугуанла.
 
@@ -149,23 +149,23 @@ label-for-must-resolve-to-one = `<label>` шаң ди `for` бищү җы җы �
 
 label-for-unresolved = `<label>` шаң ди `for` җы ди компонент җаобуҗо.
 
-label-for-answer-with-authored-inputs = `<label>` шаң ди `for` җы ди `<answer>` йиҗин зыҗи щела ввод; җиҗе җы җə гә ввод ба.
+label-for-answer-with-authored-inputs = `<label>` шаң ди `for` җы ди `<answer>` йиҗин зыҗи щела ввод; җиҗе җы җә гә ввод ба.
 
 label-for-answer-without-input = `<label>` шаң ди `for` җы ди `<answer>` мый ю кәи да бёчянди ввод.
 
-label-for-must-reference-input-or-answer = `<label>` шаң ди `for` бищү җы йигә ввод хуәҗə йигә answer.
+label-for-must-reference-input-or-answer = `<label>` шаң ди `for` бищү җы йигә ввод хуәҗә йигә answer.
 
 ## Accessibility
 
-accessibility-short-description-or-decorative = Вый ла доступность, `<{ $component }>` хуәҗə ю йигә дуан ди шомин, хуәҗə дин ща сы декоративный ди.
+accessibility-short-description-or-decorative = Вый ла доступность, `<{ $component }>` хуәҗә ю йигә дуан ди шомин, хуәҗә дин ща сы декоративный ди.
 
 accessibility-video-short-description = Вый ла доступность, `<video>` бищү ю йигә дуан ди шомин.
 
-accessibility-input-short-description-or-label = Вый ла доступность, `<{ $component }>` бищү ю йигә дуан ди шомин хуәҗə йигә бёчян.
+accessibility-input-short-description-or-label = Вый ла доступность, `<{ $component }>` бищү ю йигә дуан ди шомин хуәҗә йигә бёчян.
 
-accessibility-answer-input-short-description-or-label = Вый ла доступность, зыҗи щели ввод ди `<answer>` бищү ю йигә дуан ди шомин хуәҗə йигә бёчян.
+accessibility-answer-input-short-description-or-label = Вый ла доступность, зыҗи щели ввод ди `<answer>` бищү ю йигә дуан ди шомин хуәҗә йигә бёчян.
 
-accessibility-short-description-contains-math = Дуан ди шомин ли бу гэ ю щяң `<{ $component }>` җəяңди математика ди компонент. Ба математика юң хуа шочўлэ.
+accessibility-short-description-contains-math = Дуан ди шомин ли бу гэ ю щяң `<{ $component }>` җәяңди математика ди компонент. Ба математика юң хуа шочўлэ.
 
 accessibility-section-title-insufficient-contrast =
     { $mode ->
@@ -187,7 +187,7 @@ circle-radius-too-small = Окружность бунын суан: лянгә �
 
 circle-radius-with-many-points = Радиус дин щала, бунын зуо чуангуә лянгә идади дян ди окружность.
 
-circle-invalid-center-or-through-points = Окружность ди центр хуәҗə чуангуәди дян будуй.
+circle-invalid-center-or-through-points = Окружность ди центр хуәҗә чуангуәди дян будуй.
 
 circle-radius-center-with-multiple-points = Центр дин щала, чуангуә 1 гә идади дянди окружность ди радиус бунын суан.
 
@@ -195,7 +195,7 @@ circle-change-radius-non-numerical = Чуангуәди дян мый ю шўз�
 
 circle-radius-with-points-non-numerical = Мый ю шўзы ди значение ди шыхў, дин щала радиус җё бунын зуо чуангуә йигә идади дян ди окружность.
 
-circle-change-center-non-numerical = Чуангуә мый ю шўзы ди значение ди дян ди окружность, ба та ди центр хуан җə гә хэ мый шыщян.
+circle-change-center-non-numerical = Чуангуә мый ю шўзы ди значение ди дян ди окружность, ба та ди центр хуан җә гә хэ мый шыщян.
 
 ## `<function>`
 
@@ -231,7 +231,7 @@ function-points-too-close = Функция ли ю лянгә дян лиди г
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-       *[other] Җы ю функция ди ввод ди шў гын вывод ди шў йияң ди шыхў, итерация цэ нын зуо. Җə гә функция ю { $inputs } гә ввод, { $outputs ->
+       *[other] Җы ю функция ди ввод ди шў гын вывод ди шў йияң ди шыхў, итерация цэ нын зуо. Җә гә функция ю { $inputs } гә ввод, { $outputs ->
            *[other] { $outputs } гә вывод
         }.
     }
@@ -299,7 +299,7 @@ matches-pattern-parameter-not-in-pattern =
 
 ## `<graph>`
 
-graph-grid-invalid = `<graph>`: grid="{ $grid }" кан бу мин. Та бищү сы none, medium, dense, хуәҗə лянгә җун җян ю кунрди җын ди шў, бифаң grid="1 0.5". Сетка мый хуа.
+graph-grid-invalid = `<graph>`: grid="{ $grid }" кан бу мин. Та бищү сы none, medium, dense, хуәҗә лянгә җун җян ю кунрди җын ди шў, бифаң grid="1 0.5". Сетка мый хуа.
 
 ## `<slopeField>` and `<vectorField>`
 
@@ -311,15 +311,15 @@ field-function-wrong-num-outputs =
        *[other] { $found } гә вывод
     }. { $alternative ->
         [none] Шәму дў мый хуа.
-       *[other] Җə гә функция гэ юң `<{ $alternative }>`. Шәму дў мый хуа.
+       *[other] Җә гә функция гэ юң `<{ $alternative }>`. Шәму дў мый хуа.
     }
 
-field-function-attribute-ignored-with-child = `function` җə гә атрибут бугуанла, инвый функция зэ компонент ди лийтў е гыйла; юңди сы лийтў ди. Функция җы гэ юң йигә фазы гый.
+field-function-attribute-ignored-with-child = `function` җә гә атрибут бугуанла, инвый функция зэ компонент ди лийтў е гыйла; юңди сы лийтў ди. Функция җы гэ юң йигә фазы гый.
 
 field-variables-ignored =
-    `<{ $component }>`: `variables` җə гә атрибут җы ди сы җиҗе щезэ компонент лийтў ди выражение ди переменная. { $reason ->
-        [function-child] Җəли ди функция сы йигә `<function>` зынэр, та зыҗи мин зыҗи ди переменная, сои `variables` бугуанла.
-       *[no-expression] Җəли мый ю җəяңди выражение, сои `variables` бугуанла.
+    `<{ $component }>`: `variables` җә гә атрибут җы ди сы җиҗе щезэ компонент лийтў ди выражение ди переменная. { $reason ->
+        [function-child] Җәли ди функция сы йигә `<function>` зынэр, та зыҗи мин зыҗи ди переменная, сои `variables` бугуанла.
+       *[no-expression] Җәли мый ю җәяңди выражение, сои `variables` бугуанла.
     }
 
 ## PreFigure renderer
@@ -366,7 +366,7 @@ data-frame-missing-column-name = Шўҗү шоли йигә ле ди мин. З
 
 ## `<answer>` and scoring
 
-answer-award-depends-on-own-response = Җə гә answer ди award кансə answer зыҗи сунхади хуэйда, җə йё чў щянбудәди шәр.
+answer-award-depends-on-own-response = Җә гә answer ди award кансә answer зыҗи сунхади хуэйда, җә йё чў щянбудәди шәр.
 
 answer-max-num-attempts-in-section-wide-check-work = `sectionWideCheckWork` ди контейнер лийтў ди `<answer>` шаң дин ща `maxNumAttempts` мый юң, инвый цышў сы контейнер гуанди. Ба `maxNumAttempts` дин зэ контейнер шаң ба.
 
@@ -374,18 +374,18 @@ nested-section-wide-check-work-max-num-attempts = `sectionWideCheckWork` ди к
 
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
-       *[other] Мый дин ща symbolicEquality, { $attributes } җə гә атрибут мый юң.
+       *[other] Мый дин ща symbolicEquality, { $attributes } җә гә атрибут мый юң.
     }
 
 answer-invalid-type = Answer ди тип будуй: { $type }
 
 ## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
 
-module-attribute-child-needs-name = `<{ $component }>` җə гә компонент мый ю мин, сои бунын даң module ди атрибут юң
+module-attribute-child-needs-name = `<{ $component }>` җә гә компонент мый ю мин, сои бунын даң module ди атрибут юң
 
-module-attribute-name-already-defined = `<{ $component } name="{ $name }">` бунын даң module ди атрибут юң, инвый `<module>` җə гә компонент ди тип шаң йиҗин ю йигә "{ $name }" ди атрибут.
+module-attribute-name-already-defined = `<{ $component } name="{ $name }">` бунын даң module ди атрибут юң, инвый `<module>` җә гә компонент ди тип шаң йиҗин ю йигә "{ $name }" ди атрибут.
 
-conditional-content-condition-ignored = `<conditionalContent>` ю case хуәҗə else ди зынэр ди шыхў, `condition` җə гә атрибут бугуанла.
+conditional-content-condition-ignored = `<conditionalContent>` ю case хуәҗә else ди зынэр ди шыхў, `condition` җә гә атрибут бугуанла.
 
 slider-markers-type-mismatch = Маркер ди тип гын slider ди тип дуй бушаң.
 
@@ -402,7 +402,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = Атрибут `{ $attribute }` ди значение `{ $value }` будуй. Атрибут бищү сы юң `$` кэтўди ссылка зучынди.
 
-math-input-invalid-function-names = <mathInput>: { $attribute } ли будуй ди функция ди мин бугуанла: { $names }. Мый йигә мин ди щянши ди буфын җишо яо 2 гә зыфў (зымў хуәҗə чаңхәнр); хўтў кәи җя йигә `|<mathspeak alternative>`.
+math-input-invalid-function-names = <mathInput>: { $attribute } ли будуй ди функция ди мин бугуанла: { $names }. Мый йигә мин ди щянши ди буфын җишо яо 2 гә зыфў (зымў хуәҗә чаңхәнр); хўтў кәи җя йигә `|<mathspeak alternative>`.
 
 ## Building components from the source
 
@@ -410,7 +410,7 @@ component-type-invalid = Компонент ди тип будуй: `<{ $compone
 
 attribute-repeated = Атрибут { $attribute } бунын чуңфў.
 
-attribute-invalid-for-component = `<{ $componentType }>` тип ди компонент шаң "{ $attribute }" җə гә атрибут будуй.
+attribute-invalid-for-component = `<{ $componentType }>` тип ди компонент шаң "{ $attribute }" җә гә атрибут будуй.
 
 ## Style definition contrast
 
@@ -428,14 +428,14 @@ style-definition-insufficient-contrast =
 
 style-definition-dark-mode-text-background-contrast =
     Стиль { $styleNumber } дин щади сә зэ светлый режим ли контраст гу, дансы цун та суанчўлэди тёмный режим ди сә, вынзы дуй фон ди контраст бугу ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; җишо яо { $threshold }:1). { $suggestion ->
-        [available] Яо зэ тёмный режим ли контраст гу, хуәҗə ба светлый режим ди контраст җяда (бифаң { $lightAttribute }="{ $lightColor }"), хуәҗə ба тёмный режим ди сә зыҗи дин ща (бифаң { $darkAttribute }="{ $darkColor }").
-       *[none] Яо зэ тёмный режим ли контраст гу, хуәҗə ба светлый режим ди контраст җяда, хуәҗə юң textColorDarkMode гын/хуәҗə backgroundColorDarkMode ба суанчўлэди сә гэща.
+        [available] Яо зэ тёмный режим ли контраст гу, хуәҗә ба светлый режим ди контраст җяда (бифаң { $lightAttribute }="{ $lightColor }"), хуәҗә ба тёмный режим ди сә зыҗи дин ща (бифаң { $darkAttribute }="{ $darkColor }").
+       *[none] Яо зэ тёмный режим ли контраст гу, хуәҗә ба светлый режим ди контраст җяда, хуәҗә юң textColorDarkMode гын/хуәҗә backgroundColorDarkMode ба суанчўлэди сә гэща.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
     Стиль { $styleNumber } дин щади вынзы ди сә зэ светлый режим ли контраст гу, дансы цун та суанчўлэди тёмный режим ди вынзы ди сә дуй холст ди контраст бугу ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; җишо яо { $threshold }:1). { $suggestion ->
-        [available] Яо зэ тёмный режим ли контраст гу, хуәҗə ба светлый режим ди контраст җяда (бифаң textColor="{ $lightColor }"), хуәҗə ба тёмный режим ди сә зыҗи дин ща (бифаң textColorDarkMode="{ $darkColor }").
-       *[none] Яо зэ тёмный режим ли контраст гу, хуәҗə ба светлый режим ди контраст җяда, хуәҗə юң textColorDarkMode ба суанчўлэди сә гэща.
+        [available] Яо зэ тёмный режим ли контраст гу, хуәҗә ба светлый режим ди контраст җяда (бифаң textColor="{ $lightColor }"), хуәҗә ба тёмный режим ди сә зыҗи дин ща (бифаң textColorDarkMode="{ $darkColor }").
+       *[none] Яо зэ тёмный режим ли контраст гу, хуәҗә ба светлый режим ди контраст җяда, хуәҗә юң textColorDarkMode ба суанчўлэди сә гэща.
     }
 
 section-multiple-style-palettes = Йигә раздел җы нын щүан йигә <stylePalette>; юңди сы зуйхўди йигә.
@@ -448,7 +448,7 @@ variant-num-to-select-not-constant-number = { $component } ди numToSelect бу
 
 variant-with-replacement-not-constant-boolean = { $component } ди withReplacement бу сы йигә бу бянди җын/җя, сои та ди вариант дин бучў.
 
-variant-select-weight-disables-unique = Ю selectWeight хуәҗə selectForVariants ди option ди шыхў, select ди дуй йигә ди вариант гуанла
+variant-select-weight-disables-unique = Ю selectWeight хуәҗә selectForVariants ди option ди шыхў, select ди дуй йигә ди вариант гуанла
 
 variant-coprime-undetermined = coprime сы бу сы зун бу җын дин бучў, сои { $component } ди вариант дин бучў.
 
@@ -476,17 +476,17 @@ variant-non-constant-exclude-not-implemented = Ю бянди exclude ди { $com
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: graph ди prefigure рендерер ли мый ю та; җə гә зысўн тёгуәла.
+prefigure-descendant-unsupported = { $subject }: graph ди prefigure рендерер ли мый ю та; җә гә зысўн тёгуәла.
 
-prefigure-descendant-invalid-geometry = { $subject }: геометрия бу вансы хуәҗə бу ю чиңди; җə гә зысўн тёгуәла.
+prefigure-descendant-invalid-geometry = { $subject }: геометрия бу вансы хуәҗә бу ю чиңди; җә гә зысўн тёгуәла.
 
 prefigure-curve-label-omitted = { $subject }: җуанхуанли ди кривая шаң бунын да бёчян; бёчян шола.
 
-prefigure-curve-unsupported-definition-type = { $subject }: кривая ди функция ди дин и ди тип '{ $definitionType }' мый ю; җə гә зысўн тёгуәла.
+prefigure-curve-unsupported-definition-type = { $subject }: кривая ди функция ди дин и ди тип '{ $definitionType }' мый ю; җә гә зысўн тёгуәла.
 
-prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves шаң ди flipFunctions атрибут мый ю; җə гә зысўн тёгуәла.
+prefigure-region-flip-functions-unsupported = { $subject }: regionBetweenCurves шаң ди flipFunctions атрибут мый ю; җә гә зысўн тёгуәла.
 
-prefigure-region-non-formula-child = { $subject }: regionBetweenCurves җы нын юң formula тип ди функция ди зынэр; җə гә зысўн тёгуәла.
+prefigure-region-non-formula-child = { $subject }: regionBetweenCurves җы нын юң formula тип ди функция ди зынэр; җә гә зысўн тёгуәла.
 
 prefigure-label-position-unsupported =
     { $subject }: { $labelKind ->
@@ -494,13 +494,13 @@ prefigure-label-position-unsupported =
        *[point] дян ди бёчян
     } шаң labelPosition '{ $labelPosition }' мый ю; ан PreFigure мырянди яңзы фаңди.
 
-prefigure-fill-style-unsupported = { $subject }: PreFigure мый ю '{ $fillStyle }' җəяңди тян ди яңзы; ан җынди тян юң.
+prefigure-fill-style-unsupported = { $subject }: PreFigure мый ю '{ $fillStyle }' җәяңди тян ди яңзы; ан җынди тян юң.
 
 prefigure-line-style-unknown = { $subject }: бу җинди сян ди яңзы '{ $lineStyle }' цун PreFigure ди чўкў ли шола.
 
 prefigure-marker-style-mapped-to-diamond = { $subject }: маркер ди яңзы '{ $markerStyle }' хуанчын PreFigure ди 'diamond' ла.
 
-prefigure-marker-style-unsupported = { $subject }: PreFigure мый ю '{ $markerStyle }' җəяңди маркер ди яңзы; ан мырянди яңзы юң.
+prefigure-marker-style-unsupported = { $subject }: PreFigure мый ю '{ $markerStyle }' җәяңди маркер ди яңзы; ан мырянди яңзы юң.
 
 ## PreFigure annotations
 
@@ -512,23 +512,23 @@ annotation-ref-outside-graph = `<annotation>`: `ref` будуй; җы ди ду�
 
 annotation-ref-unsupported-target = `<annotation>`: `ref` будуй; prefigure җуанхуан ли җы ди бу сы йигә кәи юңди тўщиң ди дунщи. Аннотация шола.
 
-annotation-text-missing = `<annotation>`: `text` шола хуәҗə сы кун ди; чўлэди сы кун вынзы.
+annotation-text-missing = `<annotation>`: `text` шола хуәҗә сы кун ди; чўлэди сы кун вынзы.
 
 ## Composites and references
 
 composite-circular-dependency =
     { $componentType ->
-        [none] Җаоҗо ла юанчүан ди кансə.
-       *[other] Җаоҗо ла гын `<{ $componentType }>` компонент ю гуанди юанчүан ди кансə.
+        [none] Җаоҗо ла юанчүан ди кансә.
+       *[other] Җаоҗо ла гын `<{ $componentType }>` компонент ю гуанди юанчүан ди кансә.
     }
 
-reference-no-referent = Җə гә ссылка җы ди дунщи җаобуҗо: `{ $reference }`
+reference-no-referent = Җә гә ссылка җы ди дунщи җаобуҗо: `{ $reference }`
 
-reference-multiple-referents = Җə гә ссылка җы ди дунщи җаоҗо бу җы йигә: `{ $reference }`
+reference-multiple-referents = Җә гә ссылка җы ди дунщи җаоҗо бу җы йигә: `{ $reference }`
 
 ## Children that do not match
 
-children-invalid-attribute-format = `<{ $componentType }>` ди { $attribute } җə гә атрибут ди формат будуй.
+children-invalid-attribute-format = `<{ $componentType }>` ди { $attribute } җә гә атрибут ди формат будуй.
 
 children-invalid = `<{ $componentType }>` ди зынэр будуй: җаоҗо будуй ди зынэр: { $children }
 
@@ -548,27 +548,27 @@ doenetml-version-not-found =
 
 parse-invalid-doenetml = DoenetML будуй: { $content }
 
-parse-tag-missing-close-tag = DoenetML будуй: `{ $tag }` җə гә тег мый ю гуан ди тег. Яо йигә зыҗи гуан ди тег, хуәҗə йигә `</{ $tagName }>` тег.
+parse-tag-missing-close-tag = DoenetML будуй: `{ $tag }` җә гә тег мый ю гуан ди тег. Яо йигә зыҗи гуан ди тег, хуәҗә йигә `</{ $tagName }>` тег.
 
-parse-tag-error = DoenetML будуй: `<{ $tagName }>` җə гә тег ли ю ошибка
+parse-tag-error = DoenetML будуй: `<{ $tagName }>` җә гә тег ли ю ошибка
 
-parse-attribute-missing-value = DoenetML будуй: `{ $attribute }` җə гә атрибут будуй, кансə сы шола значение.
+parse-attribute-missing-value = DoenetML будуй: `{ $attribute }` җә гә атрибут будуй, кансә сы шола значение.
 
-parse-attribute-invalid = DoenetML будуй: `{ $attribute }` җə гә атрибут будуй
+parse-attribute-invalid = DoenetML будуй: `{ $attribute }` җә гә атрибут будуй
 
 parse-attribute-value-invalid = DoenetML будуй: атрибут ди значение `{ $value }` будуй
 
-parse-attribute-value-quote-mismatch = DoenetML будуй: атрибут ди значение `{ $value }` будуй. Иньхо дуй бушаң. Кансə сы шола йигә `{ $quote }`
+parse-attribute-value-quote-mismatch = DoenetML будуй: атрибут ди значение `{ $value }` будуй. Иньхо дуй бушаң. Кансә сы шола йигә `{ $quote }`
 
 parse-open-tag-name-missing = DoenetML будуй: җаоҗо йигә мый ю мин ди тег, бифаң `<`
 
-parse-tag-not-closed = DoenetML будуй: `{ $tag }` җə гә тег мый гуаншаң (кансə сы шола йигә `>`).
+parse-tag-not-closed = DoenetML будуй: `{ $tag }` җә гә тег мый гуаншаң (кансә сы шола йигә `>`).
 
 parse-self-closing-tag-name-missing = DoenetML будуй: җаоҗо йигә мый ю мин ди тег `<{ $content }>`
 
-parse-self-closing-tag-not-closed = DoenetML будуй: `{ $tag }` җə гә тег мый гуаншаң (кансə сы шола `/>`).
+parse-self-closing-tag-not-closed = DoenetML будуй: `{ $tag }` җә гә тег мый гуаншаң (кансә сы шола `/>`).
 
-parse-tag-invalid-attributes = DoenetML будуй: `{ $tag }` җə гә тег будуй. Кәнын та ди атрибут будуй.
+parse-tag-invalid-attributes = DoenetML будуй: `{ $tag }` җә гә тег будуй. Кәнын та ди атрибут будуй.
 
 parse-close-tag-name-missing = DoenetML будуй: җаоҗо йигә мый ю мин ди гуан ди тег, бифаң `</`
 
@@ -584,7 +584,7 @@ parser-node-unconvertible = Узел { $node } бунын җуанчын Dast д
 
 name-attribute-invalid =
     Атрибут name='{ $name }' будуй. { $reason ->
-        [characters] Мин ли җы нын ю зымў, шўзы, ялинр хуәҗə чаңхәнр.
+        [characters] Мин ли җы нын ю зымў, шўзы, ялинр хуәҗә чаңхәнр.
        *[start] Мин бищү юң зымў кэтў.
     }
 
@@ -592,19 +592,19 @@ component-name-invalid-start = Компонент ди мин "{ $name }" буд
 
 ## `<answer>` sugar
 
-answer-video-watched-missing-video = Type сы videoWatched ди answer бищү ю video җə гә атрибут
+answer-video-watched-missing-video = Type сы videoWatched ди answer бищү ю video җә гә атрибут
 
-answer-video-watched-video-not-reference = Type сы videoWatched ди answer ди video җə гә атрибут бищү сы йигә ссылка
+answer-video-watched-video-not-reference = Type сы videoWatched ди answer ди video җә гә атрибут бищү сы йигә ссылка
 
-answer-name-not-single-text = Answer ди name җə гә атрибут бищү ю йигә text ди зынэр
+answer-name-not-single-text = Answer ди name җә гә атрибут бищү ю йигә text ди зынэр
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = Юанчүанди цышў тэ дола, вэйтўди DoenetML ныйбуляй. Кансə ю юанчүанди ссылка ба?
+external-doenetml-recursion-limit = Юанчүанди цышў тэ дола, вэйтўди DoenetML ныйбуляй. Кансә ю юанчүанди ссылка ба?
 
 external-doenetml-unavailable = { $attribute }="{ $uri }" ди DoenetML ныйбуляй
 
-external-doenetml-type-mismatch = { $attribute }="{ $uri }" ныйляйди DoenetML будуй: та гын "{ $componentType }" җə гә компонент ди тип дуй бушаң
+external-doenetml-type-mismatch = { $attribute }="{ $uri }" ныйляйди DoenetML будуй: та гын "{ $componentType }" җә гә компонент ди тип дуй бушаң
 
 ## Deprecated syntax
 
@@ -629,7 +629,7 @@ deprecated-attribute-value-renamed = [deprecation] `<{ $component }>` шаң д�
 
 ## Language coverage
 
-pluralize-english-only = `<pluralize>` җы нын ба английский ди хуа бян чын дуошў, сои юң { $locale } щеди документ ли та ди вынзы мый бян. Җиҗе ба дуошў ди щиңши щечўлэ, хуәҗə юң `pluralForm` җə гә атрибут дин ща.
+pluralize-english-only = `<pluralize>` җы нын ба английский ди хуа бян чын дуошў, сои юң { $locale } щеди документ ли та ди вынзы мый бян. Җиҗе ба дуошў ди щиңши щечўлэ, хуәҗә юң `pluralForm` җә гә атрибут дин ща.
 
 
 ## Checking against the schema
@@ -640,12 +640,12 @@ schema-element-not-allowed-at-root = `<{ $tag }>` бунын фаңзэ доку
 
 schema-element-not-allowed-inside = `<{ $tag }>` бунын фаңзэ `<{ $parent }>` ди лийтў.
 
-schema-attribute-unrecognized = `<{ $tag }>` җə гә элемент мый ю җё `{ $attribute }` ди атрибут.
+schema-attribute-unrecognized = `<{ $tag }>` җә гә элемент мый ю җё `{ $attribute }` ди атрибут.
 
 schema-attribute-value-not-allowed =
     { $isList ->
-        [true] `<{ $tag }>` элемент ди атрибут `{ $attribute }` бищү сы йигә список, лийтў мый йигә дунщи бищү сы җə щə ли ди йигә: { $allowed }
-       *[other] `<{ $tag }>` элемент ди атрибут `{ $attribute }` бищү сы җə щə ли ди йигә: { $allowed }
+        [true] `<{ $tag }>` элемент ди атрибут `{ $attribute }` бищү сы йигә список, лийтў мый йигә дунщи бищү сы җә щә ли ди йигә: { $allowed }
+       *[other] `<{ $tag }>` элемент ди атрибут `{ $attribute }` бищү сы җә щә ли ди йигә: { $allowed }
     }
 
 
@@ -653,7 +653,7 @@ schema-attribute-value-not-allowed =
 
 select-variant-name-option-count-mismatch = Select ди вариант ди мин будуй. Вариант ди мин { $variantName } зэ { $numOptions } гә option ли чущянла, дансы яо щүан ди сы { $numToSelect } гә.
 
-select-variant-name-without-options = Select дин щала вариант, дансы { $variantName } җə гә вариант ди мин мый ю option.
+select-variant-name-without-options = Select дин щала вариант, дансы { $variantName } җә гә вариант ди мин мый ю option.
 
 select-variant-name-not-possible = Select дин щади вариант ди мин { $variantName } бу сы йигә кәи юңди вариант ди мин.
 
@@ -671,7 +671,7 @@ select-from-sequence-indices-excluded-combination = selectfromsequence дин щ
 
 select-from-sequence-coprime-not-positive-integers = Бу сы щүан җынди җынышў, сои бунын щүан взаимно простой ди комбинация.
 
-select-from-sequence-coprime-common-factor = Бунын щүан взаимно простой ди шў. Сою кәнынди значение ю гунтун ди множитель. (Дин щади "from" хуәҗə "to" бищү гын "step" взаимно простой.)
+select-from-sequence-coprime-common-factor = Бунын щүан взаимно простой ди шў. Сою кәнынди значение ю гунтун ди множитель. (Дин щади "from" хуәҗә "to" бищү гын "step" взаимно простой.)
 
 select-from-sequence-coprime-single-number = Бунын цун йигә бу сы 1 ди шў ли щүан взаимно простой ди комбинация.
 
@@ -702,5 +702,5 @@ math-embedded-input-shape-unsuitable =
         [not-inline] Җы ю `inline` ди choice ди ввод фаңдә җин выражение ли; мый ю `inline` та сы йигә кўзы ди блок.
         [expanded] `expanded` ди text ди ввод сы йигә до хаң ди хәзы, фаңзэ выражение ли гуәйү да.
         [on-graph] Зэ graph шаң выражение сы даң йигә тў хуади, лийтў мый ю фаң кўзы ди кунр.
-       *[relative-width] Та ди `width` сы относительный ди (процент хуәҗə `em`), зэ выражение ли мый ю дунщи гый та лян. Юң абсолютный ди даньвый, бифаң `px`, гый куанду ба.
+       *[relative-width] Та ди `width` сы относительный ди (процент хуәҗә `em`), зэ выражение ли мый ю дунщи гый та лян. Юң абсолютный ди даньвый, бифаң `px`, гый куанду ба.
     }

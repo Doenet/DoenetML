@@ -26,10 +26,14 @@
 # English's sequence of placeables — which is a fact about Wakhi and not a
 # failure to translate. The clause messages differ: Wakhi is **verb-final and
 # postpositional**, so where English writes a preposition this file writes
-# «ba» ('with') before the noun in `style-filled` and `style-border-clause`
-# only because welding a postposition onto a `{ $placeable }` is what the
-# README forbids. A speaker who wants the postposition will have to move the
-# whole clause, and that is a change to a message rather than to a word.
+# «ba» ('with') before the noun in `style-filled` and `style-border-clause`.
+# That is a choice rather than a constraint: «-ir» and «-dar» are invariant,
+# so the other three files do write them onto a placeable (see `chrome.ftl`'s
+# header), and nothing stops this one from doing the same. What stopped it is
+# that these two messages compose a *description*, and the seed was not sure
+# which postposition the position governs. A speaker who wants one will have
+# to move the whole clause, and that is a change to a message rather than to
+# a word.
 #
 # **`[noun-tail]` is unused.** The side count of a regular polygon goes in
 # front of the head noun, «{ $numSides }-tarafa regular polygon», because

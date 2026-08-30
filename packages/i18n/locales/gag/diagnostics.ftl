@@ -32,6 +32,14 @@
 # is built around such a name with separate words instead. That is a recorded
 # debt, not a preference.
 #
+# The **ordinal** is the case that looks like an exception and is not. A line
+# or row number arrives as a number rather than as a word, and the Gagauz
+# ordinal suffix harmonizes with the vowels of the *spoken* numeral — «beșinci»
+# but «dokuzuncu», «dördüncü» — which a digit does not show. So the other three
+# files write the ordinal the way Gagauz and Turkish orthography write it after
+# a figure, with a **period**: `{ $line }. satır`, never `{ $line }-inci`. That
+# is `locales/crh`'s convention too, and for the same reason.
+#
 # **Vocabulary.** The technical register is overwhelmingly borrowed, which is
 # what Gagauz itself does — from Russian above all, and from Romanian:
 # «komponent», «atribut», «funkțiya», «indeks», «variant», «matrița»,

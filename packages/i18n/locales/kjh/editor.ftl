@@ -36,8 +36,8 @@ editor-update-viewer =
 
 editor-update-viewer-title =
     { $shortcut ->
-        [none] Кӧрҷеңні { $word }
-       *[other] Кӧрҷеңні { $word } { $shortcut }
+        [none] Кӧрӌеңні { $word }
+       *[other] Кӧрӌеңні { $word } { $shortcut }
     }
 
 
@@ -53,35 +53,35 @@ editor-variant-previous = Алнындағы вариантты таллирға
 
 editor-accessibility-title =
     { $status ->
-        [violations] WCAG AA тузаланҷаң арғаның тоғыр полғаны табылған. Тузаланҷаң арға отчедын { $action ->
+        [violations] WCAG AA тузаланӌаң арғаның тоғыр полғаны табылған. Тузаланӌаң арға отчедын { $action ->
             [close] чабарға
            *[open] азарға
         } пазыңар.
-        [advisories] Тузаланҷаң арға отчедын { $action ->
+        [advisories] Тузаланӌаң арға отчедын { $action ->
             [close] чабарға
            *[open] азарға
         } пазыңар. WCAG AA тоғыр нимелері табылбаан, че хоза сӱмелер пар.
-       *[clean] Тузаланҷаң арға отчедын { $action ->
+       *[clean] Тузаланӌаң арға отчедын { $action ->
             [close] чабарға
            *[open] азарға
-        } пазыңар. Тузаланҷаң арға сурығлары табылбаан.
+        } пазыңар. Тузаланӌаң арға сурығлары табылбаан.
     }
 
 editor-accessibility-label =
     { $status ->
-        [violations] WCAG AA тузаланҷаң арғаның тоғыр полғаны табылған. { $count ->
+        [violations] WCAG AA тузаланӌаң арғаның тоғыр полғаны табылған. { $count ->
            *[other] { $count } WCAG AA тоғыр нимезі
-        } табылған. Тузаланҷаң арға отчедын { $action ->
+        } табылған. Тузаланӌаң арға отчедын { $action ->
             [close] чабарға
            *[open] азарға
         } пазыңар.
         [advisories] WCAG AA тоғыр нимелері табылбаан. { $count ->
-           *[other] { $count } хоза тузаланҷаң арға сӱмезі
-        } табылған. Тузаланҷаң арға отчедын { $action ->
+           *[other] { $count } хоза тузаланӌаң арға сӱмезі
+        } табылған. Тузаланӌаң арға отчедын { $action ->
             [close] чабарға
            *[open] азарға
         } пазыңар.
-       *[clean] WCAG AA тоғыр нимелері табылбаан. Тузаланҷаң арға отчедын { $action ->
+       *[clean] WCAG AA тоғыр нимелері табылбаан. Тузаланӌаң арға отчедын { $action ->
             [close] чабарға
            *[open] азарға
         } пазыңар.
@@ -99,7 +99,7 @@ editor-tab-help-short = Контекст
 editor-tab-errors = Чазығлар
 editor-tab-warnings = Сағындырығлар
 editor-tab-info = Искіріг
-editor-tab-accessibility = Тузаланҷаң арға
+editor-tab-accessibility = Тузаланӌаң арға
 editor-tab-responses = Ызылған хариилар
 
 editor-tab-with-count = { $label }: { $count }
@@ -118,13 +118,13 @@ editor-no-warnings = Сағындырығ чох
 editor-no-info = Искіріг чох
 
 editor-show-info-annotations = Искіріглерні редакторда кӧзідерге
-editor-show-accessibility-annotations = Тузаланҷаң арға искіріглерін редакторда кӧзідерге
+editor-show-accessibility-annotations = Тузаланӌаң арға искіріглерін редакторда кӧзідерге
 
-editor-accessibility-learn-more = Doenet тузаланҷаң арғаа хайди кӧрче, аны піліңер
+editor-accessibility-learn-more = Doenet тузаланӌаң арғаа хайди кӧрче, аны піліңер
 
-editor-accessibility-violations-heading = Тузаланҷаң арғаның тоғыр нимелері ({ $standard })
+editor-accessibility-violations-heading = Тузаланӌаң арғаның тоғыр нимелері ({ $standard })
 
-editor-accessibility-other-heading = Пасха тузаланҷаң арға сурығлары
+editor-accessibility-other-heading = Пасха тузаланӌаң арға сурығлары
 editor-none-found = Ноо да ниме табылбаан
 
 
@@ -215,8 +215,8 @@ help-type = Пӱдізі:
 help-resolved-style = Табылған стиль (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Табылған функция аттары:
-help-reset-list = Пу кирҷеңдегі нандыра идер списогы:
-help-added-on-input = Пу кирҷеңге хозылғаны:
-help-removed-on-input = Пу кирҷеңнең сығарылғаны:
+help-reset-list = Пу кирӌеңдегі нандыра идер списогы:
+help-added-on-input = Пу кирӌеңге хозылғаны:
+help-removed-on-input = Пу кирӌеңнең сығарылғаны:
 
 help-reset-overrides = { $reset } — { $additional } паза { $removed } ӱстӱнең тузаланча.

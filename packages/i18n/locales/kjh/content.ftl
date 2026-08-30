@@ -281,4 +281,4 @@ chemistry-invalid-ionic-compound = Чарабас ион холбазы
 ## Inputs embedded in math
 
 math-embedded-input-blank = хуруғ орын
-math-embedded-input-blank-ordinal = { $total } хуруғ орыннаң { $ordinal }-ҷызы
+math-embedded-input-blank-ordinal = { $total } хуруғ орыннаң { $ordinal }-ӌызы

@@ -97,7 +97,7 @@ orbital-remove-box = Kutuyu sil
 orbital-add-up-arrow = Yukarı ok kat
 orbital-add-down-arrow = Așaa ok kat
 orbital-remove-arrow = Oku sil
-orbital-row-label = { $row }-inci sıranın etiketi
+orbital-row-label = { $row }. sıranın etiketi
 pretzel-answer = Cuvap
 summary-statistics-caption = { $column } için toplu statistika
 
@@ -119,7 +119,7 @@ viewer-initializing = Hazırlanêr...
 error-heading = Hata
 error-found-at =
     { $span ->
-        [line] { $startLine }-inci satırda bulundu.
+        [line] { $startLine }. satırda bulundu.
        *[lines] { $startLine }–{ $endLine } satırlarında bulundu.
     }
 document-contains-errors = Bu dokumentta hatalar var!

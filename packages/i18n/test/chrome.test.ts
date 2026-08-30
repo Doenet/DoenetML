@@ -38,6 +38,24 @@ import zzaChrome from "../locales/zza/chrome.ftl?raw";
 import dngChrome from "../locales/dng/chrome.ftl?raw";
 import sghChrome from "../locales/sgh/chrome.ftl?raw";
 import wblChrome from "../locales/wbl/chrome.ftl?raw";
+// The Silk Road batch's `diagnostics.ftl` too: it is the largest file in each
+// catalog and holds every count select that is not in `chrome.ftl`, so a claim
+// about "no branch this locale could not select" is only checkable across both.
+import crhDiagnostics from "../locales/crh/diagnostics.ftl?raw";
+import gagDiagnostics from "../locales/gag/diagnostics.ftl?raw";
+import tttDiagnostics from "../locales/ttt/diagnostics.ftl?raw";
+import kaaDiagnostics from "../locales/kaa/diagnostics.ftl?raw";
+import kjhDiagnostics from "../locales/kjh/diagnostics.ftl?raw";
+import altDiagnostics from "../locales/alt/diagnostics.ftl?raw";
+import mznDiagnostics from "../locales/mzn/diagnostics.ftl?raw";
+import glkDiagnostics from "../locales/glk/diagnostics.ftl?raw";
+import lrcDiagnostics from "../locales/lrc/diagnostics.ftl?raw";
+import balDiagnostics from "../locales/bal/diagnostics.ftl?raw";
+import hazDiagnostics from "../locales/haz/diagnostics.ftl?raw";
+import zzaDiagnostics from "../locales/zza/diagnostics.ftl?raw";
+import dngDiagnostics from "../locales/dng/diagnostics.ftl?raw";
+import sghDiagnostics from "../locales/sgh/diagnostics.ftl?raw";
+import wblDiagnostics from "../locales/wbl/diagnostics.ftl?raw";
 import { extractKeys } from "../scripts/catalogUtils";
 
 /**
@@ -453,18 +471,31 @@ describe("the Oceania batch's plural categories", () => {
  * `bal`, the first assertion in each row is what says so rather than a silent
  * change in which branch a reader gets.
  *
- * Two things the catalogs did that this summary would not have predicted, and
- * which the rows below record:
+ * **Every row reads `chrome.ftl` and `diagnostics.ftl` together.** That is the
+ * whole reason the second import list above exists: each catalog's count
+ * selects are split between the two files, and a rule checked against one of
+ * them is not the rule the headers state, which is about all four files.
  *
- *   * `bal` — the *only* member with real rules — writes no `[one]` branch at
- *     all, collapsing to a single `*[other]`, because a Balochi noun after a
- *     numeral is unmarked. Having the data does not oblige a catalog to fork
- *     on it.
- *   * `sgh` — which has *no* rules — is the one member that does write `[one]`.
- *     English's rules will select it, and it says the same thing as the
- *     `*[other]` beside it, so nothing is mis-selected; `[one]` is deliberately
- *     not in the forbidden list, since it is the one category every runtime
- *     default can select.
+ * `[one]` is deliberately not in the forbidden list — it is the one category
+ * every runtime default can select — and where it falls is the thing this
+ * summary would not have predicted:
+ *
+ *   * **`bal`, the only member with real rules, is not the one that uses
+ *     them.** Every count message in it is a single `*[other]`, because a
+ *     Balochi noun after a numeral is unmarked. Its one `[one]` is in
+ *     `field-function-wrong-num-outputs`, which forks on how many outputs a
+ *     component needs rather than on how many of anything a reader has — the
+ *     English message says "one output"/"two outputs" — so it is not a count
+ *     select at all. Having the data does not oblige a catalog to fork on it.
+ *   * **Ten of the fifteen write exactly that one `[one]` and no other**, for
+ *     the same reason. `alt`, `kaa` and `kjh` write the same fork with the
+ *     numeric literal `[1]` instead, which is matched against the number
+ *     rather than against a category and so does not depend on whose rules the
+ *     runtime picked; `ttt` omits the message.
+ *   * **`sgh` is the only catalog in the batch that forks a real count**, and
+ *     it has no rules of its own to do it with. English's rules select the
+ *     branch, and it says the same thing as the `*[other]` beside it, so the
+ *     reader sees Shughni either way. It is recorded rather than forbidden.
  *
  * Explicit numeric literals are a different mechanism — matched against the
  * number rather than against a category — and every catalog in the batch keeps
@@ -478,75 +509,141 @@ describe("the Silk Road batch's plural categories", () => {
             .filter((line) => !line.trimStart().startsWith("#"))
             .join("\n");
 
+    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
+    const both = ([, chrome, diagnostics]: Row) =>
+        `${branches(chrome)}\n${branches(diagnostics)}`;
+
+    type Row = [string, string, string];
+
     /** The fourteen with no CLDR rules of their own. */
-    const NO_RULES: [string, string][] = [
-        ["crh", crhChrome],
-        ["gag", gagChrome],
-        ["ttt", tttChrome],
-        ["kaa", kaaChrome],
-        ["kjh", kjhChrome],
-        ["alt", altChrome],
-        ["mzn", mznChrome],
-        ["glk", glkChrome],
-        ["lrc", lrcChrome],
-        ["haz", hazChrome],
-        ["zza", zzaChrome],
-        ["dng", dngChrome],
-        ["sgh", sghChrome],
-        ["wbl", wblChrome],
+    const NO_RULES: Row[] = [
+        ["crh", crhChrome, crhDiagnostics],
+        ["gag", gagChrome, gagDiagnostics],
+        ["ttt", tttChrome, tttDiagnostics],
+        ["kaa", kaaChrome, kaaDiagnostics],
+        ["kjh", kjhChrome, kjhDiagnostics],
+        ["alt", altChrome, altDiagnostics],
+        ["mzn", mznChrome, mznDiagnostics],
+        ["glk", glkChrome, glkDiagnostics],
+        ["lrc", lrcChrome, lrcDiagnostics],
+        ["haz", hazChrome, hazDiagnostics],
+        ["zza", zzaChrome, zzaDiagnostics],
+        ["dng", dngChrome, dngDiagnostics],
+        ["sgh", sghChrome, sghDiagnostics],
+        ["wbl", wblChrome, wblDiagnostics],
     ];
 
     /** The one with them. */
-    const BAL: [string, string] = ["bal", balChrome];
+    const BAL: Row = ["bal", balChrome, balDiagnostics];
 
     /** All fifteen, for the assertions that do not care about the split. */
-    const SILK_ROAD: [string, string][] = [...NO_RULES, BAL];
+    const SILK_ROAD: Row[] = [...NO_RULES, BAL];
 
     it.each(NO_RULES)(
         "leaves %s free of a category branch nothing could select",
-        (locale, catalog) => {
+        (locale, chrome, diagnostics) => {
             // CLDR has no rules for the tag, so the categories on offer are
             // some other language's.
             expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
                 .not.toBe(locale);
             for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
-                expect(branches(catalog)).not.toContain(category);
+                expect(both([locale, chrome, diagnostics])).not.toContain(
+                    category,
+                );
             }
         },
     );
 
     /**
      * The exception, asserted as one. `bal` resolves to itself with the two
-     * categories CLDR gives it — and still writes neither, which is the
-     * catalog's own decision and is pinned here so that adding a `[one]` branch
-     * later is a deliberate change rather than a drift.
+     * categories CLDR gives it — and forks on neither where a count is what is
+     * being counted, which is the catalog's own decision and is pinned here so
+     * that adding a count branch later is a deliberate change rather than a
+     * drift.
      */
     it("resolves bal against its own CLDR rules, unlike the other fourteen", () => {
         const resolved = new Intl.PluralRules(BAL[0]).resolvedOptions();
         expect(resolved.locale).toBe("bal");
         expect([...resolved.pluralCategories].sort()).toEqual(["one", "other"]);
-        for (const category of [
-            "[zero]",
-            "[two]",
-            "[few]",
-            "[many]",
-            "[one]",
-        ]) {
-            expect(branches(BAL[1])).not.toContain(category);
+        for (const category of ["[zero]", "[two]", "[few]", "[many]"]) {
+            expect(both(BAL)).not.toContain(category);
         }
+        // Its `chrome.ftl`, which is where the reader-facing counts live, has
+        // no `[one]` at all…
+        expect(branches(balChrome)).not.toContain("[one]");
+        // …and the only one in the whole catalog forks the output count of a
+        // function, not a quantity of anything the reader is looking at.
+        expect(both(BAL).split("[one]")).toHaveLength(2);
+        expect(branches(balDiagnostics)).toContain(
+            "field-function-wrong-num-outputs",
+        );
+    });
+
+    /**
+     * Where `[one]` actually falls, asserted as a distribution rather than
+     * described in prose. Ten catalogs write exactly one, in the one message
+     * that forks on a fixed number of outputs; three write that same fork with
+     * a numeric literal instead; `ttt` omits the message; and `sgh` is alone in
+     * forking a real count.
+     */
+    it.each([
+        "crh",
+        "gag",
+        "mzn",
+        "glk",
+        "lrc",
+        "haz",
+        "zza",
+        "dng",
+        "wbl",
+        "bal",
+    ])(
+        "gives %s exactly one category branch, and not a count one",
+        (locale) => {
+            const row = SILK_ROAD.find(([tag]) => tag === locale)!;
+            expect(both(row).split("[one]")).toHaveLength(2);
+            expect(branches(row[1])).not.toContain("[one]");
+        },
+    );
+
+    it.each([
+        ["alt", altDiagnostics],
+        ["kaa", kaaDiagnostics],
+        ["kjh", kjhDiagnostics],
+    ])(
+        "has %s write the output fork as the numeric literal [1] instead",
+        (locale, diagnostics) => {
+            const row = SILK_ROAD.find(([tag]) => tag === locale)!;
+            expect(both(row)).not.toContain("[one]");
+            expect(branches(diagnostics)).toContain("[1]");
+        },
+    );
+
+    it("leaves ttt without either, because it omits the message", () => {
+        const row = SILK_ROAD.find(([tag]) => tag === "ttt")!;
+        expect(both(row)).not.toContain("[one]");
+        expect(branches(tttDiagnostics)).not.toContain(
+            "field-function-wrong-num-outputs",
+        );
     });
 
     /**
      * `sgh` is the mirror of `bal`: no rules of its own, and the one catalog in
-     * the batch that writes a `one` branch anyway. English's rules select it at
-     * `count === 1`, and the branch says the same thing as the default beside
-     * it, so the reader sees Shughni either way — which is why this is recorded
-     * rather than forbidden.
+     * the batch that forks a reader-facing count anyway. English's rules select
+     * the branch at `count === 1`, and it says the same thing as the default
+     * beside it, so the reader sees Shughni either way — which is why this is
+     * recorded rather than forbidden.
      */
     it("selects sgh's one branch by the runtime default's rules", () => {
         expect(new Intl.PluralRules("sgh").resolvedOptions().locale) //
             .not.toBe("sgh");
+        // The only catalog of the fifteen with a `[one]` in `chrome.ftl`.
         expect(branches(sghChrome)).toContain("[one]");
+        for (const [locale, chrome] of SILK_ROAD) {
+            if (locale !== "sgh") {
+                expect(branches(chrome)).not.toContain("[one]");
+            }
+        }
         const t = createChromeTranslator("sgh", { sgh: sghChrome });
         expect(stripBidiIsolates(t("attempts-remaining", { count: 1 }))) //
             .toContain("1");

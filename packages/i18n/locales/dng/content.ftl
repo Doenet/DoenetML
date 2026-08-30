@@ -89,7 +89,7 @@
 # шызы, җяхо; the words цу (thick), щи (thin), тянман (filled), бян (border),
 # бё (table), тў (figure), е (page), кун (blank), җын / җя (true / false),
 # вынти (question), даан (answer), буфын (part), лизы (example), җынмин
-# (proof), тиши (hint); and the connectives яоши, хуәҗə, яобуран. Replacing any
+# (proof), тиши (hint); and the connectives яоши, хуәҗә, яобуран. Replacing any
 # of them needs no permission.
 
 
@@ -299,7 +299,7 @@ paginator-page-status = { $pageLabel } { $currentPage }, йигун { $numPages 
 
 ## Piecewise functions
 
-piecewise-condition-or = хуәҗə
+piecewise-condition-or = хуәҗә
 
 piecewise-condition-if = яоши
 

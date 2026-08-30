@@ -128,21 +128,21 @@ label-for-must-resolve-to-one = `<label>` ӱстӱндегі `for` атрибу�
 
 label-for-unresolved = `<label>` ӱстӱндегі `for` атрибутты компонентке чарастырып полбаан.
 
-label-for-answer-with-authored-inputs = `<label>` ӱстӱндегі `for` атрибут аптор позы пасхан кирҷеңнері пар `<answer>` че сілтепче; кирҷеңніг позына сілтеңер.
+label-for-answer-with-authored-inputs = `<label>` ӱстӱндегі `for` атрибут аптор позы пасхан кирӌеңнері пар `<answer>` че сілтепче; кирӌеңніг позына сілтеңер.
 
-label-for-answer-without-input = `<label>` ӱстӱндегі `for` атрибут белгіліг кирҷеңі чох `<answer>` че сілтепче.
+label-for-answer-without-input = `<label>` ӱстӱндегі `for` атрибут белгіліг кирӌеңі чох `<answer>` че сілтепче.
 
-label-for-must-reference-input-or-answer = `<label>` ӱстӱндегі `for` атрибут кирҷеңге алай харииға сілтеер кирек.
+label-for-must-reference-input-or-answer = `<label>` ӱстӱндегі `for` атрибут кирӌеңге алай харииға сілтеер кирек.
 
 ## Accessibility
 
-accessibility-short-description-or-decorative = Тузаланҷаң арға ӱчӱн `<{ $component }>` алай хысха искірііг алар кирек, алай чазандыра итче тіп кӧзіділер кирек.
+accessibility-short-description-or-decorative = Тузаланӌаң арға ӱчӱн `<{ $component }>` алай хысха искірііг алар кирек, алай чазандыра итче тіп кӧзіділер кирек.
 
-accessibility-video-short-description = Тузаланҷаң арға ӱчӱн `<video>` хысха искірііг алар кирек.
+accessibility-video-short-description = Тузаланӌаң арға ӱчӱн `<video>` хысха искірііг алар кирек.
 
-accessibility-input-short-description-or-label = Тузаланҷаң арға ӱчӱн `<{ $component }>` хысха искірііг алай белгі алар кирек.
+accessibility-input-short-description-or-label = Тузаланӌаң арға ӱчӱн `<{ $component }>` хысха искірііг алай белгі алар кирек.
 
-accessibility-answer-input-short-description-or-label = Тузаланҷаң арға ӱчӱн кирҷең иткен `<answer>` хысха искірііг алай белгі алар кирек.
+accessibility-answer-input-short-description-or-label = Тузаланӌаң арға ӱчӱн кирӌең иткен `<answer>` хысха искірііг алай белгі алар кирек.
 
 accessibility-short-description-contains-math = Хысха искіріглерде `<{ $component }>` чіли математика компоненттері полбас кирек. Математиканы сӧстернең пазыңар.
 
@@ -181,7 +181,7 @@ circle-change-center-non-numerical = Сан нимес точкалар паст
 function-domain-insufficient-dimensions =
     { $intervals ->
        *[other] Функцияның таныхталчатхан областының кӧрімнері читпинче. Областта { $intervals } ара пар, че функцияда { $inputs ->
-           *[other] { $inputs } кирҷең
+           *[other] { $inputs } кирӌең
         } пар.
     }
 
@@ -210,8 +210,8 @@ function-points-too-close = Функцияда орыннары пір-пірі�
 
 function-iterates-input-output-mismatch =
     { $inputs ->
-       *[other] Функция итерациялары кирҷеңнер саны сығҷаңнар санына тиң полған туста ла чарир. Пу функцияда { $inputs } кирҷең паза { $outputs ->
-           *[other] { $outputs } сығҷаң
+       *[other] Функция итерациялары кирӌеңнер саны сығӌаңнар санына тиң полған туста ла чарир. Пу функцияда { $inputs } кирӌең паза { $outputs ->
+           *[other] { $outputs } сығӌаң
         } пар.
     }
 
@@ -284,10 +284,10 @@ graph-grid-invalid = `<graph>`: grid="{ $grid }" пілдірбинче. Ол no
 
 field-function-wrong-num-outputs =
     `<{ $component }>` ӱчӱн { $expected ->
-        [1] хай ла точкада y' чатхан коэффициентын пирчеткен пір сығҷаңнығ, тізең `y - x` чіли
-       *[other] хай ла точкада вектор пирчеткен ікі сығҷаңнығ, тізең `(y, -x)` чіли
+        [1] хай ла точкада y' чатхан коэффициентын пирчеткен пір сығӌаңнығ, тізең `y - x` чіли
+       *[other] хай ла точкада вектор пирчеткен ікі сығӌаңнығ, тізең `(y, -x)` чіли
     } функция кирек, че пирілген функцияда { $found ->
-       *[other] { $found } сығҷаң
+       *[other] { $found } сығӌаң
     } пар. { $alternative ->
         [none] Ноо да ниме сызылбинча.
        *[other] Пу функцияға `<{ $alternative }>` компонент чарасча. Ноо да ниме сызылбинча.
@@ -303,9 +303,9 @@ field-variables-ignored =
 
 ## PreFigure renderer
 
-prefigure-x-label-position-unsupported = `<graph>`: prefigure кӧзідҷеңінде xLabelPosition="left" полыстырылбинча; оң хыринзар турыс тузаланча.
+prefigure-x-label-position-unsupported = `<graph>`: prefigure кӧзідӌеңінде xLabelPosition="left" полыстырылбинча; оң хыринзар турыс тузаланча.
 
-prefigure-y-label-position-unsupported = `<graph>`: prefigure кӧзідҷеңінде yLabelPosition="bottom" полыстырылбинча; ӱстӱнзер турыс тузаланча.
+prefigure-y-label-position-unsupported = `<graph>`: prefigure кӧзідӌеңінде yLabelPosition="bottom" полыстырылбинча; ӱстӱнзер турыс тузаланча.
 
 prefigure-invalid-axis-bounds = `<graph>`: prefigure зер кӧстіріг ӱчӱн ось кізектері чарабас; тӧстеғ bbox (-10,-10,10,10) тузаланча.
 
@@ -313,11 +313,11 @@ prefigure-invalid-width = `<graph>`: prefigure зер кӧстіріг ӱчӱн 
 
 prefigure-invalid-aspect-ratio = `<graph>`: prefigure зер кӧстіріг ӱчӱн aspectRatio чарабас; тӧстеғ 1 хатнас тузаланча.
 
-prefigure-grid-spacing-too-fine = `<graph>`: тор адымы ось кізектеріне тың кічіг; prefigure кӧзідҷеңінде тор сызылбинча.
+prefigure-grid-spacing-too-fine = `<graph>`: тор адымы ось кізектеріне тың кічіг; prefigure кӧзідӌеңінде тор сызылбинча.
 
-prefigure-annotations-not-rendered = `<graph>`: PreFigure кӧзідҷеңі тузаланмаанда аннотациялар сызылбинча.
+prefigure-annotations-not-rendered = `<graph>`: PreFigure кӧзідӌеңі тузаланмаанда аннотациялар сызылбинча.
 
-multiple-annotations-children = `<graph>` істінде кӧп `<annotations>` палазы табылған; соонҷызынаң пасхазының прайзы санға алылбинча.
+multiple-annotations-children = `<graph>` істінде кӧп `<annotations>` палазы табылған; соонӌызынаң пасхазының прайзы санға алылбинча.
 
 ## Referring to other components
 
@@ -417,7 +417,7 @@ style-definition-dark-mode-text-canvas-contrast =
        *[none] Харағӌы режимде читкен контраст ползын тіп, чарых режим контрастын кӧдіріңер алай алылған ӧңні textColorDarkMode пастыра позыңар пиріңер.
     }
 
-section-multiple-style-palettes = Пір пӧлік пір ле <stylePalette> таллап алар; соонҷызы тузаланча.
+section-multiple-style-palettes = Пір пӧлік пір ле <stylePalette> таллап алар; соонӌызы тузаланча.
 
 ## Unique variants
 
@@ -455,7 +455,7 @@ variant-non-constant-exclude-not-implemented = турғлах нимес exclude
 
 ## PreFigure conversion
 
-prefigure-descendant-unsupported = { $subject }: graph prefigure кӧзідҷеңінде полыстырылбинча; тӧл алнында ирттірілген.
+prefigure-descendant-unsupported = { $subject }: graph prefigure кӧзідӌеңінде полыстырылбинча; тӧл алнында ирттірілген.
 
 prefigure-descendant-invalid-geometry = { $subject }: тоозылбас алай толдырылбаан геометрия; тӧл алнында ирттірілген.
 
@@ -475,7 +475,7 @@ prefigure-label-position-unsupported =
 
 prefigure-fill-style-unsupported = { $subject }: '{ $fillStyle }' будағ стилін PreFigure полыстырбинча; толдыра будағнаң алыстырылча.
 
-prefigure-line-style-unknown = { $subject }: пілдірбеен '{ $lineStyle }' сызых стилі PreFigure сығҷаңынаң хабылбаан.
+prefigure-line-style-unknown = { $subject }: пілдірбеен '{ $lineStyle }' сызых стилі PreFigure сығӌаңынаң хабылбаан.
 
 prefigure-marker-style-mapped-to-diamond = { $subject }: '{ $markerStyle }' маркер стилі PreFigure ниң 'diamond' стиліне чарастырылған.
 
@@ -650,13 +650,13 @@ select-from-sequence-indices-excluded-combination = selectfromsequence ӱчӱн 
 
 select-from-sequence-coprime-not-positive-integers = Тик тооза саннар талланмаанда пос-позына аймах холбастарны таллап полбинча.
 
-select-from-sequence-coprime-common-factor = Пос-позына аймах саннарны таллап полбинча. Прай полар чарирған утхаларның ортах пӧлҷеңі пар. ("from" алай "to" ның кӧзіділген утхалары "step" нең пос-позына аймах полар кирек.)
+select-from-sequence-coprime-common-factor = Пос-позына аймах саннарны таллап полбинча. Прай полар чарирған утхаларның ортах пӧлӌеңі пар. ("from" алай "to" ның кӧзіділген утхалары "step" нең пос-позына аймах полар кирек.)
 
 select-from-sequence-coprime-single-number = 1-дең пасха чалғыс саннаң пос-позына аймах холбастарны таллап полбинча.
 
 select-from-sequence-excluded-too-many-combinations = selectFromSequence те холбастарның 70% -тең кӧбі сығарылған
 
-select-from-sequence-coprime-none-found = Пос-позына аймах саннарны таллап полбаан. Прай полар чарирған утхаларның ортах пӧлҷеңі пар.
+select-from-sequence-coprime-none-found = Пос-позына аймах саннарны таллап полбаан. Прай полар чарирған утхаларның ортах пӧлӌеңі пар.
 
 select-from-sequence-too-few-unique-values = Узуны { $numPossibleValues } полған изерігдең { $numToSelect } пос утха таллап полбинча
 
@@ -677,9 +677,9 @@ select-random-value-fluke = Тың сирек полчатхан таварыл�
 ## Inputs embedded in math
 
 math-embedded-input-shape-unsuitable =
-    `<{ $component }>` математика істінде сызылбинча; выражение кирҷеңнер істіне салылбаан туста чіли терілче. { $reason ->
-        [not-inline] Выражение істіне `inline` таллағ кирҷеңі ле сыйча; `inline` чох полза, ол кнопкалар блогы полча.
-        [expanded] `expanded` текст кирҷеңі кӧп строкалығ ящик, ол выражение істінде турарға тың улуғ.
-        [on-graph] Графикте выражение пір бӱтӱн чуртағ чіли сызылча, анда тудынҷаң нимее орын чох.
+    `<{ $component }>` математика істінде сызылбинча; выражение кирӌеңнер істіне салылбаан туста чіли терілче. { $reason ->
+        [not-inline] Выражение істіне `inline` таллағ кирӌеңі ле сыйча; `inline` чох полза, ол кнопкалар блогы полча.
+        [expanded] `expanded` текст кирӌеңі кӧп строкалығ ящик, ол выражение істінде турарға тың улуғ.
+        [on-graph] Графикте выражение пір бӱтӱн чуртағ чіли сызылча, анда тудынӌаң нимее орын чох.
        *[relative-width] Аның `width` і салыстырығлығ (процент алай `em`), че выражение істінде аны салыстырар ниме чох. Кӧнділені `px` чіли абсолют кірімнең пиріңер.
     }

@@ -143,7 +143,7 @@ editor-no-info = Мый ю щёщи ди диагностика
 editor-show-info-annotations = Зэ редактор ли щянши щёщи ди диагностика
 editor-show-accessibility-annotations = Зэ редактор ли щянши доступность ди диагностика
 
-editor-accessibility-learn-more = Кан Doenet зынмə дуйдэ доступность
+editor-accessibility-learn-more = Кан Doenet зынмә дуйдэ доступность
 
 editor-accessibility-violations-heading = Доступность ди вынти ({ $standard })
 
@@ -162,9 +162,9 @@ editor-response-submitted = Сунхала
 
 ## The context-help panel
 
-help-placeholder = Ба курсор фаңзэ тег ди мин, атрибут хуәҗə { $ref } шаң, җё нын кан документация.
+help-placeholder = Ба курсор фаңзэ тег ди мин, атрибут хуәҗә { $ref } шаң, җё нын кан документация.
 
-help-unsupported-ref-chain = Щяң { $example } җəяңди дуогә буфын ди ссылка, хэ мый ю баңҗў.
+help-unsupported-ref-chain = Щяң { $example } җәяңди дуогә буфын ди ссылка, хэ мый ю баңҗў.
 
 help-unresolved-ref =
     { $reason ->
@@ -181,9 +181,9 @@ help-suggestions-header =
         [inside] { $element } ли
        *[top] Зуй шаңтў ди дифаң
     }{ $allowed ->
-        [none] { " — җəли шәму дў фаңбудə." }
-        [text] { " — җəли кәи да вынзы." }
-        [text-and-components] { " — җəли кәи да вынзы, хуәҗə шы йиха:" }
+        [none] { " — җәли шәму дў фаңбудә." }
+        [text] { " — җәли кәи да вынзы." }
+        [text-and-components] { " — җәли кәи да вынзы, хуәҗә шы йиха:" }
        *[components] { " — кәи шы йиха:" }
     }
 
@@ -238,8 +238,8 @@ help-type = Тип:
 help-resolved-style = Дин ща ди стиль (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Дин ща ди функция ди мин:
-help-reset-list = Җə ввод шаң ди сброс ди список:
-help-added-on-input = Җə ввод шаң җяди:
-help-removed-on-input = Җə ввод шаң начўди:
+help-reset-list = Җә ввод шаң ди сброс ди список:
+help-added-on-input = Җә ввод шаң җяди:
+help-removed-on-input = Җә ввод шаң начўди:
 
 help-reset-overrides = { $reset } ба { $additional } гын { $removed } дў гэ ща ла.

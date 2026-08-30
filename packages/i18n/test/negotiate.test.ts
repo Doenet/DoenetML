@@ -1965,7 +1965,7 @@ describe("a host catalog keyed on an aliased tag", () => {
          * The collection codes, left to miss for `map`'s and `smi`'s reason.
          * `trk` (Turkic), `ira` (Iranian) and `tut` (Altaic) are ISO 639-5
          * *collections* rather than languages — this batch alone is five
-         * languages inside `trk` and six inside `ira` — and CLDR has no
+         * languages inside `trk` and eight inside `ira` — and CLDR has no
          * opinion about which member a bare one of them means: each maximizes
          * to nothing at all, no script and no region. A tag that names a
          * family cannot be answered with one family member's catalog, so all

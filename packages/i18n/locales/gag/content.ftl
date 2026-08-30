@@ -269,4 +269,4 @@ chemistry-invalid-ionic-compound = Geçersiz ion birleșmesi
 ## Inputs embedded in math
 
 math-embedded-input-blank = boș
-math-embedded-input-blank-ordinal = { $total } boștan { $ordinal }-inci
+math-embedded-input-blank-ordinal = { $total } boștan { $ordinal }.

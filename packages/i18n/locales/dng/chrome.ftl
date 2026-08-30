@@ -16,7 +16,7 @@
 # in the 1870s — and it is the only one written in **Cyrillic**. This catalog
 # writes the **standard Soviet-era Dungan alphabet still in use in Kyrgyzstan
 # and Kazakhstan**: the Russian letters plus **ә, җ, ң, ў, ү**. So `җ` for the
-# initial of «җə», `ң` for the syllable-final nasal («хаң», «дян» vs «хуаң»),
+# initial of «җә», `ң` for the syllable-final nasal («хаң», «дян» vs «хуаң»),
 # `ў` and `ү` for the rounded vowels, `ә` for the vowel of «гә», «сә», «дә».
 #
 # **Tones are not marked.** Standard Dungan orthography leaves tone out of the
@@ -180,7 +180,7 @@ error-found-at =
        *[lines] Зэ { $startLine }–{ $endLine } хаң шаң җаоҗола.
     }
 
-document-contains-errors = Җə документ ли ю ошибка!
+document-contains-errors = Җә документ ли ю ошибка!
 
 diagnostic-heading-error = Ошибка
 diagnostic-heading-warning = Предупреждение
@@ -194,13 +194,13 @@ something-went-wrong = Ю шәр цола.
 
 renderer-load-failed = йигә рендерер мый кэчи. Чин ба страница щин дакэ йицы.
 
-core-start-failed = Җə документ мый кэчи. Чин ба страница щин дакэ йицы.
+core-start-failed = Җә документ мый кэчи. Чин ба страница щин дакэ йицы.
 
-core-start-failed-busy = Җə документ мый кэчи. Йидорə документ йикуәр кэчила, манди прибор шаң җə йё фи до ди шыҗян. Дын битиди документ кэчи ваннила, ба страница щин дакэ йицы кәнын юңчў.
+core-start-failed-busy = Җә документ мый кэчи. Йидорә документ йикуәр кэчила, манди прибор шаң җә йё фи до ди шыҗян. Дын битиди документ кэчи ваннила, ба страница щин дакэ йицы кәнын юңчў.
 
-core-start-failed-retry = Җə документ мый кэчи.
+core-start-failed-retry = Җә документ мый кэчи.
 
-core-start-failed-busy-retry = Җə документ мый кэчи. Йидорə документ йикуәр кэчила, манди прибор шаң җə йё фи до ди шыҗян.
+core-start-failed-busy-retry = Җә документ мый кэчи. Йидорә документ йикуәр кэчила, манди прибор шаң җә йё фи до ди шыҗян.
 
 core-start-retry = Зэ шы йицы
 

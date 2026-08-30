@@ -40,7 +40,9 @@
 # infinitive is written **«tsarn»**, and the sentences are **verbless nominal
 # predications** — a speaker should supply the copula. Word order is
 # verb-final, modifiers precede their head, and the postpositions are «-ir»
-# (to, for) and «-dar» (in, on), never welded to a placeable.
+# (to, for) and «-dar» (in, on). Both are invariant, so this file does write
+# them against a placeable — `{ $component }-ir`, `{ $componentIdx }-dar` —
+# which is adjacency rather than agreement; see `chrome.ftl`'s header.
 #
 # **Counting.** CLDR has no plural data for `wbl`, so `Intl.PluralRules` would
 # resolve it against the runtime's default locale, and a noun after a numeral

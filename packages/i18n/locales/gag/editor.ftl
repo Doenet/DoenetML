@@ -108,7 +108,7 @@ editor-format-as-xml = XML gibi formatla
 
 ## The diagnostics panel
 
-editor-diagnostic-line = { $line }-inci satır
+editor-diagnostic-line = { $line }. satır
 editor-no-errors = Hata yok
 editor-no-warnings = Uyarma yok
 editor-no-info = Bilgi diagnostikası yok
@@ -156,17 +156,17 @@ help-name-summary = { $name } — { $summary }
 help-ref-is-reference =
     { $line ->
         [none] { $ref } — { $target } üstünä referens.
-       *[other] { $ref } — { $target } üstünä referens ({ $line }-inci satır).
+       *[other] { $ref } — { $target } üstünä referens ({ $line }. satır).
     }
 help-ref-derived-from =
     { $line ->
         [none] { $owner } tarafından { $role } gibi getirildi.
-       *[other] { $owner } tarafından { $line }-inci satırda { $role } gibi getirildi.
+       *[other] { $owner } tarafından { $line }. satırda { $role } gibi getirildi.
     }
 help-property-is-reference =
     { $line ->
         [none] { $ref } — { $element } elementinin { $property } özelliinä referens.
-       *[other] { $ref } — { $element } elementinin { $property } özelliinä referens ({ $line }-inci satır).
+       *[other] { $ref } — { $element } elementinin { $property } özelliinä referens ({ $line }. satır).
     }
 help-kind-attribute = atribut
 help-kind-snippet = snippet

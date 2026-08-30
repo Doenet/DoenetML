@@ -2164,6 +2164,16 @@ and say so:
 - The rule every one of them states is the same, and it is the roster's
   existing one: a corrector who prefers the other script must convert **all
   four files at once** and must never mix two alphabets inside a catalog.
+- `locales/kjh`'s and `locales/alt`'s headers go further and name the exact
+  extra letters their files may contain — **і ғ ң ӧ ӱ ӌ** and **ј ҥ ӧ ӱ** —
+  warning a corrector not to fold them into their Russian look-alikes. That is
+  a checkable claim, and worth re-checking after any edit: dumping the
+  non-ASCII letters a catalog actually uses is a one-liner, and it is how two
+  homoglyph slips in the seed were found. `locales/kjh` had written the
+  Tajik **ҷ** (U+04B7) where Khakas has **ӌ** (U+04CC), and `locales/dng` the
+  Latin **ə** (U+0259) beside the Cyrillic **ә** (U+04D9) it uses everywhere
+  else — the same phoneme spelled two ways in one file, invisible on screen
+  and fatal to a search.
 
 Three of the Perso-Arabic five make an orthographic choice of a different
 kind. The Gilaki and Luri Wikipedias write «ؤ» for /o/ and «ۊ» for /u/;
@@ -2239,7 +2249,7 @@ categories are `one` and `other`, and **zero falls in `other`** — where
 Persian's rule counts zero with the singular. So a `[few]` or `[many]` branch
 would be unreachable, and `locales/bal` writes none.
 
-What `locales/bal` also does not write is a `[one]` branch, and that is a fact
+What `locales/bal` also does not do is fork a **count**, and that is a fact
 about Balochi rather than about CLDR: a Balochi noun after a numeral stays
 unmarked, so the two categories would carry identical text. Every count
 message is a single `*[other]`.
@@ -2247,10 +2257,31 @@ message is a single `*[other]`.
 The other fourteen tags have no CLDR plural data at all, so
 `Intl.PluralRules` resolves them against the **runtime's** default locale and a
 category branch in any of those files would be text selected by something
-else's rules. Every one of the fourteen collapses its count selects to one
+else's rules. Thirteen of the fourteen collapse their count selects to one
 form rather than writing a branch nothing could select — and the grammar
 agrees with the constraint in all fifteen, since Turkic, Iranian and Sinitic
-alike leave a noun unmarked after a numeral. English's explicit `[0]` numeric
+alike leave a noun unmarked after a numeral.
+
+**`[one]` still appears in eleven of the fifteen, and almost everywhere it is
+not a count.** Ten catalogs — every one of the fifteen except `alt`, `kaa`,
+`kjh`, `ttt` and `sgh` — write exactly one `[one]`, and all ten write it in the
+same message: `field-function-wrong-num-outputs`, which forks on how many
+outputs a component *needs* ("one output" against "two outputs") rather than on
+a quantity the reader is looking at. `alt`, `kaa` and `kjh` write that same
+fork as the numeric literal `[1]`, which Fluent matches against the number
+before consulting any plural rule and which therefore does not depend on whose
+rules the runtime picked; `ttt` omits the message. **`locales/sgh` is the one
+catalog in the batch that forks a real count**, in sixteen places across three
+files — plus the same output fork the other ten write, twice over — and it has
+no rules of its own to do it with: English's rules
+select the branch and it says the same thing as the `*[other]` beside it, so a
+Shughni reader is served Shughni either way. That is recorded rather than
+forbidden — `one` is the one category every runtime default can select — and
+`test/chrome.test.ts` pins the whole distribution, reading each catalog's
+`chrome.ftl` and `diagnostics.ftl` together so that a claim about a catalog is
+not checked against a fraction of it.
+
+English's explicit `[0]` numeric
 literals are kept everywhere, because Fluent matches those against the number
 itself before consulting any plural rule. `locales/dng` gives the sharpest
 reason for keeping one: Dungan says "none left" with the negative «мый»
@@ -2338,7 +2369,7 @@ useful finding.** Mazanderani and Gilaki are head-final: an adjective precedes
 its noun, so `style-with-noun` reads `{ $description } { $noun }` — English's
 order, arrived at from the opposite direction, and the exact reverse of what
 `locales/fa` writes. Northern Luri and Hazaragi are head-initial and build the
-phrase the Persian way. Four Iranian languages, all five of them beside `fa`
+phrase the Persian way. Four Iranian languages, all four of them beside `fa`
 and borrowing most of their technical vocabulary from it, and they do not
 agree about the one thing a reader would expect a family to settle.
 
@@ -2359,6 +2390,19 @@ and this catalog writes it once, and a masculine noun after «bi» takes the
 oblique where this catalog writes the direct form. `locales/ttt` is the one
 that had no way out and welded the affix anyway; see [An affix cannot be
 welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable).
+
+**Two catalogs write an affix against a placeable and are not that case.**
+`locales/wbl` puts its postpositions «-ir» and «-dar» straight onto
+`{ $component }` and `{ $startLine }` in about two dozen places, and
+`locales/sgh` does the same with Tajik's «-ро». Both affixes have a single
+invariant shape, so this is `{ $numSides }-kulmio`'s adjacency rather than
+`locales/tg`'s agreement, and all three of `locales/wbl`'s headers that
+mention the postpositions now say which of the two it is. `locales/gag` is the
+one place in the batch where the distinction had to be *acted* on: a Gagauz
+ordinal suffix harmonizes with the vowels of the spoken numeral — «beșinci»
+but «dokuzuncu» — which a digit does not show, so the line and row numbers are
+written with a period after the figure, `{ $line }. satır`, exactly as
+`locales/crh` and `locales/tr` write theirs.
 
 Only four catalogs use `[noun-tail]` — `lrc`, `haz`, `bal` and `zza` — and the
 other eleven fold a polygon's side count into the head, because a modifier
