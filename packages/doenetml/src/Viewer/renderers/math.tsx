@@ -487,6 +487,7 @@ function MathWithEmbeddedInputs({
         readPositions,
         contextValue,
         indent,
+        editing,
     } = useMathSlots({
         rootId: id,
         template,
@@ -568,6 +569,7 @@ function MathWithEmbeddedInputs({
                     <DynamicMath
                         latex={beginDelim + latexForTypeset + endDelim}
                         onTypeset={onTypeset}
+                        immediate={editing}
                     />
                 )}
                 <span ref={layerRef} className="doenet-math-slot-layer">

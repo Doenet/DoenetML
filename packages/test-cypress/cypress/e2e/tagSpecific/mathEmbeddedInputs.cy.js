@@ -206,12 +206,13 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         cy.get("#entered").should("have.text", "\\sqrt{2}");
     });
 
-    it("the expression makes room in steps, not on every keystroke", () => {
-        // The claim the whole growth policy rests on. A math field grows on
-        // nearly every keystroke; re-typesetting the expression around each new
-        // size would reflow the equation under the reader's hands, so the room
-        // reserved for it is given out in steps that several keystrokes fit
-        // inside.
+    it("the expression makes room in the same frame as the field grows", () => {
+        // The reservation follows the field exactly, and for an expression this
+        // small the re-typeset is cheap enough to run in the layout phase, so
+        // the room reserved and the field are the same width on every frame:
+        // the rest of the expression moves with the field rather than behind
+        // it. A frame in which they differ is one the reader sees the field
+        // overlapping, or short of, its room.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -224,48 +225,39 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
 
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+        cy.get(`${cesc("#mi")} textarea`).type("a", { force: true });
+        cy.wait(300);
 
-        const reserved = [];
-        const field = [];
-        for (const character of "abcdefghijkl") {
+        cy.window().then((win) => {
+            const root = win.document.querySelector(cesc("#m"));
+            const field = root.querySelector(".doenet-math-slot");
+            const gaps = [];
+            function sample() {
+                const reserved = root
+                    .querySelector("[id*='_mathSlot_']")
+                    .getBoundingClientRect().width;
+                gaps.push(
+                    Math.round(field.getBoundingClientRect().width - reserved),
+                );
+                win.requestAnimationFrame(sample);
+            }
+            sample();
+            win.__gaps = gaps;
+        });
+
+        for (const character of "bcdefghijkl") {
             cy.get(`${cesc("#mi")} textarea`).type(character, { force: true });
-            // A re-typeset is asynchronous and throttled, so let one happen if
-            // it is going to: the point is how few of them there are.
-            cy.wait(150);
-            cy.get(cesc("#m")).then(($root) => {
-                const root = $root[0];
-                reserved.push(
-                    Math.round(
-                        root
-                            .querySelector("[id*='_mathSlot_']")
-                            .getBoundingClientRect().width,
-                    ),
-                );
-                field.push(
-                    Math.round(
-                        root
-                            .querySelector(".mq-editable-field")
-                            .getBoundingClientRect().width,
-                    ),
-                );
-            });
+            cy.wait(100);
         }
+        cy.wait(300);
 
-        cy.then(() => {
+        cy.window().then((win) => {
+            const behind = win.__gaps.filter((gap) => Math.abs(gap) > 1);
             expect(
-                new Set(field).size,
-                "the field itself grew as the reader typed",
-            ).to.be.greaterThan(5);
-            expect(
-                new Set(reserved).size,
-                "but the expression was typeset again only a few times",
-            ).to.be.lessThan(5);
-            expect(
-                reserved.every(
-                    (width, ind) => ind === 0 || width >= reserved[ind - 1],
-                ),
-                "and the room it reserved only ever grew",
-            ).to.eq(true);
+                behind.length,
+                `frames with the room behind the field: ${behind.join(",")}`,
+            ).to.be.at.most(2);
+            expect(win.__gaps[win.__gaps.length - 1]).to.eq(0);
         });
     });
 
@@ -602,13 +594,21 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
 
-        cy.get(`${cesc("#mi")} textarea`).type("abcdefghijklmn", {
-            force: true,
-        });
+        // Typing and then deleting leaves the field narrower than the room
+        // it was given, which is kept while the field is being used.
+        cy.get(`${cesc("#mi")} textarea`).type(
+            "abcdefghijklmn{backspace}{backspace}{backspace}{backspace}",
+            { force: true },
+        );
 
         let reservedWhileEditing;
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should(($reserved) => {
             reservedWhileEditing = $reserved[0].getBoundingClientRect().width;
+            expect(reservedWhileEditing).to.be.greaterThan(
+                $reserved[0].ownerDocument
+                    .querySelector(`${cesc("#m")} .doenet-math-slot`)
+                    .getBoundingClientRect().width + 1,
+            );
         });
 
         cy.get("#virtual-keyboard-tray button").first().focus({ force: true });

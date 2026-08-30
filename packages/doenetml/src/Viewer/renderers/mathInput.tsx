@@ -1373,6 +1373,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 },
             }}
             onChange={(mField: any) => {
+                // The field has already been redrawn at its new size.
+                slotEditingRef.current.resized();
                 onChangeHandler(mField.latex());
             }}
             onBlur={handleBlur}

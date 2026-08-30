@@ -8,6 +8,7 @@ import React, {
     useState,
 } from "react";
 import { MATH_INPUT_SLOT_PATTERN as SLOT_PATTERN } from "@doenet/utils";
+import { flushSync } from "react-dom";
 import { reserveForSlot, sameBox, SlotBox } from "./mathSlotReserve";
 
 /**
@@ -303,8 +304,13 @@ export function useMathSlots({
     const noteSlotCommit = useCallback(
         (settled: Promise<unknown> | undefined, reflows: boolean) => {
             holdTemplate();
+            // Centre the display again: with the typeset that giving back
+            // the room produces, or, when there is none to wait for, with
+            // the output on screen, which is then the final one.
             if (reflows) {
                 recentreOnTypeset.current = true;
+            } else if (editingSlots.current.size > 0) {
+                setIndent(centredIndent(rootRef.current));
             }
             settled?.then(noteSettled, noteSettled);
         },
@@ -473,6 +479,8 @@ export function useMathSlots({
         readPositions,
         contextValue,
         indent,
+        /** Whether a control in the expression is being edited. */
+        editing: held !== null,
     };
 }
 
@@ -588,11 +596,21 @@ export interface MathSlotEditing {
      * wait for — including when the answer is that nothing changed.
      */
     commit(settled?: Promise<unknown>): void;
+    /**
+     * The control's content just changed, in the event that changed it. A
+     * control that grows as it is typed into calls this so its new size is
+     * reported here and now — from the same task as the keystroke, which is
+     * what lets the expression be re-typeset in the same frame — rather than
+     * waiting for the resize observer to notice, in the frame's final layout,
+     * from where a re-typeset cannot be run without the observer objecting.
+     */
+    resized(): void;
 }
 
 const notInASlot: MathSlotEditing = {
     setEditing() {},
     commit() {},
+    resized() {},
 };
 
 const MathSlotEditingContext = createContext(notInASlot);
@@ -633,7 +651,7 @@ export function MathSlot({
     const typesets = context?.typesets ?? 0;
 
     const measure = useCallback(
-        ({ exact = false } = {}) => {
+        ({ exact = false, flush = false } = {}) => {
             const wrapper = wrapperRef.current;
             const baseline = baselineRef.current;
             if (!wrapper || !baseline || !reportSize) {
@@ -656,12 +674,22 @@ export function MathSlot({
             });
             const changed = !sameBox(reserved.current, box);
             reserved.current = box;
-            if (changed || heightAwaitingTypeset.current !== null) {
-                heightAwaitingTypeset.current = measured.height;
+            const report = () => {
+                if (changed || heightAwaitingTypeset.current !== null) {
+                    heightAwaitingTypeset.current = measured.height;
+                } else {
+                    setHeightAboveBaseline(measured.height);
+                }
+                reportSize(componentIdx, box);
+            };
+            // Flushed so that the expression is re-typeset (see `DynamicMath`'s
+            // `immediate`) before this task ends, and so painted in the same
+            // frame as the change in the control: the two move together.
+            if (flush && editing.current) {
+                flushSync(report);
             } else {
-                setHeightAboveBaseline(measured.height);
+                report();
             }
-            reportSize(componentIdx, box);
             return changed;
         },
         [componentIdx, reportSize],
@@ -700,6 +728,9 @@ export function MathSlot({
                 // what lets a centred display centre itself again.
                 const reflows = measure({ exact: true }) === true;
                 noteSlotCommit?.(settled, reflows);
+            },
+            resized() {
+                measure({ flush: true });
             },
         }),
         [componentIdx, measure, setSlotEditing, noteSlotCommit],

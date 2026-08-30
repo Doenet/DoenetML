@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reserveForSlot, sameBox, SLOT_WIDTH_STEP } from "./mathSlotReserve";
+import { reserveForSlot, sameBox } from "./mathSlotReserve";
 
 const box = (width: number, height: number, depth: number) => ({
     width,
@@ -42,45 +42,15 @@ describe("reserveForSlot", () => {
         ).toEqual(reserved);
     });
 
-    it("takes a whole step once a control outgrows its room", () => {
-        const reserved = box(62, 20, 8);
-        const grown = reserveForSlot({
-            measured: box(63, 20, 8),
-            reserved,
-            editing: true,
-        });
-        expect(grown.width).eq(2 * SLOT_WIDTH_STEP);
-        expect(grown.height).eq(reserved.height);
-        expect(grown.depth).eq(reserved.depth);
-    });
-
-    it("leaves room even when a control lands exactly on a step", () => {
-        // Otherwise the very next character would outgrow the reservation and
-        // cost a re-typeset, which is what the steps exist to avoid.
-        const reserved = reserveForSlot({
-            measured: box(SLOT_WIDTH_STEP, 20, 0),
-            reserved: null,
-            editing: true,
-        });
-        expect(reserved.width).eq(2 * SLOT_WIDTH_STEP);
-    });
-
-    it("keeps several keystrokes inside one reservation", () => {
-        let reserved = box(24, 20, 8);
-        const grown = reserveForSlot({
-            measured: box(25, 20, 8),
-            reserved,
-            editing: true,
-        });
-        expect(grown.width).eq(SLOT_WIDTH_STEP);
-        reserved = grown;
-        for (const width of [30, 36, 42, 47]) {
+    it("grows exactly as much as the control does", () => {
+        let reserved = box(62, 20, 8);
+        for (const width of [63, 70, 84, 91]) {
             reserved = reserveForSlot({
                 measured: box(width, 20, 8),
                 reserved,
                 editing: true,
             });
-            expect(sameBox(reserved, grown)).eq(true);
+            expect(reserved).toEqual(box(width, 20, 8));
         }
     });
 
@@ -103,30 +73,14 @@ describe("reserveForSlot", () => {
             reserved,
             editing: true,
         });
-        expect(grown.width).eq(reserved.width);
-        expect(grown.height).eq(26);
-        expect(grown.depth).eq(18);
-    });
-
-    it("gives a change of shape exactly the room it needs", () => {
-        // Height and depth change only when the control changes shape, which
-        // is rare enough that each change can be typeset for as it comes; a
-        // step there would only make the control move by a different amount
-        // each time.
-        let reserved = box(96, 20, 8);
-        for (const [height, depth] of [
-            [28, 14],
-            [36, 22],
-            [44, 30],
-        ]) {
-            reserved = reserveForSlot({
-                measured: box(50, height, depth),
-                reserved,
-                editing: true,
-            });
-            expect(reserved.height).eq(height);
-            expect(reserved.depth).eq(depth);
-        }
+        expect(grown).toEqual(box(96, 26, 18));
+        // More text: wider, no taller.
+        const wider = reserveForSlot({
+            measured: box(110, 20, 8),
+            reserved: grown,
+            editing: true,
+        });
+        expect(wider).toEqual(box(110, 26, 18));
     });
 });
 
