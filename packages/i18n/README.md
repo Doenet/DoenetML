@@ -3436,6 +3436,13 @@ selectable in a language whose only category is `other` — which is why
 `locales/km` keeps the `[0]` branch of `attempts-remaining` and lost only the
 `[one]` beside it.
 
+**A category name is read as a category wherever it is written**, including on
+a select whose selector is not a count — where Fluent would match `[few]`
+against the literal string `"few"`. That reading is what makes the rule and the
+symbolic-key check exact complements, and no select in the roster is affected:
+the symbolic ones key on `plain`, `none`, `dark`, `true` and the like, and the
+only category word among their keys is `other`.
+
 **The default variant is exempt whatever it is named.** Fluent answers with it
 whenever no other branch claims the input, so `*[one]` in a single-category
 language is selected by every count rather than by none.

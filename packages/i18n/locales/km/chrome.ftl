@@ -34,8 +34,9 @@ answer-percent-correct = ត្រឹមត្រូវ { $percent }%
 answer-percent-short = { $percent }%
 max-credit-available = ពិន្ទុអតិបរមាដែលអាចទទួលបាន៖ { $percent }%
 # `[0]` is a numeric literal, matched against the count itself rather than
-# against a plural category, so it stays: Khmer's single category cannot reach
-# it and it is a different sentence rather than a different number.
+# against a plural category, so Khmer's having a single category does not make
+# it unreachable the way it did the `[one]` branch that used to sit below it.
+# It stays: zero is a different sentence here, not a different number.
 attempts-remaining =
     { $count ->
         [0] គ្មានការប៉ុនប៉ងនៅសល់ទេ

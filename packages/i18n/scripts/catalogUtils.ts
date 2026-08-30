@@ -376,6 +376,14 @@ class VariantKeyVisitor extends Visitor {
  * category, so they stay selectable in a language whose only category is
  * `other`. That distinction is what keeps `locales/km`'s `[0]` branch legal
  * while its `[one]` branch was not.
+ *
+ * A category name is read as a category wherever it appears, including on a
+ * select whose selector is not a count — Fluent would match `[few]` there
+ * against the literal string `"few"`. That is the same reading
+ * {@link symbolicVariantKeys} makes from the other side, it keeps the two
+ * functions exact complements, and no selector in the roster is affected: the
+ * symbolic selects name `plain`, `none`, `dark`, `true` and the like, and the
+ * only category word among their keys is `other`, which is excluded above.
  */
 export function pluralVariantKeys(source: string): string[] {
     const visitor = new VariantKeyVisitor(
@@ -387,6 +395,18 @@ export function pluralVariantKeys(source: string): string[] {
     visitor.visit(parseFtl(source, {}));
     return [...visitor.found].sort();
 }
+
+/**
+ * What a locale CLDR has no data for may write: English's split.
+ *
+ * Which language actually selects such a branch is the *runtime's* default
+ * locale and so not knowable here — a browser set to Polish would pick the
+ * branch by Polish rules. English is the right answer anyway: it is the
+ * package's `DEFAULT_LOCALE`, the language every one of these catalogs falls
+ * back to when it is incomplete, and the split their headers say they are
+ * assuming. Anything beyond `one` would be a branch no reader is promised.
+ */
+const FALLBACK_PLURAL_CATEGORIES = ["one", "other"];
 
 /**
  * The plural categories a locale is entitled to write, and why the answer is
@@ -406,13 +426,8 @@ export function pluralVariantKeys(source: string): string[] {
  *     `few` or `many`, and why several of their headers say so in as many
  *     words.
  *
- * `one` is the deliberate exception in the second case. More than a hundred of
- * this repository's locale directories are for tags CLDR has no data for, and
- * most of them keep English's `one`/`other` split because English is the
- * package's `DEFAULT_LOCALE` and its split is the one the fallback usually
- * makes, and because it reads correctly for them. Forbidding it would be a change to
- * ninety-odd catalogs rather than a lint rule, and each of their headers
- * already records the trade.
+ * What the second case may write anyway is {@link FALLBACK_PLURAL_CATEGORIES},
+ * which is where the `one` exception is explained.
  *
  * The tag is canonicalized before it is asked about, because ICU folds three
  * of this repository's directory names onto a macrolanguage — `kmr` to `ku`,
@@ -441,18 +456,6 @@ export function allowedPluralCategories(locale: string): Set<string> {
     }
     return new Set(FALLBACK_PLURAL_CATEGORIES);
 }
-
-/**
- * What a locale CLDR has no data for may write: English's split.
- *
- * Which language actually selects such a branch is the *runtime's* default
- * locale and so not knowable here — a browser set to Polish would pick the
- * branch by Polish rules. English is the right answer anyway: it is the
- * package's `DEFAULT_LOCALE`, the language every one of these catalogs falls
- * back to when it is incomplete, and the split their headers say they are
- * assuming. Anything beyond `one` would be a branch no reader is promised.
- */
-const FALLBACK_PLURAL_CATEGORIES = ["one", "other"];
 
 /**
  * The plural categories a catalog writes that its own locale cannot select.

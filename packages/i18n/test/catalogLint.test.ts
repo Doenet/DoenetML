@@ -888,6 +888,63 @@ describe("plural categories a locale cannot select", () => {
             ).toEqual([]);
         });
 
+        it("reads a term and an attribute, not only a message's own value", () => {
+            // Neither is where a count lives today, but both are places a
+            // select may be written, and a rule that skipped them would leave
+            // a hole exactly where nobody would look for one.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "-brand = { $count ->",
+                        "        [two] a pair",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["two"]);
+            expect(
+                pluralVariantKeys(
+                    [
+                        "button = press",
+                        "    .label = { $count ->",
+                        "        [few] a few",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["few"]);
+        });
+
+        it("reads a category name as a category even on a non-count select", () => {
+            // Fluent would match `[few]` on a string selector against the
+            // literal `"few"`, so this branch is not strictly dead. Reading it
+            // as a category anyway is what keeps this function and
+            // `symbolicVariantKeys` exact complements, and no selector in the
+            // roster is affected: the symbolic selects key on `plain`,
+            // `none`, `dark`, `true` and the like, and the only category word
+            // among their keys is `other`.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "message = { $status ->",
+                        "        [few] a few",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["few"]);
+            expect(
+                symbolicVariantKeys(
+                    [
+                        "message = { $status ->",
+                        "        [few] a few",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ).size,
+            ).toBe(0);
+        });
+
         it("descends into a select nested under another", () => {
             expect(
                 pluralVariantKeys(
@@ -958,6 +1015,19 @@ describe("plural categories a locale cannot select", () => {
                 "one",
                 "other",
             ]);
+        });
+
+        it("treats a bare region or script tag as no-data rather than throwing", () => {
+            // A directory named for a region or a script alone is not a
+            // locale, and `Intl` says so. The rule must still answer, and the
+            // conservative answer is the one that lets least through: a
+            // directory named `Hans` may write `[one]` and nothing wider.
+            for (const notALocale of ["Hans", "419"]) {
+                expect(() => new Intl.Locale(notALocale)).toThrow();
+                expect([...allowedPluralCategories(notALocale)].sort()).toEqual(
+                    ["one", "other"],
+                );
+            }
         });
     });
 
