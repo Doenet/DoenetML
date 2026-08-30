@@ -88,8 +88,7 @@ English is the source of truth. Every translation — `ab`, `ace`, `ady`, `af`, 
 `tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `tvl`, `ty`,
 `tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`,
 `vro`, `war`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`,
-`zh-Hant` `zh-
-Hant` — is an **unreviewed machine-generated seed**, which each file's own
+`zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
@@ -641,6 +640,18 @@ for `locales/kv` (Komi-Zyrian, beside `locales/koi`) and `locales/chm` (Meadow
 Mari, beside `locales/mrj`). All three were renamed — to `locales/kmr`,
 `locales/kpv` and `locales/mhr` — so that each tag names what is actually in the
 file.
+
+**An alias adds a fallback; it does not replace the tag.** `available` is not
+only this repository's roster — a host passes its own catalogs in as
+`localeResources`, and [the contract those have is that they
+win](#delivery). So `negotiateLocales` asks for the tag as written *and then*
+its alias, in that order. Rewriting `ku` to `kmr` before matching would step
+over a host that had keyed a catalog on `ku`: its key would never be compared
+against anything, and its reader would get English while the translation sat in
+memory. Keeping the original in front means the host's catalog is preferred,
+the alias still carries the request to the bundled catalog when no host catalog
+answers, and a host supplying both gets the one it named. That is what makes an
+alias safe to add to a tag that already worked, which all three of these were.
 
 **The rename is only safe with an alias behind it, and the reason is a trap
 worth stating plainly.** ICU canonicalizes each of these member codes straight

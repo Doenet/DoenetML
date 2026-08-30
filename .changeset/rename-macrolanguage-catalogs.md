@@ -13,6 +13,13 @@ Kurdish is `kmr` (was `ku`), Komi-Zyrian is `kpv` (was `kv`) and Meadow Mari is
 that has a separate catalog here — Central Kurdish, Komi-Permyak and Hill Mari
 — so the old names claimed to cover readers they could not serve.
 
+A host that supplies its own catalog for one of these languages through
+`localeResources` keeps being served its own copy, whether it keys it on the
+old code or the new one. Locale negotiation now treats an alias as an extra
+fallback rather than a replacement, so a host catalog keyed on the old code is
+still preferred over the bundled one — which also fixes the same latent problem
+for `no`, `tw` and `man`.
+
 Documents keep working unchanged. `<document lang="ku">`, `lang="kv"` and
 `lang="chm"` still reach these catalogs, as do the new codes, and a browser
 sending either form is served the same way it was before. `<document lang>`

@@ -373,6 +373,29 @@ function applyLanguageAlias(tag: string): string {
 }
 
 /**
+ * The tag as asked for, then the tag an alias rewrites it to.
+ *
+ * Aliasing *adds* a fallback rather than replacing one, because `available` is
+ * not only this repository's roster: a host passes its own catalogs in as
+ * `localeResources`, and the contract those have is that they win. Rewriting
+ * `ku` to `kmr` before matching would step over a host that had supplied a
+ * catalog under `ku` — its key would never be compared against anything — and
+ * hand its reader English instead. Keeping the original in front means the
+ * host's own catalog is preferred, the aliased tag still reaches the bundled
+ * one when no host catalog answers, and a host that supplies *both* gets the
+ * one it asked for by name.
+ *
+ * This is what makes an alias safe to add to a tag that already worked. Three
+ * were added when `locales/ku`, `locales/kv` and `locales/chm` took their
+ * members' names, and every one of those is a tag a host may already be
+ * keying a catalog on.
+ */
+function aliasChain(tag: string): string[] {
+    const aliased = applyLanguageAlias(tag);
+    return aliased === tag ? [tag] : [tag, aliased];
+}
+
+/**
  * Build a fallback chain from what the host asked for and what actually
  * exists.
  *
@@ -382,8 +405,9 @@ function applyLanguageAlias(tag: string): string {
  * somewhere a lookup could fall off.
  *
  * @param requested BCP-47 tags in the host's order of preference. A tag whose
- *   language subtag is one no catalog is named after is rewritten first; see
- *   {@link LANGUAGE_ALIASES}.
+ *   language subtag is one no catalog is named after gains the alias as a
+ *   fallback behind it, so a host catalog keyed on the original still wins;
+ *   see {@link LANGUAGE_ALIASES} and {@link aliasChain}.
  * @param available Locales with catalogs on hand.
  */
 export function negotiateLocales(
@@ -400,7 +424,7 @@ export function negotiateLocales(
         : [...available, defaultLocale];
 
     return negotiateLanguages(
-        requested.map(applyLanguageAlias),
+        requested.flatMap(aliasChain),
         availableWithDefault,
         {
             strategy: "filtering",

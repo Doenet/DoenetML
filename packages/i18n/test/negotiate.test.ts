@@ -1681,6 +1681,77 @@ describe("a catalog named after a macrolanguage member", () => {
     });
 });
 
+/**
+ * A host's own catalogs beat an alias, which is the property that makes adding
+ * an alias to a tag that already worked a safe change rather than a silent
+ * regression.
+ *
+ * `available` is not only this repository's roster. A host supplies catalogs
+ * through `localeResources`, keyed however it likes, and the documented
+ * contract is that those win. So aliasing has to *add* a fallback rather than
+ * replace the tag: rewriting `ku` to `kmr` before matching would mean a host
+ * catalog keyed `ku` was never compared against anything, and its reader got
+ * English while their translation sat in memory.
+ *
+ * The three catalogs named after a macrolanguage member are where this bites,
+ * because `ku`, `kv` and `chm` are all tags a host may already be keying a
+ * catalog on — but the rows below cover the older aliases too, since the same
+ * hazard has always applied to them.
+ */
+describe("a host catalog keyed on an aliased tag", () => {
+    it.each([
+        // The three tags whose catalogs took their member's name.
+        ["ku", "kmr"],
+        ["kv", "kpv"],
+        ["chm", "mhr"],
+        // The aliases that predate them, which have the same shape.
+        ["no", "nb"],
+        ["tw", "ak"],
+        ["man", "mnk"],
+        // And a macrolanguage member fold, which reaches the same code path.
+        ["quz", "qu"],
+    ])(
+        "prefers the host's own %s catalog over the %s it aliases to",
+        (asked, alias) => {
+            // Supplied under the tag the host asked for, and nothing else: the
+            // host's catalog answers rather than English.
+            expect(negotiateLocales([asked], [asked, "en"])).toEqual([
+                asked,
+                "en",
+            ]);
+            // Supplied under both: the host's own key still wins, with the alias
+            // behind it rather than instead of it.
+            expect(negotiateLocales([asked], [asked, alias, "en"])).toEqual([
+                asked,
+                alias,
+                "en",
+            ]);
+            // Supplied under neither: the alias is what carries the request, which
+            // is the behaviour the alias exists for.
+            expect(negotiateLocales([asked], [alias, "en"])).toEqual([
+                alias,
+                "en",
+            ]);
+        },
+    );
+
+    /**
+     * The bundled case, spelled out separately because it is the one the
+     * roster actually exercises: this repository ships no `ku`, `kv` or `chm`
+     * directory any more, so a request under the macrolanguage code has only
+     * the alias to reach.
+     */
+    it.each([
+        ["ku", "kmr"],
+        ["kv", "kpv"],
+        ["chm", "mhr"],
+    ])("reaches the bundled %s catalog as %s", (asked, expected) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(asked)], available),
+        ).toEqual([expected, "en"]);
+    });
+});
+
 describe("resolveDocumentLocale", () => {
     it("prefers the authored lang over the host's locale", () => {
         expect(resolveDocumentLocale("fr", "es-MX")).toBe("fr");
