@@ -268,6 +268,39 @@ describe("AutoCompleter", () => {
         }
     });
 
+    it("offers the same items with and without a tag-name terminator (#1767)", async () => {
+        // The terminator sits *after* the cursor, so it must not perturb the
+        // completions at all: the same elements, in the same order, with the
+        // same replacement ranges on the snippet items (which replace `<m`,
+        // leaving the terminator in place). Checked against the real schema,
+        // where snippets and ranking are in play.
+        const plain = new AutoCompleter(`<p><m</p>`, doenetSchema.elements);
+        const expected = await plain.getCompletionItems(5);
+        expect(expected.map((i) => i.label)).toContain("math");
+
+        for (const terminator of ["}", "{", ")", "]", "$", "&", "%", "\\"]) {
+            const autoCompleter = new AutoCompleter(
+                `<p><m${terminator}</p>`,
+                doenetSchema.elements,
+            );
+            const items = await autoCompleter.getCompletionItems(5);
+            expect({ terminator, items }).toEqual({
+                terminator,
+                items: expected,
+            });
+        }
+
+        // The shape from the issue: a tag typed inside a brace group of an
+        // `<me>`, where `closeBrackets` has already supplied the `}`. The
+        // suggestions must come from `<me>`'s allowed children.
+        const inMe = new AutoCompleter(
+            `<me>\\frac{<m}</me>`,
+            doenetSchema.elements,
+        );
+        const inMeItems = await inMe.getCompletionItems(12);
+        expect(inMeItems.map((i) => i.label)).toContain("mathInput");
+    });
+
     it("matches element names by substring, not only by prefix (#1328)", async () => {
         // Typing part of a tag name that appears in the *middle* of other tag
         // names should still surface those tags (e.g. `num` -> `isNumber`), so

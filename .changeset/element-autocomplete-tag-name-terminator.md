@@ -8,7 +8,7 @@
 
 Editor: keep offering element names when the character after the cursor cannot be part of a tag name.
 
-Typing `<` opened the element menu, and typing the first letter of the tag name emptied it, whenever the character immediately following the cursor was one that ends a tag name — `}`, `{`, `)`, `]`, `$`, `&`, `%`, or `\`. The menu now stays open and filters by what has been typed, as it does when nothing follows the cursor.
+Typing `<` opened the element menu, and typing the first letter of the tag name emptied it, whenever the character immediately following the cursor was one that ends a tag name, such as `}`, `{`, `)`, `]`, `$`, `&`, `%`, or `\`. The menu now stays open and filters by what has been typed, as it does when nothing follows the cursor.
 
 The case that surfaces this is a tag typed inside a brace group of typeset math, such as an input in the bounds of an integral: because the editor closes brackets as you type, `<me>\int_{` is already `<me>\int_{|}` by the time you type `<`, so every tag written there hit this.
 
