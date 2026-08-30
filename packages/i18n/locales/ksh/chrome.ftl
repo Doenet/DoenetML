@@ -11,9 +11,9 @@
 # **Orthography.** This file writes the convention the Akademie för uns Kölsche
 # Sproch publishes in. Three things in it are spelling rather than decoration:
 # «ß» is kept and is not resolved to «ss»; a doubled vowel marks length and
-# distinguishes words («Versöök», «jood», «Noot»); and «j» stands where
-# Standard German writes «g» at the start of a word or a syllable — «jood»,
-# «jesäht», «jroß», «jelade», «jefunge». That last one is the loudest visible
+# distinguishes words («Versöök», «Antwood», «Naam»); and «j» stands where
+# Standard German writes «g» at the start of a word or a syllable — «jroß»,
+# «jrön», «jelade», «jefunge». That last one is the loudest visible
 # break from `locales/de`, and it is the quickest way to check whether a
 # sentence here is still Kölsch.
 #

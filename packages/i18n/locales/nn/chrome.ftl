@@ -13,8 +13,8 @@
 # the other would be wrong in both. `locales/nb` was read line by line while
 # this was written and it is deliberately *not* reproduced — «ikkje» for
 # «ikke», «kva» for «hva», «frå» for «fra», «eit» for «et», «sida» for
-# «siden», «berre» for «bare», «nokon» for «noen», «fleire» for «flere»,
-# «køyrer» for «kjører». A corrector who "fixes" any of those toward Bokmål is
+# «siden», «berre» for «bare», «noko» for «noe», «fleire» for «flere»,
+# «korleis» for «hvordan». A corrector who "fixes" any of those toward Bokmål is
 # converting this file into `locales/nb`.
 #
 # **Negotiation.** `nn` is left out of `LANGUAGE_ALIASES` on purpose and must

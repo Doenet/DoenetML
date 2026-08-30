@@ -7,8 +7,8 @@
 #
 # **Orthography.** The Akademie för uns Kölsche Sproch convention; see
 # `chrome.ftl` for the note on «ß», the doubled vowels marking length, and the
-# «j» where Standard German writes «g» — «jood», «jesäht», «jroß», «jrön»,
-# «jääl». That is the loudest visible break from `locales/de` and the quickest
+# «j» where Standard German writes «g» — «jroß», «jrön», «jääle», «jefunge».
+# That is the loudest visible break from `locales/de` and the quickest
 # check that a line here is still Kölsch.
 #
 # **Do not edit this toward Standard German.** «nit» and not «nicht», «kütt»

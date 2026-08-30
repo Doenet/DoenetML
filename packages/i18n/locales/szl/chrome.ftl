@@ -25,7 +25,7 @@
 # «przez», «ino» for «tylko», «kej»/«jak» for «gdy», «ôdpowiydź» for
 # «odpowiedź», «feler» for «błąd», «rachtowanie» beside «obliczanie».
 #
-# **German is the second contact language**, which is where «feler», «sztyry»
+# **German is the second contact language**, which is where «feler», «dyl»
 # and the technical loans come from, and it is why the loanwords here are not
 # `locales/pl`'s.
 #

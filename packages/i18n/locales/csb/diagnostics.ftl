@@ -18,7 +18,7 @@
 # of «felëje» has slipped into Polish; so has any «dobry»/«zły» that should be
 # «bëlny»/«lëchi», any «inaczej» for «jinaczi», any «rodzaj» for «ôrt», any
 # «wartość» for «wôrtnota», any «nazwa» for «miono» and any «wiersz» for
-# «réżka». «nié» and «jo» are the bare no and yes.
+# «réżka». «nié» is the bare no.
 #
 # **German is the second contact language** — «fela» (Fehler), «felowac»,
 # «ôrt» (Art) and «bùchsztôw» (Buchstabe) are the ones this file leans on.

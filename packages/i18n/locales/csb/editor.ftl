@@ -8,7 +8,7 @@
 # **Orthography.** The standard Kashubian alphabet — «ã», «ë», «é», «ò», «ó»,
 # «ô», «ù» are letters of it and not decorated Polish ones, «ë» being the szwa
 # and «ò»/«ù» marking the diphthongal onset; see `chrome.ftl`, which also
-# carries the note on why this file is not `locales/pl` («nié»/«jo»,
+# carries the note on why this file is not `locales/pl` («nié»,
 # «òdpòwiésc», «bëlno», «jinaczi», «kaszëbsczi») and on the German contact
 # layer that «fela» and «ôrt» come from.
 #

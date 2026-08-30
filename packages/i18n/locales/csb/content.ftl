@@ -8,7 +8,7 @@
 # **Orthography.** The standard Kashubian alphabet; see `chrome.ftl` for the
 # note on «ã», «ë», «é», «ò», «ó», «ô» and «ù» — «ë» is the szwa and «ò»/«ù»
 # mark the diphthongal onset — and for why this file is not `locales/pl` and
-# must not be edited toward it («nié»/«jo», «òdpòwiésc», «bëlno», «jinaczi»,
+# must not be edited toward it («nié», «òdpòwiésc», «bëlno», «jinaczi»,
 # «kaszëbsczi»). German is the second contact language, which is where «ôrt»
 # and «fela» come from.
 #

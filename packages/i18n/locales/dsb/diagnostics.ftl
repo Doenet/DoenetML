@@ -285,7 +285,7 @@ parabola-vertex-too-many-points = Parabola z wjerchom pśez wěcej ako 1 dypk hy
 
 parabola-too-many-points = Parabola pśez wěcej ako 3 dypki hyšći implementowana njejo.
 
-intersection-too-many-items = Přerězk wěcej ako dweju objektow hyšći implementowany njejo
+intersection-too-many-items = Pśerězk wěcej ako dweju objektow hyšći implementowany njejo
 
 ## Other math components
 
@@ -303,8 +303,8 @@ eigen-decomposition-failed = Njamóžach eigenowe gódnoty matricy wulicyś
 
 matches-pattern-parameter-not-in-pattern =
     { $parametersCount ->
-        [one] `<matchesPattern>`: parameter { $parameters } w mustrje njewustupuje, togodla se přeco na prózdninu góźi.
-       *[other] `<matchesPattern>`: parametry { $parameters } w mustrje njewustupuja, togodla se přeco na prózdninu góźe.
+        [one] `<matchesPattern>`: parameter { $parameters } w mustrje njewustupuje, togodla se pśecej na prózdninu góźi.
+       *[other] `<matchesPattern>`: parametry { $parameters } w mustrje njewustupuja, togodla se pśecej na prózdninu góźe.
     }
 
 ## `<graph>`
@@ -347,7 +347,7 @@ prefigure-invalid-width = `<graph>`: njepłaśiwa šěrokosć za konwersiju do p
 
 prefigure-invalid-aspect-ratio = `<graph>`: njepłaśiwy aspectRatio za konwersiju do prefigure; wužywam standardny poměr bok 1.
 
-prefigure-grid-spacing-too-fine = `<graph>`: lěsyca jo za hranicy wóskow přehusta; lěsyca se w zwobraznjenju prefigure wuwostaja.
+prefigure-grid-spacing-too-fine = `<graph>`: lěsyca jo za hranicy wóskow pśegusta; lěsyca se w zwobraznjenju prefigure wuwostaja.
 
 prefigure-annotations-not-rendered = `<graph>`: pśispomnjeńa se njezwobraznja, gaž se zwobraznjenje PreFigure njewužywa.
 
@@ -443,13 +443,13 @@ style-definition-insufficient-contrast =
 
 style-definition-dark-mode-text-background-contrast =
     Hačrunjež ma stilowa definicija { $styleNumber } barby, kótarež za swětły modus dosahacy kontrast skituju, maja z nich wótwodźene barby za ćmowy modus pśemały kontrast mjazy barbu teksta a barbu pozadka ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; trěbne jo nanejmjenjej { $threshold }:1). { $suggestion ->
-        [available] Aby w ćmowym modusu dosahacy kontrast zawěsćił, zwyš pak kontrast we swětłym modusu (na př. staj { $lightAttribute }="{ $lightColor }") pak pśegiš barbu za ćmowy modus (na př. staj { $darkAttribute }="{ $darkColor }").
+        [available] Aby w ćmowym modusu dosahacy kontrast zawěsćił, zwyš pak kontrast we swětłym modusu (na pś. staj { $lightAttribute }="{ $lightColor }") pak pśegiš barbu za ćmowy modus (na pś. staj { $darkAttribute }="{ $darkColor }").
        *[none] Aby w ćmowym modusu dosahacy kontrast zawěsćił, zwyš kontrast we swětłym modusu abo pśegiš wótwodźene barby z textColorDarkMode a/abo backgroundColorDarkMode.
     }
 
 style-definition-dark-mode-text-canvas-contrast =
     Hačrunjež ma stilowa definicija { $styleNumber } barbu teksta, kótaraž za swětły modus dosahacy kontrast skitujo, ma z njejo wótwodźena barba teksta za ćmowy modus pśemały kontrast pśeśiwo płatnje ({ NUMBER($ratio, minimumFractionDigits: 2, maximumFractionDigits: 2) }:1; trěbne jo nanejmjenjej { $threshold }:1). { $suggestion ->
-        [available] Aby w ćmowym modusu dosahacy kontrast zawěsćił, zwyš pak kontrast we swětłym modusu (na př. staj textColor="{ $lightColor }") pak pśegiš barbu za ćmowy modus (na př. staj textColorDarkMode="{ $darkColor }").
+        [available] Aby w ćmowym modusu dosahacy kontrast zawěsćił, zwyš pak kontrast we swětłym modusu (na pś. staj textColor="{ $lightColor }") pak pśegiš barbu za ćmowy modus (na pś. staj textColorDarkMode="{ $darkColor }").
        *[none] Aby w ćmowym modusu dosahacy kontrast zawěsćił, zwyš kontrast we swětłym modusu abo pśegiš wótwodźenu barbu z textColorDarkMode.
     }
 
@@ -465,7 +465,7 @@ variant-with-replacement-not-constant-boolean = njamóžom jónkróćne warianty
 
 variant-select-weight-disables-unique = Jónkróćne warianty za select su wupinjene, gaž ma někotra opcija selectWeight abo selectForVariants podate
 
-variant-coprime-undetermined = njamóžom jónkróćne warianty { $component } postajiś, dokulaž njeda se postajiś, až coprime přeco njewěrny jo.
+variant-coprime-undetermined = njamóžom jónkróćne warianty { $component } postajiś, dokulaž njeda se postajiś, až coprime pśecej njewěrny jo.
 
 variant-attribute-not-constant = njamóžom jónkróćne warianty { $component } postajiś, dokulaž { $attribute } konstanta njejo.
 
@@ -495,9 +495,9 @@ prefigure-descendant-unsupported = { $subject }: w zwobraznjenju prefigure za gr
 
 prefigure-descendant-invalid-geometry = { $subject }: geometrija njejo kónčna abo jo njedospołna; potomnik se pśeskoči.
 
-prefigure-curve-label-omitted = { $subject }: poměwanja se na konwertowanych elementach křiwkow njepodpěruja; poměwanjo se wuwostaja.
+prefigure-curve-label-omitted = { $subject }: poměwanja se na konwertowanych elementach kśiwkow njepodpěruja; poměwanjo se wuwostaja.
 
-prefigure-curve-unsupported-definition-type = { $subject }: njepodpěrany typ definicije křiwki '{ $definitionType }'; potomnik se pśeskoči.
+prefigure-curve-unsupported-definition-type = { $subject }: njepodpěrany typ definicije kśiwki '{ $definitionType }'; potomnik se pśeskoči.
 
 prefigure-region-flip-functions-unsupported = { $subject }: njepodpěrany atribut flipFunctions na regionBetweenCurves; potomnik se pśeskoči.
 
@@ -575,7 +575,7 @@ parse-attribute-value-invalid = Njepłaśiwy DoenetML: Njepłaśiwa gódnota atr
 
 parse-attribute-value-quote-mismatch = Njepłaśiwy DoenetML: Njepłaśiwa gódnota atributa `{ $value }`. Pazorki se njekšywaju. Zda se, až ći `{ $quote }` faluje
 
-parse-open-tag-name-missing = Njepłaśiwy DoenetML: Namakach tag bjez mjenja taga, na př. `<`
+parse-open-tag-name-missing = Njepłaśiwy DoenetML: Namakach tag bjez mjenja taga, na pś. `<`
 
 parse-tag-not-closed = Njepłaśiwy DoenetML: Tag `{ $tag }` njebu začinjeny (zda se, až `>` faluje).
 
@@ -585,7 +585,7 @@ parse-self-closing-tag-not-closed = Njepłaśiwy DoenetML: Tag `{ $tag }` njebu 
 
 parse-tag-invalid-attributes = Njepłaśiwy DoenetML: Tag `{ $tag }` płaśiwy njejo. Móže wopačne atributy měś.
 
-parse-close-tag-name-missing = Njepłaśiwy DoenetML: Namakach zaključny tag bjez mjenja taga, na př. `</`
+parse-close-tag-name-missing = Njepłaśiwy DoenetML: Namakach zaključny tag bjez mjenja taga, na pś. `</`
 
 parse-attribute-value-unquoted = Gódnoty atributow muse w pazorkach stojaś: `{ $attribute }="{ $value }"`
 
@@ -715,7 +715,7 @@ select-random-value-fluke = Pśez nadměru cele njewěrjepódobny njezbóžowy p
 math-embedded-input-shape-unsuitable =
     `<{ $component }>` se nutśika matematiki njekresli; wuraz se saja tak, kaž se sajowaše, pjerwjej ako se zapiski nutśika njeda zasadźić. { $reason ->
         [not-inline] Jano wuběranski zapisk z `inline` se do wuraza góźi; bjez `inline` jo to blok tłóčatkow.
-        [expanded] Tekstowy zapisk z `expanded` jo wěcejlinkowy kašćik, kótaryž jo přewulki, aby nutśika wuraza stał.
+        [expanded] Tekstowy zapisk z `expanded` jo wěcejlinkowy kašćik, kótaryž jo pśewjeliki, aby nutśika wuraza stał.
         [on-graph] Na grafu se wuraz jako jenički wobraz kresli, a tón městno za zapisk nima.
-       *[relative-width] Jeho `width` jo relatiwna (procent abo `em`), a nutśika wuraza nima ničo, wo čož by se měrił. Podaj šěrokosć radnjej w absolutnych jednotkach, na př. w `px`.
+       *[relative-width] Jeho `width` jo relatiwna (procent abo `em`), a nutśika wuraza nima ničo, wo čož by se měrił. Podaj šěrokosć radnjej w absolutnych jednotkach, na pś. w `px`.
     }

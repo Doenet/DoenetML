@@ -7,7 +7,7 @@
 #
 # **Orthography.** The Akademie för uns Kölsche Sproch convention; see
 # `chrome.ftl` for the note on «ß», the doubled vowels and the «j» where
-# Standard German has «g» — «jood», «jesäht», «jroß».
+# Standard German has «g» — «jroß», «jefunge».
 #
 # **Do not edit this toward Standard German**: «nit», «kütt», «Sigg», «Beld»,
 # «Fähler» and «däm» are correct as they stand. See `chrome.ftl`.

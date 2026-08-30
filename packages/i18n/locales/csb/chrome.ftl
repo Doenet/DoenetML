@@ -23,8 +23,8 @@
 # beside this file and was read while it was written, which makes the two
 # expected to look alike — and their agreement is therefore not evidence that
 # either is right, the trap `locales/dsb` records for its own pair. Where they
-# part company they do so in the commonest words: «jo» and «nié» for the bare
-# yes and no, «òdpòwiésc» for «odpowiedź», «bëlno»/«bëlny» for «dobrze»/
+# part company they do so in the commonest words: «nié» for the bare no,
+# «òdpòwiésc» for «odpowiedź», «bëlno»/«bëlny» for «dobrze»/
 # «dobry», «lëchi» for «zły», «jinaczi» for «inaczej», «réżka» for «wiersz»,
 # «miono» for «nazwa», «ôrt» for «rodzaj», «wôrtnota» for «wartość», and the
 # adjective «kaszëbsczi» itself, whose «-sczi» is not Polish «-ski».

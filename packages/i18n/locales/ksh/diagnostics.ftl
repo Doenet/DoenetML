@@ -8,7 +8,7 @@
 #
 # **Orthography.** The Akademie för uns Kölsche Sproch convention; see
 # `chrome.ftl` for the note on «ß», the doubled vowels marking length, and the
-# «j» where Standard German writes «g» — «jood», «jesäht», «jroß», «jefunge».
+# «j» where Standard German writes «g» — «jroß», «jelade», «jefunge».
 #
 # **Do not edit this toward Standard German**: «nit» and not «nicht», «kütt»
 # and not «kommt», «Sigg» and not «Seite», «Beld» and not «Bild», «Fähler» and

@@ -2327,8 +2327,10 @@ regularizes one of a pair to match the other.
   `<document lang>`'s autocomplete, because CLDR has no endonym for them —
   `sco`, `li`, `nap`, `csb` and `rue`, which is the `co` case, now familiar.
   The other ten read as a pair: "Norwegian Nynorsk (norsk nynorsk)", "Swiss
-  German (Schwiizertüütsch)", "Colognian (Kölsch)", "Silesian (ślōnski)",
-  "Upper Sorbian (hornjoserbšćina)".
+  German (Schwiizertüütsch)", "Colognian (Kölsch)", "Friulian (furlan)",
+  "Venetian (veneto)", "Ligurian (ligure)", "Piedmontese (piemontèis)",
+  "Upper Sorbian (hornjoserbšćina)", "Lower Sorbian (dolnoserbšćina)" and
+  "Silesian (ślōnski)".
 - Regenerated locale roster and schema, so `<document lang>` autocompletes all
   fifteen.
 

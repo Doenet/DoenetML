@@ -50,14 +50,14 @@ editor-variant-previous = Wubjeŕ pjerwjejšnu wariantu
 
 editor-accessibility-title =
     { $status ->
-        [violations] Pśestupjenje přećiwo WCAG AA za bźezbariernosć jo namakane. Klikń, aby rozprawu wo bźezbariernosći { $action ->
+        [violations] Pśestupjenje pśeśiwo WCAG AA za bźezbariernosć jo namakane. Klikń, aby rozprawu wo bźezbariernosći { $action ->
             [close] zacynił
            *[open] wócyńěł
         }.
         [advisories] Klikń, aby rozprawu wo bźezbariernosći { $action ->
             [close] zacynił
            *[open] wócyńěł
-        }. Žedne pśestupjenja přećiwo WCAG AA njejsu se namakali, ale su dalše naraźenjy k bźezbariernosći.
+        }. Žedne pśestupjenja pśeśiwo WCAG AA njejsu se namakali, ale su dalše naraźenjy k bźezbariernosći.
        *[clean] Klikń, aby rozprawu wo bźezbariernosći { $action ->
             [close] zacynił
            *[open] wócyńěł
@@ -68,16 +68,16 @@ editor-accessibility-title =
 # neuter and «naraźenj» masculine inanimate.
 editor-accessibility-label =
     { $status ->
-        [violations] Pśestupjenje přećiwo WCAG AA za bźezbariernosć jo namakane. { $count ->
-            [one] { $count } pśestupjenje přećiwo WCAG AA
-            [two] { $count } přeńdźeni přećiwo WCAG AA
-            [few] { $count } pśestupjenja přećiwo WCAG AA
-           *[other] { $count } pśestupjenjow přećiwo WCAG AA
+        [violations] Pśestupjenje pśeśiwo WCAG AA za bźezbariernosć jo namakane. { $count ->
+            [one] { $count } pśestupjenje pśeśiwo WCAG AA
+            [two] { $count } pśestupjeni pśeśiwo WCAG AA
+            [few] { $count } pśestupjenja pśeśiwo WCAG AA
+           *[other] { $count } pśestupjenjow pśeśiwo WCAG AA
         } jo namakane. Klikń, aby rozprawu wo bźezbariernosći { $action ->
             [close] zacynił
            *[open] wócyńěł
         }.
-        [advisories] Žedne pśestupjenja přećiwo WCAG AA njejsu namakane. { $count ->
+        [advisories] Žedne pśestupjenja pśeśiwo WCAG AA njejsu namakane. { $count ->
             [one] { $count } dalši naraźenj k bźezbariernosći
             [two] { $count } dalšej naraźenjaj k bźezbariernosći
             [few] { $count } dalše naraźenjy k bźezbariernosći
@@ -86,7 +86,7 @@ editor-accessibility-label =
             [close] zacynił
            *[open] wócyńěł
         }.
-       *[clean] Žedne pśestupjenja přećiwo WCAG AA njejsu namakane. Klikń, aby rozprawu wo bźezbariernosći { $action ->
+       *[clean] Žedne pśestupjenja pśeśiwo WCAG AA njejsu namakane. Klikń, aby rozprawu wo bźezbariernosći { $action ->
             [close] zacynił
            *[open] wócyńěł
         }.
@@ -127,7 +127,7 @@ editor-show-accessibility-annotations = Pokaž zdźělenki k bźezbariernosći w
 
 editor-accessibility-learn-more = Zgóń, kak Doenet z bźezbariernosću wobchadźa
 
-editor-accessibility-violations-heading = Pśestupjenja přećiwo bźezbariernosći ({ $standard })
+editor-accessibility-violations-heading = Pśestupjenja pśeśiwo bźezbariernosći ({ $standard })
 
 editor-accessibility-other-heading = Druhe problemy z bźezbariernosću
 editor-none-found = Nic namakane
@@ -224,7 +224,7 @@ help-resolved-style = Wobličeny stil (styleNumber { $styleNumber }):
 
 help-resolved-function-names = Wobličene mjena funkcijow:
 help-reset-list = Lisćina Slědkostajenja za tutón zapisk:
-help-added-on-input = Přidate při tutym zapisku:
-help-removed-on-input = Wotstronjene při tutym zapisku:
+help-added-on-input = Pśidate pśi tutym zapisku:
+help-removed-on-input = Wotstronjene pśi tutym zapisku:
 
-help-reset-overrides = { $reset } přepisuje { $additional } a { $removed }.
+help-reset-overrides = { $reset } pśepisujo { $additional } a { $removed }.
