@@ -277,8 +277,14 @@ describe("AutoCompleter", () => {
 
         // `/` ends the tag name too, through a self-closing tag whose `>` has
         // yet to be typed, and was equally empty before.
-        const selfClosing = new AutoCompleter(`<aa><b/</aa>`, schema.elements);
-        const selfClosingItems = await selfClosing.getCompletionItems(6);
+        const selfClosingSource = `<aa><b/</aa>`;
+        const selfClosing = new AutoCompleter(
+            selfClosingSource,
+            schema.elements,
+        );
+        const selfClosingItems = await selfClosing.getCompletionItems(
+            selfClosingSource.indexOf("<b") + 2, // right after `<b`
+        );
         expect(selfClosingItems.map((i) => i.label)).toEqual(["b"]);
     });
 
