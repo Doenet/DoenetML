@@ -969,6 +969,32 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // The roster label takes the endonym, which both names agree on.
     djk: { englishName: "Aukan", endonym: "Okanisi tongo" },
     srm: { englishName: "Saramaccan", endonym: "Saam\u00e1ka tongo" },
+    // The five locales of the Southeast Asian batch CLDR has no data for. The
+    // split is geographic rather than about speaker numbers: ICU names
+    // `bug`, `mak`, `bjn`, `gor`, `nia`, `bbc`, `iba`, `dtp`, `pag` and `shn`
+    // — all six Indonesian tags in the batch, both Malaysian ones, the one
+    // Philippine tag from Luzon rather than the south, and the one Myanmar tag
+    // whose language a state is named after — and stops at the five below,
+    // which are three languages of the southern Philippines and two more of
+    // Myanmar.
+    //
+    // Four of the five get endonyms, because each names its language exactly
+    // one way wherever its headers name it at all, so those spellings are
+    // copied letter for letter. `shn` needs no row here in either column:
+    // CLDR gives it «တႆး» already, which is the spelling `locales/shn` writes
+    // too.
+    //
+    // `cbk` is the exception, and it takes `locales/olo`'s shape for the
+    // reason `dng`, `sgh` and `haz` do above: its header names the language
+    // **two** ways — «Chavacano» beside «Chabacano de Zamboanga» — and both
+    // spellings are in live use for it. Picking one here would settle in the
+    // roster what the catalog deliberately leaves open, so the label reads
+    // "Chavacano (cbk)": an admitted gap rather than a guess.
+    tsg: { englishName: "Tausug", endonym: "Bahasa Sūg" },
+    mrw: { englishName: "Maranao", endonym: "Basa a Mëranaw" },
+    mnw: { englishName: "Mon", endonym: "ဘာသာမန်" },
+    ksw: { englishName: "S'gaw Karen", endonym: "ကညီကျိာ်" },
+    cbk: { englishName: "Chavacano" },
 };
 
 /**

@@ -67,34 +67,34 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation —
-`ab`, `ace`, `acf`, `ady`, `af`, `ak`, `alt`, `am`, `ar`, `arn`,
-`as`, `ast`, `av`, `ay`, `az`, `ba`, `bal`, `ban`, `bci`, `be`,
-`bem`, `bg`, `bho`, `bi`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`,
-`brx`, `bs`, `bua`, `bum`, `bzj`, `ca`, `cab`, `ce`, `ceb`, `ch`,
-`chk`, `ckb`, `co`, `crh`, `cs`, `csb`, `cv`, `cy`, `da`, `dag`,
-`dar`, `de`, `dje`, `djk`, `dng`, `doi`, `dsb`, `dv`, `dyo`, `dyu`,
-`dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`,
-`fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fur`, `fy`, `ga`, `gaa`,
-`gag`, `gcf`, `gcr`, `gd`, `gil`, `gl`, `glk`, `gn`, `gsw`, `gu`,
-`ha`, `haw`, `haz`, `he`, `hi`, `hil`, `hnj`, `hr`, `hsb`, `ht`,
-`hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`, `ja`, `jam`,
-`jv`, `ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`, `kg`, `ki`,
-`kjh`, `kk`, `kl`, `km`, `kmb`, `kmr`, `kn`, `ko`, `koi`, `kok`,
-`kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`, `ksh`, `ktu`,
-`kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `li`, `lij`, `ln`, `lo`,
-`lom`, `lrc`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `mdf`, `men`,
-`mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`, `ml`, `mn`, `mni`,
-`mnk`, `mns`, `mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `mzn`,
-`nah`, `nap`, `nb`, `nds`, `ne`, `niu`, `nl`, `nn`, `nog`, `nso`,
-`ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`, `pap`,
-`pcm`, `pl`, `pms`, `pon`, `ps`, `pt`, `qu`, `quc`, `rar`, `rm`,
-`rn`, `ro`, `ru`, `rue`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`,
-`sco`, `sd`, `se`, `sg`, `sgh`, `shi`, `si`, `sjd`, `sk`, `sl`, `sm`,
-`sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `srm`, `srn`,
-`ss`, `st`, `su`, `sus`, `sv`, `sw`, `szl`, `ta`, `tab`, `te`, `tem`,
-`tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`, `tn`,
-`to`, `tpi`, `tr`, `ts`, `tt`, `ttt`, `tvl`, `ty`, `tyv`, `udm`,
-`ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`,
+`ab`, `ace`, `acf`, `ady`, `af`, `ak`, `alt`, `am`, `ar`, `arn`, `as`,
+`ast`, `av`, `ay`, `az`, `ba`, `bal`, `ban`, `bbc`, `bci`, `be`, `bem`,
+`bg`, `bho`, `bi`, `bik`, `bin`, `bjn`, `bm`, `bn`, `bo`, `br`, `brx`,
+`bs`, `bua`, `bug`, `bum`, `bzj`, `ca`, `cab`, `cbk`, `ce`, `ceb`,
+`ch`, `chk`, `ckb`, `co`, `crh`, `cs`, `csb`, `cv`, `cy`, `da`, `dag`,
+`dar`, `de`, `dje`, `djk`, `dng`, `doi`, `dsb`, `dtp`, `dv`, `dyo`,
+`dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`,
+`fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fur`, `fy`, `ga`, `gaa`,
+`gag`, `gcf`, `gcr`, `gd`, `gil`, `gl`, `glk`, `gn`, `gor`, `gsw`,
+`gu`, `ha`, `haw`, `haz`, `he`, `hi`, `hil`, `hnj`, `hr`, `hsb`, `ht`,
+`hu`, `hy`, `iba`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`, `ja`,
+`jam`, `jv`, `ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`, `kg`,
+`ki`, `kjh`, `kk`, `kl`, `km`, `kmb`, `kmr`, `kn`, `ko`, `koi`, `kok`,
+`kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`, `ksh`, `ksw`,
+`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `li`, `lij`, `ln`, `lo`,
+`lom`, `lrc`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `mak`, `mdf`,
+`men`, `mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`, `ml`, `mn`, `mni`,
+`mnk`, `mns`, `mnw`, `mos`, `mr`, `mrj`, `mrw`, `ms`, `mt`, `my`,
+`myv`, `mzn`, `nah`, `nap`, `nb`, `nds`, `ne`, `nia`, `niu`, `nl`,
+`nn`, `nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`,
+`pa`, `pag`, `pam`, `pap`, `pcm`, `pl`, `pms`, `pon`, `ps`, `pt`, `qu`,
+`quc`, `rar`, `rm`, `rn`, `ro`, `ru`, `rue`, `rw`, `sa`, `sah`, `sat`,
+`sc`, `scn`, `sco`, `sd`, `se`, `sg`, `sgh`, `shi`, `shn`, `si`, `sjd`,
+`sk`, `sl`, `sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`,
+`srm`, `srn`, `ss`, `st`, `su`, `sus`, `sv`, `sw`, `szl`, `ta`, `tab`,
+`te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`,
+`tn`, `to`, `tpi`, `tr`, `ts`, `tsg`, `tt`, `ttt`, `tvl`, `ty`, `tyv`,
+`udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`,
 `vro`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `yua`,
 `zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
 — is an **unreviewed machine-generated seed**, which each file's own
@@ -102,14 +102,14 @@ header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-Two hundred and twenty-three of them are deliberately partial. Two hundred
-and twenty-one are partial in the same place — the two chemistry tables —
+Two hundred and thirty-eight of them are deliberately partial. Two hundred
+and thirty-six are partial in the same place — the two chemistry tables —
 while two are partial more widely, each for its own reason: Klingon almost
 everywhere, for the reason in
 [A language with no word for it](#a-language-with-no-word-for-it), and
 Inuktitut over the geometry nouns as well, for the reason in
 [Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws).
-The two hundred and twenty-one are: Somali, Hmong Njua, Amharic, Assamese,
+The two hundred and thirty-six are: Somali, Hmong Njua, Amharic, Assamese,
 Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
 Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -138,7 +138,9 @@ Karakalpak, Khakas, Southern Altai, Balochi, Hazaragi, Muslim Tat, Zazaki,
 Shughni, Dungan, Wakhi, Kalaallisut, Yucatec Maya, Qʼeqchiʼ, Garifuna,
 Mískito, Papiamentu, Sranan Tongo, Jamaican Creole, Guadeloupean Creole
 French, Saint Lucian Creole French, Guianese Creole French, Belize Kriol,
-Aukan and Saramaccan
+Aukan, Saramaccan, Buginese, Makasar, Banjar, Gorontalo, Nias, Batak Toba,
+Iban, Central Dusun, Pangasinan, Chavacano, Tausug, Maranao, Shan, Mon and
+S'gaw Karen
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -367,6 +369,34 @@ them are `mzn`, `glk` and `lrc`: see [Fifteen catalogs along the Silk
 Road](#fifteen-catalogs-along-the-silk-road-and-three-element-tables-borrowed-whole)
 for why a Persian table in a Mazanderani catalog is a loan the language
 genuinely uses rather than an invented nomenclature.
+
+**All fifteen of the Southeast Asian batch are partial, and like the second
+sub-Saharan batch and the African and Berber one they split no ways at all:**
+every one of the fifteen is the school-system case, in four mediums. Chemistry
+is taught in Indonesian in Sulawesi, South Kalimantan, Nias and North Sumatra,
+so `bug`, `mak`, `bjn`, `gor`, `nia` and `bbc` meet the table in the language
+`locales/id` carries it in; in Malay in Sabah and Sarawak, so `iba` and `dtp`
+meet the one `locales/ms` does; in English across the Philippines from the
+intermediate grades, which is the `fil` and `ceb` case again for `pag`, `cbk`,
+`tsg` and `mrw`; and in Burmese in Shan and Mon States, where Shan- and
+Mon-medium schooling does not run to the grades where the periodic table is
+taught.
+
+What falls through is English in all fifteen cases, which is the curriculum
+language for the four Philippine catalogs and a *second* language for the ten
+taught in Indonesian, Malay or Burmese. Those ten are not reached by
+`locales/id` or `locales/ms` either: nothing folds `bjn` onto Indonesian or
+`iba` onto Malay, and this batch's `ms` entry in `MACROLANGUAGE_MEMBERS` leaves
+`bjn` out deliberately. So the reason these keys are omitted is that there is no
+settled Buginese or Mon list to write down — not that English is what those
+readers use.
+
+`ksw` is the one with no single fallback, `locales/wbl`'s shape one batch on: a
+Karen pupil in Myanmar meets the table in Burmese and one in the diaspora in
+English or Thai, and choosing either would hide the split. Four school systems, fifteen catalogs, and not one claim about
+a language among them; see [Fifteen languages of Southeast
+Asia](#fifteen-languages-of-southeast-asia-and-the-batch-whose-word-order-follows-a-border)
+for what does divide the batch.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -3038,6 +3068,395 @@ most written Jamaican actually uses, and `bzj` the National Kriol Council
 orthography over the same ad-hoc English practice. All three say the same
 thing about it — a reviewer who prefers the other system should **respell
 rather than retranslate**, and must convert all four files at once.
+Every string in all fifteen is machine-generated and unread by a speaker, and
+each file says so at the top. Correcting any of it needs no permission.
+
+### Fifteen languages of Southeast Asia, and the batch whose word order follows a border
+
+The roster goes from 301 locales to 316: Buginese (`bug`), Makasar (`mak`),
+Banjar (`bjn`), Gorontalo (`gor`), Nias (`nia`) and Toba Batak (`bbc`) — six
+languages of Indonesia; Iban (`iba`) and Kadazandusun (`dtp`) — Malaysian
+Borneo; Pangasinan (`pag`), Chavacano (`cbk`), Tausug (`tsg`) and Maranao
+(`mrw`) — the Philippines, three of them from Mindanao and Sulu; and Shan
+(`shn`), Mon (`mnw`) and S'gaw Karen (`ksw`) — Myanmar, all three in the
+Myanmar script.
+
+It is assembled around a **region** rather than a family: eleven of the
+fifteen are Austronesian, one is Tai-Kadai, one Austroasiatic, one
+Sino-Tibetan and one a Spanish-lexifier creole. Every one of the fifteen sits
+at **445/575 keys** — the whole catalog minus the two chemistry tables — and
+that uniformity is the batch's least interesting property. What splits inside
+it is word order, and the line it splits on is a national border.
+
+#### Word order splits eleven against four, and the line is a country
+
+Eleven catalogs put the noun first and four put the description first. The
+four are **exactly the four Philippine ones**, and no other property in this
+file divides the batch that way: not family, not script, not script direction,
+not the register the technical vocabulary is borrowed from.
+
+Postnominal, rendered for "thick dashed red line":
+
+- `bug` «garis tebal pettu-pettu macella'», `mak` «garis kapala'
+  tappolo-polo eja», `bjn` «garis kandal putus-putus habang», `gor` «garis
+  tebal putus-putus meela», `nia` «garis tebal putus-putus merah», `bbc`
+  «garis na hapal putus-putus rara», `iba` «garis tebal putus-putus mirah»,
+  `dtp` «garis tebal putus-putus aragang»;
+- `shn` «သဵၼ်ႈ သီလႅင် ၶၢတ်ႇ ၼႃ», `mnw` «မျဉ်း အနီ အပြတ် ထူ», `ksw`
+  «မျဉ်း ဂီၤ အပြတ် ဖးထီၣ်».
+
+Prenominal: `tsg` «makapal nga pinutu'-putu' nga pula nga linya», `pag`
+«makapal a putol-putol a ambalanga a linya», `cbk` «grueso cortao rojo linea»,
+`mrw` «makapal a dashed a mariga a linya».
+
+Two things are worth reading off that list before the split itself. The
+eight Indonesian and Malaysian catalogs **all write «garis»**, and six of the
+eight write «putus-putus» — which is one Indonesian word rather than six
+languages agreeing, and `bug`'s «pettu-pettu» and `mak`'s «tappolo-polo» are
+the two that are not it. Against that, **seven of the eight supply a red of
+their own** — macella', eja, habang, meela, rara, mirah, aragang — and
+`locales/nia` is the one that falls back to Indonesian «merah», which its own
+header calls a gap in the seed rather than a claim about Nias. That file
+attempts two colour words in Nias, «aitö» and «afusi», and marks even those as
+unverified; red is one the seed could not supply, not one the language lacks.
+
+The three Myanmar catalogs invert further than the Indonesian ones do: all
+three fix the description as **colour, then dash pattern, then thickness**,
+where every other catalog in the batch keeps English's internal sequence of
+the three adjectives. Only the head moved in eight files; in three the whole
+run reversed.
+
+**`locales/cbk` is the sharp case, and its header says which "correction" to
+expect.** Zamboangueño's lexicon is Spanish and its syntax is Philippine, so
+the modifier goes in *front* — «rojo linea», not «linea roja» — which is the
+opposite of Spanish's own order. A reviewer who reads the vocabulary as
+Spanish will read the word order as an error, and `content.ftl`'s header names
+that as the single thing about these files most likely to be corrected
+wrongly.
+
+#### One question, five answers: what joins a noun to its modifiers
+
+The batch asks the linker question harder than any before it, because the
+languages in it answer it five different ways and three of the answers are in
+one country.
+
+- **A free linker, written out.** `tsg` writes «nga» and `pag` and `mrw` write
+  «a», in every position. `locales/tsg`'s header argues the point the Bisayan
+  catalogs already made: «nga» never contracts onto the word before it, so it
+  can stand next to a placeable without the catalog knowing what lands there
+  — the escape from [A ligature is an affix too](#a-ligature-is-an-affix-too).
+  `locales/mrw` makes the same claim about «a» and adds the observation that
+  this is the one place a thin catalog is on firmer ground than the fuller
+  ones beside it.
+- **No linker at all.** `cbk` juxtaposes. Its header states why in one line:
+  the Spanish lexicon came without a ligature and the creole did not build
+  one, so nothing in that file is at risk from the ligature problem — the
+  only Philippine catalog in the roster that can say so.
+- **A postnominal relator.** `bbc` writes «na» between the noun and the
+  description, once in front of the run rather than before each adjective.
+  Its header names that as the one place a reader can tell the file from
+  `locales/ban` at a glance: same word order, different linker.
+- **Nothing, by juxtaposition.** The other Indonesian catalogs put the
+  modifier straight behind the noun.
+- **A prefix on the modifier the catalog cannot supply.** `locales/nia` is
+  the honest failure. A Nias property word takes an attributive form in `s-`
+  — «ebua» becomes «sebua» — and there is no «stebal» to build on an
+  Indonesian loan, so every loan adjective in that file stands bare in its
+  citation form. Its header sets the three side by side: Toba Batak needs a
+  relator, Gorontalo needs nothing, and Nias wants morphology this seed
+  cannot write.
+
+**`locales/pag` is the one where the free linker is knowingly wrong part of
+the time.** Pangasinan's linker has two shapes and the *preceding* word picks
+them — «a» after a consonant, enclitic «-n» after a vowel — so the catalog
+does what `locales/pam` and `locales/bik` did, writes the free «a»
+everywhere, and names the exact entries in its own tables where it misfires:
+«ambalanga», «lila», «kape», «diamante», «tuldek-tuldek». It also misfires
+after an author's own `lineColorWord`, which the catalog cannot see, and the
+header says the fix is a change to what the composition messages are handed
+rather than to the tables.
+
+`locales/dtp` states its rule rather than its exception: «dot» is written
+where it introduces a relative clause and omitted between a noun and a bare
+describing word. Its header calls that the file's largest open question and
+says correcting the split corrects every message at once.
+
+#### Not one of the fifteen has CLDR plural data
+
+`new Intl.PluralRules(tag).resolvedOptions().locale` is the runtime's own
+default for every one of the fifteen. So a `zero`, `two`, `few`, `many` or
+`one` branch anywhere in the batch would be text selected by somebody else's
+rules, and **no such branch is written anywhere**: sixty files, zero plural
+categories. That is the Oceania batch's finding arriving a second time, and
+here the grammar agrees with the constraint without exception — none of these
+fifteen languages marks a noun for number after a numeral, and `shn`, `mnw`
+and `ksw` count with a classifier the frame has no place for in any case.
+
+What all fifteen keep is English's numeric literals, which Fluent matches
+against the number itself before consulting any plural rule. Each catalog
+writes exactly **one `[0]`** — `attempts-remaining` — and exactly **one
+`[1]`** — `field-function-wrong-num-outputs`, which forks on how many outputs
+a component *needs* rather than on a count the reader is looking at. Fifteen
+catalogs, the same two literals in the same two messages, and nothing else.
+
+#### Negotiation: one entry, and it is the second-largest in the map
+
+`MACROLANGUAGE_MEMBERS` gained exactly one row, and seeding `bjn` forced it:
+Banjar is one of the 36 ISO 639-3 members of Malay. **`ms` lists 33 of them**,
+which makes it the map's second-largest entry — behind only `qu`'s
+forty-three, with `nah`'s thirty just behind it — and the three
+that are missing are the point of the row rather than an oversight — `ind`
+(`locales/id`), `min` (`locales/min`) and `bjn` (`locales/bjn`) are members
+this repository answers for itself, which is the `bam`/`dyu` shape under
+`mnk`. Listing `min` or `bjn` would take a Minangkabau or Banjar reader off
+the catalog written for them and put them on Standard Malay; `ind` would be
+inert either way, since ICU rewrites it before negotiation is consulted.
+
+Two costs are named in the comment rather than left to be discovered. **`mfa`
+(Pattani Malay) maximizes to `mfa-Arab-TH`**, so a reader most likely arriving
+in Jawi is served Rumi — `locales/kr`'s asymmetry with `kby` again, and the
+answer to it is a second catalog rather than a change to the map. And **`max`
+(North Moluccan Malay) and `xmm` (Manado Malay) are Malay-lexifier trade
+creoles** rather than varieties of Malay, listed all the same because unlike
+`ktu` under `kg` ISO 639-3 puts them *inside* the macrolanguage; the map
+follows membership rather than second-guessing it.
+
+Nothing else moved. `LANGUAGE_ALIASES` is unchanged, and **`kzj` (Coastal
+Kadazan) needs no row at all**: `Intl.getCanonicalLocales("kzj")` already
+returns `dtp`, so ICU folds it before this file is reached, while `dtb`
+(Labuk-Kinabatangan Kadazan) and `drg` (Rungus) miss and fall to English,
+which `locales/dtp`'s header records as the cost of one tag per catalog.
+
+The near misses this batch does **not** fold are mostly siblings inside one
+island group rather than the far-flung relatives the Silk Road block listed:
+`btd`, `bts`, `btx` and `btz` beside `bbc`, which ISO 639-3 makes four
+separate languages rather than members of anything; `mdr` (Mandar) beside
+`bug` and `mak`; `mdh` (Maguindanaon) beside `mrw`; `krj` and `akl` beside
+`tsg`; and `nij` (Ngaju), which is `bjn`'s Bornean neighbour and, being Barito
+rather than Malayic, not in `msa` either. **`blk` (Pa'o) and `kjp` (Eastern
+Pwo) beside `ksw` are the sharpest**, because `kar` is an ISO 639-5
+*collection* code rather than a macrolanguage: there is no membership fact
+that could let either reach the S'gaw catalog even if one were wanted.
+
+#### Naming: five gaps, and two labels that disagree with their catalogs
+
+`LOCALE_NAME_FALLBACKS` gained five entries — `tsg`, `mrw`, `mnw`, `ksw` and
+`cbk` — and the split is geographic rather than about speaker numbers. ICU
+names all six Indonesian tags in the batch, both Malaysian ones, `pag` — the
+one Philippine tag from Luzon rather than the south — and the one Myanmar tag
+whose language a state is named after, and stops at three languages of the
+southern Philippines and two more of Myanmar.
+
+Four of the five get endonyms, because each names its language exactly one way
+wherever its headers name it: «Bahasa Sūg», «Basa a Mëranaw», «ဘာသာမန်»,
+«ကညီကျိာ်». **`cbk` takes `locales/olo`'s admitted-gap shape**, because its
+header names the language two ways — «Chavacano» beside «Chabacano de
+Zamboanga» — and picking one here would settle in the roster what the catalog
+deliberately leaves open; the label reads "Chavacano (cbk)". **`shn` needs no
+row in either column**: CLDR already gives it «တႆး», which is the spelling
+`locales/shn` writes.
+
+**Two of the ten CLDR does name, it names differently from the catalog, and
+both stand** — the `ny`-reads-Nyanja rule, twice in one batch. The roster
+renders `bbc` as **Batak Toba** where every header in those files writes Toba
+Batak, and `dtp` as **Central Dusun** where the catalog writes Kadazandusun
+throughout and treats "Central Dusun" as the ISO label rather than the name.
+The table fills gaps and never overrides ICU, so each catalog's own header
+says which language it is and the label stays as CLDR writes it.
+
+Nothing else in negotiation had to move for scripts, either: all fifteen tags
+maximize the way their catalogs are written — `-Latn-ID` for the six
+Indonesian ones, `-Latn-MY` for `iba` and `dtp`, `-Latn-PH` for the four
+Philippine ones, `-Mymr-MM` for the three from Myanmar — so this batch adds
+none of the `ha`/`kr` asymmetries the Silk Road batch collected.
+
+#### Scripts, and four catalogs that argued their way to Latin
+
+Twelve catalogs are Latin and three are Myanmar-script, and four of the twelve
+had a script of their own to decline. None of the four declines it by default;
+each gives a reason.
+
+- **`bug` and `mak` against Lontara** (and, for Makasar, the older Ukiri'
+  Jangang-jangang as well). Both headers give the same two reasons: Latin is
+  what the language is printed in today, and Lontara writes neither the final
+  glottal stop, nor the geminates, nor the syllable-final nasal — the three
+  things these spellings turn on — so a Lontara catalog would spell «de'» and
+  «dé», «kebo'» and «kebo» identically and a reviewer could not tell a
+  correction from a typo. Both call a conversion a *conversion* rather than a
+  transliteration, because the dropped distinctions would have to be restored
+  by someone who knows the words.
+- **`bbc` against Surat Batak**, on a different ground: the script is taught,
+  printed and carved, and it is simply not what Toba Batak is *written* in —
+  every newspaper, hymnal, dictionary and schoolbook since the nineteenth
+  century is Latin. Its header adds that a Surat Batak seed would also have to
+  settle a dozen questions no current practice settles, starting with where to
+  put the pangolat.
+- **`tsg` against Sulat Sūg**, and this is the one argued from the software
+  rather than from the language. Tausug's Jawi-derived tradition is older and
+  still written, but these strings sit beside DoenetML source, attribute names
+  and mathematics that are Latin and left to right, and a right-to-left
+  catalog would put a bidi boundary in the middle of nearly every message. The
+  header's conclusion is the roster's standing one: a reader who wants Sulat
+  Sūg should have a catalog of its own rather than a mixture.
+
+All four say the same thing about how to change their minds — **all four files
+at once, never a mixture inside one catalog** — as do `pag` (modernised
+against Spanish-influenced spelling), `cbk` (traditional Spanish-based against
+the phonemic orthography promoted in Zamboanga City), `bjn` (Banjar Hulu's
+three vowels), `iba`, `dtp`, `nia` (the northern standard) and `mrw` (the
+schwa written «ë»).
+
+**The three Myanmar-script catalogs write their own language's letters, and a
+homoglyph audit during seeding caught two headers claiming letters their text
+did not contain.** `locales/shn` uses the Shan consonants ၵ ၶ ၸ ၺ ၼ ၽ ၾ ႁ ဢ
+with the Shan vowels and tone marks, and warns against folding any of them
+into their Burmese look-alikes. `locales/mnw` uses Mon ၚ and ၜ and the medials
+ၞ ၟ ၠ. `locales/ksw` uses the S'gaw signs ၢ ၣ ၤ. Two claims did not survive
+checking: `mnw` had listed ဿ and ၝ and `ksw` had listed ဢ and ၡ as letters in
+use, and none of the four appears in either catalog's text. **The headers were
+corrected to match the files rather than the other way round** — each now says
+the letters are real parts of the orthography that no word this catalog
+happens to use needs — which is what a checkable claim is for. `ksw` also
+records that ၦ and ၯ are **Pwo** letters, deliberately absent, and that a Pwo
+letter inside an S'gaw file is a mistake rather than a variant.
+
+One letter is shared and is the batch's own homoglyph trap: **`ၢ` U+1062 is
+named MYANMAR VOWEL SIGN SGAW KAREN EU and Shan writes it too**, for /aa/
+before a final consonant. `locales/shn/chrome.ftl` says so beside the letter,
+so nobody "corrects" it out of the Shan files as a Karen leak.
+
+The two Myanmar-script catalogs also disagree about **spacing**, and both say
+so. Shan publishing separates words with spaces; Mon follows the Burmese
+convention of running a clause together with a space at the phrase boundary;
+S'gaw Karen spaces phrases but not words. Each header states its practice
+because it decides where the messages may wrap in a narrow panel, and
+`locales/mnw`'s adds that the difference from `locales/shn` is real rather
+than an inconsistency between two files of one batch.
+
+#### The chemistry gap does not split at all
+
+All fifteen leave `element-name` and `element-anion-name` out, and all fifteen
+are the school-system case. The mediums are the batch's one geographic fact:
+**Indonesian** for the six Indonesian catalogs, **Malay** for `iba` and `dtp`
+— out of textbooks printing the Dewan Bahasa dan Pustaka names `locales/ms`
+already carries — **English** for the four Philippine ones, which is the `fil`
+and `ceb` case those catalogs already record, and **Burmese** for `shn` and
+`mnw`, whose Shan- and Mon-medium schooling does not run to the grades where
+the periodic table is taught.
+
+**`locales/ksw` is the one with two fallbacks rather than one**, and it is the
+`locales/wbl` shape from the batch before. In Myanmar a Karen pupil meets the
+table in Burmese; in the diaspora, in English or in Thai. Its header says that
+coining 118 names would invent a nomenclature no reader has met *and* hide
+that split, and that English falls through because it is at least what part
+of the readership's schooling uses.
+
+None of the fifteen is the Kannada case of having two lists, and none is the
+Khmer case of having the names but no convention to reproduce. Every one of
+the fifteen translates the three messages that are *frames* rather than names,
+on the standing ground that a frame is the catalog's business whether or not
+the names in it ever are.
+
+#### Confidence, and where the batch is thin
+
+Every header grades itself, and two claim to be thinnest — compatibly, since
+`dtp` is not one of the four `mrw` scopes itself against.
+`locales/dtp/chrome.ftl` says "THIS IS THE THINNEST CATALOG OF ITS BATCH, AND
+IT SAYS SO FIRST RATHER THAN LAST"; `locales/mrw/chrome.ftl` says "This is the
+thinnest of the four Philippine catalogs added with it", which is a claim
+about four files rather than fifteen. Both are scoped, and both are about
+vocabulary rather than coverage: all fifteen sit at the same 445 keys, so
+"thinnest" here never means a catalog that translates less.
+
+**`bjn` and `iba` are the strongest**, and for the same reason: both are
+Malayic, and the risk in a Malayic catalog is that it becomes Indonesian or
+Malay with a few words changed. Both are written around that risk and both
+name the check. Banjar keeps an everyday layer apart from the Indonesian
+technical register — «kada», «kadada», «kawa», «nang», «gasan», «matan»,
+«lawan», «amun», «tagal», «lantaran» — and says a message where «tidak»,
+«yang» or «untuk» has crept back is a defect rather than a variant. Iban says
+the same of «yang», «ada», «tidak», «dengan» and «atau», and calls it the
+defect this seed is most likely to have made.
+
+**`gor`, `nia`, `dtp` and the three Myanmar catalogs are frames around
+declared loans**, and each says which words are the frame. That is the tier
+`locales/sgh` reached for two whole namespaces one batch earlier, arriving
+here for six catalogs at once.
+
+**`locales/mnw` supplies no native colour word at all.** All twelve are
+Burmese loans in Burmese spelling, and its header says plainly that Mon
+certainly has its own words for at least black, white and red, that they are
+absent because the seed does not know them rather than because they do not
+exist, and that correcting the twelve is a bigger improvement to the catalog
+than correcting anything else in it. The rest of the batch's colour lines
+grade themselves the same way and land in different places: `bbc` and `mrw`
+five native words, `ksw` five, `shn` six, `gor` five *attempted and
+unverified*, `nia` two, `bug` five, `mak` four, and `iba` and `dtp` each
+naming the same five Malay loans — gray, orange, purple, pink and brown —
+among their twelve, which is as close as this batch comes to two catalogs
+agreeing about anything.
+
+**Several catalogs declare a paraphrase where they had no word, and use it
+everywhere so that one search replaces it.** `locales/gor` writes «diila
+pohutuwolo» — literally *is not acted on* — for English's *is ignored*;
+`locales/nia` writes «lö tefaigi», *is not looked at*; `locales/pag` writes
+«Ag-uusaren», *is not used*; `locales/mrw` writes two, *is not used* for
+*ignored* and *is not seen* for *not found*. Each header names its own and
+says it is the first thing to replace. `locales/bbc` records the milder
+version: it is not sure «diparrohahon» is the right word for *ignored* in a
+warning a beginner sees fifty times, and picked one and used it everywhere so
+that changing it is one search.
+
+#### Things the batch records rather than fixes
+
+**`locales/mnw` marks a conditional clause-finally.** Mon writes မ္ဂး after
+the condition where English writes "if" in front of it, and
+`piecewise-condition-if` is placed by the renderer *before* the mathematics it
+introduces, so the word cannot be moved from inside the catalog. It is written
+in the position the core gives it and the limit is recorded beside the key —
+the `locales/dv` shape, reached for the first time by an Austroasiatic
+catalog. It is the only one of the fifteen on that side of the line: the other
+fourteen conditionals are clause-initial and land correctly, «rékko»,
+«punna», «amun», «wonu», «na», «molo», «enti», «nung», «no», «si», «bang»,
+«amay ka», «သင်ဝႃႈ» and «မ့ၢ်».
+
+**`locales/nia` applies no initial mutation anywhere.** A Nias noun changes
+its initial consonant in certain syntactic positions — the property the
+language is best known for — and the seed cannot apply it reliably. Applying
+it in some places and not others would be worse than not applying it, so every
+noun is in its citation form and the header tells a reviewer to expect to
+**mutate rather than to correct**: the words are meant to be right and the
+morphology is simply missing.
+
+**`locales/dtp` cannot write Kadazandusun verbal aspect**, so `answer-checking`
+and `answer-submitting` are a bare verb with an ellipsis — «Periksa…»,
+«Hantar…» — rather than "is being checked". Its header calls that a hole
+rather than a style and the first thing to fix.
+
+**`locales/bug` writes no noun with the definite suffix `-é`.** Buginese marks
+a definite noun with it, its shape depends on the last sound of the word it
+attaches to, and several of these messages end in a placeable the catalog
+never sees — so every noun is written bare, the `noun` table included. That is
+[An affix cannot be welded to a
+placeable](#an-affix-cannot-be-welded-to-a-placeable) reached from a new
+direction, and the cost is named: the nouns read as indefinite throughout. The
+same enclitic still closes the relative clauses the catalog writes out in full
+— «iya riruntu'é», «iya weddingngé» — where there is no placeable for it to
+land on, and its header distinguishes the two.
+
+**`locales/iba` and `locales/dtp` have near-identical `noun` tables**, and
+that is a fact about one education ministry rather than about two languages.
+Sabah, Sarawak and the peninsula teach mathematics out of the same Malay
+textbooks, so both tables are the Dewan Bahasa terms and they differ in four
+entries out of twenty — «kawasan» against «pomogunan» for the region,
+«tanda silang» against «tanda pangkah» for the cross, «bebilang» against
+«berbilang» for the polyline, which is Iban's `be-` where Malay writes `ber-`,
+and «kecherunan» against «kecerunan» for the slope field, Iban keeping the
+digraph «ch» that Malay respelled to «c». The `be-`/`ber-` difference runs on
+into `noun-regular-polygon`'s «besisi» against «bersisi», outside the table.
+`locales/dtp`'s header says where to look instead: what differs between those
+two catalogs and `locales/ms`, whose table is nearly the same again, is
+everything around the table.
 
 Every string in all fifteen is machine-generated and unread by a speaker, and
 each file says so at the top. Correcting any of it needs no permission.
