@@ -51,13 +51,23 @@ interface SlotPosition {
      * control grows a frame or more before that happens.
      */
     baseline: number;
+    /**
+     * Which of the control's size reports this output was typeset from, read
+     * back off the output itself. A slot that is waiting for the room it
+     * asked for can then tell that room from an older output landing late.
+     */
+    revision: number;
+}
+
+/** A control's box as reported, numbered so the output can say which it is. */
+interface SlotReport {
+    box: SlotBox;
+    revision: number;
 }
 
 interface MathSlotContextValue {
-    reportSize(componentIdx: number, box: SlotBox): void;
+    reportSize(componentIdx: number, box: SlotBox, revision: number): void;
     positions: ReadonlyMap<number, SlotPosition>;
-    /** Goes up each time a typeset lands, so a slot can act on that moment. */
-    typesets: number;
     /** Whether this slot's control is being edited; see `useMathSlots`. */
     setSlotEditing(componentIdx: number, editing: boolean): void;
 }
@@ -102,7 +112,7 @@ export function substituteSlots({
     template: string;
     /** The markers that are slots; any other is left as written. */
     componentIndices: readonly number[];
-    sizes: ReadonlyMap<number, SlotBox>;
+    sizes: ReadonlyMap<number, SlotReport>;
     slotElementId: (componentIdx: number) => string;
     slotBaselineElementId: (componentIdx: number) => string;
     slotLabel: (componentIdx: number) => string;
@@ -116,23 +126,39 @@ export function substituteSlots({
             if (!componentIndices.includes(componentIdx)) {
                 return match;
             }
-            const box = sizes.get(componentIdx);
-            if (!box) {
+            const report = sizes.get(componentIdx);
+            if (!report) {
                 missing = true;
                 return "";
             }
+            const { box, revision } = report;
             const label = escapeForTex(slotLabel(componentIdx));
             return (
                 `\\cssId{${slotElementId(componentIdx)}}{\\mathord{` +
                 `\\class{doenet-math-slot-label}{\\rlap{\\text{${label}}}}` +
                 `\\cssId{${slotBaselineElementId(componentIdx)}}{` +
                 `\\Space{0px}{0px}{0px}}` +
-                `\\Space{${box.width}px}{${box.height}px}{${box.depth}px}}}`
+                `\\class{${REVISION_CLASS_PREFIX}${revision}}{` +
+                `\\Space{${box.width}px}{${box.height}px}{${box.depth}px}}}}`
             );
         },
     );
 
     return missing ? null : substituted;
+}
+
+/** Carries a report's revision through the typeset output as a class name. */
+const REVISION_CLASS_PREFIX = "doenet-math-slot-r";
+
+/** The revision an output was typeset from, or `-1` if it does not say. */
+function revisionOf(reserved: Element): number {
+    const marked = reserved.querySelector(
+        `[class*="${REVISION_CLASS_PREFIX}"]`,
+    );
+    const match = marked?.className.match(
+        new RegExp(`${REVISION_CLASS_PREFIX}(\\d+)`),
+    );
+    return match ? Number(match[1]) : -1;
 }
 
 /**
@@ -184,11 +210,12 @@ export function useMathSlots({
     // itself absolutely positioned, so its own box *is* what the slots resolve
     // against, and measuring from it makes the two agree by construction.
     const layerRef = useRef<HTMLSpanElement>(null);
-    const [sizes, setSizes] = useState<ReadonlyMap<number, SlotBox>>(new Map());
+    const [sizes, setSizes] = useState<ReadonlyMap<number, SlotReport>>(
+        new Map(),
+    );
     const [positions, setPositions] = useState<
         ReadonlyMap<number, SlotPosition>
     >(new Map());
-    const [typesets, setTypesets] = useState(0);
 
     // While a control is being edited the expression is re-typeset in step
     // with it (see `DynamicMath`'s `immediate`); this is what tells it so.
@@ -228,18 +255,21 @@ export function useMathSlots({
         [componentIndices, describeSlot],
     );
 
-    const reportSize = useCallback((componentIdx: number, box: SlotBox) => {
-        setSizes((previous) => {
-            // Measured in whole pixels, so equality here means nothing moved
-            // and a re-typeset would be wasted.
-            if (sameBox(previous.get(componentIdx) ?? null, box)) {
-                return previous;
-            }
-            const next = new Map(previous);
-            next.set(componentIdx, box);
-            return next;
-        });
-    }, []);
+    const reportSize = useCallback(
+        (componentIdx: number, box: SlotBox, revision: number) => {
+            setSizes((previous) => {
+                // Measured in whole pixels, so equality here means nothing
+                // moved and a re-typeset would be wasted.
+                if (sameBox(previous.get(componentIdx)?.box ?? null, box)) {
+                    return previous;
+                }
+                const next = new Map(previous);
+                next.set(componentIdx, { box, revision });
+                return next;
+            });
+        },
+        [],
+    );
 
     const latexForTypeset = useMemo(
         () =>
@@ -303,21 +333,19 @@ export function useMathSlots({
                     baseline:
                         baselineMarker.getBoundingClientRect().bottom -
                         originRect.top,
+                    revision: revisionOf(reserved),
                 });
             }
             setPositions((previous) =>
                 samePositions(previous, next) ? previous : next,
             );
-            if (typeset) {
-                setTypesets((count) => count + 1);
-            }
         },
         [componentIndices, slotElementId, slotBaselineElementId],
     );
 
     const contextValue = useMemo<MathSlotContextValue>(
-        () => ({ reportSize, positions, typesets, setSlotEditing }),
-        [reportSize, positions, typesets, setSlotEditing],
+        () => ({ reportSize, positions, setSlotEditing }),
+        [reportSize, positions, setSlotEditing],
     );
 
     return {
@@ -343,7 +371,8 @@ function samePositions(
         if (
             !other ||
             other.left !== value.left ||
-            other.baseline !== value.baseline
+            other.baseline !== value.baseline ||
+            other.revision !== value.revision
         ) {
             return false;
         }
@@ -429,16 +458,20 @@ export function MathSlot({
     // is positioned by: it keeps its baseline on the expression's however much
     // it grows.
     const [heightAboveBaseline, setHeightAboveBaseline] = useState(0);
-    // A change of size that needs more room moves the expression's baseline
-    // once the room is typeset. Applying the control's new height before then
-    // would move it twice — up, to keep its baseline on the old one, then down
-    // with the new — so while a typeset is on its way the height waits for it,
-    // and further measurements in the meantime wait with it.
-    const heightAwaitingTypeset = useRef<number | null>(null);
+    // A change of size moves the expression's baseline once the new box is
+    // typeset. Applying the control's new height before then would move it
+    // twice — up, to keep its baseline on the old one, then down with the new
+    // — so the height waits for the output typeset from the report it came
+    // with, and further measurements in the meantime wait with it. Reports are
+    // numbered so that an older output landing late, which the throttled path
+    // can produce, is not mistaken for the one being waited for.
+    const revision = useRef(0);
+    const heightAwaiting = useRef<{ height: number; revision: number } | null>(
+        null,
+    );
 
     const reportSize = context?.reportSize;
     const position = context?.positions.get(componentIdx);
-    const typesets = context?.typesets ?? 0;
 
     const measure = useCallback(
         ({ flush = false } = {}) => {
@@ -459,13 +492,19 @@ export function MathSlot({
             };
             const changed = !sameBox(reserved.current, box);
             reserved.current = box;
+            if (changed) {
+                revision.current += 1;
+            }
             const report = () => {
-                if (changed || heightAwaitingTypeset.current !== null) {
-                    heightAwaitingTypeset.current = box.height;
+                if (changed || heightAwaiting.current !== null) {
+                    heightAwaiting.current = {
+                        height: box.height,
+                        revision: revision.current,
+                    };
                 } else {
                     setHeightAboveBaseline(box.height);
                 }
-                reportSize(componentIdx, box);
+                reportSize(componentIdx, box, revision.current);
             };
             // Flushed so that the expression is re-typeset (see `DynamicMath`'s
             // `immediate`) before this task ends, and so painted in the same
@@ -486,12 +525,26 @@ export function MathSlot({
         [componentIdx, reportSize],
     );
 
+    // The first output to land positions the control for the first time,
+    // and there is no earlier baseline to move it away from — so it takes the
+    // current height however old that output is, and is drawn right when it
+    // is drawn at all.
+    const landedRevision = position?.revision ?? -1;
+    const positioned = useRef(false);
     useLayoutEffect(() => {
-        if (heightAwaitingTypeset.current !== null) {
-            setHeightAboveBaseline(heightAwaitingTypeset.current);
-            heightAwaitingTypeset.current = null;
+        if (landedRevision < 0) {
+            return;
         }
-    }, [typesets]);
+        const awaiting = heightAwaiting.current;
+        if (
+            awaiting !== null &&
+            (landedRevision >= awaiting.revision || !positioned.current)
+        ) {
+            setHeightAboveBaseline(awaiting.height);
+            heightAwaiting.current = null;
+        }
+        positioned.current = true;
+    }, [landedRevision]);
 
     const setSlotEditing = context?.setSlotEditing;
 
