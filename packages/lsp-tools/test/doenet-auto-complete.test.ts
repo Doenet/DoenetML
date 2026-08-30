@@ -326,6 +326,47 @@ describe("AutoCompleter", () => {
         expect(inMe).toEqual(await itemsFor(`<me>\\frac{<m|</me>`));
     });
 
+    it("keeps suggesting a hyphenated snippet name across its hyphens (#1780)", async () => {
+        // Nine of the ten completion snippets have hyphenated names, and the
+        // menu emptied on the hyphen: `<answer-` was read as the close tag
+        // that follows it, so the only item offered was `/p>` — whose edit
+        // spanned the typed `<answer-`. Typing the hyphen must keep the
+        // snippet that the author is reaching for.
+        async function labelsFor(withCursor: string) {
+            const source = withCursor.replace("|", "");
+            const autoCompleter = new AutoCompleter(
+                source,
+                doenetSchema.elements,
+            );
+            const items = await autoCompleter.getCompletionItems(
+                withCursor.indexOf("|"),
+            );
+            return items.map((i) => i.label);
+        }
+
+        expect(await labelsFor(`<p><answer-|</p>`)).toEqual(["answer-labeled"]);
+        expect(await labelsFor(`<p><multiple-|</p>`)).toEqual([
+            "multiple-choice-answer",
+            "multiple-choice-select-multiple-answer",
+        ]);
+        // Unchanged one character earlier, where the name still ends in a word
+        // character — the hyphen is the only thing that used to break it.
+        expect(await labelsFor(`<p><multiple|</p>`)).toEqual(
+            await labelsFor(`<p><multiple-|</p>`),
+        );
+
+        // A name matching nothing offers nothing — in particular not the
+        // enclosing element's close tag, whose edit would have replaced `<my-`.
+        for (const nameEnd of ["-", ".", ":"]) {
+            const labels = await labelsFor(`<p><my${nameEnd}|</p>`);
+            expect({ nameEnd, labels }).toEqual({ nameEnd, labels: [] });
+        }
+
+        // The enclosing element's close tag is still offered where it belongs:
+        // on a close tag the author is actually typing.
+        expect(await labelsFor(`<p>hello</p|`)).toContain("/p>");
+    });
+
     it("matches element names by substring, not only by prefix (#1328)", async () => {
         // Typing part of a tag name that appears in the *middle* of other tag
         // names should still surface those tags (e.g. `num` -> `isNumber`), so
