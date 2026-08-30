@@ -230,8 +230,8 @@ export function useMathSlots({
 
     const reportSize = useCallback((componentIdx: number, box: SlotBox) => {
         setSizes((previous) => {
-            // Quantized already, so equality here means nothing moved and a
-            // re-typeset would be wasted.
+            // Measured in whole pixels, so equality here means nothing moved
+            // and a re-typeset would be wasted.
             if (sameBox(previous.get(componentIdx) ?? null, box)) {
                 return previous;
             }
@@ -378,7 +378,7 @@ export function useInMathSlot() {
 
 /**
  * How a control tells the expression around it that it is being edited, and
- * that the reader has committed a value to it.
+ * that it has just changed size.
  *
  * While a control is being edited, the expression is re-typeset in step with
  * each keystroke rather than a beat behind. The calls are no-ops outside a
@@ -470,8 +470,15 @@ export function MathSlot({
             // Flushed so that the expression is re-typeset (see `DynamicMath`'s
             // `immediate`) before this task ends, and so painted in the same
             // frame as the change in the control: the two move together.
+            //
+            // The flush waits for a microtask because the report can arrive
+            // while React is committing: the keyboard tray writes into a math
+            // field from an effect, and the field reports from its edit
+            // handler. React declines to flush from inside its own commit, so
+            // the flush is run once the commit is over, still before the frame
+            // is painted.
             if (flush && editing.current) {
-                flushSync(report);
+                queueMicrotask(() => flushSync(report));
             } else {
                 report();
             }

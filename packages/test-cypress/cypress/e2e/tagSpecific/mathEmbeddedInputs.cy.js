@@ -308,9 +308,8 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
     it("the expression shows a committed value the reader entered", () => {
         // `$mi` is the *committed* value, so the LaTeX that shows it does not
-        // come back from core until after the commit. Catching up therefore
-        // means taking whatever core sends next, not what it had already sent
-        // when Enter was pressed.
+        // come back from core until the reader presses Enter — and the field
+        // keeps its focus while the expression is re-typeset with it.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -337,8 +336,8 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
     });
 
     it("the expression shows a committed text value the reader entered", () => {
-        // A text input is held still for the same reason, so it needs the same
-        // catching up when the reader commits with Enter.
+        // The same for a text input: `$ti` is its committed value, so the
+        // expression shows it once the reader commits with Enter.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -366,7 +365,8 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
     it("the expression shows a choice the reader picked", () => {
         // Picking from the list is itself the commit, and the list keeps the
-        // focus afterwards, so the expression has to catch up there too.
+        // focus afterwards, so the expression shows the choice while the
+        // reader is still on the control.
         cy.window().then(async (win) => {
             win.postMessage(
                 {

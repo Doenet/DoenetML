@@ -140,6 +140,10 @@ export function DynamicMath({
                 buffer.innerHTML = next;
                 MathJax.typeset([buffer]);
             } catch {
+                // The engine may already have recorded the buffer's math
+                // before it threw; forget that record while the nodes are
+                // still in the buffer, as the loop below does after a typeset.
+                MathJax.typesetClear([buffer]);
                 buffer.innerHTML = "";
                 return false;
             }

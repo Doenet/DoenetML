@@ -96,9 +96,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
     useMathJaxOutOfTabOrder(slotRootRef);
 
     // A field's own width is fixed, so an expression around it never has to
-    // make room; what it does have to do is stay still, rather than
-    // re-typesetting under the reader's cursor because something else in it
-    // changed. Outside a slot this is a no-op.
+    // make room for it; while the field is being edited the expression is
+    // still re-typeset in step with each keystroke, so a reference in it that
+    // follows what is typed does not land a beat behind. Outside a slot this
+    // is a no-op.
     const slotEditing = useMathSlotEditing();
 
     let pointerAtDown = useRef<[number, number] | null>(null);

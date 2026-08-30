@@ -632,8 +632,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const submitActionWithPendingRef = useRef(submitActionWithPending);
     submitActionWithPendingRef.current = submitActionWithPending;
 
-    // For the same reason: an enter handler held from an earlier render would
-    // otherwise commit against the slot this field sat in then.
+    // For the same reason: `handlers.edit` is bound once, so a size report
+    // from it would otherwise go to the slot this field sat in at that render.
     const slotEditingRef = useRef(slotEditing);
     slotEditingRef.current = slotEditing;
 
@@ -701,8 +701,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         for (const event of virtualKeyboardEvents) {
             if (event.type === "keystroke" && event.command === "Enter") {
                 // The tray's Enter key is the keyboard's Enter key: it
-                // commits, submits, and lets any expression around this
-                // field catch up, all in one place.
+                // commits and submits, in one place.
                 handlePressEnter();
                 continue;
             }
@@ -776,8 +775,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
         setFocused(focused);
         // This is the boundary the expression around this field follows: a
         // blur that hands focus to the keyboard tray does not come through
-        // here, so the expression stays still while the reader types on the
-        // tray, and `endEditing` releases it however focus finally leaves.
+        // here, so the expression keeps re-typesetting in step while the
+        // reader types on the tray, and stops when focus finally leaves.
         slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,

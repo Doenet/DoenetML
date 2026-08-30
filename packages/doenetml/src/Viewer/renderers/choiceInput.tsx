@@ -121,8 +121,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     useMathJaxOutOfTabOrder(slotRootRef);
 
     // A select's width is fixed by its widest choice, so an expression around
-    // it never has to make room; what it does have to do is stay still while
-    // the reader has it open. Outside a slot this is a no-op.
+    // it never has to make room for it; while the reader has it open the
+    // expression is still re-typeset in step with any change in it. Outside a
+    // slot this is a no-op.
     const slotEditing = useMathSlotEditing();
 
     // @ts-ignore
