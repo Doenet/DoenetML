@@ -922,8 +922,9 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // nine of that batch's fifteen and the largest number any batch here has
     // needed — the next largest is the seven of the West and Central African
     // batch above — and a fact about which languages get into CLDR rather
-    // than about how many speak these. ICU names `pap`, `srn`, `jam`, `kl` and `iu` and
-    // stops at the nine below. Six of the nine are creoles, and a creole is
+    // than about how many speak these. ICU names the other six — `kl`, `iu`,
+    // `kek`, `pap`, `srn` and `jam` — and stops at the nine below. Six of the
+    // nine are creoles, and a creole is
     // where the gap concentrates: `pap`, `srn` and `jam` are named only
     // because they are the three with a national or quasi-official standing
     // ICU already tracks.

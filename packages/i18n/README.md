@@ -110,8 +110,8 @@ everywhere, for the reason in
 Inuktitut over the geometry nouns as well, for the reason in
 [Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws).
 The two hundred and twenty-one are: Somali, Hmong Njua, Amharic, Assamese,
-Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
-Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
+Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
+Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
 Southern Sotho, Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low
 German, Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern
@@ -135,10 +135,10 @@ Tuvaluan, Rarotongan, Wallisian, Bislama, Scots, Swiss German, Colognian,
 Limburgish, Friulian, Venetian, Ligurian, Piedmontese, Neapolitan, Upper
 Sorbian, Lower Sorbian, Kashubian, Silesian, Rusyn, Crimean Tatar, Gagauz,
 Karakalpak, Khakas, Southern Altai, Balochi, Hazaragi, Muslim Tat, Zazaki,
-Shughni, Dungan, Wakhi, Kalaallisut,
-Yucatec Maya, Qʼeqchiʼ, Garifuna, Mískito, Papiamentu, Sranan Tongo, Jamaican
-Creole, Guadeloupean Creole French, Saint Lucian Creole French, Guianese
-Creole French, Belize Kriol, Aukan and Saramaccan
+Shughni, Dungan, Wakhi, Kalaallisut, Yucatec Maya, Qʼeqchiʼ, Garifuna,
+Mískito, Papiamentu, Sranan Tongo, Jamaican Creole, Guadeloupean Creole
+French, Saint Lucian Creole French, Guianese Creole French, Belize Kriol,
+Aukan and Saramaccan
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -2830,8 +2830,8 @@ one — see the coverage note below.
 
 Fourteen of the fifteen sit at **445/575**, which is the whole catalog minus
 the two chemistry tables and the same figure the Silk Road batch reached. The
-chemistry reason is the school-system one for all
-fifteen and is stated in each `content.ftl` header: science is taught in Dutch
+chemistry reason is the school-system one for all fifteen and is stated in
+each `content.ftl` header: science is taught in Dutch
 in Curaçao, Bonaire and Suriname, in Danish in Greenland, in Spanish in Yucatán
 and Alta Verapaz, in French in Guadeloupe and French Guiana, and in English in
 Belize, Jamaica and Saint Lucia. In none of the fifteen is the fallback a
@@ -2915,9 +2915,10 @@ rename of this one. The other fourteen maximize to `-Latn`.
 `acf`, `gcr`, `bzj`, `djk` and `srm` — which is the largest number a batch
 here has needed, the next largest being the seven of the West and Central
 African batch, and is a fact about which languages CLDR carries rather than
-about how many speak these. ICU names `kl`, `iu`, `pap`, `srn` and `jam` and stops there; six
-of the nine gaps are creoles, and the three creoles ICU *does* name are the
-three with national or quasi-official standing.
+about how many speak these. ICU names the other six — `kl`, `iu`, `kek`,
+`pap`, `srn` and `jam` — and stops there; six of the nine gaps are creoles,
+and the three creoles ICU *does* name are the three with national or
+quasi-official standing.
 
 Every one of the nine gets an endonym, which is where this block parts company
 with the Silk Road's. Each of these catalogs names its language exactly one way
@@ -2927,7 +2928,7 @@ is needed nowhere here. The spellings are copied letter for letter from the
 catalogs' own headers, so a corrector who respells a catalog must respell its
 roster label with it.
 
-#### Plurals: three catalogs with rules, and the roster's fifth dual
+#### Plurals: three catalogs with rules, and the roster's seventeenth dual
 
 Three of the fifteen have CLDR plural data of their own — `iu`, `kl` and `pap`
 — and the other twelve resolve to the runtime's default locale, so any category
@@ -2939,8 +2940,9 @@ twelve therefore write one unselected form wherever English forks a count.
 each: ᐆᒃᑐᕐᓂᒃᓴᖅ, ᐆᒃᑐᕐᓂᒃᓵᒃ, ᐆᒃᑐᕐᓂᒃᓴᐃᑦ. Sixteen catalogs on the roster already
 write a `[two]` their own rules select — Arabic, Hebrew, Maltese, Slovene, the
 Celtic four, the Sorbian pair, Santali and the five Sami — and `iu` is the
-seventeenth and the first in the Americas. A dual that repeated the plural would be a branch that renders
-and says nothing, which is the same defect as a `[one]` in a locale that cannot
+seventeenth and the first in the Americas. A dual that repeated the plural
+would be a branch that renders and says nothing, which is the same defect as a
+`[one]` in a locale that cannot
 select one, met from the other side, so the test asserts the three forms differ
 rather than merely that three branches exist.
 

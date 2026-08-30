@@ -874,7 +874,7 @@ describe("the Silk Road batch's plural categories", () => {
 
 /**
  * The Americas, and the batch where three catalogs have CLDR rules and one of
- * the three writes a category the roster had seen only four times before.
+ * the three writes a category the roster had seen only sixteen times before.
  *
  * The blocks above give the other proportions: the Sami block is five
  * catalogs where four have CLDR plural data, the Oceania block eleven where
