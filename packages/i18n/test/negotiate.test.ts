@@ -1736,6 +1736,49 @@ describe("a host catalog keyed on an aliased tag", () => {
     );
 
     /**
+     * The limit of what an alias can do, pinned so that it is documented
+     * rather than discovered.
+     *
+     * An alias cannot tell the macrolanguage tag from the member tag, because
+     * by the time negotiation runs there is nothing to tell apart:
+     * `normalizeLocaleTag` has already folded `kmr` to `ku` — ICU's
+     * canonicalization, the very thing these aliases exist to work around — so
+     * `<document lang="kmr">` and `<document lang="ku">` arrive as the same
+     * request. A host supplying catalogs under *both* keys gets the
+     * macrolanguage one either way.
+     *
+     * This is not something the aliases introduced. `kmr` folded to `ku`
+     * before this repository had a `locales/kmr` to fold it onto, and
+     * `resolveDocumentLocale` reported `ku` for an authored `kmr` on `main`
+     * too. Undoing it would mean `normalizeLocaleTag` declining to
+     * canonicalize these three subtags, which changes what a normalized tag
+     * means everywhere and is a separate decision from this one.
+     */
+    it.each([
+        ["kmr", "ku"],
+        ["kpv", "kv"],
+        ["mhr", "chm"],
+    ])(
+        "cannot distinguish an authored %s from the macrolanguage it folds to",
+        (member, macro) => {
+            // The fold happens in the viewer, before negotiation sees it.
+            expect(resolveDocumentLocale(member, undefined)).toBe(macro);
+            expect(resolveDocumentLocale(macro, undefined)).toBe(macro);
+            // So both authored tags produce the same chain, and a host that
+            // offers both keys is answered with the macrolanguage's.
+            const hostOffersBoth = [macro, member, "en"];
+            for (const authored of [member, macro]) {
+                expect(
+                    negotiateLocales(
+                        [resolveDocumentLocale(authored, undefined)],
+                        hostOffersBoth,
+                    ),
+                ).toEqual([macro, member, "en"]);
+            }
+        },
+    );
+
+    /**
      * The bundled case, spelled out separately because it is the one the
      * roster actually exercises: this repository ships no `ku`, `kv` or `chm`
      * directory any more, so a request under the macrolanguage code has only

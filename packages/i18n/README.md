@@ -650,8 +650,18 @@ over a host that had keyed a catalog on `ku`: its key would never be compared
 against anything, and its reader would get English while the translation sat in
 memory. Keeping the original in front means the host's catalog is preferred,
 the alias still carries the request to the bundled catalog when no host catalog
-answers, and a host supplying both gets the one it named. That is what makes an
-alias safe to add to a tag that already worked, which all three of these were.
+answers. That is what makes an alias safe to add to a tag that already worked,
+which all three of these were.
+
+What an alias cannot do is tell the two tags apart. `normalizeLocaleTag` folds
+`kmr` to `ku` before negotiation runs — ICU's canonicalization again — so
+`<document lang="kmr">` and `<document lang="ku">` arrive as the same request,
+and a host offering catalogs under *both* keys is answered with the
+macrolanguage's for either. That predates the aliases rather than following
+from them: `kmr` folded to `ku` before there was a `locales/kmr` to fold it
+onto. Undoing it would mean `normalizeLocaleTag` declining to canonicalize
+these three subtags, which changes what a normalized tag means everywhere and
+is a decision worth taking on its own.
 
 **The rename is only safe with an alias behind it, and the reason is a trap
 worth stating plainly.** ICU canonicalizes each of these member codes straight

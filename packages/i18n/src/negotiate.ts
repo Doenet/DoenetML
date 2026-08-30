@@ -381,14 +381,25 @@ function applyLanguageAlias(tag: string): string {
  * `ku` to `kmr` before matching would step over a host that had supplied a
  * catalog under `ku` — its key would never be compared against anything — and
  * hand its reader English instead. Keeping the original in front means the
- * host's own catalog is preferred, the aliased tag still reaches the bundled
- * one when no host catalog answers, and a host that supplies *both* gets the
- * one it asked for by name.
+ * host's own catalog is preferred and the aliased tag still reaches the bundled
+ * one when no host catalog answers.
  *
  * This is what makes an alias safe to add to a tag that already worked. Three
  * were added when `locales/ku`, `locales/kv` and `locales/chm` took their
  * members' names, and every one of those is a tag a host may already be
  * keying a catalog on.
+ *
+ * **What it cannot do is tell the two apart.** By the time a request reaches
+ * here, `normalizeLocaleTag` has folded `kmr` to `ku` — that is ICU's
+ * canonicalization, the same one this file's aliases exist to work around —
+ * so an author who writes `<document lang="kmr">` and one who writes `ku`
+ * arrive identically. A host supplying catalogs under *both* keys therefore
+ * gets the macrolanguage one for either request, because the member identity
+ * was destroyed upstream rather than discarded here. Recovering it would mean
+ * `normalizeLocaleTag` declining to canonicalize these three subtags, which is
+ * a change to what a normalized tag means everywhere rather than a change to
+ * negotiation; it predates these aliases, since `kmr` folded to `ku` before
+ * this repository had a `locales/kmr` at all.
  */
 function aliasChain(tag: string): string[] {
     const aliased = applyLanguageAlias(tag);
