@@ -325,7 +325,13 @@ export class Md extends InlineComponent {
                                 .join("\\\\\n"),
                     );
                 } catch (e) {
-                    // just return latex if can't parse with math-expressions
+                    // A row is not something math-expressions can read. Hand
+                    // the display's LaTeX back as it is, markers and all: it
+                    // is still the content, and it is the same fallback
+                    // `latexToText` makes for an `<m>`. The fallback is
+                    // silent, so an author sees only `text` returning LaTeX;
+                    // a whole spelling landing here is a bug in what is
+                    // stripped before the parse, as #1761 was.
                     return { setValue: { text: dependencyValues.latex } };
                 }
                 return {
