@@ -2922,11 +2922,12 @@ writes exactly **one `[0]`** — `attempts-remaining` — and exactly **one
 a component *needs* rather than on a count the reader is looking at. Fifteen
 catalogs, the same two literals in the same two messages, and nothing else.
 
-#### Negotiation: one entry, and it is the largest in the map
+#### Negotiation: one entry, and it is the second-largest in the map
 
 `MACROLANGUAGE_MEMBERS` gained exactly one row, and seeding `bjn` forced it:
 Banjar is one of the 36 ISO 639-3 members of Malay. **`ms` lists 33 of them**,
-which makes it the biggest entry in the map by some distance, and the three
+which makes it the map's second-largest entry — behind only `qu`'s
+forty-three, and ahead of everything else by some distance — and the three
 that are missing are the point of the row rather than an oversight — `ind`
 (`locales/id`), `min` (`locales/min`) and `bjn` (`locales/bjn`) are members
 this repository answers for itself, which is the `bam`/`dyu` shape under
@@ -3154,22 +3155,29 @@ and `answer-submitting` are a bare verb with an ellipsis — «Periksa…»,
 «Hantar…» — rather than "is being checked". Its header calls that a hole
 rather than a style and the first thing to fix.
 
-**`locales/bug` never writes the definite suffix `-é`.** Buginese marks a
-definite noun with it, its shape depends on the last sound of the word it
+**`locales/bug` writes no noun with the definite suffix `-é`.** Buginese marks
+a definite noun with it, its shape depends on the last sound of the word it
 attaches to, and several of these messages end in a placeable the catalog
-never sees — so every noun is written bare. That is [An affix cannot be
-welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable) reached from
-a new direction, and the cost is named: the file reads as indefinite
-throughout.
+never sees — so every noun is written bare, the `noun` table included. That is
+[An affix cannot be welded to a
+placeable](#an-affix-cannot-be-welded-to-a-placeable) reached from a new
+direction, and the cost is named: the nouns read as indefinite throughout. The
+same enclitic still closes the relative clauses the catalog writes out in full
+— «iya riruntu'é», «iya weddingngé» — where there is no placeable for it to
+land on, and its header distinguishes the two.
 
 **`locales/iba` and `locales/dtp` have near-identical `noun` tables**, and
 that is a fact about one education ministry rather than about two languages.
 Sabah, Sarawak and the peninsula teach mathematics out of the same Malay
 textbooks, so both tables are the Dewan Bahasa terms and they differ in four
 entries out of twenty — «kawasan» against «pomogunan» for the region,
-«tanda silang» against «tanda pangkah» for the cross, and two spellings that
-follow from Iban's `be-` where Malay writes `ber-`. `locales/dtp`'s header
-says where to look instead: what differs between the three catalogs is
+«tanda silang» against «tanda pangkah» for the cross, «bebilang» against
+«berbilang» for the polyline, which is Iban's `be-` where Malay writes `ber-`,
+and «kecherunan» against «kecerunan» for the slope field, Iban keeping the
+digraph «ch» that Malay respelled to «c». The `be-`/`ber-` difference runs on
+into `noun-regular-polygon`'s «besisi» against «bersisi», outside the table.
+`locales/dtp`'s header says where to look instead: what differs between those
+two catalogs and `locales/ms`, whose table is nearly the same again, is
 everything around the table.
 
 Every string in all fifteen is machine-generated and unread by a speaker, and

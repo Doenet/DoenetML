@@ -50,7 +50,7 @@
 # reach for cyan.
 #
 # CHEMISTRY. `element-name` and `element-anion-name` are deliberately **left
-# out**, so their ~130 keys fall back to English. Chemistry in Sarawak is
+# out**, so their 130 keys fall back to English. Chemistry in Sarawak is
 # taught in Malay, out of textbooks printing the Dewan Bahasa dan Pustaka
 # names, which `locales/ms` already carries; there is no separate Iban list,
 # and copying the Malay one under an Iban tag would report a language fact

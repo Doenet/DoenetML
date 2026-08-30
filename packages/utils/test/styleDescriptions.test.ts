@@ -4823,7 +4823,10 @@ describe("the Southeast Asian batch's word order", () => {
      * fifteen are Austronesian and they fall on both sides of it. The eight
      * catalogs of Indonesia and Malaysian Borneo are head-initial like the
      * Malay their technical register comes from; the three Philippine
-     * non-creoles are the Central Philippine order English happens to share;
+     * non-creoles take the modifier-first order English happens to share, and
+     * they do so across three different branches of Austronesian rather than
+     * one — Pangasinan is a Northern Luzon language, not a Central Philippine
+     * one, so this is not a subgroup either;
      * and the three Myanmar-script catalogs land with the first group for
      * reasons of their own — Tai, Austroasiatic and Sino-Tibetan all being
      * head-initial in the noun phrase.
@@ -5009,9 +5012,10 @@ describe("the Southeast Asian batch's word order", () => {
      *
      * Six of the eight Indonesian and Malaysian catalogs write «putus-putus»
      * for the dash pattern, and all eight write «garis» for the line. That is
-     * the Malaysian and Indonesian school vocabulary reaching four languages,
+     * the Malaysian and Indonesian school vocabulary reaching six languages,
      * and `locales/dtp`'s header says as much about its `noun` table sharing
-     * `iba`'s: a fact about one education ministry, not about two languages.
+     * `iba`'s: a fact about two education ministries, not about six
+     * languages.
      * `bug` and `mak` are the control — adjacent, related, and sharing neither.
      */
     it("keeps bug and mak out of the Indonesian dash-pattern convergence", () => {

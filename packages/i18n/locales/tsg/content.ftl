@@ -61,7 +61,7 @@
 # description, not a term.
 #
 # CHEMISTRY. `element-name` and `element-anion-name` are deliberately **left
-# out**, so their ~130 keys fall back to English. This is the case
+# out**, so their 130 keys fall back to English. This is the case
 # `locales/fil` and `locales/ceb` already record: the Philippines teaches
 # science in English from the intermediate grades, so the fallback **is** the
 # curriculum, and a Tausug pupil meets the periodic table in the same English

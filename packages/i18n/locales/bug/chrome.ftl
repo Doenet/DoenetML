@@ -48,12 +48,16 @@
 # «gambara'», «jama-jamang», «riolo», «rimonri» — are used wherever the seed
 # is confident of them.
 #
-# **The definite suffix `-é` is not written.** Buginese marks a definite noun
-# with `-é`, whose shape depends on the last sound of the word it attaches to,
-# and several of these messages end in a placeable the catalog never sees. So
-# the seed writes every noun bare rather than welding a suffix onto a value.
-# That reads as indefinite throughout, which is a real cost; a speaker adding
-# the suffix should add it only where the word is one the catalog writes out.
+# **The definite suffix `-é` is not written on the nouns these messages name.**
+# Buginese marks a definite noun with `-é`, whose shape depends on the last
+# sound of the word it attaches to, and several of these messages end in a
+# placeable the catalog never sees. So the seed leaves the nouns bare —
+# `content.ftl`'s whole `noun` table is citation forms — rather than welding a
+# suffix onto a value. The enclitic does appear where it closes a relative
+# clause the catalog writes out in full («iya riruntu'é», «iya weddingngé»),
+# which is a different job and carries no placeable. The nouns themselves read
+# as indefinite throughout, which is a real cost; a speaker adding the suffix
+# should add it only where the word is one the catalog writes out.
 #
 # **Counts.** CLDR has no plural data for `bug`, so `Intl.PluralRules` would
 # resolve it against the runtime's own locale and any `[one]` branch would be

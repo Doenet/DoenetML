@@ -1342,18 +1342,23 @@ describe("the letter inventories the Southeast Asian headers state exactly", () 
     );
 
     /**
-     * The glottal stop, which five of the twelve write and all five write the
+     * The glottal stop, which six of the twelve write and all six write the
      * same way: **ASCII `'` (U+0027)**, never U+2019 or U+02BC.
      *
-     * This is the deliberate opposite of the Americas batch's `yua` and `kek`,
-     * which are held to U+02BC because the glottal stop is a *letter* of Mayan
-     * orthography. In Buginese, Makasar and the Philippine languages the mark
-     * is punctuation-shaped in ordinary print, the surrounding catalogs quote
-     * values with straight quotes, and a curly apostrophe in a value a reader
-     * might retype is a hazard rather than a nicety. Either convention is
-     * defensible; what a batch cannot afford is both.
+     * This is the deliberate opposite of `locales/quc`, whose Kʼicheʼ is
+     * written with U+02BC throughout because there the glottal stop is a
+     * *letter* of Mayan orthography. In Buginese, Makasar, Gorontalo, Nias,
+     * Kadazandusun and Tausug the mark is punctuation-shaped in ordinary
+     * print, the surrounding catalogs quote values with straight quotes, and a
+     * curly apostrophe in a value a reader might retype is a hazard rather
+     * than a nicety. Either convention is defensible; what a batch cannot
+     * afford is both.
+     *
+     * The other six Latin catalogs are not listed because they do not write
+     * the sound at all — the only apostrophes in `bjn`, `bbc`, `iba`, `pag`,
+     * `cbk` and `mrw` are the primes of `y'` and `d'` in mathematical prose.
      */
-    it.each(["bug", "mak", "bjn", "tsg", "pag"])(
+    it.each(["bug", "mak", "gor", "nia", "dtp", "tsg"])(
         "writes %s's glottal stop as ASCII apostrophe",
         (locale) => {
             const offenders: string[] = [];

@@ -54,7 +54,7 @@
 #
 # **The two chemistry tables — `element-name` and `element-anion-name` — are
 # omitted.** Secondary science in Lanao is taught in English, so the English
-# fallback is the language of the classroom, and filling those 132 keys in
+# fallback is the language of the classroom, and filling those 130 keys in
 # would claim a translation that had not happened. `ion-name-oxidation-state`
 # and the two `chemistry-invalid-` messages are prose and are translated.
 

@@ -59,7 +59,7 @@
 #
 # **The two chemistry tables — `element-name` and `element-anion-name` — are
 # omitted.** Secondary science in Zamboanga is taught in English, so the
-# English fallback is the language of the classroom, and filling those 132 keys
+# English fallback is the language of the classroom, and filling those 130 keys
 # would claim a translation that had not happened. `ion-name-oxidation-state`
 # and the two `chemistry-invalid-` messages are prose and are translated.
 

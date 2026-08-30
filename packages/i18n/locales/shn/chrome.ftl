@@ -43,9 +43,10 @@
 #
 #   * **Burmese**, in its own Burmese spelling, for the school register Shan
 #     genuinely borrows: သတိပေးချက် (warning), အချက်အလက် (information),
-#     တုံ့ပြန်ချက် (feedback), အောက်ခြေမှတ်စု (footnote), အမှတ် (point),
-#     မြား (arrow), ဇယား (table). These are the only Burmese-spelled words in
-#     the file, and they are recognizable as loans precisely because they keep
+#     တုံ့ပြန်ချက် (feedback), အောက်ခြေမှတ်စု (footnote), အမှတ် (point) and
+#     မြား (arrow). These six are the only Burmese-spelled words in this file
+#     — the other three files declare their own, `content.ftl`'s geometry and
+#     colour terms among them — and they are recognizable as loans because they keep
 #     Burmese letters (က ခ စ ဖ ဟ အ) that no Shan word below is written with.
 #     `န` is the one letter both registers use — the Shan «နဵၵ်း» (press)
 #     carries it — so it is not a marker of a loan on its own.

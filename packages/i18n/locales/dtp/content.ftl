@@ -55,7 +55,7 @@
 # is also why «biru otomou» for cyan is a reach rather than a term.
 #
 # CHEMISTRY. `element-name` and `element-anion-name` are deliberately **left
-# out**, so their ~130 keys fall back to English. Chemistry in Sabah is taught
+# out**, so their 130 keys fall back to English. Chemistry in Sabah is taught
 # in Malay, out of textbooks printing the Dewan Bahasa dan Pustaka names,
 # which `locales/ms` already carries; there is no separate Kadazandusun list,
 # and copying the Malay one under this tag would report a language fact that

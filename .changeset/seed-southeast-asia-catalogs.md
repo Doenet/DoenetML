@@ -29,7 +29,10 @@ own version of that reason.
 and S'gaw Karen are offered from hand-written entries, since CLDR has no name
 for those tags in any language; Chavacano is listed as "Chavacano (cbk)"
 because both «Chavacano» and «Chabacano» are in live use for it and the
-catalog does not choose between them.
+catalog does not choose between them. Two of the fifteen are offered under the
+name CLDR gives them rather than the one their catalog writes — "Batak Toba"
+for `bbc` and "Central Dusun" for `dtp` — because the autocomplete fills gaps
+in CLDR and never overrides it.
 
 Malay gains its members, so many readers who reached English before now reach
 a catalog: Brunei Malay (`kxd`), Kedah Malay (`meo`), Pattani Malay (`mfa`),

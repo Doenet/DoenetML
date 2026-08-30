@@ -2338,7 +2338,8 @@ describe("a host catalog keyed on an aliased tag", () => {
          * the row on purpose, and listing either would take a Minangkabau or
          * Banjar reader off the catalog written for them and put them on
          * Standard Malay. That is the `bam`/`dyu` shape under `mnk`, met in a
-         * macrolanguage with thirty-six members instead of eight.
+         * thirty-six-member macrolanguage rather than in the handful of
+         * Manding siblings that row lists.
          */
         it.each(["min", "bjn"])(
             "keeps %s on its own catalog rather than folding it onto ms",
