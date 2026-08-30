@@ -25,12 +25,19 @@ export type NegotiateLocalesOptions = {
  * absent: Nynorsk is a written standard of its own, and answering it with
  * Bokmål would be a substitution rather than a canonicalization.
  *
+ * `locales/nn` now exists, and that changes nothing here. What it changes is
+ * only that `nn` reaches a catalog of its own instead of falling to English;
+ * `no` still maps to `nb`, because a reader who says `no` has not said which
+ * standard they read and Bokmål is what CLDR fills a bare `no` in as. Pointing
+ * `no` at `nn` now that there is an `nn` to point it at would be the same
+ * substitution in the other direction. `negotiate.test.ts` holds both halves.
+ *
  * `tw` is the retired ISO 639-1 code for Twi, and `ak` — Akan, which Twi is a
  * variety of — is the catalog it should reach. `Intl.getCanonicalLocales`
  * leaves `tw` alone, so without this entry a hand-typed `<document lang="tw">`
  * falls to English. `fat` is deliberately absent: Fante is a written standard
  * of its own and `locales/ak` is written in Asante Twi, so answering Fante
- * with it would be the substitution `nn` is kept out for.
+ * with it would be the substitution `no`-to-`nn` is kept out for.
  *
  * `man` is the ISO 639-3 macrolanguage over the Manding varieties, and it is
  * the first one this repository has catalogs for *members* of rather than for
@@ -87,7 +94,9 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Eleven of
+ * member of `nb` or `ak`, and neither is folded onto its neighbour. `nn` now
+ * has a catalog of its own and so no longer *misses* — what it still does not
+ * do is answer `no`, which stays on `nb`. `fat` misses outright. Eleven of
  * the fifteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
  * `kg`, `bua` — are ISO 639-3 macrolanguages and list their macrolanguage
  * members; `nah` is an ISO 639-3 **collection** code rather than a

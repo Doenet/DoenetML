@@ -66,38 +66,41 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `ab`, `ace`, `ady`, `af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`,
-`az`, `ba`, `ban`, `bci`, `be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`,
-`bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`,
-`chk`, `ckb`, `co`, `cs`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`,
-`doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`,
-`fa`, `ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`,
-`gd`, `gil`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`,
-`ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`,
-`kab`, `kbd`, `kbp`, `kca`, `kg`, `ki`, `kk`, `km`, `kmb`, `kmr`, `kn`,
-`ko`, `koi`, `kok`, `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`,
-`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `ln`, `lo`, `lom`, `lt`,
-`lua`, `luo`, `lv`, `mad`, `mai`, `mdf`, `men`, `mg`, `mh`, `mhr`, `mi`,
-`min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`, `mos`, `mr`, `mrj`, `ms`,
-`mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `niu`, `nl`, `nog`, `nso`,
-`ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`,
-`pon`, `ps`, `pt`, `qu`, `quc`, `rar`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`,
-`sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sjd`, `sk`, `sl`,
-`sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`,
-`sus`, `sv`, `sw`, `ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
+English is the source of truth. Every translation — `ab`, `ace`, `ady`,
+`af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`, `az`, `ba`, `ban`,
+`bci`, `be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`,
+`brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`, `chk`, `ckb`, `co`,
+`cs`, `csb`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`, `doi`, `dsb`,
+`dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`,
+`ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fur`, `fy`, `ga`, `gaa`,
+`gd`, `gil`, `gl`, `gn`, `gsw`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`,
+`hr`, `hsb`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `ja`,
+`jv`, `ka`, `kab`, `kbd`, `kbp`, `kca`, `kg`, `ki`, `kk`, `km`, `kmb`,
+`kmr`, `kn`, `ko`, `koi`, `kok`, `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`,
+`krl`, `ks`, `ksh`, `ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `li`,
+`lij`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `mdf`,
+`men`, `mg`, `mh`, `mhr`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`,
+`mns`, `mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `nah`, `nap`, `nb`,
+`nds`, `ne`, `niu`, `nl`, `nn`, `nog`, `nso`, `ny`, `nyn`, `oc`, `oj`,
+`olo`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`, `pms`, `pon`, `ps`, `pt`,
+`qu`, `quc`, `rar`, `rm`, `rn`, `ro`, `ru`, `rue`, `rw`, `sa`, `sah`, `sat`,
+`sc`, `scn`, `sco`, `sd`, `se`, `sg`, `shi`, `si`, `sjd`, `sk`, `sl`, `sm`,
+`sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`, `sus`,
+`sv`, `sw`, `szl`, `ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
 `tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `tvl`, `ty`,
-`tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`,
-`vro`, `war`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`,
-`zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's own
+`tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`,
+`vi`, `vro`, `war`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`,
+`zh-Hant`, `zu`
+— is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-A hundred and seventy-one of them are deliberately partial. A hundred and
-seventy are partial in the same place — the two chemistry tables — while
+A hundred and eighty-five of them are deliberately partial. A hundred and
+eighty-four are partial in the same place — the two chemistry tables — while
 Klingon is partial almost everywhere, for a different reason: see
 [A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and seventy are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
+and eighty-four are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
 Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
 Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -117,7 +120,10 @@ Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic, Chechen, Abkhazian, Adyghe,
 Kabardian, Avaric, Lezghian, Dargwa, Lak, Tabasaran, Ingush, Karachay-Balkar,
 Kumyk, Nogai, Talysh, Kurdish, Central Kurdish, Southern Sami, Lule Sami,
 Inari Sami, Skolt Sami, Kildin Sami, Veps, Livvi-Karelian, Karelian, Võro,
-Tornedalen Finnish, Moksha, Komi-Permyak, Hill Mari, Khanty and Mansi
+Tornedalen Finnish, Moksha, Komi-Permyak, Hill Mari, Khanty, Mansi, Scots,
+Swiss German, Colognian, Limburgish, Friulian, Venetian, Ligurian,
+Piedmontese, Neapolitan, Upper Sorbian, Lower Sorbian, Kashubian, Silesian and
+Rusyn
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -2095,6 +2101,226 @@ so in its own header. Beyond the confidence scale above, `locales/chk` names
 one it could not confirm, and `locales/gil` names its colour line as its least
 certain. Each catalog lists its own coinages, and correcting any of it needs no
 permission.
+
+### Fifteen regional languages of Europe, and the batch that splits five, five and five
+
+The roster goes from 256 locales to 271: **Germanic** — Norwegian Nynorsk
+(`nn`), Scots (`sco`), Swiss German (`gsw`), Colognian (`ksh`) and Limburgish
+(`li`); **Romance** — Friulian (`fur`), Venetian (`vec`), Ligurian (`lij`),
+Piedmontese (`pms`) and Neapolitan (`nap`); **Slavic** — Upper Sorbian
+(`hsb`), Lower Sorbian (`dsb`), Kashubian (`csb`), Silesian (`szl`) and Rusyn
+(`rue`).
+
+It is the first batch assembled as **three families of five in one continent**
+rather than around an ocean, a script, a state or a family, and the shape is
+not decoration: nearly everything below divides along it, and the two places
+where it does *not* are the interesting ones.
+
+#### One complete catalog, and fourteen school systems
+
+`locales/nn` is the batch's one complete catalog and carries the whole
+periodic table. That is the `locales/bs` and `locales/sw` case: Norway teaches
+chemistry in Norwegian and prints the table in it, so the names exist and are
+settled. The list is `locales/nb`'s but for the two words where the standards
+genuinely differ — **«Kopar»** for Bokmål «Kobber» and **«Jarn»** for «Jern» —
+and a reviewer should expect the other 116 to agree.
+
+**All fourteen others are the school-system case, and — like the second
+sub-Saharan batch and the African and Berber one — they split no ways at all.**
+Secondary science is taught in Italian across Friuli, the Veneto, Liguria,
+Piedmont and Campania; in Standard German in German-speaking Switzerland and
+the Rhineland; in Dutch in Limburg; in Polish in Pomerania and Upper Silesia;
+in German in Lusatia; in English in Scotland; and in Slovak, Polish or
+Ukrainian across Rusyn's range depending on the state. So in all fourteen the
+fallback *is* the curriculum, and `locales/it`, `locales/de`, `locales/nl`,
+`locales/pl` and `locales/sk` are the parallel texts each header names.
+
+`locales/sco` makes the point sharpest, and in a way no earlier catalog could.
+Everywhere else in this file a school-system gap means the reader meets the
+table in a *neighbouring* language — a Friulian pupil in Italian, a Sorbian one
+in German. A Scots speaker meets it in **the fallback language itself**. The
+gap and the fallback coincide exactly once in the roster, and this is it.
+
+#### The plural split, and three categories no catalog here had
+
+The batch divides **eight to seven** on whether CLDR has plural data at all,
+and it is the first in which both states arrive together in numbers.
+`Intl.PluralRules` resolves `nn`, `hsb`, `dsb`, `gsw`, `ksh`, `vec`, `lij` and
+`fur` against their own data; it resolves `sco`, `li`, `nap`, `pms`, `csb`,
+`szl` and `rue` against the runtime's default locale, so a category branch in
+any of those seven would be text selected by English's rules on English's
+terms. None of the seven writes one. `chrome.test.ts` holds both halves.
+
+Three of the eight write a category no catalog in this repository had written
+before:
+
+- **`hsb` and `dsb` write a `two`.** Upper and Lower Sorbian have a living
+  grammatical dual, and CLDR has it: «jedyn pospyt», «dwaj pospytaj», «tři
+  pospyty», «pjeć pospytow». The Sami catalogs write a `[two]` as well, and the
+  Uralic north's note explains why, but a Sami dual is a category CLDR happens
+  to list; a Sorbian one is an everyday inflection the reader would notice the
+  absence of. These are also the first four-branch plurals in the roster.
+- **`ksh` writes a `zero`.** Colognian is the only locale in the batch whose
+  own rules select one, and its header spells out the distinction that makes it
+  safe: an explicit `[0]` is matched against the *number*, a `[zero]` against
+  the *category*, and writing both into one selector would be two mechanisms
+  competing for the same input. So the branch goes where English leaves a real
+  count with no `[0]` already standing on it — `help-suggestions-footer` in
+  `locales/ksh/editor.ftl` — and `attempts-remaining` keeps English's literal
+  and nothing beside it. `chrome.test.ts` pins both halves.
+- **`vec` has a `many` and deliberately does not write it.** Venetian's `many`
+  fires at exact millions and nowhere else — `1000000` selects it and `1500000`
+  does not — and no noun counted in these catalogs changes shape there. The
+  absence is recorded so a later reader does not take it for an oversight.
+
+`szl`, `csb` and `rue` are the sharpest of the seven without data, because all
+three really do have a `few`/`many` split of their own. The branch that could
+be written is exactly the branch that would be got wrong.
+
+#### The batch that needed nothing from the maps, and the row that had to *stay*
+
+`MACROLANGUAGE_MEMBERS` and `LANGUAGE_ALIASES` are **unchanged**. Not one of
+the fifteen is a macrolanguage, not one is a member of one, and not one was
+being folded onto a wider code — so every tag reached English on its own
+account before this batch and reaches its own catalog after it.
+
+**The interesting part is the row that did not change.** `no` still maps to
+`nb`, and now that `locales/nn` exists that is a decision rather than an
+oversight. A reader who types `no` has named the macrolanguage over both
+written Norwegians and has not said which they read; Bokmål is what CLDR fills
+a bare `no` in as, and pointing `no` at the new catalog would be the
+substitution the `fat` row is left out for, running the other way.
+`negotiate.test.ts` pins `nn`, `nb` and `no` together so the three cannot drift.
+
+Two of the fifteen — `nn` and `li` — have ISO 639-1 codes, so a reader can also
+arrive under the alpha-3 (`nno`, `lim`) that `Intl.getCanonicalLocales` folds.
+Those rows are pinned because the folding is ICU's rather than this
+repository's.
+
+**Alsatian is this batch's near miss that is not one.** `gsw-FR` is Alsatian,
+and ISO puts it *inside* `gsw` rather than beside it, so an Alsatian reader
+reaches `locales/gsw` and is served the Zurich-based koine that catalog is
+written in. That is the trade region-stripping already makes for `es-MX`, and
+`locales/gsw`'s header says which variety it is so a reader can tell what they
+were served.
+
+Twenty-one tags are left to miss, and this batch's near misses are the densest
+the roster has had, because Europe's regional languages sit in continua rather
+than on islands: `bar`, `swg` and `wae` beside `gsw` — `wae` spoken *inside
+Switzerland* and still a language with a code of its own; `pfl` and `yec`
+beside `ksh`; `stq`, `frr`, `vls` and `zea` beside `li`; `lmo`, `rgn`, `cim`
+and `mhn` among the five Romance catalogs, with `cim` and `mhn` being *Germanic*
+languages spoken inside Italy, so neither the country's catalogs nor the
+family's is the right answer; `mwl`, `ext`, `an` and `wa`; `sgs` and `ltg`;
+`pdc` and `hrx`.
+
+**`eml` is left to miss for `map`'s reason.** Emilian-Romagnol is the one tag
+in this region CLDR has no data of any kind for: it maximizes to nothing at all
+and `Intl.DisplayNames` has no name for it in any language, its own included. A
+tag ICU cannot place is the clearest possible case for leaving it alone rather
+than guessing which of `lij`, `vec` or `pms` its reader would rather have.
+
+**`rue` maximizes to Ukraine**, while the codification `locales/rue` is written
+in is the Prešov one, standardized in Slovakia. That is CLDR's answer rather
+than a wrong one, and it is recorded rather than worked around — the
+`und-WF`-maximizes-to-French row of the Oceania batch, one batch on.
+
+#### Word order, and the family line that finally predicts something
+
+Ten of the fifteen put the adjectives in front of the noun and five put them
+behind, and for the first time in this file **the split is exactly the family
+split**: all five Romance catalogs are postnominal, all five Germanic and all
+five Slavic ones prenominal. Every earlier batch recorded the opposite —
+`locales/bi` disagreeing with ten Austronesian neighbours it shares a region
+with, `locales/tkl` disagreeing with its own closest relative. Here the
+families do the work, and it is worth saying plainly that this is the exception
+rather than the rule the roster has found.
+
+**Ten of the fifteen reach `[noun-tail]` and five do not, and that is the
+family line a second time.** Every one of the five Romance catalogs folds the
+side count into a complement behind the adjectives — «poligon regolâr di 5
+bandis» — which is `locales/es`'s and `locales/it`'s shape, and the five Slavic
+ones do the same with a preposition of their own, «z 5 bokami». The Germanic
+five fold it into the head, as English does, and leave the `[tail]` branch
+empty. A catalog that reaches `[noun-tail]` has to place the tail the same way
+in `style-with-noun` and in `style-filled-with-noun`, or the same polygon is
+assembled two ways in one language depending on whether it is filled; all ten
+do, which is the drift `locales/pon` and `locales/kos` had to be corrected
+for.
+
+#### Pairs that are deliberately not copies of each other
+
+Six relationships in this batch could each have produced a respelling of an
+existing catalog, and every one of the six is argued in a header instead.
+
+- **`nn` beside `nb`** is the sharpest, and the one this file has a name for
+  already: two written standards of one language, two directories, exactly as
+  `locales/hr` sits beside `locales/sr` and `locales/tn` beside `locales/st`.
+  `locales/nn`'s header lists the words a corrector must not "fix" —
+  «ikkje», «kva», «frå», «eit», «sida», «berre», «nokon», «fleire».
+- **`dsb` beside `hsb`** is the batch's `tkl`/`tvl`: two standards close enough
+  that a seed reading one while writing the other will reproduce its choices,
+  so the two catalogs are *expected* to look alike and **their agreement is not
+  evidence either is right**. `locales/dsb`'s header names its own largest risk
+  outright — the Upper-to-Lower correspondences («hdyž»→«gaž»,
+  «dokelž»→«dokulaž», «dyrbi»→«musy», «njemóžu»→«njamóžom») are regular enough
+  to apply mechanically, and a file built out of them is a transposition rather
+  than a translation.
+- **`szl` and `csb` beside `pl`**, **`li` beside `nl`**, and **`gsw` and `ksh`
+  beside `de`** are the same shape at one remove: a roofing language whose
+  gravity a seed falls into when it has nothing better. Each header lists the
+  everyday words where the two part company, because those are what a reviewer
+  can check in a second.
+- **`sco` beside `en`** is that shape at its limit, and it is a failure mode no
+  other catalog in this repository has. English is Scots's sister language
+  *and* its roofing language, so a seed with nothing to say falls into English
+  without anything looking wrong. `locales/sco`'s header answers it the way
+  `locales/bi` answers it for an English-lexified creole: a word is written
+  there because a Scots dictionary has it, not because it differs from English,
+  and the header lists the words the file leans on so a reviewer can say which
+  of them a reader would actually meet.
+
+#### Orthographies, and why the diacritics are not decoration
+
+Six of the fifteen write in a spelling a corrector could easily "simplify" into
+a different language, and each says so at the top of its own files: the
+**ślabikŏrzowy szrajbōnek** for `szl` («ō», «ŏ», «ô», «ã», «õ» are letters, not
+decorated Polish ones); the **grafia ofiçiâ** for `lij` («ç», «ñ», the
+circumflex); the **grafìa piemontèisa** for `pms` («ë», «ò», «ù», «n-»); the
+**grafie uficiâl** for `fur` (the circumflex, «ç», «cj», «gj»); the **unified
+Venetian spelling** for `vec` («x» for the voiced sibilant, and **no «ł»**);
+and the **Dieth-Schreibung** for `gsw` (double vowels for length, and **no ß
+anywhere**, which is its sharpest break from `locales/de`). `nap` records
+something that is not a spelling habit at all: **metaphony**, the stressed
+vowel that raises in the masculine singular and not in the feminine —
+«gruosso»/«grossa», «russo»/«rossa», «niro»/«nera» — so that nobody
+regularizes one of a pair to match the other.
+
+#### Also here
+
+- **No `LOCALE_NAME_FALLBACKS` entry at all.** CLDR knows every one of the
+  fifteen, in English, and knows **ten** of them in themselves — this is the
+  best-named batch the roster has had, and the first since the table existed to
+  need nothing from it.
+- **No `direction.ts` change.** Fourteen are Latin and `rue` is Cyrillic; all
+  fifteen run left to right.
+- **Five** of the fifteen read their **English name once** in
+  `<document lang>`'s autocomplete, because CLDR has no endonym for them —
+  `sco`, `li`, `nap`, `csb` and `rue`, which is the `co` case, now familiar.
+  The other ten read as a pair: "Norwegian Nynorsk (norsk nynorsk)", "Swiss
+  German (Schwiizertüütsch)", "Colognian (Kölsch)", "Silesian (ślōnski)",
+  "Upper Sorbian (hornjoserbšćina)".
+- Regenerated locale roster and schema, so `<document lang>` autocompletes all
+  fifteen.
+
+#### Honesty
+
+Every string is machine-generated and unread by a speaker, and each catalog
+says so in its own header. The batch's own worst risk is not a missing word but
+a present one: five of these fifteen sit under a roofing language that a
+machine translating into them will reach for, and `locales/sco` sits under the
+very language it falls back to. The headers name that risk rather than leaving
+a reviewer to discover it, and correcting any of it needs no permission.
 
 ### A language with no word for it
 
