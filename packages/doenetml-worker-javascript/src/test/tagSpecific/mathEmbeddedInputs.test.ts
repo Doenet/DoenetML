@@ -66,10 +66,6 @@ describe("Inputs embedded in displayed math @group1", async () => {
     });
 
     it("an aligned display blanks only the rows that need it", async () => {
-        // `\amp` rather than a bare `&`: `Md.text` strips the macro but not
-        // the character, so a literal `&` makes the row unparseable and `text`
-        // falls back to raw LaTeX. Pre-existing and orthogonal to blanks —
-        // tracked in #1761; this can use either spelling once that is fixed.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <md name="md">

@@ -10,7 +10,11 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { latexToAst, superSubscriptsToUnicode } from "../utils/math";
+import {
+    latexToAst,
+    stripAlignmentMarkers,
+    superSubscriptsToUnicode,
+} from "../utils/math";
 import { convertLatexWithBlanks } from "../utils/embeddedMathInputs";
 
 /**
@@ -301,9 +305,9 @@ export class Md extends InlineComponent {
                     expressionText = convertLatexWithBlanks(
                         dependencyValues.latex,
                         (latex) =>
-                            latex
-                                .replaceAll("\\notag", "")
-                                .replaceAll("\\amp", "")
+                            stripAlignmentMarkers(
+                                latex.replaceAll("\\notag", ""),
+                            )
                                 .split("\\\\")
                                 .map((x) => {
                                     let result = x.match(/\\tag\{(\w+)\}(.*)/);
@@ -321,7 +325,12 @@ export class Md extends InlineComponent {
                                 .join("\\\\\n"),
                     );
                 } catch (e) {
-                    // just return latex if can't parse with math-expressions
+                    // A row is not something math-expressions can read. Hand
+                    // the display's LaTeX back as it is, markers and all --
+                    // the same fallback `latexToText` makes for an `<m>`. It
+                    // is silent, so an author sees only `text` returning
+                    // LaTeX; a whole spelling landing here is a bug in what
+                    // is stripped before the parse, as #1761 was.
                     return { setValue: { text: dependencyValues.latex } };
                 }
                 return {

@@ -1075,7 +1075,11 @@ export function latexToText(latex: string) {
     try {
         expression = me.fromAst(latexToAst.convert(latex));
     } catch (e) {
-        // just return latex if can't parse with math-expressions
+        // The LaTeX is not something math-expressions can read. Hand it back
+        // as it is: a reader gets more from the raw LaTeX than from nothing.
+        // The fallback is silent, so a systematic failure of this kind looks
+        // to an author like `text` simply returning LaTeX; if a whole class of
+        // expressions lands here, the fix belongs where the LaTeX is produced.
         return latex;
     }
 
@@ -1216,4 +1220,26 @@ function removeRepeatedSuperSubScripts(latex: string) {
     removeRepScript("_");
 
     return newLatex;
+}
+
+/**
+ * Remove the alignment markers from an aligned display. A marker is layout,
+ * not part of the expression its row states, and the math parser cannot read
+ * it. Both spellings go: a bare `&`, and `\amp` (one of Doenet's MathJax
+ * macros) as a whole control sequence, so a longer name that starts the same
+ * way is left alone.
+ *
+ * What is left alone is decided by scanning the string once, so a backslash
+ * is only ever read as the escape for what follows it: `\&` is an ampersand
+ * the author asked to print and stays, and the `\` of a `\\` row break is
+ * spent on that break, so `\\&` opens the next row with a marker that goes
+ * and `\\amp` is a row break followed by the letters `amp`.
+ */
+export function stripAlignmentMarkers(latex: string) {
+    // The alternation is ordered so that a row break and an escaped ampersand
+    // are matched whole, ahead of the markers; those two are put back, and
+    // what is left of a match — a bare `&` or an `\amp` — is dropped.
+    return latex.replace(/\\\\|\\&|\\amp(?![a-zA-Z])|&/g, (match) =>
+        match === "\\\\" || match === "\\&" ? match : "",
+    );
 }
