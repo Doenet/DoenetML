@@ -309,7 +309,9 @@ export function symbolicVariantKeys(source: string): Map<string, string[]> {
         if (entry.type !== "Message" && entry.type !== "Term") {
             continue;
         }
-        const visitor = new VariantKeyVisitor();
+        const visitor = new VariantKeyVisitor(
+            (name) => !PLURAL_VARIANT_KEYS.has(name),
+        );
         visitor.visit(entry);
         if (visitor.found.size > 0) {
             // Sorted and deduplicated: a message with two selects — the
@@ -324,19 +326,137 @@ export function symbolicVariantKeys(source: string): Map<string, string[]> {
     return keys;
 }
 
-/** Every symbolic (non-numeric, non-plural) variant key under one entry. */
+/**
+ * Every identifier variant key under a node that `accept` admits.
+ *
+ * One visitor serves both readings of a select's keys, because the traversal
+ * is the whole of the shared part and the predicate is the whole of the
+ * difference: {@link symbolicVariantKeys} takes the keys that are *not* plural
+ * categories, {@link pluralVariantKeys} takes the ones that are — and only the
+ * latter cares whether the branch is the default, which is why `accept` is
+ * handed the whole variant and not just its name. Numeric keys (`[0]`, `[1]`)
+ * are not `Identifier` nodes at all, so neither reading ever sees one.
+ */
 class VariantKeyVisitor extends Visitor {
     found = new Set<string>();
+
+    constructor(private accept: (name: string, variant: Variant) => boolean) {
+        super();
+    }
 
     visitVariant(node: Variant) {
         if (
             node.key.type === "Identifier" &&
-            !PLURAL_VARIANT_KEYS.has(node.key.name)
+            this.accept(node.key.name, node)
         ) {
             this.found.add(node.key.name);
         }
         this.genericVisit(node);
     }
+}
+
+/**
+ * The plural-category variant keys a catalog writes, the default aside.
+ *
+ * The mirror of {@link symbolicVariantKeys}: a symbolic key is part of the
+ * interface and must match English, while a plural key is part of the
+ * *language*, and what matters about it is whether the reader's locale can
+ * ever select it.
+ *
+ * The default variant is left out whatever it is named, because nothing can
+ * make it dead: Fluent falls back to it for every input no other branch
+ * claims, so `*[one]` in a language whose only category is `other` is selected
+ * by every count rather than by none. Numeric literals — `[0]`, `[1]` — are
+ * left out for a different reason: they are matched against the *number*
+ * rather than against a category, so they stay selectable in a
+ * single-category language. That distinction is what keeps `locales/km`'s
+ * `[0]` branch legal while its `[one]` branch was not.
+ *
+ * A category name is read as a category wherever it appears, including on a
+ * select whose selector is not a count, where Fluent would match `[few]`
+ * against the literal string `"few"`. Reading it the same way from both sides
+ * is what keeps this function and {@link symbolicVariantKeys} from disagreeing
+ * about a key, and no selector in the roster is affected: the symbolic selects
+ * key on `plain`, `none`, `dark`, `true` and the like.
+ */
+export function pluralVariantKeys(source: string): string[] {
+    const visitor = new VariantKeyVisitor(
+        (name, variant) => PLURAL_VARIANT_KEYS.has(name) && !variant.default,
+    );
+    visitor.visit(parseFtl(source, {}));
+    return [...visitor.found].sort();
+}
+
+/**
+ * What a locale CLDR has no data for may write: English's split.
+ *
+ * Which language actually selects such a branch is the *runtime's* default
+ * locale and so not knowable here — a browser set to Polish would pick the
+ * branch by Polish rules. English is the right answer anyway: it is the
+ * package's `DEFAULT_LOCALE`, the language every one of these catalogs falls
+ * back to when it is incomplete, and the split their headers say they are
+ * assuming. Anything beyond `one` would be a branch no reader is promised.
+ */
+const FALLBACK_PLURAL_CATEGORIES = ["one", "other"];
+
+/**
+ * The plural categories a locale is entitled to write.
+ *
+ * Either the ones CLDR lists for the tag, or — when CLDR has no data for it,
+ * so that `Intl.PluralRules` resolves it against the runtime's default locale
+ * and some other language's rules pick the branch —
+ * {@link FALLBACK_PLURAL_CATEGORIES}. `hasOwnPluralData` tells the two apart;
+ * the README's "A plural branch nothing can select" has the longer story.
+ */
+export function allowedPluralCategories(locale: string): Set<string> {
+    return hasOwnPluralData(locale)
+        ? new Set(
+              new Intl.PluralRules(locale).resolvedOptions().pluralCategories,
+          )
+        : new Set(FALLBACK_PLURAL_CATEGORIES);
+}
+
+/**
+ * Whether CLDR resolves this tag against its own rules rather than someone
+ * else's. A `false` means the categories on offer belong to the runtime's
+ * default locale, not to the language — which is what the lint message says.
+ *
+ * The comparison is made on the canonical *language* subtag on both sides.
+ * Canonical, because ICU folds three of this repository's directory names onto
+ * a macrolanguage — `kmr` to `ku`, `kpv` to `kv`, `mhr` to `chm` — and
+ * comparing against the raw directory name would call all three no-data when
+ * `kmr` really does inherit Kurdish's rules. The language subtag rather than
+ * the whole tag, because `zh-Hans` resolves to plain `zh`, which is its own
+ * data and not a fallback.
+ */
+export function hasOwnPluralData(locale: string): boolean {
+    try {
+        const canonicalLanguage = new Intl.Locale(locale)
+            .toString()
+            .split("-")[0];
+        const resolved = new Intl.PluralRules(locale).resolvedOptions();
+        return resolved.locale.split("-")[0] === canonicalLanguage;
+    } catch {
+        // A tag `Intl` refuses outright — `en_US`, the POSIX spelling — is the
+        // no-data case, and the runtime agrees: `intlLocale` hands the bundle
+        // `DEFAULT_LOCALE` for exactly those, so English is literally what
+        // selects the branch.
+        return false;
+    }
+}
+
+/**
+ * The plural categories a catalog writes that its own locale cannot select.
+ *
+ * Empty for a healthy catalog. Anything in it is text that parses, lints and
+ * never renders.
+ */
+export function unselectablePluralCategories(
+    locale: string,
+    source: string,
+): string[] {
+    const allowed = allowedPluralCategories(locale);
+    return pluralVariantKeys(source).filter((key) => !allowed.has(key));
 }
 
 /** Every key in every namespace of a locale. */
@@ -766,11 +886,10 @@ export const LOCALE_NAME_FALLBACKS: Record<
     olo: { englishName: "Livvi-Karelian" },
     kca: { englishName: "Khanty", endonym: "хӑнты ясӑӈ" },
     mns: { englishName: "Mansi", endonym: "мāньси лāтыӈ" },
-    // The one locale of the Oceania batch CLDR has no data for, and the batch
-    // is otherwise the best-named this roster has had: ICU knows ten of the
-    // eleven tags, down to `tkl` and `niu`. `wls` it knows in no language
-    // at all, not even its own, so without this entry a Wallisian reader would
-    // be offered "wls" in `<document lang>`'s autocomplete. The endonym is
+    // The one locale of the Oceania batch CLDR has no data for: ICU knows the
+    // other ten tags in English, down to `tkl` and `niu`, and `wls` in no
+    // language at all, not even its own — so without this entry a Wallisian
+    // reader would be offered "wls" in `<document lang>`'s autocomplete. The endonym is
     // copied letter for letter from `locales/wls`'s own headers, `locales/sjd`
     // fashion rather than `locales/olo` fashion, because those headers do
     // commit to a self-name: the ʻokina is U+02BB, the same character the

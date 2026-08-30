@@ -432,6 +432,16 @@ read only there. The rule above therefore still holds: a language is named
 whatever CLDR names it, and an entry stops being consulted the day ICU learns a
 name of its own.
 
+**A batch section states counts, not superlatives.** Three claims of the form
+"the first batch to…" or "the best-named batch the roster has had" have now
+been written into this file and later found false — one about grammatical
+duals, one about `zero` plural categories, and one about display names. Each
+was true of the batch that wrote it and false across the roster, and each
+survived several readings because checking it means measuring every earlier
+batch rather than the one in front of you. A count is checkable in one command
+and stays true; a superlative is a claim about twenty other sections that
+nobody re-measures when the twenty-first lands. Write the count.
+
 The names in the table are **unreviewed and machine-generated**, the same status
 as the seed catalogs — the best available answer, not a speaker's. `endonym` is
 optional for that reason: an entry whose endonym turns out to be wrong should
@@ -2105,8 +2115,11 @@ nothing where it does not, and the seed cannot always tell which.
   has no name for in any language, its own included. The endonym «Fakaʻuvea» is
   copied letter for letter from `locales/wls`'s headers — `locales/sjd` fashion
   rather than `locales/olo` fashion, because those headers do commit to a
-  self-name. ICU knows the other ten, down to `tkl` and `niu`, which makes this
-  the best-named batch the roster has had.
+  self-name. ICU knows the other ten in English, down to `tkl` and `niu`. It
+  knows none of the eleven **in its own language**, so `wls` — the one tag it
+  could not name at all — is the only one of the batch whose roster label reads
+  as a pair: "Wallisian (Fakaʻuvea)" beside ten that read their English name
+  once.
 - Two tags left to miss for `smi`'s reason one family up: `map`, the ISO 639-5
   collection over all Austronesian languages, which maximizes to nothing at all,
   and — recorded rather than fixed — `und-WF`, which CLDR maximizes to
@@ -2348,8 +2361,9 @@ regularizes one of a pair to match the other.
 #### Also here
 
 - **No `LOCALE_NAME_FALLBACKS` entry at all.** CLDR knows every one of the
-  fifteen, in English, and knows **ten** of them in themselves, so this is the
-  first batch since the table existed to need nothing from it.
+  fifteen in English and **ten** of them in themselves. Two earlier batches
+  needed nothing from the table either — the four African languages of #1687
+  and the twelve Cyrillic ones of #1689 — so this is the third, not the first.
 - **No `direction.ts` change.** Fourteen are Latin and `rue` is Cyrillic; all
   fifteen run left to right.
 - **Five** of the fifteen read their **English name once** in
@@ -3824,7 +3838,8 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
 catalog naming a `numberingSystem` on a Fluent builtin, a message whose value
-would render a line break, a translated locale
+would render a line break, a catalog naming a plural category its own locale
+cannot select, a translated locale
 defining a key English lacks, a stale `messageKeys.ts`, `supportedLocales.ts`,
 or `diagnostic-codes.lock.json`, a lazy-catalog glob that no longer excludes
 exactly the inlined locales, a call site referencing a key that doesn't exist,
@@ -3838,6 +3853,63 @@ legitimate and falls back.
 Run `codegen` after editing any English catalog, adding a diagnostic code, or
 adding a locale directory; the generated `MessageKey` union, the locale roster
 and the code lock are all committed.
+
+### A plural branch nothing can select
+
+A catalog may write only the plural categories its own locale can reach, and
+`lint:i18n` enforces it.
+
+A `[one]` branch in a language whose only category is `other` parses, lints,
+reads as a translation, and never renders — Fluent's default variant answers
+every input instead. `locales/km` was seeded with exactly that in two messages,
+both byte-identical to the `*[other]` beside them, which is why nobody noticed:
+the output was right and the branch was dead.
+
+Two things can put one there, and the rule covers both:
+
+- **A locale CLDR knows, given a category it does not have.** `Intl.PluralRules`
+  is the authority, and `resolvedOptions().pluralCategories` is the answer.
+- **A locale CLDR does not know.** Its tag resolves to the *runtime's* default
+  locale, so every category branch in it is selected by some other language's
+  rules. More than a hundred locale directories are in this position, and none
+  of them writes `zero`, `two`, `few` or `many`.
+
+`one` is the deliberate exception in the second case: most of those locales keep
+English's `one`/`other` split because English is the package's `DEFAULT_LOCALE`
+and its split is the one the fallback usually makes, and because it reads
+correctly for them — each of their headers records the trade. Forbidding it
+would be a change to ninety-odd catalogs rather than a lint rule.
+
+**Numeric literals are a different mechanism and stay legal.** `[0]` is matched
+against the number itself rather than against a category, so it remains
+selectable in a language whose only category is `other` — which is why
+`locales/km` keeps the `[0]` branch of `attempts-remaining` and lost only the
+`[one]` beside it.
+
+**A category name is read as a category wherever it is written**, including on
+a select whose selector is not a count — where Fluent would match `[few]`
+against the literal string `"few"`. Reading it the same way from both sides
+keeps the rule and the symbolic-key check from disagreeing about a key, and no
+select in the roster is affected: the symbolic ones key on `plain`, `none`,
+`dark`, `true` and the like.
+
+**The default variant is exempt whatever it is named.** Fluent answers with it
+whenever no other branch claims the input, so `*[one]` in a single-category
+language is selected by every count rather than by none.
+
+The tag is canonicalized before it is asked about, because ICU folds three
+directory names onto a macrolanguage — `kmr` to `ku`, `kpv` to `kv`, `mhr` to
+`chm` — and `kmr` genuinely inherits Kurdish's rules while the other two
+inherit nothing, their macrolanguages having no CLDR data either. Comparing the
+resolved tag against the *language* subtag rather than the whole tag matters for
+the opposite reason: `zh-Hans` and `zh-Hant` both resolve to plain `zh`, which
+is their own data and not a fallback.
+
+`pluralVariantKeys`, `allowedPluralCategories` and
+`unselectablePluralCategories` in `scripts/catalogUtils.ts` are the rule, and
+`catalogLint.test.ts` holds it over the whole roster. The per-batch plural
+blocks in `chrome.test.ts` keep only the half the property cannot state: *why*
+a particular language writes the branch it writes.
 
 ## Pseudo-localization
 
