@@ -10,7 +10,11 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
-import { latexToAst, superSubscriptsToUnicode } from "../utils/math";
+import {
+    latexToAst,
+    stripAlignmentMarkers,
+    superSubscriptsToUnicode,
+} from "../utils/math";
 import { convertLatexWithBlanks } from "../utils/embeddedMathInputs";
 
 /**
@@ -301,9 +305,9 @@ export class Md extends InlineComponent {
                     expressionText = convertLatexWithBlanks(
                         dependencyValues.latex,
                         (latex) =>
-                            latex
-                                .replaceAll("\\notag", "")
-                                .replaceAll("\\amp", "")
+                            stripAlignmentMarkers(
+                                latex.replaceAll("\\notag", ""),
+                            )
                                 .split("\\\\")
                                 .map((x) => {
                                     let result = x.match(/\\tag\{(\w+)\}(.*)/);

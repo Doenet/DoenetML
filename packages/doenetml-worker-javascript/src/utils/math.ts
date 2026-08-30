@@ -1217,3 +1217,14 @@ function removeRepeatedSuperSubScripts(latex: string) {
 
     return newLatex;
 }
+
+/**
+ * Remove the alignment marker from a row of an aligned display. The marker is
+ * layout, not part of the expression the row states, and the math parser
+ * cannot read it. Both spellings go: a bare `&`, and `\amp` (one of Doenet's
+ * MathJax macros) as a whole control sequence, so a longer name that starts
+ * the same way is left alone.
+ */
+export function stripAlignmentMarkers(latex: string) {
+    return latex.replace(/\\amp(?![a-zA-Z])/g, "").replace(/(?<!\\)&/g, "");
+}
