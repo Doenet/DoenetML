@@ -250,6 +250,24 @@ describe("AutoCompleter", () => {
         expect(items.map((i) => i.label)).not.toContain("/b>");
     });
 
+    it("suggests element names when a tag-name terminator follows the cursor (#1767)", async () => {
+        // `<aa><b}</aa>` — error recovery parses the half-typed `<b` plus the
+        // `}` that ends it as a complete `<b>` element holding `}` as text, so
+        // the cursor right after `<b` used to look like `<b>`'s body and offer
+        // nothing. It should offer element names filtered by the typed text,
+        // exactly as it does with no terminator present.
+        for (const terminator of ["}", "{", ")", "]", "$", "&", "%", "\\"]) {
+            const source = `<aa><b${terminator}</aa>`;
+            const autoCompleter = new AutoCompleter(source, schema.elements);
+            const offset = source.indexOf("<b") + 2; // right after `<b`
+            const items = await autoCompleter.getCompletionItems(offset);
+            expect({ terminator, labels: items.map((i) => i.label) }).toEqual({
+                terminator,
+                labels: ["b"],
+            });
+        }
+    });
+
     it("matches element names by substring, not only by prefix (#1328)", async () => {
         // Typing part of a tag name that appears in the *middle* of other tag
         // names should still surface those tags (e.g. `num` -> `isNumber`), so

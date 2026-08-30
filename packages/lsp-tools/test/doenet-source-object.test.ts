@@ -345,6 +345,58 @@ describe("DoenetSourceObject", () => {
         }
     });
 
+    it("Reports openTagName when a tag-name terminator follows the cursor (#1767)", () => {
+        // Any character that cannot continue a tag name ends the half-typed
+        // tag, and error recovery then parses `<m` plus that character as a
+        // *complete* `<m>` element holding it as text. The cursor right after
+        // `<m` is still typing the open tag name. `}` is the one that shows up
+        // in practice, since the editor closes brackets as you type, so
+        // `<me>\frac{` is already `<me>\frac{|}` when the tag is typed.
+        for (const terminator of [
+            "}",
+            "{",
+            ")",
+            "]",
+            "$",
+            "&",
+            "%",
+            "\\",
+            ">",
+        ]) {
+            const source = `<p><m${terminator}</p>`;
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(5);
+            expect({ terminator, cursorPosition, name: node?.name }).toEqual({
+                terminator,
+                cursorPosition: "openTagName",
+                name: "m",
+            });
+        }
+
+        // The shape that surfaced this: a tag typed inside a brace group of an
+        // `<me>`, with the auto-closed `}` sitting right after the cursor.
+        {
+            const source = `<me>\\frac{<m}</me>`;
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(source.indexOf("<m}") + 2);
+            expect(cursorPosition).toEqual("openTagName");
+            expect(node).toMatchObject({ type: "element", name: "m" });
+        }
+
+        // Regression guard: once the cursor moves past the terminator it is in
+        // the (recovered) element's body again, not in its tag name.
+        {
+            const source = `<p><m}</p>`;
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(6);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "m" });
+        }
+    });
+
     it("Reports the container (not the element) when the cursor is on a tag boundary (#1327)", () => {
         for (const { source, offset } of [
             { source: `<text/>`, offset: 0 },

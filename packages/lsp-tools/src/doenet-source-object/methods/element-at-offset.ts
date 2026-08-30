@@ -31,11 +31,14 @@ export function elementAtOffsetWithContext(
     // The lezer node immediately to the left of the cursor. When it is an
     // open tag's `TagName`, the author is still typing that tag's name (the
     // tag hasn't been terminated with `>` yet). Error recovery can
-    // tentatively parse a half-typed `<nu` that is immediately followed by
-    // another tag (`<nu|<text>` or `<text><nu|</text>`) as a *complete*
-    // `<nu>` element, which otherwise makes the cursor look like it is in
-    // that element's body. Detect this so the body-classifying branches
-    // below defer to the open-tag-name handling instead (#1328).
+    // tentatively parse such a half-typed `<nu` as a *complete* `<nu>`
+    // element, which otherwise makes the cursor look like it is in that
+    // element's body. That happens when the tag is immediately followed by
+    // another tag (`<nu|<text>` or `<text><nu|</text>`, #1328), and also
+    // when it is followed by any character that cannot continue a tag name,
+    // which error recovery then takes as the element's text content
+    // (`<p><nu|}</p>`, #1767). Detect this so the body-classifying branches
+    // below defer to the open-tag-name handling instead.
     const leftLezerCursor = this._lezerCursor();
     leftLezerCursor.moveTo(offset, -1);
     const leftLezerNodeParentName = leftLezerCursor.node.parent?.type?.name as
@@ -46,10 +49,13 @@ export function elementAtOffsetWithContext(
             leftLezerNodeParentName === "SelfClosingTag");
 
     if (
-        (exactNodeAtOffset && exactNodeAtOffset !== node) ||
-        !exactNodeAtOffset ||
-        !parent ||
-        (node?.type === "element" && node.name === "" && parent.type === "root")
+        !atOpenTagNameEnd &&
+        ((exactNodeAtOffset && exactNodeAtOffset !== node) ||
+            !exactNodeAtOffset ||
+            !parent ||
+            (node?.type === "element" &&
+                node.name === "" &&
+                parent.type === "root"))
     ) {
         // If our exact node is not the same as our containing element, then we're a child of the containing
         // element and so we're in the body.
