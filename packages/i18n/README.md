@@ -403,6 +403,16 @@ read only there. The rule above therefore still holds: a language is named
 whatever CLDR names it, and an entry stops being consulted the day ICU learns a
 name of its own.
 
+**A batch section states counts, not superlatives.** Three claims of the form
+"the first batch to…" or "the best-named batch the roster has had" have now
+been written into this file and later found false — one about grammatical
+duals, one about `zero` plural categories, and one about display names. Each
+was true of the batch that wrote it and false across the roster, and each
+survived several readings because checking it means measuring every earlier
+batch rather than the one in front of you. A count is checkable in one command
+and stays true; a superlative is a claim about twenty other sections that
+nobody re-measures when the twenty-first lands. Write the count.
+
 The names in the table are **unreviewed and machine-generated**, the same status
 as the seed catalogs — the best available answer, not a speaker's. `endonym` is
 optional for that reason: an entry whose endonym turns out to be wrong should
@@ -2076,8 +2086,11 @@ nothing where it does not, and the seed cannot always tell which.
   has no name for in any language, its own included. The endonym «Fakaʻuvea» is
   copied letter for letter from `locales/wls`'s headers — `locales/sjd` fashion
   rather than `locales/olo` fashion, because those headers do commit to a
-  self-name. ICU knows the other ten, down to `tkl` and `niu`, which makes this
-  the best-named batch the roster has had.
+  self-name. ICU knows the other ten in English, down to `tkl` and `niu`. It
+  knows none of the eleven **in its own language**, so `wls` — the one tag it
+  could not name at all — is the only one of the batch whose roster label reads
+  as a pair: "Wallisian (Fakaʻuvea)" beside ten that read their English name
+  once.
 - Two tags left to miss for `smi`'s reason one family up: `map`, the ISO 639-5
   collection over all Austronesian languages, which maximizes to nothing at all,
   and — recorded rather than fixed — `und-WF`, which CLDR maximizes to
@@ -2319,8 +2332,9 @@ regularizes one of a pair to match the other.
 #### Also here
 
 - **No `LOCALE_NAME_FALLBACKS` entry at all.** CLDR knows every one of the
-  fifteen, in English, and knows **ten** of them in themselves, so this is the
-  first batch since the table existed to need nothing from it.
+  fifteen in English and **ten** of them in themselves. Two earlier batches
+  needed nothing from the table either — the four African languages of #1687
+  and the twelve Cyrillic ones of #1689 — so this is the third, not the first.
 - **No `direction.ts` change.** Fourteen are Latin and `rue` is Cyrillic; all
   fifteen run left to right.
 - **Five** of the fifteen read their **English name once** in
