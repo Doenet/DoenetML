@@ -269,6 +269,73 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("a field being typed into stays put while a display makes room", () => {
+        // Display math is centred, so every step of room the field is given
+        // would move the whole line half a step to the left, caret included.
+        // The field's edge stays where it is; the display moves around it, and
+        // settles back to centre once the value is committed.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <me name="m">x = <mathInput name="mi" /> + 3</me>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
+
+        const fieldLeft = [];
+        const reserved = [];
+        for (const character of "abcdefghijkl") {
+            cy.get(`${cesc("#mi")} textarea`).type(character, { force: true });
+            cy.wait(150);
+            cy.get(cesc("#m")).then(($root) => {
+                const root = $root[0];
+                fieldLeft.push(
+                    root
+                        .querySelector(".mq-editable-field")
+                        .getBoundingClientRect().left,
+                );
+                reserved.push(
+                    Math.round(
+                        root
+                            .querySelector("[id*='_mathSlot_']")
+                            .getBoundingClientRect().width,
+                    ),
+                );
+            });
+        }
+
+        cy.then(() => {
+            expect(
+                new Set(reserved).size,
+                "the display made room at least once",
+            ).to.be.greaterThan(1);
+            expect(
+                fieldLeft.map((left) => Math.round(left - fieldLeft[0])),
+                "and the field's left edge never moved",
+            ).to.deep.eq(fieldLeft.map(() => 0));
+        });
+
+        cy.get(`${cesc("#mi")} textarea`).type("{enter}", { force: true });
+
+        // Committing lets the display settle back to centre.
+        cy.get(cesc("#m")).should(($root) => {
+            expect($root[0].style.left).to.eq("");
+            const container = $root[0].querySelector("mjx-container");
+            const math = container.querySelector("mjx-math");
+            const outer = container.getBoundingClientRect();
+            const inner = math.getBoundingClientRect();
+            expect(
+                Math.abs(inner.left - outer.left - (outer.right - inner.right)),
+                "the math is centred in its line",
+            ).to.be.lessThan(2);
+        });
+    });
+
     it("the expression is held still until the value is committed", () => {
         // `$mi.immediateValue` changes on every keystroke, so without the hold
         // core would push new LaTeX — and MathJax would re-typeset the

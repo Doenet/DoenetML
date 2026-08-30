@@ -170,6 +170,18 @@ export function useMathSlots({
     describeSlot: (ordinal: number, total: number) => string;
 }) {
     const rootRef = useRef<HTMLSpanElement>(null);
+
+    const slotElementId = useCallback(
+        (componentIdx: number) => `${rootId}_mathSlot_${componentIdx}`,
+        [rootId],
+    );
+
+    // A reserved box is found by the `_mathSlot_` in its id, so the marker's
+    // id keeps clear of that substring.
+    const slotBaselineElementId = useCallback(
+        (componentIdx: number) => `${rootId}_mathBaseline_${componentIdx}`,
+        [rootId],
+    );
     // Coordinates are read against the layer, not the root. The root is an
     // inline box, so when an expression sits in running text its border box is
     // the union of its line fragments, while an absolutely positioned child
@@ -199,6 +211,16 @@ export function useMathSlots({
     const liveTemplate = useRef({ template, embeddedComponentIndices });
     liveTemplate.current = { template, embeddedComponentIndices };
 
+    // Display math is centred, so each step of room a control is given moves
+    // the whole line half a step to the left, caret and all. While a control
+    // is being edited its left edge is anchored where a typeset first put it,
+    // and the expression is moved back by however far the next typeset moved
+    // that edge, so the room opens up around the control instead of under it.
+    // The anchor and the shift are dropped at every boundary, with the hold,
+    // and the expression settles back into place when the value is committed.
+    const anchor = useRef<{ componentIdx: number; pageX: number } | null>(null);
+    const [shift, setShift] = useState(0);
+
     /**
      * Hold the template as it stands now, or release it if nothing is being
      * edited. Called at every boundary — editing starting or ending, a value
@@ -207,6 +229,8 @@ export function useMathSlots({
      */
     const holdTemplate = useCallback(() => {
         setHeld(editingSlots.current.size > 0 ? liveTemplate.current : null);
+        anchor.current = null;
+        setShift(0);
     }, []);
 
     const setSlotEditing = useCallback(
@@ -217,9 +241,24 @@ export function useMathSlots({
             } else {
                 slots.delete(componentIdx);
             }
+            // The edge is anchored before any typeset has had a chance to
+            // move it, as the page shows it now, less whatever shift is still
+            // on screen from the editing that has just ended.
+            const box = editing
+                ? rootRef.current?.querySelector(
+                      `#${CSS.escape(slotElementId(componentIdx))}`,
+                  )
+                : null;
+            const pageX = box
+                ? box.getBoundingClientRect().left -
+                  shiftOnScreen(rootRef.current)
+                : null;
             holdTemplate();
+            if (pageX !== null) {
+                anchor.current = { componentIdx, pageX };
+            }
         },
-        [holdTemplate],
+        [holdTemplate, slotElementId],
     );
 
     // Core resolves a committed action once it has finished the action and sent
@@ -272,18 +311,6 @@ export function useMathSlots({
                 activeEmbedded.includes(componentIdx),
             ),
         [activeTemplate, activeEmbedded],
-    );
-
-    const slotElementId = useCallback(
-        (componentIdx: number) => `${rootId}_mathSlot_${componentIdx}`,
-        [rootId],
-    );
-
-    // A reserved box is found by the `_mathSlot_` in its id, so the marker's
-    // id keeps clear of that substring.
-    const slotBaselineElementId = useCallback(
-        (componentIdx: number) => `${rootId}_mathBaseline_${componentIdx}`,
-        [rootId],
     );
 
     const slotLabel = useCallback(
@@ -373,6 +400,30 @@ export function useMathSlots({
         setPositions((previous) =>
             samePositions(previous, next) ? previous : next,
         );
+
+        // The edge is read on the page, where whatever shift is on screen is
+        // part of it, and the shift is set outright from where the edge would
+        // be without one; so reading twice for one typeset sets it twice to
+        // the same value.
+        const [editingIdx] = editingSlots.current;
+        const editingBox =
+            editingIdx === undefined
+                ? null
+                : root.querySelector(
+                      `#${CSS.escape(slotElementId(editingIdx))}`,
+                  );
+        if (editingIdx !== undefined && editingBox) {
+            const pageX =
+                editingBox.getBoundingClientRect().left - shiftOnScreen(root);
+            if (anchor.current?.componentIdx !== editingIdx) {
+                anchor.current = { componentIdx: editingIdx, pageX };
+            } else {
+                const needed = anchor.current.pageX - pageX;
+                setShift((current) =>
+                    Math.abs(needed - current) < 0.5 ? current : needed,
+                );
+            }
+        }
     }, [componentIndices, slotElementId, slotBaselineElementId]);
 
     const contextValue = useMemo<MathSlotContextValue>(
@@ -380,7 +431,19 @@ export function useMathSlots({
         [reportSize, positions, setSlotEditing, noteSlotCommit],
     );
 
-    return { rootRef, layerRef, latexForTypeset, readPositions, contextValue };
+    return {
+        rootRef,
+        layerRef,
+        latexForTypeset,
+        readPositions,
+        contextValue,
+        shift,
+    };
+}
+
+/** The shift the root is drawn with now, whether or not React has caught up. */
+function shiftOnScreen(root: HTMLElement | null): number {
+    return root ? parseFloat(root.style.left) || 0 : 0;
 }
 
 function samePositions(

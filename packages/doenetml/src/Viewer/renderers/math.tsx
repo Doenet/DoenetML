@@ -480,13 +480,19 @@ function MathWithEmbeddedInputs({
         [tContent],
     );
 
-    const { rootRef, layerRef, latexForTypeset, readPositions, contextValue } =
-        useMathSlots({
-            rootId: id,
-            template,
-            embeddedComponentIndices,
-            describeSlot,
-        });
+    const {
+        rootRef,
+        layerRef,
+        latexForTypeset,
+        readPositions,
+        contextValue,
+        shift,
+    } = useMathSlots({
+        rootId: id,
+        template,
+        embeddedComponentIndices,
+        describeSlot,
+    });
 
     // The reserved boxes can move relative to the layer without the expression
     // being re-typeset: the page narrows and the expression re-wraps, or
@@ -543,7 +549,9 @@ function MathWithEmbeddedInputs({
             {anchors}
             <span
                 ref={rootRef}
-                style={style}
+                // The root is positioned already, for the layer, so it can be
+                // moved by the shift without affecting the line around it.
+                style={shift === 0 ? style : { ...style, left: shift }}
                 id={id}
                 className="doenet-math-root"
             >
