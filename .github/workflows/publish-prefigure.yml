@@ -227,7 +227,7 @@ jobs:
                    needs.check-version-changed.outputs.should_publish == 'true' ||
                    (needs.check-version-changed.outputs.already_published == 'true' &&
                     github.run_attempt > 1))
-              timeout-minutes: 30
+              timeout-minutes: 50
               env:
                   NPM_TAG: ${{ steps.params.outputs.npm_tag }}
               run: bash .github/scripts/purge-jsdelivr-prefigure.sh "${NPM_TAG}"

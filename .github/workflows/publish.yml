@@ -112,7 +112,7 @@ jobs:
                   !cancelled() &&
                   (steps.publish-npm.outcome == 'success' ||
                    steps.publish-npm.outcome == 'failure')
-              timeout-minutes: 30
+              timeout-minutes: 50
               run: bash .github/scripts/purge-jsdelivr.sh dev
 
     # Publishes a VS Code extension pre-release on every successful CI run on
@@ -380,5 +380,5 @@ jobs:
                   !cancelled() &&
                   (steps.publish-npm.outcome == 'success' ||
                    steps.publish-npm.outcome == 'failure')
-              timeout-minutes: 30
+              timeout-minutes: 50
               run: bash .github/scripts/purge-jsdelivr.sh latest

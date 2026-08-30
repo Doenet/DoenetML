@@ -50,4 +50,5 @@ VERIFY_PATHS=(
 )
 
 wait_for_registry_tag "${PACKAGE}" "${TAG}" "${VERSION}"
+wait_for_cdn_version "${PACKAGE}" "${VERSION}"
 purge_and_verify "${PACKAGE}" "${TAG}" "${VERSION}"
