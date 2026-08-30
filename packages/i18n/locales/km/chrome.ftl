@@ -33,20 +33,18 @@ answer-percent-credit = ពិន្ទុ { $percent }%
 answer-percent-correct = ត្រឹមត្រូវ { $percent }%
 answer-percent-short = { $percent }%
 max-credit-available = ពិន្ទុអតិបរមាដែលអាចទទួលបាន៖ { $percent }%
+# `[0]` is a numeric literal, matched against the count itself rather than
+# against a plural category, so it stays: Khmer's single category cannot reach
+# it and it is a different sentence rather than a different number.
 attempts-remaining =
     { $count ->
         [0] គ្មានការប៉ុនប៉ងនៅសល់ទេ
-        [one] នៅសល់ការប៉ុនប៉ងចំនួន { $count } ដង
        *[other] នៅសល់ការប៉ុនប៉ងចំនួន { $count } ដង
     }
 validation-correct = (ត្រឹមត្រូវ)
 validation-incorrect = (មិនត្រឹមត្រូវ)
 validation-partially-correct = (ត្រឹមត្រូវខ្លះ)
-answer-show-responses =
-    { $count ->
-        [one] បង្ហាញការឆ្លើយតបចំនួន { $count } ទៅកាន់ { $answerId }
-       *[other] បង្ហាញការឆ្លើយតបចំនួន { $count } ទៅកាន់ { $answerId }
-    }
+answer-show-responses = បង្ហាញការឆ្លើយតបចំនួន { $count } ទៅកាន់ { $answerId }
 
 ## Disclosure panels
 

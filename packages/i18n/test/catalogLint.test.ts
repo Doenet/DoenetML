@@ -19,6 +19,9 @@ import {
     readCatalog,
     remainingLiteralDiagnostics,
     symbolicVariantKeys,
+    allowedPluralCategories,
+    pluralVariantKeys,
+    unselectablePluralCategories,
     renderMessageKeysModule,
     renderSupportedLocalesModule,
 } from "../scripts/catalogUtils";
@@ -796,4 +799,170 @@ describe("every catalog's selector keys", () => {
             expect(offenders).toEqual([]);
         },
     );
+});
+
+/**
+ * Dead plural branches: a category a catalog writes and its own locale can
+ * never select.
+ *
+ * Such a branch is the quietest defect a catalog can carry. It parses, it
+ * lints, it looks like a translation, and it renders nothing — the default
+ * variant answers every input instead. `locales/km` carried one: Khmer has a
+ * single plural category, its own header said so, and its `attempts-remaining`
+ * and `answer-show-responses` each had a `[one]` branch beside an identical
+ * `*[other]`. Identical, which is exactly why nobody noticed — the output was
+ * right and the branch was unreachable.
+ *
+ * Every seeded batch since the Sami one has hand-written a block asserting
+ * this for its own locales. These tests replace fifteen such assertions with
+ * one property over the whole roster, so a locale added later cannot
+ * reintroduce the defect by not having a batch block of its own.
+ */
+describe("plural categories a locale cannot select", () => {
+    describe("pluralVariantKeys", () => {
+        it("reads the categories a catalog writes, `other` excepted", () => {
+            expect(
+                pluralVariantKeys(
+                    [
+                        "attempts = { $count ->",
+                        "        [one] one",
+                        "        [few] a few",
+                        "       *[other] many",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["few", "one"]);
+        });
+
+        it("leaves numeric literals out, since they match the number itself", () => {
+            // `[0]` stays selectable in a language whose only category is
+            // `other`, which is the distinction that keeps `locales/km`'s zero
+            // branch legal.
+            expect(
+                pluralVariantKeys(
+                    [
+                        "attempts = { $count ->",
+                        "        [0] none",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+
+        it("reads the syntax rather than the text, so a comment may say the word", () => {
+            // Several headers discuss `[two]` in prose while writing none.
+            expect(
+                pluralVariantKeys(
+                    ["# no [two] branch here", "greeting = hello"].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+
+        it("descends into a select nested under another", () => {
+            expect(
+                pluralVariantKeys(
+                    [
+                        "message = { $parts ->",
+                        "       *[plain] { $count ->",
+                        "            [two] both",
+                        "           *[other] some",
+                        "        }",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["two"]);
+        });
+    });
+
+    describe("allowedPluralCategories", () => {
+        it("gives a locale CLDR knows exactly its own categories", () => {
+            expect([...allowedPluralCategories("km")]).toEqual(["other"]);
+            expect([...allowedPluralCategories("hsb")].sort()).toEqual([
+                "few",
+                "one",
+                "other",
+                "two",
+            ]);
+        });
+
+        it("gives a locale CLDR has no data for `one` and `other` only", () => {
+            // The branches these catalogs are entitled to: English's split is
+            // what the fallback makes, and around a hundred catalogs record
+            // the trade in their own headers.
+            expect([...allowedPluralCategories("sco")].sort()).toEqual([
+                "one",
+                "other",
+            ]);
+            expect(allowedPluralCategories("szl").has("few")).toBe(false);
+        });
+
+        it("canonicalizes before asking, so a member code inherits its macrolanguage's rules", () => {
+            // ICU folds `kmr` onto `ku`, and Kurmanji genuinely counts by
+            // Kurdish's rules — unlike `kpv` and `mhr`, whose macrolanguages
+            // CLDR has no data for either.
+            expect(new Intl.PluralRules("kmr").resolvedOptions().locale) //
+                .toBe("ku");
+            expect([...allowedPluralCategories("kmr")].sort()).toEqual([
+                "one",
+                "other",
+            ]);
+        });
+    });
+
+    describe("unselectablePluralCategories", () => {
+        it("names a category the locale cannot reach", () => {
+            expect(
+                unselectablePluralCategories(
+                    "km",
+                    [
+                        "attempts = { $count ->",
+                        "        [one] one",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual(["one"]);
+        });
+
+        it("passes a category the locale does reach", () => {
+            expect(
+                unselectablePluralCategories(
+                    "hsb",
+                    [
+                        "attempts = { $count ->",
+                        "        [two] both",
+                        "       *[other] some",
+                        "    }",
+                    ].join("\n"),
+                ),
+            ).toEqual([]);
+        });
+    });
+
+    /**
+     * The property itself, over every catalog on the roster. This is what the
+     * per-batch blocks in `chrome.test.ts` were reaching for one batch at a
+     * time.
+     */
+    it("is written by no catalog in the roster", () => {
+        const dead: string[] = [];
+        for (const locale of listLocales()) {
+            for (const namespace of CATALOG_NAMESPACES) {
+                const source = readCatalog(locale, namespace);
+                if (source === null) {
+                    continue;
+                }
+                for (const category of unselectablePluralCategories(
+                    locale,
+                    source,
+                )) {
+                    dead.push(
+                        `locales/${locale}/${namespace}.ftl: [${category}]`,
+                    );
+                }
+            }
+        }
+        expect(dead).toEqual([]);
+    });
 });

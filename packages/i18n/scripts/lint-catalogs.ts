@@ -3,7 +3,8 @@
  *
  * Checks, in order:
  *  1. every catalog parses as Fluent, none names a numbering system on a
- *     Fluent builtin, and no message renders a line break;
+ *     Fluent builtin, no message renders a line break, and no catalog names a
+ *     plural category its own locale cannot select;
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
@@ -36,6 +37,7 @@ import {
     catalogParseErrors,
     multilinePatterns,
     numberingSystemOverrides,
+    unselectablePluralCategories,
     collectCallSites,
     collectDiagnosticUsage,
     remainingLiteralDiagnostics,
@@ -90,6 +92,15 @@ for (const locale of locales) {
         for (const multiline of multilinePatterns(source)) {
             problems.push(
                 `locales/${locale}/${namespace}.ftl: ${multiline} — keep each pattern and each variant on one line; a comment belongs above the message, never indented under it`,
+            );
+        }
+        // 1d: no catalog names a plural category its own locale cannot
+        // select. Such a branch parses, lints and never renders — text that
+        // looks translated and is unreachable. `locales/km` carried one for
+        // months: Khmer has only `other`, and its `[one]` branch was dead.
+        for (const category of unselectablePluralCategories(locale, source)) {
+            problems.push(
+                `locales/${locale}/${namespace}.ftl: [${category}] is a plural category ${locale} cannot select, so the branch would never render — see allowedPluralCategories in scripts/catalogUtils.ts`,
             );
         }
     }

@@ -339,6 +339,103 @@ class VariantKeyVisitor extends Visitor {
     }
 }
 
+/**
+ * The plural-category variant keys a catalog writes.
+ *
+ * The mirror of {@link symbolicVariantKeys}, and read for the opposite
+ * reason. A symbolic key is part of the interface and must match English; a
+ * plural key is part of the *language*, and what matters about it is whether
+ * the reader's locale can ever select it.
+ *
+ * `other` is left out because it is always reachable: Fluent's default variant
+ * answers every input no rule claims, so writing it can never be dead. Numeric
+ * literals — `[0]`, `[1]` — are left out too, and for a sharper reason: they
+ * are matched against the *number* rather than against a category, so they
+ * stay selectable in a language whose only category is `other`. That
+ * distinction is what keeps `locales/km`'s `[0]` branch legal while its `[one]`
+ * branch was not.
+ */
+export function pluralVariantKeys(source: string): string[] {
+    const visitor = new PluralVariantKeyVisitor();
+    visitor.visit(parseFtl(source, {}));
+    return [...visitor.found].sort();
+}
+
+/** Every plural-category variant key in a catalog, `other` excepted. */
+class PluralVariantKeyVisitor extends Visitor {
+    found = new Set<string>();
+
+    visitVariant(node: Variant) {
+        if (
+            node.key.type === "Identifier" &&
+            PLURAL_VARIANT_KEYS.has(node.key.name) &&
+            node.key.name !== "other"
+        ) {
+            this.found.add(node.key.name);
+        }
+        this.genericVisit(node);
+    }
+}
+
+/**
+ * The plural categories a locale is entitled to write, and why the answer is
+ * not simply "the ones CLDR lists".
+ *
+ * A category branch is selected by `Intl.PluralRules`, which resolves the tag
+ * against the *runtime's* data. Two things can go wrong, and this repository
+ * has had both:
+ *
+ *   * a locale CLDR knows can still be given a category it does not have.
+ *     Khmer has only `other`, and `locales/km` carried a `[one]` branch that
+ *     nothing could ever reach — text that looked translated, lint that
+ *     passed, and a variant that never rendered;
+ *   * a locale CLDR does *not* know resolves to the runtime's default locale,
+ *     so every category branch in it is selected by some other language's
+ *     rules. That is why no seeded catalog for such a tag writes `zero`, `two`,
+ *     `few` or `many`, and why several of their headers say so in as many
+ *     words.
+ *
+ * `one` is the deliberate exception in the second case. Around a hundred
+ * catalogs are for tags CLDR has no data for, and they keep English's
+ * `one`/`other` split because it is the split the fallback makes and it reads
+ * correctly for them. Forbidding it would be a change to a hundred catalogs
+ * rather than a lint rule, and each of those headers already records the
+ * trade.
+ *
+ * The tag is canonicalized before it is asked about, because ICU folds three
+ * of this repository's directory names onto a macrolanguage — `kmr` to `ku`,
+ * `kpv` to `kv`, `mhr` to `chm` — and `kmr` genuinely inherits `ku`'s rules.
+ */
+export function allowedPluralCategories(locale: string): Set<string> {
+    let canonicalLanguage: string;
+    try {
+        canonicalLanguage = new Intl.Locale(locale).toString().split("-")[0];
+    } catch {
+        // A tag `Intl` cannot parse reaches English at runtime, so it is the
+        // no-data case — see `createTranslator` in the package README.
+        return new Set(["one", "other"]);
+    }
+    const resolved = new Intl.PluralRules(locale).resolvedOptions();
+    const hasOwnData = resolved.locale.split("-")[0] === canonicalLanguage;
+    return hasOwnData
+        ? new Set(resolved.pluralCategories)
+        : new Set(["one", "other"]);
+}
+
+/**
+ * The plural categories a catalog writes that its own locale cannot select.
+ *
+ * Empty for a healthy catalog. Anything in it is text that parses, lints and
+ * never renders.
+ */
+export function unselectablePluralCategories(
+    locale: string,
+    source: string,
+): string[] {
+    const allowed = allowedPluralCategories(locale);
+    return pluralVariantKeys(source).filter((key) => !allowed.has(key));
+}
+
 /** Every key in every namespace of a locale. */
 export function collectLocaleKeys(locale: string): CatalogKey[] {
     const keys: CatalogKey[] = [];
