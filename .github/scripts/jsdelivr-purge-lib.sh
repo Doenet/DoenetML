@@ -17,18 +17,31 @@
 # publish — fired at 08:03:52 and 12:41:43. Six and a half minutes early, every
 # time.
 #
-# So: wait for the registry to actually serve the version under the tag, purge,
-# and then confirm the tag serves it before calling the step done.
+# jsDelivr then lags npm in turn: it has to fetch the new release before it can
+# serve it, and until it can, a purge has nothing newer to refetch.
+#
+# So: wait for the registry to actually serve the version under the tag, wait
+# for jsDelivr to be able to serve that version at its pinned URL, purge, and
+# then confirm the tag serves it before calling the step done.
 
 # Poll intervals and limits, overridable for testing.
 REGISTRY_POLL_INTERVAL="${REGISTRY_POLL_INTERVAL:-10}"
 REGISTRY_POLL_TIMEOUT="${REGISTRY_POLL_TIMEOUT:-1200}"
-PURGE_ATTEMPTS="${PURGE_ATTEMPTS:-5}"
+PURGE_ATTEMPTS="${PURGE_ATTEMPTS:-8}"
 PURGE_RETRY_DELAY="${PURGE_RETRY_DELAY:-20}"
+# The retry delay grows by half each attempt up to this cap, so the later
+# attempts wait minutes rather than repeating a 20-second poll that has already
+# been answered the same way four times. From a 20s base the eight attempts are
+# separated by 20, 30, 45, 67, 100, 120 and 120 seconds — a little over eight
+# minutes of waiting, against the 80 seconds that five flat 20-second retries
+# bought.
+PURGE_RETRY_MAX_DELAY="${PURGE_RETRY_MAX_DELAY:-120}"
+CDN_POLL_INTERVAL="${CDN_POLL_INTERVAL:-15}"
+CDN_POLL_TIMEOUT="${CDN_POLL_TIMEOUT:-900}"
 
-# How often the wait below reports that it is still waiting, in seconds. Only
-# affects log volume.
-_REGISTRY_REPORT_INTERVAL=60
+# How often the waits below report that they are still waiting, in seconds.
+# Only affects log volume.
+_WAIT_REPORT_INTERVAL=60
 
 # The version the registry currently serves for a tag, or empty if it cannot be
 # read. Asks the registry's dist-tags endpoint rather than `npm view`, which
@@ -81,7 +94,7 @@ wait_for_registry_tag() {
         fi
         if [[ ${elapsed} -ge ${next_report} ]]; then
             echo "  ${package}@${tag} still => ${seen:-<none>} (${elapsed}s elapsed)"
-            next_report=$((elapsed + _REGISTRY_REPORT_INTERVAL))
+            next_report=$((elapsed + _WAIT_REPORT_INTERVAL))
         fi
         sleep "${REGISTRY_POLL_INTERVAL}"
     done
@@ -110,6 +123,76 @@ _fetch_cdn() {
         echo "  FAILED  fetch ${url}" >&2
         return 1
     fi
+}
+
+# Block until jsDelivr can serve the pinned version, i.e. until it has fetched
+# the new release from npm. This is a second, separate lag after the registry
+# one: the registry served 0.7.25-dev.525 while `cdn.jsdelivr.net/npm/
+# @doenet/standalone@0.7.25-dev.525/...` still answered 404, and four of the
+# five purge attempts in that run were spent against a CDN that had nothing
+# newer to fetch. Purging then is not merely wasted — jsDelivr answers a purge
+# by refetching on the next request, so a purge sent while the pinned version
+# is unreachable is the same "re-cache the previous release for 12 hours" trap
+# the registry wait exists to close, one layer down.
+#
+# Only `VERIFY_PATHS` are polled: they are the paths small enough to fetch, and
+# a release is ingested as a unit, so the CDN having these has it having the
+# rest. As with the registry wait the budget is wall-clock.
+#
+# `_fetch_cdn` is deliberately not reused here: a 404 is the expected answer
+# while the wait is doing its job, and that helper retries and reports each one
+# as a failure, which would both slow the poll and fill the log with alarming
+# lines about a CDN that is merely still catching up.
+wait_for_cdn_version() {
+    local package="$1" version="$2"
+    local started=${SECONDS}
+    local deadline=$((SECONDS + CDN_POLL_TIMEOUT))
+    local next_report=0 path missing elapsed
+
+    # With no paths to poll the loop would return immediately and the wait
+    # would silently do nothing, leaving the purge exposed to the very lag this
+    # exists to cover. `purge_and_verify` refuses the same way.
+    if [[ ${#VERIFY_PATHS[@]} -eq 0 ]]; then
+        echo "Error: wait_for_cdn_version called with no VERIFY_PATHS; there would" >&2
+        echo "       be nothing to poll, and the wait would pass whether or not" >&2
+        echo "       jsDelivr had the release. Set VERIFY_PATHS as a bash array." >&2
+        return 1
+    fi
+
+    echo "Waiting for jsDelivr to fetch ${package}@${version}..."
+    while true; do
+        missing=""
+        for path in "${VERIFY_PATHS[@]}"; do
+            if ! curl -fs --max-time 60 \
+                "https://cdn.jsdelivr.net/npm/${package}@${version}/${path}" \
+                -o /dev/null; then
+                missing="${missing} ${path}"
+            fi
+        done
+        elapsed=$((SECONDS - started))
+        if [[ -z "${missing}" ]]; then
+            echo "  jsDelivr serves ${package}@${version} (after ${elapsed}s)"
+            return 0
+        fi
+        if [[ ${SECONDS} -ge ${deadline} ]]; then
+            echo "Error: jsDelivr still cannot serve ${package}@${version} after" >&2
+            echo "       ${elapsed}s. Not reachable at its pinned URL:${missing}" >&2
+            echo "       Not purging: jsDelivr answers a purge by refetching, and a" >&2
+            echo "       refetch that cannot see ${version} re-caches the previous" >&2
+            echo "       release for another 12 hours." >&2
+            echo "       The version is on npm, so either jsDelivr is slow or unwell —" >&2
+            echo "       in which case re-running this step is safe — or ${version}" >&2
+            echo "       genuinely does not contain these paths, which a 404 looks" >&2
+            echo "       exactly the same as. Check the pinned URL by hand:" >&2
+            echo "         https://cdn.jsdelivr.net/npm/${package}@${version}/" >&2
+            return 1
+        fi
+        if [[ ${elapsed} -ge ${next_report} ]]; then
+            echo "  not yet on the CDN:${missing} (${elapsed}s elapsed)"
+            next_report=$((elapsed + _WAIT_REPORT_INTERVAL))
+        fi
+        sleep "${CDN_POLL_INTERVAL}"
+    done
 }
 
 # Whether the floating tag now serves the same bytes as the immutable pinned
@@ -166,6 +249,7 @@ purge_and_verify() {
     local package="$1" tag="$2" version="$3"
     local attempt path result stale unreachable
     local purge_failures=0 unverified_failures=0
+    local delay="${PURGE_RETRY_DELAY}"
 
     # A purge that verifies nothing is the failure mode this whole file exists
     # to remove, so refuse to be that rather than exiting 0 on an empty list.
@@ -222,8 +306,17 @@ purge_and_verify() {
             echo "  for paths this run does not verify were refused; retrying those."
         fi
         if [[ ${attempt} -lt ${PURGE_ATTEMPTS} ]]; then
-            echo "  retrying in ${PURGE_RETRY_DELAY}s..."
-            sleep "${PURGE_RETRY_DELAY}"
+            echo "  retrying in ${delay}s..."
+            sleep "${delay}"
+            # Back off by half each time, capped. What the retries are waiting
+            # on is jsDelivr's edge picking up a purge across its POPs, which
+            # takes longer than the interval that was polling it, and the purge
+            # API is rate-limited besides — so re-asking every 20 seconds both
+            # gave up sooner and asked harder than was useful.
+            delay=$((delay * 3 / 2))
+            if [[ ${delay} -gt ${PURGE_RETRY_MAX_DELAY} ]]; then
+                delay=${PURGE_RETRY_MAX_DELAY}
+            fi
         fi
     done
 
@@ -246,7 +339,9 @@ purge_and_verify() {
     fi
     if [[ -n "${unreachable}" ]]; then
         echo "  Could not be fetched from the CDN:${unreachable}" >&2
-        echo "  Either jsDelivr is unwell or ${version} does not contain these files." >&2
+        echo "  jsDelivr served every one of these at ${version} before the purge —" >&2
+        echo "  the wait above would have failed otherwise — so this is the CDN" >&2
+        echo "  having become unwell since, not a file missing from the release." >&2
         echo "  Check https://cdn.jsdelivr.net/npm/${package}@${version}/ by hand." >&2
     fi
     if [[ ${purge_failures} -gt 0 ]]; then
