@@ -30,12 +30,14 @@ export function elementAtOffsetWithContext(
 
     // The lezer node immediately to the left of the cursor. When it is an
     // open tag's `TagName`, the author is still typing that tag's name (the
-    // tag hasn't been terminated with `>` yet). Error recovery can
-    // tentatively parse a half-typed `<nu` that is immediately followed by
-    // another tag (`<nu|<text>` or `<text><nu|</text>`) as a *complete*
-    // `<nu>` element, which otherwise makes the cursor look like it is in
-    // that element's body. Detect this so the body-classifying branches
-    // below defer to the open-tag-name handling instead (#1328).
+    // tag hasn't been terminated with `>` yet). The body-classifying branches
+    // below would otherwise misread such a cursor, because error recovery
+    // gives the half-typed tag an element of its own that wraps whatever
+    // follows: another tag (`<a><nu|<text></text></a>`, #1328), or the
+    // character that ended the name, which becomes text content
+    // (`<p><nu|}</p>`, #1767). A following *close* tag (`<text><nu|</text>`,
+    // #1328) instead leaves the cursor on a close-tag boundary. Detect all of
+    // these so those branches defer to the open-tag-name handling instead.
     const leftLezerCursor = this._lezerCursor();
     leftLezerCursor.moveTo(offset, -1);
     const leftLezerNodeParentName = leftLezerCursor.node.parent?.type?.name as
@@ -45,14 +47,20 @@ export function elementAtOffsetWithContext(
         (leftLezerNodeParentName === "OpenTag" ||
             leftLezerNodeParentName === "SelfClosingTag");
 
-    if (
-        (exactNodeAtOffset && exactNodeAtOffset !== node) ||
+    // The cursor is in a body when it is not on the containing element itself:
+    // on one of that element's children (the exact node at the offset differs
+    // from it), with no node or parent to place it in, or on the empty-named
+    // element the parser produces for a lone `<` at the top level. A tag name
+    // still being typed (`<p><nu|}</p>`) is left to the `openTagName` handling
+    // below.
+    const cursorIsInSomeBody =
         !exactNodeAtOffset ||
+        exactNodeAtOffset !== node ||
         !parent ||
-        (node?.type === "element" && node.name === "" && parent.type === "root")
-    ) {
-        // If our exact node is not the same as our containing element, then we're a child of the containing
-        // element and so we're in the body.
+        (node?.type === "element" &&
+            node.name === "" &&
+            parent.type === "root");
+    if (!atOpenTagNameEnd && cursorIsInSomeBody) {
         cursorPosition = "body";
     }
 
@@ -60,11 +68,11 @@ export function elementAtOffsetWithContext(
     // so it is positioned before that element in the containing body rather
     // than inside the element itself (#1327).
     //
-    // Excludes the `atOpenTagNameEnd` case (`<nu|<text>`), where error recovery
-    // tentatively parsed a half-typed `<nu` as a complete element wrapping the
-    // following tag: there the author is still typing the open tag name, so we
-    // defer to the `openTagName` handling below rather than treating the cursor
-    // as the parent's body (#1328).
+    // Excluded when `atOpenTagNameEnd` (`<a><nu|<text></text></a>`, where the
+    // element starting at the cursor is the tag the recovered `<nu>` wrapped):
+    // the author is still typing the open tag name, so we defer to the
+    // `openTagName` handling below rather than treating the cursor as the
+    // parent's body.
     if (
         node?.type === "element" &&
         node.position?.start?.offset === offset &&
@@ -117,10 +125,10 @@ export function elementAtOffsetWithContext(
             // otherwise overwrite this). Which element's body it is depends on
             // whether the `>` to the left *opens* or *closes* an element.
             //
-            // Excludes the `atOpenTagNameEnd` case (`<text><nu|</text>`), where
+            // Excluded when `atOpenTagNameEnd` (`<text><nu|</text>`), where
             // `leftNode` is an unterminated open tag's `TagName` rather than a
             // `>` — there the author is still typing the tag name, so we fall
-            // through to the `openTagName` handling below (#1328).
+            // through to the `openTagName` handling below.
             cursorPosition = "body";
             const leftElement = this.nodeAtOffset(leftNode.from, {
                 type: "element",
