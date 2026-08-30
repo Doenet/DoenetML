@@ -626,11 +626,12 @@ describe("the European regional batch's plural categories", () => {
 });
 
 /**
- * The Silk Road, and the batch that finally has an exception to pin.
+ * The Silk Road, and the batch where the exception is a single catalog.
  *
- * The Oceania block above is eleven catalogs with no CLDR plural data at all;
- * the Sami block is five where four have it. This batch is fifteen where
- * **exactly one** does: `Intl.PluralRules("bal")` resolves to `bal` itself,
+ * The three blocks above give the other proportions: the Sami block is five
+ * catalogs where four have CLDR plural data, the Oceania block eleven where
+ * none does, and the European regional block fifteen split eight to seven.
+ * This batch is fifteen where **exactly one** does: `Intl.PluralRules("bal")` resolves to `bal` itself,
  * with `one` and `other`, and the other fourteen resolve to the runtime's
  * default locale — English here — so any category branch they wrote would be
  * chosen by English's rules on English's terms.

@@ -2577,11 +2577,13 @@ a native plural to them, because there is no native nomenclature to correct
 them towards and respelling would produce a vocabulary nobody uses.
 
 That decision has an arithmetic consequence worth recording. **`locales/glk`
-and `locales/lrc` are the first non-English catalogs in the roster to reach
-575/575** — `lint:i18n` notes only the catalogs that fall short, so these two
-are the first non-English ones it says nothing about at all. They are ahead of
-`fa`, `de` and every other "complete" catalog, all of which it still lists at
-560/575 because they predate the fifteen newest keys. `locales/mzn` is at
+and `locales/lrc` reach 575/575**, which `locales/nn` of the European regional
+batch had reached one batch earlier — `lint:i18n` notes only the catalogs that
+fall short, so those three are the only non-English ones it says nothing about
+at all. All three are ahead of `fa`, `de` and every other "complete" catalog,
+which it still lists at 560/575 because they predate the fifteen newest keys.
+`nn` got there by writing a Norwegian periodic table; these two get there by
+borrowing a Persian one, which is why the arithmetic is worth recording twice. `locales/mzn` is at
 573/575, and its two gaps are deliberate and shared with `fa`: it omits
 `noun.slope-field` and
 `noun.vector-field`, because Mazanderani has no phrase for either that is not
@@ -2657,9 +2659,11 @@ that follows from the adjective order, since a modifier precedes; `locales/ttt`
 is the one that trails its adjectives and heads the count anyway, which is why
 `styleDescriptions.test.ts` pins the two choices as independent.
 
-**Not one of the fifteen forks on `$gender` or `$role`,** which is the second
-batch in a row of which that is true. The reason is different this time.
-Oceania's eleven had no gender to fork on; here **two of the fifteen do**, and
+**Not one of the fifteen forks on `$gender` or `$role`,** which the Oceania
+batch's eleven did not either — though the European regional batch in between
+does, in fourteen of its fifteen. The reason for the silence here is not
+Oceania's. Oceania's eleven had no gender to fork on; here **two of the
+fifteen do**, and
 both decline for stated reasons rather than by default. `locales/zza` has
 masculine and feminine, and spends the agreement in the `noun` table, so the
 attributive adjectives after the ezafe are invariable and nothing is left to

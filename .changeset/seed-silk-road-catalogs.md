@@ -24,8 +24,8 @@ The chemistry element tables are left out of twelve of the fifteen and still
 fall back to English. The exceptions are `mzn`, `glk` and `lrc`, which carry
 the Persian table unchanged, because chemistry in Māzandarān, Gilan and
 Lorestan is taught, examined and printed in Persian and that list is the one
-those readers actually use. `locales/glk` and `locales/lrc` are the first
-non-English catalogs to translate every key. `locales/ttt` additionally leaves
+those readers actually use. `locales/glk` and `locales/lrc` join
+`locales/nn` as the only non-English catalogs that translate every key. `locales/ttt` additionally leaves
 ten of the longest diagnostics messages in English and says so in its own
 header.
 

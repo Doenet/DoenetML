@@ -7,9 +7,11 @@ import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
 /**
  * Arabic, Persian, Hebrew, Urdu, Pashto, Sindhi, Uyghur, Yiddish, Kashmiri,
  * Dhivehi, Central Kurdish and the Silk Road batch's five — the seven #1614
- * existed to make renderable, the one the European regional and minority batch
- * added, the two the South Asian batch added, the one the Caucasus and Kurdish
- * batch added, the five below, and the whole of it as of today.
+ * existed to make renderable, the one (`yi`) the early European regional and
+ * minority batch added — not the later fifteen-catalog European regional
+ * batch, which added none — the two the South Asian batch added, the one the
+ * Caucasus and Kurdish batch added, the five below, and the whole of it as of
+ * today.
  *
  * Written out rather than derived, so that the two tests below can hold it
  * from opposite sides: one says these tags are right-to-left whether or not a

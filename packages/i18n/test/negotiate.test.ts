@@ -2013,9 +2013,11 @@ describe("a host catalog keyed on an aliased tag", () => {
 
     /**
      * The Silk Road. Fifteen catalogs strung between the Black Sea and the
-     * Pamirs, and the batch that brings back the shape the Oceania one did
-     * without: two of the fifteen are **macrolanguages**, and they are the
-     * only entries this batch added to `MACROLANGUAGE_MEMBERS`.
+     * Pamirs, and the batch that brings back the shape the two before it —
+     * Oceania and the European regional one — both did without: two of the
+     * fifteen are **macrolanguages**, and they are the only entries this batch
+     * added to `MACROLANGUAGE_MEMBERS`, which neither of those two touched at
+     * all.
      *
      * `zza` (Zaza) and `bal` (Balochi) each stand over members ICU splits in
      * half. `Intl.getCanonicalLocales` already folds exactly one member of
@@ -2117,9 +2119,11 @@ describe("a host catalog keyed on an aliased tag", () => {
         );
 
         /**
-         * The near misses, and along this corridor they are denser than any
-         * earlier batch's because every catalog here has a close relative that
-         * did *not* get one.
+         * The near misses. The European regional block above has more of them
+         * — Europe's continua leave twenty-one tags to miss against this
+         * corridor's twelve — but these are of a different kind: every catalog
+         * here has a close relative that did *not* get one, often inside its
+         * own subgroup.
          *
          * `luz` (Southern Luri) and `bqi` (Bakhtiari) sit beside `lrc`
          * (Northern Luri) and are the other two Luri codes; ISO 639-3 makes
