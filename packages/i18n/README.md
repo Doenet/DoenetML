@@ -90,8 +90,7 @@ English is the source of truth. Every translation — `ab`, `ace`, `ady`,
 `tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `tvl`, `ty`,
 `tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`,
 `vi`, `vro`, `war`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`,
-`zh-Hant`, `zu`
-— is an **unreviewed machine-generated seed**, which each file's own
+`zh-Hant`, `zu` — is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
@@ -364,7 +363,9 @@ subtag before negotiating — the same service `Intl.getCanonicalLocales` alread
 performs for `iw`, `in` and `mo`, which it maps to `he`, `id` and `ro` on its
 own. `nn` is left alone: Nynorsk is a written standard of its own, and
 answering it with Bokmål would be a substitution rather than a
-canonicalization.
+canonicalization. `locales/nn` now exists and does not change that — `nn`
+reaches its own catalog, and `no` still reaches `nb`, because a reader who
+says only `no` has not said which standard they read.
 
 Filipino needs no such entry, and that is worth saying so nobody adds one:
 `fil` is the standard language's code and `tl` is the deprecated one, so
@@ -564,7 +565,9 @@ with a `qu` catalog sitting on disk, and nothing said why.
 membership** — ISO 639-3's for the four macrolanguages, ISO 639-5's grouping for
 `nah` — which is what makes it checkable rather than a matter of taste, and what
 distinguishes it from the `nn` and `fat` cases above: neither of those is a
-member of `nb` or `ak`, and both are deliberately left to miss. The member CLDR
+member of `nb` or `ak`, and neither is folded onto its neighbour. `fat` is
+left to miss outright; `nn` has a catalog of its own, and what it still does
+not do is answer `no`. The member CLDR
 already folds is listed anyway, so each list reads as the whole of a group rather
 than the leftovers of one, and so a change in ICU data cannot silently drop a
 code out of coverage. `negotiate.test.ts` asserts both halves.

@@ -4212,6 +4212,9 @@ describe("the European regional batch's word order", () => {
                     withNoun: true,
                 }),
             ).toBe(withNoun);
+            // The noun closes the phrase, with nothing of it reaching in among
+            // the adjectives.
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
             expect(
                 describeStrokedShape(t, words, {
                     noun: { key: "line" },
@@ -4240,7 +4243,9 @@ describe("the European regional batch's word order", () => {
             ).toBe(withNoun);
             // The bare description is the same words without the noun, which is
             // what says the order above is the composition message's doing and
-            // not the adjectives'.
+            // not the adjectives'. The noun is prepended whole, with nothing of
+            // it reaching in among the adjectives.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
             expect(
                 describeStrokedShape(t, words, {
                     noun: { key: "line" },

@@ -529,12 +529,11 @@ describe("the European regional batch's plural categories", () => {
         expect(rules.select(3)).toBe("few");
         expect(branches(catalog)).toContain("[two]");
         expect(branches(catalog)).toContain("[few]");
+        // The `few` branch itself renders; `one`, `two` and `other` are
+        // covered for all fifteen by the block below.
         const t = createChromeTranslator(locale, { [locale]: catalog });
-        for (const count of [1, 2, 3, 5]) {
-            expect(
-                stripBidiIsolates(t("attempts-remaining", { count })),
-            ).toContain(String(count));
-        }
+        expect(stripBidiIsolates(t("attempts-remaining", { count: 3 }))) //
+            .toContain("3");
     });
 
     /**

@@ -144,10 +144,6 @@ describe("negotiateLocales", () => {
                 "en",
             ]);
         });
-
-        it("still sends the macrolanguage to Bokmål now that Nynorsk exists", () => {
-            expect(negotiateLocales(["no"], available)).not.toContain("nn");
-        });
     });
 
     /**
@@ -1637,7 +1633,8 @@ describe("negotiateLocales", () => {
      * as, and pointing `no` at the new catalog would be the substitution the
      * `fat` row is left out for, in the other direction. The rows below hold
      * both halves: `nn` reaches its own catalog, and `no` still reaches `nb`
-     * with `locales/nn` sitting right there.
+     * with `locales/nn` sitting right there — the second half living in the
+     * Norwegian block above, which is where both standards are asserted.
      *
      * Two of the fifteen — `nn` and `li` — have ISO 639-1 codes, so a reader
      * can also arrive under the alpha-3 (`nno`, `lim`) that
@@ -1664,23 +1661,12 @@ describe("negotiateLocales", () => {
             "rue",
         ];
 
-        it.each([
+        it.each<[string, string]>([
             // Each of the fifteen arriving as the directory it names.
-            ["nn", "nn"],
-            ["sco", "sco"],
-            ["gsw", "gsw"],
-            ["ksh", "ksh"],
-            ["li", "li"],
-            ["fur", "fur"],
-            ["vec", "vec"],
-            ["lij", "lij"],
-            ["pms", "pms"],
-            ["nap", "nap"],
-            ["hsb", "hsb"],
-            ["dsb", "dsb"],
-            ["csb", "csb"],
-            ["szl", "szl"],
-            ["rue", "rue"],
+            ...EUROPEAN_REGIONAL.map((locale): [string, string] => [
+                locale,
+                locale,
+            ]),
             // The alpha-3 doors for the two with a 639-1 code, folded by
             // `Intl.getCanonicalLocales` rather than by anything here.
             ["nno", "nn"],
@@ -1734,27 +1720,14 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * Norwegian, both halves. `nn` now has a catalog and `no` still does
-         * not reach it — see the block comment above. `nb` is unmoved.
-         */
-        it("keeps the macrolanguage on Bokmal now that Nynorsk has a catalog", () => {
-            expect(negotiateLocales([normalizeLocaleTag("no")], available)) //
-                .toEqual(["nb", "en"]);
-            expect(negotiateLocales([normalizeLocaleTag("nn")], available)) //
-                .toEqual(["nn", "en"]);
-            expect(negotiateLocales([normalizeLocaleTag("nb")], available)) //
-                .toEqual(["nb", "en"]);
-        });
-
-        /**
          * The near misses, and this batch's are the densest the roster has
          * had, because Europe's regional languages sit in continua rather than
          * on islands.
          *
          * `bar` (Bavarian), `swg` (Swabian) and `wae` (Walser) are the
          * neighbours of `gsw`; `wae` is spoken *inside Switzerland* and is
-         * still a language with a code of its own. `pfl` and `lb`-adjacent
-         * `yec` sit beside `ksh` in the Rhineland. `stq` and `frr` are the
+         * still a language with a code of its own. `pfl` and `yec` sit beside
+         * `ksh` in and around the Rhineland. `stq` and `frr` are the
          * Frisian languages beside `li`, and `vls` and `zea` the Low Franconian
          * ones. `lmo`, `rgn`, `cim` and `mhn` are the Italian neighbours of
          * `vec`, `lij`, `pms`, `nap` and `fur` — `cim` and `mhn` being Germanic
