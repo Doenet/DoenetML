@@ -66,28 +66,30 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `ab`, `ace`, `ady`, `af`,
-`ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`, `az`, `ba`, `ban`, `bci`,
-`be`, `bem`, `bg`, `bho`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`, `brx`, `bs`,
-`bua`, `bum`, `ca`, `ce`, `ceb`, `ch`, `ckb`, `co`, `cs`, `cv`, `cy`, `da`,
-`dag`, `dar`, `de`, `dje`, `doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`,
-`es`, `et`, `eu`, `ewo`, `fa`, `ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`,
-`fr`, `fy`, `ga`, `gaa`, `gd`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`,
-`hil`, `hnj`, `hr`, `ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`,
-`ja`, `jv`, `ka`, `kab`, `kbd`, `kbp`, `kca`, `kg`, `ki`, `kk`, `km`, `kmb`,
-`kmr`, `kn`, `ko`, `koi`, `kok`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`,
-`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`,
-`luo`, `lv`, `mad`, `mai`, `mdf`, `men`, `mg`, `mhr`, `mi`, `min`, `mk`, `ml`,
-`mn`, `mni`, `mnk`, `mns`, `mos`, `mr`, `mrj`, `ms`, `mt`, `my`, `myv`, `nah`,
-`nb`, `nds`, `ne`, `nl`, `nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `olo`, `om`,
-`or`, `os`, `pa`, `pam`, `pcm`, `pl`, `ps`, `pt`, `qu`, `quc`, `rm`, `rn`,
-`ro`, `ru`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`,
-`si`, `sjd`, `sk`, `sl`, `sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`,
-`sr`, `ss`, `st`, `su`, `sus`, `sv`, `sw`, `ta`, `tab`, `te`, `tem`, `tet`,
-`tg`, `th`, `ti`, `tiv`, `tk`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`,
-`tt`, `ty`, `tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`,
-`vi`, `vro`, `war`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`, `zh-Hant`,
-`zu` — is an **unreviewed machine-generated seed**, which each file's own
+English is the source of truth. Every translation — `ab`, `ace`, `ady`, `af`, `ak`, `am`, `ar`, `arn`, `as`, `ast`, `av`, `ay`,
+`az`, `ba`, `ban`, `bci`, `be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`,
+`bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bua`, `bum`, `ca`, `ce`, `ceb`, `ch`,
+`chk`, `ckb`, `co`, `cs`, `cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`,
+`doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`,
+`fa`, `ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`,
+`gd`, `gil`, `gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`,
+`ht`, `hu`, `hy`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `ja`, `jv`, `ka`,
+`kab`, `kbd`, `kbp`, `kca`, `kg`, `ki`, `kk`, `km`, `kmb`, `kmr`, `kn`,
+`ko`, `koi`, `kok`, `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`,
+`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `ln`, `lo`, `lom`, `lt`,
+`lua`, `luo`, `lv`, `mad`, `mai`, `mdf`, `men`, `mg`, `mh`, `mhr`, `mi`,
+`min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mns`, `mos`, `mr`, `mrj`, `ms`,
+`mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `niu`, `nl`, `nog`, `nso`,
+`ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`,
+`pon`, `ps`, `pt`, `qu`, `quc`, `rar`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`,
+`sah`, `sat`, `sc`, `scn`, `sd`, `se`, `sg`, `shi`, `si`, `sjd`, `sk`, `sl`,
+`sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `ss`, `st`, `su`,
+`sus`, `sv`, `sw`, `ta`, `tab`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
+`tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `tvl`, `ty`,
+`tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vep`, `vi`,
+`vro`, `war`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `zgh`, `zh-Hans`,
+`zh-Hant` `zh-
+Hant` — is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
