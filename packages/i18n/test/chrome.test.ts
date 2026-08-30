@@ -54,6 +54,36 @@ import zzaChrome from "../locales/zza/chrome.ftl?raw";
 import dngChrome from "../locales/dng/chrome.ftl?raw";
 import sghChrome from "../locales/sgh/chrome.ftl?raw";
 import wblChrome from "../locales/wbl/chrome.ftl?raw";
+import bugChrome from "../locales/bug/chrome.ftl?raw";
+import bugDiagnostics from "../locales/bug/diagnostics.ftl?raw";
+import makChrome from "../locales/mak/chrome.ftl?raw";
+import makDiagnostics from "../locales/mak/diagnostics.ftl?raw";
+import bjnChrome from "../locales/bjn/chrome.ftl?raw";
+import bjnDiagnostics from "../locales/bjn/diagnostics.ftl?raw";
+import gorChrome from "../locales/gor/chrome.ftl?raw";
+import gorDiagnostics from "../locales/gor/diagnostics.ftl?raw";
+import niaChrome from "../locales/nia/chrome.ftl?raw";
+import niaDiagnostics from "../locales/nia/diagnostics.ftl?raw";
+import bbcChrome from "../locales/bbc/chrome.ftl?raw";
+import bbcDiagnostics from "../locales/bbc/diagnostics.ftl?raw";
+import ibaChrome from "../locales/iba/chrome.ftl?raw";
+import ibaDiagnostics from "../locales/iba/diagnostics.ftl?raw";
+import dtpChrome from "../locales/dtp/chrome.ftl?raw";
+import dtpDiagnostics from "../locales/dtp/diagnostics.ftl?raw";
+import pagChrome from "../locales/pag/chrome.ftl?raw";
+import pagDiagnostics from "../locales/pag/diagnostics.ftl?raw";
+import cbkChrome from "../locales/cbk/chrome.ftl?raw";
+import cbkDiagnostics from "../locales/cbk/diagnostics.ftl?raw";
+import tsgChrome from "../locales/tsg/chrome.ftl?raw";
+import tsgDiagnostics from "../locales/tsg/diagnostics.ftl?raw";
+import mrwChrome from "../locales/mrw/chrome.ftl?raw";
+import mrwDiagnostics from "../locales/mrw/diagnostics.ftl?raw";
+import shnChrome from "../locales/shn/chrome.ftl?raw";
+import shnDiagnostics from "../locales/shn/diagnostics.ftl?raw";
+import mnwChrome from "../locales/mnw/chrome.ftl?raw";
+import mnwDiagnostics from "../locales/mnw/diagnostics.ftl?raw";
+import kswChrome from "../locales/ksw/chrome.ftl?raw";
+import kswDiagnostics from "../locales/ksw/diagnostics.ftl?raw";
 // The Silk Road batch's `diagnostics.ftl` too: it holds every count select
 // that is not in `chrome.ftl`, so where each catalog's `[one]` falls is only
 // checkable across both files.
@@ -834,6 +864,113 @@ describe("the Silk Road batch's plural categories", () => {
                 t("attempts-remaining", { count: 3 }),
             );
             expect(none).not.toBe(some);
+        },
+    );
+});
+
+describe("the Southeast Asian batch's plural categories", () => {
+    /** Comment lines dropped: several headers discuss `[one]` in prose. */
+    const branches = (catalog: string) =>
+        catalog
+            .split("\n")
+            .filter((line) => !line.trimStart().startsWith("#"))
+            .join("\n");
+
+    type Row = [string, string, string];
+
+    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
+    const both = ([, chrome, diagnostics]: Row) =>
+        `${branches(chrome)}\n${branches(diagnostics)}`;
+
+    /**
+     * All fifteen, and — unlike the Silk Road batch, which had `bal` — there is
+     * no sub-list here, because not one of the fifteen has CLDR plural data.
+     */
+    const SOUTHEAST_ASIA: Row[] = [
+        ["bug", bugChrome, bugDiagnostics],
+        ["mak", makChrome, makDiagnostics],
+        ["bjn", bjnChrome, bjnDiagnostics],
+        ["gor", gorChrome, gorDiagnostics],
+        ["nia", niaChrome, niaDiagnostics],
+        ["bbc", bbcChrome, bbcDiagnostics],
+        ["iba", ibaChrome, ibaDiagnostics],
+        ["dtp", dtpChrome, dtpDiagnostics],
+        ["pag", pagChrome, pagDiagnostics],
+        ["cbk", cbkChrome, cbkDiagnostics],
+        ["tsg", tsgChrome, tsgDiagnostics],
+        ["mrw", mrwChrome, mrwDiagnostics],
+        ["shn", shnChrome, shnDiagnostics],
+        ["mnw", mnwChrome, mnwDiagnostics],
+        ["ksw", kswChrome, kswDiagnostics],
+    ];
+
+    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
+        "resolves %s against some other language's rules",
+        (locale) => {
+            // CLDR has no rules for the tag, so the categories on offer belong
+            // to the runtime's default locale rather than to the language.
+            expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+                .not.toBe(locale);
+        },
+    );
+
+    /**
+     * The whole batch writes no category branch at all — not even `[one]`,
+     * which the Silk Road batch allowed itself in eleven of fifteen catalogs
+     * and which `allowedPluralCategories` still permits a no-data locale.
+     *
+     * This is stricter than the lint requires, and it is a decision rather than
+     * an accident: the one message that forks in English forks on how many
+     * outputs a component *needs* rather than on a quantity the reader is
+     * looking at, so every catalog here writes it as the numeric literal `[1]`,
+     * which Fluent matches against the number before consulting any plural rule
+     * and which therefore does not depend on whose rules the runtime picked.
+     * Uniformity across a batch is worth something on its own: a reviewer who
+     * finds a category branch in one of these files has found a drift rather
+     * than a judgement call.
+     */
+    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
+        "gives %s no plural category branch anywhere",
+        (locale) => {
+            const row = SOUTHEAST_ASIA.find(([tag]) => tag === locale)!;
+            const text = both(row);
+            for (const category of ["zero", "one", "two", "few", "many"]) {
+                expect(text).not.toContain(`[${category}]`);
+            }
+        },
+    );
+
+    /**
+     * The other half, which is what would fail if a catalog had answered the
+     * rule above by dropping the fork instead of rewriting it. All fifteen keep
+     * English's `[1]` in `field-function-wrong-num-outputs`, and all fifteen
+     * keep the explicit `[0]` that says "no attempts remaining" — matched
+     * against the number rather than against a category, and so legal in a
+     * locale with no rules of its own.
+     */
+    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
+        "keeps %s's numeric literals, which no plural rule selects",
+        (locale) => {
+            const row = SOUTHEAST_ASIA.find(([tag]) => tag === locale)!;
+            expect(branches(row[2])).toContain(
+                "field-function-wrong-num-outputs",
+            );
+            expect(both(row)).toContain("[1]");
+            expect(branches(row[1])).toContain("[0]");
+        },
+    );
+
+    /**
+     * And the counts still render. A catalog that answered "write no category
+     * branch" by dropping `{ $count }` would pass every assertion above and
+     * serve a reader a sentence with the number missing from it.
+     */
+    it.each(SOUTHEAST_ASIA.map(([locale]) => locale))(
+        "still renders %s's counts",
+        (locale) => {
+            const row = SOUTHEAST_ASIA.find(([tag]) => tag === locale)!;
+            const t = createChromeTranslator(locale, { [locale]: row[1] });
+            expect(t("attempts-remaining", { count: 3 })).toContain("3");
         },
     );
 });

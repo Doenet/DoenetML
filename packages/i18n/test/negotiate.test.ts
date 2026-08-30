@@ -466,13 +466,26 @@ describe("negotiateLocales", () => {
             },
         );
 
-        // Pangasinan is a Philippine language with no catalog that belongs to
-        // no macrolanguage with one, so it falls all the way to English — the
-        // rule working rather than a gap in it.
-        it("leaves Pangasinan on English rather than guessing", () => {
+        // Ibanag is a Philippine language with no catalog that belongs to no
+        // macrolanguage with one, so it falls all the way to English — the rule
+        // working rather than a gap in it.
+        //
+        // Pangasinan stood here until the Southeast Asian batch, and what
+        // replacing it cost is the whole of what seeding `pag` cost this
+        // block: the tag now reaches `locales/pag`, and nothing else in the
+        // Bikol list changed, because Pangasinan was never a member of
+        // anything. A negative control has to name a language the roster does
+        // not have, so the row moves rather than being deleted.
+        it("leaves Ibanag on English rather than guessing", () => {
+            expect(
+                negotiateLocales([normalizeLocaleTag("ibg")], available),
+            ).toEqual(["en"]);
+        });
+
+        it("takes Pangasinan to the catalog it now has", () => {
             expect(
                 negotiateLocales([normalizeLocaleTag("pag")], available),
-            ).toEqual(["en"]);
+            ).toEqual(["pag", "en"]);
         });
     });
 
@@ -2273,6 +2286,244 @@ describe("a host catalog keyed on an aliased tag", () => {
             // the pair above reads as the exception it is.
             for (const locale of ["kjh", "alt", "dng", "sgh"]) {
                 expect(new Intl.Locale(locale).maximize().script).toBe("Cyrl");
+            }
+        });
+    });
+    describe("the Southeast Asian batch", () => {
+        /** The fifteen tags this batch adds, in the order the README lists them. */
+        const SOUTHEAST_ASIA = [
+            "bug",
+            "mak",
+            "bjn",
+            "gor",
+            "nia",
+            "bbc",
+            "iba",
+            "dtp",
+            "pag",
+            "cbk",
+            "tsg",
+            "mrw",
+            "shn",
+            "mnw",
+            "ksw",
+        ];
+
+        /**
+         * Every one of the fifteen reaches the directory it names when the
+         * whole roster is on offer, and reaches English when only English is.
+         * The second half is what would fail if the new `ms` row were quietly
+         * folding one of these tags onto Standard Malay instead of letting it
+         * arrive under its own name — which is a live hazard here rather than a
+         * theoretical one, since `bjn` really is a member of `msa`.
+         */
+        it("gives each of the fifteen its own catalog and nothing else", () => {
+            for (const locale of SOUTHEAST_ASIA) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The three members of Malay this repository answers for itself, which
+         * is the reason the `ms` row is an exclusion list rather than the
+         * macrolanguage's whole membership.
+         *
+         * `ind` is inert either way — ICU rewrites it to `id` before
+         * negotiation is consulted — so `min` and `bjn` are the two that carry
+         * the point: both are ISO 639-3 members of `msa`, both are left out of
+         * the row on purpose, and listing either would take a Minangkabau or
+         * Banjar reader off the catalog written for them and put them on
+         * Standard Malay. That is the `bam`/`dyu` shape under `mnk`, met in a
+         * macrolanguage with thirty-six members instead of eight.
+         */
+        it.each(["min", "bjn"])(
+            "keeps %s on its own catalog rather than folding it onto ms",
+            (member) => {
+                expect(normalizeLocaleTag(member)).toBe(member);
+                expect(negotiateLocales([member], available)).toEqual([
+                    member,
+                    "en",
+                ]);
+            },
+        );
+
+        it("folds ind onto id before the map is consulted at all", () => {
+            expect(normalizeLocaleTag("ind")).toBe("id");
+            expect(negotiateLocales([normalizeLocaleTag("ind")], available)) //
+                .toEqual(["id", "en"]);
+        });
+
+        /**
+         * The rest of the macrolanguage, which reaches `locales/ms` only
+         * because the row exists. `zsm` is the one ICU folds on its own and is
+         * listed for the reason the other already-folded codes in that map are;
+         * the others are left unresolvable by CLDR and would each filter
+         * against a language subtag no directory is named for.
+         *
+         * `max` and `xmm` are the pair worth naming. Both are Malay-lexifier
+         * *trade creoles* rather than varieties of Malay, and the map's own
+         * `ktu`-under-`kg` comment refuses exactly that kind of fold — the
+         * difference being that ISO 639-3 puts these two *inside* `msa` and
+         * puts Kituba outside `kg`. The rule stays published membership rather
+         * than a judgement about how close two varieties are.
+         */
+        it.each([
+            ["zsm", true],
+            ["kxd", false],
+            ["meo", false],
+            ["mfa", false],
+            ["pse", false],
+            ["zlm", false],
+            ["max", false],
+            ["xmm", false],
+            ["msi", false],
+            ["urk", false],
+        ])("reaches ms's catalog as %s", (member, foldedByIcu) => {
+            expect(normalizeLocaleTag(member) === "ms").toBe(foldedByIcu);
+            expect(
+                negotiateLocales([normalizeLocaleTag(member)], available),
+            ).toEqual(["ms", "en"]);
+        });
+
+        /**
+         * The script asymmetry the `ms` row buys, which is `locales/kr`'s with
+         * `kby` and `locales/dje`'s with `tda` reached a third time.
+         *
+         * `mfa` (Pattani Malay) maximizes to **`mfa-Arab-TH`**, so CLDR's own
+         * data says the likeliest Pattani reader arrives in Jawi, and
+         * `locales/ms` is Rumi. Script subtags are filtered away, so the
+         * request is served an alphabet its reader may not use rather than
+         * missing — a debt the roster records, whose answer is a second catalog
+         * rather than a change in the map.
+         */
+        it("serves Rumi to the one member CLDR maximizes into Jawi", () => {
+            expect(new Intl.Locale("mfa").maximize().script).toBe("Arab");
+            expect(
+                negotiateLocales([normalizeLocaleTag("mfa-Arab")], available),
+            ).toEqual(["ms", "en"]);
+        });
+
+        /**
+         * The one fold in this batch that needs no map row at all: ICU
+         * canonicalizes `kzj` (Coastal Kadazan) onto `dtp`, so a Coastal
+         * Kadazan reader reaches the Kadazandusun catalog for free.
+         *
+         * `locales/dtp` is written in the Bundu-Liwan-based standard of Sabah
+         * schooling and its header names `dtb` and `drg` as siblings a reader
+         * may have to respell from — «opurak» against Coastal «oputi'». Those
+         * two are deliberately *not* folded: `dtp` is not an ISO 639-3
+         * macrolanguage, so there is no published membership to follow and
+         * adding them would be the judgement `MACROLANGUAGE_MEMBERS` exists to
+         * avoid. `kzj` is different in kind — ICU already decided it.
+         */
+        it("takes kzj to dtp through ICU and leaves dtb and drg to miss", () => {
+            expect(normalizeLocaleTag("kzj")).toBe("dtp");
+            expect(negotiateLocales([normalizeLocaleTag("kzj")], available)) //
+                .toEqual(["dtp", "en"]);
+            for (const sibling of ["dtb", "drg"]) {
+                expect(normalizeLocaleTag(sibling)).toBe(sibling);
+                expect(
+                    negotiateLocales([normalizeLocaleTag(sibling)], available),
+                ).toEqual(["en"]);
+            }
+        });
+
+        /**
+         * The near misses, which in this batch are mostly *siblings inside one
+         * island group* rather than the far-flung relatives the Silk Road block
+         * lists.
+         *
+         * `bbc` (Toba) has four other Batak codes beside it — `btd` Dairi,
+         * `bts` Simalungun, `btx` Karo, `btz` Alas-Kluet — and ISO 639-3 makes
+         * every one a separate language rather than a member of a
+         * macrolanguage, so there is nothing to fold. `bug` and `mak` sit
+         * beside `mdr` (Mandar) in South Sulawesi on the same footing. `mrw`
+         * (Maranao) and `mdh` (Maguindanaon) are the two Danao languages and
+         * only one has a catalog; `krj` (Kinaray-a) and `akl` (Aklanon) are
+         * Bisayan neighbours of `tsg`; and `nij` (Ngaju) is `bjn`'s Bornean
+         * neighbour and, being Barito rather than Malayic, is not in `msa`
+         * either.
+         *
+         * `blk` (Pa'o Karen) and `kjp` (Eastern Pwo) are the Karen languages
+         * beside `ksw`, and they are the sharpest of the group: `kar` is an
+         * ISO 639-5 **collection** code rather than a macrolanguage, so there
+         * is no membership fact that would let either reach the S'gaw catalog,
+         * and `locales/ksw`'s own header records that `ၦ` and `ၯ` are Pwo
+         * letters it does not use.
+         */
+        it.each([
+            "btd",
+            "bts",
+            "btx",
+            "btz",
+            "mdr",
+            "mdh",
+            "krj",
+            "akl",
+            "nij",
+            "blk",
+            "kjp",
+        ])(
+            "leaves %s on English rather than folding it onto a neighbour",
+            (requested) => {
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * The collection codes, left to miss for `map`'s and `smi`'s reason:
+         * ISO 639-5 groups are not languages, no catalog can be written in one,
+         * and `Intl` leaves all three exactly as typed. `btk` (Batak) and
+         * `kar` (Karen) each sit directly over a catalog in this batch, which
+         * is what makes them worth asserting rather than assuming.
+         */
+        it.each(["btk", "kar"])(
+            "leaves the collection code %s on English",
+            (requested) => {
+                expect(normalizeLocaleTag(requested)).toBe(requested);
+                expect(
+                    negotiateLocales(
+                        [normalizeLocaleTag(requested)],
+                        available,
+                    ),
+                ).toEqual(["en"]);
+            },
+        );
+
+        /**
+         * Script and region subtags are filtered away, so the tags a document
+         * or a browser is likely to send reach the same catalog the bare tag
+         * does. The three Myanmar-script catalogs are the ones worth writing
+         * out: all three maximize to `-Mymr-MM`, and all three *are* written in
+         * that script, so unlike `mfa` above they carry no debt.
+         */
+        it.each([
+            ["shn-Mymr", "shn"],
+            ["mnw-Mymr", "mnw"],
+            ["ksw-Mymr", "ksw"],
+            ["shn-Mymr-MM", "shn"],
+            ["bjn-Latn", "bjn"],
+            ["cbk-Latn-PH", "cbk"],
+            ["tsg-Latn", "tsg"],
+            ["iba-Latn-MY", "iba"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        it("has all three Myanmar-script catalogs maximize into the script they are written in", () => {
+            for (const locale of ["shn", "mnw", "ksw"]) {
+                expect(new Intl.Locale(locale).maximize().script).toBe("Mymr");
             }
         });
     });

@@ -4811,3 +4811,219 @@ describe("the Silk Road batch's word order", () => {
         },
     );
 });
+
+describe("the Southeast Asian batch's word order", () => {
+    /**
+     * Fifteen languages of maritime and mainland Southeast Asia, and the line
+     * between the two orders is neither family nor script — it is a **border**.
+     * Eleven catalogs put the modifiers behind the noun and four put them in
+     * front, and the four are exactly the four catalogs of the Philippines.
+     *
+     * That is a sharper claim than "Austronesian splits", because eleven of the
+     * fifteen are Austronesian and they fall on both sides of it. The eight
+     * catalogs of Indonesia and Malaysian Borneo are head-initial like the
+     * Malay their technical register comes from; the three Philippine
+     * non-creoles are the Central Philippine order English happens to share;
+     * and the three Myanmar-script catalogs land with the first group for
+     * reasons of their own — Tai, Austroasiatic and Sino-Tibetan all being
+     * head-initial in the noun phrase.
+     *
+     * `cbk` is the row worth reading twice. Chavacano's vocabulary is Spanish
+     * and its order is not: «grueso cortao rojo linea» is the reverse of
+     * Spanish's «línea roja», and `locales/cbk`'s header names this as the
+     * thing a reviewer is most likely to "correct" wrongly. A creole's word
+     * order follows its substrate rather than its lexifier, and this is the
+     * row that says so.
+     *
+     * The **linker** is the other half, and it cuts differently again. Three
+     * Philippine catalogs write one out — `tsg`'s «nga» and `pag`'s and
+     * `mrw`'s «a», repeated before every modifier — while `cbk`, alone among
+     * the four, writes none at all. `bbc` writes one too and writes it
+     * *postnominally*, the attributive relator «na», which no other catalog on
+     * its side of the split uses. The remaining ten juxtapose with nothing.
+     * Each linker is a free word in every position, so none of them is welded
+     * to a placeable and the README's affix rule is not reached here.
+     *
+     * Finally, the convergences are real and are not agreement. Eight catalogs
+     * write «garis» and six of those write «putus-putus»: that is one
+     * Indonesian word reaching six languages through one school system, not
+     * six languages arriving at it. `bug` and `mak` are pinned beside them
+     * precisely because they do *not* — «pettu-pettu» and «tappolo-polo» —
+     * and seven of the eight supply a colour word of their own where `nia` still
+     * falls back to Indonesian «merah». Replacing a loan should be a visible
+     * diff here rather than a silent improvement.
+     */
+    const postnominal: [string, string, string][] = [
+        [
+            "bug",
+            "garis tebal pettu-pettu macella'",
+            "tebal pettu-pettu macella'",
+        ],
+        ["mak", "garis kapala' tappolo-polo eja", "kapala' tappolo-polo eja"],
+        ["bjn", "garis kandal putus-putus habang", "kandal putus-putus habang"],
+        ["gor", "garis tebal putus-putus meela", "tebal putus-putus meela"],
+        ["nia", "garis tebal putus-putus merah", "tebal putus-putus merah"],
+        ["bbc", "garis na hapal putus-putus rara", "hapal putus-putus rara"],
+        ["iba", "garis tebal putus-putus mirah", "tebal putus-putus mirah"],
+        ["dtp", "garis tebal putus-putus aragang", "tebal putus-putus aragang"],
+        ["shn", "သဵၼ်ႈ သီလႅင် ၶၢတ်ႇ ၼႃ", "သီလႅင် ၶၢတ်ႇ ၼႃ"],
+        ["mnw", "မျဉ်း အနီ အပြတ် ထူ", "အနီ အပြတ် ထူ"],
+        ["ksw", "မျဉ်း ဂီၤ အပြတ် ဖးထီၣ်", "ဂီၤ အပြတ် ဖးထီၣ်"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(withNoun);
+            // The description is the tail of the phrase verbatim, which is what
+            // would break if a catalog started welding `bbc`'s «na» — the one
+            // linker on this side of the split — onto `{ $description }`.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    const prenominal: [string, string, string][] = [
+        [
+            "tsg",
+            "makapal nga pinutu'-putu' nga pula nga linya",
+            "makapal nga pinutu'-putu' nga pula",
+        ],
+        [
+            "pag",
+            "makapal a putol-putol a ambalanga a linya",
+            "makapal a putol-putol a ambalanga",
+        ],
+        ["cbk", "grueso cortao rojo linea", "grueso cortao rojo"],
+        [
+            "mrw",
+            "makapal a dashed a mariga a linya",
+            "makapal a dashed a mariga",
+        ],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(withNoun);
+            // The linker belongs to `style-with-noun` rather than to the
+            // adjective run, so the run still starts the phrase and still
+            // stands alone without a trailing «nga» or «a».
+            expect(withNoun.startsWith(adjectivesOnly)).toBe(true);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+        });
+    }
+
+    it("puts all four of the Philippine catalogs on the prenominal side", () => {
+        expect(prenominal.map(([locale]) => locale).sort()).toEqual([
+            "cbk",
+            "mrw",
+            "pag",
+            "tsg",
+        ]);
+        expect(postnominal).toHaveLength(11);
+    });
+
+    /**
+     * Chavacano against the Spanish it takes its words from. Every content word
+     * in «grueso cortao rojo linea» is Spanish or a Chavacano reflex of one,
+     * and the arrangement is Spanish's exact reverse: `es` leads with «línea»
+     * and trails the adjectives. This is `mzn`/`glk`-against-`fa` from the
+     * Silk Road batch met in a creole, and the row exists so that a reviewer
+     * replacing a loan cannot also "fix" the order back toward Spanish without
+     * failing a test.
+     */
+    it("reverses Spanish's order in the Spanish-lexifier creole", () => {
+        const spanish = describeStrokedShape(es, words, {
+            noun: line,
+            withNoun: true,
+        });
+        const chavacano = describeStrokedShape(forLocale("cbk"), words, {
+            noun: line,
+            withNoun: true,
+        });
+        expect(spanish.startsWith("línea")).toBe(true);
+        expect(chavacano.startsWith("linea")).toBe(false);
+        expect(chavacano.endsWith("linea")).toBe(true);
+    });
+
+    /**
+     * The side count, where this batch does **not** split — which is the point
+     * of asserting it, since the Silk Road batch split on exactly this and
+     * along a different line than its adjectives did.
+     *
+     * All fifteen use `[noun-tail]`, because in all fifteen the count follows
+     * the noun whatever the adjectives do: «poligon biasa iya 5 sisina»,
+     * «poligono que tiene 5 lado», «regular polygon 5 ၸဵင်ႇ». So the four
+     * prenominal catalogs put their modifiers in front of a noun that still
+     * carries its count behind it, and no catalog in the batch folds the count
+     * into the head the way eleven Silk Road catalogs did.
+     */
+    it.each([
+        ["bug", "poligon biasa iya 5 sisina tebal pettu-pettu macella'"],
+        ["mak", "poligon biasa 5 sisina kapala' tappolo-polo eja"],
+        ["bjn", "poligon baraturan basisi 5 kandal putus-putus habang"],
+        ["gor", "poligon beraturan u o sisi 5 tebal putus-putus meela"],
+        ["nia", "poligon beraturan si so 5 sisi tebal putus-putus merah"],
+        ["bbc", "poligon biasa marsisi 5 na hapal putus-putus rara"],
+        ["iba", "poligon rata besisi 5 tebal putus-putus mirah"],
+        ["dtp", "poligon sekata bersisi 5 tebal putus-putus aragang"],
+        [
+            "tsg",
+            "makapal nga pinutu'-putu' nga pula nga regular nga polygon nga taga 5 sisi",
+        ],
+        [
+            "pag",
+            "makapal a putol-putol a ambalanga a regular a poligono ya walaay 5 a gilig",
+        ],
+        ["cbk", "grueso cortao rojo regular poligono que tiene 5 lado"],
+        [
+            "mrw",
+            "makapal a dashed a mariga a regular polygon a aden a 5 a kilid iyan",
+        ],
+        ["shn", "regular polygon 5 ၸဵင်ႇ သီလႅင် ၶၢတ်ႇ ၼႃ"],
+        ["mnw", "regular polygon 5 ထောင့် အနီ အပြတ် ထူ"],
+        ["ksw", "regular polygon လၢအအိၣ်ဒီး 5 ထောင့် ဂီၤ အပြတ် ဖးထီၣ်"],
+    ])("tails %s's side count behind the noun", (locale, expected) => {
+        const phrase = describeClosedShape(forLocale(locale), words, {
+            noun: { key: "regular-polygon", numSides: 5 },
+            withNoun: true,
+        });
+        expect(phrase).toBe(expected);
+        // The count is behind the noun in all fifteen, so none of them can be
+        // rendering `[noun-tail]` as empty.
+        expect(phrase).toContain("5");
+    });
+
+    /**
+     * Two convergences that are one word rather than two agreements, pinned so
+     * that replacing either loan is a visible diff.
+     *
+     * Six of the eight Indonesian and Malaysian catalogs write «putus-putus»
+     * for the dash pattern, and all eight write «garis» for the line. That is
+     * the Malaysian and Indonesian school vocabulary reaching four languages,
+     * and `locales/dtp`'s header says as much about its `noun` table sharing
+     * `iba`'s: a fact about one education ministry, not about two languages.
+     * `bug` and `mak` are the control — adjacent, related, and sharing neither.
+     */
+    it("keeps bug and mak out of the Indonesian dash-pattern convergence", () => {
+        const dashOf = (locale: string) =>
+            describeStrokedShape(forLocale(locale), words, {
+                noun: line,
+                withNoun: false,
+            }).split(" ")[1];
+        for (const locale of ["bjn", "gor", "nia", "bbc", "iba", "dtp"]) {
+            expect(dashOf(locale)).toBe("putus-putus");
+        }
+        expect(dashOf("bug")).toBe("pettu-pettu");
+        expect(dashOf("mak")).toBe("tappolo-polo");
+    });
+});

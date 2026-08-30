@@ -1173,3 +1173,263 @@ describe("plural categories a locale cannot select", () => {
         );
     });
 });
+
+/**
+ * No catalog writes a number in its own script's digits.
+ *
+ * This is the README's "Digits are Latin, separators are not" rule met from the
+ * catalog side. The rule is enforced on every *formatter* — `intlLocale` pins
+ * the numbering system, and `lint:i18n` rejects a catalog passing
+ * `numberingSystem` to a Fluent builtin — but a literal digit typed into a
+ * message value goes through no formatter at all, and there was nothing
+ * checking it.
+ *
+ * The failure it produces is worse than an inconsistency between locales. It is
+ * an inconsistency *inside one sentence*: a message reading "more than 3 points"
+ * with the 3 in Myanmar digits sits beside a `{ $count }` in the next message
+ * rendering in Latin ones, and beside mathematics that is Latin-digit
+ * regardless. `locales/mnw` and `locales/ksw` were seeded with exactly that, six
+ * messages each, and this is the property that found it.
+ *
+ * Every digit range CLDR would otherwise count in is checked rather than only
+ * the ones the roster has languages for, since the next batch is what this is
+ * for.
+ */
+describe("every catalog's digits", () => {
+    /**
+     * The decimal-digit blocks of the scripts this roster writes in, plus the
+     * ones it plausibly will. Latin `0`–`9` is deliberately absent: it is the
+     * answer, not an offender.
+     */
+    const NON_LATIN_DIGITS =
+        /[٠-٩۰-۹०-९০-৯੦-੯૦-૯୦-୯௦-௯౦-౯೦-೯൦-൯๐-๙໐-໙༠-༩၀-၉႐-႙០-៩᥆-᥏᧐-᧙]/u;
+
+    it.each(listLocales())("%s counts in Latin digits", (locale) => {
+        const offenders: string[] = [];
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog(locale, namespace);
+            if (source === null) {
+                continue;
+            }
+            source.split("\n").forEach((line, index) => {
+                // Header prose may name a script's digits to say it does not
+                // use them, which is the opposite of the defect.
+                if (line.trimStart().startsWith("#")) {
+                    return;
+                }
+                if (NON_LATIN_DIGITS.test(line)) {
+                    offenders.push(`${namespace}:${index + 1}: ${line.trim()}`);
+                }
+            });
+        }
+        expect(offenders).toEqual([]);
+    });
+});
+
+/**
+ * The letter inventories the Southeast Asian batch's headers state exactly.
+ *
+ * Twelve of the fifteen catalogs are written in Latin, and the interesting fact
+ * about them is how *little* they need beyond ASCII: seven use nothing at all,
+ * and the other five commit to exactly one or three characters apiece. Each of
+ * those five is a letter of the language rather than decoration — `nia`'s «ö»,
+ * `mrw`'s schwa «ë», `tsg`'s Malay-derived macrons, the «é» `bug` and `mak`
+ * write for a vowel their Lontara tradition does not distinguish — and each
+ * header says which and warns against folding it away. A catalog that acquired
+ * a sixth diacritic would have acquired it by guess.
+ */
+describe("the letter inventories the Southeast Asian headers state exactly", () => {
+    /** Non-ASCII letters each Latin-script catalog's header allows. */
+    const LATIN_EXTRA: Record<string, string> = {
+        bug: "é",
+        mak: "é",
+        bjn: "",
+        gor: "",
+        nia: "ö",
+        bbc: "",
+        iba: "",
+        dtp: "",
+        pag: "",
+        cbk: "",
+        tsg: "āīū",
+        mrw: "ë",
+    };
+
+    /** Every letter a catalog writes outside ASCII, as it appears. */
+    const lettersOutsideAscii = (locale: string): Set<string> => {
+        const found = new Set<string>();
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog(locale, namespace);
+            if (source === null) {
+                continue;
+            }
+            for (const line of source.split("\n")) {
+                // Headers quote the look-alikes they warn against, and every
+                // catalog writes DoenetML's own identifiers in Latin, so only
+                // the prose a reader sees is checked.
+                if (line.trimStart().startsWith("#")) {
+                    continue;
+                }
+                for (const letter of line.replace(/`[^`]*`/g, " ")) {
+                    if (/\p{L}/u.test(letter) && letter.codePointAt(0)! > 127) {
+                        found.add(letter);
+                    }
+                }
+            }
+        }
+        return found;
+    };
+
+    /**
+     * The same, widened to combining marks. The Myanmar script writes its
+     * vowels as marks rather than as letters, so `\p{L}` alone sees none of
+     * `ၢ`, `ႃ` or `ၣ` — the very characters the three headers below make
+     * claims about.
+     */
+    const signsOutsideAscii = (locale: string): Set<string> => {
+        const found = new Set<string>();
+        for (const namespace of CATALOG_NAMESPACES) {
+            const source = readCatalog(locale, namespace);
+            if (source === null) {
+                continue;
+            }
+            for (const line of source.split("\n")) {
+                if (line.trimStart().startsWith("#")) {
+                    continue;
+                }
+                for (const sign of line.replace(/`[^`]*`/g, " ")) {
+                    if (
+                        /[\p{L}\p{M}]/u.test(sign) &&
+                        sign.codePointAt(0)! > 127
+                    ) {
+                        found.add(sign);
+                    }
+                }
+            }
+        }
+        return found;
+    };
+
+    it.each(Object.keys(LATIN_EXTRA))(
+        "keeps %s to ASCII and the letters its header names",
+        (locale) => {
+            const allowed = new Set(
+                [...LATIN_EXTRA[locale]].flatMap((letter) => [
+                    letter,
+                    letter.toUpperCase(),
+                ]),
+            );
+            expect(
+                [...lettersOutsideAscii(locale)].filter(
+                    (letter) => !allowed.has(letter),
+                ),
+            ).toEqual([]);
+        },
+    );
+
+    /**
+     * Seven of the twelve need nothing beyond ASCII at all, asserted as a fact
+     * about those catalogs rather than left implicit in an empty string above.
+     * `cbk` is the one worth naming: printed Chavacano inherits Spanish's
+     * accents, and `locales/cbk` commits to writing none — so an «á» appearing
+     * here later is a change of orthography, not a typo.
+     */
+    it.each(["bjn", "gor", "bbc", "iba", "dtp", "pag", "cbk"])(
+        "writes %s in ASCII letters alone",
+        (locale) => {
+            expect([...lettersOutsideAscii(locale)]).toEqual([]);
+        },
+    );
+
+    /**
+     * The glottal stop, which five of the twelve write and all five write the
+     * same way: **ASCII `'` (U+0027)**, never U+2019 or U+02BC.
+     *
+     * This is the deliberate opposite of the Americas batch's `yua` and `kek`,
+     * which are held to U+02BC because the glottal stop is a *letter* of Mayan
+     * orthography. In Buginese, Makasar and the Philippine languages the mark
+     * is punctuation-shaped in ordinary print, the surrounding catalogs quote
+     * values with straight quotes, and a curly apostrophe in a value a reader
+     * might retype is a hazard rather than a nicety. Either convention is
+     * defensible; what a batch cannot afford is both.
+     */
+    it.each(["bug", "mak", "bjn", "tsg", "pag"])(
+        "writes %s's glottal stop as ASCII apostrophe",
+        (locale) => {
+            const offenders: string[] = [];
+            for (const namespace of CATALOG_NAMESPACES) {
+                const source = readCatalog(locale, namespace) ?? "";
+                for (const line of source.split("\n")) {
+                    if (line.trimStart().startsWith("#")) {
+                        continue;
+                    }
+                    if (/[’ʼʻ]/.test(line)) {
+                        offenders.push(`${namespace}: ${line.trim()}`);
+                    }
+                }
+            }
+            expect(offenders).toEqual([]);
+        },
+    );
+
+    /**
+     * The three Myanmar-script catalogs, and the two header claims a homoglyph
+     * audit corrected during seeding rather than after review.
+     *
+     * These languages share a script and do not share its letters, and the
+     * failure mode is silent: a Burmese letter standing in for the Shan or
+     * Karen one it resembles renders, lints and reads as text. So each catalog
+     * is held to the letters its own header names, in both directions — the
+     * ones it must have and the ones it must not.
+     */
+    it("holds shn, mnw and ksw to their own letters", () => {
+        const has = (locale: string, sign: string) =>
+            signsOutsideAscii(locale).has(sign);
+
+        // Shan's own consonants, and `ၢ` U+1062 — correct Shan spelling for
+        // /aa/ before a final consonant, which `shn/chrome.ftl` warns against
+        // "correcting" to `ႃ`. Both are present; neither replaces the other.
+        for (const letter of ["ၵ", "ၶ", "ၸ", "ၺ", "ၼ", "ၽ", "ၾ", "ႁ", "ဢ"]) {
+            expect(has("shn", letter)).toBe(true);
+        }
+        expect(has("shn", "ၢ")).toBe(true);
+        expect(has("shn", "ႃ")).toBe(true);
+
+        // Mon's own letters. The header first claimed `ဿ` and `ၝ` and the audit
+        // found neither in the text, so the header was corrected to match the
+        // catalog rather than the catalog padded to match the header.
+        for (const letter of ["ၚ", "ၜ", "ၞ", "ၟ", "ၠ"]) {
+            expect(has("mnw", letter)).toBe(true);
+        }
+        for (const letter of ["ဿ", "ၝ"]) {
+            expect(has("mnw", letter)).toBe(false);
+        }
+
+        // S'gaw Karen's own letters, and the sharper correction: `ၦ` and `ၯ`
+        // are **Pwo** letters, not S'gaw ones, and the seeding brief asked for
+        // them by mistake. The catalog uses neither, and `blk` and `kjp` are
+        // left to fall to English in `negotiate.test.ts` for the same reason.
+        for (const letter of ["ၢ", "ၣ", "ၤ"]) {
+            expect(has("ksw", letter)).toBe(true);
+        }
+        for (const letter of ["ၦ", "ၯ", "ၡ", "ဢ"]) {
+            expect(has("ksw", letter)).toBe(false);
+        }
+    });
+
+    /**
+     * And the negative control across the three: no catalog here writes a
+     * letter from *outside* the Myanmar block, apart from the Latin the
+     * declared English and Burmese loan registers are written in. A Thai or
+     * Khmer letter would be a seeding accident rather than a language.
+     */
+    it.each(["shn", "mnw", "ksw"])(
+        "keeps %s inside the Myanmar block",
+        (locale) => {
+            const strays = [...signsOutsideAscii(locale)].filter(
+                (sign) => !/[က-႟ꩠ-ꩿ]/u.test(sign),
+            );
+            expect(strays).toEqual([]);
+        },
+    );
+});

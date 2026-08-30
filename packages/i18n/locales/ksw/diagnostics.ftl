@@ -186,11 +186,11 @@ accessibility-section-title-insufficient-contrast =
 
 circle-through-points-non-numerical = အမှတ် တအိၣ်ဒီး နီၣ်ဂံၢ်တၢ်လုၢ်ပှ့ၤဘၣ်အခါ အမှတ် { $count } ခါ လဲၤခီဖျိသော `<circle>` န့ၣ် တမၤဒံးဘၣ်။
 
-circle-too-many-through-points = အမှတ် အါန့ၢ် ၃ ခါ လဲၤခီဖျိသော စက်ဝိုင်း န့ၣ် ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်။
+circle-too-many-through-points = အမှတ် အါန့ၢ် 3 ခါ လဲၤခီဖျိသော စက်ဝိုင်း န့ၣ် ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်။
 
 circle-overprescribed-radius-center-points = radius, center ဒီး through point သၢခါလိာ် ပာ်ပနီၣ်ဝဲသော စက်ဝိုင်း န့ၣ် ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်။
 
-circle-center-with-multiple-points = center ပာ်ပနီၣ်ဝဲဒီး အမှတ် အါန့ၢ် ၁ ခါ လဲၤခီဖျိသော စက်ဝိုင်း န့ၣ် ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်။
+circle-center-with-multiple-points = center ပာ်ပနီၣ်ဝဲဒီး အမှတ် အါန့ၢ် 1 ခါ လဲၤခီဖျိသော စက်ဝိုင်း န့ၣ် ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်။
 
 circle-radius-too-small = စက်ဝိုင်း ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်: အမှတ် ခံခါအဘၢၣ်စၢၤ အယံၤ မ့ၢ် { $distance } အဃိ radius လၢပာ်ပနီၣ်ဝဲ { $radius } န့ၣ် ဆံးကဲၣ်ဆိး လီၤ။
 
@@ -198,7 +198,7 @@ circle-radius-with-many-points = radius ပာ်ပနီၣ်ဝဲဒီး 
 
 circle-invalid-center-or-through-points = စက်ဝိုင်း အ center မ့တမ့ၢ် through point တဘၣ်ဘၣ်။
 
-circle-radius-center-with-multiple-points = center ပာ်ပနီၣ်ဝဲဒီး အမှတ် အါန့ၢ် ၁ ခါ လဲၤခီဖျိသော စက်ဝိုင်း အ radius န့ၣ် ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်။
+circle-radius-center-with-multiple-points = center ပာ်ပနီၣ်ဝဲဒီး အမှတ် အါန့ၢ် 1 ခါ လဲၤခီဖျိသော စက်ဝိုင်း အ radius န့ၣ် ဂံၢ်ထုးထီၣ် တန့ၢ်ဘၣ်။
 
 circle-change-radius-non-numerical = through point တအိၣ်ဒီး နီၣ်ဂံၢ်တၢ်လုၢ်ပှ့ၤဘၣ်သော စက်ဝိုင်း အ radius န့ၣ် ဆီတလဲ တန့ၢ်ဘၣ်
 
@@ -277,9 +277,9 @@ angle-too-many-lines = မျဉ်း { $count } ဘိ အဘၢၣ်စၢ�
 
 angle-invalid-through-point = `<angle>` အ through အပူၤ အမှတ် တဘၣ်ဘၣ်
 
-parabola-vertex-too-many-points = vertex အိၣ်ဒီး အမှတ် အါန့ၢ် ၁ ခါ လဲၤခီဖျိသော parabola န့ၣ် တမၤဒံးဘၣ်။
+parabola-vertex-too-many-points = vertex အိၣ်ဒီး အမှတ် အါန့ၢ် 1 ခါ လဲၤခီဖျိသော parabola န့ၣ် တမၤဒံးဘၣ်။
 
-parabola-too-many-points = အမှတ် အါန့ၢ် ၃ ခါ လဲၤခီဖျိသော parabola န့ၣ် တမၤဒံးဘၣ်။
+parabola-too-many-points = အမှတ် အါန့ၢ် 3 ခါ လဲၤခီဖျိသော parabola န့ၣ် တမၤဒံးဘၣ်။
 
 intersection-too-many-items = တၢ်ဂ့ၢ် အါန့ၢ် ခံခါ အဂီၢ် intersection န့ၣ် တမၤဒံးဘၣ်
 
@@ -405,7 +405,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = attribute `{ $attribute }` အဂီၢ် တၢ်လုၢ်ပှ့ၤ `{ $value }` တဘၣ်ဘၣ်။ attribute န့ၣ် `$` ဒီးစးထီၣ်သော reference တဖၣ် ကဘၣ်မ့ၢ် လီၤ။
 
-math-input-invalid-function-names = <mathInput>: { $attribute } အပူၤ function အမံၤ လၢအတဘၣ်ဘၣ်န့ၣ် တစူးကါဘၣ်: { $names }။ မံၤကိးခါ အဒုးနဲၣ်အကူာ် န့ၣ် အစှၤကတၢၢ် ၂ ဖျၢၣ် (လံာ်မဲာ်ဖျၢၣ် မ့တမ့ၢ် ဘီၣ်ထူၣ်) ကဘၣ်အိၣ်; လၢခံ `|<mathspeak alternative>` န့ၣ် ပာ်ဂ့ၤ တပာ်ဂ့ၤ လီၤ။
+math-input-invalid-function-names = <mathInput>: { $attribute } အပူၤ function အမံၤ လၢအတဘၣ်ဘၣ်န့ၣ် တစူးကါဘၣ်: { $names }။ မံၤကိးခါ အဒုးနဲၣ်အကူာ် န့ၣ် အစှၤကတၢၢ် 2 ဖျၢၣ် (လံာ်မဲာ်ဖျၢၣ် မ့တမ့ၢ် ဘီၣ်ထူၣ်) ကဘၣ်အိၣ်; လၢခံ `|<mathspeak alternative>` န့ၣ် ပာ်ဂ့ၤ တပာ်ဂ့ၤ လီၤ။
 
 ## Building components from the source
 

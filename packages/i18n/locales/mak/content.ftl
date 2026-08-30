@@ -16,7 +16,7 @@
 # ## Word order
 #
 # **The noun comes first and every modifier follows it**, in the order width,
-# dash pattern, colour: «garis kapala' te'te'-te'te' eja» is *thick dashed red
+# dash pattern, colour: «garis kapala' tappolo-polo eja» is *thick dashed red
 # line*. So `style-with-noun` and `style-filled-with-noun` put `{ $noun }`
 # before `{ $description }` — the reverse of English's sequence of placeables,
 # and a fact about Makasar rather than a failure to translate. `style-stroke`

@@ -179,11 +179,11 @@ accessibility-section-title-insufficient-contrast =
 
 circle-through-points-non-numerical = အမှတ် { $count } တၚ် မလုပ်အာ `<circle>` ဂှ် အမှတ် တန်ဖိုးဂၞန် ဟွံမွဲမ္ဂး ဟွံကၠောန်လဝ်ဏီ။
 
-circle-too-many-through-points = အမှတ် ဂၠိုၚ်နူ ၃ တၚ် မလုပ်အာ စက်ဝိုင်း ဂှ် ချူဓဇက် ဟွံဂွံ။
+circle-too-many-through-points = အမှတ် ဂၠိုၚ်နူ 3 တၚ် မလုပ်အာ စက်ဝိုင်း ဂှ် ချူဓဇက် ဟွံဂွံ။
 
 circle-overprescribed-radius-center-points = radius, center ကဵု through point ပိ မွဲစွံ စၟတ်သမ္တီလဝ်မ္ဂး စက်ဝိုင်း ချူဓဇက် ဟွံဂွံ။
 
-circle-center-with-multiple-points = center မစၟတ်သမ္တီလဝ် နွံတုဲ အမှတ် ဂၠိုၚ်နူ ၁ တၚ် မလုပ်အာ စက်ဝိုင်း ဂှ် ချူဓဇက် ဟွံဂွံ။
+circle-center-with-multiple-points = center မစၟတ်သမ္တီလဝ် နွံတုဲ အမှတ် ဂၠိုၚ်နူ 1 တၚ် မလုပ်အာ စက်ဝိုင်း ဂှ် ချူဓဇက် ဟွံဂွံ။
 
 circle-radius-too-small = စက်ဝိုင်း ချူဓဇက် ဟွံဂွံ - အမှတ် ၜါ အကြာ ဇမၠိၚ်ဂှ် { $distance } ဒှ်တုဲ radius မစၟတ်သမ္တီလဝ် { $radius } ဂှ် ဍောတ်အာရ။
 
@@ -191,7 +191,7 @@ circle-radius-with-many-points = radius မစၟတ်သမ္တီလဝ် 
 
 circle-invalid-center-or-through-points = စက်ဝိုင်း နူ center ဟွံသေၚ် through point ဟွံဒးရး။
 
-circle-radius-center-with-multiple-points = center မစၟတ်သမ္တီလဝ် နွံတုဲ အမှတ် ဂၠိုၚ်နူ ၁ တၚ် မလုပ်အာ စက်ဝိုင်း နူ radius ဂှ် ချူဓဇက် ဟွံဂွံ။
+circle-radius-center-with-multiple-points = center မစၟတ်သမ္တီလဝ် နွံတုဲ အမှတ် ဂၠိုၚ်နူ 1 တၚ် မလုပ်အာ စက်ဝိုင်း နူ radius ဂှ် ချူဓဇက် ဟွံဂွံ။
 
 circle-change-radius-non-numerical = through point တန်ဖိုးဂၞန် ဟွံမွဲမ္ဂး စက်ဝိုင်း နူ radius ဂှ် ပြံၚ်လှာဲ ဟွံဂွံ
 
@@ -270,9 +270,9 @@ angle-too-many-lines = မျဉ်း { $count } ကြပ် အကြာ ထ�
 
 angle-invalid-through-point = `<angle>` နူ through ပ္ဍဲ အမှတ် ဟွံဒးရး
 
-parabola-vertex-too-many-points = vertex နွံတုဲ အမှတ် ဂၠိုၚ်နူ ၁ တၚ် မလုပ်အာ parabola ဂှ် ဟွံကၠောန်လဝ်ဏီ။
+parabola-vertex-too-many-points = vertex နွံတုဲ အမှတ် ဂၠိုၚ်နူ 1 တၚ် မလုပ်အာ parabola ဂှ် ဟွံကၠောန်လဝ်ဏီ။
 
-parabola-too-many-points = အမှတ် ဂၠိုၚ်နူ ၃ တၚ် မလုပ်အာ parabola ဂှ် ဟွံကၠောန်လဝ်ဏီ။
+parabola-too-many-points = အမှတ် ဂၠိုၚ်နူ 3 တၚ် မလုပ်အာ parabola ဂှ် ဟွံကၠောန်လဝ်ဏီ။
 
 intersection-too-many-items = အရာ ဂၠိုၚ်နူ ၜါ သွက် intersection ဂှ် ဟွံကၠောန်လဝ်ဏီ
 
@@ -398,7 +398,7 @@ attribute-invalid-values =
 
 attribute-must-be-references = attribute `{ $attribute }` သွက် တန်ဖိုး `{ $value }` ဟွံဒးရး။ attribute ဂှ် `$` နကဵု မစတမ် reference နူ ဒးဒှ်။
 
-math-input-invalid-function-names = <mathInput>: { $attribute } ပ္ဍဲ ဟွံဒးရး function ယၟု ဟွံသုၚ်စောဲ: { $names }။ ယၟု နာနာ နူ ကထ္ၜးအခန် ဂှ် အက္ခရ် ဟွံသေၚ် ဂၞိန် ဟွံအောန်နူ ၂ တၞး ဒးနွံ; လက္ကရဴ `|<mathspeak alternative>` ဂှ် စုတ်ကီု ဟွံစုတ်ကီု ဒှ်ဂွံ။
+math-input-invalid-function-names = <mathInput>: { $attribute } ပ္ဍဲ ဟွံဒးရး function ယၟု ဟွံသုၚ်စောဲ: { $names }။ ယၟု နာနာ နူ ကထ္ၜးအခန် ဂှ် အက္ခရ် ဟွံသေၚ် ဂၞိန် ဟွံအောန်နူ 2 တၞး ဒးနွံ; လက္ကရဴ `|<mathspeak alternative>` ဂှ် စုတ်ကီု ဟွံစုတ်ကီု ဒှ်ဂွံ။
 
 ## Building components from the source
 
