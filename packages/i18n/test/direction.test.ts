@@ -60,6 +60,19 @@ const RTL_LANGUAGES = [
     "lrc",
     "bal",
     "haz",
+    // The second South Asian batch's two, which take the roster's
+    // right-to-left catalogs from sixteen to eighteen. Both are Perso-Arabic
+    // and both are new to `RTL_LANGUAGES` in `direction.ts`, on the same terms
+    // `bal` and `haz` were: each maximizes to `-Arab`, so the script rule
+    // already answered a parseable tag, and the entry earns its keep only on
+    // the fallback path where nothing could be parsed.
+    //
+    // `brh` is the pair worth reading beside `skr`: Brahui is Dravidian and
+    // Saraiki Indo-Aryan, and they run the same way because they are written
+    // in the same script. That is the `ug`/`yi`/`ckb` point reaching a family
+    // the roster's right-to-left half had never included.
+    "skr",
+    "brh",
 ];
 
 describe("directionOf", () => {

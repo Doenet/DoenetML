@@ -5214,3 +5214,139 @@ describe("the Southeast Asian batch's word order", () => {
         expect(dashOf("mak")).toBe("tappolo-polo");
     });
 });
+
+describe("the second South Asian batch's word order", () => {
+    /**
+     * Fifteen languages of South Asia and its diaspora, and this batch's split
+     * is the Southeast Asian one's arithmetic reversed: thirteen catalogs put
+     * the modifiers in front of the noun and two put them behind. Thirteen to
+     * two is not itself interesting — most of South Asia is left-branching, and
+     * the ten Indo-Aryan catalogs here inherit Hindi's order along with much of
+     * their technical vocabulary.
+     *
+     * What is interesting is *which* two, because the line does not fall where
+     * a reader would draw it. `kha` (Khasi) and `lus` (Mizo) are the two, and
+     * `grt` (Garo) — seeded in the same batch, spoken in the same state as
+     * Khasi, and Tibeto-Burman like Mizo — is on the other side. So neither
+     * family nor geography predicts the split: Meghalaya writes it both ways,
+     * and the two Tibeto-Burman catalogs disagree with each other. Khasi is
+     * Austroasiatic and head-initial like its relatives further east; Mizo puts
+     * its attributives behind the noun; Garo's `-gipa` attributive precedes it.
+     * Three neighbours, three answers.
+     *
+     * The other row worth reading twice is `brh` (Brahui), which is Dravidian
+     * and sits among twelve Indo-Aryan and Tibeto-Burman catalogs writing the
+     * same order as all of them. Head-final order is areal here rather than
+     * genetic, which is the same lesson `cbk` taught from the opposite
+     * direction in the Southeast Asian batch: a phrase's order follows the
+     * neighbourhood, not the family tree or the lexicon.
+     *
+     * `tcy` (Tulu) is Dravidian too and prenominal for the same areal reason,
+     * so the two Dravidian catalogs of this batch agree with the Indo-Aryan
+     * ones and with each other while the two Tibeto-Burman ones do not.
+     *
+     * Every one of the fifteen keeps English's internal sequence of the three
+     * adjectives — width, dash pattern, colour — so what moves in a
+     * postnominal catalog is the noun alone. Nothing here is welded to a
+     * placeable: none of the fifteen writes a linker between modifier and noun
+     * at all, which is why this batch never reaches the README's affix rule
+     * that `pag`'s and `tsg`'s ligatures came so close to.
+     */
+    const prenominal: [string, string][] = [
+        ["awa", "मोट खंडित लाल"],
+        ["hne", "मोट खंडित लाल"],
+        ["mag", "मोट खंडित लाल"],
+        ["mwr", "मोटो खंडित लाल"],
+        ["gbm", "मोटु खंडित लाल"],
+        ["kfy", "मोटो खंडित लाल"],
+        ["new", "बाक्लो धर्के ह्याउँ"],
+        ["syl", "মোটা দাগ-দাগ লাল"],
+        ["tcy", "ದಪ್ಪ ತುಂಡು ತುಂಡುದ ಕೆಂಪು"],
+        ["grt", "dal·gipa dashgipa gitchak"],
+        ["skr", "موٹی منقطع لال"],
+        ["brh", "دبیز خط چین سرخ"],
+        ["hif", "mota dash waala laal"],
+    ];
+
+    const nounOf: Record<string, string> = {
+        awa: "रेखा",
+        hne: "रेखा",
+        mag: "रेखा",
+        mwr: "रेखा",
+        gbm: "रेखा",
+        kfy: "रेखा",
+        new: "रेखा",
+        syl: "রেখা",
+        tcy: "ಗೆರೆ",
+        grt: "lain",
+        skr: "لکیر",
+        brh: "خط",
+        hif: "lakiir",
+    };
+
+    for (const [locale, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(`${adjectivesOnly} ${nounOf[locale]}`);
+        });
+    }
+
+    const postnominal: [string, string, string][] = [
+        ["kha", "lain bakhraw badash basaw", "bakhraw badash basaw"],
+        ["lus", "line lian dash-nei sen", "lian dash-nei sen"],
+    ];
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(withNoun);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+            // The description is the tail of the phrase verbatim: the noun
+            // moved and nothing else did.
+            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+        });
+    }
+
+    /**
+     * The one catalog of the fifteen that agrees its adjectives, held from both
+     * sides. Saraiki keeps Indo-Aryan's marked adjective classes, so `موٹی`
+     * is feminine before the feminine `لکیر` and `موٹا` masculine before a
+     * masculine noun — the fork English ignores, selected on `noun-gender`'s
+     * own answer. The other fourteen write one invariant form: Brahui and Tulu
+     * have no adjective agreement to lose, Fiji Hindi levelled Hindi's away,
+     * and in the rest it is a stated gap in the seed rather than a claim about
+     * the language.
+     */
+    it("agrees skr's adjectives with the noun and no other catalog's", () => {
+        const skr = forLocale("skr");
+        const feminine = describeStrokedShape(skr, words, {
+            noun: line,
+            withNoun: true,
+        });
+        const masculine = describeStrokedShape(skr, words, {
+            noun: { key: "point" },
+            withNoun: true,
+        });
+        expect(feminine).toContain("موٹی");
+        expect(masculine).toContain("موٹا");
+
+        for (const locale of ["brh", "hif", "tcy", "awa"]) {
+            const t = forLocale(locale);
+            const width = (noun: NounKey) =>
+                describeStrokedShape(t, words, {
+                    noun: { key: noun },
+                    withNoun: true,
+                }).split(" ")[0];
+            expect(width("line")).toBe(width("point"));
+        }
+    });
+});

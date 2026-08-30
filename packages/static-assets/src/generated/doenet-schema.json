@@ -65443,6 +65443,10 @@
                             "description": "Avaric"
                         },
                         {
+                            "value": "awa",
+                            "description": "Awadhi"
+                        },
+                        {
                             "value": "ay",
                             "description": "Aymara"
                         },
@@ -65517,6 +65521,10 @@
                         {
                             "value": "br",
                             "description": "Breton (brezhoneg)"
+                        },
+                        {
+                            "value": "brh",
+                            "description": "Brahui"
                         },
                         {
                             "value": "brx",
@@ -65739,6 +65747,10 @@
                             "description": "Gagauz"
                         },
                         {
+                            "value": "gbm",
+                            "description": "Garhwali (गढ़वाली)"
+                        },
+                        {
                             "value": "gcf",
                             "description": "Guadeloupean Creole French (kréyòl gwadloupéyen)"
                         },
@@ -65771,6 +65783,10 @@
                             "description": "Gorontalo"
                         },
                         {
+                            "value": "grt",
+                            "description": "Garo (A·chik)"
+                        },
+                        {
                             "value": "gsw",
                             "description": "Swiss German (Schwiizertüütsch)"
                         },
@@ -65799,8 +65815,16 @@
                             "description": "Hindi (हिन्दी)"
                         },
                         {
+                            "value": "hif",
+                            "description": "Fiji Hindi"
+                        },
+                        {
                             "value": "hil",
                             "description": "Hiligaynon"
+                        },
+                        {
+                            "value": "hne",
+                            "description": "Chhattisgarhi (छत्तीसगढ़ी)"
                         },
                         {
                             "value": "hnj",
@@ -65899,8 +65923,16 @@
                             "description": "Qʼeqchiʼ"
                         },
                         {
+                            "value": "kfy",
+                            "description": "Kumaoni (कुमाउँनी)"
+                        },
+                        {
                             "value": "kg",
                             "description": "Kongo"
+                        },
+                        {
+                            "value": "kha",
+                            "description": "Khasi"
                         },
                         {
                             "value": "ki",
@@ -66051,12 +66083,20 @@
                             "description": "Luo (Dholuo)"
                         },
                         {
+                            "value": "lus",
+                            "description": "Mizo"
+                        },
+                        {
                             "value": "lv",
                             "description": "Latvian (latviešu)"
                         },
                         {
                             "value": "mad",
                             "description": "Madurese"
+                        },
+                        {
+                            "value": "mag",
+                            "description": "Magahi"
                         },
                         {
                             "value": "mai",
@@ -66151,6 +66191,10 @@
                             "description": "Maltese (Malti)"
                         },
                         {
+                            "value": "mwr",
+                            "description": "Marwari"
+                        },
+                        {
                             "value": "my",
                             "description": "Burmese (မြန်မာ)"
                         },
@@ -66181,6 +66225,10 @@
                         {
                             "value": "ne",
                             "description": "Nepali (नेपाली)"
+                        },
+                        {
+                            "value": "new",
+                            "description": "Newari"
                         },
                         {
                             "value": "nia",
@@ -66375,6 +66423,10 @@
                             "description": "Slovak (slovenčina)"
                         },
                         {
+                            "value": "skr",
+                            "description": "Saraiki (سرائیکی)"
+                        },
+                        {
                             "value": "sl",
                             "description": "Slovenian (slovenščina)"
                         },
@@ -66447,6 +66499,10 @@
                             "description": "Swahili (Kiswahili)"
                         },
                         {
+                            "value": "syl",
+                            "description": "Sylheti (সিলেটি)"
+                        },
+                        {
                             "value": "szl",
                             "description": "Silesian (ślōnski)"
                         },
@@ -66457,6 +66513,10 @@
                         {
                             "value": "tab",
                             "description": "Tabasaran (tab)"
+                        },
+                        {
+                            "value": "tcy",
+                            "description": "Tulu"
                         },
                         {
                             "value": "te",
