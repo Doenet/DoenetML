@@ -2396,10 +2396,9 @@ and Shughni (`sgh`) — Iranian in three other scripts; Dungan (`dng`), which is
 Sinitic written in Cyrillic; and Wakhi (`wbl`), a Pamir language of northern
 Pakistan.
 
-It is assembled around a **trade route** rather than a family,
-a script, a state or an ocean, and the loosest grouping the roster has had:
-what its members share is a corridor, and almost every property this file
-tracks splits inside it.
+It is assembled around a **trade route** rather than a family, a script, a
+state or an ocean: what its members share is a corridor rather than a
+common descent, and almost every property this file tracks splits inside it.
 
 #### Three scripts, and five catalogs that had to choose between two
 
@@ -2737,7 +2736,7 @@ most of its vocabulary is shared with Dari word for word, and **a Dari word in
 that file is not an oversight** — the two places Hazaragi's own usage shows
 are «قد» for *with* and «بلدِ» for *for*.
 
-**`locales/sgh` goes further than any catalog in the roster has.** Its
+**`locales/sgh` keeps a loan register for two whole namespaces.** Its
 `diagnostics.ftl` header says that Shughni has no written register for
 compiler diagnostics at all, that a Shughni speaker who reads an error message
 reads it in Tajik or Russian, and that the file therefore keeps **that loan

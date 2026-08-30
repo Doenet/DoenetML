@@ -120,6 +120,31 @@ describe("directionOf", () => {
         expect(directionOf("en_US")).toBe("ltr");
     });
 
+    /**
+     * The path `bal` and `haz` were added to {@link RTL_LANGUAGES} for, and
+     * the only path on which those two entries are load-bearing.
+     *
+     * Both tags maximize to `-Arab`, so every parseable spelling of them is
+     * already answered by the script rule one branch earlier — which means a
+     * test written against `bal` or `haz-AF` would pass with the entries
+     * deleted. A tag `Intl.Locale` throws on never reaches `maximize()` at
+     * all, and the raw-subtag fallback has nothing but the language subtag to
+     * go on. These rows are therefore what fails if either entry is removed.
+     */
+    it("reads the batch's two new fallback languages off an unparseable tag", () => {
+        expect(directionOf("bal_PK")).toBe("rtl");
+        expect(directionOf("haz_AF")).toBe("rtl");
+        // The same tags in a spelling `Intl.Locale` accepts are answered by
+        // the script rule instead, so these hold either way — which is the
+        // reason the rows above exist rather than only these.
+        expect(directionOf("bal")).toBe("rtl");
+        expect(directionOf("haz")).toBe("rtl");
+        // And a Latin-script neighbour of each, to show the fallback is
+        // reading the language rather than defaulting everything to `rtl`.
+        expect(directionOf("crh_UA")).toBe("ltr");
+        expect(directionOf("zza_TR")).toBe("ltr");
+    });
+
     it("defaults to left-to-right for nonsense and for nothing at all", () => {
         expect(directionOf("")).toBe("ltr");
         expect(directionOf("   ")).toBe("ltr");

@@ -51,9 +51,12 @@
 # `[many]` branch could never be selected. Shughni does mark plural on the noun
 # (the `-ен` suffix), but — as in Iranian languages generally — **a noun after
 # a numeral is left unmarked**, so a count and a plural noun do not co-occur
-# here anyway. Every count in these files is therefore written as a single
-# `*[other]` branch: the `[one]` branch, where English has one, is kept only so
-# the two forms are visibly the same rather than silently collapsed. English's
+# here anyway. So where English forks on a count, this file keeps **both**
+# branches and writes them **identically** — `[one]` and `*[other]` say the
+# same words — rather than collapsing to one branch. Nothing is lost either
+# way: whichever the runtime's rules select, the reader sees the same Shughni,
+# and keeping the pair makes the sameness visible instead of implicit.
+# English's
 # explicit `[0]` branches are numeric literals matched against the number
 # itself, not plural categories, and are kept as they are.
 

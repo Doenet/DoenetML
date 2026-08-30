@@ -47,10 +47,10 @@
 # **Number**: Shughni marks plural with `-ен`, but a noun after a numeral is
 # left unmarked, as in Iranian languages generally. CLDR has no plural data and
 # no display name for `sgh`, so `Intl.PluralRules` falls back to the default
-# and only `one`/`other` are reachable at all. Every count in this locale is
-# written with a single `*[other]` form (a `[one]` branch is kept where English
-# has one, spelled identically, rather than silently collapsed). Explicit `[0]`
-# branches are numeric literals and are kept.
+# and only `one`/`other` are reachable at all. Where English forks on a count,
+# this locale keeps both branches and spells them identically, so the reader
+# sees the same Shughni whichever one the runtime selects; see the note in
+# `chrome.ftl`. Explicit `[0]` branches are numeric literals and are kept.
 #
 # ## The chemistry element tables are deliberately absent
 #

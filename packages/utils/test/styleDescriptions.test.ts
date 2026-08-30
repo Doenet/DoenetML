@@ -4613,8 +4613,9 @@ describe("the Silk Road batch's word order", () => {
      * the other.
      *
      * `wbl` still renders an English «regular polygon» where its dictionary
-     * gave it no term, and `dng` an English «правильный многоугольник» inside a
-     * Dungan frame — both headers declare the debt — so the loans are pinned
+     * gave it no term, and `dng` a **Russian** «правильный многоугольник»
+     * inside a Dungan frame — the loan language differs with the catalog, and
+     * both headers declare the debt — so the loans are pinned
      * here beside the words that are the language, and replacing one is a
      * visible diff.
      */
