@@ -403,7 +403,7 @@ for what does divide the batch.
 
 **All fifteen of the second South Asian batch are partial as well, and they
 split two ways rather than the first South Asian batch's five.** Thirteen are
-the school-system case in six mediums: chemistry is taught in Hindi across the
+the school-system case in five mediums: chemistry is taught in Hindi across the
 Hindi belt and Uttarakhand, so `awa`, `hne`, `mag`, `gbm` and `kfy` meet the
 table in the language `locales/hi` carries it in; in Nepali in the Kathmandu
 Valley for `new`; in Bengali in Sylhet for `syl`, which is the

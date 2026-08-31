@@ -18,7 +18,7 @@
 # almost identically and compares unequal, so a corrector converting to that
 # convention must convert all four files of this locale at once rather than
 # mix the two. The retroflex nasal is written **ݨ** (U+0768) — «کرݨ»,
-# «ڋکھاوݨ» — which is Saraiki's letter and not Urdu's, and is used here
+# «کھولݨ» — which is Saraiki's letter and not Urdu's, and is used here
 # wherever the word has one. `directionOf` learns `skr` from
 # `src/direction.ts`'s fallback list, since ICU does not maximize the tag to a
 # script on its own.

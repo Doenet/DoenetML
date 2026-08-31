@@ -43,7 +43,7 @@
 # before it consults any plural rule, so that branch is reachable whatever the
 # locale.
 #
-# **Register.** The `-o` imperative («karo», «dekho», «chuno»), which is the
+# **Register.** The `-o` imperative («karo», «dekhao», «chuno»), which is the
 # ordinary polite form and the only one that is safe not knowing who is being
 # addressed.
 #

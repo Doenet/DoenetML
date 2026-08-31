@@ -41,8 +41,8 @@
 # **What is Garo here is the frame**, and it is used consistently: «ong·a» /
 # «ong·ja» for is and is not (so *correct* is «ong·gipa» and *incorrect*
 # «ong·gija», and *invalid* is «ong·gijagipa»), «man·a» / «man·ja» for can and
-# cannot, «nanga» for must, «baha·a» for use, «rakki·a» for keep, «chesot·a»
-# for try, «nik·a» for see, «dongat·a» for add and «ra·kat·a» for remove,
+# cannot, «nanga» for must, «baha» for use, «rakkia» for keep, «chesota»
+# for try, «nika» for see, «dongata» for add and «ra·kata» for remove,
 # «skang» for previous and «ja·man» for next, «aro sa·bsa» for again, «-rang»
 # for a plural, «-ni» for a genitive and «-o» for a locative. The attributive
 # «-gipa» is used to make a describing word, including on a loan stem.

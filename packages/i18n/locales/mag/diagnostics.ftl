@@ -36,7 +36,7 @@
 #   «आउ» / «या» / «अगर»       *and* / *or* / *if*
 #   «जे» / «जेकर»             the relative pronoun and its genitive
 #   «सब»                      the plural, written after the noun
-#   -ल                        the participle: देल, कएल, मिलल, छोड़ल, लिखल
+#   -ल                        the participle: देल, कएल, मिलल, छोड़ल, रहल
 #
 # A sentence that has slipped back into «है», «नहीं», «क्योंकि» or «के लिए»
 # is a mistake to fix rather than a stylistic choice. This is a **framed**

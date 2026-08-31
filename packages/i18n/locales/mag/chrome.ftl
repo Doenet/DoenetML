@@ -22,7 +22,7 @@
 # locative, «ई» for *this*, «कोनो» for *any*, «जे» for the relative
 # pronoun, and the plural word **«सब»** after the noun («बिंदु सब», «रेखा
 # सब»). Verbs are the eastern **-ल** participle — «देल», «कएल», «मिलल»,
-# «छोड़ल», «लिखल» — where Awadhi in the same batch writes «दीन», «कीन»,
+# «छोड़ल», «रहल» — where Awadhi in the same batch writes «दीन», «कीन»,
 # «मिला». Buttons carry the honorific imperative in **-ू** — «खोलू»,
 # «हटावू», «जोड़ू», «देखावू».
 #

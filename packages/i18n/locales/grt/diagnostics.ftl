@@ -23,7 +23,7 @@
 # domain, interval, index, format and their neighbours are written here as
 # English: those are the words the classroom uses. The Garo in this file is
 # the frame, and it is used consistently: «man·ja» cannot, «man·jaha» could
-# not, «nanga» must, «ra·gija» is ignored, «baha·a» use, «man·aha» found,
+# not, «nanga» must, «ra·gija» is ignored, «baha» use, «man·aha» found,
 # «dongja» there is none, «mikkang ka·ja» does not match, «maina» because,
 # «indiba» but, «ba» or, «aro» and, «uni gimin» so, «-oni» ablative, «-chi»
 # instrumental, «-ko» accusative, «-o» locative, «-rang» plural, «-gipa» the
