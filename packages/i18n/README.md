@@ -3750,8 +3750,10 @@ Every batch's plural block since the Uralic one has reported the same finding:
 CLDR has no plural data for the tags, so no catalog may write a category
 branch, and the run of batches that wrote none was long enough to start looking
 like a law about small languages. It is not. **Five of these fifteen have rules
-of their own** — `an`, `wa`, `kw`, `gv` and `lld` — and two of the five have
-rules more elaborate than any established catalog on the roster uses.
+of their own** — `an`, `wa`, `kw`, `gv` and `lld` — and two of the five, `kw`
+and `gv`, have rules as elaborate as any already on the roster: `cy` and `ar`
+are the established catalogs that declare all six categories and write them,
+and `kw` is the third language to reach that list.
 
 `kw` is the far end of it. Cornish declares **all six categories**, and every
 one is reachable from an integer: 0 is `zero`, 1 is `one`, and the rest turn on
@@ -3759,21 +3761,30 @@ the last two digits — 2, 22 and 42 are `two`, 3, 23 and 43 are `few`, 21, 41
 and 61 are `many`. What varies after a Cornish numeral is not the noun's
 ending, because the noun stays singular; it is the noun's **initial mutation**,
 so the branches differ in the word's first letter and nowhere else. The catalog
-writes four of the six — zero is `attempts-remaining`'s numeric `[0]`, which
-says something different from any category — and leaves the select off
+writes four of the six as named branches — `one`, `two`, `few` and `many`,
+plus the `*[other]` default every select must carry — and not `zero`, which is
+`attempts-remaining`'s numeric `[0]` instead, saying something different from
+any category. It leaves the select off
 altogether where the noun begins with a vowel or with `l`, `r` or `s` and takes
 no mutation at all, since six identical branches are the rule against dead
 branches arriving by another road.
 
 `gv` and `lld` are the opposite lesson, and it is one the lint rule cannot
-state. Both declare a category **no integer selects**: Manx declares `many` and
-Ladin declares `many`, and no count this software ever formats reaches either.
-`allowedPluralCategories` reads the declared list, so a `[many]` branch in
-either would parse, lint clean and never render — the exact failure
+state. Both declare a `many` that **no count this software formats reaches**,
+for two different reasons. Manx's `many` is CLDR's category for a count written
+with a visible decimal fraction — 0.5, 1.5 — so no integer selects it at all.
+Ladin's is reachable from an integer, but only from an exact whole multiple of
+a million, the Italian-style rule behind the compact «un milion» forms, and
+nothing here counts to a million. `allowedPluralCategories` reads the declared
+list, so a `[many]` branch in either would parse, lint clean and never render —
+the exact failure
 [A plural branch nothing can select](#a-plural-branch-nothing-can-select)
 exists to prevent, arriving through the one door that rule leaves open. Neither
-catalog writes one, and `chrome.test.ts` holds both by iterating the integers
-rather than by trusting the declared list.
+catalog writes one, and `chrome.test.ts` holds both by asking the rules which
+counts actually select the category rather than by trusting the declared list.
+Manx's `few` is left unwritten for the opposite reason again: it is reachable
+(0, 20, 40, …) but takes the same radical form `other` does, so `*[other]`
+already writes it.
 
 `wa` is the small trap. Walloon's `one` covers **zero as well as one**, so a
 `[one]` branch in a Walloon catalog means something an English-reading
@@ -3830,7 +3841,8 @@ after a feminine singular noun, so «tew» — thick — becomes «dew», the sa
 with a different first letter, and Manx turns «brisht» into «vrisht».
 
 Manx is the sharper of the two, because its *first* adjective is invariant and
-only the second one moves: «chiu vrisht yiarg» against «chiu brisht jiarg». A
+the mutation appears only on the two behind it: «chiu vrisht yiarg» against
+«chiu brisht jiarg». A
 test that compared the width word alone — which is exactly what the second
 South Asian batch's block does, correctly, for catalogs that suffix — would
 have called `locales/gv` invariant. `styleDescriptions.test.ts` compares whole
@@ -3899,18 +3911,22 @@ is named `rom` because that is the only name reachable, and its header says the
 written norm it uses is closest to Vlax, which is what makes the
 canonicalization a fair answer rather than a lucky one.
 
-#### Two names CLDR does not have, and one of them has plural rules
+#### Two names CLDR cannot supply, and one of them has plural rules
 
 `nrf` and `lld` needed `LOCALE_NAME_FALLBACKS` entries; the other thirteen —
-`egl`, `ext` and `frr` among them, all smaller than either — are named by ICU.
+`egl`, `ext` and `frr` among them, all smaller than either — are named by ICU
+in English. `nrf` has no name in any language ICU ships; `lld` has one, in
+Italian only, which is no help to a table that wants English and the endonym.
 
 `lld` is the entry worth reading twice, because it shows that CLDR's two kinds
-of data are requested and arrive separately. **Ladin has plural rules in CLDR
-and no name in any language.** Nothing is inconsistent about that: a plural
-rule is contributed by whoever needed a Ladin `Intl.PluralRules` and a name by
-whoever needed Ladin spelled out in a menu, and only the first was ever asked
-for. A batch that inferred "CLDR knows this language" from either fact alone
-would have got the other one wrong.
+of data are requested and arrive separately. **Ladin has plural rules in CLDR,
+and a name in exactly one language.** `Intl.DisplayNames(["it"]).of("lld")` is
+«ladino»; English has nothing, and neither does Ladin itself, so both halves of
+what `LOCALE_NAME_FALLBACKS` wants are missing. Nothing is inconsistent about
+that: a plural rule is contributed by whoever needed a Ladin
+`Intl.PluralRules`, and a name in one language by whoever needed Ladin spelled
+out in one menu. A batch that inferred "CLDR knows this language" from either
+fact alone would have got the other one wrong.
 
 #### What the fifteen actually know
 

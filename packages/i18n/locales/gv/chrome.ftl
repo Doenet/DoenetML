@@ -46,8 +46,14 @@
 #   few    n mod 100 = 0, 20, 40, 60, 80 — 0, 20, 40, 60, 80, 100, 120, …
 #   other  everything else — 3–10, 13–19, 23–30, …
 #
-# **There is no `[many]` branch anywhere in this catalog**, in any of the four
-# files: no integer reaches it, and a branch nothing selects is dead text.
+# `many` is the fifth, and it is CLDR's category for a count written with a
+# visible decimal fraction — 0.5, 1.5, 2.5. Nothing this software counts is
+# ever written that way, so **there is no `[many]` branch anywhere in this
+# catalog**, in any of the four files: a branch nothing selects is dead text.
+#
+# `few` gets no branch of its own either, for the opposite reason: it is
+# reachable (0, 20, 40, …) but takes the **same** radical form `other` does,
+# so `*[other]` already writes it and a `[few]` would only be a second copy.
 #
 # A Manx noun after a numeral stays **singular**; what varies is the mutation.
 # «un» (1) and «daa» (2) lenite — b→v, c→ch, d→gh, g→gh, j→y, m→v, p→ph, s→h,

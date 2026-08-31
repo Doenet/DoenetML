@@ -44,11 +44,14 @@
 # this seed.
 #
 # **Counts.** CLDR **does** have rules for `lld`. It declares `one`, `many` and
-# `other`, but for an integer count only `one` and `other` are ever selected —
-# `many` is reached by other number shapes — so this catalog writes `[one]` and
-# `*[other]` where English selects on a count and writes **no** `[many]`
-# branch anywhere. `[0]` is matched against the number itself, not a category,
-# and stays legal.
+# `other`. `one` is 1 and `many` is reached only by an exact whole multiple of
+# a million — 1000000, 2000000, … — which is the Italian-style rule for the
+# compact «un milion» forms; every other count this software formats is
+# `other`. So this catalog writes `[one]` and `*[other]` where English selects
+# on a count and writes **no** `[many]` branch anywhere: nothing here counts
+# to a million, and a `[many]` written on that chance would be a branch no
+# reader would ever see. `[0]` is matched against the number itself, not a
+# category, and stays legal.
 #
 # **Weakest first.** A reviewer should attack (1) the imperatives — «Mostra»,
 # «Nete», «Prova», «Muever» — where the standard's forms are the least secure

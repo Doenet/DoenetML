@@ -5385,9 +5385,9 @@ describe("the second European batch's word order", () => {
      * sometimes and not always, and a seed that assumed either way round would
      * have been wrong once.
      *
-     * Every one of the fifteen keeps English's internal sequence of the three
+     * Twelve of the fifteen keep English's internal sequence of the three
      * adjectives — width, dash pattern, colour — so what moves is the noun
-     * alone. `wa`, `frp` and `nrf` are the exception to that and say so in
+     * alone. `wa`, `frp` and `nrf` are the three that do not, and say so in
      * their headers: all three render the dash pattern as an invariable
      * prepositional phrase («a trets», «à traits») rather than as an
      * adjective, and a prepositional phrase cannot sit between two adjectives,
@@ -5523,7 +5523,8 @@ describe("the second European batch's word order", () => {
      * meaningless for these two.
      *
      * Manx is the sharper of the pair: its *first* adjective, «chiu», is the
-     * same in both genders and only the second one moves. A batch that checked
+     * same in both genders, and the mutation shows up only on the two behind
+     * it — «brisht» → «vrisht» and «jiarg» → «yiarg». A batch that checked
      * agreement by looking at the width word alone — which is what the second
      * South Asian batch's block does, correctly, for its own catalogs — would
      * have called `locales/gv` invariant.

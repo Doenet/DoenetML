@@ -25,8 +25,9 @@
 #
 # **Counts.** Manx's CLDR rules select only `one` (n mod 10 = 1: 1, 11, 21, …),
 # `two` (n mod 10 = 2: 2, 12, 22, …), `few` (n mod 100 = 0, 20, 40, 60, 80) and
-# `other` for integers; `many` is declared but no integer reaches it, so
-# **there is no `[many]` branch anywhere in this catalog**.
+# `other` for integers; `many` is declared but belongs to counts written with
+# a visible decimal fraction, which none here are, so **there is no `[many]`
+# branch anywhere in this catalog**. See `chrome.ftl`.
 #
 # `editor-accessibility-label` is the only message here that forks. It counts
 # violations with «brishey» and recommendations with «coyrle», and «un» and

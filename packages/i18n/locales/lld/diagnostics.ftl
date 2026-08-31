@@ -24,10 +24,11 @@
 # author's own source, and so do `WCAG AA`, `DoenetML`, `PreFigure` and
 # `prefigure`, which are names. Digits render in Latin numerals everywhere.
 #
-# **Counts.** CLDR has rules for `lld` declaring `one`, `many` and `other`, but
-# only `one` and `other` are ever selected for an integer count, so the
-# `[one]`/`*[other]` branches here are selected by Ladin's own rules and no
-# `[many]` branch appears anywhere. Every **symbolic** selector — `$type`,
+# **Counts.** CLDR has rules for `lld` declaring `one`, `many` and `other`.
+# `many` is reached only by an exact whole multiple of a million, which no
+# count in this file can be, so the `[one]`/`*[other]` branches here are
+# selected by Ladin's own rules and no `[many]` branch appears anywhere. See
+# `chrome.ftl`. Every **symbolic** selector — `$type`,
 # `$mode`, `$reason`, `$context`, `$suggestion`, `$alternative`, `$fallback`,
 # `$expected`, `$labelKind`, `$isList`, `$componentType` — is kept byte for
 # byte from English, keys included.

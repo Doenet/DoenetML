@@ -12,10 +12,10 @@
 # English exactly as `locales/en` writes them. So do the DoenetML identifiers
 # `styleNumber` and the attribute names in `help-reset-overrides`.
 #
-# **Counts.** CLDR has rules for `lld` declaring `one`, `many` and `other`, but
-# only `one` and `other` are ever selected for an integer count, so a
-# `[one]`/`*[other]` branch here is selected by Ladin's own rules and no
-# `[many]` branch appears. Every symbolic selector — `$action`, `$status`,
+# **Counts.** CLDR has rules for `lld` declaring `one`, `many` and `other`.
+# `many` is reached only by an exact whole multiple of a million, which no
+# count in this file can be, so a `[one]`/`*[other]` branch here is selected
+# by Ladin's own rules and no `[many]` branch appears. See `chrome.ftl`. Every symbolic selector — `$action`, `$status`,
 # `$shortcut`, `$reason`, `$location`, `$allowed`, `$line`, `$perItem` — is
 # kept byte for byte from English.
 

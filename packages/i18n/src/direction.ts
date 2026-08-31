@@ -127,8 +127,9 @@ const RTL_LANGUAGES = new Set([
  *
  * Nothing else on the roster is in this position: `lad` is the only catalog
  * whose maximized script disagrees with the script its own files are written
- * in. `catalogDirection.test.ts` holds that, so a future batch that adds such
- * a catalog fails rather than renders backwards.
+ * in. `direction.test.ts` holds that by counting the letters in every
+ * catalog's message values, so a future batch that adds such a catalog fails
+ * rather than renders backwards.
  */
 const CATALOG_SCRIPTS = new Map([
     ["lad", "Latn"], // Ladino, in the Latin Aki Yerushalayim orthography

@@ -32,9 +32,10 @@ seed.
 
 Five of the fifteen have plural rules of their own in CLDR, which no recent
 batch could say. Cornish reaches all six plural categories from ordinary counts
-and its catalog writes four of them; Walloon's singular covers zero as well as
-one; Manx and Ladin each declare a category no count can select, and neither
-catalog writes it.
+and its catalog writes four of them by name; Walloon's singular covers zero as
+well as one; Manx and Ladin each declare a `many` no count in a Doenet document
+reaches — Manx's belongs to counts written with a decimal fraction and Ladin's
+only to exact whole millions — and neither catalog writes a branch for it.
 
 The chemistry element tables are left out of all fifteen, so a document in one
 of these languages still shows the element names in English. Thirteen are the
@@ -45,8 +46,8 @@ spread across several school systems, so there is no single language to point
 at.
 
 `<document lang>` autocompletes all fifteen. Norman and Ladin are offered from
-hand-written entries, since CLDR has no name for those tags in any language —
-though it does have plural rules for Ladin.
+hand-written entries, since CLDR gives neither tag an English name or an
+endonym — though it does have plural rules for Ladin, and an Italian name.
 
 These are machine-generated seeds pending review by speakers (#1521), and each
 file's header says so and names where it is weakest. Ten of the fifteen are

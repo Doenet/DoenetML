@@ -1036,11 +1036,13 @@ export const LOCALE_NAME_FALLBACKS: Record<
     //
     // `lld` is the entry worth reading twice, because it shows that CLDR's two
     // kinds of data are requested separately and arrive separately. Ladin has
-    // **plural rules** of its own in CLDR, which `locales/lld` writes branches
-    // against, and no name in any language. Nothing is inconsistent about that:
-    // a plural rule is contributed by whoever needed a Ladin `Intl.PluralRules`
-    // and a language name by whoever needed Ladin spelled out in a menu, and
-    // only the first was ever asked for.
+    // **plural rules** of its own in CLDR, and a name only in Italian —
+    // `Intl.DisplayNames(["it"]).of("lld")` is «ladino», and every other
+    // locale, English and Ladin itself included, has nothing. Nothing is
+    // inconsistent about that: a plural rule is contributed by whoever needed
+    // a Ladin `Intl.PluralRules`, and a name in one language by whoever needed
+    // Ladin spelled out in one menu. This table wants the English name and the
+    // endonym, and neither is there.
     //
     // Both endonyms are the name the language's own written standard uses for
     // itself: `nrf`'s is the cover term for the Norman continuum rather than

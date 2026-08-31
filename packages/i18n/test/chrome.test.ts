@@ -1379,8 +1379,9 @@ describe("the second South Asian batch's plural categories", () => {
  * Every recent batch's block here has reported the same finding: CLDR has no
  * plural data for the tags, so no catalog may write a category branch. This
  * batch breaks that run. **Five of the fifteen have rules of their own** —
- * `an`, `wa`, `kw`, `gv` and `lld` — and two of the five have rules that are
- * more elaborate than anything the roster's established catalogs use. What
+ * `an`, `wa`, `kw`, `gv` and `lld` — and two of the five, `kw` and `gv`, have
+ * rules as elaborate as any on the roster: `cy` and `ar` are the established
+ * catalogs that already declare all six categories, and `kw` joins them. What
  * follows is asserted from both sides: that the five really do resolve to
  * themselves, and that the ten others really write nothing they could not
  * select.
@@ -1465,9 +1466,11 @@ describe("the second European batch's plural categories", () => {
     );
 
     /**
-     * **Cornish is the most branch-rich catalog on the roster**, and the only
-     * one whose language offers all six categories and whose files use four of
-     * them.
+     * Cornish is the third catalog on the roster whose language offers all
+     * six plural categories — `cy` and `ar` are the two that came before —
+     * and the first of the three whose six are worth spelling out here,
+     * because what varies between the branches is unlike anything the other
+     * two do.
      *
      * CLDR gives `kw` `zero`, `one`, `two`, `few`, `many` and `other`, and
      * every one of the six is reachable by an integer: 0 is `zero`, 1 is
@@ -1477,8 +1480,10 @@ describe("the second European batch's plural categories", () => {
      * **initial mutation**: «dew» lenites and «tri» spirantizes, so the
      * branches differ in the word's first letter and nowhere else.
      *
-     * `locales/kw` writes `one`, `two`, `few` and `many`, and not `zero`.
-     * That is not a gap: zero is handled by `attempts-remaining`'s numeric
+     * `locales/kw` writes four of the six as named branches — `one`, `two`,
+     * `few` and `many` — plus the `*[other]` default every select must have,
+     * and not `zero`. That is not a gap: zero is handled by
+     * `attempts-remaining`'s numeric
      * `[0]`, which says something different from any of the categories, and
      * everywhere else the zero form is the default's. The catalog also leaves
      * the select off entirely where the noun begins with a vowel or with
@@ -1520,11 +1525,14 @@ describe("the second European batch's plural categories", () => {
      * same thing as a selectable one.
      *
      * CLDR declares `one`, `two`, `few`, `many` and `other` for `gv`, and
-     * `many` is declared for number shapes no count in this software ever
-     * takes: **no integer selects it**. `locales/gv` therefore writes `one`
-     * and `two` and never `many` — which `lint:i18n` would not have caught,
-     * since the category is on the declared list and the branch would parse,
-     * lint and never render.
+     * `many` is its category for a count written with a visible decimal
+     * fraction — 0.5, 1.5 — a shape no count in this software ever takes, so
+     * **no integer selects it**. `locales/gv` therefore writes `one` and
+     * `two` and never `many` — which `lint:i18n` would not have caught, since
+     * the category is on the declared list and the branch would parse, lint
+     * and never render. `few` gets no branch either, for the opposite reason:
+     * it is reachable but takes the same radical form `other` does, so
+     * `*[other]` already writes it.
      */
     it("never writes Manx's declared-but-unreachable category", () => {
         const gv = new Intl.PluralRules("gv");
@@ -1532,24 +1540,31 @@ describe("the second European batch's plural categories", () => {
         for (let n = 0; n <= 500; n++) {
             expect(gv.select(n)).not.toBe("many");
         }
+        // The shape it is declared for, and one this software never formats.
+        expect(gv.select(1.5)).toBe("many");
         const text = `${branches(gvChrome2)}\n${branches(gvDiagnostics2)}\n${branches(gvEditor2)}`;
         expect(text).not.toContain("[many]");
         expect(text).toContain("[two]");
     });
 
     /**
-     * Ladin is the third of the same kind and the quietest: `lld` declares
-     * `one`, `many` and `other`, no integer reaches `many`, and the catalog
-     * writes `one` and the default. Three languages, one rule — the categories
-     * a catalog may write are the ones its counts actually select, and the
-     * declared list is a superset of that in all three.
+     * Ladin is the quieter neighbour of the same case, and the one worth
+     * stating exactly rather than rounding off. `lld` declares `one`, `many`
+     * and `other`, and unlike Manx's, Ladin's `many` **is** reachable from an
+     * integer — but only from an exact whole multiple of a million, which is
+     * the Italian-style rule behind the compact «un milion» forms. Nothing
+     * this software counts reaches a million, so `locales/lld` writes `one`
+     * and the default and no `[many]`, and the assertion below says which
+     * counts do and do not select it rather than claiming none does.
      */
-    it("never writes Ladin's declared-but-unreachable category", () => {
+    it("writes no Ladin [many], which only a whole million selects", () => {
         const lld = new Intl.PluralRules("lld");
         expect(lld.resolvedOptions().pluralCategories).toContain("many");
         for (let n = 0; n <= 500; n++) {
             expect(lld.select(n)).not.toBe("many");
         }
+        expect(lld.select(1_000_000)).toBe("many");
+        expect(lld.select(1_000_001)).toBe("other");
         expect(both(lldChrome2, lldDiagnostics2)).not.toContain("[many]");
     });
 

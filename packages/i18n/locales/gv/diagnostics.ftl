@@ -31,8 +31,8 @@
 # **Counts.** Manx's CLDR rules select only `one` (n mod 10 = 1: 1, 11, 21, …),
 # `two` (n mod 10 = 2: 2, 12, 22, …), `few` (n mod 100 = 0, 20, 40, 60, 80:
 # 0, 20, 40, 60, 80, 100, …) and `other` for integers. `many` is a declared
-# category that **no integer reaches**, so no `[many]` branch appears anywhere
-# in this catalog.
+# category belonging to counts written with a visible decimal fraction, which
+# **no integer is**, so no `[many]` branch appears anywhere in this catalog.
 #
 # A Manx noun after a numeral stays singular and only its initial moves: «un»
 # and «daa» lenite (b→v, c→ch, d→gh, g→gh, j→y, m→v, p→ph, s→h, t→h) and
