@@ -72,7 +72,7 @@
 #
 # **Weakest here.** «ekifaanani eky'embali enna» is literally *four-sided
 # figure* and so names a quadrilateral rather than a rectangle; Lusoga wants a
-# word for the right angle that this seed does not have. The six-class table
+# word for the right angle that this seed does not have. The five-class table
 # above is Luganda's, transposed to Lusoga spelling, and the `c9` forms
 # («enjeru», «emmyufu», «endhuvu») are where a transposition is most likely to
 # be wrong.

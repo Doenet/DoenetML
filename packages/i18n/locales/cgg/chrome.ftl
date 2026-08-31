@@ -48,7 +48,7 @@
 # keeps it openly rather than inventing Rukiga words for it: «kiiboodi»,
 # «WCAG». Swahili is not the loan language here, and is reached for only where
 # a word genuinely travelled into the region long ago rather than through a
-# classroom — «etaburo», «esanduuko». Where a technical term has no Rukiga
+# classroom — «etaburo», «akasanduuko». Where a technical term has no Rukiga
 # word at all, the key is **left out** and falls back to English rather than
 # being filled with English respelled.
 #

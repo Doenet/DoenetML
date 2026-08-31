@@ -22,8 +22,10 @@
 # for *has not been implemented*, «tikiri kyo» / «tiri yo» for *invalid*
 # (literally *it is not it*, with the concord of whatever is being talked
 # about), «ahabw'okuba» for *because*, «kwonka» for *but*, «nari» for *or*,
-# «omu mwanya gw'ekyo» for *instead*, «nibura» for *at least*, «obusa» for
-# *empty*, «ekihabo» for an error. Native nouns doing real work: «omurongo»
+# «nibura» for *at least*, «obusa» for *empty*, «ekihabo» for an error.
+# English's trailing *instead* has no phrase here: Rukiga carries it in the
+# bare imperative that follows, so «Ta `maxNumAttempts` aha kicweka» is the
+# whole of it. Native nouns doing real work: «omurongo»
 # (a source line, a row, and the geometric line), «empagi» (a column),
 # «eibara» (a name — the Kigezi word), «akadomo» (a point), «eriziga» (a
 # circle), «enkona» (an angle), «omuhendo» (a value), «ekirikuhinduka» (a

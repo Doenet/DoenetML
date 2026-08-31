@@ -21,8 +21,10 @@
 # …» for *cannot*, «kirekebwa» / «Tuleka …» for *ignored* / *ignoring*,
 # «kiteekwa okuba» for *must be*, «tikinnakolebwa» for *has not been
 # implemented*, «tikituufu» for *invalid*, «kubanga» for *because*, «naye»
-# for *but*, «oba» for *or*, «mu kifo ekyo» for *instead*, «wakiri» for *at
-# least*, «ekyereere» for *empty*, «ensobi» for an error. Native nouns doing
+# for *but*, «oba» for *or*, «wakiri» for *at least*, «ekyereere» for
+# *empty*, «ensobi» for an error. English's trailing *instead* has no phrase
+# here: Lusoga carries it in the bare imperative that follows, so «Teeka
+# `maxNumAttempts` ku kitundu» is the whole of it. Native nouns doing
 # real work: «olunyiriri» (a source line, a row, and the geometric line),
 # «empagi» (a column), «akatonnyeze» (a point), «enkulungo» (a circle),
 # «ensonda» (an angle), «omuwendo» (a value), «ekikyuka» (a variable),
