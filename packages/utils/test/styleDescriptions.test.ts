@@ -5622,6 +5622,12 @@ describe("the East African pair's word order", () => {
         ],
     ];
 
+    /**
+     * The noun each phrase leads with, written **with its initial vowel** —
+     * the augment. That is the thing a seed drops when it reaches for a
+     * dictionary stem, and both catalogs' headers say so: «murongo» and
+     * «lunyiriri» would render, lint clean and be wrong.
+     */
     const nounOf: Record<string, string> = {
         cgg: "omurongo",
         xog: "olunyiriri",
@@ -5645,22 +5651,4 @@ describe("the East African pair's word order", () => {
             expect(rendered).toBe(`${nounOf[locale]} ${renderedBare}`);
         });
     }
-
-    /**
-     * The initial vowel — the augment — is part of the word in both
-     * languages, and it is the thing a seed drops when it reaches for a
-     * dictionary stem. Both catalogs' headers say so; this holds them to it,
-     * because «murongo» and «lunyiriri» would render, lint clean and be
-     * wrong.
-     */
-    it.each([
-        ["cgg", "omurongo"],
-        ["xog", "olunyiriri"],
-    ])("writes %s's noun with its augment", (locale, noun) => {
-        const rendered = describeStrokedShape(forLocale(locale), words, {
-            noun: line,
-            withNoun: true,
-        });
-        expect(rendered.startsWith(noun)).toBe(true);
-    });
 });

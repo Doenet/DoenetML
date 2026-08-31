@@ -4058,10 +4058,9 @@ record — a speaker doing mathematics does it in English and does not
 Navajo-ize *polygon*, so writing «pálagan» produces English respelled.
 
 The batch was chosen because East Africa looked like the other half of that
-rule. Swahili has a real published technical register and `locales/sw` is one
-of the roster's more complete catalogs, elements included; Swahili loans in
-these languages are nativized by rule rather than ad hoc, and CLDR's own `ksb`
-data shows it — Swahili `r` becomes Shambaa `l` («Januali», «Aplili»), and the
+rule. Swahili has a real published technical register and `locales/sw` is at
+560/575, elements included; Swahili loans in these languages are nativized by
+rule rather than ad hoc, and CLDR's own `ksb` data shows it — Swahili `r` becomes Shambaa `l` («Januali», «Aplili»), and the
 two Chaga varieties palatalize before a front vowel («Aprilyi», «Junyi»). The
 frame was there, the loans were attested, and the adaptation was mechanical.
 
@@ -4074,15 +4073,24 @@ it reads as translation to a tool, as noise to a speaker, and a reviewer's
 first job is deleting it.
 
 So the finding is a **third case**, and the rule above needs it. The Americas
-case is *no register exists*. The `sgh` and `kl` case is *a register exists
-and recording it records something real* — a Shughni speaker reads a compiler
-error in Tajik, and the catalog keeps Tajik words in a Shughni frame. The case
-this batch found is *a register exists, and it is a language that already has
-a catalog on this roster*. There, recording it adds nothing a reader did not
-already have: a Gusii pupil who meets *vector* in English or in Swahili can be
-served `locales/en` or `locales/sw`, and «egetokeso» serves them worse than
-either. The test is not whether a loan register exists. It is **whether
-recording it tells the reader something the fallback did not.**
+case is *no register exists*. The `sgh` and `kl` case is *a register speakers
+actually use exists* — a Shughni speaker reads a compiler error in Tajik, so a
+catalog that keeps Tajik words in a Shughni frame records something that
+happens. The case this batch found is *the register is derivable rather than
+attested*: nothing says a Gusii speaker calls a vector «egetokeso», and what
+the rewrite produces is Swahili with a sound law applied — a rule recorded in
+place of a usage.
+
+The tempting place to draw that line is whether the lending language already
+has a catalog here, and **that line does not hold**: Tajik, Russian and Danish
+all have catalogs on this roster too, and `sgh` and `kl` are the cases that
+work. What the roster changes is the cost of getting it wrong rather than the
+test. A Gusii pupil who meets *vector* in English or in Swahili can ask for
+`locales/en` or `locales/sw` and be answered in a register they have actually
+met, so a catalog of invented Gusii loans serves them worse than either. The
+test is not whether a loan register exists, and it is not whether the lender
+is on the roster. It is **whether recording it tells the reader something the
+fallback did not.**
 
 #### `diagnostics.ftl` is where the question gets decided
 
@@ -4112,14 +4120,16 @@ reason — its `chrome.ftl` is empty because verbs are where the two languages
 part company and verbs are what every button is made of.
 
 What separates the two catalogs that ship is not distance from their sibling
-but a **checkable rule** for telling them apart. Lusoga and Luganda differ by
+either — `cgg` sits closer to `nyn` than `ebu` does to `ki`. It is whether the
+catalog can **state the seam** it has to be reviewed across. Lusoga and Luganda
+differ by
 a systematic correspondence — Lusoga writes `dh` where Luganda writes `z` or
 `j` («amaadhi», «okwidha») — so a Luganda word that has drifted into
 `locales/xog` can be caught by looking at it, and the catalog's header names
 Luganda intrusion as the first thing a reviewer should hunt for. Rukiga and
 Runyankore have no such rule, sharing one written standard and one dictionary,
-so `locales/cgg` states the question instead: of each word, is it current in
-Kigezi or only in Ankole? Where a difference is known the Kigezi form is
+so `locales/cgg` cannot offer a rule and states the question instead: of each
+word, is it current in Kigezi or only in Ankole? Where a difference is known the Kigezi form is
 written — «eibara» for *name*, where Runyankore says «eiziina». A seam a
 catalog can state is one a reviewer can work; a seam it cannot state is where
 `ebu` stopped.
@@ -4142,7 +4152,7 @@ entire rather than appearing half in Rukiga and half in English inside one
 sentence. The other two are `noun.slope-field` and `noun.vector-field`, where
 neither language has a term and a descriptive phrase would have been the
 seed's own invention rather than a word — the same judgement `locales/iu`
-makes across the whole `noun` table, at a twentieth of the scale.
+makes across the whole `noun` table, two keys against its twenty.
 
 #### Two smaller things
 

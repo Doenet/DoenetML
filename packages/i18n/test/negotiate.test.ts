@@ -2977,22 +2977,21 @@ describe("the East African batch", () => {
     );
 
     /**
-     * The sharpest pair on that list, asserted from both sides because it is
-     * the one someone will be tempted to fix. Rukiga and Runyankore share a
-     * single written standard, one dictionary and most of their vocabulary,
-     * and `locales/cgg` says so in its own header. They are still two
-     * languages with two codes: a Runyankore reader gets `nyn`, and folding
+     * The sharpest pair on that list, and the one someone will be tempted to
+     * "fix". Rukiga and Runyankore share a single written standard, one
+     * dictionary and most of their vocabulary, and `locales/cgg` says so in
+     * its own header. They are still two languages with two codes: folding
      * either onto the other would answer a reader in a variety they did not
      * ask for on the strength of a resemblance.
+     *
+     * The `cgg` side is the first assertion in this block. This is the `nyn`
+     * side, which the West and Central African batch already asserted in its
+     * own table — restated here because until this batch there was no `cgg`
+     * catalog for it to be folded onto, so the row could not have failed.
      */
     it("keeps Runyankore on its own catalog rather than serving it Rukiga", () => {
         expect(negotiateLocales([normalizeLocaleTag("nyn")], available)) //
             .toEqual(["nyn", "en"]);
-    });
-
-    it("keeps Rukiga on its own catalog rather than serving it Runyankore", () => {
-        expect(negotiateLocales([normalizeLocaleTag("cgg")], available)) //
-            .toEqual(["cgg", "en"]);
     });
 
     /**

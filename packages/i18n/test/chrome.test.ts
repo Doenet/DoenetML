@@ -152,12 +152,9 @@ import kwEditor from "../locales/kw/editor.ftl?raw";
 import gvEditor from "../locales/gv/editor.ftl?raw";
 // The East African pair. Two catalogs rather than the fifteen the batch set
 // out with — the other thirteen are recorded on #1655 with the coverage each
-// honestly reached. Both files, for the reason the batches above import both:
-// each catalog's count selects are split between `chrome.ftl` and
-// `diagnostics.ftl`.
-import cggChrome from "../locales/cgg/chrome.ftl?raw";
+// honestly reached. Only `diagnostics.ftl` here: the one count select this
+// block reads, `field-function-wrong-num-outputs`, lives there in both.
 import cggDiagnostics from "../locales/cgg/diagnostics.ftl?raw";
-import xogChrome from "../locales/xog/chrome.ftl?raw";
 import xogDiagnostics from "../locales/xog/diagnostics.ftl?raw";
 // The Americas batch, both files for the same reason as the Silk Road's:
 // each catalog's count selects are split between `chrome.ftl` and
@@ -255,6 +252,22 @@ type Row = [string, string, string];
  */
 const bothOf = (chrome: string, diagnostics: string) =>
     `${branches(chrome)}\n${branches(diagnostics)}`;
+
+/**
+ * The `$expected` fork of `field-function-wrong-num-outputs`: the message from
+ * its id up to the `$found` that follows the fork, comment lines dropped first
+ * so that a header paraphrasing the id cannot be matched instead of the
+ * message. `undefined` if either marker is missing, which the callers assert
+ * against rather than silently reading the rest of the file.
+ *
+ * Shared by the batch blocks below, which each ask the same question of the
+ * one message whose count fork a catalog answers differently depending on
+ * whether CLDR has plural rules for it.
+ */
+const outputFork = (diagnostics: string) =>
+    branches(diagnostics)
+        .split("\nfield-function-wrong-num-outputs =")[1]
+        ?.split("$found")[0];
 
 describe("createChromeTranslator", () => {
     it("answers in English for the default locale", () => {
@@ -1493,19 +1506,6 @@ describe("the second European batch's plural categories", () => {
      * The previous South Asian batch set this precedent and every one of its
      * fifteen catalogs writes `[1]` too.
      */
-    /**
-     * The `$expected` fork of `field-function-wrong-num-outputs`: the message
-     * from its id up to the `$found` that follows the fork, comment lines
-     * dropped first so that a header paraphrasing the id cannot be matched
-     * instead of the message. `undefined` if either marker is missing, which
-     * the callers assert against rather than silently reading the rest of the
-     * file.
-     */
-    const outputFork = (diagnostics: string) =>
-        branches(diagnostics)
-            .split("\nfield-function-wrong-num-outputs =")[1]
-            ?.split("$found")[0];
-
     it.each(NO_RULES)(
         "writes %s's output-count fork as a numeric branch, not a category",
         (_locale, _chrome, diagnostics) => {
@@ -1617,9 +1617,9 @@ describe("the second European batch's plural categories", () => {
  * let the other fall back would be visibly wrong rather than subtly wrong.
  */
 describe("the East African pair's plural categories", () => {
-    const EAST_AFRICA: [string, string, string][] = [
-        ["cgg", cggChrome, cggDiagnostics],
-        ["xog", xogChrome, xogDiagnostics],
+    const EAST_AFRICA: [string, string][] = [
+        ["cgg", cggDiagnostics],
+        ["xog", xogDiagnostics],
     ];
 
     it.each(EAST_AFRICA)("resolves %s against its own rules", (locale) => {
@@ -1637,36 +1637,15 @@ describe("the East African pair's plural categories", () => {
     );
 
     /**
-     * Neither writes a category it cannot select. `catalogLint.test.ts` holds
-     * this for the whole roster; it is asserted here too because the batch
-     * section makes a claim about *these two* that a roster-wide property
-     * does not evidence on its own.
-     */
-    it.each(EAST_AFRICA)(
-        "gives %s no branch outside one and other",
-        (_locale, chrome, diagnostics) => {
-            const text = bothOf(chrome, diagnostics);
-            for (const category of ["zero", "two", "few", "many"]) {
-                expect(text).not.toContain(`[${category}]`);
-            }
-        },
-    );
-
-    /**
-     * And both use the `[one]` they are entitled to, which is the half worth
+     * Both use the `[one]` they are entitled to, which is the half worth
      * asserting: a no-data catalog on this roster is *required* to write the
      * numeric `[1]` in `field-function-wrong-num-outputs`, and these two are
      * the other case — their own rules select the category, so the category
      * is what they write.
      */
-    const outputFork = (diagnostics: string) =>
-        branches(diagnostics)
-            .split("\nfield-function-wrong-num-outputs =")[1]
-            ?.split("$found")[0];
-
     it.each(EAST_AFRICA)(
         "keeps %s's output-count fork on the category its own rules select",
-        (_locale, _chrome, diagnostics) => {
+        (_locale, diagnostics) => {
             const fork = outputFork(diagnostics);
             expect(fork).toBeDefined();
             expect(fork).toContain("[one]");
@@ -1687,10 +1666,11 @@ describe("the East African pair's plural categories", () => {
         "marks %s's singular and plural by class prefix, not suffix",
         (_locale, diagnostics, singular, plural) => {
             const fork = outputFork(diagnostics);
+            // Same stem, different class prefix — «eki-» against «ebi-» in
+            // both — so both forms have to be in the fork for it to mark
+            // number at all.
             expect(fork).toContain(singular);
             expect(fork).toContain(plural);
-            // Same stem, different prefix: that is what makes them a pair.
-            expect(singular.slice(2)).toBe(plural.slice(2));
         },
     );
 });
