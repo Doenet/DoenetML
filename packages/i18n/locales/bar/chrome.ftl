@@ -43,8 +43,9 @@
 #
 # **Counts.** CLDR has **no plural data for `bar` at all**, so no plural
 # category can be selected here: this catalog writes **no** `[zero]`, `[one]`,
-# `[two]`, `[few]` or `[many]` branch anywhere, and every count reads with a
-# single form. The numeric literal `[0]` in `attempts-remaining` is a different
+# `[two]`, `[few]` or `[many]` branch anywhere in any of its four files, and
+# every count reads with a single form. The numeric literal `[0]` in
+# `attempts-remaining` is a different
 # mechanism — an exact-value match, not a plural category — and stays.
 #
 # **Digits.** Every number renders in Latin digits, so the digits written into

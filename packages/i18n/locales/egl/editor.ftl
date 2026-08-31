@@ -15,12 +15,14 @@
 #
 # **Counts.** CLDR has **no** plural rules for `egl`, so no `zero`, `two`,
 # `few` or `many` branch appears here or in any other file of this locale.
-# `[one]`/`*[other]` is kept because that is the split the runtime fallback
-# makes and the split Bolognese needs: the feminine plural is a real ending
-# («coordinèta» → «coordinèt») and the verb agrees even where a masculine noun
-# does not. Every symbolic selector — `$action`, `$status`, `$shortcut`,
-# `$reason`, `$location`, `$allowed`, `$line`, `$perItem` — is kept byte for
-# byte from English.
+# `[one]`/`*[other]` is kept only where the two branches genuinely differ,
+# which is the split the runtime fallback makes and the split Bolognese needs:
+# the feminine plural is a real ending («coordinèta» → «coordinèt») and the
+# verb agrees even where a masculine noun does not. Where the branches would
+# have read the same words — `editor-accessibility-label`'s two counts among
+# them — the select is dropped rather than written twice. Every symbolic
+# selector — `$action`, `$status`, `$shortcut`, `$reason`, `$location`,
+# `$allowed`, `$line`, `$perItem` — is kept byte for byte from English.
 
 
 ## The viewer's controls
@@ -66,17 +68,11 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] As é truvè na violaziån d'acesibilitè WCAG AA. As é truvè { $count ->
-            [one] { $count } violaziån WCAG AA
-           *[other] { $count } violaziån WCAG AA
-        }. Prêm par { $action ->
+        [violations] As é truvè na violaziån d'acesibilitè WCAG AA. As é truvè { $count } violaziån WCAG AA. Prêm par { $action ->
             [close] serrèr
            *[open] avrîr
         } al rapôrt d'acesibilitè.
-        [advisories] An s é truvè inciónna violaziån WCAG AA. As é truvè { $count ->
-            [one] { $count } cunsélli d'acesibilitè in pió
-           *[other] { $count } cunsélli d'acesibilitè in pió
-        }. Prêm par { $action ->
+        [advisories] An s é truvè inciónna violaziån WCAG AA. As é truvè { $count } cunsélli d'acesibilitè in pió. Prêm par { $action ->
             [close] serrèr
            *[open] avrîr
         } al rapôrt d'acesibilitè.

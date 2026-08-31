@@ -41,18 +41,22 @@
 # «-inel» and which are easy to get subtly wrong in writing.
 #
 # **Counts.** CLDR has **no plural data for `rom` at all**, so no plural
-# category can be selected here. This file writes **no** `[zero]`, `[two]`,
-# `[few]` or `[many]` branch anywhere, and the English singular/plural splits
-# are collapsed into one form — `line-segment-attributes-ignored-*`,
+# category can be selected here. This file writes **no** `[zero]`, `[one]`,
+# `[two]`, `[few]` or `[many]` branch anywhere, and the English
+# singular/plural splits are collapsed into one form —
+# `line-segment-attributes-ignored-*`,
 # `matches-pattern-parameter-not-in-pattern`, `attribute-invalid-values`,
 # `answer-attributes-need-symbolic-equality`, the two `function-*` counts.
 # Romani would really distinguish these (it marks number and gender richly),
 # so the loss is CLDR's silence rather than the language's. The **one**
-# `[one]` branch that is kept is in `field-function-wrong-num-outputs`, on
+# count branch that is kept is in `field-function-wrong-num-outputs`, on
 # `$expected`: that selector is not a plural at all but a two-way choice
 # between two different components — a slope field wants one output, a vector
 # field two — and the branches say different things rather than the same thing
-# in two numbers. Dropping it would lose the message.
+# in two numbers. Dropping it would lose the message, so it is written as
+# the numeric `[1]` — an exact-value match like `attempts-remaining`'s
+# `[0]`, and not a plural category some other language's rules would be
+# choosing.
 #
 # **Digits.** Every number renders in Latin digits, so the digits written into
 # prose here are Latin digits too.
@@ -312,7 +316,7 @@ graph-grid-invalid = `<graph>`: grid="{ $grid }" našti haljarel pes. Trubul te 
 # form.
 field-function-wrong-num-outputs =
     `<{ $component }>` trubul jekha funkcia { $expected ->
-        [one] jekhe ikalimasa, e panta y' pe svako punkto, sar `y - x`
+        [1] jekhe ikalimasa, e panta y' pe svako punkto, sar `y - x`
        *[other] duje ikalimatanca, o vektoro pe svako punkto, sar `(y, -x)`
     }, numa e dini funkcia si la { $found } ikalimata. { $alternative ->
         [none] Khanči či cirdel pes.

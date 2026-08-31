@@ -3798,10 +3798,32 @@ keeps `attempts-remaining`'s `[0]` anyway, because "no attempts left" is a
 different sentence rather than a different ending.
 
 The ten with no rules take the usual trade — English's `one`/`other` split,
-recorded in each header — except `ext` and `lad`, which write **no category
-branch at all**. That is a stylistic choice rather than a rule: both phrase
-every counted message as an impersonal clause that does not agree with the
-count, so there was nothing for a `[one]` to do.
+recorded in each header — but only four of them end up taking it. **Six write
+no category branch at all**: `ext`, `lad`, `mwl`, `bar`, `frr` and `rom` each
+phrase every counted message as a clause that does not have to agree with the
+count, so there was nothing for a `[one]` to do. That is a stylistic choice
+rather than a rule, and it is the honest end of the trade the other four took.
+
+Where a `[one]` in one of the ten would have been *dead* — both branches
+reading the same words — it is dropped rather than written twice. `lmo` and
+`egl` were the two catalogs of the fifteen that had them, in
+`function-iterates-input-output-mismatch`, `function-domain-insufficient-dimensions`
+and `editor-accessibility-label`, and a dead `[one]` is worse in a no-data
+locale than anywhere else: it is not merely unread, it is chosen by some other
+language's rules while looking translated.
+
+**`field-function-wrong-num-outputs` is where the two halves of the batch part
+company**, and the rule it follows is not English's. Its `$expected` selector
+is not a plural: it counts a component's outputs — one for a slope field, two
+for a vector field — and the two branches say different things rather than the
+same thing in two numbers. `locales/en` writes it as the category `[one]`,
+which is right for English because English's `one` is exactly 1. In a locale
+CLDR has no rules for, that `[one]` would be selected by whatever language the
+runtime fell back to, so all ten write the numeric **`[1]`** instead — the same
+exact-value mechanism `attempts-remaining`'s `[0]` uses — while the five with
+rules of their own keep the category, since their own rules are what select it.
+The South Asian batch set the precedent; `chrome.test.ts` now holds both halves
+of it.
 
 #### Word order splits twelve against three, and the split is genetic
 

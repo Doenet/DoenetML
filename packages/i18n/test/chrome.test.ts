@@ -1445,17 +1445,21 @@ describe("the second European batch's plural categories", () => {
     );
 
     /**
-     * `ext` and `lad` go further than the other eight and write **no category
-     * branch at all**, `one` included. Both headers give the same reason and
-     * it is a stylistic one rather than a rule: where English forks on a
-     * count, these two write a single impersonal clause that does not have to
-     * agree with it, so there was nothing for a `[one]` to do. Asserted
-     * because it is a property a later edit could quietly undo, and because it
-     * is the honest end of the trade the other eight took.
+     * Six of the ten go further and write **no category branch at all**, `one`
+     * included: `ext`, `lad`, `mwl`, `bar`, `frr` and `rom`. That is a
+     * stylistic choice rather than a rule — where English forks on a count,
+     * these six write a single clause that does not have to agree with it, so
+     * there was nothing for a `[one]` to do. Asserted because it is a property
+     * a later edit could quietly undo, and because it is the honest end of the
+     * trade the other four took.
      */
     it.each([
         ["ext", extChrome, extDiagnostics],
         ["lad", ladChrome, ladDiagnostics],
+        ["mwl", mwlChrome, mwlDiagnostics],
+        ["bar", barChrome, barDiagnostics],
+        ["frr", frrChrome, frrDiagnostics],
+        ["rom", romChrome, romDiagnostics],
     ])(
         "writes no plural category at all in %s",
         (_locale, chrome, diagnostics) => {
@@ -1467,50 +1471,46 @@ describe("the second European batch's plural categories", () => {
     );
 
     /**
-     * Cornish is the third catalog on the roster whose language offers all
-     * six plural categories — `cy` and `ar` are the two that came before —
-     * and the first of the three whose six are worth spelling out here,
-     * because what varies between the branches is unlike anything the other
-     * two do.
+     * `field-function-wrong-num-outputs` is the message that separates the two
+     * halves of this batch, and the rule it follows is worth stating because
+     * it is not the rule English follows.
      *
-     * CLDR gives `kw` `zero`, `one`, `two`, `few`, `many` and `other`, and
-     * every one of the six is reachable by an integer: 0 is `zero`, 1 is
-     * `one`, and the rest turn on the last two digits — 2/22/42 are `two`,
-     * 3/23/43 are `few`, 21/41/61 are `many`. What varies in Cornish after a
-     * numeral is not the noun's ending — the noun stays singular — but its
-     * **initial mutation**: «dew» lenites and «tri» spirantizes, so the
-     * branches differ in the word's first letter and nowhere else.
+     * Its `$expected` selector is not a plural at all. It counts a component's
+     * **outputs** — one for a slope field, two for a vector field — and the
+     * two branches say different things rather than the same thing in two
+     * numbers. `locales/en` writes it as the category `[one]`, which is
+     * correct for English because English's `one` is exactly 1.
      *
-     * `locales/kw` writes four of the six as named branches — `one`, `two`,
-     * `few` and `many` — plus the `*[other]` default every select must have,
-     * and not `zero`. That is not a gap: zero is handled by
-     * `attempts-remaining`'s numeric
-     * `[0]`, which says something different from any of the categories, and
-     * everywhere else the zero form is the default's. The catalog also leaves
-     * the select off entirely where the noun begins with a vowel or with
-     * `l`, `r` or `s`, which take no mutation — all six branches would be the
-     * same string, and the rule against unselectable branches has a twin in
-     * common sense.
+     * In a locale CLDR has **no rules for**, a `[one]` there would be selected
+     * by whatever language the runtime fell back to. So all ten write the
+     * numeric `[1]` instead — an exact-value match, the mechanism
+     * `attempts-remaining`'s `[0]` already uses — and the five with rules of
+     * their own keep the category, because their own rules are what select it.
+     * The previous South Asian batch set this precedent and every one of its
+     * fifteen catalogs writes `[1]` too.
      */
-    it("selects all six Cornish categories from integers", () => {
-        const kw = new Intl.PluralRules("kw");
-        expect(kw.resolvedOptions().pluralCategories).toEqual(
-            expect.arrayContaining([
-                "zero",
-                "one",
-                "two",
-                "few",
-                "many",
-                "other",
-            ]),
-        );
-        expect(kw.select(0)).toBe("zero");
-        expect(kw.select(1)).toBe("one");
-        expect(kw.select(2)).toBe("two");
-        expect(kw.select(3)).toBe("few");
-        expect(kw.select(21)).toBe("many");
-        expect(kw.select(5)).toBe("other");
-    });
+    it.each(NO_RULES)(
+        "writes %s's output-count fork as a numeric branch, not a category",
+        (_locale, _chrome, diagnostics) => {
+            const message = diagnostics.slice(
+                diagnostics.indexOf("field-function-wrong-num-outputs ="),
+            );
+            const fork = message.slice(0, message.indexOf("$found"));
+            expect(fork).toContain("[1]");
+            expect(fork).not.toContain("[one]");
+        },
+    );
+
+    it.each(WITH_RULES)(
+        "keeps %s's output-count fork on the category its own rules select",
+        (_locale, _chrome, diagnostics) => {
+            const message = diagnostics.slice(
+                diagnostics.indexOf("field-function-wrong-num-outputs ="),
+            );
+            const fork = message.slice(0, message.indexOf("$found"));
+            expect(fork).toContain("[one]");
+        },
+    );
 
     it("writes four of Cornish's six categories, zero being a numeric branch instead", () => {
         const text = `${branches(kwChrome)}\n${branches(kwDiagnostics)}\n${branches(kwEditor)}`;

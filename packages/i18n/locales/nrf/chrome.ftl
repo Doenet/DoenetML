@@ -65,7 +65,10 @@
 # a different mechanism and legal everywhere.
 #
 # **Punctuation.** Jersey typography follows **English** practice, so there
-# is **no space before** `:`, `;`, `?` or `!` anywhere in these four files.
+# is **no space before** `:`, `;`, `?` or `!` anywhere in these four files —
+# except the three `data-frame-*` messages, which reproduce the odd
+# `componentIdx :` spacing of the English original rather than tidy it, the
+# same way `locales/en` records it.
 # That is a deliberate choice and the one place this catalog parts from
 # `locales/fr`; a continental Norman reviewer may well want the French
 # spacing back.

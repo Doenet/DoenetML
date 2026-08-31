@@ -28,14 +28,18 @@
 #
 # **Counts.** CLDR has **no** plural rules for `lmo`, so **no** `zero`, `two`,
 # `few` or `many` branch appears anywhere in this locale. `[one]`/`*[other]` is
-# kept, and only that: it is the split the runtime fallback makes, it is the
-# split Milanese itself needs (the feminine plural is a real ending and the
-# verb agrees even where a masculine noun does not), and in
-# `field-function-wrong-num-outputs` the two branches say different things
-# rather than the same thing twice. Every **symbolic** selector — `$type`,
-# `$mode`, `$reason`, `$context`, `$suggestion`, `$alternative`, `$fallback`,
-# `$expected`, `$labelKind`, `$isList`, `$componentType` — is kept byte for
-# byte from English, keys included.
+# kept only where the two branches genuinely differ: it is the split the
+# runtime fallback makes, and it is the split Milanese itself needs (the
+# feminine plural is a real ending and the verb agrees even where a masculine
+# noun does not). Where the two branches would have read the same words, the
+# select is dropped rather than written twice — a `[one]` in a locale CLDR has
+# no rules for is chosen by some other language's rules, so a dead one is
+# worse than none. `field-function-wrong-num-outputs` is the numeric `[1]` for
+# the same reason: its selector counts a component's outputs rather than a
+# noun, and an exact-value match is not a plural category at all. Every
+# **symbolic** selector — `$type`, `$mode`, `$reason`, `$context`,
+# `$suggestion`, `$alternative`, `$fallback`, `$labelKind`, `$isList`,
+# `$componentType` — is kept byte for byte from English, keys included.
 
 
 ## `<lineSegment>`
@@ -188,17 +192,7 @@ circle-change-center-non-numerical = Cambià el center de on cerchi per pont sen
 
 ## `<function>`
 
-function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Minga assee dimension per el domini de la funzion. El domini el gh'ha { $intervals } interval ma la funzion la gh'ha { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } input
-        }.
-       *[other] Minga assee dimension per el domini de la funzion. El domini el gh'ha { $intervals } interval ma la funzion la gh'ha { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } input
-        }.
-    }
+function-domain-insufficient-dimensions = Minga assee dimension per el domini de la funzion. El domini el gh'ha { $intervals } interval ma la funzion la gh'ha { $inputs } input.
 
 function-domain-invalid-format = Format minga valid per el domini de la funzion.
 
@@ -224,16 +218,7 @@ function-ignoring-empty =
 function-points-too-close = La funzion la gh'ha duu pont tropp visin vun a l'olter. Se pò minga definì la funzion.
 
 function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] Li iterazion de ona funzion hinn possibil domà se el numer di input l'è compagn del numer di output. Chesta funzion la gh'ha { $inputs } input e { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } output
-        }.
-       *[other] Li iterazion de ona funzion hinn possibil domà se el numer di input l'è compagn del numer di output. Chesta funzion la gh'ha { $inputs } input e { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } output
-        }.
-    }
+    Li iterazion de ona funzion hinn possibil domà se el numer di input l'è compagn del numer di output. Chesta funzion la gh'ha { $inputs } input e { $outputs } output.
 
 ## `<sequence>`
 
@@ -305,12 +290,9 @@ graph-grid-invalid = `<graph>`: se pò minga interpretà grid="{ $grid }". El gh
 
 field-function-wrong-num-outputs =
     `<{ $component }>` el gh'ha bisogn de ona funzion con { $expected ->
-        [one] on output, la pendenza y' in ogni pont, come `y - x`
+        [1] on output, la pendenza y' in ogni pont, come `y - x`
        *[other] duu output, el vettor in ogni pont, come `(y, -x)`
-    }, ma la funzion che gh'è stada dada la gh'ha { $found ->
-        [one] { $found } output
-       *[other] { $found } output
-    }. { $alternative ->
+    }, ma la funzion che gh'è stada dada la gh'ha { $found } output. { $alternative ->
         [none] Se disegna nagott.
        *[other] `<{ $alternative }>` l'è el component per chella funzion. Se disegna nagott.
     }

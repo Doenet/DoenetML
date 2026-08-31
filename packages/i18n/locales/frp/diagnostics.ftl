@@ -53,6 +53,10 @@
 # marks its plural in ORB writing, on the noun («un atribut» / «des
 # atributs») and on the verb («est ignorâ» / «sont ignorâs»), so the two
 # branches are two different sentences rather than one form written twice.
+# `field-function-wrong-num-outputs` is the one exception and is written as the
+# numeric `[1]` instead: its selector counts a component's outputs rather than
+# a noun, so an exact-value match says what is meant and is not a plural
+# category some other language's rules would be choosing.
 #
 # Arpitan is written with French typography, with a space before `:`, `;`,
 # `?` and `!`. That spacing belongs to this catalog and is written out here.
@@ -330,7 +334,7 @@ graph-grid-invalid = `<graph>` : on pôt pas comprendre grid="{ $grid }". Dêt �
 
 field-function-wrong-num-outputs =
     `<{ $component }>` at fôta d'una fonccion avouéc { $expected ->
-        [one] una sola sortia, la pende y' a châque pouent, come `y - x`
+        [1] una sola sortia, la pende y' a châque pouent, come `y - x`
        *[other] doves sorties, lo vèctor a châque pouent, come `(y, -x)`
     }, mas la fonccion qu'on l'y at donâ at { $found ->
         [one] { $found } sortia

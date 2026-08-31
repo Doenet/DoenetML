@@ -26,7 +26,8 @@
 # nouns are English in SWF spelling, which is the register a Cornish speaker
 # meets them in: «komponent», «parameter», «matriks», «sekwens», «variant»,
 # «diagram», «renderer», «format», «indeks», «diagnostig». «gnas» is used for
-# *attribute* and «elven» for *element* throughout, in all four files.
+# *attribute* and «elven» for *element* throughout — in this file and in
+# `editor.ftl`, which are the only two where English says either word.
 #
 # **Counts.** Cornish has CLDR rules of its own with all six categories —
 # `zero` (0), `one` (1), `two` (n mod 100 = 2, 22, 42, 62, 82), `few` (3, 23,

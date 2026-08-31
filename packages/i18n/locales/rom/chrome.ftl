@@ -51,9 +51,10 @@
 #
 # **Counts.** CLDR has **no plural data for `rom` at all**, so no plural
 # category can be selected here: this catalog writes **no** `[zero]`, `[one]`,
-# `[two]`, `[few]` or `[many]` branch anywhere, and every count reads with a
-# single form. This is a real loss — Romani marks number and gender richly, and
-# «phendipe» / «phendimata» is a live distinction — but it is CLDR's silence
+# `[two]`, `[few]` or `[many]` branch anywhere in any of its four files, and
+# every count reads with a single form. This is a real loss — Romani marks
+# number and gender richly, and «phendipe» / «phendimata» is a live
+# distinction — but it is CLDR's silence
 # rather than the language's. The numeric literal `[0]` in `attempts-remaining`
 # is a different mechanism, an exact-value match rather than a plural category,
 # and stays.

@@ -227,10 +227,12 @@ graph-grid-invalid = `<graph>`: nun se puode antender grid="{ $grid }". Ten de s
 ## `<slopeField>` and `<vectorField>`
 
 # `$expected` is a two-way choice between one output and two, not a plural, so
-# it keeps both branches: no CLDR category is involved.
+# it keeps both branches — but written as the numeric `[1]` rather than as
+# `[one]`, which would be a CLDR category chosen by the runtime's own rules
+# and not by anything Mirandese decides. `ext` and `lad` write it the same way.
 field-function-wrong-num-outputs =
     `<{ $component }>` percisa dua funcion cun { $expected ->
-        [one] ua salida, l declibe y' an cada punto, cumo `y - x`
+        [1] ua salida, l declibe y' an cada punto, cumo `y - x`
        *[other] dues salidas, l betor an cada punto, cumo `(y, -x)`
     }, mas la funcion que le fui dada ten { $found } salidas. { $alternative ->
         [none] Nun se çenha nada.

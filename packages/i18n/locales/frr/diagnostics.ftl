@@ -33,16 +33,20 @@
 # and word order in the long sentences.
 #
 # **Counts.** CLDR has **no plural data for `frr` at all**, so no plural
-# category can be selected here. This file writes **no** `[zero]`, `[two]`,
-# `[few]` or `[many]` branch anywhere, and the English singular/plural splits
-# are collapsed into one form — `line-segment-attributes-ignored-*`,
+# category can be selected here. This file writes **no** `[zero]`, `[one]`,
+# `[two]`, `[few]` or `[many]` branch anywhere, and the English
+# singular/plural splits are collapsed into one form —
+# `line-segment-attributes-ignored-*`,
 # `matches-pattern-parameter-not-in-pattern`, `attribute-invalid-values`,
 # `answer-attributes-need-symbolic-equality`, the two `function-*` counts. The
-# **one** `[one]` branch that is kept is in `field-function-wrong-num-outputs`,
+# **one** count branch that is kept is in `field-function-wrong-num-outputs`,
 # on `$expected`: that selector is not a plural at all but a two-way choice
 # between two different components — a slope field wants one output, a vector
 # field two — and the branches say different things rather than the same thing
-# in two numbers. Dropping it would lose the message.
+# in two numbers. Dropping it would lose the message, so it is written as
+# the numeric `[1]` — an exact-value match like `attempts-remaining`'s
+# `[0]`, and not a plural category some other language's rules would be
+# choosing.
 #
 # **Digits.** Every number renders in Latin digits, so the digits written into
 # prose here are Latin digits too.
@@ -302,7 +306,7 @@ graph-grid-invalid = `<graph>`: grid="{ $grid }" koon ai üttjüded wårde. Dåt
 # form.
 field-function-wrong-num-outputs =
     `<{ $component }>` bruket en funktjoon ma { $expected ->
-        [one] ån ütgoow, jü stiginge y' bai arken punkt, tu't biispal `y - x`
+        [1] ån ütgoow, jü stiginge y' bai arken punkt, tu't biispal `y - x`
        *[other] twäär ütgoowe, di wektoor bai arken punkt, tu't biispal `(y, -x)`
     }, man jü diene funktjoon hää { $found } ütgoowe. { $alternative ->
         [none] Der woort nönt teegend.

@@ -28,14 +28,18 @@
 #
 # **Counts.** CLDR has **no** plural rules for `egl`, so **no** `zero`, `two`,
 # `few` or `many` branch appears anywhere in this locale. `[one]`/`*[other]` is
-# kept, and only that: it is the split the runtime fallback makes, it is the
-# split Bolognese itself needs (the feminine plural is a real ending and the
-# verb agrees even where a masculine noun does not), and in
-# `field-function-wrong-num-outputs` the two branches say different things
-# rather than the same thing twice. Every **symbolic** selector — `$type`,
-# `$mode`, `$reason`, `$context`, `$suggestion`, `$alternative`, `$fallback`,
-# `$expected`, `$labelKind`, `$isList`, `$componentType` — is kept byte for
-# byte from English, keys included.
+# kept only where the two branches genuinely differ: it is the split the
+# runtime fallback makes, and it is the split Bolognese itself needs (the
+# feminine plural is a real ending and the verb agrees even where a masculine
+# noun does not). Where the two branches would have read the same words, the
+# select is dropped rather than written twice — a `[one]` in a locale CLDR has
+# no rules for is chosen by some other language's rules, so a dead one is
+# worse than none. `field-function-wrong-num-outputs` is the numeric `[1]` for
+# the same reason: its selector counts a component's outputs rather than a
+# noun, and an exact-value match is not a plural category at all. Every
+# **symbolic** selector — `$type`, `$mode`, `$reason`, `$context`,
+# `$suggestion`, `$alternative`, `$fallback`, `$labelKind`, `$isList`,
+# `$componentType` — is kept byte for byte from English, keys included.
 
 
 ## `<lineSegment>`
@@ -189,16 +193,7 @@ circle-change-center-non-numerical = Canbièr al zänter d'un zércc par pónt s
 ## `<function>`
 
 function-domain-insufficient-dimensions =
-    { $intervals ->
-        [one] Brîṡa asè dimensiån pr al domìni dla funziån. Al domìni al à { $intervals } intervâl mo la funziån la à { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } input
-        }.
-       *[other] Brîṡa asè dimensiån pr al domìni dla funziån. Al domìni al à { $intervals } intervâl mo la funziån la à { $inputs ->
-            [one] { $inputs } input
-           *[other] { $inputs } input
-        }.
-    }
+    Brîṡa asè dimensiån pr al domìni dla funziån. Al domìni al à { $intervals } intervâl mo la funziån la à { $inputs } input.
 
 function-domain-invalid-format = Furmè brîṡa vàlid pr al domìni dla funziån.
 
@@ -224,16 +219,7 @@ function-ignoring-empty =
 function-points-too-close = La funziån la à dû pónt tròp vṡén ón cl èter. An s pôl brîṡa definîr la funziån.
 
 function-iterates-input-output-mismatch =
-    { $inputs ->
-        [one] Äl iteraziån d'na funziån äli én posébil såul se al nûmer di input l é cunpâgn al nûmer di output. Sta funziån qué la à { $inputs } input e { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } output
-        }.
-       *[other] Äl iteraziån d'na funziån äli én posébil såul se al nûmer di input l é cunpâgn al nûmer di output. Sta funziån qué la à { $inputs } input e { $outputs ->
-            [one] { $outputs } output
-           *[other] { $outputs } output
-        }.
-    }
+    Äl iteraziån d'na funziån äli én posébil såul se al nûmer di input l é cunpâgn al nûmer di output. Sta funziån qué la à { $inputs } input e { $outputs } output.
 
 ## `<sequence>`
 
@@ -305,12 +291,9 @@ graph-grid-invalid = `<graph>`: an s pôl brîṡa interpretèr grid="{ $grid }"
 
 field-function-wrong-num-outputs =
     `<{ $component }>` al à biṡåggn d'na funziån con { $expected ->
-        [one] un output, la pendänza y' in ògni pónt, cme `y - x`
+        [1] un output, la pendänza y' in ògni pónt, cme `y - x`
        *[other] dû output, al vetåur in ògni pónt, cme `(y, -x)`
-    }, mo la funziån ch'ai é stè dè la à { $found ->
-        [one] { $found } output
-       *[other] { $found } output
-    }. { $alternative ->
+    }, mo la funziån ch'ai é stè dè la à { $found } output. { $alternative ->
         [none] An s diṡêgna gnínta.
        *[other] `<{ $alternative }>` l é al cumponänt par cla funziån. An s diṡêgna gnínta.
     }

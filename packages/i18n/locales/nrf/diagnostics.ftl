@@ -60,6 +60,10 @@
 # writes its plural, on the noun («un attribut» / «des attributs») and on the
 # verb («est ignoré» / «sont ignorés»), so the two branches are two different
 # sentences rather than one form written twice.
+# `field-function-wrong-num-outputs` is the one exception and is written as the
+# numeric `[1]` instead: its selector counts a component's outputs rather than
+# a noun, so an exact-value match says what is meant and is not a plural
+# category some other language's rules would be choosing.
 #
 # **Punctuation.** Jersey typography follows **English** practice: no space
 # before `:`, `;`, `?` or `!` anywhere in these four files.
@@ -336,7 +340,7 @@ graph-grid-invalid = `<graph>`: on n'peut pon comprendre grid="{ $grid }". Ch'la
 
 field-function-wrong-num-outputs =
     `<{ $component }>` a bésoin d'eune fonction auve { $expected ->
-        [one] eune seule sortie, la pente y' à chaque point, coumme `y - x`
+        [1] eune seule sortie, la pente y' à chaque point, coumme `y - x`
        *[other] deux sorties, lé vecteu à chaque point, coumme `(y, -x)`
     }, mais la fonction tch'on lî a donné a { $found ->
         [one] { $found } sortie

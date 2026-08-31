@@ -15,12 +15,14 @@
 #
 # **Counts.** CLDR has **no** plural rules for `lmo`, so no `zero`, `two`,
 # `few` or `many` branch appears here or in any other file of this locale.
-# `[one]`/`*[other]` is kept because that is the split the runtime fallback
-# makes and the split Milanese needs: the feminine plural is a real ending
-# («violazion» → «violazion», but «coordinata» → «coordinat») and the verb
-# beside a masculine noun changes even where the noun does not. Every symbolic
-# selector — `$action`, `$status`, `$shortcut`, `$reason`, `$location`,
-# `$allowed`, `$line`, `$perItem` — is kept byte for byte from English.
+# `[one]`/`*[other]` is kept only where the two branches genuinely differ,
+# which is the split the runtime fallback makes and the split Milanese needs:
+# the feminine plural is a real ending and the verb beside a masculine noun
+# changes even where the noun does not. Where the branches would have read the
+# same words — `editor-accessibility-label`'s two counts among them — the
+# select is dropped rather than written twice. Every symbolic selector —
+# `$action`, `$status`, `$shortcut`, `$reason`, `$location`, `$allowed`,
+# `$line`, `$perItem` — is kept byte for byte from English.
 
 
 ## The viewer's controls
@@ -66,17 +68,11 @@ editor-accessibility-title =
 
 editor-accessibility-label =
     { $status ->
-        [violations] S'è trovaa ona violazion de accessibilitaa WCAG AA. S'è trovaa { $count ->
-            [one] { $count } violazion WCAG AA
-           *[other] { $count } violazion WCAG AA
-        }. Schiscia per { $action ->
+        [violations] S'è trovaa ona violazion de accessibilitaa WCAG AA. S'è trovaa { $count } violazion WCAG AA. Schiscia per { $action ->
             [close] serrà
            *[open] verz
         } el rapport de accessibilitaa.
-        [advisories] S'è trovaa nissuna violazion WCAG AA. S'è trovaa { $count ->
-            [one] { $count } consili de accessibilitaa in pussee
-           *[other] { $count } consili de accessibilitaa in pussee
-        }. Schiscia per { $action ->
+        [advisories] S'è trovaa nissuna violazion WCAG AA. S'è trovaa { $count } consili de accessibilitaa in pussee. Schiscia per { $action ->
             [close] serrà
            *[open] verz
         } el rapport de accessibilitaa.
