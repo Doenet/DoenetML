@@ -44,7 +44,10 @@
 # «Coordonnées»), so the two branches are two different sentences.
 #
 # **Punctuation.** Jersey typography follows **English** practice: no space
-# before `:`, `;`, `?` or `!` anywhere in these four files.
+# before `:`, `;`, `?` or `!` anywhere in these four files — except the three
+# `data-frame-*` messages in `diagnostics.ftl`, which reproduce the odd
+# `componentIdx :` spacing of the English original rather than tidy it, the
+# same way `locales/en` records it.
 #
 # **Weakest first.** A reviewer should attack «tabl'yeau» and «boutchet»,
 # then the context-help sentences, which are the longest prose in the four

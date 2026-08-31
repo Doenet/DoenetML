@@ -39,7 +39,7 @@
 # brîṡa»** («an n é brîṡa vàlid»), the obligatory subject clitic before a
 # finite verb («a cuntrôl», «al é», «i én», «ai é» for *there is*), the past
 # participle in **«-è»** / feminine **«-èda»** («mandè», «salvè», «mandèda»),
-# «brîṡa» for *not*, «incôsa» for *everything*, «bån» for *good*, «vàdder» for
+# «brîṡa» for *not*, «inción» for *none*, «truvè» for *found*, «vàdder» for
 # *to see*. The **mathematical and computing nouns** — «vetåur», «poligon»,
 # «funziån», «matrîz», «antiprîma», «viṡualiżadåur» — are the international
 # technical register given Bolognese phonology and spelling, which is what
@@ -72,7 +72,7 @@ answer-checking-status = A cuntrôl la rispòsta
 answer-submitting-status = A mand la rispòsta
 answer-correct = Giósst
 answer-incorrect = Ṡbaglè
-answer-response-saved = Rispòsta salvè
+answer-response-saved = Rispòsta salvèda
 answer-percent-credit = { $percent }% ed pónt
 answer-percent-correct = { $percent }% giósst
 answer-percent-short = { $percent } %

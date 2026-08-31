@@ -38,8 +38,8 @@
 # **`noun-regular-polygon` splits.** The side count follows the style
 # adjectives as a prepositional phrase, so the head is «polygon rewlys» and the
 # tail «gans N tenewen» — «tenewen» singular after a numeral, as any counted
-# Cornish noun is, and unmutated because the numeral is a placeable this
-# catalog never sees and no mutation can be welded onto it.
+# Cornish noun is, and written unmutated; whether it should fork is the open
+# question the *Borrowing, declared* section below records.
 #
 # ## Counts
 #

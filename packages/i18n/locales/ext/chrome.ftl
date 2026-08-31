@@ -14,7 +14,10 @@
 # what this file is consistent in:
 #
 #   * final unstressed **-o → -u** and **-e → -i**: «negru», «puntu»,
-#     «verdi», «esti», «grandi»;
+#     «verdi», «esti», «grandi» — with «pero» the one word this file leaves
+#     in `-o` (six times, all in `diagnostics.ftl` and `editor.ftl`), since
+#     Extremaduran writers vary between «pero» and «peru» and this seed did
+#     not pick for them;
 #   * infinitives in **-l** rather than -r: «amostral», «cerral», «mandal»,
 #     «comprebal» — the single loudest marker in the file;
 #   * participles **-ado → -áu**, **-ada → -á**: «coloráu», «puntiá»,

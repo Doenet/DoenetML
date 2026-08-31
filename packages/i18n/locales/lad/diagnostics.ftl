@@ -392,7 +392,7 @@ attribute-invalid-values = { $values } no son valores validos para el atributo `
 
 attribute-must-be-references = Valor no valido `{ $value }` para el atributo `{ $attribute }`. El atributo deve estar echo de referensias ke empesen kon un `$`.
 
-math-input-invalid-function-names = <mathInput>: se inyoraron nombres de funksion no validos en { $attribute }: { $names }. El pedaso ke se amostra de kada nombre deve tener al manko 2 karakteres (letras o gionés); despues puede venir un sufikso opsional `|<alternativa mathspeak>`.
+math-input-invalid-function-names = <mathInput>: se inyoraron nombres de funksion no validos en { $attribute }: { $names }. El pedaso ke se amostra de kada nombre deve tener al manko 2 karakteres (letras o giones); despues puede venir un sufikso opsional `|<alternativa mathspeak>`.
 
 ## Building components from the source
 

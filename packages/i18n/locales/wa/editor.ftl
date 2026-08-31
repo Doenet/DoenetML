@@ -143,7 +143,7 @@ editor-no-info = Nou messaedje d' infôrmåcion
 editor-show-info-annotations = Mostrer les messaedjes d' infôrmåcion dins l' aspougneu
 editor-show-accessibility-annotations = Mostrer les messaedjes d' accessibilité dins l' aspougneu
 
-editor-accessibility-learn-more = Vey comint çk' i Doenet prind l' accessibilité
+editor-accessibility-learn-more = Vey comint çk' Doenet prind l' accessibilité
 
 editor-accessibility-violations-heading = Violåcions di l' accessibilité ({ $standard })
 
@@ -179,7 +179,7 @@ help-reference-page = Pådje di referince →
 help-suggestions-header =
     { $location ->
         [inside] Å dvins d' { $element }
-       *[top] Å pus hôt livtea
+       *[top] Å pus hôt livea
     }{ $allowed ->
         [none] { " — i n' va rén chal." }
         [text] { " — tapez do tecse chal." }

@@ -624,7 +624,7 @@ answer-name-not-single-text = L' atribut name d' on answer doet aveur on seul ef
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = On n' pout nén rapexhî l' DoenetML di dfoû paski gn a trop di livteas d' ricursion. N' î åreut i nén ene referince circulaire ?
+external-doenetml-recursion-limit = On n' pout nén rapexhî l' DoenetML di dfoû paski gn a trop di liveas d' ricursion. N' î åreut i nén ene referince circulaire ?
 
 external-doenetml-unavailable = On n' pout nén rapexhî do DoenetML dispoy { $attribute }="{ $uri }"
 

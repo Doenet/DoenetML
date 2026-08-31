@@ -371,7 +371,7 @@ data-frame-inconsistent-row-lengths = As datos tienen una forma no valida.  As r
 
 data-frame-duplicate-column-names = As datos tienen nombres de columna repetius.  Trobau en componentIdx :{ $componentIdx }
 
-data-frame-missing-column-name = A las datos les manca un nombre de columna.  Trobau en componentIdx :{ $componentIdx }
+data-frame-missing-column-name = A os datos les manca un nombre de columna.  Trobau en componentIdx :{ $componentIdx }
 
 ## `<answer>` and scoring
 

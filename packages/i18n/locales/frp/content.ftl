@@ -188,7 +188,7 @@ noun-regular-polygon =
     }
 # Besides the nouns above, `$noun` can be `regular-polygon` («polygono», m)
 # or the head of a phrase the description never names: `border` («bôrdura»,
-# f), `fill` («remplissâjo», m), `text` («tèxto», m), `background» («fond»,
+# f), `fill` («remplissâjo», m), `text` («tèxto», m), `background` («fond»,
 # m).
 noun-gender =
     { $noun ->

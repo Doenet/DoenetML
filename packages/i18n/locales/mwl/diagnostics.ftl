@@ -48,9 +48,10 @@
 # symbolic values rather than on a category.
 #
 # **Weakest first.** The parser and schema sections carry the longest sentences
-# and lean hardest on Portuguese; «einorado» for *ignored*, «resolbido» for
-# *resolved* and «çcuncertado» nowhere — a reviewing speaker should decide
-# which of these words Mirandese actually uses.
+# and lean hardest on Portuguese; «einorado» for *ignored* and «resolbido» for
+# *resolved* are the two words a reviewing speaker should decide about first,
+# since each is used throughout and each is one letter from its Portuguese
+# source.
 
 ## `<lineSegment>`
 
@@ -196,7 +197,7 @@ target-state-variable-not-found = Albo nun bálido para `<{ $source }>`: nun se 
 ## `<odeSystem>`
 
 ode-system-variables-match-independent = Las bariables de `<odeSystem>` ténen de ser çfrentes de la bariable andependente.
-ode-system-duplicate-variable-names = Nun se puoden defenir las funciones RHS de la ODE cun nomes de bariable dependente repetidos.
+ode-system-duplicate-variable-names = Nun se puoden defenir las funciones RHS de la ODE cun nomes de bariables dependentes repetidos.
 ode-system-rhs-function-error = Nun se puode defenir la funcion RHS de la ODE. Erro a criar la funcion mathjs.
 
 ## `<angle>`, `<parabola>`, and `<intersection>`

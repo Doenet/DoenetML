@@ -22,9 +22,9 @@
 # b→v, c→ch, d→gh, g→gh, j→y, m→v, p→ph, s→h, t→h. So «brisht» becomes
 # «vrisht» after «linney», «jiarg» becomes «yiarg», «bane» becomes «vane»,
 # «doo» becomes «ghoo». Every describing word whose initial can move selects on
-# `$gender`; «lheeah», «oranje», «thanney» and «chiu» begin with `lh`, a vowel,
-# `th` and `ch`, which have no further lenited form, and are written once with
-# no select at all. That is Manx spelling, not an untranslated string.
+# `$gender`; «lheeah», «oranje», «thanney», «chiu» and «dhone» begin with
+# `lh`, a vowel, `th`, `ch` and `dh`, which have no further lenited form, and
+# are written once with no select at all. That is Manx spelling, not an untranslated string.
 #
 # **Nothing selects on `$role`.** As in the other Goidelic catalogs, what a
 # clause position does to a Manx adjective is done by the noun in front of it,

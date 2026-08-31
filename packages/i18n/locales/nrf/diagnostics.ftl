@@ -66,7 +66,10 @@
 # category some other language's rules would be choosing.
 #
 # **Punctuation.** Jersey typography follows **English** practice: no space
-# before `:`, `;`, `?` or `!` anywhere in these four files.
+# before `:`, `;`, `?` or `!` anywhere in these four files — except the three
+# `data-frame-*` messages in `diagnostics.ftl`, which reproduce the odd
+# `componentIdx :` spacing of the English original rather than tidy it, the
+# same way `locales/en` records it.
 #
 # **Weakest first.** A reviewer should attack the parser and schema sections
 # (`parse-*`, `schema-*`): they are the messages a beginner meets first, and

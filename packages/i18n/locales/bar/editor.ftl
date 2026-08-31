@@ -179,7 +179,7 @@ help-suggestions-header =
        *[components] { " — zum Probian:" }
     }
 
-help-suggestions-footer = { $shortcut } drucka, um olle { $total } Komponentn zum Segn.
+help-suggestions-footer = { $shortcut } drucka, um olle { $total } Komponentn z'segn.
 
 help-name-summary = { $name } — { $summary }
 

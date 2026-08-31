@@ -30,8 +30,9 @@
 # place to teach a second alphabet.
 #
 # **What is the language's own.** The grammatical spine is Romani and is meant
-# to stay that way: the copula «si» and its negative «naj», the negator «na»,
-# «našti» for *cannot*, «trubul» for *must*, «thaj» for *and*, «vaj» for *or*,
+# to stay that way: the copula «si» and its negative «naj», the negators «či»
+# — which is what this catalog writes in front of a finite verb, seventy times
+# over — and «na», which it keeps for the imperative, «našti» for *cannot*, «trubul» for *must*, «thaj» for *and*, «vaj» for *or*,
 # «te» for *if*, «kaj» for *because/that*, «khanči» for *nothing*, «nisavo»
 # for *none*, «pale» for *again*. So are the everyday words: «phendipe»
 # (answer, from *phenel* 'to say'), «pučipe» (question, from *pučel*),
@@ -55,7 +56,10 @@
 # every count reads with a single form. This is a real loss — Romani marks
 # number and gender richly, and «phendipe» / «phendimata» is a live
 # distinction — but it is CLDR's silence
-# rather than the language's. The numeric literal `[0]` in `attempts-remaining`
+# rather than the language's. The loss is not resolved the same way twice, and
+# a speaker should settle which: `answer-show-responses` writes the plural
+# «phendimata» after any count, while `attempts-remaining` writes the singular
+# «zumavipe» after any count. The numeric literal `[0]` in `attempts-remaining`
 # is a different mechanism, an exact-value match rather than a plural category,
 # and stays.
 #

@@ -3961,9 +3961,10 @@ canonicalization a fair answer rather than a lucky one.
 named by ICU in English, and how widely says nothing about how many people
 speak them: `frr` is named in 281 of this roster's locales, `ext` and `egl` in
 nearly two hundred each, and Northern Frisian has the fewest speakers of the
-three. Neither of the two is, and neither has an endonym, which is exactly
-the pair of strings the table wants. `nrf` is the emptier of the two: no locale
-on this roster names it at all. `lld` is named in a dozen or so — Italian
+three. `nrf` and `lld` are named in English by nobody, and neither has an
+endonym either — which is exactly the pair of strings the table wants. `nrf`
+is the emptier of the two: no locale on this roster names it at all. `lld` is
+named in fifteen of them — Italian
 «ladino», Czech «ladinština», Finnish «ladin», Ukrainian «ладинська» and others
 — but not in English, and not in Ladin.
 

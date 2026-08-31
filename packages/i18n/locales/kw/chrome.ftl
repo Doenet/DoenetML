@@ -10,11 +10,12 @@
 # **Script: Latin, in the Standard Written Form (Furv Skrifys Savonek, FSS/SWF)**,
 # the orthography agreed in 2008 and used by Akademi Kernewek's «Gerlyver
 # Kernewek» and by the Cornish Language Office. The alternative orthography
-# that was **not** used here is **Kernewek Kemmyn** — which would write «kelli»
-# for «kelli», «tewedh» alike, but «lyver»/«lyver» apart in the vowels and, most
-# visibly, would spell this file's «gwynn», «linen», «poynt» as «gwynn»,
-# «lynen», «poynt» with a different vowel-length convention. Unified Cornish and
-# Kernowek Standard are likewise not followed. Digits are **Latin** (`1`, `2`,
+# that was **not** used here is **Kernewek Kemmyn**, whose vowel-length and
+# consonant conventions differ from the SWF's — this file's «linen» is Kemmyn's
+# «lynen» — and Unified Cornish and Kernowek Standard are likewise not
+# followed. Where they differ, the spelling here is the «Gerlyver Kernewek»'s;
+# a reviewer working from a Kemmyn text should expect a different spelling of
+# the same word rather than a different word. Digits are **Latin** (`1`, `2`,
 # `1,234`), which is what DoenetML pins for every locale in `src/intl.ts`;
 # grouping is the locale's own.
 #
@@ -100,9 +101,17 @@ validation-partially-correct = (Yn rann ewn)
 # «gorthyp» begins with `g`, which lenites to nothing after «dew» but is
 # untouched by the spirantization «tri» causes — so `two` forks and `few`,
 # `one` and `many` all read as the default does.
+#
+# **A seam a speaker must settle.** That is the rule the tables above state,
+# and it is the rule `content.ftl` follows («gell» → «ell», «glas» → «las»).
+# The other three files instead write `g-` as `w-` after a leniting word —
+# «an wnas», «dhe wnas», «dhe worthyp» — which is the Welsh treatment, not
+# the Cornish one. Both halves are internally consistent, so the correction
+# is one decision rather than twenty-five; it is recorded here rather than
+# guessed at, since a wrong guess would be twenty-five wrong words.
 answer-show-responses =
     { $count ->
-        [two] Diskwedhes { $count } worthyp dhe { $answerId }
+        [two] Diskwedhes { $count } orthyp dhe { $answerId }
        *[other] Diskwedhes { $count } gorthyp dhe { $answerId }
     }
 

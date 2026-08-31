@@ -55,12 +55,20 @@
 # The exception to that account, left for a speaker: `select-too-few-options`
 # and the two `select-from-sequence-too-few-*` messages print `{ $numToSelect }`
 # in front of «bree», whose `b` lenites to «vree» after «un» and «daa», and are
-# written once anyway. Either they want the `one`/`two` fork the three messages
-# above take, or those three do not.
+# written once anyway. `circle-through-points-non-numerical` is the same seam
+# with «poynt», whose `p` lenites to «phoynt» — and this file already writes it
+# both ways within four lines of itself, «ny smoo na un phoynt» beside «ny smoo
+# na 1 poynt», because it follows the English original's digit/word split rather
+# than Manx's. Either all of them want the `one`/`two` fork the three messages
+# above take, or those three do not. `locales/kw`'s `diagnostics.ftl` records
+# the identical seam for Cornish, message for message.
 #
-# **Weakest first.** «lhiggit shaghey» for *ignored*, «reaghit» for *resolved*,
-# «co-heiyrtys» for *dependency* and the whole parser and schema sections carry
-# the longest sentences and the least dictionary support.
+# **Weakest first.** «çhiaghtoo» for *sequence* is the first thing to check:
+# it is used seven times and consistently, but it is the ordinal of «shiaght»
+# (*seven*), so it may be the wrong word done tidily. Then «lhiggit shaghey»
+# for *ignored*, «reaghit» for *resolved* and «co-heiyrtys» for *dependency*;
+# then the parser and schema sections, which carry the longest sentences and
+# the least dictionary support.
 
 ## `<lineSegment>`
 

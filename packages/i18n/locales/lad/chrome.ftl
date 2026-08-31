@@ -27,7 +27,10 @@
 # ⟨sh⟩, ⟨ch⟩, ⟨j⟩ and ⟨dj⟩ for the four palatals; ⟨y⟩ where Spanish has ⟨ll⟩
 # («amariyo», «reyeno»); ⟨ny⟩ for /ɲ/ («linya», «anyo»); no silent ⟨h⟩; and
 # **⟨v⟩ where Spanish has intervocalic ⟨b⟩** — «avrir», «eskrivir»,
-# «palavra», «livro». Accents are not written.
+# «palavra», «livro». That last rule governs the **inherited** layer only: the
+# technical nouns this catalog takes from Spanish keep their ⟨b⟩ («atributo»,
+# «aksesibilidad», «parabola», «dibuja»), which is what the printed language
+# does with them too. Accents are not written anywhere in these four files.
 #
 # **What is Ladino here and what is borrowed.** «ke», «ay», «no se puede»,
 # «deve», «topar» for *to find*, «trokar» for *to change*, «kitar» for *to

@@ -22,9 +22,12 @@
 # The Milanese plural is the other place this file is visibly not Italian, and
 # it is why the counts in the other three files select the way they do:
 # masculine nouns are largely **invariable** («el pont» → «i pont»), while the
-# feminine drops its `-a` («la risposta» → «i rispost», «la linea» → «i
-# linee»). No plural is selected in this file, but the fill patterns are
-# written in it.
+# feminine drops its `-a` («la risposta» → «i rispost», «la riga» → «li
+# righ»). «linea» is the exception the fill patterns are written in: a
+# feminine noun ending in a vowel plus `-a` takes `-e` rather than losing it,
+# so «la linea» → «i linee», which is also the Italian form and so the one
+# line of this file a reviewer cannot tell apart from `locales/it`. No plural
+# is selected in this file, but the fill patterns are written in it.
 #
 # `$role` goes unused: Milanese marks no case on an adjective, and the three
 # clause positions differ from `standalone` only in the preposition in front of
@@ -126,7 +129,7 @@ noun =
     .region = region
     .point = pont
     .square = quader
-    .diamond = rombo
+    .diamond = romb
     .cross = cros
     .plus = pu
 # The side count follows the adjectives as a complement, so that they stay
@@ -242,7 +245,7 @@ section-name =
     .problems = Problem
     .proof = Prova
     .question = Domanda
-    .section = Session
+    .section = Sezion
     .solution = Soluzion
     .task = Compit
     .theorem = Teorema

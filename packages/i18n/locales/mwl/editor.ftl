@@ -34,7 +34,7 @@
 # therefore written once, in the plural, which reads correctly for any count in
 # a language that marks plural only on the noun.
 #
-# **Weakest first.** «besualizador» for *viewer*, «sugerides» for *suggested*,
+# **Weakest first.** «besualizador» for *viewer*, «sugeridos» for *suggested*,
 # «resolbido» for *resolved* and the boundary between a Mirandese word and its
 # Portuguese source are what a reviewing speaker should check first.
 
@@ -195,7 +195,7 @@ help-coordinates = Coordenadas:
 help-type = Tipo:
 help-resolved-style = Stilo resolbido (styleNumber { $styleNumber }):
 help-resolved-function-names = Nomes de funcion resolbidos:
-help-reset-list = Lhista de reinício neste input:
-help-added-on-input = Acrecentado neste input:
-help-removed-on-input = Tirado neste input:
+help-reset-list = Lhista de reinício nesta antrada:
+help-added-on-input = Acrecentado nesta antrada:
+help-removed-on-input = Tirado nesta antrada:
 help-reset-overrides = { $reset } prebalece subre { $additional } i { $removed }.

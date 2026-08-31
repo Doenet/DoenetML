@@ -238,6 +238,15 @@ const branches = (catalog: string) =>
  */
 type Row = [string, string, string];
 
+/**
+ * `chrome.ftl` and `diagnostics.ftl` of one catalog as a single string, with
+ * comment lines dropped — several headers discuss `[one]` and the other
+ * category names in prose, and a batch block asking whether a catalog
+ * *writes* a branch must not be answered by a header that merely mentions it.
+ */
+const bothOf = (chrome: string, diagnostics: string) =>
+    `${branches(chrome)}\n${branches(diagnostics)}`;
+
 describe("createChromeTranslator", () => {
     it("answers in English for the default locale", () => {
         const t = createChromeTranslator("en");
@@ -1175,11 +1184,6 @@ describe("the Americas batch's plural categories", () => {
 });
 
 describe("the Southeast Asian batch's plural categories", () => {
-    /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
-    const both = (chrome: string, diagnostics: string) =>
-        `${branches(chrome)}\n${branches(diagnostics)}`;
-
     /**
      * All fifteen, and — unlike the Silk Road batch, which had `bal` — there is
      * no sub-list here, because not one of the fifteen has CLDR plural data.
@@ -1230,7 +1234,7 @@ describe("the Southeast Asian batch's plural categories", () => {
     it.each(SOUTHEAST_ASIA)(
         "gives %s no plural category branch anywhere",
         (_locale, chrome, diagnostics) => {
-            const text = both(chrome, diagnostics);
+            const text = bothOf(chrome, diagnostics);
             for (const category of ["zero", "one", "two", "few", "many"]) {
                 expect(text).not.toContain(`[${category}]`);
             }
@@ -1281,11 +1285,6 @@ describe("the Southeast Asian batch's plural categories", () => {
 });
 
 describe("the second South Asian batch's plural categories", () => {
-    /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
-    const both = (chrome: string, diagnostics: string) =>
-        `${branches(chrome)}\n${branches(diagnostics)}`;
-
     /**
      * All fifteen. CLDR has plural data for none of them — which is the same
      * finding the Southeast Asian batch reported, arriving for a region where
@@ -1333,7 +1332,7 @@ describe("the second South Asian batch's plural categories", () => {
     it.each(SOUTH_ASIA)(
         "gives %s no plural category branch anywhere",
         (_locale, chrome, diagnostics) => {
-            const text = both(chrome, diagnostics);
+            const text = bothOf(chrome, diagnostics);
             for (const category of ["zero", "one", "two", "few", "many"]) {
                 expect(text).not.toContain(`[${category}]`);
             }
@@ -1388,10 +1387,6 @@ describe("the second South Asian batch's plural categories", () => {
  * nothing they could not select.
  */
 describe("the second European batch's plural categories", () => {
-    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
-    const both = (chrome: string, diagnostics: string) =>
-        `${branches(chrome)}\n${branches(diagnostics)}`;
-
     /** The five CLDR has rules for. */
     const WITH_RULES: [string, string, string][] = [
         ["an", anChrome, anDiagnostics],
@@ -1437,7 +1432,7 @@ describe("the second European batch's plural categories", () => {
     it.each(NO_RULES)(
         "gives %s no category branch its runtime could not select",
         (_locale, chrome, diagnostics) => {
-            const text = both(chrome, diagnostics);
+            const text = bothOf(chrome, diagnostics);
             for (const category of ["zero", "two", "few", "many"]) {
                 expect(text).not.toContain(`[${category}]`);
             }
@@ -1463,7 +1458,7 @@ describe("the second European batch's plural categories", () => {
     ])(
         "writes no plural category at all in %s",
         (_locale, chrome, diagnostics) => {
-            const text = both(chrome, diagnostics);
+            const text = bothOf(chrome, diagnostics);
             for (const category of ["zero", "one", "two", "few", "many"]) {
                 expect(text).not.toContain(`[${category}]`);
             }
@@ -1489,13 +1484,24 @@ describe("the second European batch's plural categories", () => {
      * The previous South Asian batch set this precedent and every one of its
      * fifteen catalogs writes `[1]` too.
      */
+    /**
+     * The `$expected` fork of `field-function-wrong-num-outputs`: the message
+     * from its id up to the `$found` that follows the fork, comment lines
+     * dropped first so that a header paraphrasing the id cannot be matched
+     * instead of the message. `undefined` if either marker is missing, which
+     * the callers assert against rather than silently reading the rest of the
+     * file.
+     */
+    const outputFork = (diagnostics: string) =>
+        branches(diagnostics)
+            .split("\nfield-function-wrong-num-outputs =")[1]
+            ?.split("$found")[0];
+
     it.each(NO_RULES)(
         "writes %s's output-count fork as a numeric branch, not a category",
         (_locale, _chrome, diagnostics) => {
-            const message = diagnostics.slice(
-                diagnostics.indexOf("field-function-wrong-num-outputs ="),
-            );
-            const fork = message.slice(0, message.indexOf("$found"));
+            const fork = outputFork(diagnostics);
+            expect(fork).toBeDefined();
             expect(fork).toContain("[1]");
             expect(fork).not.toContain("[one]");
         },
@@ -1504,10 +1510,8 @@ describe("the second European batch's plural categories", () => {
     it.each(WITH_RULES)(
         "keeps %s's output-count fork on the category its own rules select",
         (_locale, _chrome, diagnostics) => {
-            const message = diagnostics.slice(
-                diagnostics.indexOf("field-function-wrong-num-outputs ="),
-            );
-            const fork = message.slice(0, message.indexOf("$found"));
+            const fork = outputFork(diagnostics);
+            expect(fork).toBeDefined();
             expect(fork).toContain("[one]");
         },
     );
@@ -1566,7 +1570,7 @@ describe("the second European batch's plural categories", () => {
         }
         expect(lld.select(1_000_000)).toBe("many");
         expect(lld.select(1_000_001)).toBe("other");
-        expect(both(lldChrome, lldDiagnostics)).not.toContain("[many]");
+        expect(bothOf(lldChrome, lldDiagnostics)).not.toContain("[many]");
     });
 
     /**

@@ -237,7 +237,7 @@ function-ignoring-non-numerical =
         [minimum] Lo minimo pas numèrico de la fonccion est ignorâ.
         [extremum] L'èxtrèmo pas numèrico de la fonccion est ignorâ.
         [point] Lo pouent pas numèrico de la fonccion est ignorâ.
-        [slope] La pende pas numèrica de la fonccion est ignorâ.
+        [slope] La pende pas numèrica de la fonccion est ignorâye.
        *[other] Lo { $type } pas numèrico de la fonccion est ignorâ.
     }
 

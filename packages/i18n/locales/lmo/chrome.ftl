@@ -57,7 +57,8 @@
 # stays legal.
 #
 # **Weakest first.** A reviewer should attack (1) the imperatives —
-# «schiscia», «gionta», «cava», «verz», «nettapulì» — and (2) any sentence
+# «schiscia», «gionta», «cava», «verz», «nettapulì», and above all «movent»,
+# which is a gerund standing where the others are imperatives — and (2) any sentence
 # where an Italian frame has survived under Milanese words: if it has no
 # «minga», no «gh'è» and no clitic, it is probably still Italian.
 

@@ -19,6 +19,14 @@
 # The articles are the Academia's **o / a / os / as**, contracting after «de»
 # and «a»: «d'o», «d'a», «d'os», «d'as».
 #
+# **Accents are half-applied, and that is a gap rather than a convention.**
+# The Academia accents proparoxytones as Spanish does. This file accents the
+# oxytones — «función», «espresión», «sección», «vulneración», «tamién» — and
+# never a proparoxytone: «numero», «indices», «valido», «matematica»,
+# «parabola», «pachina» and «poligono» are all written bare, in some cases
+# dozens of times. Accenting them is the single most mechanical correction a
+# speaker could make to this catalog.
+#
 # **What is Aragonese here and what is borrowed.** The copula «ye» (is) and
 # «son», the verb forms «puet», «tien», «cal» (must), «fa», the conjunction
 # «u» for *or*, the negator «no», the participles in **-au / -ada»
@@ -129,7 +137,7 @@ error-found-at =
         [line] Trobau en a linia { $startLine }.
        *[lines] Trobau en as linias { $startLine }–{ $endLine }.
     }
-document-contains-errors = Iste documento contién errors!
+document-contains-errors = ¡Iste documento contién errors!
 diagnostic-heading-error = Error
 diagnostic-heading-warning = Alvertencia
 diagnostic-heading-information = Información

@@ -145,7 +145,7 @@ editor-response-submitted = Ninviada
 
 help-placeholder = Mete o cursor sobre un nombre d'etiqueta, un atributo u { $ref } ta la documentación.
 
-help-unsupported-ref-chain = L'aduya ta las referencias de cuantas partes como { $example } encara no ye disponible.
+help-unsupported-ref-chain = L'aduya ta as referencias de cuantas partes como { $example } encara no ye disponible.
 
 help-unresolved-ref =
     { $reason ->
@@ -154,7 +154,7 @@ help-unresolved-ref =
        *[indeterminate] No s'ha puesto determinar un referent ta { $ref }.
     }
 
-help-learn-about-references = Aprende sobre las referencias →
+help-learn-about-references = Aprende sobre as referencias →
 help-reference-page = Pachina de referencia →
 
 help-suggestions-header =
