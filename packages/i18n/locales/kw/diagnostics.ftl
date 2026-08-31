@@ -49,6 +49,17 @@
 # two-way choice between one output and two; 2 selects `two` in Cornish, which
 # falls through to `*[other]`, so the branch pair still lands correctly.
 #
+# **Where that rule is not yet carried through, and a speaker should decide.**
+# Four messages print a numeral in front of a noun whose initial *does* move —
+# `circle-through-points-non-numerical` («poynt»), `select-too-few-options`
+# («komponent»), `select-from-sequence-too-few-values` and
+# `select-from-sequence-too-few-unique-values` («gwerth») — and are written
+# once all the same, where `chrome.ftl`'s `attempts-remaining` forks «prov» →
+# «brov» → «frov» on exactly the same mechanism. `content.ftl`'s
+# `noun-regular-polygon` tail («tenewen») is the fifth. Either those five want
+# the fork or `attempts-remaining` does not, and which way round is a question
+# about Cornish rather than about Fluent.
+#
 # **Weakest first.** «diskommendys» for *deprecated*, «domayn» for *domain*,
 # «amkan» for *target*, «kevarwodh» for *reference*, «fleghes» for XML
 # *children* and «tirwedhyans» nowhere — a reviewer should check the schema and

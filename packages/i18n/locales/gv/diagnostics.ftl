@@ -52,6 +52,12 @@
 # one output and two rather than a plural; 2 selects `two` in Manx, which falls
 # through to `*[other]`, so the branch pair still lands correctly.
 #
+# The exception to that account, left for a speaker: `select-too-few-options`
+# and the two `select-from-sequence-too-few-*` messages print `{ $numToSelect }`
+# in front of «bree», whose `b` lenites to «vree» after «un» and «daa», and are
+# written once anyway. Either they want the `one`/`two` fork the three messages
+# above take, or those three do not.
+#
 # **Weakest first.** «lhiggit shaghey» for *ignored*, «reaghit» for *resolved*,
 # «co-heiyrtys» for *dependency* and the whole parser and schema sections carry
 # the longest sentences and the least dictionary support.

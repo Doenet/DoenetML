@@ -1031,8 +1031,11 @@ export const LOCALE_NAME_FALLBACKS: Record<
         endonym: "سرائیکی",
     },
     // The two locales of the second European batch CLDR has no name for. ICU
-    // names thirteen of the fifteen — including `egl`, `ext` and `frr`, which
-    // are smaller than either of these two — and stops at Norman and Ladin.
+    // names thirteen of the fifteen in English — `frr` in 281 of this
+    // roster's locales, `ext` and `egl` in nearly two hundred each — and
+    // stops at Norman and Ladin. Coverage does not track how many people
+    // speak a language: `frr` has the fewest speakers of the three named
+    // above and the widest coverage of any of them.
     //
     // `lld` is the entry worth reading twice, because it shows that CLDR's
     // kinds of data are requested separately and arrive separately, per

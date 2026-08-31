@@ -178,8 +178,8 @@ script the reader cannot check against the English beside it is worse than the
 English, so those three are the first place a speaker should look, and the
 catalogs say so in their own headers.
 
-**Thirteen of the second European batch are the school-system case, and it is
-the cleanest instance of it the roster has.**
+**Thirteen of the second European batch are the school-system case, and every
+one of the thirteen has a named parallel text to work from.**
 Every one of those thirteen is spoken inside a state whose secondary
 chemistry is taught in a national language that already has a catalog here:
 Spanish for Aragonese and Extremaduran, Portuguese for Mirandese, French for
@@ -3769,18 +3769,30 @@ so the branches differ in the word's first letter and nowhere else. The catalog
 writes four of the six as named branches — `one`, `two`, `few` and `many`,
 plus the `*[other]` default every select must carry — and not `zero`, which is
 `attempts-remaining`'s numeric `[0]` instead, saying something different from
-any category. It leaves the select off
-altogether where the noun begins with a vowel or with `l`, `r` or `s` and takes
-no mutation at all, since six identical branches are the rule against dead
-branches arriving by another road.
+any category. Where the counted noun begins with a vowel or with `l` — «entrans»,
+«askorrans», «interval», «linen» — nothing moves and the select is left off
+altogether, since six identical branches are the rule against dead branches
+arriving by another road.
+
+The seam a reviewer should look at first is the other side of that rule.
+`attempts-remaining` and `editor-accessibility-label` do fork a mutable noun
+(«prov» → «brov» → «frov», «torrva» → «dorrva» → «thorrva»), but four
+diagnostics print a numeral in front of a mutable consonant and are still
+written once: `circle-through-points-non-numerical` («poynt»),
+`select-too-few-options` («komponent») and the two
+`select-from-sequence-too-few-*` messages («gwerth»), plus
+`polygon`'s side-count tail in `content.ftl` («tenewen»). `locales/kw`'s
+headers name them, because a seed that forks one such noun and not another is
+inconsistent in a way only a speaker can settle. `locales/gv` has the same
+seam at `{ $numToSelect } bree`, and says so.
 
 `gv` and `lld` are the opposite lesson, and it is one the lint rule cannot
-state. Both declare a `many` that **no count this software formats reaches**,
-for two different reasons. Manx's `many` is CLDR's category for a count written
+state. Both declare a `many` that no realistic count in these messages
+reaches, for two different reasons. Manx's `many` is CLDR's category for a count written
 with a visible decimal fraction — 0.5, 1.5 — so no integer selects it at all.
 Ladin's is reachable from an integer, but only from an exact whole multiple of
-a million, the Italian-style rule behind the compact «un milion» forms, and
-nothing here counts to a million. `allowedPluralCategories` reads the declared
+a million, the Italian-style rule behind the compact «un milion» forms — a
+count no message here is plausibly given, though nothing forbids one. `allowedPluralCategories` reads the declared
 list, so a `[many]` branch in either would parse, lint clean and never render —
 the exact failure
 [A plural branch nothing can select](#a-plural-branch-nothing-can-select)
@@ -3945,9 +3957,11 @@ canonicalization a fair answer rather than a lucky one.
 
 #### Two names CLDR cannot supply, and one of them has plural rules
 
-`nrf` and `lld` needed `LOCALE_NAME_FALLBACKS` entries; the other thirteen —
-`egl`, `ext` and `frr` among them, all smaller than either — are named by ICU
-in English. Neither of the two is, and neither has an endonym, which is exactly
+`nrf` and `lld` needed `LOCALE_NAME_FALLBACKS` entries; the other thirteen are
+named by ICU in English, and how widely says nothing about how many people
+speak them: `frr` is named in 281 of this roster's locales, `ext` and `egl` in
+nearly two hundred each, and Northern Frisian has the fewest speakers of the
+three. Neither of the two is, and neither has an endonym, which is exactly
 the pair of strings the table wants. `nrf` is the emptier of the two: no locale
 on this roster names it at all. `lld` is named in a dozen or so — Italian
 «ladino», Czech «ladinština», Finnish «ladin», Ukrainian «ладинська» and others

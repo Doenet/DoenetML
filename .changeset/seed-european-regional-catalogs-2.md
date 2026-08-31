@@ -34,10 +34,20 @@ Five of the fifteen have plural rules of their own in CLDR, ending a run of two
 batches with none. Cornish reaches all six plural categories from ordinary
 counts — the third language on the roster whose rules do, after Welsh and
 Arabic — and its catalog writes four of them by name; Walloon's singular covers
-zero as well as one; Manx and Ladin each declare a `many` no count in a Doenet
-document reaches — Manx's belongs to counts written with a decimal fraction and
-Ladin's only to exact whole millions — and neither catalog writes a branch for
-it.
+zero as well as one; Manx and Ladin each declare a `many` no realistic count in
+these messages reaches — Manx's belongs to counts written with a decimal
+fraction, which none here are, and Ladin's only to exact whole millions — and
+neither catalog writes a branch for it.
+
+The other ten have no rules at all, so a category branch in one of them would be
+chosen by whatever language the runtime fell back to. Two consequences show in
+the messages themselves. `field-function-wrong-num-outputs` forks on how many
+outputs a component needs rather than on a count's grammar, so all ten write the
+exact-value branch `[1]` where English writes the category `[one]` — the same
+mechanism `attempts-remaining`'s `[0]` uses — while the five with rules of their
+own keep the category. And where a `[one]` would have read the same words as its
+default, it is dropped rather than written twice, which is why Lombard and
+Emilian have fewer count forks than the English they were seeded from.
 
 The chemistry element tables are left out of all fifteen, so a document in one
 of these languages still shows the element names in English. Thirteen are the

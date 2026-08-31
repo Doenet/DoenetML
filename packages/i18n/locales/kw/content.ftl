@@ -55,6 +55,11 @@
 # «gwynn», «loos», «rudh», «melyn», «gwyrdh», «glas», «gell»; «linen»,
 # «kylgh», «trihorn», «krows», «poynt», «folen», «gwir» and «gow».
 #
+# `noun-regular-polygon`'s tail prints a numeral in front of «tenewen», whose
+# `t` lenites after «dew» and spirantizes after «tri», and is written once
+# rather than forked — the same open question `diagnostics.ftl`'s header
+# records for its four `select-*` and `circle-*` messages.
+#
 # **Weakest first.** «terrys» (*broken*) for *dashed* and «poyntys» for
 # *dotted* are participles formed here on attested roots rather than dictionary
 # entries; so are «hyntyans» for *hint* and «keyndir» for *background*. «trogh»
