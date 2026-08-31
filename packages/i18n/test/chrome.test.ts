@@ -118,38 +118,38 @@ import hifChrome from "../locales/hif/chrome.ftl?raw";
 import hifDiagnostics from "../locales/hif/diagnostics.ftl?raw";
 // The second European batch. `editor.ftl` joins the pair for `kw` and `gv`,
 // whose richest count selects live there rather than in `chrome.ftl`.
-import anChrome2 from "../locales/an/chrome.ftl?raw";
-import anDiagnostics2 from "../locales/an/diagnostics.ftl?raw";
-import extChrome2 from "../locales/ext/chrome.ftl?raw";
-import extDiagnostics2 from "../locales/ext/diagnostics.ftl?raw";
-import ladChrome2 from "../locales/lad/chrome.ftl?raw";
-import ladDiagnostics2 from "../locales/lad/diagnostics.ftl?raw";
-import mwlChrome2 from "../locales/mwl/chrome.ftl?raw";
-import mwlDiagnostics2 from "../locales/mwl/diagnostics.ftl?raw";
-import waChrome2 from "../locales/wa/chrome.ftl?raw";
-import waDiagnostics2 from "../locales/wa/diagnostics.ftl?raw";
-import frpChrome2 from "../locales/frp/chrome.ftl?raw";
-import frpDiagnostics2 from "../locales/frp/diagnostics.ftl?raw";
-import nrfChrome2 from "../locales/nrf/chrome.ftl?raw";
-import nrfDiagnostics2 from "../locales/nrf/diagnostics.ftl?raw";
-import lmoChrome2 from "../locales/lmo/chrome.ftl?raw";
-import lmoDiagnostics2 from "../locales/lmo/diagnostics.ftl?raw";
-import eglChrome2 from "../locales/egl/chrome.ftl?raw";
-import eglDiagnostics2 from "../locales/egl/diagnostics.ftl?raw";
-import lldChrome2 from "../locales/lld/chrome.ftl?raw";
-import lldDiagnostics2 from "../locales/lld/diagnostics.ftl?raw";
-import kwChrome2 from "../locales/kw/chrome.ftl?raw";
-import kwDiagnostics2 from "../locales/kw/diagnostics.ftl?raw";
-import gvChrome2 from "../locales/gv/chrome.ftl?raw";
-import gvDiagnostics2 from "../locales/gv/diagnostics.ftl?raw";
-import barChrome2 from "../locales/bar/chrome.ftl?raw";
-import barDiagnostics2 from "../locales/bar/diagnostics.ftl?raw";
-import frrChrome2 from "../locales/frr/chrome.ftl?raw";
-import frrDiagnostics2 from "../locales/frr/diagnostics.ftl?raw";
-import romChrome2 from "../locales/rom/chrome.ftl?raw";
-import romDiagnostics2 from "../locales/rom/diagnostics.ftl?raw";
-import kwEditor2 from "../locales/kw/editor.ftl?raw";
-import gvEditor2 from "../locales/gv/editor.ftl?raw";
+import anChrome from "../locales/an/chrome.ftl?raw";
+import anDiagnostics from "../locales/an/diagnostics.ftl?raw";
+import extChrome from "../locales/ext/chrome.ftl?raw";
+import extDiagnostics from "../locales/ext/diagnostics.ftl?raw";
+import ladChrome from "../locales/lad/chrome.ftl?raw";
+import ladDiagnostics from "../locales/lad/diagnostics.ftl?raw";
+import mwlChrome from "../locales/mwl/chrome.ftl?raw";
+import mwlDiagnostics from "../locales/mwl/diagnostics.ftl?raw";
+import waChrome from "../locales/wa/chrome.ftl?raw";
+import waDiagnostics from "../locales/wa/diagnostics.ftl?raw";
+import frpChrome from "../locales/frp/chrome.ftl?raw";
+import frpDiagnostics from "../locales/frp/diagnostics.ftl?raw";
+import nrfChrome from "../locales/nrf/chrome.ftl?raw";
+import nrfDiagnostics from "../locales/nrf/diagnostics.ftl?raw";
+import lmoChrome from "../locales/lmo/chrome.ftl?raw";
+import lmoDiagnostics from "../locales/lmo/diagnostics.ftl?raw";
+import eglChrome from "../locales/egl/chrome.ftl?raw";
+import eglDiagnostics from "../locales/egl/diagnostics.ftl?raw";
+import lldChrome from "../locales/lld/chrome.ftl?raw";
+import lldDiagnostics from "../locales/lld/diagnostics.ftl?raw";
+import kwChrome from "../locales/kw/chrome.ftl?raw";
+import kwDiagnostics from "../locales/kw/diagnostics.ftl?raw";
+import gvChrome from "../locales/gv/chrome.ftl?raw";
+import gvDiagnostics from "../locales/gv/diagnostics.ftl?raw";
+import barChrome from "../locales/bar/chrome.ftl?raw";
+import barDiagnostics from "../locales/bar/diagnostics.ftl?raw";
+import frrChrome from "../locales/frr/chrome.ftl?raw";
+import frrDiagnostics from "../locales/frr/diagnostics.ftl?raw";
+import romChrome from "../locales/rom/chrome.ftl?raw";
+import romDiagnostics from "../locales/rom/diagnostics.ftl?raw";
+import kwEditor from "../locales/kw/editor.ftl?raw";
+import gvEditor from "../locales/gv/editor.ftl?raw";
 // The Americas batch, both files for the same reason as the Silk Road's:
 // each catalog's count selects are split between `chrome.ftl` and
 // `diagnostics.ftl`, so where a category branch falls is only checkable
@@ -1374,17 +1374,18 @@ describe("the second South Asian batch's plural categories", () => {
 
 /**
  * The second European batch's plural categories, and the batch where CLDR
- * finally has something to say.
+ * has something to say again.
  *
- * Every recent batch's block here has reported the same finding: CLDR has no
- * plural data for the tags, so no catalog may write a category branch. This
- * batch breaks that run. **Five of the fifteen have rules of their own** —
- * `an`, `wa`, `kw`, `gv` and `lld` — and two of the five, `kw` and `gv`, have
- * rules as elaborate as any on the roster: `cy` and `ar` are the established
- * catalogs that already declare all six categories, and `kw` joins them. What
- * follows is asserted from both sides: that the five really do resolve to
- * themselves, and that the ten others really write nothing they could not
- * select.
+ * The two blocks immediately above — Southeast Asia and South Asia — each
+ * report that CLDR has no plural data for any of their tags, so no catalog in
+ * either may write a category branch. This batch ends that run without setting
+ * a record: **five of the fifteen have rules of their own** — `an`, `wa`,
+ * `kw`, `gv` and `lld` — against the first European batch's eight and the
+ * Americas batch's three. What is new is `kw`, whose language declares all six
+ * plural categories: `cy` and `ar` are the only other catalogs on the roster
+ * whose languages do. What follows is asserted from both sides: that the five
+ * really do resolve to themselves, and that the ten others really write
+ * nothing they could not select.
  */
 describe("the second European batch's plural categories", () => {
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
@@ -1393,25 +1394,25 @@ describe("the second European batch's plural categories", () => {
 
     /** The five CLDR has rules for. */
     const WITH_RULES: [string, string, string][] = [
-        ["an", anChrome2, anDiagnostics2],
-        ["wa", waChrome2, waDiagnostics2],
-        ["kw", kwChrome2, kwDiagnostics2],
-        ["gv", gvChrome2, gvDiagnostics2],
-        ["lld", lldChrome2, lldDiagnostics2],
+        ["an", anChrome, anDiagnostics],
+        ["wa", waChrome, waDiagnostics],
+        ["kw", kwChrome, kwDiagnostics],
+        ["gv", gvChrome, gvDiagnostics],
+        ["lld", lldChrome, lldDiagnostics],
     ];
 
     /** The ten it has none for. */
     const NO_RULES: [string, string, string][] = [
-        ["ext", extChrome2, extDiagnostics2],
-        ["lad", ladChrome2, ladDiagnostics2],
-        ["mwl", mwlChrome2, mwlDiagnostics2],
-        ["frp", frpChrome2, frpDiagnostics2],
-        ["nrf", nrfChrome2, nrfDiagnostics2],
-        ["lmo", lmoChrome2, lmoDiagnostics2],
-        ["egl", eglChrome2, eglDiagnostics2],
-        ["bar", barChrome2, barDiagnostics2],
-        ["frr", frrChrome2, frrDiagnostics2],
-        ["rom", romChrome2, romDiagnostics2],
+        ["ext", extChrome, extDiagnostics],
+        ["lad", ladChrome, ladDiagnostics],
+        ["mwl", mwlChrome, mwlDiagnostics],
+        ["frp", frpChrome, frpDiagnostics],
+        ["nrf", nrfChrome, nrfDiagnostics],
+        ["lmo", lmoChrome, lmoDiagnostics],
+        ["egl", eglChrome, eglDiagnostics],
+        ["bar", barChrome, barDiagnostics],
+        ["frr", frrChrome, frrDiagnostics],
+        ["rom", romChrome, romDiagnostics],
     ];
 
     it.each(WITH_RULES)("resolves %s against its own rules", (locale) => {
@@ -1453,8 +1454,8 @@ describe("the second European batch's plural categories", () => {
      * is the honest end of the trade the other eight took.
      */
     it.each([
-        ["ext", extChrome2, extDiagnostics2],
-        ["lad", ladChrome2, ladDiagnostics2],
+        ["ext", extChrome, extDiagnostics],
+        ["lad", ladChrome, ladDiagnostics],
     ])(
         "writes no plural category at all in %s",
         (_locale, chrome, diagnostics) => {
@@ -1512,12 +1513,12 @@ describe("the second European batch's plural categories", () => {
     });
 
     it("writes four of Cornish's six categories, zero being a numeric branch instead", () => {
-        const text = `${branches(kwChrome2)}\n${branches(kwDiagnostics2)}\n${branches(kwEditor2)}`;
+        const text = `${branches(kwChrome)}\n${branches(kwDiagnostics)}\n${branches(kwEditor)}`;
         for (const category of ["one", "two", "few", "many"]) {
             expect(text).toContain(`[${category}]`);
         }
         expect(text).not.toContain("[zero]");
-        expect(branches(kwChrome2)).toContain("[0]");
+        expect(branches(kwChrome)).toContain("[0]");
     });
 
     /**
@@ -1542,7 +1543,7 @@ describe("the second European batch's plural categories", () => {
         }
         // The shape it is declared for, and one this software never formats.
         expect(gv.select(1.5)).toBe("many");
-        const text = `${branches(gvChrome2)}\n${branches(gvDiagnostics2)}\n${branches(gvEditor2)}`;
+        const text = `${branches(gvChrome)}\n${branches(gvDiagnostics)}\n${branches(gvEditor)}`;
         expect(text).not.toContain("[many]");
         expect(text).toContain("[two]");
     });
@@ -1565,7 +1566,7 @@ describe("the second European batch's plural categories", () => {
         }
         expect(lld.select(1_000_000)).toBe("many");
         expect(lld.select(1_000_001)).toBe("other");
-        expect(both(lldChrome2, lldDiagnostics2)).not.toContain("[many]");
+        expect(both(lldChrome, lldDiagnostics)).not.toContain("[many]");
     });
 
     /**
@@ -1580,6 +1581,6 @@ describe("the second European batch's plural categories", () => {
         expect(wa.select(0)).toBe("one");
         expect(wa.select(1)).toBe("one");
         expect(wa.select(2)).toBe("other");
-        expect(branches(waChrome2)).toContain("[0]");
+        expect(branches(waChrome)).toContain("[0]");
     });
 });

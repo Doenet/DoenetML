@@ -1034,15 +1034,16 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // names thirteen of the fifteen — including `egl`, `ext` and `frr`, which
     // are smaller than either of these two — and stops at Norman and Ladin.
     //
-    // `lld` is the entry worth reading twice, because it shows that CLDR's two
-    // kinds of data are requested separately and arrive separately. Ladin has
-    // **plural rules** of its own in CLDR, and a name only in Italian —
-    // `Intl.DisplayNames(["it"]).of("lld")` is «ladino», and every other
-    // locale, English and Ladin itself included, has nothing. Nothing is
-    // inconsistent about that: a plural rule is contributed by whoever needed
-    // a Ladin `Intl.PluralRules`, and a name in one language by whoever needed
-    // Ladin spelled out in one menu. This table wants the English name and the
-    // endonym, and neither is there.
+    // `lld` is the entry worth reading twice, because it shows that CLDR's
+    // kinds of data are requested separately and arrive separately, per
+    // language and per field. Ladin has **plural rules** of its own in CLDR,
+    // and names in a scattering of languages — `Intl.DisplayNames(["it"])`
+    // gives «ladino», Czech «ladinština», Finnish «ladin» — but **not** in
+    // English and **not** in Ladin, which are precisely the two this table
+    // wants. `nrf` is emptier still: no locale on this roster names it.
+    // Nothing is inconsistent about that: a plural rule is contributed by
+    // whoever needed a Ladin `Intl.PluralRules`, and a name in a given
+    // language by whoever needed Ladin spelled out in that language's menu.
     //
     // Both endonyms are the name the language's own written standard uses for
     // itself: `nrf`'s is the cover term for the Norman continuum rather than

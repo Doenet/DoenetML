@@ -222,9 +222,21 @@ describe("a catalog's script and its locale's direction", () => {
 
     /**
      * The text a reader would see, and nothing else: the right-hand side of
-     * every `=`, with placeables removed (`{ $count }` is ASCII in every
-     * catalog) and comment lines dropped.
+     * every `=` and the body of every select variant — `[one] …`, `*[other] …`
+     * — with placeables removed (`{ $count }` is ASCII in every catalog) and
+     * comment lines dropped. Variants matter: in several catalogs most of the
+     * counted messages live inside a select, so reading only `=` lines would
+     * sample a fraction of the visible text.
      */
+    /**
+     * Placeables and select syntax removed. Both are ASCII in every catalog,
+     * so leaving them in would count Latin letters — `count`, `other` — into
+     * catalogs written in another script entirely. The second pattern catches
+     * a selector head such as `{ $count ->`, whose brace closes lines later.
+     */
+    const strip = (text: string) =>
+        text.replace(/\{[^}]*(\}|$)/g, "").replace(/^\s*\}\s*$/, "");
+
     function renderedLetters(locale: string): { rtl: number; ltr: number } {
         const values: string[] = [];
         for (const namespace of [
@@ -241,11 +253,19 @@ describe("a catalog's script and its locale's direction", () => {
                 if (line.trim().startsWith("#") || line.trim() === "") {
                     continue;
                 }
-                const equals = line.indexOf("=");
-                if (equals < 0) {
+                const variant = line.match(/^\s*\*?\[[^\]]*\](.*)$/);
+                if (variant) {
+                    values.push(strip(variant[1]));
                     continue;
                 }
-                values.push(line.slice(equals + 1).replace(/\{[^}]*\}/g, ""));
+                const equals = line.indexOf("=");
+                if (equals < 0) {
+                    // A continuation line of a multi-line value, which is
+                    // rendered text like any other.
+                    values.push(strip(line));
+                    continue;
+                }
+                values.push(strip(line.slice(equals + 1)));
             }
         }
         const text = values.join("\n");

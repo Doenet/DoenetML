@@ -5367,8 +5367,8 @@ describe("the second South Asian batch's word order", () => {
 describe("the second European batch's word order", () => {
     /**
      * Fifteen more languages of Europe, and the batch that splits **twelve
-     * against three** — the first batch on the roster where the postnominal
-     * side is the large one.
+     * against three**, with the postnominal side the large one — as it was for
+     * the Oceania batch's ten of eleven, and unlike either batch since.
      *
      * The line falls exactly on the family boundary, which is why it is worth
      * writing down rather than assuming. The ten Romance catalogs (`an`,
@@ -5474,10 +5474,9 @@ describe("the second European batch's word order", () => {
     }
 
     /**
-     * Fourteen of the fifteen agree their adjectives with the noun's gender,
-     * which is the largest agreeing majority any batch has had — the Romance
-     * ten by ending, `bar` and `rom` by ending, and `kw` and `gv` by something
-     * the roster had not seen before.
+     * Fourteen of the fifteen agree their adjectives with the noun's gender —
+     * the Romance ten by ending, `bar` and `rom` by ending, and `kw` and `gv`
+     * by something the roster had not seen before.
      *
      * The comparison is made between the *rendered* descriptions of a feminine
      * noun and a masculine one, not against a pair of literals, so a catalog
@@ -5511,18 +5510,20 @@ describe("the second European batch's word order", () => {
 
     /**
      * **The two Celtic catalogs agree by initial mutation**, which is the
-     * batch's one genuinely new mechanism and the reason the assertion above
-     * compares whole phrases rather than first words.
+     * reason the assertion above compares whole phrases rather than first
+     * words.
      *
      * Cornish lenites after a feminine singular noun, so «tew» — thick —
      * becomes «dew»: the same word, one letter different, at the front rather
      * than the end. Manx does the same to «brisht», which becomes «vrisht».
-     * Every other agreeing catalog in the roster marks gender at the end of
-     * the word, so a test that read the first word and compared it, or one
-     * that assumed the stem was stable, would pass for all of them and be
-     * meaningless for these two.
+     * The mechanism itself is not new to the roster — `cy`, `ga`, `br` and
+     * `gd` were all seeded with it — but every catalog that marks gender with
+     * an *ending* would survive a test that only read a word's first letters,
+     * and every mutating catalog before `gv` would survive one that only read
+     * the width word.
      *
-     * Manx is the sharper of the pair: its *first* adjective, «chiu», is the
+     * Manx is the reason neither shortcut is taken: its *first* adjective,
+     * «chiu», is the
      * same in both genders, and the mutation shows up only on the two behind
      * it — «brisht» → «vrisht» and «jiarg» → «yiarg». A batch that checked
      * agreement by looking at the width word alone — which is what the second

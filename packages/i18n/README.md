@@ -178,13 +178,15 @@ script the reader cannot check against the English beside it is worse than the
 English, so those three are the first place a speaker should look, and the
 catalogs say so in their own headers.
 
-**The fifteen of the second European batch are the school-system case,
-fifteen times over, and it is the cleanest instance of it the roster has.**
-Every one of these languages is spoken inside a state whose secondary
+**Thirteen of the second European batch are the school-system case, and it is
+the cleanest instance of it the roster has.**
+Every one of those thirteen is spoken inside a state whose secondary
 chemistry is taught in a national language that already has a catalog here:
 Spanish for Aragonese and Extremaduran, Portuguese for Mirandese, French for
 Walloon and Arpitan, Italian for Lombard and Emilian, Italian or German for
-Ladin, German for Bavarian and Northern Frisian, English for Cornish and Manx.
+Ladin, German for Bavarian and Northern Frisian, English for Cornish, Manx and
+Norman — Jersey schools in English, so `nrf` sits with the Celtic pair rather
+than with the Gallo-Romance ones.
 None of them has a settled published list of all 118, and each catalog's
 header names the language its own reader met the table in — so a speaker who
 wants to fill the gap knows which parallel text to work from, and there is a
@@ -3740,20 +3742,23 @@ ones; and Romani (`rom`), the batch's one Indo-Aryan language and the one whose
 speakers are spread over the whole continent.
 
 It is the second batch assembled around Europe — #1773 seeded the first
-fifteen — and like that one, every catalog sits at **445/575 keys**, the whole
-catalog minus the two chemistry tables. Four properties are worth reading off
-it.
+fifteen — and all fifteen sit at **445/575 keys**, the whole catalog minus the
+two chemistry tables. (The first European batch was fourteen at 445 and one,
+`nn`, complete: Nynorsk is the exception, with the elements filled in.) The
+subsections below read off the properties of this one worth recording.
 
-#### CLDR has plural rules for a third of them, which no recent batch could say
+#### CLDR has plural rules for a third of them, ending a two-batch run of none
 
-Every batch's plural block since the Uralic one has reported the same finding:
-CLDR has no plural data for the tags, so no catalog may write a category
-branch, and the run of batches that wrote none was long enough to start looking
-like a law about small languages. It is not. **Five of these fifteen have rules
-of their own** — `an`, `wa`, `kw`, `gv` and `lld` — and two of the five, `kw`
-and `gv`, have rules as elaborate as any already on the roster: `cy` and `ar`
-are the established catalogs that declare all six categories and write them,
-and `kw` is the third language to reach that list.
+The two batches before this one — Southeast Asia (#1779) and South Asia (#1784)
+— each reported the same finding: CLDR has no plural data for any of their
+tags, so no catalog in either may write a category branch. That is not a law
+about small languages, and this batch is the reminder. **Five of these fifteen
+have rules of their own** — `an`, `wa`, `kw`, `gv` and `lld` — which is a
+smaller share than the first European batch's eight of fifteen and a larger one
+than the Americas batch's three. What is new is not the count but `kw`: `cy`
+and `ar` are the two established catalogs whose languages declare all six
+plural categories, and Cornish is the third language on the roster to reach
+that list.
 
 `kw` is the far end of it. Cornish declares **all six categories**, and every
 one is reachable from an integer: 0 is `zero`, 1 is `one`, and the rest turn on
@@ -3800,9 +3805,10 @@ count, so there was nothing for a `[one]` to do.
 
 #### Word order splits twelve against three, and the split is genetic
 
-This is the first batch whose *postnominal* side is the large one. The ten
-Romance catalogs and the two Celtic ones put the adjectives behind the noun;
-the two Germanic ones and Romani put them in front.
+The postnominal side is the large one here, as it was for the Oceania batch's
+ten of eleven, and unlike the two batches before this one. The ten Romance
+catalogs and the two Celtic ones put the adjectives behind the noun; the two
+Germanic ones and Romani put them in front.
 
 Postnominal, rendered for "thick dashed red line": `an` «linia gorda
 discontinua roya», `ext` «linia gorda descontinua colorá», `lad` «linya gruesa
@@ -3833,18 +3839,21 @@ pattern – colour.
 
 #### Two catalogs agree at the front of the word
 
-Fourteen of the fifteen agree their adjectives with the noun's gender, which is
-the largest agreeing majority any batch has had. Twelve mark it with an ending,
-the way every agreeing catalog on the roster did before this batch. **`kw` and
-`gv` mark it with an initial mutation**, which is new here: Cornish lenites
-after a feminine singular noun, so «tew» — thick — becomes «dew», the same word
-with a different first letter, and Manx turns «brisht» into «vrisht».
+Fourteen of the fifteen agree their adjectives with the noun's gender. Twelve
+mark it with an ending. **`kw` and `gv` mark it with an initial mutation**:
+Cornish lenites after a feminine singular noun, so «tew» — thick — becomes
+«dew», the same word with a different first letter, and Manx turns «brisht»
+into «vrisht».
 
-Manx is the sharper of the two, because its *first* adjective is invariant and
-the mutation appears only on the two behind it: «chiu vrisht yiarg» against
-«chiu brisht jiarg». A
-test that compared the width word alone — which is exactly what the second
-South Asian batch's block does, correctly, for catalogs that suffix — would
+That mechanism is not new to the roster — `cy`, `ga`, `br` and `gd` were all
+seeded with it, and `locales/cy` writes «trwchus»/«drwchus» exactly as
+`locales/kw` writes «tew»/«dew». What is new is **Manx**, because its *first*
+adjective is invariant and the mutation appears only on the two behind it:
+«chiu vrisht yiarg» against «chiu brisht jiarg». In all five of the other
+mutating catalogs — `cy`, `ga`, `br`, `gd` and `kw` — the width word itself
+changes, so a test that compared the
+width word alone — which is exactly what the second South Asian batch's block
+does, correctly, for catalogs that suffix — would have caught them and would
 have called `locales/gv` invariant. `styleDescriptions.test.ts` compares whole
 rendered phrases for that reason.
 
@@ -3878,9 +3887,10 @@ CLDR would not have guessed. A tag that names its script keeps it: `lad-Hebr`
 is right-to-left, because a host that writes it means it.
 
 `lad` is the only entry, and `direction.test.ts` is what keeps it that way. The
-test does not consult the table; it reads every catalog's **message values** —
-not the ids, which are ASCII everywhere, and not the headers, which are English
-prose quoting words in the language — counts right-to-left letters against
+test does not consult the table; it reads every catalog's **message values**,
+select variants included — not the ids, which are ASCII everywhere, not the
+placeables and selector heads, which are ASCII too, and not the headers, which
+are English prose quoting words in the language — counts right-to-left letters against
 left-to-right ones, and requires the majority to agree with `directionOf`. All
 346 pass, the Ladino bug would have failed it, and so would the reverse
 mistake: a catalog written in Hebrew or Arabic letters for a language CLDR
@@ -3915,18 +3925,21 @@ canonicalization a fair answer rather than a lucky one.
 
 `nrf` and `lld` needed `LOCALE_NAME_FALLBACKS` entries; the other thirteen —
 `egl`, `ext` and `frr` among them, all smaller than either — are named by ICU
-in English. `nrf` has no name in any language ICU ships; `lld` has one, in
-Italian only, which is no help to a table that wants English and the endonym.
+in English. Neither of the two is, and neither has an endonym, which is exactly
+the pair of strings the table wants. `nrf` is the emptier of the two: no locale
+on this roster names it at all. `lld` is named in a dozen or so — Italian
+«ladino», Czech «ladinština», Finnish «ladin», Ukrainian «ладинська» and others
+— but not in English, and not in Ladin.
 
-`lld` is the entry worth reading twice, because it shows that CLDR's two kinds
-of data are requested and arrive separately. **Ladin has plural rules in CLDR,
-and a name in exactly one language.** `Intl.DisplayNames(["it"]).of("lld")` is
-«ladino»; English has nothing, and neither does Ladin itself, so both halves of
-what `LOCALE_NAME_FALLBACKS` wants are missing. Nothing is inconsistent about
-that: a plural rule is contributed by whoever needed a Ladin
-`Intl.PluralRules`, and a name in one language by whoever needed Ladin spelled
-out in one menu. A batch that inferred "CLDR knows this language" from either
-fact alone would have got the other one wrong.
+`lld` is the entry worth reading twice, because it shows that CLDR's kinds of
+data are requested and arrive separately, per language and per field. **Ladin
+has plural rules, and names in a scattering of languages that does not include
+either of the two this table needs.** Nothing is inconsistent about that: a
+plural rule is contributed by whoever needed a Ladin `Intl.PluralRules`, and a
+name in a given language by whoever needed Ladin spelled out in that language's
+menu — and nobody yet needed it in English or in Ladin. A batch that inferred
+"CLDR knows this language" from any one of those facts would have got the
+others wrong.
 
 #### What the fifteen actually know
 
@@ -5185,9 +5198,10 @@ which script that is.
 
 The invariant is held by reading the files rather than the table.
 `direction.test.ts` counts each catalog's right-to-left letters against its
-left-to-right ones — over message *values* only, since ids are ASCII in every
-catalog and headers are English prose quoting the language — and requires the
-majority to agree with `directionOf`. That fails for a catalog written in a
+left-to-right ones — over message *values* only, select variants included,
+since ids, placeables and select syntax are ASCII in every catalog and headers
+are English prose quoting the language — and requires the majority to agree
+with `directionOf`. That fails for a catalog written in a
 script CLDR would not have guessed in *either* direction, which is what makes
 it worth more than an entry in a list.
 
