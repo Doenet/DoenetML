@@ -5363,3 +5363,220 @@ describe("the second South Asian batch's word order", () => {
         }
     });
 });
+
+describe("the second European batch's word order", () => {
+    /**
+     * Fifteen more languages of Europe, and the batch that splits **twelve
+     * against three**, with the postnominal side the large one — as it was for
+     * the Oceania batch's ten of eleven, and unlike either batch since.
+     *
+     * The line falls exactly on the family boundary, which is why it is worth
+     * writing down rather than assuming. The ten Romance catalogs (`an`,
+     * `ext`, `lad`, `mwl`, `wa`, `frp`, `nrf`, `lmo`, `egl`, `lld`) and the
+     * two Celtic ones (`kw`, `gv`) put the adjectives behind the noun; the two
+     * Germanic catalogs (`bar`, `frr`) and the one Indo-Aryan one (`rom`) put
+     * them in front. Romani is the row that makes the point:
+     * it is the batch's only Indo-Aryan language, it has been spoken in Europe
+     * for six hundred years, and it still writes the order `locales/hi` and
+     * `locales/mr` write rather than the order of every Romance neighbour
+     * around it. Where the South Asian batch found word order following the
+     * neighbourhood rather than the family tree, this batch finds the
+     * opposite, and both are true — areal pressure reaches a phrase's order
+     * sometimes and not always, and a seed that assumed either way round would
+     * have been wrong once.
+     *
+     * Twelve of the fifteen keep English's internal sequence of the three
+     * adjectives — width, dash pattern, colour — so what moves is the noun
+     * alone. `wa`, `frp` and `nrf` are the three that do not, and say so in
+     * their headers: all three render the dash pattern as an invariable
+     * prepositional phrase («a trets», «à traits») rather than as an
+     * adjective, and a prepositional phrase cannot sit between two adjectives,
+     * so those three read width – colour – pattern.
+     */
+    const postnominal: [string, string, string][] = [
+        ["an", "linia gorda discontinua roya", "gorda discontinua roya"],
+        ["ext", "linia gorda descontinua colorá", "gorda descontinua colorá"],
+        [
+            "lad",
+            "linya gruesa deskontinua kolorada",
+            "gruesa deskontinua kolorada",
+        ],
+        [
+            "mwl",
+            "lhinha grossa traceijada burmeilha",
+            "grossa traceijada burmeilha",
+        ],
+        ["wa", "roye spesse rodje a trets", "spesse rodje a trets"],
+        ["frp", "legne èpèssa roja a trèts", "èpèssa roja a trèts"],
+        ["nrf", "ligne êpaisse rouoge à traits", "êpaisse rouoge à traits"],
+        ["lmo", "linea grossa trattegiada rossa", "grossa trattegiada rossa"],
+        ["egl", "lénnia gròsa trategèda róssa", "gròsa trategèda róssa"],
+        ["lld", "linia grossa tratejada cuecia", "grossa tratejada cuecia"],
+        ["kw", "linen dew derrys rudh", "dew derrys rudh"],
+        ["gv", "linney chiu vrisht yiarg", "chiu vrisht yiarg"],
+    ];
+
+    const nounOf: Record<string, string> = {
+        an: "linia",
+        ext: "linia",
+        lad: "linya",
+        mwl: "lhinha",
+        wa: "roye",
+        frp: "legne",
+        nrf: "ligne",
+        lmo: "linea",
+        egl: "lénnia",
+        lld: "linia",
+        kw: "linen",
+        gv: "linney",
+        // The three prenominal catalogs' nouns, used below to assert that the
+        // noun is what moved.
+        bar: "Linie",
+        frr: "line",
+        rom: "linia",
+    };
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s adjectives after the noun`, () => {
+            const t = forLocale(locale);
+            const rendered = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: true,
+            });
+            const renderedBare = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: false,
+            });
+            expect(rendered).toBe(withNoun);
+            expect(renderedBare).toBe(adjectivesOnly);
+            // The bare description is the tail of the full phrase verbatim:
+            // the noun moved to the front and nothing else moved with it.
+            expect(rendered).toBe(`${nounOf[locale]} ${renderedBare}`);
+        });
+    }
+
+    const prenominal: [string, string][] = [
+        ["bar", "dicke gstrichlte rode"],
+        ["frr", "dik struket rüüdj"],
+        ["rom", "thuli phagli loli"],
+    ];
+
+    for (const [locale, adjectivesOnly] of prenominal) {
+        it(`puts ${locale}'s adjectives in front of the noun`, () => {
+            const t = forLocale(locale);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: false }),
+            ).toBe(adjectivesOnly);
+            expect(
+                describeStrokedShape(t, words, { noun: line, withNoun: true }),
+            ).toBe(`${adjectivesOnly} ${nounOf[locale]}`);
+        });
+    }
+
+    /**
+     * Fourteen of the fifteen agree their adjectives with the noun's gender —
+     * the Romance ten by ending, `bar` and `rom` by ending, and `kw` and `gv`
+     * by something the roster had not seen before.
+     *
+     * The comparison is made between the *rendered* descriptions of a feminine
+     * noun and a masculine one, not against a pair of literals, so a catalog
+     * that changed one adjective while keeping both spellings self-consistent
+     * would still be caught.
+     */
+    it.each([
+        "an",
+        "ext",
+        "lad",
+        "mwl",
+        "wa",
+        "frp",
+        "nrf",
+        "lmo",
+        "egl",
+        "lld",
+        "kw",
+        "gv",
+        "bar",
+        "rom",
+    ])("agrees %s's adjectives with the noun's gender", (locale) => {
+        const t = forLocale(locale);
+        const describe_ = (noun: NounKey) =>
+            describeStrokedShape(t, words, {
+                noun: { key: noun },
+                withNoun: false,
+            });
+        expect(describe_("line")).not.toBe(describe_("point"));
+    });
+
+    /**
+     * **The two Celtic catalogs agree by initial mutation**, which is the
+     * reason the assertion above compares whole phrases rather than first
+     * words.
+     *
+     * Cornish lenites after a feminine singular noun, so «tew» — thick —
+     * becomes «dew»: the same word, one letter different, at the front rather
+     * than the end. Manx does the same to «brisht», which becomes «vrisht».
+     * The mechanism itself is not new to the roster — `cy`, `ga`, `br` and
+     * `gd` were all seeded with it — but every catalog that marks gender with
+     * an *ending* would survive a test that only read a word's first letters,
+     * and every mutating catalog before `gv` would survive one that only read
+     * the width word.
+     *
+     * Manx is the reason neither shortcut is taken: its *first* adjective,
+     * «chiu», is the
+     * same in both genders, and the mutation shows up only on the two behind
+     * it — «brisht» → «vrisht» and «jiarg» → «yiarg». A batch that checked
+     * agreement by looking at the width word alone — which is what the second
+     * South Asian batch's block does, correctly, for its own catalogs — would
+     * have called `locales/gv` invariant.
+     */
+    it("agrees the two Celtic catalogs at the front of the word, not the end", () => {
+        const kw = forLocale("kw");
+        const feminine = describeStrokedShape(kw, words, {
+            noun: line,
+            withNoun: false,
+        });
+        const masculine = describeStrokedShape(kw, words, {
+            noun: { key: "point" },
+            withNoun: false,
+        });
+        expect(feminine).toBe("dew derrys rudh");
+        expect(masculine).toBe("tew terrys rudh");
+        // Same length, same tail, different first letters: a mutation rather
+        // than a suffix.
+        expect(feminine.length).toBe(masculine.length);
+        expect(feminine.slice(1, 3)).toBe(masculine.slice(1, 3));
+
+        const gv = forLocale("gv");
+        expect(
+            describeStrokedShape(gv, words, { noun: line, withNoun: false }),
+        ).toBe("chiu vrisht yiarg");
+        expect(
+            describeStrokedShape(gv, words, {
+                noun: { key: "point" },
+                withNoun: false,
+            }),
+        ).toBe("chiu brisht jiarg");
+    });
+
+    /**
+     * Northern Frisian is the one catalog of the fifteen that does not agree,
+     * and — unusually for this seeding effort — that is a fact about the
+     * language rather than a gap in the seed. Mooring's attributive adjective
+     * takes no ending in the indefinite singular for either gender, and no
+     * description this software builds is definite or plural. `locales/frr`
+     * still answers `noun-gender` with Mooring's real two genders, so a
+     * reviewer who finds a context that does inflect has the fork's selector
+     * already in place.
+     */
+    it("writes frr's adjectives invariant, which is Mooring and not a gap", () => {
+        const frr = forLocale("frr");
+        const describe_ = (noun: NounKey) =>
+            describeStrokedShape(frr, words, {
+                noun: { key: noun },
+                withNoun: false,
+            });
+        expect(describe_("line")).toBe("dik struket rüüdj");
+        expect(describe_("point")).toBe(describe_("line"));
+    });
+});

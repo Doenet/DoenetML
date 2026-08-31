@@ -101,6 +101,41 @@ const RTL_LANGUAGES = new Set([
 ]);
 
 /**
+ * Languages whose catalog here is written in a script that is not the one CLDR
+ * considers likely for them.
+ *
+ * Consulted **only** when the tag itself names no script, and only for the
+ * language subtag — a host that writes `lad-Hebr` means Hebrew script and gets
+ * right-to-left, exactly as it asked.
+ *
+ * `lad` is the entry, and it is not an edge case dressed up as one. CLDR
+ * maximizes Ladino to `lad-Hebr`, which is historically right: Judeo-Spanish
+ * was written in Hebrew letters — square, Rashi and solitreo — for four
+ * centuries. `locales/lad` is written in the **Latin** Aki Yerushalayim
+ * orthography instead, because that is what a Ladino reader meets today, and
+ * its header says so. Without this table `directionOf("lad")` would answer
+ * `"rtl"` off CLDR's likely script and the viewer would lay out a Latin
+ * catalog right to left: every line of a Ladino activity reversed, and
+ * punctuation on the wrong end of it.
+ *
+ * The general rule this states is that direction has to follow **the script
+ * the text is actually in**, and for a bare tag this repository is the one
+ * that decided which script that is. So the table is keyed on the same fact a
+ * catalog's header records, and an entry belongs here whenever a catalog is
+ * written in a script CLDR would not have guessed — not whenever a language
+ * merely has more than one script.
+ *
+ * Nothing else on the roster is in this position: `lad` is the only catalog
+ * whose maximized script disagrees with the script its own files are written
+ * in. `direction.test.ts` holds that by counting the letters in every
+ * catalog's message values, so a future batch that adds such a catalog fails
+ * rather than renders backwards.
+ */
+const CATALOG_SCRIPTS = new Map([
+    ["lad", "Latn"], // Ladino, in the Latin Aki Yerushalayim orthography
+]);
+
+/**
  * The direction a locale's text is written in.
  *
  * Answers for *any* BCP-47 tag, not only the ones this repository ships a
@@ -133,10 +168,18 @@ export function directionOf(tag: string): Direction {
 
     try {
         const locale = new Intl.Locale(trimmed);
-        // `maximize` fills in the script CLDR considers likely for the
-        // language, which is what makes a bare `ar` or `he` resolve without
-        // listing it: `ar` maximizes to `ar-Arab-EG`.
-        const script = locale.maximize().script ?? locale.script;
+        // A script the tag names itself wins outright: `lad-Hebr` is Hebrew
+        // script whatever this repository's own catalog is written in.
+        //
+        // Otherwise `maximize` fills in the script CLDR considers likely for
+        // the language, which is what makes a bare `ar` or `he` resolve
+        // without listing it: `ar` maximizes to `ar-Arab-EG`. {@link
+        // CATALOG_SCRIPTS} overrides that guess for the languages whose
+        // catalog here is written in some other script.
+        const script =
+            locale.script ??
+            CATALOG_SCRIPTS.get(locale.language ?? "") ??
+            locale.maximize().script;
         if (script) {
             return RTL_SCRIPTS.has(script) ? "rtl" : "ltr";
         }
@@ -162,7 +205,14 @@ function directionFromRawSubtags(tag: string): Direction {
             return RTL_SCRIPTS.has(script) ? "rtl" : "ltr";
         }
     }
-    return RTL_LANGUAGES.has(subtags[0].toLowerCase()) ? "rtl" : "ltr";
+    const language = subtags[0].toLowerCase();
+    // The same override the parseable path applies, for the same reason: a
+    // hand-typed `lad_TR` must not lay out backwards either.
+    const catalogScript = CATALOG_SCRIPTS.get(language);
+    if (catalogScript !== undefined) {
+        return RTL_SCRIPTS.has(catalogScript) ? "rtl" : "ltr";
+    }
+    return RTL_LANGUAGES.has(language) ? "rtl" : "ltr";
 }
 
 /**

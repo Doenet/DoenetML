@@ -67,51 +67,54 @@ locales/<locale>/
 ```
 
 English is the source of truth. Every translation —
-`ab`, `ace`, `acf`, `ady`, `af`, `ak`, `alt`, `am`, `ar`, `arn`, `as`,
-`ast`, `av`, `awa`, `ay`, `az`, `ba`, `bal`, `ban`, `bbc`, `bci`,
-`be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`, `bjn`, `bm`, `bn`, `bo`,
-`br`, `brh`, `brx`, `bs`, `bua`, `bug`, `bum`, `bzj`, `ca`, `cab`,
-`cbk`, `ce`, `ceb`, `ch`, `chk`, `ckb`, `co`, `crh`, `cs`, `csb`,
-`cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`, `djk`, `dng`, `doi`,
-`dsb`, `dtp`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`,
-`eu`, `ewo`, `fa`, `ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`,
+`ab`, `ace`, `acf`, `ady`, `af`, `ak`, `alt`, `am`, `an`, `ar`,
+`arn`, `as`, `ast`, `av`, `awa`, `ay`, `az`, `ba`, `bal`, `ban`,
+`bar`, `bbc`, `bci`, `be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`,
+`bjn`, `bm`, `bn`, `bo`, `br`, `brh`, `brx`, `bs`, `bua`, `bug`,
+`bum`, `bzj`, `ca`, `cab`, `cbk`, `ce`, `ceb`, `ch`, `chk`, `ckb`,
+`co`, `crh`, `cs`, `csb`, `cv`, `cy`, `da`, `dag`, `dar`, `de`,
+`dje`, `djk`, `dng`, `doi`, `dsb`, `dtp`, `dv`, `dyo`, `dyu`, `dz`,
+`ee`, `efi`, `egl`, `el`, `es`, `et`, `eu`, `ewo`, `ext`, `fa`,
+`ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `frp`, `frr`,
 `fur`, `fy`, `ga`, `gaa`, `gag`, `gbm`, `gcf`, `gcr`, `gd`, `gil`,
-`gl`, `glk`, `gn`, `gor`, `grt`, `gsw`, `gu`, `ha`, `haw`, `haz`,
-`he`, `hi`, `hif`, `hil`, `hne`, `hnj`, `hr`, `hsb`, `ht`, `hu`, `hy`,
-`iba`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`, `ja`, `jam`, `jv`,
-`ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`, `kfy`, `kg`, `kha`,
-`ki`, `kjh`, `kk`, `kl`, `km`, `kmb`, `kmr`, `kn`, `ko`, `koi`, `kok`,
-`kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`, `ksh`, `ksw`,
-`ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `li`, `lij`, `ln`, `lo`,
-`lom`, `lrc`, `lt`, `lua`, `luo`, `lus`, `lv`, `mad`, `mag`, `mai`,
-`mak`, `mdf`, `men`, `mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`,
-`ml`, `mn`, `mni`, `mnk`, `mns`, `mnw`, `mos`, `mr`, `mrj`, `mrw`,
-`ms`, `mt`, `mwr`, `my`, `myv`, `mzn`, `nah`, `nap`, `nb`, `nds`,
-`ne`, `new`, `nia`, `niu`, `nl`, `nn`, `nog`, `nso`, `ny`, `nyn`,
-`oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pag`, `pam`, `pap`, `pcm`,
-`pl`, `pms`, `pon`, `ps`, `pt`, `qu`, `quc`, `rar`, `rm`, `rn`, `ro`,
-`ru`, `rue`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sco`, `sd`, `se`,
-`sg`, `sgh`, `shi`, `shn`, `si`, `sjd`, `sk`, `skr`, `sl`, `sm`,
-`sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `srm`, `srn`,
-`ss`, `st`, `su`, `sus`, `sv`, `sw`, `syl`, `szl`, `ta`, `tab`, `tcy`,
-`te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`,
-`tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tsg`, `tt`, `ttt`, `tvl`, `ty`,
-`tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`,
-`vep`, `vi`, `vro`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `yi`,
-`yo`, `yua`, `zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
+`gl`, `glk`, `gn`, `gor`, `grt`, `gsw`, `gu`, `gv`, `ha`, `haw`,
+`haz`, `he`, `hi`, `hif`, `hil`, `hne`, `hnj`, `hr`, `hsb`, `ht`,
+`hu`, `hy`, `iba`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`,
+`ja`, `jam`, `jv`, `ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`,
+`kfy`, `kg`, `kha`, `ki`, `kjh`, `kk`, `kl`, `km`, `kmb`, `kmr`,
+`kn`, `ko`, `koi`, `kok`, `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`,
+`krl`, `ks`, `ksh`, `ksw`, `ktu`, `kum`, `kw`, `ky`, `lad`, `lb`,
+`lbe`, `lez`, `lg`, `li`, `lij`, `lld`, `lmo`, `ln`, `lo`, `lom`,
+`lrc`, `lt`, `lua`, `luo`, `lus`, `lv`, `mad`, `mag`, `mai`, `mak`,
+`mdf`, `men`, `mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`, `ml`,
+`mn`, `mni`, `mnk`, `mns`, `mnw`, `mos`, `mr`, `mrj`, `mrw`, `ms`,
+`mt`, `mwl`, `mwr`, `my`, `myv`, `mzn`, `nah`, `nap`, `nb`, `nds`,
+`ne`, `new`, `nia`, `niu`, `nl`, `nn`, `nog`, `nrf`, `nso`, `ny`,
+`nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pag`, `pam`,
+`pap`, `pcm`, `pl`, `pms`, `pon`, `ps`, `pt`, `qu`, `quc`, `rar`,
+`rm`, `rn`, `ro`, `rom`, `ru`, `rue`, `rw`, `sa`, `sah`, `sat`,
+`sc`, `scn`, `sco`, `sd`, `se`, `sg`, `sgh`, `shi`, `shn`, `si`,
+`sjd`, `sk`, `skr`, `sl`, `sm`, `sma`, `smj`, `smn`, `sms`, `sn`,
+`so`, `sq`, `sr`, `srm`, `srn`, `ss`, `st`, `su`, `sus`, `sv`,
+`sw`, `syl`, `szl`, `ta`, `tab`, `tcy`, `te`, `tem`, `tet`, `tg`,
+`th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`,
+`tr`, `ts`, `tsg`, `tt`, `ttt`, `tvl`, `ty`, `tyv`, `udm`, `ug`,
+`uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`, `vro`,
+`wa`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `yua`,
+`zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
 — is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-Two hundred and fifty-three of them are deliberately partial. Two hundred
-and fifty-one are partial in the same place — the two chemistry tables —
+Two hundred and sixty-eight of them are deliberately partial. Two hundred
+and sixty-six are partial in the same place — the two chemistry tables —
 while two are partial more widely, each for its own reason: Klingon almost
 everywhere, for the reason in
 [A language with no word for it](#a-language-with-no-word-for-it), and
 Inuktitut over the geometry nouns as well, for the reason in
 [Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws).
-The two hundred and fifty-one are: Somali, Hmong Njua, Amharic, Assamese,
+The two hundred and sixty-six are: Somali, Hmong Njua, Amharic, Assamese,
 Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
 Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -143,8 +146,10 @@ French, Saint Lucian Creole French, Guianese Creole French, Belize Kriol,
 Aukan, Saramaccan, Buginese, Makasar, Banjar, Gorontalo, Nias, Batak Toba,
 Iban, Central Dusun, Pangasinan, Chavacano, Tausug, Maranao, Shan, Mon,
 S'gaw Karen, Awadhi, Chhattisgarhi, Magahi, Marwari, Garhwali, Kumaoni,
-Newari, Sylheti, Tulu, Mizo, Khasi, Garo, Saraiki, Brahui and Fiji Hindi
-leave `element-name` and `element-anion-name` out, so those 130 keys fall back
+Newari, Sylheti, Tulu, Mizo, Khasi, Garo, Saraiki, Brahui, Fiji Hindi,
+Aragonese, Extremaduran, Ladino, Mirandese, Walloon, Arpitan, Norman,
+Lombard, Emilian, Ladin, Cornish, Manx, Bavarian, Northern Frisian and
+Romani leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
 English a student meets in their own textbook. Kannada has two — native
@@ -172,6 +177,30 @@ seed could reproduce rather than invent. An unreviewed guess written in a
 script the reader cannot check against the English beside it is worse than the
 English, so those three are the first place a speaker should look, and the
 catalogs say so in their own headers.
+
+**Thirteen of the second European batch are the school-system case, and every
+one of the thirteen has a named parallel text to work from.**
+Every one of those thirteen is spoken inside a state whose secondary
+chemistry is taught in a national language that already has a catalog here:
+Spanish for Aragonese and Extremaduran, Portuguese for Mirandese, French for
+Walloon and Arpitan, Italian for Lombard and Emilian, Italian or German for
+Ladin, German for Bavarian and Northern Frisian, English for Cornish, Manx and
+Norman — Jersey schools in English, so `nrf` sits with the Celtic pair rather
+than with the Gallo-Romance ones.
+None of them has a settled published list of all 118, and each catalog's
+header names the language its own reader met the table in — so a speaker who
+wants to fill the gap knows which parallel text to work from, and there is a
+parallel text to work from in every case.
+
+The two that are not that case are worth separating out, because both are
+about a *population* rather than a school system. A Ladino speaker met the
+periodic table in Hebrew, Turkish or French depending on which community they
+were schooled in, and those three differ, so naming one would report a fact
+about a migration. Romani is the same shape at larger scale: `rom` is spoken
+across a dozen state school systems and its readers met the table in
+Romanian, Hungarian, Slovak, Serbian, Bulgarian or Spanish, with no Romani
+list of the 118 in any variety. These are the Northern Sami case — the gap is
+a fact about where speakers live, not about the language.
 
 Javanese and Sundanese are the two of that batch's ten that supply the names,
 and they are a case of their own: their schools teach chemistry out of
@@ -3700,6 +3729,284 @@ Numbers render in Latin digits in every one of the fifteen, including the
 Devanagari, Bengali, Kannada and Perso-Arabic catalogs, so a digit inside a
 sentence matches the count formatted beside it.
 
+### Fifteen more European catalogs, and the batch CLDR had an opinion about
+
+The roster goes from 331 locales to 346: Aragonese (`an`), Extremaduran
+(`ext`), Ladino (`lad`) and Mirandese (`mwl`) — four Ibero-Romance languages,
+one of them a diaspora language rather than a regional one; Walloon (`wa`),
+Arpitan (`frp`) and Norman (`nrf`) — three Gallo-Romance languages spread
+across five states; Lombard (`lmo`), Emilian (`egl`) and Ladin (`lld`) —
+northern Italy and the Dolomites; Cornish (`kw`) and Manx (`gv`) — two revived
+Celtic languages; Bavarian (`bar`) and Northern Frisian (`frr`) — two Germanic
+ones; and Romani (`rom`), the batch's one Indo-Aryan language and the one whose
+speakers are spread over the whole continent.
+
+It is the second batch assembled around Europe — #1773 seeded the first
+fifteen — and all fifteen sit at **445/575 keys**, the whole catalog minus the
+two chemistry tables. (The first European batch was fourteen at 445 and one,
+`nn`, complete: Nynorsk is the exception, with the elements filled in.) The
+subsections below read off the properties of this one worth recording.
+
+#### CLDR has plural rules for a third of them, ending a two-batch run of none
+
+The two batches before this one — Southeast Asia (#1779) and South Asia (#1784)
+— each reported the same finding: CLDR has no plural data for any of their
+tags, so no catalog in either may write a category branch. That is not a law
+about small languages, and this batch is the reminder. **Five of these fifteen
+have rules of their own** — `an`, `wa`, `kw`, `gv` and `lld` — which is a
+smaller share than the first European batch's eight of fifteen and a larger one
+than the Americas batch's three. What is new is not the count but `kw`: `cy`
+and `ar` are the two established catalogs whose languages declare all six
+plural categories, and Cornish is the third language on the roster to reach
+that list.
+
+`kw` is the far end of it. Cornish declares **all six categories**, and every
+one is reachable from an integer: 0 is `zero`, 1 is `one`, and the rest turn on
+the last two digits — 2, 22 and 42 are `two`, 3, 23 and 43 are `few`, 21, 41
+and 61 are `many`. What varies after a Cornish numeral is not the noun's
+ending, because the noun stays singular; it is the noun's **initial mutation**,
+so the branches differ in the word's first letter and nowhere else. The catalog
+writes four of the six as named branches — `one`, `two`, `few` and `many`,
+plus the `*[other]` default every select must carry — and not `zero`, which is
+`attempts-remaining`'s numeric `[0]` instead, saying something different from
+any category. Where the counted noun begins with a vowel or with `l` — «entrans»,
+«askorrans», «interval», «linen» — nothing moves and the select is left off
+altogether, since six identical branches are the rule against dead branches
+arriving by another road.
+
+The seam a reviewer should look at first is the other side of that rule.
+`attempts-remaining` and `editor-accessibility-label` do fork a mutable noun
+(«prov» → «brov» → «frov», «torrva» → «dorrva» → «thorrva»), but four
+diagnostics print a numeral in front of a mutable consonant and are still
+written once: `circle-through-points-non-numerical` («poynt»),
+`select-too-few-options` («komponent») and the two
+`select-from-sequence-too-few-*` messages («gwerth»), plus
+`polygon`'s side-count tail in `content.ftl` («tenewen»). `locales/kw`'s
+headers name them, because a seed that forks one such noun and not another is
+inconsistent in a way only a speaker can settle. `locales/gv` has the same
+seam at `{ $numToSelect } bree`, and says so.
+
+`gv` and `lld` are the opposite lesson, and it is one the lint rule cannot
+state. Both declare a `many` that no realistic count in these messages
+reaches, for two different reasons. Manx's `many` is CLDR's category for a count written
+with a visible decimal fraction — 0.5, 1.5 — so no integer selects it at all.
+Ladin's is reachable from an integer, but only from an exact whole multiple of
+a million, the Italian-style rule behind the compact «un milion» forms — a
+count no message here is plausibly given, though nothing forbids one. `allowedPluralCategories` reads the declared
+list, so a `[many]` branch in either would parse, lint clean and never render —
+the exact failure
+[A plural branch nothing can select](#a-plural-branch-nothing-can-select)
+exists to prevent, arriving through the one door that rule leaves open. Neither
+catalog writes one, and `chrome.test.ts` holds both by asking the rules which
+counts actually select the category rather than by trusting the declared list.
+Manx's `few` is left unwritten for the opposite reason again: it is reachable
+(0, 20, 40, …) but takes the same radical form `other` does, so `*[other]`
+already writes it.
+
+`wa` is the small trap. Walloon's `one` covers **zero as well as one**, so a
+`[one]` branch in a Walloon catalog means something an English-reading
+translator would not assume it means. `locales/wa` says so in its headers and
+keeps `attempts-remaining`'s `[0]` anyway, because "no attempts left" is a
+different sentence rather than a different ending.
+
+The ten with no rules take the usual trade — English's `one`/`other` split,
+recorded in each header — but only four of them end up taking it. **Six write
+no category branch at all**: `ext`, `lad`, `mwl`, `bar`, `frr` and `rom` each
+phrase every counted message as a clause that does not have to agree with the
+count, so there was nothing for a `[one]` to do. That is a stylistic choice
+rather than a rule, and it is the honest end of the trade the other four took.
+
+Where a `[one]` in one of the ten would have been *dead* — both branches
+reading the same words — it is dropped rather than written twice. `lmo` and
+`egl` were the two catalogs of the fifteen that had them, in
+`function-iterates-input-output-mismatch`, `function-domain-insufficient-dimensions`
+and `editor-accessibility-label`, and a dead `[one]` is worse in a no-data
+locale than anywhere else: it is not merely unread, it is chosen by some other
+language's rules while looking translated.
+
+**`field-function-wrong-num-outputs` is where the two halves of the batch part
+company**, and the rule it follows is not English's. Its `$expected` selector
+is not a plural: it counts a component's outputs — one for a slope field, two
+for a vector field — and the two branches say different things rather than the
+same thing in two numbers. `locales/en` writes it as the category `[one]`,
+which is right for English because English's `one` is exactly 1. In a locale
+CLDR has no rules for, that `[one]` would be selected by whatever language the
+runtime fell back to, so all ten write the numeric **`[1]`** instead — the same
+exact-value mechanism `attempts-remaining`'s `[0]` uses — while the five with
+rules of their own keep the category, since their own rules are what select it.
+The South Asian batch set the precedent; `chrome.test.ts` now holds both halves
+of it.
+
+#### Word order splits twelve against three, and the split is genetic
+
+The postnominal side is the large one here, as it was for the Oceania batch's
+ten of eleven, and unlike the two batches before this one. The ten Romance
+catalogs and the two Celtic ones put the adjectives behind the noun; the two
+Germanic ones and Romani put them in front.
+
+Postnominal, rendered for "thick dashed red line": `an` «linia gorda
+discontinua roya», `ext` «linia gorda descontinua colorá», `lad` «linya gruesa
+deskontinua kolorada», `mwl` «lhinha grossa traceijada burmeilha», `wa` «roye
+spesse rodje a trets», `frp` «legne èpèssa roja a trèts», `nrf` «ligne êpaisse
+rouoge à traits», `lmo` «linea grossa trattegiada rossa», `egl` «lénnia gròsa
+trategèda róssa», `lld` «linia grossa tratejada cuecia», `kw` «linen dew derrys
+rudh», `gv` «linney chiu vrisht yiarg».
+
+Prenominal: `bar` «dicke gstrichlte rode Linie», `frr` «dik struket rüüdj
+line», `rom` «thuli phagli loli linia».
+
+**`rom` is the row that makes the point.** Romani has been spoken in Europe for
+six hundred years, its speakers live among the languages of ten of the other
+fourteen catalogs here, and it still writes the order `locales/hi` and
+`locales/mr` write rather than the order of every Romance neighbour around it.
+The second South Asian batch found word order following the neighbourhood
+rather than the family tree; this batch finds the reverse. Both are true, which
+is the useful conclusion: areal pressure reaches a phrase's order sometimes and
+not always, and a seed that assumed either way round would have been wrong once.
+
+`wa`, `frp` and `nrf` are the batch's one departure from English's internal
+sequence of the three adjectives. All three render the dash pattern as an
+**invariable prepositional phrase** — «a trets», «à traits» — rather than as an
+adjective, and a prepositional phrase cannot sit between two adjectives, so
+those three read width – colour – pattern where the other twelve read width –
+pattern – colour.
+
+#### Two catalogs agree at the front of the word
+
+Fourteen of the fifteen agree their adjectives with the noun's gender. Twelve
+mark it with an ending. **`kw` and `gv` mark it with an initial mutation**:
+Cornish lenites after a feminine singular noun, so «tew» — thick — becomes
+«dew», the same word with a different first letter, and Manx turns «brisht»
+into «vrisht».
+
+That mechanism is not new to the roster — `cy`, `ga`, `br` and `gd` were all
+seeded with it, and `locales/cy` writes «trwchus»/«drwchus» exactly as
+`locales/kw` writes «tew»/«dew». What is new is **Manx**, because its *first*
+adjective is invariant and the mutation appears only on the two behind it:
+«chiu vrisht yiarg» against «chiu brisht jiarg». In all five of the other
+mutating catalogs — `cy`, `ga`, `br`, `gd` and `kw` — the width word itself
+changes, so a test that compared the
+width word alone — which is exactly what the second South Asian batch's block
+does, correctly, for catalogs that suffix — would have caught them and would
+have called `locales/gv` invariant. `styleDescriptions.test.ts` compares whole
+rendered phrases for that reason.
+
+`frr` is the one catalog of the fifteen that does not agree, and it is a fact
+about the language rather than a gap in the seed: Mooring's attributive
+adjective takes no ending in the indefinite singular for either gender, and no
+description this software builds is definite or plural. The catalog still
+answers `noun-gender` with Mooring's real two genders, so a reviewer who finds
+a context that does inflect has the selector already in place.
+
+#### Ladino lays out left to right, and `direction.ts` had to be taught it
+
+This batch found a bug that no previous one could have, and it is worth stating
+plainly because the fix is a new rule rather than a new table entry.
+
+`Intl.Locale("lad").maximize()` returns **`lad-Hebr`**. That is historically
+right — Judeo-Spanish was written in Hebrew letters, square, Rashi and
+solitreo, for four centuries — and it is stale about readers: `locales/lad` is
+written in the **Latin** Aki Yerushalayim orthography, which is what a Ladino
+reader meets today and what the Autoridad Nasionala del Ladino publishes in.
+`directionOf("lad")` read CLDR's likely script and answered `"rtl"`, so a
+Ladino activity would have rendered a Latin catalog right to left: every line
+reversed, punctuation on the wrong end of it.
+
+`CATALOG_SCRIPTS` in `direction.ts` is the fix, and its rule is narrower than
+"this language has two scripts". Direction follows **the script the text is
+actually in**, and for a bare tag *this repository* is what decided which
+script that is — so the table is keyed on the same fact a catalog's header
+records, and an entry belongs in it only when a catalog is written in a script
+CLDR would not have guessed. A tag that names its script keeps it: `lad-Hebr`
+is right-to-left, because a host that writes it means it.
+
+`lad` is the only entry, and `direction.test.ts` is what keeps it that way. The
+test does not consult the table; it reads every catalog's **message values**,
+select variants included — not the ids, which are ASCII everywhere, not the
+placeables and selector heads, which are ASCII too, and not the headers, which
+are English prose quoting words in the language — counts right-to-left letters against
+left-to-right ones, and requires the majority to agree with `directionOf`. All
+346 pass, the Ladino bug would have failed it, and so would the reverse
+mistake: a catalog written in Hebrew or Arabic letters for a language CLDR
+thinks is Latin.
+
+#### Seven tags come off a near-miss list, and one arrives on it
+
+`negotiate.test.ts`'s European block listed `bar`, `frr`, `lmo`, `mwl`, `ext`,
+`an` and `wa` among the near misses — neighbours of `gsw`, `li` and `vec` that
+the membership maps declined to fold onto a catalog, left on English on
+purpose. All seven now answer with catalogs of their own, and **no entry in
+`MACROLANGUAGE_MEMBERS` or `LANGUAGE_ALIASES` moved to make that happen**. That
+is the whole argument those lists exist to make, arriving for the second time
+after the South Asian batch made it with `kfy`, `mag` and `grt`: the way off a
+near-miss list is a directory, not an entry in a map.
+
+`rgn` replaces them as the sharpest miss on it. Romagnol and Emilian are the
+two halves the widely-seen `eml` tag lumps together, and only Emilian now has a
+catalog — so a Romagnol reader is closer to `locales/egl` than to anything else
+on the roster and still gets English, because "closer than anything else" is
+not membership. `eml` itself is left to miss for a second reason on top of the
+one it already had: it covers both languages, and a reader who typed it named
+both.
+
+`rmy` is the door that does open. Vlax Romani is not an alias this repository
+wrote — ICU canonicalizes the member code straight onto `rom` — so the catalog
+is named `rom` because that is the only name reachable, and its header says the
+written norm it uses is closest to Vlax, which is what makes the
+canonicalization a fair answer rather than a lucky one.
+
+#### Two names CLDR cannot supply, and one of them has plural rules
+
+`nrf` and `lld` needed `LOCALE_NAME_FALLBACKS` entries; the other thirteen are
+named by ICU in English, and how widely says nothing about how many people
+speak them: `frr` is named in 281 of this roster's locales, `ext` and `egl` in
+nearly two hundred each, and Northern Frisian has the fewest speakers of the
+three. `nrf` and `lld` are named in English by nobody, and neither has an
+endonym either — which is exactly the pair of strings the table wants. `nrf`
+is the emptier of the two: no locale on this roster names it at all. `lld` is
+named in fifteen of them — Italian
+«ladino», Czech «ladinština», Finnish «ladin», Ukrainian «ладинська» and others
+— but not in English, and not in Ladin.
+
+`lld` is the entry worth reading twice, because it shows that CLDR's kinds of
+data are requested and arrive separately, per language and per field. **Ladin
+has plural rules, and names in a scattering of languages that does not include
+either of the two this table needs.** Nothing is inconsistent about that: a
+plural rule is contributed by whoever needed a Ladin `Intl.PluralRules`, and a
+name in a given language by whoever needed Ladin spelled out in that language's
+menu — and nobody yet needed it in English or in Ladin. A batch that inferred
+"CLDR knows this language" from any one of those facts would have got the
+others wrong.
+
+#### What the fifteen actually know
+
+The headers are the place this batch is most careful, because ten of the
+fifteen are Romance languages sitting beside a national Romance language whose
+words are one respelling away, and a seed that quietly respelled Spanish,
+French or Italian would look like a translation and be a forgery.
+
+So each header names its written standard rather than leaving one to be
+assumed — the Academia de l'Aragonés proposal for `an` and not the Uesca
+spelling, OSCEC for `ext`, Aki Yerushalayim for `lad`, the Convenção
+Ortográfica for `mwl`, *rifondou walon* for `wa` and not Feller, ORB for
+`frp`, Jèrriais in Le Maistre's tradition for `nrf`, classical Milanese for
+`lmo`, Bolognese for `egl`, Ladin Dolomitan for `lld`, the Standard Written
+Form for `kw` and not Kernewek Kemmyn, traditional Manx orthography for `gv`,
+Central Bavarian for `bar`, Mooring for `frr`, and the Romani Union's 1990
+alphabet for `rom` and not Courthiade's morpho-graphs — and then names what it
+borrowed and from where.
+
+Three of them are worth singling out. `nrf` is written in one variety of a
+continuum and says a Guernsey reader is being served a neighbour's spelling.
+`bar` says plainly that Bavarian has no codified standard at all, so its
+orthography is a choice rather than a norm. `lld` is the one catalog of the
+fifteen whose technical vocabulary is genuinely its own — Ladin has an
+elaboration tradition, the *Gramatica* and *Dizionar dl Ladin Standard* — and
+its header is equally clear that the tradition does not reach a 118-element
+table and that its computing words are the international register given Ladin
+spelling. That pairing is the shape every header in this batch aims at: what
+the language has, stated as plainly as what it does not.
+
 ### A language with no word for it
 
 `tlh` is **Klingon**, and it is the roster's first constructed language. Nothing
@@ -4914,6 +5221,26 @@ bare `ar` or `he` resolves through `Intl.Locale`'s `maximize()`. Deliberately
 not `Intl.Locale.prototype.getTextInfo()`, which is too new to rely on and
 throws on exactly the tags `normalizeLocaleTag` is written to pass through
 untouched.
+
+`maximize()` answers with the script CLDR considers *likely*, and once — for
+`lad` — that is not the script the catalog here is written in. Judeo-Spanish
+was written in Hebrew letters for four centuries, so `lad` maximizes to
+`lad-Hebr`; `locales/lad` is written in the Latin Aki Yerushalayim orthography,
+because that is what a Ladino reader meets today. `CATALOG_SCRIPTS` overrides
+the guess for such a tag, and only for such a tag: a script the tag names
+itself always wins, so `lad-Hebr` is right-to-left because a host that writes
+it means it. The rule the table states is that direction follows **the script
+the text is actually in**, and for a bare tag this repository is what decided
+which script that is.
+
+The invariant is held by reading the files rather than the table.
+`direction.test.ts` counts each catalog's right-to-left letters against its
+left-to-right ones — over message *values* only, select variants included,
+since ids, placeables and select syntax are ASCII in every catalog and headers
+are English prose quoting the language — and requires the majority to agree
+with `directionOf`. That fails for a catalog written in a
+script CLDR would not have guessed in *either* direction, which is what makes
+it worth more than an entry in a list.
 
 Two roots carry `dir`, for the same reason there are two locales. `DocViewer`
 puts the **content's** direction on `.doenet-viewer` beside its `lang`;

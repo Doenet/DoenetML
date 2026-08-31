@@ -1030,6 +1030,30 @@ export const LOCALE_NAME_FALLBACKS: Record<
         englishName: "Saraiki",
         endonym: "سرائیکی",
     },
+    // The two locales of the second European batch CLDR has no name for. ICU
+    // names thirteen of the fifteen in English — `frr` in 281 of this
+    // roster's locales, `ext` and `egl` in nearly two hundred each — and
+    // stops at Norman and Ladin. Coverage does not track how many people
+    // speak a language: `frr` has the fewest speakers of the three named
+    // above and the widest coverage of any of them.
+    //
+    // `lld` is the entry worth reading twice, because it shows that CLDR's
+    // kinds of data are requested separately and arrive separately, per
+    // language and per field. Ladin has **plural rules** of its own in CLDR,
+    // and names in a scattering of languages — `Intl.DisplayNames(["it"])`
+    // gives «ladino», Czech «ladinština», Finnish «ladin» — but **not** in
+    // English and **not** in Ladin, which are precisely the two this table
+    // wants. `nrf` is emptier still: no locale on this roster names it.
+    // Nothing is inconsistent about that: a plural rule is contributed by
+    // whoever needed a Ladin `Intl.PluralRules`, and a name in a given
+    // language by whoever needed Ladin spelled out in that language's menu.
+    //
+    // Both endonyms are the name the language's own written standard uses for
+    // itself: `nrf`'s is the cover term for the Norman continuum rather than
+    // `Jèrriais`, which is the one variety `locales/nrf` is actually written
+    // in, and `lld`'s is what Ladin Dolomitan calls Ladin.
+    nrf: { englishName: "Norman", endonym: "Nouormand" },
+    lld: { englishName: "Ladin", endonym: "ladin" },
 };
 
 /**
