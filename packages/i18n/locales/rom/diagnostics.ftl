@@ -23,16 +23,16 @@
 # because they encode a morphophonemic alternation rather than a sound and are
 # unfamiliar to most Romani readers. See `chrome.ftl` for the full note.
 #
-# **What is the language's own**: «si» / «naj» for the copula, «na» for the
+# **What is the language's own**: «si» / «naj» for the copula, «či» for the
 # negator, «našti» for *cannot*, «trubul» for *must*, «šaj» for *may*, «thaj»
 # for *and*, «vaj» for *or*, «te» for *if*, «kaj» for *because/that*,
 # «khanči» for *nothing*, «nisavo» for *no/none*, «doš» for *error*, «anav»
-# for *name*, «gin» for *count*, «kotor** for *part*, «pučipe» for *question*,
+# for *name*, «gin» for *count*, «kotor» for *part*, «pučipe» for *question*,
 # «bi-» as the privative prefix that carries English's *in-* / *un-*.
 #
 # **What is borrowed, and from where**: every mathematical and computing noun
 # — «komponento», «atributo», «variabla», «intervalo», «matrica», «funkcia»,
-# «sekvencia», «koordinata» — is international Latin-Romance stock, which is
+# «sekvencia», «koordinate» — is international Latin-Romance stock, which is
 # the register the Romani Union's standard and Romani-language teaching
 # material use for technical vocabulary. Romani has no mathematical register
 # of its own and this seed does not pretend otherwise. That is the weakest part

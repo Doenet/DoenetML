@@ -48,7 +48,7 @@
 #
 # ## Borrowing, declared
 #
-# «vektor», «parabola», «polygon», «fonksyon», «diamont», «statistek»,
+# «vektor», «parabola», «polygon», «fonksyon», «diamont», «statistegow»,
 # «theorem» and «ionek» are English/international terms in SWF spelling — the
 # register a Cornish pupil actually meets mathematics and chemistry in is
 # English. The language's own words carry the everyday layer: the colours «du»,

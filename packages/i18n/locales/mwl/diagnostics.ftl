@@ -48,10 +48,11 @@
 # symbolic values rather than on a category.
 #
 # **Weakest first.** The parser and schema sections carry the longest sentences
-# and lean hardest on Portuguese; «einorado» for *ignored* and «resolbido» for
-# *resolved* are the two words a reviewing speaker should decide about first,
-# since each is used throughout and each is one letter from its Portuguese
-# source.
+# and lean hardest on Portuguese; «einorado» for *ignored* is the word a
+# reviewing speaker should decide about first, since this file writes it
+# sixteen times and it is a respelling of Portuguese «ignorado» rather than
+# an attested Mirandese term. «resolbido» for *resolved* is the same question
+# in `editor.ftl`, which is the only file that writes it.
 
 ## `<lineSegment>`
 

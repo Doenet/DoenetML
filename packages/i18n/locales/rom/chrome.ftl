@@ -30,11 +30,12 @@
 # place to teach a second alphabet.
 #
 # **What is the language's own.** The grammatical spine is Romani and is meant
-# to stay that way: the copula «si» and its negative «naj», the negators «či»
-# — which is what this catalog writes in front of a finite verb, seventy times
-# over — and «na», which it keeps for the imperative, «našti» for *cannot*, «trubul» for *must*, «thaj» for *and*, «vaj» for *or*,
-# «te» for *if*, «kaj» for *because/that*, «khanči» for *nothing*, «nisavo»
-# for *none*, «pale» for *again*. So are the everyday words: «phendipe»
+# to stay that way: the copula «si» and its negative «naj», the negator «či»
+# — which is the one this catalog writes, in front of a finite verb, seventy
+# times over, and it writes «na», the other negator Romani has, nowhere at
+# all — «našti» for *cannot*, «trubul» for *must*, «thaj» for *and*, «vaj»
+# for *or*, «te» for *if*, «kaj» for *because/that*, «khanči» for *nothing*,
+# «nisavo» for *none*, «pale» for *again*. So are the everyday words: «phendipe»
 # (answer, from *phenel* 'to say'), «pučipe» (question, from *pučel*),
 # «zumavipe» (attempt, from *zumavel*), «doš» (fault → error), «patrin» (leaf
 # → page), «buti» (work), «kotor» (part), «čačo» / «xoxavno» (true / false),

@@ -38,10 +38,10 @@
 # ordinary Arpitan nouns.
 #
 # **What is borrowed.** The technical register is **French**, respelled by
-# ORB's rules: «rèponsa», «vèrificacion», «pourcent», «mâximo»,
-# «enrègistrâ», «informacion», «expression», «matèmatico», «statistica»,
+# ORB's rules: «rèponsa», «vèrificacion», «mâximo»,
+# «enrègistrâ», «informacion», «expression», «matèmatico»,
 # «colona», «entèrvalo», «module», «document», «accèssibilitât»,
-# «violacion», «ètiquèta», «orbitâl». That is the honest register: nobody
+# «violacion», «ètiquèta», «orbital». That is the honest register: nobody
 # has published an Arpitan computing vocabulary, and secondary schooling
 # across the Arpitan area is in French or Italian. «apèrçu» (preview) and
 # «Comentèros» (feedback) are the two weakest entries — French loans in ORB
@@ -54,7 +54,7 @@
 # **None is written anywhere in this catalog.** `[one]` *is* kept in the two
 # counted messages below, and it is doing real work rather than being
 # tolerated: Arpitan marks its plural in ORB writing, on the noun («un
-# assay» / «doux assays») and on the verb («reste» / «restont»), so the two
+# assay» / «doux assays») and on the verb («rèste» / «rèstont»), so the two
 # branches are two different sentences. `attempts-remaining` keeps its `[0]`
 # literal, which is a different mechanism and legal everywhere.
 #

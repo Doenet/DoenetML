@@ -40,7 +40,7 @@
 # «index», «séquence», «équâtion», «matrice», «fonction», «întervalle»,
 # «domaine», «parabole», «întersection», «dêpendance», «référence»,
 # «contraste», «dêfinition», «annotâtion», «convèrsion», «cation», «anion»,
-# «accessibilité», «pluriel», «schéma», «vèrsion», «balise», «module».
+# «accessibilité», «pluriel», «schema», «vèrsion», «balise», «module».
 # `tag`, `prop` and `bloc` are taken from the markup as written. `WCAG AA`,
 # `PreFigure`, `DoenetML` and `mathjs` are names. Schooling in Jersey is in
 # **English**, so this whole register is a written-French inheritance rather

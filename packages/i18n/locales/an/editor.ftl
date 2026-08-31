@@ -13,10 +13,10 @@
 # English exactly as `locales/en` writes them. So do the DoenetML identifiers
 # `styleNumber` and the attribute names in `help-reset-overrides`.
 #
-# **What is Aragonese here.** «ye», «puet», «no s'ha puesto», «cal», «fe clic»,
-# «amostrar», «bushcar»-free plain «trobau», the article «o / a / os / as» and
-# its contractions «d'o», «d'a». The editor's technical vocabulary —
-# «atributo», «component», «variant», «formatar», «referencia» — is the learned
+# **What is Aragonese here.** «ye», «no s'ha puesto», «fe clic», «amostrar»,
+# «trobau» for *found*, the article «o / a / os / as» and its contractions
+# «d'o», «d'a». The editor's technical vocabulary — «atributo», «component»,
+# «variant», «formatar», «referencia» — is the learned
 # Romance layer that reaches Aragonese through **Spanish**, and is borrowed
 # without disguise.
 #

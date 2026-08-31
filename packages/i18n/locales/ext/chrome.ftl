@@ -14,7 +14,7 @@
 # what this file is consistent in:
 #
 #   * final unstressed **-o → -u** and **-e → -i**: «negru», «puntu»,
-#     «verdi», «esti», «grandi» — with «pero» the one word this file leaves
+#     «verdi», «esti», «nombri» — with «pero» the one word this file leaves
 #     in `-o` (six times, all in `diagnostics.ftl` and `editor.ftl`), since
 #     Extremaduran writers vary between «pero» and «peru» and this seed did
 #     not pick for them;

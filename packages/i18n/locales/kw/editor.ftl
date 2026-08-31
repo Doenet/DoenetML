@@ -36,8 +36,9 @@
 # plural of «koordinat» is at stake.
 #
 # **Weakest first.** «hedhadewder» for *accessibility*, «kettesten» for
-# *context*, «poyntell» for *cursor* and «diskudhys» for *resolved* are the
-# words a reviewer should check before anything else.
+# *context*, «poyntell» for *cursor* — written «boyntell» after «an», which
+# lenites — and «diskudhys» for *resolved* are the words a reviewer should
+# check before anything else.
 
 
 ## The viewer's controls

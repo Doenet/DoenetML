@@ -35,7 +35,7 @@
 # «endèxo», «sèquence», «èquacion», «matrice», «fonccion», «entèrvalo»,
 # «domêno», «parabola», «entèrsèccion», «dèpendença», «rèference»,
 # «contrasto», «dèfinicion», «anotacion», «convèrsion», «cation», «anion»,
-# «accèssibilitât», «plurièl», «schèma», «vèrsion», «balisa», «module».
+# «accèssibilitât», «plurièl», «schema», «vèrsion», «balisa», «module».
 # `tag`, `prop` and `bloc` are taken from the markup as written. `WCAG AA`,
 # `PreFigure`, `DoenetML` and `mathjs` are names. «ignorâ» is a French loan
 # used throughout for *ignored*: Arpitan has no settled term and this is the

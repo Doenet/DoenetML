@@ -106,9 +106,10 @@ validation-partially-correct = (Yn rann ewn)
 # and it is the rule `content.ftl` follows («gell» → «ell», «glas» → «las»).
 # The other three files instead write `g-` as `w-` after a leniting word —
 # «an wnas», «dhe wnas», «dhe worthyp» — which is the Welsh treatment, not
-# the Cornish one. Both halves are internally consistent, so the correction
-# is one decision rather than twenty-five; it is recorded here rather than
-# guessed at, since a wrong guess would be twenty-five wrong words.
+# the Cornish one. Each half is written the same way throughout, so the
+# correction is one decision rather than thirty-five; it is recorded here
+# rather than guessed at, since a wrong guess would be thirty-five wrong
+# words — «wnas» thirty-two times and «worthyp» three.
 answer-show-responses =
     { $count ->
         [two] Diskwedhes { $count } orthyp dhe { $answerId }

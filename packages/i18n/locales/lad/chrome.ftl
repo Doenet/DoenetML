@@ -30,7 +30,9 @@
 # «palavra», «livro». That last rule governs the **inherited** layer only: the
 # technical nouns this catalog takes from Spanish keep their ⟨b⟩ («atributo»,
 # «aksesibilidad», «parabola», «dibuja»), which is what the printed language
-# does with them too. Accents are not written anywhere in these four files.
+# does with them too. No Ladino word in these four files carries an accent;
+# the only accented letters anywhere in them are in this header and in the
+# English prose of the others, which quote a French and a Spanish name.
 #
 # **What is Ladino here and what is borrowed.** «ke», «ay», «no se puede»,
 # «deve», «topar» for *to find*, «trokar» for *to change*, «kitar» for *to

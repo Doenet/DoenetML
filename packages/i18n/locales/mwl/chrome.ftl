@@ -30,14 +30,14 @@
 # *otherwise*, «cun» for *with*, «sin» for *without*, «para» for *for*,
 # «puis» / «porque» for *because*, «an beç desso» for *instead*. «repuosta»,
 # «cierto», «errado», «lhinha», «páigina», «filera», «abiso», «achado»,
-# «amostrar», «sconder», «tirar», «acrecentar», «carrega» and «bei» are
+# «amostrar», «sconder», «tirar», «acrecentar», «carrega» and «ber» are
 # Mirandese, not Portuguese.
 #
 # **But the technical layer leans on Portuguese, and that is stated rather than
 # disguised.** Mirandese has no computing or mathematical terminology of its
 # own; every Mirandese speaker is schooled in Portuguese and reads a screen in
 # it. So «teclado», «documento», «renderizador», «matemática», «acessibilidade»,
-# «estatística», «rótulo», «coluna», «matriz» and «bariante» are Portuguese
+# «statísticas», «rótulo», «coluna», «matriz» and «bariante» are Portuguese
 # words, given Mirandese spelling where the Convenção supplies one
 # («acessibilidade» keeps its Portuguese shape; «anformaçon», «spresson»,
 # «pré-besualizaçon» and «biolaçon» take the Mirandese `-on` for Portuguese

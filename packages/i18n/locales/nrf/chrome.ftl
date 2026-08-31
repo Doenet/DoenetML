@@ -44,7 +44,7 @@
 # «erreu» (error) are ordinary Jèrriais nouns.
 #
 # **What is borrowed.** The technical register is **French, respelled by Le
-# Maistre's rules**: «rêponse», «vèrification», «pourcent», «maximum»,
+# Maistre's rules**: «rêponse», «vèrification», «maximum»,
 # «gardé», «înformâtion», «expression», «mathémâtique», «statistique»,
 # «colonne», «întervalle», «module», «document», «accessibilité»,
 # «violâtion», «êtitchette», «orbital». That is the honest register: schooling

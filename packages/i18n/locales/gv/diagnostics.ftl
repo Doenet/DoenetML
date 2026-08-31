@@ -64,7 +64,7 @@
 # the identical seam for Cornish, message for message.
 #
 # **Weakest first.** «çhiaghtoo» for *sequence* is the first thing to check:
-# it is used seven times and consistently, but it is the ordinal of «shiaght»
+# it is used eight times and consistently, but it is the ordinal of «shiaght»
 # (*seven*), so it may be the wrong word done tidily. Then «lhiggit shaghey»
 # for *ignored*, «reaghit» for *resolved* and «co-heiyrtys» for *dependency*;
 # then the parser and schema sections, which carry the longest sentences and

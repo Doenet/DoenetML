@@ -23,7 +23,7 @@
 # (question), «patrin» (leaf → page), «čačo» / «xoxavno» (true / false).
 #
 # **What is borrowed, and from where**: the geometry — «vektoro», «funkcia»,
-# «parabola», «krugo», «kvadrato», «poligono», «segmento», «intervalo» — is
+# «parabola», «krugo», «kvadrato», «poligono», «segmento», «intervalura» — is
 # international Latin-Romance stock, which is what the Romani Union's standard
 # and Romani-language teaching material use for this register. Romani has no
 # geometry vocabulary of its own and this seed does not pretend otherwise.

@@ -221,22 +221,22 @@ describe("a catalog's script and its locale's direction", () => {
         /[A-Za-z\u00C0-\u024F\u0370-\u052F\u0900-\u0DFF\u1000-\u109F\u10A0-\u10FF\u1200-\u137F\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]/g;
 
     /**
-     * The text a reader would see, and nothing else: the right-hand side of
-     * every `=` and the body of every select variant — `[one] …`, `*[other] …`
-     * — with placeables removed (`{ $count }` is ASCII in every catalog) and
-     * comment lines dropped. Variants matter: in several catalogs most of the
-     * counted messages live inside a select, so reading only `=` lines would
-     * sample a fraction of the visible text.
-     */
-    /**
-     * Placeables and select syntax removed. Both are ASCII in every catalog,
-     * so leaving them in would count Latin letters — `count`, `other` — into
-     * catalogs written in another script entirely. The second pattern catches
-     * a selector head such as `{ $count ->`, whose brace closes lines later.
+     * One line of a value with its placeables and select syntax removed. Both
+     * are ASCII in every catalog, so leaving them in would count Latin letters
+     * — `count`, `other` — into catalogs written in another script entirely.
+     * The second pattern catches the closing brace of a selector head such as
+     * `{ $count ->`, whose brace closes lines later.
      */
     const strip = (text: string) =>
         text.replace(/\{[^}]*(\}|$)/g, "").replace(/^\s*\}\s*$/, "");
 
+    /**
+     * The letters of the text a reader would see, and of nothing else: the
+     * right-hand side of every `=` and the body of every select variant —
+     * `[one] …`, `*[other] …` — with comment lines dropped. Variants matter:
+     * in several catalogs most of the counted messages live inside a select,
+     * so reading only `=` lines would sample a fraction of the visible text.
+     */
     function renderedLetters(locale: string): { rtl: number; ltr: number } {
         const values: string[] = [];
         for (const namespace of [

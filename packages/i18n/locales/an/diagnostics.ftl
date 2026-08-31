@@ -611,7 +611,7 @@ answer-name-not-single-text = L'atributo name d'a respuesta cal que tienga un so
 
 ## Referencing another document
 
-external-doenetml-recursion-limit = No se puet obtener o DoenetML esterno por massa libels de recursión. I hai bella referencia circular?
+external-doenetml-recursion-limit = No se puet obtener o DoenetML esterno por massa libels de recursión. ¿I hai bella referencia circular?
 
 external-doenetml-unavailable = No se puet obtener o DoenetML de { $attribute }="{ $uri }"
 

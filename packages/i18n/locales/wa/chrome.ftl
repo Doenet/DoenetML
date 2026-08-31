@@ -43,7 +43,7 @@
 # The technical register is **French, respelled by rifondou rules**:
 # «response», «espression», «matematike», «statistike», «colone»,
 # «intervale», «infôrmåcion», «accessibilité», «violåcion», «etikete»,
-# «macsimom», «module», «documint», «percintaedje». Two words are the
+# «macsimom», «module», «documint». Two words are the
 # Walloon software-localisation register rather than general Walloon —
 # «clitchî» for *to click* and «håyner» for *to display* — and are the words
 # the existing Walloon KDE/GNOME translations use. «apiercu» (preview) and

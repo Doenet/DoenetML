@@ -61,9 +61,9 @@
 # about Cornish rather than about Fluent.
 #
 # **Weakest first.** «diskommendys» for *deprecated*, «domayn» for *domain*,
-# «amkan» for *target*, «kevarwodh» for *reference*, «fleghes» for XML
-# *children* and «tirwedhyans» nowhere — a reviewer should check the schema and
-# parser sections, which carry the longest sentences and the least dictionary
+# «amkan» for *target*, «kevarwodh» for *reference* and «fleghes» for XML
+# *children* are the words to check first; then the schema and parser
+# sections, which carry the longest sentences and the least dictionary
 # support.
 
 ## `<lineSegment>`
