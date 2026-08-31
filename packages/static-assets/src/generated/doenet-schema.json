@@ -65579,6 +65579,10 @@
                             "description": "Cebuano"
                         },
                         {
+                            "value": "cgg",
+                            "description": "Chiga (Rukiga)"
+                        },
+                        {
                             "value": "ch",
                             "description": "Chamorro"
                         },
@@ -66737,6 +66741,10 @@
                         {
                             "value": "xh",
                             "description": "Xhosa (IsiXhosa)"
+                        },
+                        {
+                            "value": "xog",
+                            "description": "Soga (Olusoga)"
                         },
                         {
                             "value": "yi",

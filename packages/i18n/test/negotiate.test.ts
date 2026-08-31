@@ -2926,3 +2926,88 @@ describe("normalizeLocaleTag", () => {
         ).toEqual(["es-MX", "en"]);
     });
 });
+
+/**
+ * The East African batch, and the thirteen tags it deliberately did not seed.
+ *
+ * Two catalogs ship — `cgg` (Chiga) and `xog` (Soga) — out of fifteen the
+ * batch set out with. The thirteen that did not are recorded on #1655 with
+ * the coverage each honestly reached, and the point of asserting them here is
+ * that **a language without a catalog must reach English**, not a neighbour
+ * that happens to look close on a map. Every one of the thirteen has a near
+ * relative on this roster, and several have a very near one: `sw` sits beside
+ * all of them, `lg` beside `xog`, `nyn` beside `cgg`, `ki` beside `ebu` and
+ * `mer`. None of that folds, and none of it should — the moment membership
+ * becomes a judgement about how close two varieties sound, nothing in these
+ * maps is checkable any more.
+ */
+describe("the East African batch", () => {
+    it.each(["cgg", "xog"])("serves %s its own catalog", (requested) => {
+        expect(
+            negotiateLocales([normalizeLocaleTag(requested)], available),
+        ).toEqual([requested, "en"]);
+    });
+
+    /**
+     * `kln` is not in this list because it is already asserted as a negative
+     * control further up, where it has been since before this batch — the
+     * batch considered Kalenjin, measured it, and left that assertion doing
+     * exactly the job it was written for.
+     */
+    it.each([
+        "kam",
+        "guz",
+        "luy",
+        "mas",
+        "mer",
+        "saq",
+        "dav",
+        "ebu",
+        "teo",
+        "ksb",
+        "vun",
+        "jmc",
+    ])(
+        "leaves %s on English rather than folding it onto a neighbour",
+        (requested) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual(["en"]);
+        },
+    );
+
+    /**
+     * The sharpest pair on that list, asserted from both sides because it is
+     * the one someone will be tempted to fix. Rukiga and Runyankore share a
+     * single written standard, one dictionary and most of their vocabulary,
+     * and `locales/cgg` says so in its own header. They are still two
+     * languages with two codes: a Runyankore reader gets `nyn`, and folding
+     * either onto the other would answer a reader in a variety they did not
+     * ask for on the strength of a resemblance.
+     */
+    it("keeps Runyankore on its own catalog rather than serving it Rukiga", () => {
+        expect(negotiateLocales([normalizeLocaleTag("nyn")], available)) //
+            .toEqual(["nyn", "en"]);
+    });
+
+    it("keeps Rukiga on its own catalog rather than serving it Runyankore", () => {
+        expect(negotiateLocales([normalizeLocaleTag("cgg")], available)) //
+            .toEqual(["cgg", "en"]);
+    });
+
+    /**
+     * `luy` and `kln` are macrolanguages, and neither gained a
+     * `MACROLANGUAGE_MEMBERS` entry — because neither has a catalog to fold a
+     * member onto. Asserted so that the reason stays visible: the entry is
+     * owed the moment either is seeded, and until then a member reaching
+     * English is correct rather than a gap.
+     */
+    it.each(["bxk", "spy"])(
+        "leaves %s on English while its macrolanguage has no catalog",
+        (requested) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual(["en"]);
+        },
+    );
+});

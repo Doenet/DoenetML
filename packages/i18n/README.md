@@ -71,7 +71,8 @@ English is the source of truth. Every translation —
 `arn`, `as`, `ast`, `av`, `awa`, `ay`, `az`, `ba`, `bal`, `ban`,
 `bar`, `bbc`, `bci`, `be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`,
 `bjn`, `bm`, `bn`, `bo`, `br`, `brh`, `brx`, `bs`, `bua`, `bug`,
-`bum`, `bzj`, `ca`, `cab`, `cbk`, `ce`, `ceb`, `ch`, `chk`, `ckb`,
+`bum`, `bzj`, `ca`, `cab`, `cbk`, `ce`, `ceb`, `cgg`, `ch`, `chk`,
+`ckb`,
 `co`, `crh`, `cs`, `csb`, `cv`, `cy`, `da`, `dag`, `dar`, `de`,
 `dje`, `djk`, `dng`, `doi`, `dsb`, `dtp`, `dv`, `dyo`, `dyu`, `dz`,
 `ee`, `efi`, `egl`, `el`, `es`, `et`, `eu`, `ewo`, `ext`, `fa`,
@@ -100,20 +101,28 @@ English is the source of truth. Every translation —
 `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`,
 `tr`, `ts`, `tsg`, `tt`, `ttt`, `tvl`, `ty`, `tyv`, `udm`, `ug`,
 `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`, `vro`,
-`wa`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `yua`,
+`wa`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `xog`, `yi`, `yo`,
+`yua`,
 `zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
 — is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-Two hundred and sixty-eight of them are deliberately partial. Two hundred
+Two hundred and seventy of them are deliberately partial. Two hundred
 and sixty-six are partial in the same place — the two chemistry tables —
-while two are partial more widely, each for its own reason: Klingon almost
+while four are partial more widely, each for its own reason: Klingon almost
 everywhere, for the reason in
-[A language with no word for it](#a-language-with-no-word-for-it), and
+[A language with no word for it](#a-language-with-no-word-for-it);
 Inuktitut over the geometry nouns as well, for the reason in
-[Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws).
+[Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws);
+and Chiga and Soga over five further keys each — the three chemistry prose
+messages, so that the chemistry group falls back entire rather than half in
+one language and half in another, and the two field nouns `noun.slope-field`
+and `noun.vector-field`, where a descriptive phrase would have been the
+seed's own invention rather than a word. Both are at 440/575, and the reason
+is in
+[Two catalogs of East Africa](#two-catalogs-of-east-africa-and-the-thirteen-the-batch-did-not-seed).
 The two hundred and sixty-six are: Somali, Hmong Njua, Amharic, Assamese,
 Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
 Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
@@ -3926,7 +3935,7 @@ select variants included — not the ids, which are ASCII everywhere, not the
 placeables and selector heads, which are ASCII too, and not the headers, which
 are English prose quoting words in the language — counts right-to-left letters against
 left-to-right ones, and requires the majority to agree with `directionOf`. All
-346 pass, the Ladino bug would have failed it, and so would the reverse
+348 pass, the Ladino bug would have failed it, and so would the reverse
 mistake: a catalog written in Hebrew or Arabic letters for a language CLDR
 thinks is Latin.
 
@@ -4006,6 +4015,155 @@ its header is equally clear that the tradition does not reach a 118-element
 table and that its computing words are the international register given Ladin
 spelling. That pairing is the shape every header in this batch aims at: what
 the language has, stated as plainly as what it does not.
+
+### Two catalogs of East Africa, and the thirteen the batch did not seed
+
+The roster goes from 346 locales to 348: Chiga (`cgg`) and Soga (`xog`), two
+Bantu languages of Uganda, both at **440/575 keys**.
+
+The batch was assembled as **fifteen** — Kamba (`kam`), Gusii (`guz`),
+Kalenjin (`kln`), Luyia (`luy`), Masai (`mas`), Meru (`mer`), Samburu (`saq`),
+Taita (`dav`), Embu (`ebu`) and Teso (`teo`) in Kenya and Uganda, and Shambala
+(`ksb`), Vunjo (`vun`) and Machame (`jmc`) in Tanzania, alongside the two that
+ship. Thirteen were seeded, measured and left out; they are recorded on #1655
+with the coverage each reached. That issue was written about six languages of
+the Americas, and the reason these thirteen join it rather than getting an
+issue of their own is that they hit the same wall — and measuring where they
+hit it turned out to say something the Americas batch could not.
+
+The counts, all from `lint:i18n` on catalogs that parsed and linted clean:
+
+| tag | language | keys of 575 |
+| --- | --- | --- |
+| `mer` | Meru | 91 |
+| `kam` | Kamba | 48 |
+| `luy` | Luyia | 33 |
+| `saq` | Samburu | 13 |
+| `guz` | Gusii | 12 |
+| `mas` | Masai | 11 |
+| `ebu` | Embu | 8 |
+| `teo` | Teso | 8–15, estimated; not written |
+| `dav`, `kln`, `ksb`, `vun`, `jmc` | Taita, Kalenjin, Shambala, Vunjo, Machame | 0 |
+
+Against 440 for the two that ship, and against the 6, 13, 13, 16, 20 and 26
+the Americas batch measured for the six it dropped.
+
+#### A loan register can exist and still not be worth recording
+
+[Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws)
+states the rule this batch was assembled to test: **carry a loan register
+where speakers already carry one, and leave the key out where they do not.**
+Navajo and Mohawk fail it because there is no Navajo technical register to
+record — a speaker doing mathematics does it in English and does not
+Navajo-ize *polygon*, so writing «pálagan» produces English respelled.
+
+The batch was chosen because East Africa looked like the other half of that
+rule. Swahili has a real published technical register and `locales/sw` is one
+of the roster's more complete catalogs, elements included; Swahili loans in
+these languages are nativized by rule rather than ad hoc, and CLDR's own `ksb`
+data shows it — Swahili `r` becomes Shambaa `l` («Januali», «Aplili»), and the
+two Chaga varieties palatalize before a front vowel («Aprilyi», «Junyi»). The
+frame was there, the loans were attested, and the adaptation was mechanical.
+
+**That turned out to be the problem rather than the solution.** Because the
+adaptation is mechanical, `locales/sw` could have been run through a
+phonological rewrite end to end and reported at the batch ceiling. What that
+produces is not a loan register: it is Swahili respelled, one contact language
+pushed a step further out, and it fails for the same reason «pálagan» does —
+it reads as translation to a tool, as noise to a speaker, and a reviewer's
+first job is deleting it.
+
+So the finding is a **third case**, and the rule above needs it. The Americas
+case is *no register exists*. The `sgh` and `kl` case is *a register exists
+and recording it records something real* — a Shughni speaker reads a compiler
+error in Tajik, and the catalog keeps Tajik words in a Shughni frame. The case
+this batch found is *a register exists, and it is a language that already has
+a catalog on this roster*. There, recording it adds nothing a reader did not
+already have: a Gusii pupil who meets *vector* in English or in Swahili can be
+served `locales/en` or `locales/sw`, and «egetokeso» serves them worse than
+either. The test is not whether a loan register exists. It is **whether
+recording it tells the reader something the fallback did not.**
+
+#### `diagnostics.ftl` is where the question gets decided
+
+In every catalog the batch produced below the bar, `diagnostics.ftl` is
+comments-only — 220 keys, half the reachable total, with the file's own header
+stating the reason in place of the gap.
+
+That is not where the effort ran out; it is where the question is actually
+posed. Colour words, boolean words and the geometry nouns can be recalled from
+a Bible translation, a primary reader or a dictionary, and that is why the
+catalogs that stalled still reached eight or thirteen or ninety-one keys
+rather than zero. *Circular dependency*, *deprecated attribute*, *invalid
+attribute value* cannot: they exist in a register these languages' speakers
+meet in English, and there is no published parallel to copy them from. A seed
+that reaches 440 is one that had somewhere to look for those 220 keys.
+
+#### The near-sibling hazard, which cuts both ways
+
+Every one of the fifteen has a close relative on this roster, and several have
+a very close one: `ki` (Gĩkũyũ) beside `ebu` and `mer`, `lg` (Luganda) beside
+`xog`, `nyn` (Runyankore) beside `cgg`, and `sw` beside all of them. That is
+the batch's other finding, and it is not the one that would be guessed: **a
+near sibling on the roster makes a bad seed harder to spot, not easier.** A
+machine pass on Embu produces fluent-looking Gĩkũyũ, and a reader who does not
+speak both cannot tell. `locales/ebu` stopped at 8 keys for exactly this
+reason — its `chrome.ftl` is empty because verbs are where the two languages
+part company and verbs are what every button is made of.
+
+What separates the two catalogs that ship is not distance from their sibling
+but a **checkable rule** for telling them apart. Lusoga and Luganda differ by
+a systematic correspondence — Lusoga writes `dh` where Luganda writes `z` or
+`j` («amaadhi», «okwidha») — so a Luganda word that has drifted into
+`locales/xog` can be caught by looking at it, and the catalog's header names
+Luganda intrusion as the first thing a reviewer should hunt for. Rukiga and
+Runyankore have no such rule, sharing one written standard and one dictionary,
+so `locales/cgg` states the question instead: of each word, is it current in
+Kigezi or only in Ankole? Where a difference is known the Kigezi form is
+written — «eibara» for *name*, where Runyankore says «eiziina». A seam a
+catalog can state is one a reviewer can work; a seam it cannot state is where
+`ebu` stopped.
+
+`negotiate.test.ts` asserts the pair from both sides — Runyankore stays on
+`nyn` and Rukiga on `cgg` — because "fold the one onto the other, they are
+nearly the same language" is the tempting mistake, and it would answer a
+reader in a variety they did not ask for.
+
+#### Coverage: 440 rather than 445, and the five keys that make the difference
+
+Both catalogs leave out the two chemistry tables, for the school-system reason
+every batch since the Silk Road one has given: Uganda teaches science in
+English from upper primary, so the fallback is the language the periodic table
+is actually taught in. That is 130 keys and would put them at 445.
+
+They leave out five more, and both are deliberate. Three are the remaining
+chemistry **prose** messages, dropped so that the chemistry group falls back
+entire rather than appearing half in Rukiga and half in English inside one
+sentence. The other two are `noun.slope-field` and `noun.vector-field`, where
+neither language has a term and a descriptive phrase would have been the
+seed's own invention rather than a word — the same judgement `locales/iu`
+makes across the whole `noun` table, at a twentieth of the scale.
+
+#### Two smaller things
+
+**A class with no noun in it is a claim about nothing.** `locales/xog` was
+first written with a `[c5]` column in every concording adjective;
+`catalogLint.test.ts`'s noun-class reachability rule caught it, because no
+noun this catalog names falls in class 5. The column was removed rather than a
+class-5 noun invented to justify it, and the header records that if a reviewer
+moves a noun into class 5 the column has to come back with it. Both catalogs
+carry their concord table in the header as a grid, so the claim is legible
+before the messages are read.
+
+**Two macrolanguages are owed `MACROLANGUAGE_MEMBERS` entries and did not get
+them.** `luy` and `kln` are macrolanguages, and CLDR folds exactly one member
+of each — `bxk` (Bukusu) onto `luy`, `spy` (Kipsigis) onto `kln` — leaving the
+rest unresolvable, the pattern `qu`, `oj` and `gn` already show. Neither
+gained an entry, because neither has a catalog for a member to be folded onto,
+and a map entry pointing at nothing is worse than an absence. `negotiate.test.ts`
+asserts `bxk` and `spy` reach English, so the day either language is seeded
+the entry is owed and the test says so. `kln` was already a negative control
+in that file before this batch, and it stays exactly as it was.
 
 ### A language with no word for it
 
