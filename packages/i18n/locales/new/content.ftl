@@ -29,7 +29,8 @@
 # «{ $numSides } पाखे दुगु नियमित बहुभुज» and leaves `tail` empty, exactly as
 # English does: the side count is a modifier and modifiers go in front, so
 # there is nothing to place after the adjectives and no reason to split the
-# noun. The `[noun-tail]` branches in the two composition messages are kept
+# noun. `style-with-noun`'s `[noun-tail]` branch, and the `[plain-tail]` and
+# `[pattern-tail]` branches `style-filled-with-noun` uses in its place, are kept
 # because a partly-translated locale falls back through them, not because
 # anything in this file selects them.
 #

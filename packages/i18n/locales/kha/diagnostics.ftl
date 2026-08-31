@@ -45,9 +45,10 @@
 # No message here selects on a plural category: CLDR has no plural data for
 # `kha`, and a Khasi noun is not marked for number after a numeral, so every
 # English count fork is collapsed to its `*[other]` wording with its placeables
-# kept. The `[1]` in `field-function-wrong-num-outputs` is matched against the
-# number itself rather than against a plural rule, so it stays exactly where
-# English has it.
+# kept. `field-function-wrong-num-outputs` keeps its fork, in the one form
+# that survives having no plural rules: English selects `$expected` on the
+# category `[one]`, and this catalog writes the numeric literal `[1]` in its
+# place, which Fluent matches against the number itself.
 
 ## `<lineSegment>`
 

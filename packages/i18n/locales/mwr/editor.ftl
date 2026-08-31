@@ -26,9 +26,10 @@
 #
 # **Nothing selects on a plural category.** CLDR has no plural data for
 # `mwr`, so `lint:i18n` would reject a `[one]` branch outright. Every count
-# in this file goes through a single `*[other]`, keeping only
-# `attempts-remaining`'s explicit `[0]`, which Fluent matches against the
-# number itself rather than against a category.
+# in this file is written with one form and no selector at all. The
+# catalog's one branch on a number is `attempts-remaining`'s explicit `[0]`
+# in `chrome.ftl`, which Fluent matches against the number itself rather
+# than against a category.
 
 ## The viewer's controls
 

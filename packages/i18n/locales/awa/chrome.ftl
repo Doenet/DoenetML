@@ -13,7 +13,8 @@
 # (`1`, `2`, `1,234`), not Devanagari, because that is what DoenetML pins for
 # every locale in `src/intl.ts`; the grouping separator is the locale's own.
 #
-# **What is Awadhi here is the frame, and it is used consistently.** The
+# **What is Awadhi is the frame, and it is used consistently across all four
+# files of this catalog rather than only in this one.** The
 # copula is «अहै» / «अहैं», the negator «नाहीं», the genitive «क» beside the
 # borrowed «के», *for* is «खातिर», *and* is «अउर», *because* is «काहे से कि»,
 # *like* is «जइसे», *this* is «ई» with oblique «एह», *some / any* is «कउनो»,
@@ -27,14 +28,16 @@
 # rather than disguised.** «कीबोर्ड», «पंक्ति», «स्तंभ», «व्यंजक», «त्रुटि»,
 # «सुगम्यता», «पूर्वावलोकन» are the words an Awadhi speaker has met in school
 # and on a screen, in Hindi. Where Awadhi's own everyday word is the one a
-# reader would use, it is used instead: «जवाब» rather than «उत्तर», «गलत»,
-# «करिया», «उजर», «पियर», «हरियर».
+# reader would use, it is used instead — across the catalog, not only in this
+# file: «जवाब» rather than «उत्तर» and «गलत» here, «करिया», «उजर», «पियर»,
+# «हरियर» among `content.ftl`'s colours.
 #
 # **Counts.** CLDR has no plural data for `awa`, so `Intl.PluralRules` would
 # resolve it against the runtime's own locale and any `[one]` branch would be
-# selected by somebody else's rules. Both counted messages collapse to a
-# single `*[other]`, keeping only `attempts-remaining`'s explicit `[0]`, which
-# Fluent matches against the number itself. An Awadhi noun is unmarked after a
+# selected by somebody else's rules. `answer-show-responses` therefore drops
+# the selector entirely and writes one form, and the only branch on a number
+# left in this file is `attempts-remaining`'s explicit `[0]`, which Fluent
+# matches against the number itself rather than against a category. An Awadhi noun is unmarked after a
 # numeral in any case, so one form is right.
 
 

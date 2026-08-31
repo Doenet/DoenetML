@@ -11,7 +11,8 @@
 # **Orthography: Roman, with its diacritics.** Khasi has been written in the
 # Roman alphabet since the Welsh Presbyterian mission, and no other script is
 # at issue for it. The three marks that alphabet carries are used consistently:
-# `ï` (U+00EF) in «ïa» and «ïaid», `ñ` (U+00F1) in «kñi» and its relatives, and
+# `ï` (U+00EF) in «ïa» and «ïaid», `ñ` (U+00F1) in «kñi» and its relatives, which this catalog happens never
+# to need, and
 # the ASCII apostrophe `'` (U+0027) for the glottal stop in «ka'», never the
 # typographic U+2019.
 #
@@ -28,10 +29,13 @@
 # Khasi adjective in attributive position carries «ba-» — «balieh» *white*,
 # «basaw» *red*, «bathiang» *green*, «bakhraw» *big* — and the README's rule
 # that an affix cannot be attached to a placeable would bite hard if the
-# catalog tried to add it at composition time. It does not have to: `color`,
-# `line-width` and `line-style` are the catalog's own words, so each of them is
-# spelled with its «ba-» already on it and every composition message is a plain
-# juxtaposition of finished words. Nothing here runs into the affix constraint.
+# catalog tried to add it at composition time. It does not have to: every
+# `color`, `line-width` and `line-style` attribute is written out finished —
+# with «ba-» already on it where the word is Khasi's own («bathiang»,
+# «bakhraw», «badash»), and as a «rong»-prefixed loan where it is not
+# («rong blu», «rong orenj»; see the section comment below) — so every
+# composition message is a plain juxtaposition of finished words. Nothing
+# here runs into the affix constraint.
 #
 # **No `$gender` fork and no `$role` fork — and Khasi's is a near miss worth
 # writing down.** Khasi does have grammatical gender, four ways: «u»
@@ -39,7 +43,10 @@
 # on the *article or pronoun that precedes the noun*, not on the adjective.
 # The messages that meet the noun — `style-with-noun`, `style-filled-with-noun`
 # — are never handed `$gender`; only the adjectives are, and a Khasi adjective
-# does not agree with anything. So no article is placed anywhere in this file,
+# does not agree with anything. So no message in this file places an article
+# around a placeable — the «ki» and «ka» that do appear (in `fill-style`, in
+# `noun-regular-polygon`'s «tylli ki bynta», and in the button labels) are
+# lexicalized inside a single written value, not chosen at composition time.
 # `noun-gender` answers the single token `neuter`, and every adjective ignores
 # the argument it is given. This is a fact about *where* the agreement sits, not
 # about whether the language has one.
@@ -120,10 +127,10 @@ line-style =
     .dotted = badot
 
 fill-style =
-    .horizontal = ki lain ba iaid mynrei
-    .vertical = ki lain ba iaid jrong
-    .diagonal = ki lain ba iaid kynthup
-    .backdiagonal = ki lain ba iaid kynthup ba kylla
+    .horizontal = ki lain ba ïaid mynrei
+    .vertical = ki lain ba ïaid jrong
+    .diagonal = ki lain ba ïaid kynthup
+    .backdiagonal = ki lain ba ïaid kynthup ba kylla
     .dots = ki dot
     .diamonds = ki dayamon
 

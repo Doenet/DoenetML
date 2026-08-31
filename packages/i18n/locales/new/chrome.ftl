@@ -9,7 +9,7 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # **Script: Devanagari, not Ranjana.** Newar has one of the richest script
-# histories in South Asia — Ranjana (𑈰𑈴𑈜𑈰), Bhujimol, Prachalit and their
+# histories in South Asia — Ranjana, Bhujimol, Prachalit and their
 # relatives are Newar scripts in a way Devanagari is not, and Ranjana in
 # particular is a living emblem of the language: it is carved on temples,
 # painted on shopfronts, taught in classes and used for titles and headings
@@ -20,8 +20,9 @@
 # dictionaries, school materials, government notices, everything published
 # since the twentieth century — is set in Devanagari; Ranjana is used for
 # display, not for paragraphs, and a reader who reads Newar fluently reads it
-# in these letters. There is a second, mechanical reason: Ranjana's Unicode
-# block is young, font coverage in a browser is thin and inconsistent, and a
+# in these letters. There is a second, mechanical reason: the Newar script is
+# encoded as **Newa** (U+11400–U+1147F), a young block whose font coverage in
+# a browser is thin and inconsistent, and a
 # catalog that renders as boxes on most machines helps nobody. Converting this
 # catalog to Ranjana means converting **all four files at once**, never a
 # mixture inside one catalog, and it is a real conversion rather than a

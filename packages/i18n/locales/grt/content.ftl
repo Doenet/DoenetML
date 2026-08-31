@@ -21,8 +21,9 @@
 # Garo's closest relative in the roster and records the same order for the same
 # reason: a Tibeto-Burman describing word stands in front of its noun and never
 # moves. It is worth saying that this puts Garo at odds with the other two
-# catalogs of its own batch, which are both postnominal — the order here is a
-# fact about the family, not about the batch.
+# catalogs of Northeast India seeded in the same batch — `kha` and `lus`, both
+# postnominal — while agreeing with the batch's twelve others. The order here
+# is a fact about the family, not about the region.
 #
 # **No `$gender` fork and no `$role` fork.** Garo has no grammatical gender and
 # no adjective agreement of any kind, and its describing words — stative verbs

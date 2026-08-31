@@ -3507,8 +3507,10 @@ one is uncomfortable.
 
 #### Most of what these files translate is the frame, and the headers say so
 
-Ten of the fifteen are Indo-Aryan languages with no medium of secondary
-education and therefore no settled technical register of their own. What a
+Nine of the fifteen are Indo-Aryan languages with no medium of secondary
+education and therefore no settled technical register of their own, and
+Newar — Sino-Tibetan, not Indo-Aryan — is in the same position with Nepali
+in the loan role, which makes ten catalogs. What a
 seed can supply for them is the **grammar**, and what it cannot supply is the
 **vocabulary**: «रेखा», «बहुभुज», «फलन», «विशेषता» are Hindi in `awa`, `hne`,
 `mag`, `mwr`, `gbm` and `kfy` alike, «মিছা» sits in a Sylheti sentence around
@@ -3537,7 +3539,7 @@ distinction is the one a speaker can fix in a single line.
 
 Thirteen catalogs put the modifiers in front of the noun and two put them
 behind. Thirteen to two is unremarkable — South Asia is left-branching, and
-the ten Indo-Aryan catalogs inherit Hindi's order with its vocabulary. What
+the nine Indo-Aryan catalogs inherit Hindi's order with its vocabulary. What
 the split is *not* is genetic or geographic.
 
 Prenominal, rendered for "thick dashed red line": `awa`, `hne` and `mag`
@@ -3552,8 +3554,10 @@ sen».
 
 **The two are `kha` and `lus`, and `grt` is not one of them.** Khasi and Garo
 are spoken in the same state and seeded in the same batch; Garo and Mizo are
-both Tibeto-Burman. So Meghalaya writes the phrase both ways, and the two
-Tibeto-Burman catalogs of the batch disagree with each other — Garo's `-gipa`
+both Tibeto-Burman. So Meghalaya writes the phrase both ways, and Garo and
+Mizo — the batch's two Tibeto-Burman catalogs of Northeast India — disagree
+with each other, while Newar, Sino-Tibetan as well but half a subcontinent
+away, sits with the prenominal thirteen. Garo's `-gipa`
 attributive precedes its noun, Mizo's follows. Neither family nor geography
 predicts this row, which is why `styleDescriptions.test.ts` pins all fifteen
 rather than a representative from each side.
@@ -3584,7 +3588,7 @@ feminine «لکیر» and «موٹا» before a masculine noun, and `noun-gender
 The other fourteen write one invariant form each, and the reason differs and
 matters:
 
-- **Three cases where it is a claim about the language.** Brahui has no
+- **Eight cases where it is a claim about the language.** Brahui has no
   gender at all; Tulu marks it on verbs and pronouns but not on attributives;
   Fiji Hindi has levelled Hindi's agreement away, so the `-a` form stands in
   every position for a noun of either gender. Newar, Khasi, Mizo, Garo and
@@ -3616,7 +3620,16 @@ script and not about a family.
 wrong about the script — Fiji Hindi is written in Latin letters by the people
 who write it — and right about the direction anyway, because both candidate
 scripts run left to right. The tag reaches the correct answer by a route that
-does not hold in general, and both `hif` headers say so.
+does not hold in general, and `hif`'s `chrome.ftl` and `content.ftl` headers
+both say so.
+
+`grt` is the batch's second instance of the same route: ICU maximizes it to
+`grt-Beng-IN`, and the Garo catalog here is written in the Latin orthography.
+Two of the fifteen, then, get the direction right off a script neither
+catalog is written in. Neither needs an entry in `RTL_LANGUAGES`, because
+both the maximized script and the real one run left to right — but the pair
+is why a maximized script is evidence about direction and not about how a
+catalog is spelled.
 
 Neither right-to-left catalog welds anything to a placeable. Brahui's case
 clitics are normally joined in print and are written separated in all four
@@ -3636,10 +3649,15 @@ back to rather than by the language. `hi`, `bn`, `ur`, `mr` and `ne` sit
 beside them on the roster with rules of their own. Whether a tag has plural
 data follows whether a CLDR locale was ever requested for it.
 
-Each catalog writes exactly one `[0]` — `attempts-remaining` — and one `[1]` —
+Each catalog writes exactly one `[0]` — `attempts-remaining`, where English
+writes `[0]` too — and one `[1]`, in
 `field-function-wrong-num-outputs`, which forks on how many outputs a
-component *needs*. Fluent matches both against the number itself, so neither
-consults a plural rule. `chrome.test.ts` holds both halves.
+component *needs*. The `[1]` is not English's own branch: English selects
+that message on the plural category `[one]`, and a catalog with no plural
+rules substitutes the numeric literal, which Fluent matches against the
+number itself. Neither branch consults a plural rule, which is why both
+survive where the category forks could not. `chrome.test.ts` holds both
+halves.
 
 #### Negotiation gained nothing, and three tags left a list instead
 

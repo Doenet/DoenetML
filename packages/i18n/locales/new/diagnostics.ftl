@@ -22,14 +22,16 @@
 # Newar readers meet these words in Nepali schooling; coining Newar
 # equivalents would put unfamiliar words in front of a reader who already has
 # familiar ones. What is Newar is the frame around them: मफु and मफुत for the
-# inabilities, मदु for absence, मखु for the negated copula, याये / यानातःगु
-# for the verb, and नापं, निंतिं, स्वयां for the postpositions.
+# inabilities, मदु for absence, मखु for the negated copula, याये and its
+# inflections for the verb, and नापं, निंतिं, स्वयां for the postpositions.
 #
 # **One paraphrase is declared and used everywhere so that one search replaces
 # it.** English's *is ignored* is written «उपेक्षा याइ» throughout — literally
 # *is disregarded*. It is a Sanskrit-register word rather than a Newar one,
-# and it appears in something like thirty messages, so it is the first thing a
-# speaker should replace and replacing it is a single search.
+# and it appears in thirty-six messages, so it is the first thing a speaker
+# should replace. One message inflects it differently —
+# `math-input-invalid-function-names` writes «उपेक्षा यानाच्वन» — so a search
+# for «उपेक्षा» rather than for the whole phrase catches all of them.
 #
 # **No plural branches anywhere.** CLDR has no plural data for `new`, so
 # `line-segment-attributes-ignored-with-endpoints` and its relatives write a
@@ -486,7 +488,7 @@ prefigure-label-position-unsupported =
 
 prefigure-fill-style-unsupported = { $subject }: भरणया शैली '{ $fillStyle }' PreFigure य् लागू जुइ मफु; ठोस भरण छ्यलाच्वन।
 
-prefigure-line-style-unknown = { $subject }: मस्युगु रेखा शैली '{ $lineStyle }' PreFigure नितिं त्वःताच्वन।
+prefigure-line-style-unknown = { $subject }: मस्युगु रेखा शैली '{ $lineStyle }' PreFigure निंतिं त्वःताच्वन।
 
 prefigure-marker-style-mapped-to-diamond = { $subject }: marker शैली '{ $markerStyle }' PreFigure या 'diamond' शैलीय् बदलाच्वन।
 

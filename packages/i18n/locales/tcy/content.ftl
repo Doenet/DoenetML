@@ -28,7 +28,8 @@
 # «{ $numSides } ಬರಿತ ಸಮ ಬಹುಭುಜ» and leaves `tail` empty, exactly as English
 # does: the side count is a modifier and a Dravidian modifier goes in front,
 # so there is nothing to place after the adjectives and no reason to split the
-# noun. The `[noun-tail]` branches in the two composition messages are kept
+# noun. `style-with-noun`'s `[noun-tail]` branch, and the `[plain-tail]` and
+# `[pattern-tail]` branches `style-filled-with-noun` uses in its place, are kept
 # because a partly-translated locale falls back through them, not because
 # anything here selects them.
 #
@@ -72,9 +73,10 @@
 # absence, ಉಂಡು for presence, the negative verb in -ಜಿ, ಬೊಕ್ಕ for *and*,
 # ಅತ್ತ್ಂಡ for *or*, ಒಟ್ಟುಗು for *with*, the locative -ಡ್ and the genitive -ದ.
 # **ಬೊಕ್ಕ does double duty** — it is both *and* and *next/after* — so
-# `slider-next` and `piecewise-condition-or` in the sibling files share a root
-# on purpose rather than by mistake. A message where Kannada's ಮತ್ತು, ಅಥವಾ or
-# ಇಲ್ಲ has crept back in is a defect.
+# `chrome.ftl`'s `slider-next` (ಬೊಕ್ಕದ) is built on the same root as this
+# file's conjunction rather than on a separate word; *or* is unrelated to it
+# (`piecewise-condition-or` below is ಅತ್ತ್ಂಡ). A message where Kannada's
+# ಮತ್ತು, ಅಥವಾ or ಇಲ್ಲ has crept back in is a defect.
 #
 # **`style-filled-word` and `style-unfilled` are the Tulu participle pair**
 # ತುಂಬಿನ / ತುಂಬಂದಿನ, positive and negative of one verb, which is how Tulu

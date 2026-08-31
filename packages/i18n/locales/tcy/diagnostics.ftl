@@ -29,11 +29,12 @@
 # **One paraphrase is declared and used everywhere so that one search replaces
 # it.** English's *is ignored* is written «ಪರಿಗಣನೆ ಆಪುಜಿ» throughout —
 # literally *is not considered*. It is Kannada-register rather than Tulu, and
-# it appears in something like thirty messages, so it is the first thing a
+# it appears in thirty-seven messages, so it is the first thing a
 # speaker should replace, and replacing it is a single search. **ತಪ್ಪು** for
 # English's *invalid* is the second such choice: it means *wrong* rather than
 # *not permitted*, which is slightly weaker than the English, and it is used
-# in every one of the `parse-` and `schema-` messages a beginner meets first.
+# in most of the `parse-` and `schema-` messages a beginner meets first —
+# the handful that name a construct rather than judge one do without it.
 #
 # **No plural branches anywhere.** CLDR has no plural data for `tcy`, so
 # `line-segment-attributes-ignored-with-endpoints` and its relatives write a

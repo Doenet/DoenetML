@@ -1333,10 +1333,14 @@ describe("the second South Asian batch's plural categories", () => {
     );
 
     /**
-     * The other half: all fifteen keep English's `[1]` fork in
-     * `field-function-wrong-num-outputs`, which Fluent matches against the
-     * number itself rather than against a category and which is therefore
-     * legal in a locale with no rules of its own.
+     * The other half: all fifteen keep a fork in
+     * `field-function-wrong-num-outputs`, in the one shape a locale with no
+     * plural rules can carry. English selects `$expected` on the *category*
+     * `[one]` (`locales/en/diagnostics.ftl`); each of the fifteen writes the
+     * numeric literal `[1]` in its place, which Fluent matches against the
+     * number itself rather than against a category. So the branch survives
+     * the batch's missing CLDR data instead of being collapsed away with the
+     * category forks the test above rules out.
      */
     it.each(SOUTH_ASIA)(
         "keeps %s's numeric literal, which no plural rule selects",

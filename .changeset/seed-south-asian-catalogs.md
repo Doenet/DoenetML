@@ -42,9 +42,10 @@ Sylheti, Garo and Saraiki are offered from hand-written entries, since CLDR
 has no name for those tags in any language.
 
 These are machine-generated seeds pending review by speakers (#1521), and each
-file's header says so and names where it is weakest. In the ten Indo-Aryan
-catalogs the technical vocabulary is largely borrowed — Hindi in the six
-Hindi-belt and Uttarakhand catalogs, Bengali in Sylheti, Urdu in Saraiki — and
+file's header says so and names where it is weakest. In the nine Indo-Aryan
+catalogs, and in Newar beside them, the technical vocabulary is largely
+borrowed — Hindi in the six Hindi-belt and Uttarakhand catalogs, Nepali in
+Newar, Bengali in Sylheti, Urdu in Saraiki — and
 what is the language's own is the grammar around it and, more often than not,
 the colour words. Every header declares that rather than leaving it to be
 discovered.

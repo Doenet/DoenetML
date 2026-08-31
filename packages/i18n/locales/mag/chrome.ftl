@@ -30,14 +30,16 @@
 # rather than disguised.** «कीबोर्ड», «पंक्ति», «स्तंभ», «व्यंजक», «त्रुटि»,
 # «सुगम्यता», «पूर्वावलोकन» are the words a Magahi speaker has met in school
 # and on a screen, in Hindi. Where Magahi's own everyday word is the one a
-# reader would use, it is used instead: «जवाब», «गलत», «करिया», «उज्जर»,
-# «पीयर», «हरियर», «धेयान».
+# reader would use, it is used instead — across the catalog, not only in this
+# file: «जवाब» and «गलत» here, «करिया», «उज्जर», «पीयर», «हरियर» among
+# `content.ftl`'s colours, «धेयान» in `diagnostics.ftl`.
 #
 # **Counts.** CLDR has no plural data for `mag`, so `Intl.PluralRules` would
 # resolve it against the runtime's own locale and any `[one]` branch would be
-# selected by somebody else's rules. Both counted messages collapse to a
-# single `*[other]`, keeping only `attempts-remaining`'s explicit `[0]`, which
-# Fluent matches against the number itself. A Magahi noun is unmarked after a
+# selected by somebody else's rules. `answer-show-responses` therefore drops
+# the selector entirely and writes one form, and the only branch on a number
+# left in this file is `attempts-remaining`'s explicit `[0]`, which Fluent
+# matches against the number itself rather than against a category. A Magahi noun is unmarked after a
 # numeral in any case — «सब» marks plurality, not counting — so one form is
 # right.
 

@@ -39,8 +39,8 @@
 # Bengali, because Sylheti-medium education does not exist and a Sylheti
 # reader met these words in Bengali. What is Sylheti here is the **grammar and
 # the function words**: নায় for verbal negation, নাই for absence, আছে for
-# presence, অউ for *this*, ইতা for *these*, লাগি for *for*, দিয়া for *with*,
-# লগে for *along with*, আর for *and*, মিছা for *false*, and the honorific
+# presence, অউ for *this*, ইতা for *these*, লাগি for *for*, লগে for *with*
+# and *along with*, আর for *and*, মিছা for *false*, and the honorific
 # imperative in -ইন — করইন, দেখইন, লেখইন — which is what a Sylheti reader
 # expects a button to say. A message where বাংলা's করুন, এই, এগুলি, জন্য or
 # নেই has crept back in is a defect rather than a variant, and is the easiest

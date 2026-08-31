@@ -5221,7 +5221,7 @@ describe("the second South Asian batch's word order", () => {
      * is the Southeast Asian one's arithmetic reversed: thirteen catalogs put
      * the modifiers in front of the noun and two put them behind. Thirteen to
      * two is not itself interesting — most of South Asia is left-branching, and
-     * the ten Indo-Aryan catalogs here inherit Hindi's order along with much of
+     * the nine Indo-Aryan catalogs here inherit Hindi's order along with much of
      * their technical vocabulary.
      *
      * What is interesting is *which* two, because the line does not fall where
@@ -5229,7 +5229,8 @@ describe("the second South Asian batch's word order", () => {
      * `grt` (Garo) — seeded in the same batch, spoken in the same state as
      * Khasi, and Tibeto-Burman like Mizo — is on the other side. So neither
      * family nor geography predicts the split: Meghalaya writes it both ways,
-     * and the two Tibeto-Burman catalogs disagree with each other. Khasi is
+     * and Garo and Mizo, the batch's two Tibeto-Burman catalogs of Northeast
+     * India, disagree with each other. Khasi is
      * Austroasiatic and head-initial like its relatives further east; Mizo puts
      * its attributives behind the noun; Garo's `-gipa` attributive precedes it.
      * Three neighbours, three answers.
@@ -5243,7 +5244,7 @@ describe("the second South Asian batch's word order", () => {
      *
      * `tcy` (Tulu) is Dravidian too and prenominal for the same areal reason,
      * so the two Dravidian catalogs of this batch agree with the Indo-Aryan
-     * ones and with each other while the two Tibeto-Burman ones do not.
+     * ones and with each other while Garo and Mizo do not agree with each other.
      *
      * Every one of the fifteen keeps English's internal sequence of the three
      * adjectives — width, dash pattern, colour — so what moves in a
@@ -5282,6 +5283,11 @@ describe("the second South Asian batch's word order", () => {
         skr: "لکیر",
         brh: "خط",
         hif: "lakiir",
+        // The two postnominal catalogs' nouns, used below to assert that the
+        // noun is what moved: the full phrase must be exactly the noun, a
+        // space, and the bare description.
+        kha: "lain",
+        lus: "line",
     };
 
     for (const [locale, adjectivesOnly] of prenominal) {
@@ -5304,15 +5310,22 @@ describe("the second South Asian batch's word order", () => {
     for (const [locale, withNoun, adjectivesOnly] of postnominal) {
         it(`puts ${locale}'s adjectives after the noun`, () => {
             const t = forLocale(locale);
-            expect(
-                describeStrokedShape(t, words, { noun: line, withNoun: true }),
-            ).toBe(withNoun);
-            expect(
-                describeStrokedShape(t, words, { noun: line, withNoun: false }),
-            ).toBe(adjectivesOnly);
-            // The description is the tail of the phrase verbatim: the noun
-            // moved and nothing else did.
-            expect(withNoun.endsWith(adjectivesOnly)).toBe(true);
+            const rendered = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: true,
+            });
+            const renderedBare = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: false,
+            });
+            expect(rendered).toBe(withNoun);
+            expect(renderedBare).toBe(adjectivesOnly);
+            // The bare description is the tail of the full phrase verbatim:
+            // the noun moved to the front and nothing else moved with it.
+            // Asserted on what the catalog rendered, not on the two literals
+            // above, so a catalog that reordered an adjective while keeping
+            // both expectations self-consistent would still fail here.
+            expect(rendered).toBe(`${nounOf[locale]} ${renderedBare}`);
         });
     }
 

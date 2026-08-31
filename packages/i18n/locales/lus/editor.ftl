@@ -19,8 +19,9 @@
 # for show, «dahluh» for insert, «hmuh a ni lo» for none found.
 #
 # **No plural branches.** CLDR has no plural data for `lus`, and a Mizo noun is
-# unmarked after a numeral in any case, so `editor-accessibility-label` and
-# `help-coordinates` write one form and let the count stand beside it.
+# unmarked after a numeral in any case, so `editor-accessibility-label` writes
+# one form and lets the count stand beside it, and `help-coordinates` drops
+# the count English selects on and writes one form outright.
 
 
 ## The viewer's controls

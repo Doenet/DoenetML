@@ -32,13 +32,13 @@
 # catalog is not Hindi in a hat, and `noun-gender` answers the single token
 # `neuter` because nothing downstream needs to select on it.
 #
-# The gap: three words in this file **are** marked in Awadhi and are written
+# The gap: four words in this file **are** marked in Awadhi and are written
 # here in their direct-masculine form regardless — the two colour loans
 # «नीला» and «भूरा», the participle «भरा» in `style-filled-word`, and «वाला»
 # in `style-filled`. «बिंदुन वाला रेखा» should be «बिंदुन वाली रेखा», and
 # «नीला रेखा» should be «नीली रेखा». A reviewer who wants that fixed has to
 # reintroduce the `$gender` fork on those four spots and a `$role` fork for
-# the oblique «नीले» / «भरे» / «वाले» that `border-clause` wants, and give
+# the oblique «नीले» / «भरे» / «वाले» that `style-border-clause` wants, and give
 # `noun-gender` a real table — रेखा, किरण and बहुरेखा are feminine, and so is
 # पृष्ठभूमि. This is the largest single defect in the file.
 #
@@ -58,7 +58,7 @@
 # take because their other use is in front of «वाला».
 #
 # **The two chemistry tables are absent.** `element-name` and
-# `element-anion-name` — 128 messages between them — are not translated in
+# `element-anion-name` — 130 messages between them — are not translated in
 # this batch, so this catalog sits at 445/575 keys with every other file in
 # it. The element names an Awadhi reader would use are the Hindi ones, and a
 # seed that copied them over would be claiming a review it has not had; the

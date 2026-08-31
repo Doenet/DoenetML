@@ -30,8 +30,8 @@
 # Each such message is written once as `*[other]`, with the count kept in the
 # selector so that nothing is lost from the message's shape. The `[1]` in
 # `field-function-wrong-num-outputs` is a numeric literal rather than a
-# category — Fluent matches it against the number itself — so it stays where
-# English has it. The symbolic selectors — `$reason`, `$type`, `$mode`,
+# category — Fluent matches it against the number itself — and it stands
+# where English selects the category `[one]`. The symbolic selectors — `$reason`, `$type`, `$mode`,
 # `$suggestion`, `$isList`, `$context`, `$expected` and the rest — keep every
 # branch English has, because those keys are compared letter for letter and a
 # renamed one is a branch nothing can reach.

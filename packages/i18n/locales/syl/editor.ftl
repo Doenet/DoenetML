@@ -8,7 +8,7 @@
 # **Script and register** are `chrome.ftl`'s: the Bengali script, as Sylheti
 # is normally printed today, rather than Sylheti Nagri, and a Bengali
 # technical vocabulary declared as a loan register around a Sylheti frame —
-# নায়, নাই, আছে, অউ, ইতা, লাগি, দিয়া, লগে, আর, and the honorific imperative
+# নায়, নাই, আছে, অউ, ইতা, লাগি, লগে, আর, and the honorific imperative
 # in -ইন.
 #
 # **`WCAG`, `DoenetML`, `styleNumber` and every element and attribute name

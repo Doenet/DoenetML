@@ -28,7 +28,9 @@
 # «{ $numSides } বাউয়ালা সমবহুভুজ» and leaves `tail` empty, exactly as English
 # does: the side count is a modifier and modifiers go in front, so there is
 # nothing to place after the adjectives and no reason to split the noun. The
-# `[noun-tail]` branches in the two composition messages are kept because a
+# `[noun-tail]` branch of `style-with-noun`, and the `[plain-tail]` and
+# `[pattern-tail]` branches `style-filled-with-noun` uses in its place, are
+# kept because a
 # partly-translated locale falls back through them, not because anything here
 # selects them.
 #
@@ -62,9 +64,9 @@
 # **The colours are where Sylheti shows.** কালা, ধলা and অইল্দা — black,
 # white and yellow — are Sylheti rather than Bengali (কালো, সাদা, হলুদ), and
 # লাল is shared. The remaining eight are Bengali or English loans, and সায়ান
-# is a transliteration. That five-to-eight split is a fact about the seed's
+# is a transliteration. That four-to-eight split is a fact about the seed's
 # knowledge, not about the language: Sylheti certainly has more of its own
-# colour words than five, and supplying them is a bigger improvement to this
+# colour words than four, and supplying them is a bigger improvement to this
 # file than anything else in it.
 #
 # **The grammar is where the rest of the Sylheti is**: নায় for verbal

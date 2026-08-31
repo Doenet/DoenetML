@@ -87,8 +87,10 @@
 # coined: Saraiki-medium schooling stops well short of geometry, and this is
 # what a Saraiki-speaking pupil actually reads. The **colour and width words
 # are not** — «کالا», «چٹا», «لال», «ساوا», «نیلا», «پیلا», «بھورا», «موٹا»,
-# «پتلا» are the everyday Saraiki words, and they are what make the `$gender`
-# fork above necessary. Elsewhere too, where Saraiki has its own word this file
+# «پتلا» are the everyday Saraiki words. The marked ones among them are what
+# make the `$gender` fork above necessary; «لال» is in the list because it is
+# Saraiki, not because it inflects — it is one of the eight unmarked
+# adjectives and takes no branch. Elsewhere too, where Saraiki has its own word this file
 # uses it: «لکیر» for a line, «نقطہ» for a point, «کم» for a task, «سچ» and
 # «جھوٹ» for the boolean words, «اڳلا» and «پچھلا» for next and previous, «جے»
 # for *if*, «وچوں» for *out of*.

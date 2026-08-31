@@ -6,8 +6,9 @@
 # Correct anything here freely; nothing in it was written by a translator.
 #
 # **Script, frame and register** are `chrome.ftl`'s: Devanagari with Latin
-# digits; an Awadhi frame — «अहै», «नाहीं», «क», «अउर», «खातिर», «काहे से
-# कि», «जइसे», «एह», «कउनो», «फेर» — around a Hindi and Sanskrit technical
+# digits; the catalog-wide Awadhi frame — «अहै», «नाहीं», «क», «अउर»,
+# «खातिर», «काहे से कि», «जइसे», «एह», «कउनो», «फेर», not every one of which
+# happens to fall in this file — around a Hindi and Sanskrit technical
 # vocabulary that is declared rather than disguised. Buttons carry the
 # honorific imperative in **-औ** («देखावौ», «दबावौ», «राखौ», «चुनौ»), the one
 # choice in this catalog the seed is least sure of.
@@ -16,8 +17,10 @@
 # name stay in English.** They are identifiers an author types, not words.
 #
 # **The counts do not fork.** `editor-accessibility-label` and
-# `help-coordinates` write a single `*[other]` where English writes `[one]`
-# and `[other]`: CLDR has no plural data for `awa`, so an English-selected
+# `help-coordinates` drop the `$count` selector English writes and give one
+# form outright — `help-coordinates` is a plain message, and
+# `editor-accessibility-label` interpolates `{ $count }` without selecting
+# on it: CLDR has no plural data for `awa`, so an English-selected
 # branch would be worse than none, and an Awadhi noun is unmarked after a
 # numeral in any case.
 #

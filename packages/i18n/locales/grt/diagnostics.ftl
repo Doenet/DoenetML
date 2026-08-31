@@ -36,7 +36,8 @@
 # select is collapsed to its `*[other]` wording, keeping the placeables that
 # wording uses. The one numeric literal is `[1]` in
 # `field-function-wrong-num-outputs`, which is a count of outputs rather than
-# a plural category, and it stays exactly where English has it.
+# a plural category: it stands where English selects the category `[one]`,
+# and Fluent matches it against the number itself.
 #
 # Words a reviewer should check first here: «sabdanani» for a warning,
 # «ong·gijagipa» for *invalid* — a transparent "not being so" rather than a

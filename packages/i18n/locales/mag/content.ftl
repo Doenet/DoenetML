@@ -55,7 +55,7 @@
 # the plural **«सब»** after the noun, which is what the fill patterns carry.
 #
 # **The two chemistry tables are absent.** `element-name` and
-# `element-anion-name` — 128 messages between them — are not translated in
+# `element-anion-name` — 130 messages between them — are not translated in
 # this batch, so this catalog sits at 445/575 keys with every other file in
 # it. The element names a Magahi reader would use are the Hindi ones, and a
 # seed that copied them over would be claiming a review it has not had; the
@@ -168,7 +168,7 @@ style-filled-with-noun =
     }
 # «के संग» is postpositional, so «किनारा» stands in the oblique «किनारे». The
 # adjective in front of it should go oblique too, and does not: that is the
-# `$role` gap the header names. Awadhi has no article, so the `-article`
+# `$role` gap the header names. Magahi has no article, so the `-article`
 # branches read the same as the ones without.
 style-border-clause =
     { $parts ->

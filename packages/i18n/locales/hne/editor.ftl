@@ -15,8 +15,10 @@
 # name stay in English.** They are identifiers an author types, not words.
 #
 # **The counts do not fork.** `editor-accessibility-label` and
-# `help-coordinates` write a single `*[other]` where English writes `[one]`
-# and `[other]`: CLDR has no plural data for `hne`, so an English-selected
+# `help-coordinates` drop the `$count` selector English writes and give one
+# form outright — `help-coordinates` is a plain message, and
+# `editor-accessibility-label` interpolates `{ $count }` without selecting
+# on it: CLDR has no plural data for `hne`, so an English-selected
 # branch would be worse than none, and a Chhattisgarhi noun is unmarked after
 # a numeral in any case.
 #

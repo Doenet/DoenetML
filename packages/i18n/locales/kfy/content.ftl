@@ -63,8 +63,9 @@
 # ## Number
 #
 # **Nothing selects on a count.** CLDR has no plural data for `kfy`, so
-# `lint:i18n` would reject a plural category outright — and nothing in this
-# file counts in any case. Numbers render in Latin digits, never in Devanagari
+# `lint:i18n` would reject a plural category outright. Counts are still
+# interpolated here — `{ $numSides }`, `{ $currentPage }`, `{ $total }` — but
+# nothing branches on one. Numbers render in Latin digits, never in Devanagari
 # numerals, which is what DoenetML pins for every locale (`src/intl.ts`).
 #
 # ## Chemistry

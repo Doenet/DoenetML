@@ -16,7 +16,8 @@
 # other script is at issue for it — there is no rival orthography a reviewer
 # might have expected. What the seed does have to be consistent about is the
 # three marks that alphabet carries: `ï` (U+00EF) for the syllabic i in «ïa»
-# and «ïaid», `ñ` (U+00F1) in «kñi» and its relatives, and the ASCII
+# and «ïaid», `ñ` (U+00F1) in «kñi» and its relatives, which this catalog happens never
+# to need, and the ASCII
 # apostrophe `'` (U+0027) for the glottal stop in «ka'», never the typographic
 # U+2019. A search for `'` finds every glottal in all four files.
 #

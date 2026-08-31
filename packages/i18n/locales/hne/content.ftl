@@ -32,12 +32,13 @@
 # once, and `noun-gender` answers the single token `neuter` because nothing
 # downstream needs to select on it.
 #
-# The gap: three words in this file **are** marked in Chhattisgarhi and are
+# The gap: four words in this file **are** marked in Chhattisgarhi and are
 # written here in their direct-masculine form regardless — the colour loans
 # «नीला» and «भूरा», the participle «भरा» in `style-filled-word`, and «वाला»
 # in `style-filled`. «बिंदु मन वाला रेखा» should be «बिंदु मन वाली रेखा». A
 # reviewer who wants that fixed has to reintroduce the `$gender` fork on
-# those spots and a `$role` fork for the oblique that `border-clause` wants,
+# those spots and a `$role` fork for the oblique that `style-border-clause`
+# wants,
 # and give `noun-gender` a real table — रेखा, किरण and बहुरेखा are feminine,
 # and so is पृष्ठभूमि. This is the largest single defect in the file.
 #
@@ -58,7 +59,7 @@
 # noun, which is what the fill patterns carry.
 #
 # **The two chemistry tables are absent.** `element-name` and
-# `element-anion-name` — 128 messages between them — are not translated in
+# `element-anion-name` — 130 messages between them — are not translated in
 # this batch, so this catalog sits at 445/575 keys with every other file in
 # it. The element names a Chhattisgarhi reader would use are the Hindi ones,
 # and a seed that copied them over would be claiming a review it has not had;
@@ -171,7 +172,7 @@ style-filled-with-noun =
     }
 # «के संग» is postpositional, so «किनारा» stands in the oblique «किनारे». The
 # adjective in front of it should go oblique too, and does not: that is the
-# `$role` gap the header names. Awadhi has no article, so the `-article`
+# `$role` gap the header names. Chhattisgarhi has no article, so the `-article`
 # branches read the same as the ones without.
 style-border-clause =
     { $parts ->
