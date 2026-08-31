@@ -18,7 +18,9 @@
 # «nikyoreka» for *is a reference to*, «ekiranga» for an attribute,
 # «omuhendo» for a value — the word `diagnostics.ftl` uses, not
 # «ekigyendererwa», which this catalog spends on *objectives* in
-# `content.ftl` — «omuringo» for a variant and for a type,
+# `content.ftl` — «eky'okugarukamu» for a response, the word `chrome.ftl` and
+# `content.ftl` both use, kept clear of «ekigarukiirwemu», which `chrome.ftl`
+# spends on *feedback* — «omuringo» for a variant and for a type,
 # «eibara» for a name — the Kigezi word, where Runyankore says «eiziina».
 #
 # **What is borrowed.** English, openly and only where the word is what a
@@ -145,7 +147,7 @@ editor-none-found = Tihariho ekishangirwe
 
 editor-no-responses = Tihariho by'okugarukamu ebyohereziibwe hati
 editor-response-answer-id = Ekimanyiso ky'Eky'okugarukamu
-editor-response-response = Ekigarukiirwemu
+editor-response-response = Eky'okugarukamu
 editor-response-credit = Amanota
 editor-response-submitted = Kyohereziibwe
 

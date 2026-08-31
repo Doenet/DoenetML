@@ -47,8 +47,9 @@
 # «ebitundu» several; «omuwendo» one value, «emiwendo» several — so both
 # branches of every select in this file differ in more than a suffix. Not
 # every noun does: «engeri», an attribute, is class 9/10 and is spelt the
-# same in both numbers, marking number only on what agrees with it. `field-function-wrong-num-outputs` keeps the English `[one]`,
-# since `xog` really can select it.
+# same in both numbers, marking number only on what agrees with it.
+# `field-function-wrong-num-outputs` keeps the English `[one]`, since `xog`
+# really can select it.
 #
 # **Weakest here.** «okuserengeta» for *slope* and «enjawulo» for *contrast*
 # are descriptions rather than established terms, and are the first two words

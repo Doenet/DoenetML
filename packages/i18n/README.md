@@ -4025,13 +4025,14 @@ The batch was assembled as **fifteen** — Kamba (`kam`), Gusii (`guz`),
 Kalenjin (`kln`), Luyia (`luy`), Masai (`mas`), Meru (`mer`), Samburu (`saq`),
 Taita (`dav`), Embu (`ebu`) and Teso (`teo`) in Kenya and Uganda, and Shambala
 (`ksb`), Vunjo (`vun`) and Machame (`jmc`) in Tanzania, alongside the two that
-ship. Thirteen were seeded, measured and left out; they are recorded on #1655
-with the coverage each reached. That issue was written about six languages of
-the Americas, and the reason these thirteen join it rather than getting an
-issue of their own is that they hit the same wall — and measuring where they
-hit it turned out to say something the Americas batch could not.
+ship. Thirteen were attempted, measured and left out; they are recorded on
+#1655 with the coverage each reached. That issue was written about six
+languages of the Americas, and the reason these thirteen join it rather than
+getting an issue of their own is that they hit the same wall — and measuring
+where they hit it turned out to say something the Americas batch could not.
 
-The counts, all from `lint:i18n` on catalogs that parsed and linted clean:
+The counts are from `lint:i18n` on the attempts that were written out and
+linted clean; Teso is the one estimate, its draft never having been written:
 
 | tag | language | keys of 575 |
 | --- | --- | --- |
