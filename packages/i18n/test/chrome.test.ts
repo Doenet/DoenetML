@@ -116,6 +116,40 @@ import brhChrome from "../locales/brh/chrome.ftl?raw";
 import brhDiagnostics from "../locales/brh/diagnostics.ftl?raw";
 import hifChrome from "../locales/hif/chrome.ftl?raw";
 import hifDiagnostics from "../locales/hif/diagnostics.ftl?raw";
+// The second European batch. `editor.ftl` joins the pair for `kw` and `gv`,
+// whose richest count selects live there rather than in `chrome.ftl`.
+import anChrome2 from "../locales/an/chrome.ftl?raw";
+import anDiagnostics2 from "../locales/an/diagnostics.ftl?raw";
+import extChrome2 from "../locales/ext/chrome.ftl?raw";
+import extDiagnostics2 from "../locales/ext/diagnostics.ftl?raw";
+import ladChrome2 from "../locales/lad/chrome.ftl?raw";
+import ladDiagnostics2 from "../locales/lad/diagnostics.ftl?raw";
+import mwlChrome2 from "../locales/mwl/chrome.ftl?raw";
+import mwlDiagnostics2 from "../locales/mwl/diagnostics.ftl?raw";
+import waChrome2 from "../locales/wa/chrome.ftl?raw";
+import waDiagnostics2 from "../locales/wa/diagnostics.ftl?raw";
+import frpChrome2 from "../locales/frp/chrome.ftl?raw";
+import frpDiagnostics2 from "../locales/frp/diagnostics.ftl?raw";
+import nrfChrome2 from "../locales/nrf/chrome.ftl?raw";
+import nrfDiagnostics2 from "../locales/nrf/diagnostics.ftl?raw";
+import lmoChrome2 from "../locales/lmo/chrome.ftl?raw";
+import lmoDiagnostics2 from "../locales/lmo/diagnostics.ftl?raw";
+import eglChrome2 from "../locales/egl/chrome.ftl?raw";
+import eglDiagnostics2 from "../locales/egl/diagnostics.ftl?raw";
+import lldChrome2 from "../locales/lld/chrome.ftl?raw";
+import lldDiagnostics2 from "../locales/lld/diagnostics.ftl?raw";
+import kwChrome2 from "../locales/kw/chrome.ftl?raw";
+import kwDiagnostics2 from "../locales/kw/diagnostics.ftl?raw";
+import gvChrome2 from "../locales/gv/chrome.ftl?raw";
+import gvDiagnostics2 from "../locales/gv/diagnostics.ftl?raw";
+import barChrome2 from "../locales/bar/chrome.ftl?raw";
+import barDiagnostics2 from "../locales/bar/diagnostics.ftl?raw";
+import frrChrome2 from "../locales/frr/chrome.ftl?raw";
+import frrDiagnostics2 from "../locales/frr/diagnostics.ftl?raw";
+import romChrome2 from "../locales/rom/chrome.ftl?raw";
+import romDiagnostics2 from "../locales/rom/diagnostics.ftl?raw";
+import kwEditor2 from "../locales/kw/editor.ftl?raw";
+import gvEditor2 from "../locales/gv/editor.ftl?raw";
 // The Americas batch, both files for the same reason as the Silk Road's:
 // each catalog's count selects are split between `chrome.ftl` and
 // `diagnostics.ftl`, so where a category branch falls is only checkable
@@ -1335,5 +1369,202 @@ describe("the second South Asian batch's plural categories", () => {
                 stripBidiIsolates(t("attempts-remaining", { count })),
             ).toContain(String(count));
         }
+    });
+});
+
+/**
+ * The second European batch's plural categories, and the batch where CLDR
+ * finally has something to say.
+ *
+ * Every recent batch's block here has reported the same finding: CLDR has no
+ * plural data for the tags, so no catalog may write a category branch. This
+ * batch breaks that run. **Five of the fifteen have rules of their own** —
+ * `an`, `wa`, `kw`, `gv` and `lld` — and two of the five have rules that are
+ * more elaborate than anything the roster's established catalogs use. What
+ * follows is asserted from both sides: that the five really do resolve to
+ * themselves, and that the ten others really write nothing they could not
+ * select.
+ */
+describe("the second European batch's plural categories", () => {
+    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
+    const both = (chrome: string, diagnostics: string) =>
+        `${branches(chrome)}\n${branches(diagnostics)}`;
+
+    /** The five CLDR has rules for. */
+    const WITH_RULES: [string, string, string][] = [
+        ["an", anChrome2, anDiagnostics2],
+        ["wa", waChrome2, waDiagnostics2],
+        ["kw", kwChrome2, kwDiagnostics2],
+        ["gv", gvChrome2, gvDiagnostics2],
+        ["lld", lldChrome2, lldDiagnostics2],
+    ];
+
+    /** The ten it has none for. */
+    const NO_RULES: [string, string, string][] = [
+        ["ext", extChrome2, extDiagnostics2],
+        ["lad", ladChrome2, ladDiagnostics2],
+        ["mwl", mwlChrome2, mwlDiagnostics2],
+        ["frp", frpChrome2, frpDiagnostics2],
+        ["nrf", nrfChrome2, nrfDiagnostics2],
+        ["lmo", lmoChrome2, lmoDiagnostics2],
+        ["egl", eglChrome2, eglDiagnostics2],
+        ["bar", barChrome2, barDiagnostics2],
+        ["frr", frrChrome2, frrDiagnostics2],
+        ["rom", romChrome2, romDiagnostics2],
+    ];
+
+    it.each(WITH_RULES)("resolves %s against its own rules", (locale) => {
+        expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+            .toBe(locale);
+    });
+
+    it.each(NO_RULES)(
+        "resolves %s against some other language's rules",
+        (locale) => {
+            expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+                .not.toBe(locale);
+        },
+    );
+
+    /**
+     * So the ten write no category branch beyond `one`, which is the trade
+     * every no-data catalog on the roster makes and which each of their
+     * headers records: English's split is the one the fallback makes, and it
+     * reads correctly for all ten.
+     */
+    it.each(NO_RULES)(
+        "gives %s no category branch its runtime could not select",
+        (_locale, chrome, diagnostics) => {
+            const text = both(chrome, diagnostics);
+            for (const category of ["zero", "two", "few", "many"]) {
+                expect(text).not.toContain(`[${category}]`);
+            }
+        },
+    );
+
+    /**
+     * `ext` and `lad` go further than the other eight and write **no category
+     * branch at all**, `one` included. Both headers give the same reason and
+     * it is a stylistic one rather than a rule: where English forks on a
+     * count, these two write a single impersonal clause that does not have to
+     * agree with it, so there was nothing for a `[one]` to do. Asserted
+     * because it is a property a later edit could quietly undo, and because it
+     * is the honest end of the trade the other eight took.
+     */
+    it.each([
+        ["ext", extChrome2, extDiagnostics2],
+        ["lad", ladChrome2, ladDiagnostics2],
+    ])(
+        "writes no plural category at all in %s",
+        (_locale, chrome, diagnostics) => {
+            const text = both(chrome, diagnostics);
+            for (const category of ["zero", "one", "two", "few", "many"]) {
+                expect(text).not.toContain(`[${category}]`);
+            }
+        },
+    );
+
+    /**
+     * **Cornish is the most branch-rich catalog on the roster**, and the only
+     * one whose language offers all six categories and whose files use four of
+     * them.
+     *
+     * CLDR gives `kw` `zero`, `one`, `two`, `few`, `many` and `other`, and
+     * every one of the six is reachable by an integer: 0 is `zero`, 1 is
+     * `one`, and the rest turn on the last two digits — 2/22/42 are `two`,
+     * 3/23/43 are `few`, 21/41/61 are `many`. What varies in Cornish after a
+     * numeral is not the noun's ending — the noun stays singular — but its
+     * **initial mutation**: «dew» lenites and «tri» spirantizes, so the
+     * branches differ in the word's first letter and nowhere else.
+     *
+     * `locales/kw` writes `one`, `two`, `few` and `many`, and not `zero`.
+     * That is not a gap: zero is handled by `attempts-remaining`'s numeric
+     * `[0]`, which says something different from any of the categories, and
+     * everywhere else the zero form is the default's. The catalog also leaves
+     * the select off entirely where the noun begins with a vowel or with
+     * `l`, `r` or `s`, which take no mutation — all six branches would be the
+     * same string, and the rule against unselectable branches has a twin in
+     * common sense.
+     */
+    it("selects all six Cornish categories from integers", () => {
+        const kw = new Intl.PluralRules("kw");
+        expect(kw.resolvedOptions().pluralCategories).toEqual(
+            expect.arrayContaining([
+                "zero",
+                "one",
+                "two",
+                "few",
+                "many",
+                "other",
+            ]),
+        );
+        expect(kw.select(0)).toBe("zero");
+        expect(kw.select(1)).toBe("one");
+        expect(kw.select(2)).toBe("two");
+        expect(kw.select(3)).toBe("few");
+        expect(kw.select(21)).toBe("many");
+        expect(kw.select(5)).toBe("other");
+    });
+
+    it("writes four of Cornish's six categories, zero being a numeric branch instead", () => {
+        const text = `${branches(kwChrome2)}\n${branches(kwDiagnostics2)}\n${branches(kwEditor2)}`;
+        for (const category of ["one", "two", "few", "many"]) {
+            expect(text).toContain(`[${category}]`);
+        }
+        expect(text).not.toContain("[zero]");
+        expect(branches(kwChrome2)).toContain("[0]");
+    });
+
+    /**
+     * Manx is the counterpart, and the reason a declared category is not the
+     * same thing as a selectable one.
+     *
+     * CLDR declares `one`, `two`, `few`, `many` and `other` for `gv`, and
+     * `many` is declared for number shapes no count in this software ever
+     * takes: **no integer selects it**. `locales/gv` therefore writes `one`
+     * and `two` and never `many` — which `lint:i18n` would not have caught,
+     * since the category is on the declared list and the branch would parse,
+     * lint and never render.
+     */
+    it("never writes Manx's declared-but-unreachable category", () => {
+        const gv = new Intl.PluralRules("gv");
+        expect(gv.resolvedOptions().pluralCategories).toContain("many");
+        for (let n = 0; n <= 500; n++) {
+            expect(gv.select(n)).not.toBe("many");
+        }
+        const text = `${branches(gvChrome2)}\n${branches(gvDiagnostics2)}\n${branches(gvEditor2)}`;
+        expect(text).not.toContain("[many]");
+        expect(text).toContain("[two]");
+    });
+
+    /**
+     * Ladin is the third of the same kind and the quietest: `lld` declares
+     * `one`, `many` and `other`, no integer reaches `many`, and the catalog
+     * writes `one` and the default. Three languages, one rule — the categories
+     * a catalog may write are the ones its counts actually select, and the
+     * declared list is a superset of that in all three.
+     */
+    it("never writes Ladin's declared-but-unreachable category", () => {
+        const lld = new Intl.PluralRules("lld");
+        expect(lld.resolvedOptions().pluralCategories).toContain("many");
+        for (let n = 0; n <= 500; n++) {
+            expect(lld.select(n)).not.toBe("many");
+        }
+        expect(both(lldChrome2, lldDiagnostics2)).not.toContain("[many]");
+    });
+
+    /**
+     * Walloon's `one` covers zero as well as one, which is the one place in
+     * this batch where a category branch means something different from what
+     * an English-reading translator would assume. `locales/wa`'s headers say
+     * so, and `attempts-remaining` still writes its own `[0]` because "no
+     * attempts left" is a different sentence rather than a different ending.
+     */
+    it("gives Walloon a singular that covers zero", () => {
+        const wa = new Intl.PluralRules("wa");
+        expect(wa.select(0)).toBe("one");
+        expect(wa.select(1)).toBe("one");
+        expect(wa.select(2)).toBe("other");
+        expect(branches(waChrome2)).toContain("[0]");
     });
 });

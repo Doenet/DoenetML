@@ -65423,6 +65423,10 @@
                             "description": "Amharic (አማርኛ)"
                         },
                         {
+                            "value": "an",
+                            "description": "Aragonese"
+                        },
+                        {
                             "value": "ar",
                             "description": "Arabic (العربية)"
                         },
@@ -65465,6 +65469,10 @@
                         {
                             "value": "ban",
                             "description": "Balinese"
+                        },
+                        {
+                            "value": "bar",
+                            "description": "Bavarian"
                         },
                         {
                             "value": "bbc",
@@ -65671,6 +65679,10 @@
                             "description": "Efik"
                         },
                         {
+                            "value": "egl",
+                            "description": "Emilian"
+                        },
+                        {
                             "value": "el",
                             "description": "Greek (Ελληνικά)"
                         },
@@ -65689,6 +65701,10 @@
                         {
                             "value": "ewo",
                             "description": "Ewondo (ewondo)"
+                        },
+                        {
+                            "value": "ext",
+                            "description": "Extremaduran"
                         },
                         {
                             "value": "fa",
@@ -65725,6 +65741,14 @@
                         {
                             "value": "fr",
                             "description": "French (français)"
+                        },
+                        {
+                            "value": "frp",
+                            "description": "Arpitan"
+                        },
+                        {
+                            "value": "frr",
+                            "description": "Northern Frisian"
                         },
                         {
                             "value": "fur",
@@ -65793,6 +65817,10 @@
                         {
                             "value": "gu",
                             "description": "Gujarati (ગુજરાતી)"
+                        },
+                        {
+                            "value": "gv",
+                            "description": "Manx (Gaelg)"
                         },
                         {
                             "value": "ha",
@@ -66027,8 +66055,16 @@
                             "description": "Kumyk"
                         },
                         {
+                            "value": "kw",
+                            "description": "Cornish (kernewek)"
+                        },
+                        {
                             "value": "ky",
                             "description": "Kyrgyz (кыргызча)"
+                        },
+                        {
+                            "value": "lad",
+                            "description": "Ladino"
                         },
                         {
                             "value": "lb",
@@ -66053,6 +66089,14 @@
                         {
                             "value": "lij",
                             "description": "Ligurian (ligure)"
+                        },
+                        {
+                            "value": "lld",
+                            "description": "Ladin (ladin)"
+                        },
+                        {
+                            "value": "lmo",
+                            "description": "Lombard"
                         },
                         {
                             "value": "ln",
@@ -66191,6 +66235,10 @@
                             "description": "Maltese (Malti)"
                         },
                         {
+                            "value": "mwl",
+                            "description": "Mirandese"
+                        },
+                        {
                             "value": "mwr",
                             "description": "Marwari"
                         },
@@ -66249,6 +66297,10 @@
                         {
                             "value": "nog",
                             "description": "Nogai"
+                        },
+                        {
+                            "value": "nrf",
+                            "description": "Norman (Nouormand)"
                         },
                         {
                             "value": "nso",
@@ -66349,6 +66401,10 @@
                         {
                             "value": "ro",
                             "description": "Romanian (română)"
+                        },
+                        {
+                            "value": "rom",
+                            "description": "Romany"
                         },
                         {
                             "value": "ru",
@@ -66653,6 +66709,10 @@
                         {
                             "value": "vro",
                             "description": "Võro"
+                        },
+                        {
+                            "value": "wa",
+                            "description": "Walloon"
                         },
                         {
                             "value": "war",

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import fs from "node:fs";
+import path from "node:path";
+
 import { directionOf, stripBidiIsolates } from "../src/direction";
 import { PSEUDO_LOCALE, PSEUDO_RTL_LOCALE } from "../src/pseudo";
 import { SUPPORTED_LOCALES } from "../src/generated/supportedLocales";
@@ -189,5 +192,94 @@ describe("stripBidiIsolates", () => {
         expect(stripBidiIsolates("Max credit available: 80%")).toBe(
             "Max credit available: 80%",
         );
+    });
+});
+
+/**
+ * Direction against the characters the catalogs are actually written in.
+ *
+ * Every test above asks `directionOf` about a tag. This one asks the files:
+ * for each locale on the roster it reads the *values* of the messages — not
+ * the ids, which are ASCII in every catalog, and not the header comments,
+ * which are written in English and quote words in the language — counts the
+ * letters belonging to right-to-left scripts against the letters belonging to
+ * left-to-right ones, and requires the majority to agree with what
+ * `directionOf` reports for the locale.
+ *
+ * This is the check that catches the failure no tag-level test can see: a
+ * catalog whose language CLDR considers right-to-left, written here in a
+ * left-to-right script, or the reverse. `lad` was exactly that and is the
+ * reason this test exists — see below.
+ */
+describe("a catalog's script and its locale's direction", () => {
+    const localesDir = path.join(__dirname, "..", "locales");
+
+    /** Hebrew, Arabic and the other right-to-left blocks this roster uses. */
+    const RTL_LETTERS = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/g;
+    /** Latin, Greek, Cyrillic and the left-to-right blocks it uses. */
+    const LTR_LETTERS =
+        /[A-Za-z\u00C0-\u024F\u0370-\u052F\u0900-\u0DFF\u1000-\u109F\u10A0-\u10FF\u1200-\u137F\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]/g;
+
+    /**
+     * The text a reader would see, and nothing else: the right-hand side of
+     * every `=`, with placeables removed (`{ $count }` is ASCII in every
+     * catalog) and comment lines dropped.
+     */
+    function renderedLetters(locale: string): { rtl: number; ltr: number } {
+        const values: string[] = [];
+        for (const namespace of [
+            "chrome",
+            "content",
+            "diagnostics",
+            "editor",
+        ]) {
+            const file = path.join(localesDir, locale, `${namespace}.ftl`);
+            if (!fs.existsSync(file)) {
+                continue;
+            }
+            for (const line of fs.readFileSync(file, "utf-8").split("\n")) {
+                if (line.trim().startsWith("#") || line.trim() === "") {
+                    continue;
+                }
+                const equals = line.indexOf("=");
+                if (equals < 0) {
+                    continue;
+                }
+                values.push(line.slice(equals + 1).replace(/\{[^}]*\}/g, ""));
+            }
+        }
+        const text = values.join("\n");
+        return {
+            rtl: (text.match(RTL_LETTERS) ?? []).length,
+            ltr: (text.match(LTR_LETTERS) ?? []).length,
+        };
+    }
+
+    it.each(SUPPORTED_LOCALES.map((info) => info.locale))(
+        "writes %s in a script matching the direction reported for it",
+        (locale) => {
+            const { rtl, ltr } = renderedLetters(locale);
+            expect(rtl + ltr).toBeGreaterThan(0);
+            expect(rtl > ltr ? "rtl" : "ltr").toBe(directionOf(locale));
+        },
+    );
+
+    /**
+     * Ladino, held explicitly, because it is the one catalog on the roster
+     * whose script disagrees with CLDR's guess and the reason
+     * `CATALOG_SCRIPTS` exists in `direction.ts`.
+     *
+     * `lad` maximizes to `lad-Hebr`: Judeo-Spanish was written in Hebrew
+     * letters for four centuries and CLDR records that. `locales/lad` is
+     * written in the Latin Aki Yerushalayim orthography, which is what a
+     * Ladino reader meets today. Without the override the viewer would lay a
+     * Latin catalog out right to left — the property above is what would have
+     * failed, and these three rows say why.
+     */
+    it("lays Ladino out left to right, against CLDR's likely script", () => {
+        expect(new Intl.Locale("lad").maximize().script).toBe("Hebr");
+        expect(directionOf("lad")).toBe("ltr");
+        // A host that names the historic script means it and gets it.
+        expect(directionOf("lad-Hebr")).toBe("rtl");
     });
 });

@@ -1746,21 +1746,35 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The near misses, and this batch's are the densest the roster has
-         * had, because Europe's regional languages sit in continua rather than
-         * on islands.
+         * The near misses, and this batch's were the densest the roster had,
+         * because Europe's regional languages sit in continua rather than on
+         * islands.
          *
-         * `bar` (Bavarian), `swg` (Swabian) and `wae` (Walser) are the
-         * neighbours of `gsw`; `wae` is spoken *inside Switzerland* and is
-         * still a language with a code of its own. `pfl` and `yec` sit beside
-         * `ksh` in and around the Rhineland. `stq` and `frr` are the
-         * Frisian languages beside `li`, and `vls` and `zea` the Low Franconian
-         * ones. `lmo`, `rgn`, `cim` and `mhn` are the Italian neighbours of
-         * `vec`, `lij`, `pms`, `nap` and `fur` — `cim` and `mhn` being Germanic
-         * languages spoken inside Italy, so neither the country's catalogs nor
-         * the family's is the right answer. `mwl`, `ext`, `an` and `wa` are
-         * Romance languages with no catalog here at all. `sgs` and `ltg` are
-         * the Baltic pair. `pdc` and `hrx` are German diaspora languages whose
+         * This list was seven entries longer before the second European batch,
+         * and how the seven left it is the point — the same lesson `kfy`,
+         * `mag` and `grt` taught when the second South Asian batch seeded
+         * them. `bar` was listed here as a neighbour of `gsw`, `frr` as a
+         * Frisian language beside `li`, `lmo` as an Italian neighbour of
+         * `vec`, `lij` and `pms`, and `mwl`, `ext`, `an` and `wa` as Romance
+         * languages with no catalog here at all. Every one of the seven now
+         * has a catalog of its own and is asserted against it in the batch
+         * below. Nothing about `MACROLANGUAGE_MEMBERS` changed to let them
+         * through: the way off this list is a directory, not an entry in the
+         * map.
+         *
+         * What is left is the same shape it always was. `swg` (Swabian) and
+         * `wae` (Walser) are the remaining neighbours of `gsw`; `wae` is
+         * spoken *inside Switzerland* and is still a language with a code of
+         * its own. `pfl` and `yec` sit beside `ksh` in and around the
+         * Rhineland. `stq` is the Frisian language still without a catalog,
+         * and `vls` and `zea` the Low Franconian ones. `rgn`, `cim` and `mhn`
+         * are Italian neighbours of `vec`, `lij`, `pms`, `nap` and `fur` —
+         * `cim` and `mhn` being Germanic languages spoken inside Italy, so
+         * neither the country's catalogs nor the family's is the right answer.
+         * `rgn` is the sharpest of them now that `egl` has a catalog: the two
+         * are the halves the widely-seen `eml` lumps together, and Romagnol
+         * still does not reach Emilian's directory. `sgs` and `ltg` are the
+         * Baltic pair. `pdc` and `hrx` are German diaspora languages whose
          * speakers are nowhere near any of these.
          *
          * Not one of them is folded, and none should be: the moment membership
@@ -1768,23 +1782,16 @@ describe("negotiateLocales", () => {
          * these maps is checkable any more.
          */
         it.each([
-            "bar",
             "swg",
             "wae",
             "pfl",
             "yec",
             "stq",
-            "frr",
             "vls",
             "zea",
-            "lmo",
             "rgn",
             "cim",
             "mhn",
-            "mwl",
-            "ext",
-            "an",
-            "wa",
             "sgs",
             "ltg",
             "pdc",
@@ -1838,6 +1845,14 @@ describe("negotiateLocales", () => {
          * it in any language. A tag ICU cannot place is the clearest possible
          * case for leaving it alone rather than guessing which of `lij`, `vec`
          * or `pms` its reader would rather have.
+         *
+         * The second European batch made this row *harder* rather than
+         * easier, which is why it is asserted again below from the other
+         * side. `locales/egl` now exists, and `eml` is the tag that lumps
+         * Emilian together with Romagnol — so there is now an obvious guess to
+         * make and it is still not made. `eml` covers two languages; a reader
+         * who typed it named both, and Emilian is not the answer to that any
+         * more than Romagnol is.
          */
         it("leaves Emilian-Romagnol alone, because CLDR has no opinion about it", () => {
             const maximized = new Intl.Locale("eml").maximize();
@@ -1845,6 +1860,169 @@ describe("negotiateLocales", () => {
             expect(maximized.script).toBeUndefined();
             expect(negotiateLocales([normalizeLocaleTag("eml")], available)) //
                 .toEqual(["en"]);
+        });
+    });
+
+    /**
+     * The second European batch. Fifteen more catalogs across the same
+     * continent, and like the first it **changes neither map** — but it is the
+     * first batch whose whole point, from the negotiation side, is the seven
+     * tags it takes *off* an existing test's near-miss list rather than
+     * anything it adds to a map.
+     *
+     * `bar`, `frr`, `lmo`, `mwl`, `ext`, `an` and `wa` were all written into
+     * the first European batch's near-miss list as neighbours the map declined
+     * to fold onto `gsw`, `li`, `vec` and the rest. Each now answers with its
+     * own catalog, and no entry in `MACROLANGUAGE_MEMBERS` or
+     * {@link LANGUAGE_ALIASES} moved to make that happen. That is the whole
+     * shape of the argument the near-miss lists exist to make: a language
+     * reaches a catalog by having one.
+     */
+    describe("the second European batch", () => {
+        const EUROPEAN_REGIONAL_2 = [
+            "an",
+            "ext",
+            "lad",
+            "mwl",
+            "wa",
+            "frp",
+            "nrf",
+            "lmo",
+            "egl",
+            "lld",
+            "kw",
+            "gv",
+            "bar",
+            "frr",
+            "rom",
+        ];
+
+        it.each<[string, string]>([
+            // Each of the fifteen arriving as the directory it names.
+            ...EUROPEAN_REGIONAL_2.map((locale): [string, string] => [
+                locale,
+                locale,
+            ]),
+            // The alpha-3 doors for the four with a 639-1 code, folded by
+            // `Intl.getCanonicalLocales` rather than by anything here.
+            ["cor", "kw"],
+            ["glv", "gv"],
+            ["wln", "wa"],
+            ["arg", "an"],
+            // `rmy` is the row worth reading. Vlax Romani is not an alias this
+            // repository wrote: ICU canonicalizes the member code onto the
+            // macrolanguage, so a host that asks for `rmy` has asked for `rom`
+            // before negotiation sees it. The catalog is named `rom` because
+            // that is the only name reachable, and its header says the written
+            // norm it uses is closest to Vlax — which is what makes the
+            // canonicalization a fair answer rather than a lucky one.
+            ["rmy", "rom"],
+            // Region tags, which filter without help.
+            ["kw-GB", "kw"],
+            ["gv-IM", "gv"],
+            ["wa-BE", "wa"],
+            ["an-ES", "an"],
+            ["ext-ES", "ext"],
+            ["mwl-PT", "mwl"],
+            ["lmo-IT", "lmo"],
+            ["egl-IT", "egl"],
+            ["lld-IT", "lld"],
+            ["bar-AT", "bar"],
+            ["bar-DE", "bar"],
+            ["frr-DE", "frr"],
+            ["rom-RO", "rom"],
+            // Arpitan and Norman are the two tags spread across states, and
+            // both reach the one catalog whichever state is named — `frp` from
+            // France, Switzerland and the Aosta Valley, `nrf` from Jersey and
+            // Guernsey. `locales/nrf` is written in Jèrriais and says so, so a
+            // Guernsey reader is served a neighbouring variety rather than
+            // their own; that is the `gsw-FR` trade, recorded rather than
+            // hidden.
+            ["frp-FR", "frp"],
+            ["frp-CH", "frp"],
+            ["frp-IT", "frp"],
+            ["nrf-JE", "nrf"],
+            ["nrf-GG", "nrf"],
+            // Script tags. All fifteen catalogs are Latin, so a `-Latn` is
+            // redundant rather than a disambiguation and has to cost nothing.
+            // `lad-Latn` is the one that is not redundant — see the block
+            // below — and `rom-Latn` names the script the Romani Union's
+            // standard alphabet uses, against the Cyrillic some varieties are
+            // printed in.
+            ["kw-Latn", "kw"],
+            ["lad-Latn", "lad"],
+            ["rom-Latn", "rom"],
+        ])("reaches %s's catalog as %s", (requested, expected) => {
+            expect(
+                negotiateLocales([normalizeLocaleTag(requested)], available),
+            ).toEqual([expected, "en"]);
+        });
+
+        /**
+         * The batch that changed no map, asserted as such — the same pair of
+         * halves the first European batch is held by.
+         */
+        it("folds none of the fifteen onto another catalog", () => {
+            for (const locale of EUROPEAN_REGIONAL_2) {
+                expect(negotiateLocales([locale], ["en"])).toEqual(["en"]);
+                expect(negotiateLocales([locale], available)).toEqual([
+                    locale,
+                    "en",
+                ]);
+            }
+        });
+
+        /**
+         * The seven this batch removed from the first European batch's
+         * near-miss list, asserted here against their own catalogs. The list
+         * they left is above, still fourteen entries long and still unfolded.
+         */
+        it.each(["bar", "frr", "lmo", "mwl", "ext", "an", "wa"])(
+            "answers %s from its own catalog, where it used to fall to English",
+            (locale) => {
+                expect(
+                    negotiateLocales([normalizeLocaleTag(locale)], available),
+                ).toEqual([locale, "en"]);
+            },
+        );
+
+        /**
+         * `rgn` is the near miss this batch sharpened, and it is left to miss.
+         *
+         * Romagnol and Emilian are the two halves of the `eml` tag, and only
+         * one of them now has a catalog. A Romagnol reader is closer to
+         * `locales/egl` than to anything else on the roster and still gets
+         * English, because "closer than anything else" is not membership —
+         * ISO puts `rgn` and `egl` beside each other rather than one inside
+         * the other, and there is no macrolanguage tag over the pair that
+         * anybody could type meaning Romagnol in particular.
+         */
+        it("leaves Romagnol on English rather than folding it onto Emilian", () => {
+            expect(negotiateLocales([normalizeLocaleTag("rgn")], available)) //
+                .toEqual(["en"]);
+        });
+
+        /**
+         * Ladino's script, which is the one place in this batch where CLDR's
+         * answer and this repository's catalog disagree.
+         *
+         * `lad` maximizes to `lad-Hebr`. Judeo-Spanish was written in Hebrew
+         * letters — square, Rashi and solitreo — for four centuries, so that
+         * is a true fact about the language and a stale one about its readers:
+         * `locales/lad` is written in the Latin Aki Yerushalayim orthography,
+         * which is what a Ladino reader meets today.
+         *
+         * Negotiation is unaffected — script subtags filter, and both `lad`
+         * and `lad-Latn` reach the catalog. What it *did* affect is direction,
+         * which `directionOf` had to be taught, and `direction.test.ts` holds
+         * that half.
+         */
+        it("serves the Latin Ladino catalog for a tag CLDR reads as Hebrew script", () => {
+            expect(new Intl.Locale("lad").maximize().script).toBe("Hebr");
+            expect(negotiateLocales([normalizeLocaleTag("lad")], available)) //
+                .toEqual(["lad", "en"]);
+            expect(negotiateLocales([normalizeLocaleTag("lad-IL")], available)) //
+                .toEqual(["lad", "en"]);
         });
     });
 });

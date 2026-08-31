@@ -15,6 +15,7 @@ export type SupportedLocale =
     | "ak"
     | "alt"
     | "am"
+    | "an"
     | "ar"
     | "arn"
     | "as"
@@ -26,6 +27,7 @@ export type SupportedLocale =
     | "ba"
     | "bal"
     | "ban"
+    | "bar"
     | "bbc"
     | "bci"
     | "be"
@@ -77,11 +79,13 @@ export type SupportedLocale =
     | "dz"
     | "ee"
     | "efi"
+    | "egl"
     | "el"
     | "es"
     | "et"
     | "eu"
     | "ewo"
+    | "ext"
     | "fa"
     | "ff"
     | "fi"
@@ -91,6 +95,8 @@ export type SupportedLocale =
     | "fo"
     | "fon"
     | "fr"
+    | "frp"
+    | "frr"
     | "fur"
     | "fy"
     | "ga"
@@ -108,6 +114,7 @@ export type SupportedLocale =
     | "grt"
     | "gsw"
     | "gu"
+    | "gv"
     | "ha"
     | "haw"
     | "haz"
@@ -166,13 +173,17 @@ export type SupportedLocale =
     | "ksw"
     | "ktu"
     | "kum"
+    | "kw"
     | "ky"
+    | "lad"
     | "lb"
     | "lbe"
     | "lez"
     | "lg"
     | "li"
     | "lij"
+    | "lld"
+    | "lmo"
     | "ln"
     | "lo"
     | "lom"
@@ -207,6 +218,7 @@ export type SupportedLocale =
     | "mrw"
     | "ms"
     | "mt"
+    | "mwl"
     | "mwr"
     | "my"
     | "myv"
@@ -222,6 +234,7 @@ export type SupportedLocale =
     | "nl"
     | "nn"
     | "nog"
+    | "nrf"
     | "nso"
     | "ny"
     | "nyn"
@@ -247,6 +260,7 @@ export type SupportedLocale =
     | "rm"
     | "rn"
     | "ro"
+    | "rom"
     | "ru"
     | "rue"
     | "rw"
@@ -323,6 +337,7 @@ export type SupportedLocale =
     | "vep"
     | "vi"
     | "vro"
+    | "wa"
     | "war"
     | "wbl"
     | "wls"
@@ -419,6 +434,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Amharic (አማርኛ)",
     },
     {
+        locale: "an",
+        englishName: "Aragonese",
+        endonym: "Aragonese",
+        label: "Aragonese",
+    },
+    {
         locale: "ar",
         englishName: "Arabic",
         endonym: "العربية",
@@ -473,6 +494,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Balinese",
         endonym: "Balinese",
         label: "Balinese",
+    },
+    {
+        locale: "bar",
+        englishName: "Bavarian",
+        endonym: "Bavarian",
+        label: "Bavarian",
     },
     {
         locale: "bbc",
@@ -746,6 +773,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "efi", englishName: "Efik", endonym: "Efik", label: "Efik" },
     {
+        locale: "egl",
+        englishName: "Emilian",
+        endonym: "Emilian",
+        label: "Emilian",
+    },
+    {
         locale: "el",
         englishName: "Greek",
         endonym: "Ελληνικά",
@@ -774,6 +807,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Ewondo",
         endonym: "ewondo",
         label: "Ewondo (ewondo)",
+    },
+    {
+        locale: "ext",
+        englishName: "Extremaduran",
+        endonym: "Extremaduran",
+        label: "Extremaduran",
     },
     {
         locale: "fa",
@@ -818,6 +857,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "French",
         endonym: "français",
         label: "French (français)",
+    },
+    {
+        locale: "frp",
+        englishName: "Arpitan",
+        endonym: "Arpitan",
+        label: "Arpitan",
+    },
+    {
+        locale: "frr",
+        englishName: "Northern Frisian",
+        endonym: "Northern Frisian",
+        label: "Northern Frisian",
     },
     {
         locale: "fur",
@@ -915,6 +966,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Gujarati",
         endonym: "ગુજરાતી",
         label: "Gujarati (ગુજરાતી)",
+    },
+    {
+        locale: "gv",
+        englishName: "Manx",
+        endonym: "Gaelg",
+        label: "Manx (Gaelg)",
     },
     { locale: "ha", englishName: "Hausa", endonym: "Hausa", label: "Hausa" },
     {
@@ -1215,10 +1272,22 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
     },
     { locale: "kum", englishName: "Kumyk", endonym: "Kumyk", label: "Kumyk" },
     {
+        locale: "kw",
+        englishName: "Cornish",
+        endonym: "kernewek",
+        label: "Cornish (kernewek)",
+    },
+    {
         locale: "ky",
         englishName: "Kyrgyz",
         endonym: "кыргызча",
         label: "Kyrgyz (кыргызча)",
+    },
+    {
+        locale: "lad",
+        englishName: "Ladino",
+        endonym: "Ladino",
+        label: "Ladino",
     },
     {
         locale: "lb",
@@ -1255,6 +1324,18 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Ligurian",
         endonym: "ligure",
         label: "Ligurian (ligure)",
+    },
+    {
+        locale: "lld",
+        englishName: "Ladin",
+        endonym: "ladin",
+        label: "Ladin (ladin)",
+    },
+    {
+        locale: "lmo",
+        englishName: "Lombard",
+        endonym: "Lombard",
+        label: "Lombard",
     },
     {
         locale: "ln",
@@ -1426,6 +1507,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Maltese (Malti)",
     },
     {
+        locale: "mwl",
+        englishName: "Mirandese",
+        endonym: "Mirandese",
+        label: "Mirandese",
+    },
+    {
         locale: "mwr",
         englishName: "Marwari",
         endonym: "Marwari",
@@ -1500,6 +1587,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Norwegian Nynorsk (norsk nynorsk)",
     },
     { locale: "nog", englishName: "Nogai", endonym: "Nogai", label: "Nogai" },
+    {
+        locale: "nrf",
+        englishName: "Norman",
+        endonym: "Nouormand",
+        label: "Norman (Nouormand)",
+    },
     {
         locale: "nso",
         englishName: "Northern Sotho",
@@ -1639,6 +1732,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Romanian",
         endonym: "română",
         label: "Romanian (română)",
+    },
+    {
+        locale: "rom",
+        englishName: "Romany",
+        endonym: "Romany",
+        label: "Romany",
     },
     {
         locale: "ru",
@@ -2021,6 +2120,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         label: "Vietnamese (Tiếng Việt)",
     },
     { locale: "vro", englishName: "Võro", endonym: "Võro", label: "Võro" },
+    {
+        locale: "wa",
+        englishName: "Walloon",
+        endonym: "Walloon",
+        label: "Walloon",
+    },
     { locale: "war", englishName: "Waray", endonym: "Waray", label: "Waray" },
     {
         locale: "wbl",
