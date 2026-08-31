@@ -43,10 +43,11 @@
 # keeps the English identifier and describes around it.
 #
 # **Counts.** CLDR gives `xog` its own plural data, with `one` and `other`.
-# Lusoga marks number with a class prefix — «engeri» one attribute,
-# «engeri» several but with a different concord on the verb; «omuwendo» one
-# value, «emiwendo» several — so both branches of every select differ in more
-# than a suffix. `field-function-wrong-num-outputs` keeps the English `[one]`,
+# Lusoga marks number with a class prefix — «ekitundu» one component,
+# «ebitundu» several; «omuwendo» one value, «emiwendo» several — so both
+# branches of every select in this file differ in more than a suffix. Not
+# every noun does: «engeri», an attribute, is class 9/10 and is spelt the
+# same in both numbers, marking number only on what agrees with it. `field-function-wrong-num-outputs` keeps the English `[one]`,
 # since `xog` really can select it.
 #
 # **Weakest here.** «okuserengeta» for *slope* and «enjawulo» for *contrast*

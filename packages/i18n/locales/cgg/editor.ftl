@@ -16,7 +16,9 @@
 # **What is Rukiga here.** The panel's own frame: «Tihariho …» for *no X
 # found*, «Kanda …» for *click to …*, «Manya …» for *learn about*,
 # «nikyoreka» for *is a reference to*, «ekiranga» for an attribute,
-# «ekigyendererwa» for a value, «omuringo» for a variant and for a type,
+# «omuhendo» for a value — the word `diagnostics.ftl` uses, not
+# «ekigyendererwa», which this catalog spends on *objectives* in
+# `content.ftl` — «omuringo» for a variant and for a type,
 # «eibara» for a name — the Kigezi word, where Runyankore says «eiziina».
 #
 # **What is borrowed.** English, openly and only where the word is what a
@@ -208,11 +210,11 @@ help-style-number-annotation = { " " }(styleNumber { $styleNumber })
 
 help-allowed-values =
     { $perItem ->
-        [true] Ebigyendererwa ebikirizibwe (aha buri kintu):
-       *[other] Ebigyendererwa ebikirizibwe:
+        [true] Emihendo ekirizibwe (aha buri kintu):
+       *[other] Emihendo ekirizibwe:
     }
 
-help-suggested-values = Ebigyendererwa ebiteereireho:
+help-suggested-values = Emihendo eteereireho:
 
 help-inserts = Nikitaho:
 

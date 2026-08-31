@@ -21,9 +21,14 @@
 #
 # **What is borrowed.** English, openly and only where the word is what a
 # Ugandan classroom says: «fonkisoni», «lipoota», «tagi». The two counted
-# selects below use ordinary Lusoga nouns («ekizibu» / «ebizibu»,
-# «okuteesa») rather than a loan for *violation*, so that the plural has
-# something to work on.
+# selects below use ordinary Lusoga nouns rather than a loan for *violation*.
+# Only one of the two inflects: «ekizibu» / «ebizibu» changes its class
+# prefix, so `[one]` and `[other]` differ, while «okuteesa» is a class-15
+# verbal noun with no distinct plural, so both branches of that select are
+# the same string. That is deliberate rather than an oversight — the
+# alternative was coining a countable noun for *suggestion* — but a reviewer
+# who knows a countable Lusoga word for it should put it in and let the two
+# branches part.
 #
 # **Weakest here.** «erinnya» for a name is the Luganda word and may be a
 # Luganda intrusion; it is used in `chrome.ftl` too and should be corrected in

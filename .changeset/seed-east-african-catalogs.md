@@ -33,9 +33,11 @@ render the dash pattern as an associative phrase — «na tucweka», «n'obutund
 — which cannot sit between two adjectives, so both read width, colour, then
 pattern.
 
-CLDR has plural rules for both, and both branches do visible work: number is
-marked by the class prefix rather than by a suffix, so «ekirikuruga» and
-«ebirikuruga» differ at the front of the word.
+CLDR has plural rules for both, and the class prefix does the marking rather
+than a suffix, so «ekirikuruga» and «ebirikuruga» differ at the front of the
+word rather than the end. Where the counted noun is one that does not inflect
+— a Lusoga class-15 verbal noun — the two branches are the same string and the
+header says so rather than coining a countable noun to hide it.
 
 This batch was assembled as **fifteen** languages of Kenya, Uganda and
 Tanzania and thirteen were left out rather than shipped: Kamba, Gusii,
