@@ -1007,28 +1007,28 @@ export const LOCALE_NAME_FALLBACKS: Record<
     // written in — Devanagari for the three Indo-Aryan tags of the Hindi belt
     // and Uttarakhand, the Bengali script for Sylheti, the Perso-Arabic
     // alphabet for Saraiki, and the Latin orthography Garo is printed in, whose
-    // raised dot is the letter `\u00b7` the orthography uses rather than a
+    // raised dot is the letter `·` (U+00B7) the orthography uses rather than a
     // period.
     hne: {
         englishName: "Chhattisgarhi",
-        endonym: "\u091b\u0924\u094d\u0924\u0940\u0938\u0917\u0922\u093c\u0940",
+        endonym: "छत्तीसगढ़ी",
     },
     gbm: {
         englishName: "Garhwali",
-        endonym: "\u0917\u0922\u093c\u0935\u093e\u0932\u0940",
+        endonym: "गढ़वाली",
     },
     kfy: {
         englishName: "Kumaoni",
-        endonym: "\u0915\u0941\u092e\u093e\u0909\u0901\u0928\u0940",
+        endonym: "कुमाउँनी",
     },
     syl: {
         englishName: "Sylheti",
-        endonym: "\u09b8\u09bf\u09b2\u09c7\u099f\u09bf",
+        endonym: "সিলেটি",
     },
-    grt: { englishName: "Garo", endonym: "A\u00b7chik" },
+    grt: { englishName: "Garo", endonym: "A·chik" },
     skr: {
         englishName: "Saraiki",
-        endonym: "\u0633\u0631\u0627\u0626\u06cc\u06a9\u06cc",
+        endonym: "سرائیکی",
     },
 };
 

@@ -186,6 +186,24 @@ const ES = { es: esChrome };
  */
 const FIL = { fil: `${filChrome}\n${filEditor}` };
 
+/**
+ * A catalog's message bodies with its comment lines dropped. Every batch's
+ * plural-category block needs this: several headers discuss `[one]` and the
+ * other categories in prose, so a search for a branch over the raw file would
+ * match the header rather than a message.
+ */
+const branches = (catalog: string) =>
+    catalog
+        .split("\n")
+        .filter((line) => !line.trimStart().startsWith("#"))
+        .join("\n");
+
+/**
+ * One catalog as a row of a batch table: its tag, its `chrome.ftl` and its
+ * `diagnostics.ftl`, since a batch's count selects are split across the two.
+ */
+type Row = [string, string, string];
+
 describe("createChromeTranslator", () => {
     it("answers in English for the default locale", () => {
         const t = createChromeTranslator("en");
@@ -433,12 +451,6 @@ describe("EN_CHROME_TRANSLATOR", () => {
  */
 describe("the Sami plural categories", () => {
     /** Comment lines dropped: the headers discuss `[two]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
     it.each([
         ["sma", smaChrome],
         ["smj", smjChrome],
@@ -589,12 +601,6 @@ describe("the Oceania batch's plural categories", () => {
  */
 describe("the European regional batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss the categories in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
     /** The eight CLDR has rules for. */
     const WITH_RULES: [string, string][] = [
         ["nn", nnChrome],
@@ -759,17 +765,9 @@ describe("the European regional batch's plural categories", () => {
  */
 describe("the Silk Road batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
     const both = ([, chrome, diagnostics]: Row) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
-
-    type Row = [string, string, string];
 
     /** The fourteen with no CLDR rules of their own. */
     const NO_RULES: Row[] = [
@@ -991,14 +989,6 @@ describe("the Silk Road batch's plural categories", () => {
  */
 describe("the Americas batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
-    type Row = [string, string, string];
-
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
     const both = ([, chrome, diagnostics]: Row) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
@@ -1152,14 +1142,6 @@ describe("the Americas batch's plural categories", () => {
 
 describe("the Southeast Asian batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
-    type Row = [string, string, string];
-
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
     const both = (chrome: string, diagnostics: string) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
@@ -1266,14 +1248,6 @@ describe("the Southeast Asian batch's plural categories", () => {
 
 describe("the second South Asian batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
-    type Row = [string, string, string];
-
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
     const both = (chrome: string, diagnostics: string) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
