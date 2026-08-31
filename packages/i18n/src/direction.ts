@@ -76,6 +76,7 @@ const RTL_LANGUAGES = new Set([
     "bal", // Balochi
     "bcc", // Southern Balochi
     "bqi", // Bakhtiari
+    "brh", // Brahui
     "ckb", // Central Kurdish
     "dv", // Divehi
     "fa", // Persian
@@ -93,6 +94,7 @@ const RTL_LANGUAGES = new Set([
     "prs", // Dari
     "ps", // Pashto
     "sd", // Sindhi
+    "skr", // Saraiki
     "ug", // Uyghur
     "ur", // Urdu
     "yi", // Yiddish

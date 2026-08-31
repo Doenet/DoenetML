@@ -569,6 +569,11 @@ describe("negotiateLocales", () => {
             ["bo-CN", "bo"],
             ["dz-BT", "dz"],
             ["dv-MV", "dv"],
+            // The three tags this batch answers directly, each of which the
+            // block below used to assert fell to English.
+            ["kfy", "kfy"],
+            ["mag", "mag"],
+            ["grt", "grt"],
         ])("reaches %s's catalog as %s", (requested, expected) => {
             expect(
                 negotiateLocales([normalizeLocaleTag(requested)], available),
@@ -576,15 +581,21 @@ describe("negotiateLocales", () => {
         });
 
         /**
-         * The near misses. `kfy` (Kumaoni) and `mag` (Magahi) are Indo-Aryan
-         * neighbours of `mai` and `bho` that belong to no macrolanguage with a
-         * catalog; `hoc` (Ho) is Munda like Santali and is not a member of
-         * `sat`; `njz` (Nyishi) and `grt` (Garo) are Tibeto-Burman like Bodo
-         * and are not members of `brx`. All fall to English, which is the
-         * membership rule working rather than a gap in it — the moment
-         * "sounds close to" decides the map, nothing in it is checkable.
+         * The near misses. `hoc` (Ho) is Munda like Santali and is not a member
+         * of `sat`; `njz` (Nyishi) is Tibeto-Burman like Bodo and is not a
+         * member of `brx`. Both fall to English, which is the membership rule
+         * working rather than a gap in it — the moment "sounds close to"
+         * decides the map, nothing in it is checkable.
+         *
+         * This list was three entries longer before the second South Asian
+         * batch, and how the three left it is the point. `kfy` (Kumaoni),
+         * `mag` (Magahi) and `grt` (Garo) were listed here as neighbours of
+         * `mai`, `bho` and `brx` that the map declined to fold onto them; each
+         * now has a catalog of its own and is asserted against it just above.
+         * Nothing about `MACROLANGUAGE_MEMBERS` changed to let them through —
+         * the way off this list is a directory, not an entry in the map.
          */
-        it.each(["kfy", "mag", "hoc", "njz", "grt"])(
+        it.each(["hoc", "njz"])(
             "leaves %s on English rather than folding it onto a neighbour",
             (requested) => {
                 expect(

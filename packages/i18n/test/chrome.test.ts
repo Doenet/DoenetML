@@ -85,6 +85,37 @@ import mnwChrome from "../locales/mnw/chrome.ftl?raw";
 import mnwDiagnostics from "../locales/mnw/diagnostics.ftl?raw";
 import kswChrome from "../locales/ksw/chrome.ftl?raw";
 import kswDiagnostics from "../locales/ksw/diagnostics.ftl?raw";
+// The second South Asian batch, both files, for the same reason.
+import awaChrome from "../locales/awa/chrome.ftl?raw";
+import awaDiagnostics from "../locales/awa/diagnostics.ftl?raw";
+import hneChrome from "../locales/hne/chrome.ftl?raw";
+import hneDiagnostics from "../locales/hne/diagnostics.ftl?raw";
+import magChrome from "../locales/mag/chrome.ftl?raw";
+import magDiagnostics from "../locales/mag/diagnostics.ftl?raw";
+import mwrChrome from "../locales/mwr/chrome.ftl?raw";
+import mwrDiagnostics from "../locales/mwr/diagnostics.ftl?raw";
+import gbmChrome from "../locales/gbm/chrome.ftl?raw";
+import gbmDiagnostics from "../locales/gbm/diagnostics.ftl?raw";
+import kfyChrome from "../locales/kfy/chrome.ftl?raw";
+import kfyDiagnostics from "../locales/kfy/diagnostics.ftl?raw";
+import newChrome from "../locales/new/chrome.ftl?raw";
+import newDiagnostics from "../locales/new/diagnostics.ftl?raw";
+import sylChrome from "../locales/syl/chrome.ftl?raw";
+import sylDiagnostics from "../locales/syl/diagnostics.ftl?raw";
+import tcyChrome from "../locales/tcy/chrome.ftl?raw";
+import tcyDiagnostics from "../locales/tcy/diagnostics.ftl?raw";
+import lusChrome from "../locales/lus/chrome.ftl?raw";
+import lusDiagnostics from "../locales/lus/diagnostics.ftl?raw";
+import khaChrome from "../locales/kha/chrome.ftl?raw";
+import khaDiagnostics from "../locales/kha/diagnostics.ftl?raw";
+import grtChrome from "../locales/grt/chrome.ftl?raw";
+import grtDiagnostics from "../locales/grt/diagnostics.ftl?raw";
+import skrChrome from "../locales/skr/chrome.ftl?raw";
+import skrDiagnostics from "../locales/skr/diagnostics.ftl?raw";
+import brhChrome from "../locales/brh/chrome.ftl?raw";
+import brhDiagnostics from "../locales/brh/diagnostics.ftl?raw";
+import hifChrome from "../locales/hif/chrome.ftl?raw";
+import hifDiagnostics from "../locales/hif/diagnostics.ftl?raw";
 // The Americas batch, both files for the same reason as the Silk Road's:
 // each catalog's count selects are split between `chrome.ftl` and
 // `diagnostics.ftl`, so where a category branch falls is only checkable
@@ -154,6 +185,24 @@ const ES = { es: esChrome };
  * joins them, because the pair of messages that shows it lives in both.
  */
 const FIL = { fil: `${filChrome}\n${filEditor}` };
+
+/**
+ * A catalog's message bodies with its comment lines dropped. Every batch's
+ * plural-category block needs this: several headers discuss `[one]` and the
+ * other categories in prose, so a search for a branch over the raw file would
+ * match the header rather than a message.
+ */
+const branches = (catalog: string) =>
+    catalog
+        .split("\n")
+        .filter((line) => !line.trimStart().startsWith("#"))
+        .join("\n");
+
+/**
+ * One catalog as a row of a batch table: its tag, its `chrome.ftl` and its
+ * `diagnostics.ftl`, since a batch's count selects are split across the two.
+ */
+type Row = [string, string, string];
 
 describe("createChromeTranslator", () => {
     it("answers in English for the default locale", () => {
@@ -402,12 +451,6 @@ describe("EN_CHROME_TRANSLATOR", () => {
  */
 describe("the Sami plural categories", () => {
     /** Comment lines dropped: the headers discuss `[two]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
     it.each([
         ["sma", smaChrome],
         ["smj", smjChrome],
@@ -558,12 +601,6 @@ describe("the Oceania batch's plural categories", () => {
  */
 describe("the European regional batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss the categories in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
     /** The eight CLDR has rules for. */
     const WITH_RULES: [string, string][] = [
         ["nn", nnChrome],
@@ -728,17 +765,9 @@ describe("the European regional batch's plural categories", () => {
  */
 describe("the Silk Road batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
     const both = ([, chrome, diagnostics]: Row) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
-
-    type Row = [string, string, string];
 
     /** The fourteen with no CLDR rules of their own. */
     const NO_RULES: Row[] = [
@@ -960,14 +989,6 @@ describe("the Silk Road batch's plural categories", () => {
  */
 describe("the Americas batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
-    type Row = [string, string, string];
-
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
     const both = ([, chrome, diagnostics]: Row) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
@@ -1121,14 +1142,6 @@ describe("the Americas batch's plural categories", () => {
 
 describe("the Southeast Asian batch's plural categories", () => {
     /** Comment lines dropped: several headers discuss `[one]` in prose. */
-    const branches = (catalog: string) =>
-        catalog
-            .split("\n")
-            .filter((line) => !line.trimStart().startsWith("#"))
-            .join("\n");
-
-    type Row = [string, string, string];
-
     /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
     const both = (chrome: string, diagnostics: string) =>
         `${branches(chrome)}\n${branches(diagnostics)}`;
@@ -1230,5 +1243,97 @@ describe("the Southeast Asian batch's plural categories", () => {
         expect(t("attempts-remaining", { count: 0 })).not.toBe(
             t("attempts-remaining", { count: 3 }),
         );
+    });
+});
+
+describe("the second South Asian batch's plural categories", () => {
+    /** Comment lines dropped: several headers discuss `[one]` in prose. */
+    /** `chrome.ftl` and `diagnostics.ftl` of one catalog, comments dropped. */
+    const both = (chrome: string, diagnostics: string) =>
+        `${branches(chrome)}\n${branches(diagnostics)}`;
+
+    /**
+     * All fifteen. CLDR has plural data for none of them — which is the same
+     * finding the Southeast Asian batch reported, arriving for a region where
+     * it is much less expected: nine of these fifteen are Indo-Aryan, and
+     * `hi`, `bn`, `ur`, `mr` and `ne` beside them all have rules of their own.
+     * A tag's plural data follows whether a CLDR locale was ever requested for
+     * it, not whether its language marks number — and every one of these
+     * fifteen marks it.
+     */
+    const SOUTH_ASIA: Row[] = [
+        ["awa", awaChrome, awaDiagnostics],
+        ["hne", hneChrome, hneDiagnostics],
+        ["mag", magChrome, magDiagnostics],
+        ["mwr", mwrChrome, mwrDiagnostics],
+        ["gbm", gbmChrome, gbmDiagnostics],
+        ["kfy", kfyChrome, kfyDiagnostics],
+        ["new", newChrome, newDiagnostics],
+        ["syl", sylChrome, sylDiagnostics],
+        ["tcy", tcyChrome, tcyDiagnostics],
+        ["lus", lusChrome, lusDiagnostics],
+        ["kha", khaChrome, khaDiagnostics],
+        ["grt", grtChrome, grtDiagnostics],
+        ["skr", skrChrome, skrDiagnostics],
+        ["brh", brhChrome, brhDiagnostics],
+        ["hif", hifChrome, hifDiagnostics],
+    ];
+
+    it.each(SOUTH_ASIA)(
+        "resolves %s against some other language's rules",
+        (locale) => {
+            // CLDR has no rules for the tag, so the categories on offer belong
+            // to the runtime's default locale rather than to the language.
+            expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+                .not.toBe(locale);
+        },
+    );
+
+    /**
+     * So no catalog writes a category branch. Here that restraint costs
+     * something the Southeast Asian batch's did not: these languages *do*
+     * inflect a noun after a numeral, and their catalogs still cannot fork on
+     * one, because the branch would be selected by whatever rules the runtime
+     * fell back to rather than by the language's own.
+     */
+    it.each(SOUTH_ASIA)(
+        "gives %s no plural category branch anywhere",
+        (_locale, chrome, diagnostics) => {
+            const text = both(chrome, diagnostics);
+            for (const category of ["zero", "one", "two", "few", "many"]) {
+                expect(text).not.toContain(`[${category}]`);
+            }
+        },
+    );
+
+    /**
+     * The other half: all fifteen keep a fork in
+     * `field-function-wrong-num-outputs`, in the one shape a locale with no
+     * plural rules can carry. English selects `$expected` on the *category*
+     * `[one]` (`locales/en/diagnostics.ftl`); each of the fifteen writes the
+     * numeric literal `[1]` in its place, which Fluent matches against the
+     * number itself rather than against a category. So the branch survives
+     * the batch's missing CLDR data instead of being collapsed away with the
+     * category forks the test above rules out.
+     */
+    it.each(SOUTH_ASIA)(
+        "keeps %s's numeric literal, which no plural rule selects",
+        (_locale, _chrome, diagnostics) => {
+            const message = branches(diagnostics)
+                .split("\nfield-function-wrong-num-outputs =")[1]
+                ?.split(/\n(?=\S)/)[0];
+            expect(message).toBeDefined();
+            expect(message).toContain("[1]");
+        },
+    );
+
+    /** And the counts still render, in Latin digits in all five scripts. */
+    it.each(SOUTH_ASIA)("still renders %s's counts", (locale, chrome) => {
+        const t = createChromeTranslator(locale, { [locale]: chrome });
+        for (const count of [1, 2, 5]) {
+            expect(
+                stripBidiIsolates(t("attempts-remaining", { count })),
+            ).toContain(String(count));
+        }
     });
 });

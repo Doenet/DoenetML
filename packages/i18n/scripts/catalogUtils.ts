@@ -995,6 +995,41 @@ export const LOCALE_NAME_FALLBACKS: Record<
     mnw: { englishName: "Mon", endonym: "ဘာသာမန်" },
     ksw: { englishName: "S'gaw Karen", endonym: "ကညီကျိာ်" },
     cbk: { englishName: "Chavacano" },
+    // The six locales of the South Asian batch CLDR has no data for. ICU names
+    // `awa`, `mag`, `mwr`, `new`, `tcy`, `lus`, `kha`, `brh` and `hif` — nine
+    // of the fifteen — and stops at the six below. The split follows nothing
+    // about the languages themselves: Chhattisgarhi has more speakers than
+    // several tags ICU does name, and Garhwali, Kumaoni and Sylheti each have
+    // millions. What they share is that no CLDR locale was ever requested for
+    // them.
+    //
+    // Each gets an endonym as well, written in the script its own catalog is
+    // written in — Devanagari for the three Indo-Aryan tags of the Hindi belt
+    // and Uttarakhand, the Bengali script for Sylheti, the Perso-Arabic
+    // alphabet for Saraiki, and the Latin orthography Garo is printed in, whose
+    // raised dot is the letter `·` (U+00B7) the orthography uses rather than a
+    // period.
+    hne: {
+        englishName: "Chhattisgarhi",
+        endonym: "छत्तीसगढ़ी",
+    },
+    gbm: {
+        englishName: "Garhwali",
+        endonym: "गढ़वाली",
+    },
+    kfy: {
+        englishName: "Kumaoni",
+        endonym: "कुमाउँनी",
+    },
+    syl: {
+        englishName: "Sylheti",
+        endonym: "সিলেটি",
+    },
+    grt: { englishName: "Garo", endonym: "A·chik" },
+    skr: {
+        englishName: "Saraiki",
+        endonym: "سرائیکی",
+    },
 };
 
 /**

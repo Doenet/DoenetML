@@ -68,48 +68,50 @@ locales/<locale>/
 
 English is the source of truth. Every translation —
 `ab`, `ace`, `acf`, `ady`, `af`, `ak`, `alt`, `am`, `ar`, `arn`, `as`,
-`ast`, `av`, `ay`, `az`, `ba`, `bal`, `ban`, `bbc`, `bci`, `be`, `bem`,
-`bg`, `bho`, `bi`, `bik`, `bin`, `bjn`, `bm`, `bn`, `bo`, `br`, `brx`,
-`bs`, `bua`, `bug`, `bum`, `bzj`, `ca`, `cab`, `cbk`, `ce`, `ceb`,
-`ch`, `chk`, `ckb`, `co`, `crh`, `cs`, `csb`, `cv`, `cy`, `da`, `dag`,
-`dar`, `de`, `dje`, `djk`, `dng`, `doi`, `dsb`, `dtp`, `dv`, `dyo`,
-`dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`, `fa`, `ff`,
-`fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `fur`, `fy`, `ga`, `gaa`,
-`gag`, `gcf`, `gcr`, `gd`, `gil`, `gl`, `glk`, `gn`, `gor`, `gsw`,
-`gu`, `ha`, `haw`, `haz`, `he`, `hi`, `hil`, `hnj`, `hr`, `hsb`, `ht`,
-`hu`, `hy`, `iba`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`, `ja`,
-`jam`, `jv`, `ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`, `kg`,
+`ast`, `av`, `awa`, `ay`, `az`, `ba`, `bal`, `ban`, `bbc`, `bci`,
+`be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`, `bjn`, `bm`, `bn`, `bo`,
+`br`, `brh`, `brx`, `bs`, `bua`, `bug`, `bum`, `bzj`, `ca`, `cab`,
+`cbk`, `ce`, `ceb`, `ch`, `chk`, `ckb`, `co`, `crh`, `cs`, `csb`,
+`cv`, `cy`, `da`, `dag`, `dar`, `de`, `dje`, `djk`, `dng`, `doi`,
+`dsb`, `dtp`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`,
+`eu`, `ewo`, `fa`, `ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`,
+`fur`, `fy`, `ga`, `gaa`, `gag`, `gbm`, `gcf`, `gcr`, `gd`, `gil`,
+`gl`, `glk`, `gn`, `gor`, `grt`, `gsw`, `gu`, `ha`, `haw`, `haz`,
+`he`, `hi`, `hif`, `hil`, `hne`, `hnj`, `hr`, `hsb`, `ht`, `hu`, `hy`,
+`iba`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`, `ja`, `jam`, `jv`,
+`ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`, `kfy`, `kg`, `kha`,
 `ki`, `kjh`, `kk`, `kl`, `km`, `kmb`, `kmr`, `kn`, `ko`, `koi`, `kok`,
 `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`, `krl`, `ks`, `ksh`, `ksw`,
 `ktu`, `kum`, `ky`, `lb`, `lbe`, `lez`, `lg`, `li`, `lij`, `ln`, `lo`,
-`lom`, `lrc`, `lt`, `lua`, `luo`, `lv`, `mad`, `mai`, `mak`, `mdf`,
-`men`, `mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`, `ml`, `mn`, `mni`,
-`mnk`, `mns`, `mnw`, `mos`, `mr`, `mrj`, `mrw`, `ms`, `mt`, `my`,
-`myv`, `mzn`, `nah`, `nap`, `nb`, `nds`, `ne`, `nia`, `niu`, `nl`,
-`nn`, `nog`, `nso`, `ny`, `nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`,
-`pa`, `pag`, `pam`, `pap`, `pcm`, `pl`, `pms`, `pon`, `ps`, `pt`, `qu`,
-`quc`, `rar`, `rm`, `rn`, `ro`, `ru`, `rue`, `rw`, `sa`, `sah`, `sat`,
-`sc`, `scn`, `sco`, `sd`, `se`, `sg`, `sgh`, `shi`, `shn`, `si`, `sjd`,
-`sk`, `sl`, `sm`, `sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`,
-`srm`, `srn`, `ss`, `st`, `su`, `sus`, `sv`, `sw`, `szl`, `ta`, `tab`,
-`te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`,
-`tn`, `to`, `tpi`, `tr`, `ts`, `tsg`, `tt`, `ttt`, `tvl`, `ty`, `tyv`,
-`udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`,
-`vro`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `yi`, `yo`, `yua`,
-`zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
+`lom`, `lrc`, `lt`, `lua`, `luo`, `lus`, `lv`, `mad`, `mag`, `mai`,
+`mak`, `mdf`, `men`, `mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`,
+`ml`, `mn`, `mni`, `mnk`, `mns`, `mnw`, `mos`, `mr`, `mrj`, `mrw`,
+`ms`, `mt`, `mwr`, `my`, `myv`, `mzn`, `nah`, `nap`, `nb`, `nds`,
+`ne`, `new`, `nia`, `niu`, `nl`, `nn`, `nog`, `nso`, `ny`, `nyn`,
+`oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pag`, `pam`, `pap`, `pcm`,
+`pl`, `pms`, `pon`, `ps`, `pt`, `qu`, `quc`, `rar`, `rm`, `rn`, `ro`,
+`ru`, `rue`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sco`, `sd`, `se`,
+`sg`, `sgh`, `shi`, `shn`, `si`, `sjd`, `sk`, `skr`, `sl`, `sm`,
+`sma`, `smj`, `smn`, `sms`, `sn`, `so`, `sq`, `sr`, `srm`, `srn`,
+`ss`, `st`, `su`, `sus`, `sv`, `sw`, `syl`, `szl`, `ta`, `tab`, `tcy`,
+`te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`,
+`tly`, `tn`, `to`, `tpi`, `tr`, `ts`, `tsg`, `tt`, `ttt`, `tvl`, `ty`,
+`tyv`, `udm`, `ug`, `uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`,
+`vep`, `vi`, `vro`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `yi`,
+`yo`, `yua`, `zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
 — is an **unreviewed machine-generated seed**, which each file's own
 header says at the top, and which is what #1521's translation platform is for.
 None has been read by a speaker. Correcting one needs no permission and no
 coordination: a wrong string is just wrong, and the English is one key away.
 
-Two hundred and thirty-eight of them are deliberately partial. Two hundred
-and thirty-six are partial in the same place — the two chemistry tables —
+Two hundred and fifty-three of them are deliberately partial. Two hundred
+and fifty-one are partial in the same place — the two chemistry tables —
 while two are partial more widely, each for its own reason: Klingon almost
 everywhere, for the reason in
 [A language with no word for it](#a-language-with-no-word-for-it), and
 Inuktitut over the geometry nouns as well, for the reason in
 [Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws).
-The two hundred and thirty-six are: Somali, Hmong Njua, Amharic, Assamese,
+The two hundred and fifty-one are: Somali, Hmong Njua, Amharic, Assamese,
 Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
 Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
@@ -139,8 +141,9 @@ Shughni, Dungan, Wakhi, Kalaallisut, Yucatec Maya, Qʼeqchiʼ, Garifuna,
 Mískito, Papiamentu, Sranan Tongo, Jamaican Creole, Guadeloupean Creole
 French, Saint Lucian Creole French, Guianese Creole French, Belize Kriol,
 Aukan, Saramaccan, Buginese, Makasar, Banjar, Gorontalo, Nias, Batak Toba,
-Iban, Central Dusun, Pangasinan, Chavacano, Tausug, Maranao, Shan, Mon and
-S'gaw Karen
+Iban, Central Dusun, Pangasinan, Chavacano, Tausug, Maranao, Shan, Mon,
+S'gaw Karen, Awadhi, Chhattisgarhi, Magahi, Marwari, Garhwali, Kumaoni,
+Newari, Sylheti, Tulu, Mizo, Khasi, Garo, Saraiki, Brahui and Fiji Hindi
 leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
@@ -397,6 +400,31 @@ English or Thai, and choosing either would hide the split. Four school systems, 
 a language among them; see [Fifteen languages of Southeast
 Asia](#fifteen-languages-of-southeast-asia-and-the-batch-whose-word-order-follows-a-border)
 for what does divide the batch.
+
+**All fifteen of the second South Asian batch are partial as well, and they
+split two ways rather than the first South Asian batch's five.** Thirteen are
+the school-system case in five mediums: chemistry is taught in Hindi across the
+Hindi belt and Uttarakhand, so `awa`, `hne`, `mag`, `gbm` and `kfy` meet the
+table in the language `locales/hi` carries it in; in Nepali in the Kathmandu
+Valley for `new`; in Bengali in Sylhet for `syl`, which is the
+one of the fifteen whose fallback language is a catalog on this roster that
+*does* carry the names, `locales/bn`; in English across Meghalaya and Mizoram
+for `kha`, `grt` and `lus`; in Urdu in southern Punjab and Balochistan for
+`skr` and `brh`; and in English in Fiji for `hif`.
+
+`tcy` is the fourteenth and the one that is nobody's case above: Tulu-medium
+schooling stops below the grades where the periodic table appears, so a Tulu
+pupil meets it in Kannada — and `locales/kn` omits the tables too, for the
+Kannada reason of having two nomenclatures and no way to pick. So the neighbour
+a Tulu reader would be sent to does not carry the list either, and English falls
+through to a reader whose curriculum is in neither language. `syl` is the
+contrast inside the same batch: its neighbour `locales/bn` does carry it.
+
+The fifteenth is `mwr`, the school-system case with a second reason on top of
+it and the only entry here that is also a claim about a language: Rajasthan
+teaches chemistry in Hindi, and Marwari has no settled list of all 118 to seed
+from in any case. Each catalog's header says which of the three cases it is
+in.
 
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
@@ -3460,6 +3488,217 @@ everything around the table.
 
 Every string in all fifteen is machine-generated and unread by a speaker, and
 each file says so at the top. Correcting any of it needs no permission.
+
+### Fifteen catalogs of South Asia, and the batch that is mostly frame
+
+The roster goes from 316 locales to 331: Awadhi (`awa`), Chhattisgarhi
+(`hne`), Magahi (`mag`), Marwari (`mwr`), Garhwali (`gbm`) and Kumaoni
+(`kfy`) — six Indo-Aryan languages of the Hindi belt, Rajasthan and
+Uttarakhand; Newar (`new`) and Sylheti (`syl`) — Nepal and northeastern
+Bangladesh; Tulu (`tcy`) — Dravidian, coastal Karnataka; Mizo (`lus`), Khasi
+(`kha`) and Garo (`grt`) — three languages of Northeast India in three
+families; Saraiki (`skr`) and Brahui (`brh`) — Pakistan, one Indo-Aryan and
+one Dravidian; and Fiji Hindi (`hif`), the batch's one diaspora language.
+
+Like the Southeast Asian batch it is assembled around a region, and like it
+every one of the fifteen sits at **445/575 keys**, the whole catalog minus the
+two chemistry tables. Three properties are worth reading off it, and the first
+one is uncomfortable.
+
+#### Most of what these files translate is the frame, and the headers say so
+
+Nine of the fifteen are Indo-Aryan languages with no medium of secondary
+education and therefore no settled technical register of their own, and
+Newar — Sino-Tibetan, not Indo-Aryan — is in the same position with Nepali
+in the loan role, which makes ten catalogs. What a
+seed can supply for them is the **grammar**, and what it cannot supply is the
+**vocabulary**: «रेखा», «बहुभुज», «फलन», «विशेषता» are Hindi in `awa`, `hne`,
+`mag`, `mwr`, `gbm` and `kfy` alike, «মিছা» sits in a Sylheti sentence around
+a Bengali noun, and Saraiki's geometry is Urdu's. The catalogs do not disguise
+this. Each header states the loan register in its own words, which makes it a
+declared property of the seed rather than something a reviewer discovers.
+
+The differentiation is real and it is concentrated in the frame — the copula,
+the negator, the postpositions, the participles, the plural marker and the
+imperative class. `awa` writes «अहै», «नाहीं», genitive «क», dative «खातिर»,
+oblique plural in -न; `hne` writes «हे», «नइ», the dative «बर» that no other
+catalog in the batch uses, the plural «मन» and the habitual «-थे»; `mag`
+writes «हइ», «ना», dative «लेल», plural «सब» and the eastern -ल participles
+(«देल», «कएल», «मिलल»). Those are three languages rather than one language
+spelled three ways, and a reviewer correcting the nouns is correcting the
+half the seed knew it could not do.
+
+The batch's colour words are the one place the vocabulary is native more often
+than not: `awa` उजर/पियर, `hne` पंडरा/पींयर, `mag` उज्जर/पीयर where
+`locales/hi` writes सफ़ेद and पीला, `new`'s हाकु, तुयु, ह्याउँ, `tcy`'s
+ಬೊಲ್ದು, ಮಂಜಲ್, ಪಚ್ಚೆ, Saraiki's ساوا. Each catalog's header names which of its
+twelve colours are the language's own and which are loans, because that
+distinction is the one a speaker can fix in a single line.
+
+#### Word order splits thirteen against two, and the two are neighbours
+
+Thirteen catalogs put the modifiers in front of the noun and two put them
+behind. Thirteen to two is unremarkable — South Asia is left-branching, and
+the nine Indo-Aryan catalogs inherit Hindi's order with its vocabulary. What
+the split is *not* is genetic or geographic.
+
+Prenominal, rendered for "thick dashed red line": `awa`, `hne` and `mag`
+«मोट खंडित लाल रेखा», `mwr` «मोटो खंडित लाल रेखा», `gbm` «मोटु खंडित लाल रेखा»,
+`kfy` «मोटो खंडित लाल रेखा», `new` «बाक्लो धर्के ह्याउँ रेखा», `syl`
+«মোটা দাগ-দাগ লাল রেখা», `tcy` «ದಪ್ಪ ತುಂಡು ತುಂಡುದ ಕೆಂಪು ಗೆರೆ», `grt`
+«dal·gipa dashgipa gitchak lain», `skr` «موٹی منقطع لال لکیر», `brh`
+«دبیز خط چین سرخ خط», `hif` «mota dash waala laal lakiir».
+
+Postnominal: `kha` «lain bakhraw badash basaw», `lus` «line lian dash-nei
+sen».
+
+**The two are `kha` and `lus`, and `grt` is not one of them.** Khasi and Garo
+are spoken in the same state and seeded in the same batch; Garo and Mizo are
+both Tibeto-Burman. So Meghalaya writes the phrase both ways, and Garo and
+Mizo — the batch's two Tibeto-Burman catalogs of Northeast India — disagree
+with each other, while Newar, Sino-Tibetan as well but half a subcontinent
+away, sits with the prenominal thirteen. Garo's `-gipa`
+attributive precedes its noun, Mizo's follows. Neither family nor geography
+predicts this row, which is why `styleDescriptions.test.ts` pins all fifteen
+rather than a representative from each side.
+
+`brh` is the other row worth reading twice, from the opposite direction:
+Brahui is Dravidian, sits among Indo-Aryan neighbours, and writes their order.
+`tcy` is Dravidian too and prenominal for the same areal reason. Order
+follows the neighbourhood here, which is the Southeast Asian batch's `cbk`
+finding arriving from the other side — there a creole kept its substrate's
+order against its lexicon, here two Dravidian languages take their
+neighbours'.
+
+Every one of the fifteen keeps English's internal sequence of the three
+adjectives, so what moves in `kha` and `lus` is the noun alone. **No catalog
+in the batch writes a linker between modifier and noun**, so nothing here
+comes near the hazard [A ligature is an affix too](#a-ligature-is-an-affix-too)
+describes — which is what separates this batch from the Philippine half of
+the last one, where three catalogs wrote «nga» or «a» in every position.
+
+#### One catalog agrees its adjectives, and fourteen do not
+
+`skr` is the batch's only `$gender` and `$role` fork. Saraiki keeps
+Indo-Aryan's marked adjective classes whole, so «موٹی» stands before the
+feminine «لکیر» and «موٹا» before a masculine noun, and `noun-gender` forks on
+`$noun` in the shape `locales/ur` and `locales/hi` already use — with
+«پس منظر» masculine where Hindi's «पृष्ठभूमि» is feminine.
+
+The other fourteen write one invariant form each, and the reason differs and
+matters:
+
+- **Eight cases where it is a claim about the language.** Brahui has no
+  gender at all; Tulu marks it on verbs and pronouns but not on attributives;
+  Fiji Hindi has levelled Hindi's agreement away, so the `-a` form stands in
+  every position for a noun of either gender. Newar, Khasi, Mizo, Garo and
+  Sylheti are the same case for the same reason — no attributive agreement to
+  lose. In all of these `noun-gender`'s single `neuter` token is an answer
+  rather than a placeholder.
+- **Six cases where it is a gap, and the headers call it the file's largest
+  defect.** Awadhi, Chhattisgarhi, Magahi, Marwari, Garhwali and Kumaoni all
+  *do* inflect marked adjectives, and all six write them unagreed. Reinstating
+  agreement means writing a trustworthy gender for every `noun` entry first,
+  and a confidently wrong agreement table is harder to repair than a uniformly
+  unagreed one; `locales/hi` and now `locales/skr` are the shapes to lift the
+  forks from once the genders exist.
+
+`[noun-tail]` is unused in all fifteen: the side count precedes the noun
+everywhere, so `head` carries the phrase whole.
+
+#### Two right-to-left catalogs, and one that is right by the wrong route
+
+`skr` and `brh` take the roster's right-to-left catalogs from sixteen to
+eighteen, and both are new entries in `direction.ts`'s `RTL_LANGUAGES` on the
+same terms `bal` and `haz` were: each maximizes to `-Arab`, so the script rule
+already answers a parseable tag, and the entry earns its keep on the fallback
+path where nothing could be parsed. Brahui is the first Dravidian language on
+that list, which is `direction.ts`'s own point — direction is a fact about a
+script and not about a family.
+
+`hif` is the instructive one. ICU maximizes it to `hif-Deva-FJ`, which is
+wrong about the script — Fiji Hindi is written in Latin letters by the people
+who write it — and right about the direction anyway, because both candidate
+scripts run left to right. The tag reaches the correct answer by a route that
+does not hold in general, and `hif`'s `chrome.ftl` and `content.ftl` headers
+both say so.
+
+`grt` is the batch's second instance of the same route: ICU maximizes it to
+`grt-Beng-IN`, and the Garo catalog here is written in the Latin orthography.
+Two of the fifteen, then, get the direction right off a script neither
+catalog is written in. Neither needs an entry in `RTL_LANGUAGES`, because
+both the maximized script and the real one run left to right — but the pair
+is why a maximized script is evidence about direction and not about how a
+catalog is spelled.
+
+Neither right-to-left catalog welds anything to a placeable. Brahui's case
+clitics are normally joined in print and are written separated in all four
+files, because the word in front of one is so often a placeable; the header
+records that as a spelling decision made for safety rather than a correction.
+
+#### Not one of the fifteen has CLDR plural data
+
+`new Intl.PluralRules(tag).resolvedOptions().locale` is the runtime's own
+default for every one of the fifteen, so no catalog writes a `zero`, `one`,
+`two`, `few` or `many` branch anywhere: sixty files, zero plural categories.
+That is the Southeast Asian batch's finding again, and here it costs
+something. Those fifteen languages did not mark a noun for number after a
+numeral; these do — every one of them — and the catalogs still cannot fork on
+one, because the branch would be selected by whatever locale the runtime fell
+back to rather than by the language. `hi`, `bn`, `ur`, `mr` and `ne` sit
+beside them on the roster with rules of their own. Whether a tag has plural
+data follows whether a CLDR locale was ever requested for it.
+
+Each catalog writes exactly one `[0]` — `attempts-remaining`, where English
+writes `[0]` too — and one `[1]`, in
+`field-function-wrong-num-outputs`, which forks on how many outputs a
+component *needs*. The `[1]` is not English's own branch: English selects
+that message on the plural category `[one]`, and a catalog with no plural
+rules substitutes the numeric literal, which Fluent matches against the
+number itself. Neither branch consults a plural rule, which is why both
+survive where the category forks could not. `chrome.test.ts` holds both
+halves.
+
+#### Negotiation gained nothing, and three tags left a list instead
+
+`MACROLANGUAGE_MEMBERS` and `LANGUAGE_ALIASES` are untouched by this batch.
+Every one of the fifteen tags is one `Intl.getCanonicalLocales` leaves alone
+and filtering negotiation matches on its own, so seeding them cost negotiation
+nothing.
+
+What did change is a list in `negotiate.test.ts`. `kfy`, `mag` and `grt` were
+asserted there as *near misses* — Indo-Aryan and Tibeto-Burman neighbours of
+`mai`, `bho` and `brx` that the membership rule declined to fold onto them,
+falling to English on purpose. All three now have catalogs and are asserted
+against them instead, with `hoc` and `njz` left behind holding the original
+point. Nothing about the map changed to let them through: **the way off that
+list is a directory, not an entry in `MACROLANGUAGE_MEMBERS`.**
+
+Six of the fifteen need `LOCALE_NAME_FALLBACKS`, and the split does not follow
+speaker numbers: ICU names `awa`, `mag`, `mwr`, `new`, `tcy`, `lus`, `kha`,
+`brh` and `hif`, and has nothing for `hne`, `gbm`, `kfy`, `syl`, `grt` or
+`skr` — Chhattisgarhi has more speakers than several tags ICU does name. Each
+of the six gets an endonym in the script its own catalog is written in, Garo's
+in the Latin orthography that writes its raised dot as `·`.
+
+#### Five scripts, and three of the choices are contested
+
+Devanagari for the six Hindi-belt catalogs and for `new`; the Bengali script
+for `syl`; Kannada for `tcy`; Latin for `lus`, `kha`, `grt` and `hif`;
+Perso-Arabic for `skr` and `brh`. Three of those are decisions a reader may
+disagree with, and each header argues its case: **Newar** is written in
+Devanagari rather than Ranjana, which is a living display script with thin
+font coverage rather than the script of continuous prose; **Sylheti** in the
+Bengali script rather than Sylheti Nagri, whose smaller inventory would
+collapse distinctions this seed cannot restore; and **Tulu** in Kannada rather
+than Tigalari, whose revival is real but whose orthography for *modern* Tulu
+is not settled. In all three the answer to a disagreement is a second catalog
+beside the first rather than a rename of it, which is `pa`'s and `sr`'s answer
+in [A language CLDR has no name for](#a-language-cldr-has-no-name-for).
+
+Numbers render in Latin digits in every one of the fifteen, including the
+Devanagari, Bengali, Kannada and Perso-Arabic catalogs, so a digit inside a
+sentence matches the count formatted beside it.
 
 ### A language with no word for it
 
