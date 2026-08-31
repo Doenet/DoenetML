@@ -25,9 +25,14 @@
 #
 # **What is borrowed.** English, openly and only where the word is what a
 # Ugandan classroom says: «fonkishoni», «eripoota», «tagi». The two counted
-# selects below use ordinary Rukiga nouns («ekizibu» / «ebizibu»,
-# «endagiriro») rather than a loan for *violation*, so that the plural has
-# something to work on.
+# selects below use ordinary Rukiga nouns rather than a loan for *violation*,
+# so that the plural has something to work on — but the two work differently.
+# «ekizibu» / «ebizibu» changes its class prefix, so the noun itself carries
+# the number; «endagiriro» is class 9/10 and is spelt the same in both
+# numbers, so `editor-accessibility-label`'s advisory count marks number only
+# on what agrees with it («y'… endiijo» against «z'… ezindi»). Both branches
+# still differ; a reviewer should not read the second as an unfinished copy of
+# the first.
 #
 # **Weakest here.** «okuhikaho» is doing duty for *accessibility* throughout —
 # it is «okuhika aha», *reaching*, which is the right idea but is not an

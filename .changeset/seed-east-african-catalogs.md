@@ -35,14 +35,17 @@ pattern.
 
 CLDR has plural rules for both, and the class prefix does the marking rather
 than a suffix, so «ekirikuruga» and «ebirikuruga» differ at the front of the
-word rather than the end. Where the counted noun is one that does not inflect
-— a Lusoga class-15 verbal noun — the two branches are the same string and the
-header says so rather than coining a countable noun to hide it.
+word rather than the end. Not every noun does: a class 9/10 noun is spelt the
+same in both numbers and the number shows on what agrees with it instead, and
+where the counted noun is one that does not inflect at all — a Lusoga class-15
+verbal noun — the two branches are the same string. Each header says which of
+the three its counted selects are doing rather than coining a countable noun
+to hide it.
 
 This batch was assembled as **fifteen** languages of Kenya, Uganda and
 Tanzania and thirteen were left out rather than shipped: Kamba, Gusii,
 Kalenjin, Luyia, Masai, Meru, Samburu, Taita, Embu, Teso, Shambala, Vunjo and
-Machame. Seeded honestly they came to between 0 and 91 keys of 575 — against
+Machame. Attempted honestly they came to between 0 and 91 keys of 575 — against
 the 440 the two that ship reach — and they are recorded on #1655 with the
 coverage each reached and the orthography each attempt settled. `lint:i18n`
 does not report them at all, because no catalog for them exists to be partial;

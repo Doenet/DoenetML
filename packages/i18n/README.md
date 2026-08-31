@@ -4025,7 +4025,7 @@ The batch was assembled as **fifteen** — Kamba (`kam`), Gusii (`guz`),
 Kalenjin (`kln`), Luyia (`luy`), Masai (`mas`), Meru (`mer`), Samburu (`saq`),
 Taita (`dav`), Embu (`ebu`) and Teso (`teo`) in Kenya and Uganda, and Shambala
 (`ksb`), Vunjo (`vun`) and Machame (`jmc`) in Tanzania, alongside the two that
-ship. Thirteen were attempted, measured and left out; they are recorded on
+ship. Thirteen were attempted and left out; they are recorded on
 #1655 with the coverage each reached. That issue was written about six
 languages of the Americas, and the reason these thirteen join it rather than
 getting an issue of their own is that they hit the same wall — and measuring
