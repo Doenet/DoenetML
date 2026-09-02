@@ -60,8 +60,9 @@ export function wantsFullCheckWorkButton(
     fullByDefault: boolean,
 ): boolean {
     return fullByDefault
-        ? SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton
-        : SVs.forceFullCheckWorkButton;
+        ? Boolean(SVs.forceFullCheckWorkButton) ||
+              !SVs.forceSmallCheckWorkButton
+        : Boolean(SVs.forceFullCheckWorkButton);
 }
 
 /**

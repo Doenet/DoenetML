@@ -808,16 +808,22 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 // An expanded input fills the width it is given, leaving a
                 // button beside it squeezed to nothing. Stacking puts the
                 // button on its own line under the input, as a non-inline
-                // `<choiceInput>` puts it under the choices.
-                ...(SVs.expanded ? { flexDirection: "column" as const } : {}),
+                // `<choiceInput>` puts it under the choices. The row is capped
+                // at the text column as well, so an expanded input given a
+                // width the window cannot hold shrinks with it.
+                //
+                // A word-sized input keeps the plain shrink-to-fit row it has
+                // always had: it flows in a sentence, and capping that row
+                // would let flex shrink the field below the width it was
+                // given.
+                ...(SVs.expanded
+                    ? { flexDirection: "column" as const, maxWidth: "100%" }
+                    : {}),
                 alignItems: "flex-start",
                 // The input row flows as inline content (see the container
                 // comment). `vertical-align: baseline` aligns it with the text
                 // baseline of its line.
                 verticalAlign: "baseline",
-                // Never wider than the text column, so an expanded input given
-                // a width the window cannot hold shrinks with it.
-                maxWidth: "100%",
                 // See `expandedRelativeWidth`: only a relative width needs the
                 // row stretched to the column to measure itself against.
                 ...(expandedRelativeWidth ? { width: "100%" } : {}),

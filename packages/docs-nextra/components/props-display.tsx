@@ -702,6 +702,8 @@ function formatType(typeName?: PropAttrType, isArray?: boolean) {
  * altogether. Math-expression defaults (the `{ type: "math", latex }`
  * sentinel produced by `get-schema.ts`) are rendered through MathJax so the
  * actual expression — not the raw serialized object — appears in the docs.
+ * Size defaults (the runtime's `{ size, isAbsolute }` pair) are printed the
+ * same way an author would write them, `120px` or `50%`, for the same reason.
  */
 function renderDefaultValue(value: unknown): React.ReactNode {
     if (value == null) {

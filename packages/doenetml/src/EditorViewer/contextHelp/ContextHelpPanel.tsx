@@ -817,9 +817,10 @@ function renderLabeledChipList(
  * as chips, with a note naming the unit a bare number carries.
  *
  * `examples` already carries only the forms the attribute honors (a height
- * gets no percentage; a side-by-side width gets nothing else), so the note is
- * chosen from what is in the list rather than from the attribute's identity:
- * raising a form only to rule it out reads worse than never raising it.
+ * gets no percentage; a side-by-side width gets nothing but the percentage),
+ * so the note is chosen from what is in the list rather than from the
+ * attribute's identity: raising a form only to rule it out reads worse than
+ * never raising it.
  */
 function renderSizeSyntax(
     t: Translator,
