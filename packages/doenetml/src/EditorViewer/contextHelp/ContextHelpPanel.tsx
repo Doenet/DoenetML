@@ -1,11 +1,16 @@
 import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
-import { isMathDefaultValue } from "@doenet/static-assets/schema";
+import {
+    formatComponentSize,
+    isComponentSizeValue,
+    isMathDefaultValue,
+} from "@doenet/static-assets/schema";
 import { isMacPlatform } from "@doenet/utils";
 import type {
     FunctionNamesBreakdownPayload,
     HelpContent,
+    SizeSyntaxPayload,
 } from "@doenet/lsp-tools";
 import type { Translator } from "@doenet/i18n";
 import { useT } from "../../utils/i18n";
@@ -439,6 +444,7 @@ export function ContextHelpPanel({
                 activeDefault,
                 styleBreakdown,
                 functionNamesBreakdown,
+                sizeSyntax,
             } = content;
             return (
                 <div className="help-panel">
@@ -506,6 +512,7 @@ export function ContextHelpPanel({
                     {styleBreakdown && renderStyleBreakdown(t, styleBreakdown)}
                     {functionNamesBreakdown &&
                         renderFunctionNamesBreakdown(t, functionNamesBreakdown)}
+                    {sizeSyntax && renderSizeSyntax(t, sizeSyntax)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
@@ -803,6 +810,59 @@ function renderLabeledChipList(
 }
 
 /**
+ * "Accepted sizes" section surfaced for any attribute whose value is a
+ * `componentSize`. The attribute description says what the dimension means
+ * but never that a plain number is pixels, that `6in` and
+ * `15cm` are read, or that a percentage is allowed — so the forms are listed
+ * as chips, with a note naming the unit a bare number carries.
+ *
+ * A height is offered only the absolute forms, and its note says nothing about
+ * percentages: the runtime takes a percentage height and does nothing with it,
+ * and raising a form only to rule it out reads worse than never raising it.
+ */
+function renderSizeSyntax(
+    t: Translator,
+    sizeSyntax: SizeSyntaxPayload,
+): React.ReactNode {
+    const hasRelative = sizeSyntax.examples.some((e) => e.kind === "relative");
+    return (
+        <div className="help-detail help-size-syntax">
+            {renderLabeledChipList(
+                t("help-accepted-sizes", undefined, "Accepted sizes:"),
+                sizeSyntax.examples.map(({ value }) => value),
+            )}
+            <span className="help-detail-annotation">
+                {/* Two flat keys rather than one with a branch: a height is
+                    offered no percentage at all, so its note must not raise
+                    the idea only to take it back. */}
+                {hasRelative
+                    ? t(
+                          "help-size-units",
+                          undefined,
+                          "A bare number is pixels. A percentage is a share of the width around the component.",
+                      )
+                    : t(
+                          "help-size-units-absolute",
+                          undefined,
+                          "A bare number is pixels.",
+                      )}
+            </span>
+            {sizeSyntax.snapsToSizePreset && (
+                <span className="help-detail-annotation">
+                    {t(
+                        "help-size-snaps-to-preset",
+                        // `size` names the sibling attribute, so it is an
+                        // argument rather than a word in the sentence.
+                        { size: "size" },
+                        "This width picks the nearest size preset rather than being used exactly.",
+                    )}
+                </span>
+            )}
+        </div>
+    );
+}
+
+/**
  * "Resolved function names" section surfaced when the cursor sits on
  * `additionalFunctionNames`, `removedFunctionNames`, or
  * `resetFunctionNames` of a `<mathInput>` (#1205). The author writes
@@ -903,6 +963,12 @@ function formatValue(val: unknown): React.ReactNode {
                 {formatValue(v)}
             </React.Fragment>
         ));
+    }
+    if (isComponentSizeValue(val)) {
+        // The schema carries a size as the runtime's `{ size, isAbsolute }`
+        // pair. Printing that raw would show the author a shape they cannot
+        // type back into the attribute.
+        return formatComponentSize(val);
     }
     if (typeof val === "string") {
         return resolveCssVariables(val);

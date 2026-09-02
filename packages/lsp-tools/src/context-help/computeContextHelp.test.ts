@@ -1625,6 +1625,85 @@ describe("computeContextHelp — repeat-introduced names (valueName/indexName)",
     });
 });
 
+describe("computeContextHelp — sizeSyntax on componentSize attributes", () => {
+    it("lists the accepted length forms on a width", async () => {
+        const source = `<textInput expanded width="600"/>`;
+        const offset = source.indexOf("width") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.sizeSyntax) {
+            expect.fail("expected attribute help with sizeSyntax");
+            return;
+        }
+        const values = help.sizeSyntax.examples.map((e) => e.value);
+        // A bare number and a percentage are the two forms an author cannot
+        // guess from the attribute description alone.
+        expect(values).toContain("600");
+        expect(values).toContain("50%");
+        expect(values).toContain("6in");
+        expect(
+            help.sizeSyntax.examples.find((e) => e.value === "50%")?.kind,
+        ).toBe("relative");
+        expect(
+            help.sizeSyntax.examples.find((e) => e.value === "600")?.kind,
+        ).toBe("absolute");
+        // A `<textInput>` uses its width literally.
+        expect(help.sizeSyntax.snapsToSizePreset).toBeUndefined();
+    });
+
+    it("offers a height the absolute forms and no percentage", async () => {
+        const source = `<textInput expanded height="300"/>`;
+        const offset = source.indexOf("height") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.sizeSyntax) {
+            expect.fail("expected attribute help with sizeSyntax");
+            return;
+        }
+        // The runtime takes a percentage height and does nothing with it, so
+        // the panel never raises one — not as an offer, and not as a caveat.
+        const values = help.sizeSyntax.examples.map((e) => e.value);
+        expect(values).toContain("600px");
+        expect(values).not.toContain("50%");
+        expect(
+            help.sizeSyntax.examples.every((e) => e.kind === "absolute"),
+        ).toBe(true);
+    });
+
+    it("flags the widths that snap to a size preset", async () => {
+        for (const elementName of ["graph", "image", "video"]) {
+            const source = `<${elementName} width="400px"/>`;
+            const offset = source.indexOf("width") + 2;
+            const help = await helpAt(source, offset);
+            if (help.kind !== "attribute" || !help.sizeSyntax) {
+                expect.fail(`expected sizeSyntax on <${elementName} width>`);
+                return;
+            }
+            expect(help.sizeSyntax.snapsToSizePreset).toBe(true);
+        }
+    });
+
+    it("does not flag a width that is used literally", async () => {
+        const source = `<codeEditor width="50%"/>`;
+        const offset = source.indexOf("width") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute" || !help.sizeSyntax) {
+            expect.fail("expected attribute help with sizeSyntax");
+            return;
+        }
+        expect(help.sizeSyntax.snapsToSizePreset).toBeUndefined();
+    });
+
+    it("is absent on an attribute that is not a size", async () => {
+        const source = `<textInput expanded="true"/>`;
+        const offset = source.indexOf("expanded") + 2;
+        const help = await helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail("expected attribute help");
+            return;
+        }
+        expect(help.sizeSyntax).toBeUndefined();
+    });
+});
+
 describe("computeContextHelp — functionNamesBreakdown on <mathInput> (#1205)", () => {
     it("populates functionNamesBreakdown when cursor is on additionalFunctionNames", async () => {
         const source = `<mathInput additionalFunctionNames="erf" removedFunctionNames="min"/>`;

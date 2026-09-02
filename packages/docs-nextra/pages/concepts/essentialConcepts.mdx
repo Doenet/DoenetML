@@ -90,3 +90,76 @@ When you need to access the value of the named component or one of its stored pr
 <p>line1.yIntercept = $line1.yIntercept</p>
 ```
 
+
+<a id="sizes"></a>
+## Sizes: `width` and `height`
+
+Several components let you set their rendered size with a `width` attribute and,
+where a component has a height of its own to set, a `height` attribute:
+`<textInput/>{:dn}`, `<codeEditor/>{:dn}`, `<spreadsheet/>{:dn}`,
+`<tabular/>{:dn}`, `<slider/>{:dn}`, `<sideBySide/>{:dn}`, `<graph/>{:dn}`,
+`<image/>{:dn}`, and `<video/>{:dn}`. Every one of them reads the value the
+same way.
+
+**A bare number means pixels.** `width="600"` and `width="600px"` are the same
+size. You can also write the size in physical units:
+
+| Value | Meaning |
+| ----- | ------- |
+| `600` | 600 pixels |
+| `600px` | 600 pixels; the unit may also be spelled `pixel` or `pixels`, with or without a space before it |
+| `6in` | 6 inches, or 576 pixels; also spelled `inch` or `inches` |
+| `450pt` | 450 points, or 600 pixels |
+| `15cm` | 15 centimeters, or about 567 pixels; also spelled `centimeter` or `centimeters` |
+| `150mm` | 150 millimeters, the same size; also spelled `millimeter` or `millimeters` |
+
+A `height` takes one of these sizes. A `width` takes them too, and may instead
+be written as a percentage.
+
+### Relative sizes
+
+A percentage is measured against the width available to the component — the
+width of the page column it sits in, or of whatever encloses it. It is the one
+form that keeps a component in proportion when the reader's window is narrow,
+so reach for it when a fixed number of pixels would be too wide on a phone:
+
+```doenet-example
+<codeEditor width="50%" height="150px" showResults>
+  <p>Half the width of the column, whatever that column turns out to be.</p>
+</codeEditor>
+```
+
+An expanded `<textInput/>{:dn}` takes a percentage the same way, and is 100%
+wide unless you say otherwise. A word-sized input does not take one: it keeps a
+width of its own so that it can flow inline with the sentence around it.
+
+<Callout type="warning">
+**`em` is not a font-relative size here.** Unlike in CSS, DoenetML reads `em` as
+a multiple of 100%, so `width="2em"` means 200% and `width="1em"` means 100%.
+Write the percentage you mean instead.
+</Callout>
+
+<Callout type="info">
+A unit DoenetML does not recognize is quietly read as pixels: `width="300
+furlongs"` renders 300 pixels wide. A value that does not begin with a number at
+all — `width="wide"` — sets no width, and the component falls back to its
+default size.
+</Callout>
+
+### Sizes that snap to a preset
+
+`<graph/>{:dn}`, `<image/>{:dn}`, and `<video/>{:dn}` are the exception to all of
+this. Their `width` does not set an exact width; it picks the nearest of five
+named sizes, which you can also set directly with their `size` attribute:
+
+| `size` | Width |
+| ------ | ----- |
+| `tiny` | 70 pixels |
+| `small` | 255 pixels |
+| `medium` | 425 pixels |
+| `large` | 595 pixels |
+| `full` | 850 pixels |
+
+So `width="400px"` and `width="50%"` both render one of these components at
+`medium`, 425 pixels wide. Reading back the component's `size` property tells
+you which preset a width landed on.

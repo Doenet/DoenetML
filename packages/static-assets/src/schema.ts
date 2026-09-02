@@ -31,6 +31,32 @@ export function isMathDefaultValue(val: unknown): val is MathDefaultValue {
 }
 
 /**
+ * Internal shape a `componentSize` default value carries in the schema — the
+ * runtime's own `{ size, isAbsolute }` pair, where `isAbsolute` picks between
+ * pixels and a percentage. It is not a value an author can write: nobody types
+ * `height="{"size":120,"isAbsolute":true}"`. Renderers detect it with
+ * `isComponentSizeValue` and print it with `formatComponentSize`, which gives
+ * back exactly the text an author would put in the attribute.
+ */
+export type ComponentSizeValue = { size: number; isAbsolute: boolean };
+
+export function isComponentSizeValue(val: unknown): val is ComponentSizeValue {
+    return (
+        typeof val === "object" &&
+        val !== null &&
+        typeof (val as { size?: unknown }).size === "number" &&
+        typeof (val as { isAbsolute?: unknown }).isAbsolute === "boolean"
+    );
+}
+
+/**
+ * Render a `componentSize` as an author would write it: `120px` or `50%`.
+ */
+export function formatComponentSize(value: ComponentSizeValue): string {
+    return `${value.size}${value.isAbsolute ? "px" : "%"}`;
+}
+
+/**
  * Per-dimension entry shape emitted by `get-schema.ts:singlePropFromDescription`
  * for each slot of an array property — the public mirror of the generator's
  * local `ArrayElementDescription`. `type` is optional for the same reason as

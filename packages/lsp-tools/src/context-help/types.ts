@@ -50,6 +50,38 @@ export type FunctionNamesBreakdownPayload = {
 };
 
 /**
+ * Length syntax surfaced for an attribute whose value is a `componentSize`
+ * (`width`, `height` — 15 of them across `textInput`, `codeEditor`,
+ * `spreadsheet`, `tabular`, `slider`, `sideBySide`, `graph`, `image` and
+ * `video`).  The attribute description says what the dimension means; nothing
+ * else tells an author that `600`, `6in` and `50%` are all accepted, so the
+ * panel lists the forms.
+ *
+ * `em` is deliberately absent from `examples`: the runtime reads it as a
+ * multiple of 100% rather than as a font-relative length, so offering it here
+ * would teach the wrong thing. The reference docs cover it as a caveat.
+ *
+ * A `height` carries only the absolute forms. The runtime accepts a percentage
+ * there and then does nothing with it — its containing block has no definite
+ * height to measure against — so the panel leaves percentages out of the height
+ * story altogether rather than naming a form only to rule it out.
+ */
+export type SizeSyntaxPayload = {
+    /** Accepted forms, each an example value and the unit it stands for. */
+    examples: Array<{
+        value: string;
+        kind: "absolute" | "relative";
+    }>;
+    /**
+     * `true` for `<graph>`, `<image>` and `<video>`, whose width picks the
+     * nearest of the five named `size` presets (`tiny` 70px, `small` 255px,
+     * `medium` 425px, `large` 595px, `full` 850px) instead of being used
+     * literally — `width="400px"` and `width="50%"` both render 425px there.
+     */
+    snapsToSizePreset?: boolean;
+};
+
+/**
  * One element entry in a `suggestions` payload's `suggested` list. Snippets
  * are deliberately excluded from the panel — with only six slots, surfacing
  * several variations of the same element (e.g. all the `<answer>` snippets)
@@ -173,6 +205,14 @@ export type HelpContent =
            * contract.
            */
           functionNamesBreakdown?: FunctionNamesBreakdownPayload;
+          /**
+           * Accepted length syntax, populated for every attribute whose value
+           * is a `componentSize`. Keyed off the attribute's type rather than a
+           * list of names, so an attribute added to the worker later is
+           * explained without touching this package. See
+           * {@link SizeSyntaxPayload}.
+           */
+          sizeSyntax?: SizeSyntaxPayload;
       }
     /**
      * A reference to a *property* of another component, e.g.

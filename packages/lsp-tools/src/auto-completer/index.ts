@@ -52,6 +52,15 @@ export {
 export type SchemaAttribute = {
     name: string;
     description?: string;
+    /**
+     * Component type the attribute's value is parsed as (the worker's
+     * `createComponentOfType`). Carried so author-facing surfaces can explain
+     * a value syntax the description alone can't — the help panel reads
+     * `componentSize` to list the length units an attribute accepts.
+     * Optional: a synthesized attribute (an author-declared `<module>` one)
+     * may have no single component type.
+     */
+    type?: string;
     values?: string[];
     autocompleteValues?: ValidValueEntry[];
     /**

@@ -581,7 +581,11 @@ export type MessageKey =
     | "help-reset-list"
     | "help-added-on-input"
     | "help-removed-on-input"
-    | "help-reset-overrides";
+    | "help-reset-overrides"
+    | "help-accepted-sizes"
+    | "help-size-units"
+    | "help-size-units-absolute"
+    | "help-size-snaps-to-preset";
 
 /** Every key in the English catalogs, in catalog order. */
 export const MESSAGE_KEYS: readonly MessageKey[] = [
@@ -1160,4 +1164,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "help-added-on-input",
     "help-removed-on-input",
     "help-reset-overrides",
+    "help-accepted-sizes",
+    "help-size-units",
+    "help-size-units-absolute",
+    "help-size-snaps-to-preset",
 ];

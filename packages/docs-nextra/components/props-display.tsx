@@ -3,7 +3,11 @@
 import { Link } from "nextra-theme-docs";
 import React, { useMemo, useState } from "react";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import { isMathDefaultValue } from "@doenet/static-assets/schema";
+import {
+    formatComponentSize,
+    isComponentSizeValue,
+    isMathDefaultValue,
+} from "@doenet/static-assets/schema";
 
 /** Types the rendering code special-cases. */
 export type KnownPropAttrType =
@@ -727,6 +731,11 @@ function renderDefaultValue(value: unknown): React.ReactNode {
     }
     if (typeof value === "boolean" || typeof value === "number") {
         return String(value);
+    }
+    if (isComponentSizeValue(value)) {
+        // The schema carries a size as the runtime's `{ size, isAbsolute }`
+        // pair; show the author the `120px` / `50%` they would actually type.
+        return formatComponentSize(value);
     }
     return JSON.stringify(value);
 }

@@ -265,6 +265,17 @@
 }
 
 /*
+ * Accepted-sizes list for a `componentSize` attribute. Same column stack as
+ * the function-names breakdown above: the chips wrap under their label rather
+ * than competing with it, and the notes below read as full sentences.
+ */
+.editor-panel .help-size-syntax {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+/*
  * "What can go here?" suggestions surfaced when the cursor sits in an
  * element body or at the top level. The header names the location, the list
  * shows curated starter components as links, and a muted footer points at the

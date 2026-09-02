@@ -102903,7 +102903,7 @@
                     "name": "height",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "Display height of the input.",
+                    "description": "Display height of the input. Applies only to an expanded input.",
                     "fromAttribute": true
                 },
                 {

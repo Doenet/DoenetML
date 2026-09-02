@@ -41,6 +41,7 @@ interface TextInputSVs {
     width: { size: string; isAbsolute: boolean };
     height?: { size: string; isAbsolute: boolean };
     forceFullCheckWorkButton: boolean;
+    forceSmallCheckWorkButton: boolean;
     justSubmitted: boolean;
     showCheckWork: boolean;
     colorCorrectness: boolean;
@@ -635,12 +636,21 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
+    // A word-sized input sits in a sentence, where a full-width button beside
+    // it would crowd the line, so the small one is the default there. An
+    // expanded input is a block of its own with room beneath it, so the full
+    // labelled button is the default instead — the same rule a `<choiceInput>`
+    // applies to its inline and non-inline forms.
+    const fullCheckWork = SVs.expanded
+        ? SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton
+        : SVs.forceFullCheckWorkButton;
+
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
         submitActionWithPending,
-        SVs.forceFullCheckWorkButton,
+        fullCheckWork,
         isPending,
         tContent,
     );
@@ -687,6 +697,18 @@ export default function TextInput(props: UseDoenetRendererProps) {
         );
     }
 
+    // An expanded input is a block of writing space rather than a word-sized
+    // field, so it is the one shape of text input a relative width makes sense
+    // for. A percentage on the textarea would otherwise resolve against the
+    // inline-flex input row, which shrink-wraps its content — a circular
+    // reference that yields an arbitrary width rather than the share of the
+    // text column the author asked for. Stretching the row to the full column
+    // when (and only when) the width is relative gives the percentage a
+    // definite containing block to measure against, without disturbing the
+    // shrink-to-fit row an absolute width still wants.
+    const expandedRelativeWidth =
+        SVs.expanded && Boolean(SVs.width) && !SVs.width.isAbsolute;
+
     if (SVs.expanded) {
         input = (
             <textarea
@@ -708,6 +730,11 @@ export default function TextInput(props: UseDoenetRendererProps) {
                     margin: "0px 4px 4px 4px",
                     color: "var(--canvasText)",
                     background: "var(--canvas)",
+                    width,
+                    height,
+                    // A window narrower than the authored width shrinks the
+                    // input rather than pushing it out of the text column.
+                    maxWidth: "100%",
                 }}
             />
         );
@@ -739,20 +766,40 @@ export default function TextInput(props: UseDoenetRendererProps) {
         );
     }
 
+    // The button and the description popover ride beside a word-sized input and
+    // beneath an expanded one, so they travel together either way.
+    const trailingControls =
+        checkWorkComponent || description ? (
+            <span style={{ display: "inline-flex", alignItems: "flex-start" }}>
+                {checkWorkComponent}
+                {description}
+            </span>
+        ) : null;
+
     const inputRow = (
         <span
             style={{
                 display: "inline-flex",
+                // An expanded input fills the width it is given, leaving a
+                // button beside it squeezed to nothing. Stacking puts the
+                // button on its own line under the input, as a non-inline
+                // `<choiceInput>` puts it under the choices.
+                ...(SVs.expanded ? { flexDirection: "column" as const } : {}),
                 alignItems: "flex-start",
                 // The input row flows as inline content (see the container
                 // comment). `vertical-align: baseline` aligns it with the text
                 // baseline of its line.
                 verticalAlign: "baseline",
+                // Never wider than the text column, so an expanded input given
+                // a width the window cannot hold shrinks with it.
+                maxWidth: "100%",
+                // See `expandedRelativeWidth`: only a relative width needs the
+                // row stretched to the column to measure itself against.
+                ...(expandedRelativeWidth ? { width: "100%" } : {}),
             }}
         >
             {input}
-            {checkWorkComponent}
-            {description}
+            {trailingControls}
         </span>
     );
 
