@@ -97,9 +97,9 @@ When you need to access the value of the named component or one of its stored pr
 Several components let you set their rendered size with a `width` attribute and,
 where a component has a height of its own to set, a `height` attribute:
 `<textInput/>{:dn}`, `<codeEditor/>{:dn}`, `<spreadsheet/>{:dn}`,
-`<tabular/>{:dn}`, `<slider/>{:dn}`, `<sideBySide/>{:dn}`, `<graph/>{:dn}`,
-`<image/>{:dn}`, and `<video/>{:dn}`. They all read the value the same way,
-with two exceptions noted at the end of this section.
+`<tabular/>{:dn}`, `<slider/>{:dn}`, `<sideBySide/>{:dn}`, `<sbsGroup/>{:dn}`,
+`<graph/>{:dn}`, `<image/>{:dn}`, and `<video/>{:dn}`. They all read the value
+the same way, with two exceptions noted at the end of this section.
 
 **A bare number means pixels.** `width="600"` and `width="600px"` are the same
 size. You can also write the size in physical units:
@@ -130,8 +130,9 @@ so reach for it when a fixed number of pixels would be too wide on a phone:
 ```
 
 An expanded `<textInput/>{:dn}` takes a percentage the same way, and is 100%
-wide unless you say otherwise. A word-sized input does not take one: it keeps a
-width of its own so that it can flow inline with the sentence around it.
+wide unless you say otherwise. A word-sized input is the exception: it shrinks
+to fit the sentence it flows in, so there is no column there for a percentage to
+be a share of. Give a word-sized input an absolute width.
 
 <Callout type="warning">
 **`em` is not a font-relative size here.** Unlike in CSS, DoenetML reads `em` as
@@ -166,8 +167,8 @@ you which preset a width landed on.
 
 ### Sizes that must be relative
 
-`<sideBySide/>{:dn}` is the second exception. It divides a row into shares, so
-its `width`, `widths`, and `margins` are read as percentages only. An absolute
-size there raises a warning and is treated as the percentage of the same
-number, which is rarely what you meant — write `width="50%"`, not
-`width="50"`.
+`<sideBySide/>{:dn}` and `<sbsGroup/>{:dn}` are the second exception. They
+divide a row into shares, so their `width`, `widths`, and `margins` are read as
+percentages only. An absolute size there raises a warning and is treated as the
+percentage of the same number, which is rarely what you meant — write
+`width="50%"`, not `width="50"`.

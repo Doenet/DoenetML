@@ -899,6 +899,14 @@ function componentSizeExamplesFor(
     return COMPONENT_SIZE_EXAMPLES;
 }
 
+/**
+ * Build the "Accepted sizes" payload for an attribute, or `undefined` when the
+ * attribute's value is not a length. Every `componentSize` attribute qualifies,
+ * so a size attribute added to the worker later is explained without a change
+ * here; `_componentSizeList` attributes (a `<sideBySide>`'s `widths` and
+ * `margins`) are deliberately not, since a list of sizes needs a different
+ * explanation than a single one.
+ */
 function computeSizeSyntaxForAttribute(
     elementName: string,
     schemaAttr: SchemaAttribute,

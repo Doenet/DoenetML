@@ -17,6 +17,7 @@ percentage, since it divides a row into shares. The `width` of a `<graph>`,
 `<image>` or `<video>` is marked as choosing the nearest `size` preset rather
 than being used exactly.
 
-The panel keys off the attribute's type, so every component taking a size is
-covered. A size default also reads as `120px` now, instead of as the internal
-`{"size":120,"isAbsolute":true}` — in the reference tables as well as the panel.
+The panel keys off the attribute's type rather than its name, so every attribute
+taking a single size is covered. A size default also reads as `120px` now,
+instead of as the internal `{"size":120,"isAbsolute":true}` — in the reference
+tables as well as the panel.

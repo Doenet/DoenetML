@@ -787,9 +787,9 @@ function renderStyleBreakdown(
 }
 
 /**
- * Render a label + chip-list pair used by the function-names breakdown
- * section. Each chip is a `help-value-item` pill and the chips wrap via
- * the parent `help-values-list` flex row.
+ * Render a label + chip-list pair, used by the function-names breakdown and
+ * accepted-sizes sections. Each chip is a `help-value-item` pill and the chips
+ * wrap via the parent `help-values-list` flex row.
  */
 function renderLabeledChipList(
     label: string,
@@ -832,8 +832,6 @@ function renderSizeSyntax(
                 sizeSyntax.examples.map(({ value }) => value),
             )}
             <span className="help-detail-annotation">
-                {/* Three flat keys rather than one with branches, so each
-                    reads as a whole sentence in translation. */}
                 {sizeUnitsNote(t, sizeSyntax)}
             </span>
             {sizeSyntax.snapsToSizePreset && (

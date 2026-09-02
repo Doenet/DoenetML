@@ -268,8 +268,9 @@ is narrow. That is also its default: an expanded input with no `width` of its
 own is 100% wide. An expanded input never grows wider than the column it sits
 in, even when it asks for more.
 
-A word-sized (not `expanded`) input takes no percentage: it keeps a width of its
-own so that it can flow inline with the sentence around it.
+A word-sized (not `expanded`) input is the exception: it shrinks to fit the
+sentence it flows in, so there is no column there for a percentage to be a share
+of. Give a word-sized input an absolute width.
 
 
 

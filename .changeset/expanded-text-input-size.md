@@ -18,3 +18,6 @@ shrink-to-fit row and produced an arbitrary size. Its default width is now 100%
 rather than 600 pixels, and it never grows wider than the column even when an
 absolute width asks for more, so it shrinks to fit a narrow window. The width of
 a word-sized (not `expanded`) input is unchanged.
+
+The reference table and the help panel now name the two defaults, and say that
+`height` applies only to an expanded input.
