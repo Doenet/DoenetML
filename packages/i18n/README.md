@@ -116,12 +116,13 @@ everywhere, for the reason in
 [A language with no word for it](#a-language-with-no-word-for-it);
 Inuktitut over the geometry nouns as well, for the reason in
 [Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws);
-and Chiga and Soga over five further keys each — the three chemistry prose
+and Chiga and Soga over six further keys each — the three chemistry prose
 messages, so that the chemistry group falls back entire rather than half in
-one language and half in another, and the two field nouns `noun.slope-field`
-and `noun.vector-field`, where a descriptive phrase would have been the
-seed's own invention rather than a word. Both are at 440/575, and the reason
-is in
+one language and half in another, and the three geometry nouns
+`noun.slope-field`, `noun.vector-field` and `noun.rectangle`, where a
+descriptive phrase would have been the seed's own invention rather than a
+word, or would have named the wrong figure. Both are at 439/575, and the
+reason is in
 [Two catalogs of East Africa](#two-catalogs-of-east-africa-and-the-thirteen-the-batch-did-not-seed).
 The two hundred and sixty-six are: Somali, Hmong Njua, Amharic, Assamese,
 Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
@@ -4019,7 +4020,7 @@ the language has, stated as plainly as what it does not.
 ### Two catalogs of East Africa, and the thirteen the batch did not seed
 
 The roster goes from 346 locales to 348: Chiga (`cgg`) and Soga (`xog`), two
-Bantu languages of Uganda, both at **440/575 keys**.
+Bantu languages of Uganda, both at **439/575 keys**.
 
 The batch was assembled as **fifteen** — Kamba (`kam`), Gusii (`guz`),
 Kalenjin (`kln`), Luyia (`luy`), Masai (`mas`), Meru (`mer`), Samburu (`saq`),
@@ -4046,7 +4047,7 @@ linted clean; Teso is the one estimate, its draft never having been written:
 | `teo` | Teso | 8–15, estimated; not written |
 | `dav`, `kln`, `ksb`, `vun`, `jmc` | Taita, Kalenjin, Shambala, Vunjo, Machame | 0 |
 
-Against 440 for the two that ship, and against the 6, 13, 13, 16, 20 and 26
+Against 439 for the two that ship, and against the 6, 13, 13, 16, 20 and 26
 the Americas batch measured for the six it dropped.
 
 #### A loan register can exist and still not be worth recording
@@ -4106,7 +4107,7 @@ catalogs that stalled still reached eight or thirteen or ninety-one keys
 rather than zero. *Circular dependency*, *deprecated attribute*, *invalid
 attribute value* cannot: they exist in a register these languages' speakers
 meet in English, and there is no published parallel to copy them from. A seed
-that reaches 440 is one that had somewhere to look for those 220 keys.
+that reaches 439 is one that had somewhere to look for those 220 keys.
 
 #### The near-sibling hazard, which cuts both ways
 
@@ -4140,20 +4141,33 @@ catalog can state is one a reviewer can work; a seam it cannot state is where
 nearly the same language" is the tempting mistake, and it would answer a
 reader in a variety they did not ask for.
 
-#### Coverage: 440 rather than 445, and the five keys that make the difference
+#### Coverage: 439 rather than 445, and the six keys that make the difference
 
 Both catalogs leave out the two chemistry tables, for the school-system reason
 every batch since the Silk Road one has given: Uganda teaches science in
 English from upper primary, so the fallback is the language the periodic table
 is actually taught in. That is 130 keys and would put them at 445.
 
-They leave out five more, and both are deliberate. Three are the remaining
+They leave out six more, and all six are deliberate. Three are the remaining
 chemistry **prose** messages, dropped so that the chemistry group falls back
 entire rather than appearing half in Rukiga and half in English inside one
-sentence. The other two are `noun.slope-field` and `noun.vector-field`, where
-neither language has a term and a descriptive phrase would have been the
-seed's own invention rather than a word — the same judgement `locales/iu`
-makes across the whole `noun` table, two keys against its twenty.
+sentence. Two are `noun.slope-field` and `noun.vector-field`, where neither
+language has a term and a descriptive phrase would have been the seed's own
+invention rather than a word — the same judgement `locales/iu` makes across
+the whole `noun` table, two keys against its twenty.
+
+The sixth is `noun.rectangle`, and it is the one a reviewer should read as a
+warning rather than a policy. Both seeds first wrote the descriptive phrase
+their sibling catalogs write — «ekishushani ky'empande ina», «ekifaanani
+eky'embali enna», both literally *four-sided figure* — and both were wrong:
+that phrase names a quadrilateral, so every rhombus and trapezoid on the page
+would have been called a rectangle. The defining right angle is exactly what
+neither seed had a word for. A descriptive phrase is safe where it is
+*equivalent* — «figure of three sides» is a triangle and nothing else — and
+unsafe where it names a wider class than the term does, which is not a
+distinction fluency can show a reviewer. So the key was dropped and the
+English falls through, and `noun-gender` carries no branch for it either, the
+way it carries none for the two field nouns.
 
 #### Two smaller things
 

@@ -53,6 +53,11 @@
 #   * `noun.slope-field` and `noun.vector-field` — Rukiga has no phrase for
 #     either and a descriptive one would be this seed's invention, so both
 #     fall back to English.
+#   * `noun.rectangle` — «ekishushani ky'empande ina» is literally *four-sided
+#     figure*, which names a quadrilateral and not a rectangle: Rukiga wants
+#     the word for the right angle that this seed does not have. Calling every
+#     four-sided figure a rectangle is worse than the English fallback, so the
+#     key is left out and `noun-gender` carries no branch for it.
 #   * `element-name` and `element-anion-name` — 130 keys, the whole periodic
 #     table. Uganda teaches secondary chemistry in English, so the fallback
 #     *is* what these readers meet.
@@ -61,11 +66,8 @@
 #     falls back entire rather than half of it being answered in Rukiga and
 #     half in English.
 #
-# **Weakest here.** «ekishushani ky'empande ina» is literally *four-sided
-# figure* and so names a quadrilateral rather than a rectangle; Rukiga wants a
-# word for the right angle that this seed does not have. «Tiyoremu» and
-# «parabora» are the two loans most likely to be wrong about what a Kigezi
-# classroom actually says.
+# **Weakest here.** «Tiyoremu» and «parabora» are the two loans most likely to
+# be wrong about what a Kigezi classroom actually says.
 
 
 ## Style vocabulary
@@ -213,7 +215,6 @@ noun =
     .polyline = omurongo gw'ebicweka
     .polygon = ekishushani ky'empande nyingi
     .triangle = ekishushani ky'empande ishatu
-    .rectangle = ekishushani ky'empande ina
     .circle = eriziga
     .region = ekicweka
     .point = akadomo
@@ -245,7 +246,6 @@ noun-gender =
         [polygon] c7
         [regular-polygon] c7
         [triangle] c7
-        [rectangle] c7
         [region] c7
         [plus] c7
         [text] c7

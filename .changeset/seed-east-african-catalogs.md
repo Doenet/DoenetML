@@ -13,15 +13,17 @@ buttons, editor chrome and diagnostics in that language instead of falling
 back to English, and `<document lang>` autocompletes both from CLDR's own
 names.
 
-Both sit at 440/575 keys rather than the 445 recent batches reach. The two
+Both sit at 439/575 keys rather than the 445 recent batches reach. The two
 chemistry element tables are left out for the school-system reason — Uganda
 teaches science in English from upper primary, so the fallback is the language
-the periodic table is actually taught in — and five further keys are left out
+the periodic table is actually taught in — and six further keys are left out
 deliberately: the three remaining chemistry prose messages, so the chemistry
 group falls back entire rather than appearing half in Rukiga and half in
-English inside one sentence, and `noun.slope-field` and `noun.vector-field`,
-where neither language has a term and a phrase would have been the seed's
-invention rather than a word.
+English inside one sentence; `noun.slope-field` and `noun.vector-field`, where
+neither language has a term and a phrase would have been the seed's invention
+rather than a word; and `noun.rectangle`, where the descriptive phrase either
+language would use means *four-sided figure* and so names a quadrilateral, not
+a rectangle.
 
 Both are written in Latin script, left to right, with the initial vowel — the
 augment — written as part of the word, so a line is «omurongo» and
@@ -46,7 +48,7 @@ This batch was assembled as **fifteen** languages of Kenya, Uganda and
 Tanzania and thirteen were left out rather than shipped: Kamba, Gusii,
 Kalenjin, Luyia, Masai, Meru, Samburu, Taita, Embu, Teso, Shambala, Vunjo and
 Machame. Attempted honestly they came to between 0 and 91 keys of 575 — against
-the 440 the two that ship reach — and they are recorded on #1655 with the
+the 439 the two that ship reach — and they are recorded on #1655 with the
 coverage each reached and the orthography each attempt settled. `lint:i18n`
 does not report them at all, because no catalog for them exists to be partial;
 a document declaring one of the thirteen renders in English exactly as it did

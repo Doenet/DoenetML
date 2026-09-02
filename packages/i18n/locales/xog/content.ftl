@@ -62,6 +62,11 @@
 #
 #   * `noun.slope-field` and `noun.vector-field` — Lusoga has no phrase for
 #     either and a descriptive one would be this seed's invention.
+#   * `noun.rectangle` — «ekifaanani eky'embali enna» is literally *four-sided
+#     figure*, which names a quadrilateral and not a rectangle: Lusoga wants
+#     the word for the right angle that this seed does not have. Calling every
+#     four-sided figure a rectangle is worse than the English fallback, so the
+#     key is left out and `noun-gender` carries no branch for it.
 #   * `element-name` and `element-anion-name` — 130 keys, the whole periodic
 #     table. Uganda teaches secondary chemistry in English, so the fallback
 #     *is* what these readers meet.
@@ -70,12 +75,9 @@
 #     falls back entire rather than half of it being answered in Lusoga and
 #     half in English.
 #
-# **Weakest here.** «ekifaanani eky'embali enna» is literally *four-sided
-# figure* and so names a quadrilateral rather than a rectangle; Lusoga wants a
-# word for the right angle that this seed does not have. The five-class table
-# above is Luganda's, transposed to Lusoga spelling, and the `c9` forms
-# («enjeru», «emmyufu», «endhuvu») are where a transposition is most likely to
-# be wrong.
+# **Weakest here.** The five-class table above is Luganda's, transposed to
+# Lusoga spelling, and the `c9` forms («enjeru», «emmyufu», «endhuvu») are
+# where a transposition is most likely to be wrong.
 
 
 ## Style vocabulary
@@ -159,7 +161,6 @@ noun =
     .polyline = olunyiriri olw'ebitundu
     .polygon = ekifaanani eky'embali ennyingi
     .triangle = ekifaanani eky'embali essatu
-    .rectangle = ekifaanani eky'embali enna
     .circle = enkulungo
     .region = ekitundu
     .point = akatonnyeze
@@ -191,7 +192,6 @@ noun-gender =
         [polygon] c7
         [regular-polygon] c7
         [triangle] c7
-        [rectangle] c7
         [region] c7
         [text] c7
         [fill] c7
