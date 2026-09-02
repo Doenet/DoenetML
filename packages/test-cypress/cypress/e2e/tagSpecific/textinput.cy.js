@@ -78,8 +78,8 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
             );
             const inputWidth = parseFloat(win.getComputedStyle(el).width);
             expect(columnWidth).to.be.greaterThan(200);
-            // Fills the column but for its own margins and border — well past
-            // the fixed 600px this used to default to.
+            // Fills the column but for its own margins — well past the fixed
+            // 600px this used to default to.
             expect(inputWidth).to.be.at.most(columnWidth);
             expect(inputWidth).to.be.greaterThan(columnWidth - 25);
         });
@@ -124,7 +124,7 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
                 win.getComputedStyle(el.parentElement).width,
             );
             const columnWidth = parseFloat(
-                win.getComputedStyle(el.closest("div")).width,
+                win.getComputedStyle(el.closest("div.para")).width,
             );
             expect(rowWidth).to.be.lessThan(columnWidth);
         });
@@ -137,23 +137,34 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
                 {
                     doenetML: `
     <p><textInput name="huge" expanded width="4000px" /></p>
+    <p><textInput name="wide" expanded /></p>
     `,
                 },
                 "*",
             );
         });
 
+        // Measured on the rendered edges, not the computed width: the margins
+        // and the border sit outside the width, so a box capped at the column
+        // width would still hang past its right edge.
+        function expectWithinColumn(el) {
+            const paragraph = el.closest("div.para");
+            const inputBox = el.getBoundingClientRect();
+            const columnBox = paragraph.getBoundingClientRect();
+            expect(columnBox.width).to.be.greaterThan(100);
+            expect(inputBox.right).to.be.at.most(columnBox.right + 0.5);
+            expect(inputBox.left).to.be.at.least(columnBox.left - 0.5);
+        }
+
+        // An absolute width the window cannot hold shrinks to fit.
         cy.get("#huge_input").should("exist");
         cy.get("#huge_input").then(($el) => {
-            const el = $el[0];
-            const win = el.ownerDocument.defaultView;
-            const columnWidth = parseFloat(
-                win.getComputedStyle(el.parentElement).width,
-            );
-            const inputWidth = parseFloat(win.getComputedStyle(el).width);
-            expect(inputWidth).to.be.lessThan(4000);
-            expect(inputWidth).to.be.at.most(columnWidth);
+            expect($el[0].getBoundingClientRect().width).to.be.lessThan(4000);
+            expectWithinColumn($el[0]);
         });
+
+        // So does the 100% default, whose margins would otherwise push it out.
+        cy.get("#wide_input").then(($el) => expectWithinColumn($el[0]));
     });
 
     // The check-work button carries its label three times over: once in the

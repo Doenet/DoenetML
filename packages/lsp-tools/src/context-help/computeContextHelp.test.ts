@@ -1692,6 +1692,24 @@ describe("computeContextHelp — sizeSyntax on componentSize attributes", () => 
         expect(help.sizeSyntax.snapsToSizePreset).toBeUndefined();
     });
 
+    it("offers a side-by-side width the percentage and nothing else", async () => {
+        for (const elementName of ["sideBySide", "sbsGroup"]) {
+            const source = `<${elementName} width="50%"/>`;
+            const offset = source.indexOf("width") + 2;
+            const help = await helpAt(source, offset);
+            if (help.kind !== "attribute" || !help.sizeSyntax) {
+                expect.fail(`expected sizeSyntax on <${elementName} width>`);
+                return;
+            }
+            // An absolute width is warned about and coerced to relative, so
+            // the panel never puts one in front of an author.
+            expect(help.sizeSyntax.examples.map((e) => e.value)).toEqual([
+                "50%",
+            ]);
+            expect(help.sizeSyntax.snapsToSizePreset).toBeUndefined();
+        }
+    });
+
     it("is absent on an attribute that is not a size", async () => {
         const source = `<textInput expanded="true"/>`;
         const offset = source.indexOf("expanded") + 2;

@@ -193,6 +193,35 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("offers a sideBySide width the percentage only", () => {
+        const doenetML = `<sideBySide width="50%"><p>a</p><p>b</p></sideBySide>`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "width",
+        );
+
+        openHelpTab();
+        moveCursorToOffset(doenetML.indexOf("width") + 2);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            // A side-by-side divides its row into shares, so an absolute width
+            // is coerced. Neither the chips nor the note raise one.
+            cy.get(".help-size-syntax").should("contain.text", "50%");
+            cy.get(".help-size-syntax").should("not.contain.text", "px");
+            cy.get(".help-size-syntax").should(
+                "not.contain.text",
+                "A bare number",
+            );
+            cy.get(".help-size-syntax").should(
+                "contain.text",
+                "A percentage is a share of the width",
+            );
+        });
+    });
+
     it("redirects <row> inside <matrix> to matrixRow help via childAliases", () => {
         const doenetML = `<matrix>\n<row>1 2 3</row>\n</matrix>`;
         cy.window().then((win) => {

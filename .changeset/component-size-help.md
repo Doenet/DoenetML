@@ -10,10 +10,12 @@ The context-sensitive help explains what a `width` or `height` accepts.
 
 Cursor on one of these attributes, the help panel now lists the forms its value
 may take — `600`, `600px`, `6in`, `450pt`, `15cm`, and, for a width, `50%` —
-along with the note that a bare number is pixels. A height is offered only the
-absolute forms, since a percentage there has no page height to measure itself
-against. The `width` of a `<graph>`, `<image>` or `<video>` is marked as
-choosing the nearest `size` preset rather than being used exactly.
+along with a note naming the unit each carries. Each attribute is offered only
+what it honors: a height gets the absolute forms, since a percentage there has
+no page height to measure itself against, and a `<sideBySide>` width gets the
+percentage, since it divides a row into shares. The `width` of a `<graph>`,
+`<image>` or `<video>` is marked as choosing the nearest `size` preset rather
+than being used exactly.
 
 The panel keys off the attribute's type, so every component taking a size is
 covered. A size default also reads as `120px` now, instead of as the internal

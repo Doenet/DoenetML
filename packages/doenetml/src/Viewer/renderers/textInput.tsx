@@ -24,6 +24,13 @@ import { useContentT } from "../../utils/i18n";
 import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
 import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
+/**
+ * Horizontal margin, in pixels, on an expanded input's textarea. Named because
+ * the width cap has to subtract it: the margin sits outside the box, so a
+ * textarea capped at the full column width would still overhang by it.
+ */
+const EXPANDED_INPUT_MARGIN_X = 4;
+
 interface TextInputSVs {
     [key: string]: any;
     hidden: boolean;
@@ -707,7 +714,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
     // definite containing block to measure against, without disturbing the
     // shrink-to-fit row an absolute width still wants.
     const expandedRelativeWidth =
-        SVs.expanded && Boolean(SVs.width) && !SVs.width.isAbsolute;
+        SVs.expanded && SVs.width?.isAbsolute === false;
 
     if (SVs.expanded) {
         input = (
@@ -727,14 +734,20 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 aria-description={hasLabel ? shortDescription : undefined}
                 aria-details={descriptionId}
                 style={{
-                    margin: "0px 4px 4px 4px",
+                    margin: `0px ${EXPANDED_INPUT_MARGIN_X}px 4px ${EXPANDED_INPUT_MARGIN_X}px`,
                     color: "var(--canvasText)",
                     background: "var(--canvas)",
+                    // The authored width is the width of the box an author
+                    // sees, border and padding included, so `width="600"` and
+                    // `maxWidth` below both measure the same edges.
+                    boxSizing: "border-box",
                     width,
                     height,
                     // A window narrower than the authored width shrinks the
                     // input rather than pushing it out of the text column.
-                    maxWidth: "100%",
+                    // The margins sit outside the box, so they come off the
+                    // cap or the input would overhang by exactly them.
+                    maxWidth: `calc(100% - ${2 * EXPANDED_INPUT_MARGIN_X}px)`,
                 }}
             />
         );

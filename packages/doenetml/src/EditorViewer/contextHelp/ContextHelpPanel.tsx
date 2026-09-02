@@ -816,15 +816,15 @@ function renderLabeledChipList(
  * `15cm` are read, or that a percentage is allowed — so the forms are listed
  * as chips, with a note naming the unit a bare number carries.
  *
- * A height is offered only the absolute forms, and its note says nothing about
- * percentages: the runtime takes a percentage height and does nothing with it,
- * and raising a form only to rule it out reads worse than never raising it.
+ * `examples` already carries only the forms the attribute honors (a height
+ * gets no percentage; a side-by-side width gets nothing else), so the note is
+ * chosen from what is in the list rather than from the attribute's identity:
+ * raising a form only to rule it out reads worse than never raising it.
  */
 function renderSizeSyntax(
     t: Translator,
     sizeSyntax: SizeSyntaxPayload,
 ): React.ReactNode {
-    const hasRelative = sizeSyntax.examples.some((e) => e.kind === "relative");
     return (
         <div className="help-detail help-size-syntax">
             {renderLabeledChipList(
@@ -832,20 +832,9 @@ function renderSizeSyntax(
                 sizeSyntax.examples.map(({ value }) => value),
             )}
             <span className="help-detail-annotation">
-                {/* Two flat keys rather than one with a branch: a height is
-                    offered no percentage at all, so its note must not raise
-                    the idea only to take it back. */}
-                {hasRelative
-                    ? t(
-                          "help-size-units",
-                          undefined,
-                          "A bare number is pixels. A percentage is a share of the width around the component.",
-                      )
-                    : t(
-                          "help-size-units-absolute",
-                          undefined,
-                          "A bare number is pixels.",
-                      )}
+                {/* Three flat keys rather than one with branches, so each
+                    reads as a whole sentence in translation. */}
+                {sizeUnitsNote(t, sizeSyntax)}
             </span>
             {sizeSyntax.snapsToSizePreset && (
                 <span className="help-detail-annotation">
@@ -859,6 +848,36 @@ function renderSizeSyntax(
                 </span>
             )}
         </div>
+    );
+}
+
+/**
+ * The sentence under the "Accepted sizes" chips, naming the unit each listed
+ * form carries. One key per combination the payload can produce, so no
+ * translation has to assemble a sentence out of clauses.
+ */
+function sizeUnitsNote(t: Translator, sizeSyntax: SizeSyntaxPayload): string {
+    const hasAbsolute = sizeSyntax.examples.some((e) => e.kind === "absolute");
+    const hasRelative = sizeSyntax.examples.some((e) => e.kind === "relative");
+
+    if (!hasAbsolute) {
+        return t(
+            "help-size-units-relative",
+            undefined,
+            "A percentage is a share of the width around the component.",
+        );
+    }
+    if (!hasRelative) {
+        return t(
+            "help-size-units-absolute",
+            undefined,
+            "A bare number is pixels.",
+        );
+    }
+    return t(
+        "help-size-units",
+        undefined,
+        "A bare number is pixels. A percentage is a share of the width around the component.",
     );
 }
 

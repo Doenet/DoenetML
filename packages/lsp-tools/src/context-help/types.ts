@@ -50,21 +50,22 @@ export type FunctionNamesBreakdownPayload = {
 };
 
 /**
- * Length syntax surfaced for an attribute whose value is a `componentSize`
- * (`width`, `height` — 15 of them across `textInput`, `codeEditor`,
- * `spreadsheet`, `tabular`, `slider`, `sideBySide`, `graph`, `image` and
- * `video`).  The attribute description says what the dimension means; nothing
- * else tells an author that `600`, `6in` and `50%` are all accepted, so the
- * panel lists the forms.
+ * Length syntax surfaced for an attribute whose value is a `componentSize` —
+ * the `width` and `height` of `textInput`, `codeEditor`, `spreadsheet`,
+ * `tabular`, `slider`, `sideBySide`, `sbsGroup`, `graph`, `image` and `video`.
+ * The attribute description says what the dimension means; nothing else tells
+ * an author that `600`, `6in` and `50%` are all accepted, so the panel lists
+ * the forms.
  *
  * `em` is deliberately absent from `examples`: the runtime reads it as a
  * multiple of 100% rather than as a font-relative length, so offering it here
  * would teach the wrong thing. The reference docs cover it as a caveat.
  *
- * A `height` carries only the absolute forms. The runtime accepts a percentage
- * there and then does nothing with it — its containing block has no definite
- * height to measure against — so the panel leaves percentages out of the height
- * story altogether rather than naming a form only to rule it out.
+ * `examples` carries only the forms the attribute honors, so the panel never
+ * names one only to rule it out. A `height` gets the absolute forms alone (a
+ * percentage there has no definite containing height to measure against), and
+ * a side-by-side `width` gets the relative form alone (an absolute one is
+ * warned about and coerced to relative).
  */
 export type SizeSyntaxPayload = {
     /** Accepted forms, each an example value and the unit it stands for. */

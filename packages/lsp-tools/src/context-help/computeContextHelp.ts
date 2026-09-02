@@ -841,14 +841,26 @@ const ELEMENTS_SNAPPING_WIDTH_TO_SIZE: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Elements whose `width` is read only as a share of the width around them.
+ * A side-by-side layout divides its row into percentages; an absolute width
+ * there raises the `side-by-side-absolute-widths` warning and is coerced to
+ * relative, so the absolute forms are not offered.
+ */
+const ELEMENTS_WITH_RELATIVE_ONLY_WIDTH: ReadonlySet<string> = new Set([
+    "sideBySide",
+    "sbsGroup",
+]);
+
+/**
  * The accepted length forms, in the order the panel lists them: the absolute
  * units first (pixels being the one an author reaches for), then the relative
  * one. `mm` is left out as the near-duplicate of `cm` rather than because it
  * is rejected.
  *
- * The relative entry is filtered out for a height — the runtime accepts a
- * percentage there, but nothing comes of it, and naming a form only to rule it
- * out is more confusing than never raising it.
+ * The list is filtered down for the two attributes that take only part of it
+ * — see {@link computeSizeSyntaxForAttribute}. Naming a form only to rule it
+ * out is more confusing than never raising it, so each attribute is offered
+ * exactly what it honors.
  */
 const COMPONENT_SIZE_EXAMPLES: SizeSyntaxPayload["examples"] = [
     { value: "600", kind: "absolute" },
@@ -862,6 +874,31 @@ const COMPONENT_SIZE_EXAMPLES: SizeSyntaxPayload["examples"] = [
 const COMPONENT_SIZE_ABSOLUTE_EXAMPLES: SizeSyntaxPayload["examples"] =
     COMPONENT_SIZE_EXAMPLES.filter((e) => e.kind === "absolute");
 
+const COMPONENT_SIZE_RELATIVE_EXAMPLES: SizeSyntaxPayload["examples"] =
+    COMPONENT_SIZE_EXAMPLES.filter((e) => e.kind === "relative");
+
+/**
+ * Pick the forms an attribute actually honors:
+ *
+ * - A **height** gets the absolute forms only. A percentage needs a containing
+ *   block with a definite size to measure against; along the block axis there
+ *   is none, so a percentage height resolves to `auto` and the element falls
+ *   back to its content height.
+ * - A **side-by-side width** gets the relative form only, since the runtime
+ *   coerces an absolute one (see {@link ELEMENTS_WITH_RELATIVE_ONLY_WIDTH}).
+ * - Every other `componentSize` attribute gets the full list.
+ */
+function componentSizeExamplesFor(
+    elementName: string,
+    isHeight: boolean,
+): SizeSyntaxPayload["examples"] {
+    if (isHeight) return COMPONENT_SIZE_ABSOLUTE_EXAMPLES;
+    if (ELEMENTS_WITH_RELATIVE_ONLY_WIDTH.has(elementName)) {
+        return COMPONENT_SIZE_RELATIVE_EXAMPLES;
+    }
+    return COMPONENT_SIZE_EXAMPLES;
+}
+
 function computeSizeSyntaxForAttribute(
     elementName: string,
     schemaAttr: SchemaAttribute,
@@ -872,15 +909,8 @@ function computeSizeSyntaxForAttribute(
     const snapsToSizePreset =
         !isHeight && ELEMENTS_SNAPPING_WIDTH_TO_SIZE.has(elementName);
 
-    // A percentage needs a containing block with a definite size to measure
-    // against. Along the inline axis there always is one; along the block axis
-    // there is not, so a percentage height resolves to `auto` and the element
-    // falls back to its content height — which is why a height is offered the
-    // absolute forms and nothing else.
     return {
-        examples: isHeight
-            ? COMPONENT_SIZE_ABSOLUTE_EXAMPLES
-            : COMPONENT_SIZE_EXAMPLES,
+        examples: componentSizeExamplesFor(elementName, isHeight),
         ...(snapsToSizePreset ? { snapsToSizePreset: true } : {}),
     };
 }
