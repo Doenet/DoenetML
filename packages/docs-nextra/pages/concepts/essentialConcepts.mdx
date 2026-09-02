@@ -168,6 +168,11 @@ So `width="400px"` and `width="50%"` both render one of these components at
 `medium`, 425 pixels wide. Reading back the component's `size` property tells
 you which preset a width landed on.
 
+A percentage means something different here than it does elsewhere. It is a
+share of the 850 pixels of the `full` preset — the widest any component may be —
+rather than of the space around the component, so `width="50%"` picks `medium`
+however narrow the surrounding column happens to be.
+
 An `<image/>{:dn}` drawn on a `<graph/>{:dn}` is the exception to the exception:
 there its `width` is used as given, measured against the graph's own scale
 rather than snapped to a preset.
