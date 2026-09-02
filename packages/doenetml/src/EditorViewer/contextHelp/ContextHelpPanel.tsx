@@ -873,6 +873,17 @@ function sizeUnitsNote(t: Translator, sizeSyntax: SizeSyntaxPayload): string {
             "A bare number is pixels.",
         );
     }
+    if (sizeSyntax.snapsToSizePreset) {
+        // A percentage here is not a share of the surrounding width — it is a
+        // share of the widest any component may be, which is then rounded to a
+        // preset. Saying "a share of the width around the component" would
+        // contradict the preset note the panel prints directly beneath this.
+        return t(
+            "help-size-units-preset",
+            undefined,
+            "A bare number is pixels, and a percentage is a share of the widest a component can be.",
+        );
+    }
     return t(
         "help-size-units",
         undefined,

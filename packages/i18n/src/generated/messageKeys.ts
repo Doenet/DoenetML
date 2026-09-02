@@ -585,6 +585,7 @@ export type MessageKey =
     | "help-accepted-sizes"
     | "help-size-units"
     | "help-size-units-absolute"
+    | "help-size-units-preset"
     | "help-size-units-relative"
     | "help-size-snaps-to-preset";
 
@@ -1168,6 +1169,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "help-accepted-sizes",
     "help-size-units",
     "help-size-units-absolute",
+    "help-size-units-preset",
     "help-size-units-relative",
     "help-size-snaps-to-preset",
 ];

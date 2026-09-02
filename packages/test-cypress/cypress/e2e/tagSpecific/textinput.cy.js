@@ -73,11 +73,15 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#tiDefault_input").then(($el) => {
             const el = $el[0];
             const win = el.ownerDocument.defaultView;
+            // Measure the paragraph, not the input row: the row is only as
+            // wide as the column because this default works. Measuring it
+            // would let a regression to the old absolute 600px default pass,
+            // since the row would shrink-wrap to the input either way.
             const columnWidth = parseFloat(
-                win.getComputedStyle(el.parentElement).width,
+                win.getComputedStyle(el.closest("div.para")).width,
             );
             const inputWidth = parseFloat(win.getComputedStyle(el).width);
-            expect(columnWidth).to.be.greaterThan(200);
+            expect(columnWidth).to.be.greaterThan(700);
             // Fills the column but for its own margins — well past the fixed
             // 600px this used to default to.
             expect(inputWidth).to.be.at.most(columnWidth);
@@ -107,11 +111,14 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#half_input").then(($el) => {
             const el = $el[0];
             const win = el.ownerDocument.defaultView;
+            // The paragraph is the containing block a percentage resolves
+            // against. The input row is not: it shrink-wraps its contents,
+            // which is the circular reference this fix exists to avoid.
             const columnWidth = parseFloat(
-                win.getComputedStyle(el.parentElement).width,
+                win.getComputedStyle(el.closest("div.para")).width,
             );
             const inputWidth = parseFloat(win.getComputedStyle(el).width);
-            expect(columnWidth).to.be.greaterThan(200);
+            expect(columnWidth).to.be.greaterThan(700);
             expect(inputWidth).to.be.closeTo(columnWidth / 2, 1);
         });
 
