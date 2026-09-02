@@ -8,7 +8,7 @@
 
 The context-sensitive help explains what a `width` or `height` accepts.
 
-Cursor on one of these attributes, the help panel now lists the forms its value
+With the cursor on one of these attributes, the help panel now lists the forms its value
 may take — `600`, `600px`, `6in`, `450pt`, `15cm`, and, for a width, `50%` —
 along with a note naming the unit each carries. Each attribute is offered only
 what it honors: a height gets the absolute forms, since a percentage there has
