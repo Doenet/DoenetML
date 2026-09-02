@@ -130,9 +130,10 @@ so reach for it when a fixed number of pixels would be too wide on a phone:
 ```
 
 An expanded `<textInput/>{:dn}` takes a percentage the same way, and is 100%
-wide unless you say otherwise. A word-sized input is the exception: it shrinks
-to fit the sentence it flows in, so there is no column there for a percentage to
-be a share of. Give a word-sized input an absolute width.
+wide unless you say otherwise. A word-sized input is the exception: it keeps
+whatever width it is given, and the line it sits in closes around it, so a
+percentage there would be a share of a box whose own width depends on the input.
+Give a word-sized input an absolute width.
 
 <Callout type="warning">
 **`em` is not a font-relative size here.** Unlike in CSS, DoenetML reads `em` as
