@@ -190,8 +190,13 @@ combine `symbolicEquality` with the `simplifyOnCompare` and `expandOnCompare` at
 
 
 
-When an `<answer>{:dn}` has an input field inside it, it will, by default use a small check work button to the right of the 
+When an `<answer>{:dn}` has a word-sized input field inside it, it will, by default use a small check work button to the right of the 
 input field.  To override this default and use the large button, add the  `forceFullCheckWorkButton` attribute.
+
+
+An input that takes a block of its own rather than a word of a sentence — an expanded
+`<textInput/>{:dn}`, or a `<choiceInput/>{:dn}` that is not `inline` — uses the large button by
+default instead, placed beneath the input.
 
 
 An answer without an input field uses the large button, by default. (See `forceSmallCheckWorkButton`, below).
@@ -231,7 +236,8 @@ When an `<answer>{:dn}` does not have an input field inside it, it will, by defa
 To override this default and use the small button, add the  `forceSmallCheckWorkButton` attribute.
 
 
-An answer with an input field always uses the small button, by default. (See `forceFullCheckWorkButton`, above.)
+An answer with a word-sized input field uses the small button by default; one whose input takes a
+block of its own uses the full button. (See `forceFullCheckWorkButton`, above.)
 
 
 If both `forceFullCheckWorkButton` and `forceSmallCheckWorkButton` are supplied, `forceFullCheckWorkButton` takes precedence.

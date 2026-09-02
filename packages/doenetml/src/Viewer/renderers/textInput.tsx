@@ -31,6 +31,13 @@ import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
  */
 const EXPANDED_INPUT_MARGIN_X = 4;
 
+/**
+ * Width a text input falls back to on a graph when its own width is a
+ * percentage. Matches the word-sized default the worker gives an input that
+ * is not `expanded`. See `boardWidth`.
+ */
+const BOARD_INPUT_FALLBACK_WIDTH = "100px";
+
 interface TextInputSVs {
     [key: string]: any;
     hidden: boolean;
@@ -66,6 +73,14 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea
+
+    // JSXGraph draws every text input as a one-line field, so `expanded` means
+    // nothing on a graph — including the 100% width it defaults to. The field
+    // floats in a shrink-to-fit box above the graph, which gives a percentage
+    // no column to be a share of, so a relative width falls back to the
+    // word-sized default and an input on a graph is the same size either way.
+    const boardWidth =
+        SVs.width?.isAbsolute === false ? BOARD_INPUT_FALLBACK_WIDTH : width;
 
     // @ts-ignore
     TextInput.baseStateVariable = "immediateValue";
@@ -330,7 +345,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         newInputJXG.rendNodeInput.addEventListener("blur", handleBlur);
         newInputJXG.rendNodeInput.addEventListener("focus", handleFocus);
 
-        newInputJXG.rendNodeInput.style.width = width!;
+        newInputJXG.rendNodeInput.style.width = boardWidth!;
         newInputJXG.rendNodeInput.style.color = "var(--canvasText)";
         applyDisabledStyleJXG(newInputJXG.rendNodeInput, SVs.disabled);
 
@@ -574,7 +589,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
             inputJXG.current.setText(SVs.label);
 
-            inputJXG.current.rendNodeInput.style.width = width!;
+            inputJXG.current.rendNodeInput.style.width = boardWidth!;
 
             let visible = !SVs.hidden;
 

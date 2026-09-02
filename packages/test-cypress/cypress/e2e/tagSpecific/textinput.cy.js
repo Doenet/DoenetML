@@ -242,6 +242,57 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         });
     });
 
+    it("grows the check-work button to hold a label that wraps", () => {
+        cy.viewport(700, 800);
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <sideBySide widths="14% 86%">
+      <p><answer name="a" handGraded><textInput name="ti" expanded /></answer></p>
+      <p>filler</p>
+    </sideBySide>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ti_input").should("exist");
+        cy.get("#ti_button").then(($btn) => {
+            const btn = $btn[0];
+            // A narrow column squeezes the button until "Submit Response" no
+            // longer fits on one line, so its content is taller than the 24px
+            // a one-line button stands. Asserted first so the check below is
+            // testing what it says it is.
+            expect(btn.scrollHeight).to.be.greaterThan(24);
+            // Having wrapped, the button grows to hold the second line rather
+            // than clipping it — which a fixed height did.
+            expect(btn.clientHeight).to.be.at.least(btn.scrollHeight);
+        });
+    });
+
+    it("sizes an expanded input on a graph like a word-sized one", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <graph name="gPlain"><textInput name="plain" /></graph>
+    <graph name="gExpanded"><textInput name="big" expanded /></graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // JSXGraph draws every text input as a one-line field, so `expanded`
+        // means nothing on a graph — and neither does the 100% width it brings
+        // with it: the field floats in a shrink-to-fit box above the graph,
+        // which gives a percentage no column to be a share of.
+        cy.get("#gPlain").find("input").should("have.css", "width", "100px");
+        cy.get("#gExpanded").find("input").should("have.css", "width", "100px");
+    });
+
     it("set value from immediateValue on reload", () => {
         let doenetML = `
     <p><textInput name="ti" /></p>

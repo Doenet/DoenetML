@@ -19,5 +19,9 @@ rather than 600 pixels, and it never grows wider than the column even when an
 absolute width asks for more, so it shrinks to fit a narrow window. The width of
 a word-sized (not `expanded`) input is unchanged.
 
+On a `<graph>` a text input is drawn as a one-line field however it is written,
+so `expanded` no longer changes its size there: it is the same width as any
+other input on the graph.
+
 The reference table and the help panel now name the two defaults, and say that
 `height` applies only to an expanded input.

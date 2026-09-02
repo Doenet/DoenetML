@@ -37,15 +37,30 @@ export function isMathDefaultValue(val: unknown): val is MathDefaultValue {
  * `height="{"size":120,"isAbsolute":true}"`. Renderers detect it with
  * `isComponentSizeValue` and print it with `formatComponentSize`, which gives
  * back exactly the text an author would put in the attribute.
+ *
+ * `size` is a number or a string of digits: the worker's component classes
+ * declare these defaults by hand, and a few write the number as a string
+ * (`<codeEditor>`'s `width` is `{ size: "100", isAbsolute: false }`). Both
+ * spellings mean the same size, so both are recognized — a guard that took
+ * only numbers would leave those attributes printing their raw JSON.
  */
-export type ComponentSizeValue = { size: number; isAbsolute: boolean };
+export type ComponentSizeValue = {
+    size: number | string;
+    isAbsolute: boolean;
+};
 
 export function isComponentSizeValue(val: unknown): val is ComponentSizeValue {
+    if (
+        typeof val !== "object" ||
+        val === null ||
+        typeof (val as { isAbsolute?: unknown }).isAbsolute !== "boolean"
+    ) {
+        return false;
+    }
+    const size = (val as { size?: unknown }).size;
     return (
-        typeof val === "object" &&
-        val !== null &&
-        typeof (val as { size?: unknown }).size === "number" &&
-        typeof (val as { isAbsolute?: unknown }).isAbsolute === "boolean"
+        typeof size === "number" ||
+        (typeof size === "string" && size.trim() !== "" && !isNaN(Number(size)))
     );
 }
 

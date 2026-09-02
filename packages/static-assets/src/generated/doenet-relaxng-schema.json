@@ -102990,7 +102990,7 @@
                     "name": "width",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "Display width of the input."
+                    "description": "Display width of the input. Defaults to 100% when expanded, and to 100px otherwise."
                 },
                 {
                     "name": "value",

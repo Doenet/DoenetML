@@ -148,7 +148,11 @@ export default class Textinput extends Input {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.width = {
-            description: "Display width of the input.",
+            // Matches the `width` attribute's description: the attribute and
+            // the property are listed side by side in the reference tables and
+            // in the help panel, so they say the same thing about the default.
+            description:
+                "Display width of the input. Defaults to 100% when expanded, and to 100px otherwise.",
             forRenderer: true,
             hasEssential: true,
             public: true,
