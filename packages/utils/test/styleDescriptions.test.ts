@@ -5580,3 +5580,75 @@ describe("the second European batch's word order", () => {
         expect(describe_("point")).toBe(describe_("line"));
     });
 });
+
+describe("the East African pair's word order", () => {
+    /**
+     * Two catalogs rather than the fifteen the batch set out with, and both
+     * are Bantu languages of Uganda: Chiga (`cgg`) and Soga (`xog`). The
+     * other thirteen are recorded on #1655 with the coverage each honestly
+     * reached; see the README's batch section.
+     *
+     * Both put the describing words **after** the noun, so what leads the
+     * phrase is the noun and the bare description is the phrase's tail — the
+     * shape `style-with-noun` has to be read against, and the same one `kl`
+     * and the Romance catalogs produce.
+     *
+     * Neither keeps English's internal sequence of the three adjectives.
+     * English orders them width – pattern – colour; both of these render the
+     * dash pattern as an **associative phrase** («na tucweka», «n'obutundu» —
+     * *with pieces*, *with dots*) rather than as an adjective, and an
+     * associative phrase cannot sit between two adjectives, so both read
+     * width – colour – pattern. That is the same constraint `wa`, `frp` and
+     * `nrf` hit from the other side of the continent, and it is a fact about
+     * where a phrase can go rather than a choice either seed made.
+     *
+     * The two differ in how much of the phrase carries concord, which is why
+     * asserting both is worth more than asserting either. Rukiga agrees only
+     * the first adjective with the noun's class and leaves the colour to the
+     * associative («omurongo muhango w'omutukura»); Lusoga agrees every
+     * adjective in the string («olunyiriri olunene olumyufu»), so class 11's
+     * `olu-` appears three times in one phrase.
+     */
+    const postnominal: [string, string, string][] = [
+        [
+            "cgg",
+            "omurongo muhango w'omutukura na tucweka",
+            "muhango w'omutukura na tucweka",
+        ],
+        [
+            "xog",
+            "olunyiriri olunene olumyufu n'obutundu",
+            "olunene olumyufu n'obutundu",
+        ],
+    ];
+
+    /**
+     * The noun each phrase leads with, written **with its initial vowel** —
+     * the augment. That is the thing a seed drops when it reaches for a
+     * dictionary stem, and both catalogs' headers say so: «murongo» and
+     * «lunyiriri» would render, lint clean and be wrong.
+     */
+    const nounOf: Record<string, string> = {
+        cgg: "omurongo",
+        xog: "olunyiriri",
+    };
+
+    for (const [locale, withNoun, adjectivesOnly] of postnominal) {
+        it(`puts ${locale}'s describing words after the noun`, () => {
+            const t = forLocale(locale);
+            const rendered = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: true,
+            });
+            const renderedBare = describeStrokedShape(t, words, {
+                noun: line,
+                withNoun: false,
+            });
+            expect(rendered).toBe(withNoun);
+            expect(renderedBare).toBe(adjectivesOnly);
+            // The bare description is the tail of the full phrase verbatim:
+            // the noun moved to the front and nothing else moved with it.
+            expect(rendered).toBe(`${nounOf[locale]} ${renderedBare}`);
+        });
+    }
+});

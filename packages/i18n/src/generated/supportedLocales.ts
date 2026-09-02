@@ -54,6 +54,7 @@ export type SupportedLocale =
     | "cbk"
     | "ce"
     | "ceb"
+    | "cgg"
     | "ch"
     | "chk"
     | "ckb"
@@ -344,6 +345,7 @@ export type SupportedLocale =
     | "wo"
     | "xal"
     | "xh"
+    | "xog"
     | "yi"
     | "yo"
     | "yua"
@@ -636,6 +638,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Cebuano",
         endonym: "Cebuano",
         label: "Cebuano",
+    },
+    {
+        locale: "cgg",
+        englishName: "Chiga",
+        endonym: "Rukiga",
+        label: "Chiga (Rukiga)",
     },
     {
         locale: "ch",
@@ -2151,6 +2159,12 @@ export const SUPPORTED_LOCALES: readonly SupportedLocaleInfo[] = [
         englishName: "Xhosa",
         endonym: "IsiXhosa",
         label: "Xhosa (IsiXhosa)",
+    },
+    {
+        locale: "xog",
+        englishName: "Soga",
+        endonym: "Olusoga",
+        label: "Soga (Olusoga)",
     },
     {
         locale: "yi",

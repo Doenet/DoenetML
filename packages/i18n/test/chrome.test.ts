@@ -150,6 +150,12 @@ import romChrome from "../locales/rom/chrome.ftl?raw";
 import romDiagnostics from "../locales/rom/diagnostics.ftl?raw";
 import kwEditor from "../locales/kw/editor.ftl?raw";
 import gvEditor from "../locales/gv/editor.ftl?raw";
+// The East African pair. Two catalogs rather than the fifteen the batch set
+// out with — the other thirteen are recorded on #1655 with the coverage each
+// honestly reached. Only `diagnostics.ftl` here: the one count select this
+// block reads, `field-function-wrong-num-outputs`, lives there in both.
+import cggDiagnostics from "../locales/cgg/diagnostics.ftl?raw";
+import xogDiagnostics from "../locales/xog/diagnostics.ftl?raw";
 // The Americas batch, both files for the same reason as the Silk Road's:
 // each catalog's count selects are split between `chrome.ftl` and
 // `diagnostics.ftl`, so where a category branch falls is only checkable
@@ -246,6 +252,22 @@ type Row = [string, string, string];
  */
 const bothOf = (chrome: string, diagnostics: string) =>
     `${branches(chrome)}\n${branches(diagnostics)}`;
+
+/**
+ * The `$expected` fork of `field-function-wrong-num-outputs`: the message from
+ * its id up to the `$found` that follows the fork, comment lines dropped first
+ * so that a header paraphrasing the id cannot be matched instead of the
+ * message. `undefined` if either marker is missing, which the callers assert
+ * against rather than silently reading the rest of the file.
+ *
+ * Shared by the batch blocks below, which each ask the same question of the
+ * one message whose count fork a catalog answers differently depending on
+ * whether CLDR has plural rules for it.
+ */
+const outputFork = (diagnostics: string) =>
+    branches(diagnostics)
+        .split("\nfield-function-wrong-num-outputs =")[1]
+        ?.split("$found")[0];
 
 describe("createChromeTranslator", () => {
     it("answers in English for the default locale", () => {
@@ -1484,19 +1506,6 @@ describe("the second European batch's plural categories", () => {
      * The previous South Asian batch set this precedent and every one of its
      * fifteen catalogs writes `[1]` too.
      */
-    /**
-     * The `$expected` fork of `field-function-wrong-num-outputs`: the message
-     * from its id up to the `$found` that follows the fork, comment lines
-     * dropped first so that a header paraphrasing the id cannot be matched
-     * instead of the message. `undefined` if either marker is missing, which
-     * the callers assert against rather than silently reading the rest of the
-     * file.
-     */
-    const outputFork = (diagnostics: string) =>
-        branches(diagnostics)
-            .split("\nfield-function-wrong-num-outputs =")[1]
-            ?.split("$found")[0];
-
     it.each(NO_RULES)(
         "writes %s's output-count fork as a numeric branch, not a category",
         (_locale, _chrome, diagnostics) => {
@@ -1587,4 +1596,81 @@ describe("the second European batch's plural categories", () => {
         expect(wa.select(2)).toBe("other");
         expect(branches(waChrome)).toContain("[0]");
     });
+});
+
+/**
+ * The East African pair's plural categories.
+ *
+ * The batch set out as fifteen languages of Kenya, Uganda and Tanzania and
+ * ships **two**: Chiga (`cgg`) and Soga (`xog`). The other thirteen are on
+ * #1655 with the coverage each honestly reached, and the README's batch
+ * section says why. So this block asserts a pair rather than a split, and
+ * what it has to say is about the pair.
+ *
+ * **Both have plural rules of their own**, and CLDR gives both `one` and
+ * `other`. That is not the interesting part; the interesting part is that
+ * both branches do real work here in a way they do not in most catalogs on
+ * this roster. Number in these languages is marked by the noun's **class
+ * prefix** rather than by a suffix — «omurundi» against «emirundi»,
+ * «ekiranga» against «ebiranga» — so the two branches of a count select
+ * differ at the front of the word, and a catalog that wrote one branch and
+ * let the other fall back would be visibly wrong rather than subtly wrong.
+ */
+describe("the East African pair's plural categories", () => {
+    const EAST_AFRICA: [string, string][] = [
+        ["cgg", cggDiagnostics],
+        ["xog", xogDiagnostics],
+    ];
+
+    it.each(EAST_AFRICA)("resolves %s against its own rules", (locale) => {
+        expect(new Intl.PluralRules(locale).resolvedOptions().locale) //
+            .toBe(locale);
+    });
+
+    it.each(EAST_AFRICA)(
+        "gives %s exactly the two categories CLDR lists for it",
+        (locale) => {
+            expect(
+                new Intl.PluralRules(locale).resolvedOptions().pluralCategories,
+            ).toEqual(["one", "other"]);
+        },
+    );
+
+    /**
+     * Both use the `[one]` they are entitled to, which is the half worth
+     * asserting: a no-data catalog on this roster is *required* to write the
+     * numeric `[1]` in `field-function-wrong-num-outputs`, and these two are
+     * the other case — their own rules select the category, so the category
+     * is what they write.
+     */
+    it.each(EAST_AFRICA)(
+        "keeps %s's output-count fork on the category its own rules select",
+        (_locale, diagnostics) => {
+            const fork = outputFork(diagnostics);
+            expect(fork).toBeDefined();
+            expect(fork).toContain("[one]");
+            expect(fork).not.toContain("[1]");
+        },
+    );
+
+    /**
+     * The class-prefix point above, held to the text. In both catalogs the
+     * two branches of the output-count fork differ in the **first letters**
+     * of the counted noun rather than in a suffix, so a reviewer who
+     * "simplifies" one branch away removes the number marking with it.
+     */
+    it.each([
+        ["cgg", cggDiagnostics, "ekirikuruga", "ebirikuruga"],
+        ["xog", xogDiagnostics, "ekifuluma", "ebifuluma"],
+    ])(
+        "marks %s's singular and plural by class prefix, not suffix",
+        (_locale, diagnostics, singular, plural) => {
+            const fork = outputFork(diagnostics);
+            // Same stem, different class prefix — «eki-» against «ebi-» in
+            // both — so both forms have to be in the fork for it to mark
+            // number at all.
+            expect(fork).toContain(singular);
+            expect(fork).toContain(plural);
+        },
+    );
 });
