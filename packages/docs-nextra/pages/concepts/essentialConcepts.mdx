@@ -143,8 +143,10 @@ Write the percentage you mean instead.
 <Callout type="info">
 A unit DoenetML does not recognize is quietly read as pixels: `width="300
 furlongs"` renders 300 pixels wide. A value that does not begin with a number at
-all — `width="wide"` — yields no size at all, and the component renders as
-though the attribute had not been written.
+all — `width="wide"` — yields no size. That is not the same as leaving the
+attribute off: the component does not fall back to its default width, it is laid
+out with no width of its own. Delete the attribute rather than give it a value
+DoenetML cannot read.
 </Callout>
 
 ### Sizes that snap to a preset
@@ -164,6 +166,10 @@ named sizes, which you can also set directly with their `size` attribute:
 So `width="400px"` and `width="50%"` both render one of these components at
 `medium`, 425 pixels wide. Reading back the component's `size` property tells
 you which preset a width landed on.
+
+An `<image/>{:dn}` drawn on a `<graph/>{:dn}` is the exception to the exception:
+there its `width` is used as given, measured against the graph's own scale
+rather than snapped to a preset.
 
 ### Sizes that must be relative
 

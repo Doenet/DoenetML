@@ -57,8 +57,10 @@ export type SchemaAttribute = {
      * `createComponentOfType`). Carried so author-facing surfaces can explain
      * a value syntax the description alone can't — the help panel reads
      * `componentSize` to list the length units an attribute accepts.
-     * Optional: a synthesized attribute (an author-declared `<module>` one)
-     * may have no single component type.
+     * Optional: only attributes read from the generated schema carry one. A
+     * synthesized attribute (an author-declared `<module>` one, from
+     * `mergeDeclaredIntoSchemaAttributes`) leaves it unset, so the surfaces
+     * that key off it treat the value as unexplained rather than mistyped.
      */
     type?: string;
     values?: string[];

@@ -138,6 +138,7 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
                     doenetML: `
     <p><textInput name="huge" expanded width="4000px" /></p>
     <p><textInput name="wide" expanded /></p>
+    <p><textInput name="labelled" expanded><label>A label of its own</label></textInput></p>
     `,
                 },
                 "*",
@@ -165,6 +166,11 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
 
         // So does the 100% default, whose margins would otherwise push it out.
         cy.get("#wide_input").then(($el) => expectWithinColumn($el[0]));
+
+        // A label shares the line the input row starts on, so a row stretched
+        // to the full column has to wrap below the label rather than hang off
+        // the right of it.
+        cy.get("#labelled_input").then(($el) => expectWithinColumn($el[0]));
     });
 
     // The check-work button carries its label three times over: once in the
@@ -279,6 +285,8 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
                     doenetML: `
     <graph name="gPlain"><textInput name="plain" /></graph>
     <graph name="gExpanded"><textInput name="big" expanded /></graph>
+    <graph name="gRelative"><textInput name="half" width="50%" /></graph>
+    <graph name="gAbsolute"><textInput name="wide" width="240px" /></graph>
     `,
                 },
                 "*",
@@ -291,6 +299,11 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         // which gives a percentage no column to be a share of.
         cy.get("#gPlain").find("input").should("have.css", "width", "100px");
         cy.get("#gExpanded").find("input").should("have.css", "width", "100px");
+        // An authored percentage falls back the same way, whether or not it
+        // came from the `expanded` default.
+        cy.get("#gRelative").find("input").should("have.css", "width", "100px");
+        // An absolute width is still honored on a graph.
+        cy.get("#gAbsolute").find("input").should("have.css", "width", "240px");
     });
 
     it("set value from immediateValue on reload", () => {

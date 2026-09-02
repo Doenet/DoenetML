@@ -15,6 +15,7 @@ import { JXGObject } from "./jsxgraph-distrib/types";
 import {
     calculateValidationState,
     createCheckWorkComponent,
+    wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
@@ -658,14 +659,10 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
-    // A word-sized input sits in a sentence, where a full-width button beside
-    // it would crowd the line, so the small one is the default there. An
-    // expanded input is a block of its own with room beneath it, so the full
-    // labelled button is the default instead — the same rule a `<choiceInput>`
-    // applies to its inline and non-inline forms.
-    const fullCheckWork = SVs.expanded
-        ? SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton
-        : SVs.forceFullCheckWorkButton;
+    // An expanded input is a block of its own with room beneath it; a
+    // word-sized one flows in a sentence. Same rule a `<choiceInput>` applies
+    // to its non-inline and inline forms.
+    const fullCheckWork = wantsFullCheckWorkButton(SVs, SVs.expanded);
 
     const checkWorkComponent = createCheckWorkComponent(
         SVs,

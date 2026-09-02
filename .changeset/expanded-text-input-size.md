@@ -21,7 +21,9 @@ a word-sized (not `expanded`) input is unchanged.
 
 On a `<graph>` a text input is drawn as a one-line field however it is written,
 so `expanded` no longer changes its size there: it is the same width as any
-other input on the graph.
+other input on the graph. A percentage width has nothing to be a share of on a
+graph, so an input given one falls back to the word-sized 100 pixels rather than
+to the arbitrary size it used to get.
 
 The reference table and the help panel now name the two defaults, and say that
 `height` applies only to an expanded input.

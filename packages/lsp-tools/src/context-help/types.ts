@@ -78,6 +78,13 @@ export type SizeSyntaxPayload = {
      * nearest of the five named `size` presets (`tiny` 70px, `small` 255px,
      * `medium` 425px, `large` 595px, `full` 850px) instead of being used
      * literally — `width="400px"` and `width="50%"` both render 425px there.
+     *
+     * The flag is set from the element name alone, which overstates one case:
+     * an `<image>` drawn on a `<graph>` uses its width as given, against the
+     * graph's own scale. The panel sees an attribute, not where its element
+     * sits, and a caveat about a graph would be noise on the far commoner
+     * standalone image, so the note is left as written and the docs carry the
+     * exception.
      */
     snapsToSizePreset?: boolean;
 };
