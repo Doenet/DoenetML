@@ -1731,10 +1731,12 @@ describe("Sectioning tag tests @group3", async () => {
         }
 
         // Every input the example creates carries a label, so the page does not
-        // model markup that trips the accessibility diagnostic.
+        // model markup that trips the accessibility diagnostic. Matched on the
+        // record's `type` rather than on its English message, the way the
+        // heading-contrast tests below do.
         expect(
-            core.core?.diagnostics?.filter((d: any) =>
-                d.message.includes("accessibility"),
+            core.core!.diagnostics.filter(
+                (d: any) => d.type === "accessibility",
             ),
         ).eqls([]);
 

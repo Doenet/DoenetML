@@ -316,8 +316,10 @@ step alike.
 Both sections above set `aggregateScores`, without which a plain
 `<section>{:dn}` does not roll up the credit of the answers it contains and so
 never leaves its not-started color. A `<cascade>{:dn}` turns that on for its
-children automatically, and `<problem>{:dn}` and `<exercise>{:dn}` have it on by
-default, so it is only a plain section that needs it spelled out.
+children automatically, and the problem-flavored sections — `<problem>{:dn}`,
+`<exercise>{:dn}`, `<question>{:dn}` and `<activity>{:dn}` — have it on by
+default. Everywhere else, `<section>{:dn}` and `<aside>{:dn}` and the rest, it
+has to be spelled out.
 
 
 ---
