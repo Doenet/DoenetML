@@ -14,15 +14,67 @@ function returnScoredContainerAncestorDependency(...variableNames) {
 }
 
 /**
+ * Whether a math expression's tree carries nothing the reader typed.
+ *
+ * A whole expression that is the placeholder U+FF3F — what math-expressions
+ * uses for a missing subexpression, and what an untouched math-flavored input
+ * submits — is blank. One that is merely *partly* blank, `x + \uFF3F`, is
+ * something the reader typed and is not.
+ *
+ * A `<matrixInput>` is the case that needs unwrapping: untouched, it submits a
+ * matrix of placeholders rather than a bare one, and neither the dimensions
+ * around them nor the tuples holding the rows are a response.
+ *
+ * @param {unknown} tree - a math-expression `tree`, or a subtree of one
+ * @returns {boolean}
+ */
+function mathTreeIsBlank(tree) {
+    if (tree === BLANK_PLACEHOLDER) {
+        return true;
+    }
+
+    // ["matrix", ["tuple", nRows, nColumns], ["tuple", ...rows]], each row
+    // itself a tuple of entries.
+    if (Array.isArray(tree) && tree[0] === "matrix") {
+        return matrixEntriesAreBlank(tree[2]);
+    }
+
+    return false;
+}
+
+/**
+ * Whether every entry of a matrix's rows tuple — or of one such row — is the
+ * blank placeholder. Anything that is not the tuple structure a matrix is built
+ * from is not something this can call blank.
+ *
+ * @param {unknown} tuple - the rows of a matrix tree, or one of those rows
+ * @returns {boolean}
+ */
+function matrixEntriesAreBlank(tuple) {
+    return (
+        Array.isArray(tuple) &&
+        tuple[0] === "tuple" &&
+        tuple
+            .slice(1)
+            .every(
+                (entry) =>
+                    entry === BLANK_PLACEHOLDER || matrixEntriesAreBlank(entry),
+            )
+    );
+}
+
+/**
  * Whether a single submitted response value carries nothing the reader typed.
  *
  * Pressing submit on an untouched input still records a response, so "was
  * something submitted?" and "did the reader respond?" are different questions.
- * The empty value differs by input: a math input submits the placeholder
- * U+FF3F that math-expressions uses for a missing subexpression, a text input
- * an empty string, a number input `NaN`, and a choice input nothing at all. A
- * response that is merely *partly* blank — `x + \uFF3F` — is something the
- * reader typed, so only a whole expression that is the placeholder counts.
+ * The empty value differs by input: the math-flavored inputs submit a
+ * math-expression built from the blank placeholder, a `<textInput>` an empty
+ * string, and a `<choiceInput>` with nothing selected no response value at all.
+ *
+ * A `<booleanInput>` is the exception with no blank state of its own: untouched
+ * it submits `false`, which is indistinguishable from the reader deliberately
+ * leaving the box unchecked, so it counts as a response either way.
  *
  * @param {unknown} response - one entry of `submittedResponses`
  * @returns {boolean}
@@ -40,9 +92,8 @@ function responseIsBlank(response) {
     if (Array.isArray(response)) {
         return response.every(responseIsBlank);
     }
-    // A math-expression: blank when the whole expression is the placeholder.
     if (typeof response === "object" && "tree" in response) {
-        return response.tree === BLANK_PLACEHOLDER;
+        return mathTreeIsBlank(response.tree);
     }
     return false;
 }
@@ -400,24 +451,41 @@ export function returnStandardAnswerStateVariableDefinition() {
     stateVariableDefinitions.creditAchievedForProgress = {
         description:
             "The credit this answer contributes when deciding whether the content around it has been completed, as a `<cascade>` does. Equal to `creditAchieved`, except that a hand-graded answer counts as fully correct once a non-blank response has been submitted.",
-        returnDependencies: () => ({
-            creditAchieved: {
-                dependencyType: "stateVariable",
-                variableName: "creditAchieved",
-            },
-            handGraded: {
-                dependencyType: "stateVariable",
-                variableName: "handGraded",
-            },
-            responseHasBeenSubmitted: {
-                dependencyType: "stateVariable",
-                variableName: "responseHasBeenSubmitted",
-            },
-            submittedResponses: {
-                dependencyType: "stateVariable",
-                variableName: "submittedResponses",
-            },
-        }),
+        stateVariablesDeterminingDependencies: ["handGraded"],
+        returnDependencies({ stateValues }) {
+            if (!stateValues.handGraded) {
+                return {
+                    handGraded: {
+                        dependencyType: "stateVariable",
+                        variableName: "handGraded",
+                    },
+                    creditAchieved: {
+                        dependencyType: "stateVariable",
+                        variableName: "creditAchieved",
+                    },
+                };
+            }
+
+            // The submitted responses are worth resolving only for a
+            // hand-graded answer. Every enclosing section aggregates this
+            // variable to color its heading, so an unconditional dependency
+            // would pull the whole response array of every answer in the
+            // document into the initial render.
+            return {
+                handGraded: {
+                    dependencyType: "stateVariable",
+                    variableName: "handGraded",
+                },
+                responseHasBeenSubmitted: {
+                    dependencyType: "stateVariable",
+                    variableName: "responseHasBeenSubmitted",
+                },
+                submittedResponses: {
+                    dependencyType: "stateVariable",
+                    variableName: "submittedResponses",
+                },
+            };
+        },
         definition({ dependencyValues }) {
             if (!dependencyValues.handGraded) {
                 return {

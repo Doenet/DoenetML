@@ -1207,13 +1207,7 @@ export class SectioningComponent extends BlockComponent {
                             .stateValues.completedColorRequiresCredit;
                 }
 
-                return {
-                    setValue: {
-                        completedColorRequiresCredit: Boolean(
-                            completedColorRequiresCredit,
-                        ),
-                    },
-                };
+                return { setValue: { completedColorRequiresCredit } };
             },
         };
 

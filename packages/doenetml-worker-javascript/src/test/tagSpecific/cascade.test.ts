@@ -3,6 +3,7 @@ import { createTestCore } from "../utils/test-core";
 import {
     submitAnswer,
     updateMathInputValue,
+    updateMatrixInputValue,
     updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
@@ -2554,6 +2555,51 @@ describe("Cascade tag tests @group4", async () => {
             mathInputIdx,
             answerIdx: ansIdx,
         });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(0);
+    });
+
+    // An untouched `<matrixInput>` submits a matrix of placeholders rather than
+    // a bare one, so the blankness test has to look inside the matrix.
+    it("a blank matrix response does not complete a hand-graded step", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <section name="section1">
+    <p name="p">Write the matrix.
+      <answer handGraded name="ans">
+        <matrixInput name="mi" numRows="2" numColumns="2" />
+        <award><matrix><row>1 2</row><row>3 4</row></matrix></award>
+      </answer>
+    </p>
+  </section>
+
+  <section name="section2">
+    <p name="p">What is 1+1? <answer name="ans">2</answer></p>
+  </section>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const ansIdx = await resolvePathToNodeIdx("section1.p.ans");
+        const matrixInputIdx = await resolvePathToNodeIdx("section1.p.ans.mi");
+
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        let stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(0);
+
+        // One filled cell is a response, even though the rest stay blank.
+        await updateMatrixInputValue({
+            latex: "5",
+            componentIdx: matrixInputIdx,
+            rowInd: 1,
+            colInd: 0,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
 
         stateVariables = await getStateVariables(core);
         expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
