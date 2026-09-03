@@ -292,8 +292,12 @@ describe("DoenetViewer late SPLICE.getState error (#1741)", () => {
         // Beside the document that throw goes to the error boundary and
         // replaces the very document this notice exists to keep; on the
         // failure pane, which is returned above the boundary, nothing would
-        // catch it. A reply the viewer cannot read is worth the generic
-        // notice, not the document.
+        // catch it.
+        //
+        // Nothing is shown in its place. The viewer's own words for this used
+        // to appear here, and they describe the host's bug to a reader who
+        // cannot act on it, over a document that is working
+        // (Doenet/DoenetML#1795).
         cy.mount(
             <DoenetViewer
                 doenetML={STATEFUL_DOC}
@@ -313,10 +317,9 @@ describe("DoenetViewer late SPLICE.getState error (#1741)", () => {
             );
         });
 
-        cy.contains("Invalid response to getState", {
-            timeout: VIEWER_TIMEOUT,
-        }).should("exist");
         cy.wait(SETTLE);
+        cy.contains("Invalid response to getState").should("not.exist");
+        cy.contains("Your saved work could not be loaded").should("not.exist");
         cy.contains("Enter text:").should("exist");
         cy.get(TEXT_INPUT).type("{selectall}{backspace}still usable{enter}");
         cy.contains("You typed: still usable", {

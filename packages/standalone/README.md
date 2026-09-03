@@ -379,6 +379,22 @@ work rather than that there is no document. If no core could be started
 either, the viewer says so on its failure pane and adds this message beneath
 it, so the two are not mutually erasing.
 
+Two kinds of error reach the student's screen as nothing at all, and both are
+logged to the console instead:
+
+- An error carrying no string `message`. The viewer has no text of its own
+  worth showing a student here, so send the text you want them to read.
+- An error whose `code` is `unsupported_subject`, `unauthorized`,
+  `wrong_origin` or `bad_request`. Those are an LTI platform's postMessage
+  vocabulary for a message it will not act on, not a host's load failure:
+  Canvas answers *any* message on *any* of its pages, so a Doenet activity
+  embedded in one gets `unsupported_subject` back for every `SPLICE` message
+  it sends. The other three refuse a subject the platform does recognize,
+  and are reserved alongside it. They all mean the page is not a host, which
+  is the same to the viewer as no answer at all. Do not report a genuine
+  load failure with one of these codes — any other code, or none at all,
+  reaches the student as long as it comes with a `message`.
+
 A request has a single answer: the **first** response carrying state for
 this `cid` is the one the viewer reboots from, and every response after
 that — errors included — is ignored. A response with no state — or state for a
