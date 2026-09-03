@@ -336,12 +336,16 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
         "bad_request",
     ]) {
         it(`ignores a "${code}" answer from a page that does not speak SPLICE`, () => {
-            // Canvas's postMessage vocabulary, which an embedded viewer meets
-            // without anyone arranging for it: Canvas listens on every page it
-            // serves and answers any subject outside its allow-list this way,
-            // quoting the id it was sent. Read as a host failure it told a
-            // reader their saved work was unavailable, on an embed that has no
-            // host and no saved work (Doenet/DoenetML#1795).
+            // An LTI platform's postMessage vocabulary for a message it will
+            // not act on, which an embedded viewer meets without anyone
+            // arranging for it: Canvas listens on every page it serves and
+            // answers any subject outside its allow-list with
+            // `unsupported_subject`, quoting the id it was sent. Read as a
+            // host failure it told a reader their saved work was unavailable,
+            // on an embed that has no host and no saved work
+            // (Doenet/DoenetML#1795). The other three refuse a subject the
+            // platform does recognize, and are dropped on the same footing —
+            // see `NON_SPLICE_PLATFORM_ERROR_CODES`.
             interceptGetState().then(({ win, request }) => {
                 mountViewer();
                 afterGetStateRequest(request);
@@ -364,12 +368,13 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
         });
     }
 
-    it("still surfaces a host failure that carries a platform code AND a message", () => {
+    it("ignores a platform code even when it carries a message", () => {
         // Only the codes decide, and they decide against showing anything —
         // so a reply carrying one is dropped even when it has text. Asserting
         // that keeps the rule from quietly weakening into "drop it unless it
         // says something", which Canvas's reply would slip through the moment
-        // Canvas started passing a message.
+        // Canvas started passing a message. The text used here is Canvas's
+        // own for an `unsupported_subject` it does have words for.
         interceptGetState().then(({ win, request }) => {
             mountViewer();
             afterGetStateRequest(request);

@@ -116,15 +116,24 @@ function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
  * Error codes that mean "the page around this viewer does not speak SPLICE",
  * not "your saved work could not be loaded" (Doenet/DoenetML#1795).
  *
- * This is Canvas's postMessage vocabulary, and an embedded viewer meets it
- * without anyone arranging for it to. Canvas listens for `message` on every
- * page it serves, and answers any subject outside its own allow-list with
- * `{ subject: "<subject>.response", message_id, error: { code:
- * "unsupported_subject" } }` — quoting the id it was sent, so the reply is
- * addressed to this viewer's open request and carries no `message`, since
- * Canvas omits that field when it has no text for it. Embed a Doenet
- * activity in a Canvas page and every `SPLICE.getState` comes back as one of
- * these. Reported at community.doenet.org/t/305.
+ * This is an LTI platform's postMessage vocabulary for a message it will not
+ * act on, and an embedded viewer meets it without anyone arranging for it to.
+ * Canvas listens for `message` on every page it serves, and answers any
+ * subject outside its own allow-list with `{ subject: "<subject>.response",
+ * message_id, error: { code: "unsupported_subject" } }` — quoting the id it
+ * was sent, so the reply is addressed to this viewer's open request, and
+ * carrying no `message`, since Canvas omits that field when it has no text
+ * for it. Embed a Doenet activity in a Canvas page and every
+ * `SPLICE.getState` comes back as one of these. Reported at
+ * community.doenet.org/t/305.
+ *
+ * `unsupported_subject` is the only one of these that a `SPLICE` subject
+ * draws out of Canvas itself: the other three answer a subject Canvas does
+ * recognize but refuses (wrong target origin, a malformed payload, a tool
+ * without the scope), which `SPLICE` never is. They are listed alongside it
+ * for a platform that shares the vocabulary and checks in a different order,
+ * and because a host with a real load failure to report has no reason to
+ * reach for a platform's words for refusing one.
  *
  * Read as a host failure, that reply told a reader their saved work was
  * unavailable — on an embed that has no host, no saved work, and nothing
@@ -1255,10 +1264,10 @@ export function DocViewer({
                         // `code` is for the console, and is not required —
                         // a reply carrying only text still has text to show.
                         // (`error` is known truthy here: this branch is
-                        // gated on it.)
+                        // gated on it, so `typeof error === "object"`
+                        // already rules out `null`.)
                         const error = e.data.error;
-                        const isObject =
-                            typeof error === "object" && error !== null;
+                        const isObject = typeof error === "object";
                         const code = isObject ? error.code : undefined;
                         const message =
                             isObject && typeof error.message === "string"

@@ -385,12 +385,15 @@ logged to the console instead:
 - An error carrying no string `message`. The viewer has no text of its own
   worth showing a student here, so send the text you want them to read.
 - An error whose `code` is `unsupported_subject`, `unauthorized`,
-  `wrong_origin` or `bad_request`. That is Canvas's postMessage vocabulary
-  for a subject it does not recognize, not a host's load failure: Canvas
-  answers *any* message on *any* of its pages, so a Doenet activity embedded
-  in one gets these back for every `SPLICE` message it sends. They mean the
-  page is not a host, which is the same to the viewer as no answer at all.
-  Do not use these codes to report a genuine load failure.
+  `wrong_origin` or `bad_request`. Those are an LTI platform's postMessage
+  vocabulary for a message it will not act on, not a host's load failure:
+  Canvas answers *any* message on *any* of its pages, so a Doenet activity
+  embedded in one gets `unsupported_subject` back for every `SPLICE` message
+  it sends. The other three refuse a subject the platform does recognize,
+  and are reserved alongside it. They all mean the page is not a host, which
+  is the same to the viewer as no answer at all. Do not report a genuine
+  load failure with one of these codes — any other code, with a `message`,
+  reaches the student.
 
 A request has a single answer: the **first** response carrying state for
 this `cid` is the one the viewer reboots from, and every response after
