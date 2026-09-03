@@ -2722,4 +2722,52 @@ describe("Cascade tag tests @group4", async () => {
         expect(stateVariables[wIdx].stateValues.numCompleted).eq(2);
         expect(stateVariables[booleanAnsIdx].stateValues.creditAchieved).eq(0);
     });
+
+    // `completedColorRequiresCredit` is about the heading bar only. A cascade
+    // that stopped advancing because a section was colored strictly would trap
+    // the reader again, which is the whole thing this is meant to prevent.
+    it("completedColorRequiresCredit does not hold back a cascade", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w" completedColorRequiresCredit>
+  <section name="section1" boxed completedColor="blue" inProgressColor="cyan" notStartedColor="beige">
+    <p name="p">Explain your reasoning. <answer handGraded name="ans" type="text" /></p>
+  </section>
+
+  <section name="section2">
+    <p name="p">What is 1+1? <answer name="ans">2</answer></p>
+  </section>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const ansIdx = await resolvePathToNodeIdx("section1.p.ans");
+
+        let stateVariables = await getStateVariables(core);
+        const textInputIdx =
+            stateVariables[ansIdx].stateValues.inputChildren[0].componentIdx;
+
+        // Inherited from the cascade, which is itself a section.
+        expect(
+            stateVariables[section1Idx].stateValues
+                .completedColorRequiresCredit,
+        ).eq(true);
+
+        await updateTextInputValue({
+            text: "because it is",
+            componentIdx: textInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        stateVariables = await getStateVariables(core);
+
+        // The step is complete and the next one is revealed, even though the
+        // bar is still waiting for the grade.
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
+        expect(stateVariables[section2Idx].stateValues.hideChildren).eq(false);
+        expect(stateVariables[section1Idx].stateValues.titleColor).eq("beige");
+    });
 });

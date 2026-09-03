@@ -38013,7 +38013,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -38278,7 +38278,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -38802,7 +38802,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -39067,7 +39067,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -39591,7 +39591,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -39856,7 +39856,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -40380,7 +40380,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -40645,7 +40645,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -41169,7 +41169,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -41443,7 +41443,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -41967,7 +41967,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -42232,7 +42232,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -42756,7 +42756,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -43030,7 +43030,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -43554,7 +43554,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -43828,7 +43828,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -44352,7 +44352,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -44626,7 +44626,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -45150,7 +45150,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -45424,7 +45424,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -45948,7 +45948,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -46213,7 +46213,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -46737,7 +46737,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -47002,7 +47002,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -47526,7 +47526,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -47791,7 +47791,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -48315,7 +48315,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -48580,7 +48580,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -49104,7 +49104,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -49369,7 +49369,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -49893,7 +49893,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -50158,7 +50158,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -50687,7 +50687,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -50944,7 +50944,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -51472,7 +51472,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -51720,7 +51720,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -52248,7 +52248,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -52496,7 +52496,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -122798,7 +122798,7 @@
                 },
                 {
                     "name": "completedColorRequiresCredit",
-                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer is not colored as completed until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted. Affects only the color, not when a `<cascade>` advances.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -123076,7 +123076,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",

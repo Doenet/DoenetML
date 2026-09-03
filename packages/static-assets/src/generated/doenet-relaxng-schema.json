@@ -44708,7 +44708,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -45877,7 +45877,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -47046,7 +47046,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -48215,7 +48215,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -49391,7 +49391,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -50560,7 +50560,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -51736,7 +51736,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -52912,7 +52912,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -54088,7 +54088,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -55264,7 +55264,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -56433,7 +56433,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -57602,7 +57602,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -58771,7 +58771,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -59940,7 +59940,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -61109,7 +61109,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -62278,7 +62278,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -63446,7 +63446,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -64607,7 +64607,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -65768,7 +65768,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -151610,7 +151610,7 @@
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",

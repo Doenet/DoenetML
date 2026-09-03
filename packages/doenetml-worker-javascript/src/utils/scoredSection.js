@@ -656,10 +656,12 @@ export function returnScoredSectionStateVariableDefinition() {
                         aggregateCreditOverScoredDescendants(
                             dependencyValues,
                             "creditAchievedIfSubmit",
-                            // Unlike `creditAchieved`, a section with nothing
-                            // scored has long left this NaN rather than at full
-                            // credit. Kept as it was rather than changed alongside
-                            // an unrelated fix.
+                            // A section with nothing scored has always left
+                            // this at NaN — the `0 / 0` of the average it used
+                            // to take inline — where `creditAchieved` gives
+                            // full credit. Passed explicitly so extracting the
+                            // shared helper preserves the behavior rather than
+                            // quietly changing it.
                             NaN,
                         ),
                 },

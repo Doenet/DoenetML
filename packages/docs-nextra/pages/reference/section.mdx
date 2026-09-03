@@ -293,17 +293,19 @@ will instead be colored according to its own answer's correctness.
 
 
 
-A [`handGraded`](answer1) `<answer>{:dn}` scores no credit until an instructor
-grades it, which happens after the learner has finished. By default the title
-banner does not wait for that: such an answer counts as completed as soon as the
-learner submits a response that is not blank, so answering both questions above
-turns the first banner green.
+A [`handGraded`](answer2a#example-handgraded) `<answer>{:dn}` scores no credit
+until an instructor grades it, which happens after the learner has finished. By
+default the title banner does not wait for that: such an answer counts as
+completed as soon as the learner submits a response that is not blank, so
+answering both questions above turns the first banner green.
 
-The `completedColorRequiresCredit` attribute opts out, and the second banner
-stays in its in-progress color until the hand-graded answer has actually been
-given credit. It is inherited by the sections within, so setting it once on an
-enclosing section applies it throughout. Either way the reported
-`creditAchieved` is the same — only the color differs.
+The `completedColorRequiresCredit` attribute opts out, and the second banner does
+not reach its completed color until the hand-graded answer has actually been
+given credit — here it stays in the in-progress color, since the other answer is
+right. It is inherited by the sections within, so setting it once on an enclosing
+section applies it throughout. Either way the reported `creditAchieved` is the
+same — only the color differs, never when a [`<cascade>{:dn}`](cascade)
+advances.
 
 
 ---
