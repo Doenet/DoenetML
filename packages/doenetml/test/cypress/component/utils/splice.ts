@@ -50,3 +50,43 @@ export function captureReports(): Cypress.Chainable<any[]> {
         return reports;
     });
 }
+
+/** The text input of the stateful documents these helpers type into. */
+export const TEXT_INPUT = "input.doenet-textinput, input:not([type=checkbox])";
+
+/**
+ * Type `text` into the mounted document and resolve with the state a
+ * persistence host would have saved for it.
+ *
+ * Routine state reports are throttled to one a minute
+ * (`StatePersistence.saveChangesToDatabase`), so the flush is what makes the
+ * capture deterministic: it pushes what the document is holding through the
+ * ordinary `SPLICE.reportScoreAndState` channel a host saves from. `reports`
+ * is the list `captureReports` was collecting into before the mount, and the
+ * document must echo what is typed as `You typed: <text>`.
+ */
+export function saveStateAfterTyping(
+    reports: any[],
+    text: string,
+    flushId: string,
+    timeout = 30_000,
+): Cypress.Chainable<any> {
+    cy.get(TEXT_INPUT).type(`{selectall}{backspace}${text}{enter}`);
+    cy.contains(`You typed: ${text}`, { timeout }).should("exist");
+    flushState(flushId);
+    return cy
+        .wrap(null, { timeout })
+        .should(() => {
+            expect(
+                reports.some((r) => String(r.state?.coreState).includes(text)),
+                `a report carried "${text}"`,
+            ).to.eq(true);
+        })
+        .then(
+            () =>
+                [...reports]
+                    .reverse()
+                    .find((r) => String(r.state?.coreState).includes(text))
+                    .state,
+        );
+}
