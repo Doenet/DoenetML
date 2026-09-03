@@ -109,7 +109,7 @@ export class RunThroughCore {
                     }, 5000);
                     try {
                         // @ts-ignore
-                        const dast = await doenetMLToPretext(source, {
+                        const dast = await sharedConverter().convert(source, {
                             fragment: false,
                         });
                         resolve(dast);
@@ -144,7 +144,7 @@ export class RunThroughCore {
                     }, 5000);
                     try {
                         // @ts-ignore
-                        const dast = await doenetMLToPretext(source, {
+                        const dast = await sharedConverter().convert(source, {
                             fragment: true,
                         });
                         resolve(dast);
@@ -181,10 +181,8 @@ export class RunThroughCore {
                         );
                     }, 5000);
                     try {
-                        // @ts-ignore
-                        const converter = new DoenetMLToPretext();
                         const results =
-                            await converter.convertMultiple(sources);
+                            await sharedConverter().convertMultiple(sources);
                         resolve(results);
                     } catch (e) {
                         resolve("" + e);

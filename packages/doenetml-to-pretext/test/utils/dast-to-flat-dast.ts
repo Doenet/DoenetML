@@ -97,3 +97,16 @@ async function getFlatDast(source: string) {
 // Load all of our conversion functions into the global scope
 import * as ConvertFunctions from "../../src/index";
 Object.assign(globalThis, ConvertFunctions);
+
+/**
+ * The converter that every conversion in a test run shares.
+ *
+ * A `DoenetMLToPretext` starts a worker the first time it converts and never shuts it
+ * down, so building one per conversion leaves the page holding as many workers as the
+ * file has tests. They compete for the same thread from then on, and the tests at the
+ * end of a file slow down until they run out of time.
+ */
+let converter: ConvertFunctions.DoenetMLToPretext | undefined;
+
+(globalThis as any).sharedConverter = () =>
+    (converter ??= new ConvertFunctions.DoenetMLToPretext());

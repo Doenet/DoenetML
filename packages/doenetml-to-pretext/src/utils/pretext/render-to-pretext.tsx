@@ -27,6 +27,7 @@ import {
 import { Provider } from "react-redux";
 import { Element } from "../../renderers";
 import { ensurePretextTag } from "./ensure-pretext-tag";
+import { addWritingSpace } from "./writing-space";
 import { renderReactToXast } from "./xast-reconciler";
 import { normalizeAttrs } from "./normalize-attrs";
 
@@ -54,6 +55,10 @@ export function renderFlatDastToPretext(
     }
     // We have no errors, so we can safely cast to FlatDastRoot
     const _flatDast: FlatDastRoot = flatDast as FlatDastRoot;
+
+    // Give expanded text inputs room to write in. This runs before the `<article>` is
+    // created so that a document needing space is wrapped in a printout first.
+    addWritingSpace(_flatDast);
 
     if (!fragment) {
         ensurePretextTag(_flatDast);

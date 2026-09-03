@@ -263,6 +263,12 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         component: PretextComponent._PassThroughWithTagAndNewline,
         passthroughChildren: true,
     },
+    // Inserted around a document that needs room for a reader to write; see
+    // `addWritingSpace`.
+    handout: {
+        component: PretextComponent._PassThroughWithTagAndNewline,
+        passthroughChildren: true,
+    },
 
     // Tags where only the capitalization changes
     sideBySide: passThroughWithRenamedTag("sidebyside"),

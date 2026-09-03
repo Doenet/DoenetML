@@ -45,6 +45,30 @@ const OUT_DIR = "/home/pyodide/tmp_compile/out";
 const DECODER = new TextDecoder();
 
 /**
+ * Classes marking parts of PreTeXt's HTML that a printed page has no use for: on-screen
+ * instructions and permalinks, page footers, and the controls for PreTeXt's own print
+ * preview, which are driven by javascript this page does not load.
+ */
+/**
+ * How tall a workspace may say it is: a number of inches or centimeters, and nothing else.
+ * PreTeXt asks only that the length end in `in` or `cm` and copies the rest of the value
+ * into the page untouched, so a value that arrives in any other shape is left without a
+ * height rather than written into a style declaration, where it could carry along
+ * declarations of its own. The number may be written without its leading zero, as `.5in`,
+ * which PreTeXt and CSS both read as a length.
+ */
+const WORKSPACE_HEIGHT = /^(\d+(\.\d+)?|\.\d+)(in|cm)$/;
+
+const CLASSES_TO_DROP = [
+    "diagcess__instructions",
+    "autopermalink",
+    "ptx-content-footer",
+    "ptx-page-footer",
+    "print-preview-header",
+    "print-links",
+];
+
+/**
  * A class for compiling a PreTeXt file using a WASM implementation of python.
  */
 export class PtxCompiler {
@@ -229,17 +253,25 @@ export class PtxCompiler {
                         // The navbar isn't needed
                         hastMutateToEmptyString(node);
                     }
-                    // If an element has a class that includes "diagcess__instructions", it isn't needed
                     if (
-                        hastElementContainsClass(
-                            node,
-                            "diagcess__instructions",
-                        ) ||
-                        hastElementContainsClass(node, "autopermalink") ||
-                        hastElementContainsClass(node, "ptx-content-footer") ||
-                        hastElementContainsClass(node, "ptx-page-footer")
+                        CLASSES_TO_DROP.some((className) =>
+                            hastElementContainsClass(node, className),
+                        )
                     ) {
                         hastMutateToEmptyString(node);
+                    }
+
+                    // Room for a reader to write, requested by a `workspace` attribute in
+                    // the PreTeXt source. PreTeXt leaves the height to the javascript that
+                    // lays out its print preview, so give the space its height here.
+                    if (hastElementContainsClass(node, "workspace")) {
+                        const space = node.properties["dataSpace"];
+                        if (
+                            typeof space === "string" &&
+                            WORKSPACE_HEIGHT.test(space.trim())
+                        ) {
+                            node.properties.style = `display: block; height: ${space.trim()};`;
+                        }
                     }
 
                     // Inline svg images creatd by PreFigure. Thee have a class of `ChemAccess-element`
