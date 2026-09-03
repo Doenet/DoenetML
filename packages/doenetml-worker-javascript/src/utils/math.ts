@@ -485,9 +485,10 @@ export function normalizeLatexString(
  * evaluate to the same constant. That distinction is what lets a numeric check
  * such as `<isNumber>` refuse `50%` while still accepting `1/2`.
  *
- * The head of an operator node names the operation rather than an operand, so
- * only the operands are descended into — a variable that happens to be spelled
- * `unit` is a string, not a `unit` node, and is correctly ignored.
+ * Only an operator node can be a unit, so a leaf — a number, or a symbol, even
+ * one spelled `unit` — is never one. Within a node the first element names the
+ * operation and is tested directly; the remaining elements are the operands and
+ * are the only ones descended into.
  */
 export function treeHasUnits(tree: Tree): boolean {
     if (!Array.isArray(tree)) {

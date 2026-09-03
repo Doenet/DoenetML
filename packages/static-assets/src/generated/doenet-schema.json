@@ -991,16 +991,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -11856,16 +11856,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -12741,16 +12741,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -13618,16 +13618,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -14495,16 +14495,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -15372,16 +15372,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -16236,16 +16236,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -17071,16 +17071,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -17922,16 +17922,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -18773,16 +18773,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -19624,16 +19624,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -20475,16 +20475,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -21360,16 +21360,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -22245,16 +22245,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -23147,16 +23147,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -24049,16 +24049,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -24934,16 +24934,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -25819,16 +25819,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -26704,16 +26704,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -27589,16 +27589,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -28474,16 +28474,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -29359,16 +29359,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -30271,16 +30271,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -59112,16 +59112,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -70017,16 +70017,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -72979,16 +72979,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -92559,16 +92559,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -102069,16 +102069,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -104454,16 +104454,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -114305,16 +114305,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -120215,16 +120215,16 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
-                    "name": "hasUnits",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
-                },
-                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",

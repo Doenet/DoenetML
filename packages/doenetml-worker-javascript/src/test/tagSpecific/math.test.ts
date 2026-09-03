@@ -13557,7 +13557,7 @@ describe("Math tag tests @group3", async () => {
     <math name="currency">&#36;5</math>
     <math name="nested">50% + 0</math>
     <math name="variable">x</math>
-    <math name="unitVariable">unit</math>
+    <math name="unitVariable" splitSymbols="false">unit</math>
     `,
         });
 
@@ -13579,7 +13579,8 @@ describe("Math tag tests @group3", async () => {
         // A unit anywhere in the expression counts, not just at the top.
         expect(await hasUnits("nested")).eq(true);
         expect(await hasUnits("variable")).eq(false);
-        // A variable named `unit` is a symbol, not a unit.
+        // A variable spelled `unit` is a symbol, not a unit. (`splitSymbols`
+        // is off so that it stays one symbol rather than a product of four.)
         expect(await hasUnits("unitVariable")).eq(false);
     });
 });
