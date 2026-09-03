@@ -2770,4 +2770,62 @@ describe("Cascade tag tests @group4", async () => {
         expect(stateVariables[section2Idx].stateValues.hideChildren).eq(false);
         expect(stateVariables[section1Idx].stateValues.titleColor).eq("beige");
     });
+
+    // A reader who closes the page and comes back has to find the step still
+    // open. `creditAchievedForProgress` is recomputed rather than saved — only
+    // `responseHasBeenSubmitted` and `submittedResponses` are essential — so
+    // what is restored has to be enough to rebuild it. For an auto-graded
+    // answer the restored `creditAchieved` carries the progress directly, and
+    // this is the case where it cannot.
+    it("hand-graded progress survives a reload", async () => {
+        const doenetML = `
+<cascade name="w">
+  <section name="section1">
+    <p name="p">Explain your reasoning. <answer handGraded name="ans" type="text" /></p>
+  </section>
+
+  <section name="section2">
+    <p name="p">What is 1+1? <answer name="ans">2</answer></p>
+  </section>
+</cascade>`;
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("section1.p.ans");
+        let stateVariables = await getStateVariables(core);
+        const textInputIdx =
+            stateVariables[ansIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateTextInputValue({
+            text: "because it is",
+            componentIdx: textInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("w")].stateValues
+                .numCompleted,
+        ).eq(1);
+
+        await core.saveImmediately();
+
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+
+        stateVariables = await getStateVariables(core);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("w")].stateValues
+                .numCompleted,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("section2")].stateValues
+                .hideChildren,
+        ).eq(false);
+    });
 });
