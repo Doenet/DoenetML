@@ -303,13 +303,15 @@ default the title banner does not wait for that: such an answer counts as
 completed as soon as the learner submits a response that is not blank, so
 answering both questions above turns the first banner green.
 
-The `completedColorRequiresCredit` attribute opts out, and the second banner does
-not reach its completed color until the hand-graded answer has actually been
-given credit — here it stays in the in-progress color, since the other answer is
-right. It is inherited by the sections within, so setting it once on an enclosing
-section applies it throughout. Either way the reported `creditAchieved` is the
-same — only the color differs, never when a [`<cascade>{:dn}`](cascade)
-advances.
+The second section sets `completedColorRequiresCredit`, which opts out of that.
+Its banner stays gray no matter what the learner submits, and turns green only
+once an instructor has given the hand-graded answer credit. The attribute is
+inherited by every section nested inside the one that sets it, so an instructor
+who wants this throughout an activity can set it once on the outermost section.
+
+The attribute changes the color and nothing else. Both sections report the same
+`creditAchieved`, and in a [`<cascade>{:dn}`](cascade) both would reveal the next
+step alike.
 
 Both sections above set `aggregateScores`, without which a plain
 `<section>{:dn}` does not roll up the credit of the answers it contains and so
