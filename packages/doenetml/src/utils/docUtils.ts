@@ -245,6 +245,12 @@ export function createCoreWorker(): CoreWorkerHandle {
  * puts the DAST back — so settlement is all it waits for: a predecessor
  * that failed is its own caller's to report.
  *
+ * Of the initializations queued behind the one on the worker, only the
+ * newest belongs to a document the viewer still shows — each rebuild retires
+ * the last — so the rest step aside at their turn (`abandoned`), and the
+ * newest waits for the one on the worker and no more, however many rebuilds
+ * landed in between.
+ *
  * Weakly keyed, so an entry goes with the worker it describes and nothing
  * here has to be told when a worker is discarded. One discarded with an
  * initialization queued on it never answers that initialization's round
@@ -269,6 +275,7 @@ export async function initializeCoreWorker({
     documentLocale,
     localeResources,
     onQueueTurn,
+    abandoned,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -296,6 +303,13 @@ export async function initializeCoreWorker({
      * re-bases its handshake watchdog on it (#1533).
      */
     onQueueTurn?: () => void;
+    /**
+     * Consulted when this initialization's turn comes. Answering true means
+     * the document it was started for has moved on, and it steps aside: no
+     * round trip is made and the call resolves to `null`, so the
+     * initialization behind it is not kept waiting on work nobody wants.
+     */
+    abandoned?: () => boolean;
 }) {
     /**
      * This initialization's own work: the parse, the expansion of external
@@ -349,6 +363,10 @@ export async function initializeCoreWorker({
             throw own.reason;
         }
         const { dast, resolvedDocumentLocale } = own.value;
+
+        if (abandoned?.()) {
+            return null;
+        }
 
         onQueueTurn?.();
 

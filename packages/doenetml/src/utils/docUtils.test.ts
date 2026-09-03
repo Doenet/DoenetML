@@ -147,9 +147,9 @@ describe("initializeCoreWorker serialization (#1533)", () => {
         // Whole, then whole — including the structure report, which is made
         // from the round trip's result and so belongs to the serialized run.
         expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("B")]);
-        expect(resultA.allPossibleVariants).toEqual(["A"]);
-        expect(resultB.allPossibleVariants).toEqual(["B"]);
-        expect(resultB.resolvedDocumentLocale).toBe("en");
+        expect(resultA?.allPossibleVariants).toEqual(["A"]);
+        expect(resultB?.allPossibleVariants).toEqual(["B"]);
+        expect(resultB?.resolvedDocumentLocale).toBe("en");
     });
 
     it("keeps a queue of initializations in arrival order", async () => {
@@ -198,7 +198,7 @@ describe("initializeCoreWorker serialization (#1533)", () => {
 
         await expect(first).rejects.toThrow("flags rejected");
         const resultB = await second;
-        expect(resultB.allPossibleVariants).toEqual(["B"]);
+        expect(resultB?.allPossibleVariants).toEqual(["B"]);
         // The failed run stops where it failed; the successor's own
         // `setSource` is what restores the worker, so it runs whole.
         expect(log).toEqual([
@@ -236,6 +236,31 @@ describe("initializeCoreWorker serialization (#1533)", () => {
 
         release();
         await expect(second).rejects.toThrow("fetch failed");
+        await Promise.all([first, third]);
+        expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
+    });
+
+    it("lets an initialization whose document has moved on step aside at its turn", async () => {
+        // Of the initializations queued behind the one on the worker, only
+        // the newest belongs to a document the viewer still shows. The rest
+        // step aside when their turn comes — no round trip, no turn, `null`
+        // for a result — so the newest waits for the one on the worker and
+        // no more, however many rebuilds landed in between.
+        const log: string[] = [];
+        const { remote, release } = fakeRemote(log, {
+            holdInitializationOf: "A",
+        });
+
+        const first = initialize(remote, "A", log);
+        const second = initialize(remote, "B", log, {
+            abandoned: () => true,
+        });
+        const third = initialize(remote, "C", log);
+        await settle();
+        expect(log).toEqual(sequenceFor("A").slice(0, -1));
+
+        release();
+        expect(await second).toBeNull();
         await Promise.all([first, third]);
         expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
     });

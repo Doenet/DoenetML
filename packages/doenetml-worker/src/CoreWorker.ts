@@ -137,7 +137,7 @@ export class CoreWorker {
      * failed inside the Rust core with a message saying the source had never
      * been set, which is the opposite of what happened.
      */
-    initialization_data_released = false;
+    _initializationDataReleased = false;
     flags_set = false;
     core_type: "rust" | "javascript" = "rust";
 
@@ -271,7 +271,7 @@ export class CoreWorker {
                 args.source,
             );
             this.source_set = true;
-            this.initialization_data_released = false;
+            this._initializationDataReleased = false;
         } catch (err) {
             console.error("Error when setting source", err);
             throw err;
@@ -383,7 +383,7 @@ export class CoreWorker {
                     "Cannot initialize javascript core before setting source and flags",
                 );
             }
-            if (this.initialization_data_released) {
+            if (this._initializationDataReleased) {
                 throw Error(RELEASED_INITIALIZATION_DATA_MESSAGE);
             }
 
@@ -447,7 +447,7 @@ export class CoreWorker {
             // core-type path still needs it for later
             // `returnNormalizedDastRoot` calls, so only release here).
             this.doenetCore.release_initialization_data();
-            this.initialization_data_released = true;
+            this._initializationDataReleased = true;
             return initializedResult;
         } catch (err) {
             console.error(err);
@@ -556,7 +556,7 @@ export class CoreWorker {
             // resolver consumers — return the minimal shape consumers expect.
             return { nodes: [] };
         }
-        if (this.initialization_data_released) {
+        if (this._initializationDataReleased) {
             throw Error(RELEASED_INITIALIZATION_DATA_MESSAGE);
         }
         return this.doenetCore.return_normalized_dast_root();
@@ -570,7 +570,7 @@ export class CoreWorker {
         if (!this.javascriptCore || !this.doenetCore) {
             throw Error("Cannot return dast before setting source and flags");
         }
-        if (this.initialization_data_released) {
+        if (this._initializationDataReleased) {
             throw Error(RELEASED_INITIALIZATION_DATA_MESSAGE);
         }
 
@@ -625,7 +625,7 @@ export class CoreWorker {
         // path still needs it for later `returnNormalizedDastRoot` calls, so
         // only release here).
         this.doenetCore.release_initialization_data();
-        this.initialization_data_released = true;
+        this._initializationDataReleased = true;
 
         const args = {
             coreId: "a",

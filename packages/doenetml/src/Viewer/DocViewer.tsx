@@ -1589,7 +1589,10 @@ export function DocViewer({
         //
         // `onQueueTurn` goes through to `initializeCoreWorker`, which calls it
         // when this initialization's turn on the worker comes (#1533); the
-        // boot ladder re-bases its watchdog on it.
+        // boot ladder re-bases its watchdog on it. The same ownership answers
+        // `abandoned`: an initialization whose document has moved on by the
+        // time its turn comes steps aside instead of running, and resolves to
+        // `null`.
         const result = await initializeCoreWorker({
             coreWorker: worker,
             doenetML,
@@ -1609,8 +1612,9 @@ export function DocViewer({
             documentLocale,
             localeResources: availableCatalogs,
             onQueueTurn,
+            abandoned: () => !stillSpeaksForDocument(ownerCoreId),
         });
-        if (stillSpeaksForDocument(ownerCoreId)) {
+        if (result && stillSpeaksForDocument(ownerCoreId)) {
             setEffectiveDocumentLocale(result.resolvedDocumentLocale);
         }
         return result;
