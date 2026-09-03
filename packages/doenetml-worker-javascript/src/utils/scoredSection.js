@@ -55,9 +55,16 @@ function returnAggregateCreditDependencies(variableName) {
  *
  * @param {object} dependencyValues - the resolved dependencies
  * @param {string} variableName - the same name passed to the dependency builder
- * @returns {number} a credit between 0 and 1; 1 when there is nothing scored
+ * @param {number} [creditWhenNothingScored] - the credit for a section with no
+ *   scored descendants at all, where there is no average to take; full credit
+ *   unless the caller says otherwise
+ * @returns {number} a credit between 0 and 1
  */
-function aggregateCreditOverScoredDescendants(dependencyValues, variableName) {
+function aggregateCreditOverScoredDescendants(
+    dependencyValues,
+    variableName,
+    creditWhenNothingScored = 1,
+) {
     let creditSum = 0;
     let totalWeight = 0;
 
@@ -67,8 +74,7 @@ function aggregateCreditOverScoredDescendants(dependencyValues, variableName) {
         totalWeight += weight;
     }
 
-    // give full credit if there are no scored items
-    return totalWeight > 0 ? creditSum / totalWeight : 1;
+    return totalWeight > 0 ? creditSum / totalWeight : creditWhenNothingScored;
 }
 
 /**
@@ -644,26 +650,20 @@ export function returnScoredSectionStateVariableDefinition() {
                 };
             }
 
-            // Averaged here rather than through
-            // `aggregateCreditOverScoredDescendants` because it does not share
-            // that function's zero-weight case: a section with nothing scored
-            // leaves this NaN rather than at full credit. Preserved as it was
-            // rather than changed alongside an unrelated fix.
-            let creditSum = 0;
-            let totalWeight = 0;
-
-            for (let [
-                ind,
-                component,
-            ] of dependencyValues.scoredDescendants.entries()) {
-                let weight = component.stateValues.weight;
-                creditSum +=
-                    dependencyValues["creditAchievedIfSubmit" + ind] * weight;
-                totalWeight += weight;
-            }
-            let creditAchievedIfSubmit = creditSum / totalWeight;
-
-            return { setValue: { creditAchievedIfSubmit } };
+            return {
+                setValue: {
+                    creditAchievedIfSubmit:
+                        aggregateCreditOverScoredDescendants(
+                            dependencyValues,
+                            "creditAchievedIfSubmit",
+                            // Unlike `creditAchieved`, a section with nothing
+                            // scored has long left this NaN rather than at full
+                            // credit. Kept as it was rather than changed alongside
+                            // an unrelated fix.
+                            NaN,
+                        ),
+                },
+            };
         },
     };
 

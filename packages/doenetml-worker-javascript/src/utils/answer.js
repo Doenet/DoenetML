@@ -102,6 +102,11 @@ function responseIsBlank(response) {
  * Whether a submission carried nothing the reader entered, either because there
  * were no response values at all or because every one of them is blank.
  *
+ * Filling one input of several is entering something, so a single non-blank
+ * value is enough. Note that an author can add values of their own to the
+ * responses with `<considerAsResponses>` or `isResponse`; those count here like
+ * any other, having been declared responses.
+ *
  * @param {unknown[]} submittedResponses - the answer's `submittedResponses`
  * @returns {boolean}
  */
@@ -453,38 +458,35 @@ export function returnStandardAnswerStateVariableDefinition() {
             "The credit this answer contributes when deciding whether the content around it has been completed, as a `<cascade>` does. Equal to `creditAchieved`, except that a hand-graded answer counts as fully correct once a non-blank response has been submitted.",
         stateVariablesDeterminingDependencies: ["handGraded"],
         returnDependencies({ stateValues }) {
-            if (!stateValues.handGraded) {
-                return {
-                    handGraded: {
-                        dependencyType: "stateVariable",
-                        variableName: "handGraded",
-                    },
-                    creditAchieved: {
-                        dependencyType: "stateVariable",
-                        variableName: "creditAchieved",
-                    },
-                };
-            }
-
-            // The submitted responses are worth resolving only for a
-            // hand-graded answer. Every enclosing section aggregates this
-            // variable to color its heading, so an unconditional dependency
-            // would pull the whole response array of every answer in the
-            // document into the initial render.
-            return {
+            const dependencies = {
                 handGraded: {
                     dependencyType: "stateVariable",
                     variableName: "handGraded",
                 },
-                responseHasBeenSubmitted: {
+            };
+
+            if (stateValues.handGraded) {
+                // The submitted responses are worth resolving only for a
+                // hand-graded answer. Every enclosing section aggregates this
+                // variable to color its heading, so an unconditional dependency
+                // would pull the whole response array of every answer in the
+                // document into the initial render.
+                dependencies.responseHasBeenSubmitted = {
                     dependencyType: "stateVariable",
                     variableName: "responseHasBeenSubmitted",
-                },
-                submittedResponses: {
+                };
+                dependencies.submittedResponses = {
                     dependencyType: "stateVariable",
                     variableName: "submittedResponses",
-                },
-            };
+                };
+            } else {
+                dependencies.creditAchieved = {
+                    dependencyType: "stateVariable",
+                    variableName: "creditAchieved",
+                };
+            }
+
+            return dependencies;
         },
         definition({ dependencyValues }) {
             if (!dependencyValues.handGraded) {

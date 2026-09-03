@@ -2663,4 +2663,63 @@ describe("Cascade tag tests @group4", async () => {
         stateVariables = await getStateVariables(core);
         expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
     });
+
+    // The two inputs with no placeholder of their own. An unselected
+    // `<choiceInput>` submits no response value at all, whereas an unchecked
+    // `<booleanInput>` submits `false` — indistinguishable from the reader
+    // deliberately leaving the box unchecked, so it counts as an answer.
+    it("a choice must be chosen, but an unchecked box is already an answer", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <section name="section1">
+    <p name="p">Pick one.
+      <answer handGraded name="ans">
+        <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
+      </answer>
+    </p>
+  </section>
+
+  <section name="section2">
+    <p name="p">Agree?
+      <answer handGraded name="ans">
+        <booleanInput name="bi" />
+        <award><boolean>true</boolean></award>
+      </answer>
+    </p>
+  </section>
+
+  <section name="section3">
+    <p name="p">What is 1+1? <answer name="ans">2</answer></p>
+  </section>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const choiceAnsIdx = await resolvePathToNodeIdx("section1.p.ans");
+        const choiceInputIdx = await resolvePathToNodeIdx("section1.p.ans.ci");
+        const booleanAnsIdx = await resolvePathToNodeIdx("section2.p.ans");
+
+        await submitAnswer({ componentIdx: choiceAnsIdx, core });
+
+        let stateVariables = await getStateVariables(core);
+        expect(
+            stateVariables[choiceAnsIdx].stateValues.submittedResponses,
+        ).eqls([]);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(0);
+
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices: [2],
+            core,
+        });
+        await submitAnswer({ componentIdx: choiceAnsIdx, core });
+
+        // The box is left alone, and submitting it as it stands is an answer.
+        await submitAnswer({ componentIdx: booleanAnsIdx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(2);
+        expect(stateVariables[booleanAnsIdx].stateValues.creditAchieved).eq(0);
+    });
 });
