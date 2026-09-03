@@ -141,11 +141,12 @@ function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
  * unanswered, which is the same thing as no answer, and the request stays
  * open for a host that does speak SPLICE.
  *
- * Matched by code alone, and only against this documented set. Nothing stops
- * a genuine SPLICE host from reporting a load failure with any code it likes,
- * so keeping the set to the platform vocabulary — rather than, say, dropping
- * every error a viewer cannot render — leaves a host's own failures reaching
- * the reader.
+ * Matched by code alone, and only against this documented set. The code is
+ * the whole test in both directions: one of these is dropped even carrying a
+ * `message`, so a platform that starts sending text is still recognized; and
+ * any other code reaches the reader on the strength of its `message`, so a
+ * genuine SPLICE host — free to report a load failure under any code it
+ * likes — keeps its say.
  */
 const NON_SPLICE_PLATFORM_ERROR_CODES = new Set([
     "unsupported_subject",
@@ -1260,17 +1261,21 @@ export function DocViewer({
                         // reach the error boundary and replace exactly the
                         // document this branch exists to keep, and beneath
                         // the failure pane, which is returned above that
-                        // boundary, nothing would catch it at all. The
-                        // `code` is for the console, and is not required —
-                        // a reply carrying only text still has text to show.
-                        // (`error` is known truthy here: this branch is
-                        // gated on it, so `typeof error === "object"`
-                        // already rules out `null`.)
+                        // boundary, nothing would catch it at all. Outside
+                        // the platform set the `code` only labels the console
+                        // line, and is not required — a reply carrying only
+                        // text still has text to show.
+                        //
+                        // No shape test guards the two reads: this branch is
+                        // gated on `error` being truthy, which is all it
+                        // takes for reading a field off it to be safe. An
+                        // `error` that is a bare string or number has
+                        // neither field and falls to the unreadable case
+                        // below, exactly as an object missing them does.
                         const error = e.data.error;
-                        const isObject = typeof error === "object";
-                        const code = isObject ? error.code : undefined;
+                        const code = error.code;
                         const message =
-                            isObject && typeof error.message === "string"
+                            typeof error.message === "string"
                                 ? error.message
                                 : undefined;
 
@@ -1278,8 +1283,8 @@ export function DocViewer({
                             typeof code === "string" &&
                             NON_SPLICE_PLATFORM_ERROR_CODES.has(code)
                         ) {
-                            // Not a host: a platform saying it does not know
-                            // what was asked of it. Nothing to tell the
+                            // Not a host: a platform saying it will not act
+                            // on what was asked of it. Nothing to tell the
                             // reader — see
                             // `NON_SPLICE_PLATFORM_ERROR_CODES`. The whole
                             // error goes to the console, so a host that

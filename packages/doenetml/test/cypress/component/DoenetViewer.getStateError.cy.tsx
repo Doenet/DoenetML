@@ -308,10 +308,10 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
     });
 
     it("surfaces an error carrying a message but no `code`", () => {
-        // The `code` is for the console; the `message` is the whole of what
-        // a reader gets. A reply that has the text but not the code still
-        // has something to say, and used to be discarded for the viewer's
-        // own words instead.
+        // Outside the platform set below, the `code` only labels the console
+        // line; the `message` is the whole of what a reader gets. A reply
+        // that has the text but not the code still has something to say, and
+        // used to be discarded for the viewer's own words instead.
         interceptGetState().then(({ win, request }) => {
             mountViewer();
             afterGetStateRequest(request);
