@@ -1197,11 +1197,17 @@ export class SectioningComponent extends BlockComponent {
                 // is to the nearest *ancestor* carrying the variable, the way
                 // `showCorrectness` resolves — unlike the colors themselves,
                 // which read only their immediate parent section.
-                let completedColorRequiresCredit = false;
-                if (!usedDefault.completedColorRequiresCreditPreliminary) {
-                    completedColorRequiresCredit =
-                        dependencyValues.completedColorRequiresCreditPreliminary;
-                } else if (
+                //
+                // Start from the attribute's own value rather than restating
+                // its default here, so the default lives in exactly one place:
+                // the attribute's `defaultValue`. Written the other way the two
+                // could drift apart unnoticed, which is a real risk on a base
+                // class this many components extend and override attributes on.
+                let completedColorRequiresCredit =
+                    dependencyValues.completedColorRequiresCreditPreliminary;
+
+                if (
+                    usedDefault.completedColorRequiresCreditPreliminary &&
                     dependencyValues.completedColorRequiresCreditAncestor
                 ) {
                     completedColorRequiresCredit =

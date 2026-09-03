@@ -1597,6 +1597,12 @@ describe("Sectioning tag tests @group3", async () => {
 
         <p>Why? <answer handGraded name="ans" type="text" /></p>
       </exercise>
+
+      <exercise name="optedOut" completedColorRequiresCredit="false" boxed notStartedColor="beige" inProgressColor="cyan" completedColor="blue">
+        <title>An exercise that opts back out</title>
+
+        <p>Why? <answer handGraded name="ans" type="text" /></p>
+      </exercise>
     </section>
 
     <exercise name="loose" boxed notStartedColor="beige" inProgressColor="cyan" completedColor="blue">
@@ -1609,8 +1615,10 @@ describe("Sectioning tag tests @group3", async () => {
 
         const exerIdx = await resolvePathToNodeIdx("exer");
         const looseIdx = await resolvePathToNodeIdx("loose");
+        const optedOutIdx = await resolvePathToNodeIdx("optedOut");
         const strictAnswerIdx = await resolvePathToNodeIdx("exer.ans");
         const looseAnswerIdx = await resolvePathToNodeIdx("loose.ans");
+        const optedOutAnswerIdx = await resolvePathToNodeIdx("optedOut.ans");
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -1622,9 +1630,19 @@ describe("Sectioning tag tests @group3", async () => {
             stateVariables[looseIdx].stateValues.completedColorRequiresCredit,
         ).eq(false);
 
+        // An explicit value wins over an inheriting ancestor, in the direction
+        // that returns to the default as well as away from it. This is what the
+        // `usedDefault` guard buys: without it the ancestor would overwrite a
+        // value the author wrote out.
+        expect(
+            stateVariables[optedOutIdx].stateValues
+                .completedColorRequiresCredit,
+        ).eq(false);
+
         for (const [answerIdx, sectionIdx] of [
             [strictAnswerIdx, exerIdx],
             [looseAnswerIdx, looseIdx],
+            [optedOutAnswerIdx, optedOutIdx],
         ]) {
             const textInputIdx =
                 stateVariables[answerIdx].stateValues.inputChildren[0]
@@ -1642,8 +1660,10 @@ describe("Sectioning tag tests @group3", async () => {
         // Same response, same ungraded score, opposite bars.
         expect(stateVariables[exerIdx].stateValues.titleColor).eq("beige");
         expect(stateVariables[looseIdx].stateValues.titleColor).eq("blue");
+        expect(stateVariables[optedOutIdx].stateValues.titleColor).eq("blue");
         expect(stateVariables[exerIdx].stateValues.creditAchieved).eq(0);
         expect(stateVariables[looseIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[optedOutIdx].stateValues.creditAchieved).eq(0);
     });
 
     // Mirrors the `completedColorRequiresCredit` example on the `<section>`
