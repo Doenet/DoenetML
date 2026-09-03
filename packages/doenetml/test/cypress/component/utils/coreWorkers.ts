@@ -3,9 +3,9 @@ import { doenetGlobalConfig } from "../../../../src/global-config";
 /**
  * Count the core workers the tests in the enclosing `describe` construct.
  *
- * Counted at `new Worker` rather than through any DoenetML seam: a worker
- * that is booted and discarded, or leaked, shows up here whether or not the
- * viewer still refers to it, which is the question the specs using this ask.
+ * Counted at `new Worker`: a worker that is booted and discarded, or leaked,
+ * shows up here whether or not the viewer still refers to it, which is the
+ * question the specs using this ask.
  * Only this page's core worker is counted — MathJax starts one of its own,
  * and a count that included it would answer a different question on every
  * run.

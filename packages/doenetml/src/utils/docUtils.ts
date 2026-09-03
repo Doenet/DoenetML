@@ -242,8 +242,8 @@ export function createCoreWorker(): CoreWorkerHandle {
  * So initializations are serialized here, per worker: one started while
  * another is in flight waits for it to settle, then runs whole. Run whole
  * after its predecessor it is correct as it stands, its own `setSource`
- * putting the DAST back, which is why the wait is for settlement rather than
- * success: a predecessor that failed is its own caller's to report.
+ * putting the DAST back, so settlement is all it waits for: a predecessor
+ * that failed is its own caller's to report.
  *
  * Weakly keyed, so an entry goes with the worker it describes and nothing
  * here has to be told when a worker is discarded.
@@ -299,17 +299,13 @@ export async function initializeCoreWorker({
      * flight on this worker, if any — has settled. Only these are serialized
      * (see `initializationInFlight`): the parse and the expansion of external
      * references above are this thread's own work, so a second
-     * initialization's share of it overlaps the first's round trips rather
-     * than queueing behind them.
+     * initialization's share of it overlaps the first's round trips.
      */
     async function initializeAfter(predecessor: Promise<unknown> | undefined) {
         if (predecessor) {
-            try {
-                await predecessor;
-            } catch {
-                // Settlement is all that is waited for; see
-                // `initializationInFlight`.
-            }
+            // Settlement is all that is waited for; see
+            // `initializationInFlight`.
+            await Promise.allSettled([predecessor]);
         }
 
         await coreWorker.setCoreType("javascript");
@@ -350,27 +346,25 @@ export async function initializeCoreWorker({
         return result;
     }
 
+    // The content's language, for the `lang` attribute on the rendered
+    // wrapper. Resolved from the DAST we already parsed rather than asked of
+    // the core, so it is available before the first render — a screen reader
+    // should not have to wait for evaluation to learn what language it is
+    // reading. The core reaches the same tag for its own `document.locale`,
+    // running the same helper over the same authored `lang` and the locale
+    // sent above, so the attribute always reports the language the content was
+    // rendered in — English, for a document nobody declared one for.
+    const resolvedLocale = resolveDocumentLocale(
+        readDocumentLang(dast),
+        documentLocale,
+    );
+
     const initialization = initializeAfter(
         initializationInFlight.get(coreWorker),
     );
     initializationInFlight.set(coreWorker, initialization);
     try {
         const result = await initialization;
-
-        // The content's language, for the `lang` attribute on the rendered
-        // wrapper. Resolved from the DAST we already parsed rather than asked
-        // of the core, so it is available before the first render — a screen
-        // reader should not have to wait for evaluation to learn what
-        // language it is reading. The core reaches the same tag for its own
-        // `document.locale`, running the same helper over the same authored
-        // `lang` and the locale sent above, so the attribute always reports
-        // the language the content was rendered in — English, for a document
-        // nobody declared one for.
-        const resolvedLocale = resolveDocumentLocale(
-            readDocumentLang(dast),
-            documentLocale,
-        );
-
         return { ...result, resolvedDocumentLocale: resolvedLocale };
     } finally {
         // The entry is this initialization's to clear only while nothing has

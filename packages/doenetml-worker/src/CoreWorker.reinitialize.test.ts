@@ -1,4 +1,12 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
@@ -70,10 +78,17 @@ function sourceArgs(source: string) {
     return { source, dast: normalizeDocumentDast(lezerToDast(source), true) };
 }
 
+/** Set `source` on `worker` and initialize its JavaScript core from it. */
+async function initialize(worker: CoreWorker, source: string) {
+    await worker.setSource(sourceArgs(source));
+    await worker.setFlags({ flags: FLAGS });
+    return worker.initializeJavascriptCore(INIT_ARGS);
+}
+
 /**
  * Reject if `promise` has not settled within `ms`. The worker's serialization
- * queue, once wedged, holds every later call forever; a wait bounded here
- * fails the test in seconds instead of at the suite's timeout.
+ * queue, once wedged, holds every later call forever, and the suite's timeout
+ * is three minutes; a wait bounded here fails the test in seconds.
  */
 function within<T>(ms: number, promise: Promise<T>): Promise<T> {
     return Promise.race([
@@ -99,23 +114,14 @@ describe.skipIf(!wasmAvailable)("CoreWorker re-initialization (#1533)", () => {
         );
     });
 
-    afterEach(() => {
-        vi.restoreAllMocks();
+    beforeEach(() => {
+        // The worker logs each failure before rethrowing it; keep the output
+        // to the assertions.
+        vi.spyOn(console, "error").mockImplementation(() => {});
     });
 
-    it("refuses to initialize again from a released DAST, and says so", async () => {
-        // The worker logs the failure before rethrowing it; keep the output
-        // to the assertion.
-        vi.spyOn(console, "error").mockImplementation(() => {});
-        const worker = new CoreWorker();
-        worker.setCoreType("javascript");
-        await worker.setSource(sourceArgs("<p>hello</p>"));
-        await worker.setFlags({ flags: FLAGS });
-        await worker.initializeJavascriptCore(INIT_ARGS);
-
-        await expect(
-            worker.initializeJavascriptCore(INIT_ARGS),
-        ).rejects.toThrow(RELEASED);
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it("fails the second of two interleaved initializations, and only that one", async () => {
@@ -123,7 +129,6 @@ describe.skipIf(!wasmAvailable)("CoreWorker re-initialization (#1533)", () => {
         // overlapped on one worker, in the order the worker's queue ran
         // them. Issued without awaiting, so the queue orders them exactly
         // so.
-        vi.spyOn(console, "error").mockImplementation(() => {});
         const worker = new CoreWorker();
         worker.setCoreType("javascript");
         const a = sourceArgs("<p>A</p>");
@@ -141,38 +146,30 @@ describe.skipIf(!wasmAvailable)("CoreWorker re-initialization (#1533)", () => {
         await expect(secondInitialization).rejects.toThrow(RELEASED);
     });
 
-    it("initializes again once a fresh setSource has put the DAST back", async () => {
+    it("refuses to initialize again from a released DAST until a fresh setSource has put it back", async () => {
         // What the serialized second sequence relies on: run whole after its
         // predecessor, its own `setSource` restores every precondition.
-        vi.spyOn(console, "error").mockImplementation(() => {});
         const worker = new CoreWorker();
         worker.setCoreType("javascript");
-        await worker.setSource(sourceArgs("<p>first</p>"));
-        await worker.setFlags({ flags: FLAGS });
-        await worker.initializeJavascriptCore(INIT_ARGS);
+        await initialize(worker, "<p>first</p>");
         await expect(
             worker.initializeJavascriptCore(INIT_ARGS),
         ).rejects.toThrow(RELEASED);
 
-        await worker.setSource(sourceArgs("<p>second</p>"));
-        await worker.setFlags({ flags: FLAGS });
-        const result = await worker.initializeJavascriptCore(INIT_ARGS);
+        const result = await initialize(worker, "<p>second</p>");
         expect(result.allPossibleVariants.length).toBeGreaterThan(0);
     });
 
     it("releases its queue after a failed precondition", async () => {
         // A precondition thrown ahead of the `try` skipped the `finally` that
         // hands the queue on, and every later call on the worker hung.
-        vi.spyOn(console, "error").mockImplementation(() => {});
         const worker = new CoreWorker();
         worker.setCoreType("javascript");
         await expect(
             worker.initializeJavascriptCore(INIT_ARGS),
         ).rejects.toThrow(/before setting source and flags/);
 
-        await within(10_000, worker.setSource(sourceArgs("<p>later</p>")));
-        await worker.setFlags({ flags: FLAGS });
-        const result = await worker.initializeJavascriptCore(INIT_ARGS);
+        const result = await within(10_000, initialize(worker, "<p>later</p>"));
         expect(result.allPossibleVariants.length).toBeGreaterThan(0);
     });
 });

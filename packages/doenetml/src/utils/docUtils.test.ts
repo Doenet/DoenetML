@@ -83,7 +83,10 @@ function fakeRemote(
     };
 }
 
-/** Start an initialization of document `doc` on `remote`. */
+/**
+ * Start an initialization of document `doc` on `remote`; `extra` overrides
+ * any of its arguments.
+ */
 function initialize(
     remote: Comlink.Remote<CoreWorker>,
     doc: string,
@@ -213,14 +216,8 @@ describe("initializeCoreWorker serialization (#1533)", () => {
         });
 
         const first = initialize(remote, "A", log);
-        const second = initializeCoreWorker({
-            coreWorker: remote,
+        const second = initialize(remote, "B", log, {
             doenetML: `<p copy="doenet:external" />`,
-            flags: FLAGS,
-            activityId: "activity",
-            docId: "B",
-            requestedVariantIndex: 1,
-            attemptNumber: 1,
             fetchExternalDoenetML: async (uri) => {
                 log.push(`fetch:${uri}`);
                 return "<p>external</p>";

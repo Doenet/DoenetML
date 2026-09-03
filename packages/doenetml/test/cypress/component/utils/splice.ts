@@ -62,14 +62,15 @@ export const TEXT_INPUT = "input.doenet-textinput, input:not([type=checkbox])";
  * (`StatePersistence.saveChangesToDatabase`), so the flush is what makes the
  * capture deterministic: it pushes what the document is holding through the
  * ordinary `SPLICE.reportScoreAndState` channel a host saves from. `reports`
- * is the list `captureReports` was collecting into before the mount, and the
- * document must echo what is typed as `You typed: <text>`.
+ * is the list `captureReports` was collecting into before the mount, the
+ * document must echo what is typed as `You typed: <text>`, and `timeout`
+ * bounds each wait on the document.
  */
 export function saveStateAfterTyping(
     reports: any[],
     text: string,
     flushId: string,
-    timeout = 30_000,
+    timeout: number,
 ): Cypress.Chainable<any> {
     cy.get(TEXT_INPUT).type(`{selectall}{backspace}${text}{enter}`);
     cy.contains(`You typed: ${text}`, { timeout }).should("exist");
