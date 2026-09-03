@@ -2,14 +2,33 @@ import BooleanBaseOperatorOfMath from "./abstract/BooleanBaseOperatorOfMath";
 import { evaluateNumericPredicate } from "../utils/math";
 
 /**
- * The `booleanOperator` state variable shared by `<isNumber>` and
- * `<isInteger>`. Both take exactly one math child and apply the correspondingly
- * named check to it, honoring the inherited `allowUnits` attribute so that they
- * agree with the `isnumber(...)` / `isinteger(...)` functions written inside a
- * `<boolean>`.
+ * Wrap `evaluate` in the arity check every operator in this file needs: a
+ * `booleanOperator` receives the values of all math children, but each of these
+ * operators is defined only on a single one.
  *
- * `componentName` is the class name used in the arity warning, matching how the
- * sibling operators in this file name themselves.
+ * No children at all is the ordinary state of a half-typed document, so it
+ * answers `false` quietly; two or more is an authoring mistake, so it warns and
+ * answers `null`. `componentName` is the class name used in that warning.
+ */
+function returnSingleMathChildOperator(componentName, evaluate) {
+    return function (values) {
+        if (values.length === 0) {
+            return false;
+        }
+        if (values.length !== 1) {
+            console.warn(`${componentName} requires exactly one math child`);
+            return null;
+        }
+        return evaluate(values[0]);
+    };
+}
+
+/**
+ * The `booleanOperator` state variable shared by `<isNumber>` and
+ * `<isInteger>`. Both apply the correspondingly named check to their single
+ * math child, honoring the `allowUnits` attribute they inherit from
+ * `<boolean>` so that they treat a quantity written with a unit the same way
+ * the `isnumber(...)` / `isinteger(...)` functions do.
  */
 function returnNumericPredicateOperator({ predicate, componentName }) {
     return {
@@ -21,23 +40,15 @@ function returnNumericPredicateOperator({ predicate, componentName }) {
         }),
         definition: ({ dependencyValues }) => ({
             setValue: {
-                booleanOperator: function (values) {
-                    if (values.length === 0) {
-                        return false;
-                    }
-                    if (values.length !== 1) {
-                        console.warn(
-                            `${componentName} requires exactly one math child`,
-                        );
-                        return null;
-                    }
-
-                    return evaluateNumericPredicate({
-                        predicate,
-                        expression: values[0],
-                        allowUnits: dependencyValues.allowUnits,
-                    });
-                },
+                booleanOperator: returnSingleMathChildOperator(
+                    componentName,
+                    (expression) =>
+                        evaluateNumericPredicate({
+                            predicate,
+                            expression,
+                            allowUnits: dependencyValues.allowUnits,
+                        }),
+                ),
             },
         }),
     };
@@ -142,30 +153,25 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
 
                 return {
                     setValue: {
-                        booleanOperator: function (values) {
-                            if (values.length === 0) {
-                                return false;
-                            }
-                            if (values.length !== 1) {
-                                console.warn(
-                                    "IsBetween requires exactly one math child",
-                                );
-                                return null;
-                            }
-                            let numericValue = values[0].evaluate_to_constant();
+                        booleanOperator: returnSingleMathChildOperator(
+                            "IsBetween",
+                            (expression) => {
+                                let numericValue =
+                                    expression.evaluate_to_constant();
 
-                            if (strict) {
-                                return (
-                                    numericValue > lowerLimit &&
-                                    numericValue < upperLimit
-                                );
-                            } else {
-                                return (
-                                    numericValue >= lowerLimit &&
-                                    numericValue <= upperLimit
-                                );
-                            }
-                        },
+                                if (strict) {
+                                    return (
+                                        numericValue > lowerLimit &&
+                                        numericValue < upperLimit
+                                    );
+                                } else {
+                                    return (
+                                        numericValue >= lowerLimit &&
+                                        numericValue <= upperLimit
+                                    );
+                                }
+                            },
+                        ),
                     },
                 };
             },

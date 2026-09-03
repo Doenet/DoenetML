@@ -363,12 +363,14 @@ export function evaluateLogic({
         // try to see if operand can be evaluated to a number
         let expression = me.fromAst(replaceMath(operands[1]));
 
-        // `allowUnits` is absent for callers that don't offer the attribute,
-        // in which case units are allowed, as they always have been.
         return evaluateNumericPredicate({
             predicate: operands[0],
             expression,
-            allowUnits: dependencyValues.allowUnits !== false,
+            // `allowUnits` is absent for callers that don't offer the
+            // attribute — `<number convertBoolean>` builds its dependency
+            // values by hand — which the helper reads as its default of
+            // `true`, so units stay allowed there as they always have been.
+            allowUnits: dependencyValues.allowUnits,
             // TODO: should we simplify before evaluating to constant?
             simplify: true,
         })

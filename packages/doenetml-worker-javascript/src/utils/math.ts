@@ -502,13 +502,15 @@ export function treeHasUnits(tree: Tree): boolean {
  *
  * Shared by the two spellings of each check — the components `<isNumber>` and
  * `<isInteger>`, and the functions `isnumber(...)` and `isinteger(...)` written
- * inside a `<boolean>` or `<when>` — so the two always agree on what counts.
+ * inside a `<boolean>` or `<when>` — so that a single rule decides what counts.
  *
  * When `allowUnits` is false, a quantity written with a unit fails the check
  * even though it evaluates to a number: `50%` is rejected while the `1/2` it
  * equals is still accepted. `simplify` controls whether the expression is
  * simplified before it is evaluated, which the function spelling does and the
- * component spelling does not.
+ * component spelling does not — the one respect in which the two spellings
+ * still differ, so `isnumber(x-x)` is true where `<isNumber>x-x</isNumber>` is
+ * not.
  */
 export function evaluateNumericPredicate({
     predicate,
@@ -529,7 +531,10 @@ export function evaluateNumericPredicate({
         simplify ? expression.simplify() : expression
     ).evaluate_to_constant();
 
-    if (numericValue === null || !Number.isFinite(numericValue)) {
+    // `evaluate_to_constant` never answers `null`: it answers `NaN` when the
+    // expression has no numeric value, and a `Complex` when the value is not
+    // real. Neither is a number this check accepts.
+    if (typeof numericValue !== "number" || !Number.isFinite(numericValue)) {
         return false;
     }
 

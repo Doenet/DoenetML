@@ -26,8 +26,8 @@ Two additions close that gap:
   `0.5`, `1/2`, and every other unit-free way of writing the same value. The
   same attribute is available on `<boolean>`, `<when>`, `<award>`, and
   `<answer>`, where it governs the `isnumber(...)` and `isinteger(...)`
-  functions, so both spellings of each check agree. On an `<answer>` it carries
-  down to the awards and conditions inside it.
+  functions, so both spellings of each check treat units the same way. On an
+  `<answer>` it carries down to the awards and conditions inside it.
 
 So an answer that wants a decimal rather than a percent can now say so:
 
