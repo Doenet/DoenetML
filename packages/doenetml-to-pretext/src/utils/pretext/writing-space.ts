@@ -264,6 +264,11 @@ function isBlockContent(
     if (element.name === "_fragment") {
         return element.children.some((c) => isBlockContent(c, flatDast));
     }
+    if (element.name === "choiceInput") {
+        // A choice input is a list of every choice, unless it is written inline, where it
+        // is the chosen one read as part of the sentence around it.
+        return propsOf(element).inline !== true;
+    }
     return BLOCK_ELEMENTS.has(element.name);
 }
 

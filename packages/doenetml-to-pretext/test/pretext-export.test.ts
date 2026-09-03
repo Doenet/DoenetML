@@ -211,6 +211,21 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a choice input is a block or part of the run, as it is written", async () => {
+        // The same tag reads both ways: a choice input lists every choice as its
+        // own block, unless it is written inline, where it is the chosen one read
+        // as part of the sentence.
+        source = `<ol><li><choiceInput><choice>yes</choice><choice>no</choice></choiceInput><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><ol><li>◯ yes</li><li>◯ no</li></ol><p workspace="1.25in"></p></li>`,
+        );
+
+        source = `<ol><li>Pick: <choiceInput inline><choice>yes</choice><choice>no</choice></choiceInput> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="5"></fillin> </p></li>`,
+        );
+    });
+
     it("a list item's blocks are left standing beside the room to write", async () => {
         // A list item already holding blocks takes no run in: the paragraph
         // carrying the space stands as one more block of its own.
