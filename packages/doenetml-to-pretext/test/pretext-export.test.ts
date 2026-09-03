@@ -211,6 +211,15 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a hidden expanded input claims no room to write", async () => {
+        // An input the reader never sees asks them nothing, so it needs no room
+        // and the document holding it is not made into a handout.
+        source = `<p>Explain: <textInput expanded hide /></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p>Explain: </p>"`);
+    });
+
     it("only the section holding an expanded input becomes a handout", async () => {
         source = `<section><title>A</title><p>Why? <textInput expanded /></p></section><section><title>B</title><p>Plain</p></section>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);

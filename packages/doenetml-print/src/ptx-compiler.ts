@@ -46,8 +46,8 @@ const DECODER = new TextDecoder();
 
 /**
  * Classes marking parts of PreTeXt's HTML that a printed page has no use for: on-screen
- * navigation, footers, and the controls for PreTeXt's own print preview, which are driven
- * by javascript this page does not load.
+ * instructions and permalinks, page footers, and the controls for PreTeXt's own print
+ * preview, which are driven by javascript this page does not load.
  */
 const CLASSES_TO_DROP = [
     "diagcess__instructions",
