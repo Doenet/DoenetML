@@ -289,36 +289,37 @@ export async function initializeCoreWorker({
      */
     localeResources?: Record<string, string> | null;
 }) {
-    let dast = lezerToDast(doenetML);
-
-    if (fetchExternalDoenetML) {
-        dast = await expandExternalReferences(dast, fetchExternalDoenetML);
-    }
-
-    dast = normalizeDocumentDast(dast, true);
-
-    // The content's language, for the `lang` attribute on the rendered
-    // wrapper. Resolved from the DAST we already parsed rather than asked of
-    // the core, so it is available before the first render — a screen reader
-    // should not have to wait for evaluation to learn what language it is
-    // reading. The core reaches the same tag for its own `document.locale`,
-    // running the same helper over the same authored `lang` and the locale
-    // sent below, so the attribute always reports the language the content was
-    // rendered in — English, for a document nobody declared one for.
-    const resolvedLocale = resolveDocumentLocale(
-        readDocumentLang(dast),
-        documentLocale,
-    );
-
     /**
-     * The round trips, run once `predecessor` — the initialization already in
-     * flight on this worker, if any — has settled. Only these are serialized
-     * (see `initializationInFlight`): the parse, the expansion of external
-     * references and the `lang` resolution above are this thread's own work,
-     * so a second initialization's share of it overlaps the first's round
-     * trips.
+     * Everything one initialization does, in order: its own work first — the
+     * parse, the expansion of external references and the `lang` resolution,
+     * which overlap whatever is in flight on the worker — and then the round
+     * trips, once `predecessor` (the initialization ahead of it on this
+     * worker, if any) has settled. Only the round trips are serialized; see
+     * `initializationInFlight`.
      */
     async function initializeAfter(predecessor: Promise<unknown> | undefined) {
+        let dast = lezerToDast(doenetML);
+
+        if (fetchExternalDoenetML) {
+            dast = await expandExternalReferences(dast, fetchExternalDoenetML);
+        }
+
+        dast = normalizeDocumentDast(dast, true);
+
+        // The content's language, for the `lang` attribute on the rendered
+        // wrapper. Resolved from the DAST we already parsed rather than asked
+        // of the core, so it is available before the first render — a screen
+        // reader should not have to wait for evaluation to learn what
+        // language it is reading. The core reaches the same tag for its own
+        // `document.locale`, running the same helper over the same authored
+        // `lang` and the locale sent below, so the attribute always reports
+        // the language the content was rendered in — English, for a document
+        // nobody declared one for.
+        const resolvedDocumentLocale = resolveDocumentLocale(
+            readDocumentLang(dast),
+            documentLocale,
+        );
+
         if (predecessor) {
             // Settlement is all that is waited for; see
             // `initializationInFlight`.
@@ -360,16 +361,22 @@ export async function initializeCoreWorker({
             },
         });
 
-        return result;
+        return { ...result, resolvedDocumentLocale };
     }
 
+    // The place in the worker's queue is taken here, when the initialization
+    // is asked for: `initializeAfter` runs synchronously to its first await,
+    // and the entry is written in the same turn. So initializations run in
+    // the order they were asked for, whatever each one's expansion costs —
+    // the last to run is the newest, and the worker ends up holding the
+    // document the viewer is showing even when an older initialization's
+    // external references were slow to fetch.
     const initialization = initializeAfter(
         initializationInFlight.get(coreWorker),
     );
     initializationInFlight.set(coreWorker, initialization);
     try {
-        const result = await initialization;
-        return { ...result, resolvedDocumentLocale: resolvedLocale };
+        return await initialization;
     } finally {
         // The entry is this initialization's to clear only while nothing has
         // queued behind it; a successor's entry is the successor's.

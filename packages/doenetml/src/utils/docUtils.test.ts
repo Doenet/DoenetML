@@ -236,4 +236,38 @@ describe("initializeCoreWorker serialization (#1533)", () => {
             log.indexOf("initializeJavascriptCore:A"),
         );
     });
+
+    it("keeps arrival order when the first initialization's expansion finishes after the second's", async () => {
+        // The place in the worker's queue is taken when an initialization is
+        // asked for, before any of its own work — so a newer initialization
+        // cannot overtake an older one whose external references are slow to
+        // fetch, and the worker ends up holding the document the viewer is
+        // showing.
+        const log: string[] = [];
+        const { remote } = fakeRemote(log);
+        const slowFetch = deferred();
+
+        const first = initialize(remote, "A", log, {
+            doenetML: `<p>A</p><p copy="doenet:slow" />`,
+            fetchExternalDoenetML: async (uri) => {
+                log.push(`fetch:${uri}`);
+                await slowFetch.promise;
+                return "<p>external</p>";
+            },
+        });
+        const second = initialize(remote, "B", log);
+        await settle();
+
+        // Neither has made a round trip: the first is still waiting on its
+        // fetch, and the second is behind the first.
+        expect(log).toEqual(["fetch:doenet:slow"]);
+
+        slowFetch.resolve();
+        await Promise.all([first, second]);
+        expect(log).toEqual([
+            "fetch:doenet:slow",
+            ...sequenceFor("A"),
+            ...sequenceFor("B"),
+        ]);
+    });
 });
