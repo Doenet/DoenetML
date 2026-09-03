@@ -54,12 +54,38 @@ function returnNumericPredicateOperator({ predicate, componentName }) {
     };
 }
 
+/**
+ * Give `<isNumber>` and `<isInteger>` the parent fall-back for `allowUnits`
+ * that `<boolean>` deliberately does not have.
+ *
+ * The comparison settings `<boolean>` declares — `symbolicEquality` and the
+ * rest — each govern a comparison the `<boolean>` performs itself, so there is
+ * no second way to spell them and nothing to stay consistent with. `allowUnits`
+ * is the exception: the same check is written either as one of these tags or as
+ * the matching `isnumber(...)` / `isinteger(...)` function, and the function is
+ * evaluated by the enclosing `<when>` or `<award>`, which does fall back to its
+ * parent. Without this, `<answer allowUnits="false">` would reach the function
+ * spelling and not the tag.
+ *
+ * The fall-back is a single level and fires only when the parent's value was
+ * set rather than defaulted, so a tag written anywhere else keeps its own
+ * default: a parent without the state variable resolves to null.
+ */
+function addAllowUnitsParentFallback(attributes) {
+    attributes.allowUnits.fallBackToParentStateVariable = "allowUnits";
+    return attributes;
+}
+
 export class IsInteger extends BooleanBaseOperatorOfMath {
     static componentType = "isInteger";
 
     static componentDocs = {
         summary: "True when the math child evaluates to an integer",
     };
+    static createAttributesObject() {
+        return addAllowUnitsParentFallback(super.createAttributesObject());
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -79,6 +105,10 @@ export class IsNumber extends BooleanBaseOperatorOfMath {
     static componentDocs = {
         summary: "True when the math child evaluates to a finite number",
     };
+    static createAttributesObject() {
+        return addAllowUnitsParentFallback(super.createAttributesObject());
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 

@@ -26,8 +26,14 @@ Two additions close that gap:
   `0.5`, `1/2`, and every other unit-free way of writing the same value. The
   same attribute is available on `<boolean>`, `<when>`, `<award>`, and
   `<answer>`, where it governs the `isnumber(...)` and `isinteger(...)`
-  functions, so both spellings of each check treat units the same way. On an
-  `<answer>` it carries down to the awards and conditions inside it.
+  functions, so both spellings of each check treat units the same way.
+
+Set on an `<answer>`, `allowUnits` carries down to the awards and conditions
+inside it, and reaches both spellings alike: `<isNumber>` written inside an
+award picks it up just as `isnumber(...)` does. An `<isNumber>` or
+`<isInteger>` takes the setting from whatever component encloses it, so a
+`<boolean allowUnits="false">` governs the tags nested in it too. One written
+with nothing relevant around it keeps the default of allowing units.
 
 So an answer that wants a decimal rather than a percent can now say so:
 

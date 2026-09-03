@@ -563,4 +563,39 @@ describe("Boolean Operator tag tests @group4", async () => {
         await set_inputs("0.5");
         await check_credit(1, 1);
     });
+    it("isNumber and isInteger inherit allowUnits from an enclosing component", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans" allowUnits="false">
+      <mathInput name="mi" prefill="100%"/>
+      <award><when><isNumber name="numInWhen">$mi</isNumber></when></award>
+      <award><when><isInteger name="intInWhen">$mi</isInteger></when></award>
+    </answer>
+    <boolean name="wrapper" allowUnits="false"><isNumber name="numInBoolean">100%</isNumber></boolean>
+    <p><isNumber name="numOutside">100%</isNumber></p>
+    <p><isInteger name="intOutside">100%</isInteger></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function value(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .value;
+        }
+
+        // The tag spelling follows the same answer -> award -> when chain the
+        // `isnumber(...)` function spelling follows, so both react to
+        // `allowUnits` on the answer.
+        expect(await value("numInWhen"), "numInWhen").eq(false);
+        expect(await value("intInWhen"), "intInWhen").eq(false);
+
+        // The fall-back is to whatever component encloses the tag, not to the
+        // answer specifically.
+        expect(await value("numInBoolean"), "numInBoolean").eq(false);
+
+        // Nothing encloses these but a `<p>`, which has no `allowUnits`, so
+        // they keep their own default of allowing units.
+        expect(await value("numOutside"), "numOutside").eq(true);
+        expect(await value("intOutside"), "intOutside").eq(true);
+    });
 });
