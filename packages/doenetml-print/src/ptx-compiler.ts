@@ -45,6 +45,20 @@ const OUT_DIR = "/home/pyodide/tmp_compile/out";
 const DECODER = new TextDecoder();
 
 /**
+ * Classes marking parts of PreTeXt's HTML that a printed page has no use for: on-screen
+ * navigation, footers, and the controls for PreTeXt's own print preview, which are driven
+ * by javascript this page does not load.
+ */
+const CLASSES_TO_DROP = [
+    "diagcess__instructions",
+    "autopermalink",
+    "ptx-content-footer",
+    "ptx-page-footer",
+    "print-preview-header",
+    "print-links",
+];
+
+/**
  * A class for compiling a PreTeXt file using a WASM implementation of python.
  */
 export class PtxCompiler {
@@ -229,22 +243,10 @@ export class PtxCompiler {
                         // The navbar isn't needed
                         hastMutateToEmptyString(node);
                     }
-                    // If an element has a class that includes "diagcess__instructions", it isn't needed
                     if (
-                        hastElementContainsClass(
-                            node,
-                            "diagcess__instructions",
-                        ) ||
-                        hastElementContainsClass(node, "autopermalink") ||
-                        hastElementContainsClass(node, "ptx-content-footer") ||
-                        hastElementContainsClass(node, "ptx-page-footer") ||
-                        // Controls for PreTeXt's own print preview. They are driven by
-                        // PreTeXt's javascript, which this page does not load.
-                        hastElementContainsClass(
-                            node,
-                            "print-preview-header",
-                        ) ||
-                        hastElementContainsClass(node, "print-links")
+                        CLASSES_TO_DROP.some((className) =>
+                            hastElementContainsClass(node, className),
+                        )
                     ) {
                         hastMutateToEmptyString(node);
                     }

@@ -28,10 +28,54 @@ const PIXELS_PER_INCH = 96;
 const DEFAULT_HEIGHT_IN_PIXELS = 120;
 
 /**
- * Elements that render as their children alone. An input inside one of these is written,
- * as far as the page is concerned, where the wrapper is.
+ * Wrappers that stand on the page where the input inside them stands: the `<answer>` an
+ * input is sugared into, and the fragment a reference to that input renders as. The space
+ * an input asks for is placed where the outermost such wrapper sits.
  */
 const TRANSPARENT_WRAPPERS = new Set(["answer", "_fragment"]);
+
+/**
+ * Elements that are read as part of a run of text rather than standing on their own. An
+ * element not named here is taken to stand on its own, so that content the paragraph
+ * carrying the writing space does not recognize is left beside it rather than swallowed.
+ */
+const INLINE_ELEMENTS = new Set([
+    // Inline mathematics and values.
+    "m",
+    "math",
+    "text",
+    "number",
+    "boolean",
+    "abs",
+    "angle",
+    "atom",
+    "derivative",
+    "point",
+    "asList",
+    // Inline text formatting.
+    "alert",
+    "attr",
+    "c",
+    "em",
+    "q",
+    "ellipsis",
+    "mdash",
+    "nbsp",
+    "lq",
+    "rq",
+    "lsq",
+    "rsq",
+    "sq",
+    // Cross references.
+    "ref",
+    "xref",
+    // Inputs, and the answers they are sugared into.
+    "answer",
+    "textInput",
+    "mathInput",
+    "booleanInput",
+    "choiceInput",
+]);
 
 /**
  * Give every expanded `<textInput>` in `flatDast` room to write in, and turn the divisions
@@ -147,15 +191,18 @@ function paragraphForSpace(
     const slotIndex = parent.children.findIndex(
         (child) => typeof child !== "string" && child.id === slot.data.id,
     );
+    // What the slot was written among, which decides whether the new paragraph stands
+    // beside its siblings or takes them in.
+    const alongsideInlineContent = parent.children.some(
+        (child, index) =>
+            index !== slotIndex && isInlineContent(child, flatDast),
+    );
     // Only the input goes: a wrapper it was sugared into stays, since that wrapper is what
     // renders the question's label.
     removeFromParent(input, parents);
 
     const paragraph = addElement(flatDast, "p", []);
-    const hasInlineContent = parent.children.some(
-        (child) => typeof child === "string" && child.trim() !== "",
-    );
-    if (hasInlineContent) {
+    if (alongsideInlineContent) {
         paragraph.children = parent.children;
         parent.children = [refTo(paragraph)];
     } else if (slot === input) {
@@ -166,6 +213,27 @@ function paragraphForSpace(
         parent.children[slotIndex] = refTo(paragraph);
     }
     return paragraph;
+}
+
+/**
+ * Whether `child` is part of a run of text: written-out text, an inline element, or a
+ * reference that renders one.
+ */
+function isInlineContent(
+    child: FlatDastElementContent,
+    flatDast: FlatDastRoot,
+): boolean {
+    if (typeof child === "string") {
+        return child.trim() !== "";
+    }
+    const element = elementOf(child, flatDast);
+    if (!element) {
+        return false;
+    }
+    if (element.name === "_fragment") {
+        return element.children.some((c) => isInlineContent(c, flatDast));
+    }
+    return INLINE_ELEMENTS.has(element.name);
 }
 
 /** Ask PreTeXt for `inches` of blank space after `paragraph`. */
@@ -207,10 +275,8 @@ function makePrintout(
     flatDast: FlatDastRoot,
 ) {
     if (container.type === "element" && container.name === "division") {
-        // `divisionType` is the name of the tag a division exports as. Written straight
-        // into `data`, since `propsOf` hands back a stand-in for missing props.
-        const data = container.data as { props?: Record<string, unknown> };
-        (data.props ??= {}).divisionType = "handout";
+        // `divisionType` is the name of the tag a division exports as.
+        mutableProps(container).divisionType = "handout";
         return;
     }
 
@@ -329,9 +395,21 @@ function elementOf(child: FlatDastElementContent, flatDast: FlatDastRoot) {
 }
 
 /**
+ * The resolved `forRenderer` state values the core hands each element. `ElementData` does
+ * not declare them, so reaching them takes a cast.
+ */
+type DataWithProps = { props?: Record<string, unknown> };
+
+/**
  * The resolved `forRenderer` state values of `element`. The converter runs the core, so
  * these — rather than the element's (empty) attributes — say how it was written.
  */
 function propsOf(element: FlatDastElement): Record<string, unknown> {
-    return (element.data as { props?: Record<string, unknown> }).props ?? {};
+    return (element.data as DataWithProps).props ?? {};
+}
+
+/** The props of `element`, to write into, created if the element has none. */
+function mutableProps(element: FlatDastElement): Record<string, unknown> {
+    const data = element.data as DataWithProps;
+    return (data.props ??= {});
 }

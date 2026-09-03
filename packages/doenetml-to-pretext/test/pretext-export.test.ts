@@ -177,6 +177,24 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a list item's inline elements are taken into the paragraph too", async () => {
+        // The run the paragraph takes in is not just written-out text: an
+        // expression left beside the paragraph would be the same illegal mix.
+        source = `<ol><li><m>2+2=</m> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in"><m>2+2=</m> </p></li>`,
+        );
+    });
+
+    it("a list item's blocks are left standing beside the room to write", async () => {
+        // A list item already holding blocks takes no run in: the paragraph
+        // carrying the space stands as one more block of its own.
+        source = `<ol><li><p>Why?</p><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p>Why?</p><p workspace="1.25in"></p></li>`,
+        );
+    });
+
     it("room to write inside a problem stays inside the problem", async () => {
         source = `<problem><p>Explain.</p><answer type="text" handGraded expanded /></problem>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
