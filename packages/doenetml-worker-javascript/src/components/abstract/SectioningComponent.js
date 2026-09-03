@@ -262,6 +262,25 @@ export class SectioningComponent extends BlockComponent {
                 "Color used to indicate this section has been completed.",
         };
 
+        // Whether the heading bar waits for a grade. The completion states are
+        // driven by `creditAchievedForProgress`, which counts a `handGraded`
+        // answer as correct once the reader has responded — a bar that stayed
+        // gray until an instructor got to it would withhold the reward for work
+        // the reader has finished, and they have no way to tell the two apart.
+        // An instructor who wants the bar to mean "graded and correct" sets
+        // this, and the real `creditAchieved` drives the states instead.
+        attributes.completedColorRequiresCredit = {
+            createComponentOfType: "boolean",
+            createStateVariable: "completedColorRequiresCreditPreliminary",
+            // See the note on `showCorrectness` in
+            // `returnScoredSectionAttributes`: this default is shown to authors
+            // but is not what resolves the value, which falls back to the
+            // enclosing section before reaching it.
+            defaultValue: false,
+            description:
+                "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+        };
+
         attributes.inProgressColor = {
             createComponentOfType: "text",
             createStateVariable: "inProgressColor",
@@ -1154,6 +1173,50 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.completedColorRequiresCredit = {
+            description:
+                "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                completedColorRequiresCreditPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "completedColorRequiresCreditPreliminary",
+                },
+                completedColorRequiresCreditAncestor: {
+                    dependencyType: "ancestor",
+                    variableNames: ["completedColorRequiresCredit"],
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                // Set once on an enclosing section and every section within it
+                // follows, the way the colors themselves inherit — an
+                // instructor who wants graded coloring wants it for the whole
+                // activity, not one section at a time.
+                let completedColorRequiresCredit = false;
+                if (!usedDefault.completedColorRequiresCreditPreliminary) {
+                    completedColorRequiresCredit =
+                        dependencyValues.completedColorRequiresCreditPreliminary;
+                } else if (
+                    dependencyValues.completedColorRequiresCreditAncestor
+                ) {
+                    completedColorRequiresCredit =
+                        dependencyValues.completedColorRequiresCreditAncestor
+                            .stateValues.completedColorRequiresCredit;
+                }
+
+                return {
+                    setValue: {
+                        completedColorRequiresCredit: Boolean(
+                            completedColorRequiresCredit,
+                        ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.sectionTitleStateColors = {
             additionalStateVariablesDefined: [
                 "sectionTitleStateColorsDarkMode",
@@ -1309,6 +1372,14 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "creditAchieved",
                 },
+                creditAchievedForProgress: {
+                    dependencyType: "stateVariable",
+                    variableName: "creditAchievedForProgress",
+                },
+                completedColorRequiresCredit: {
+                    dependencyType: "stateVariable",
+                    variableName: "completedColorRequiresCredit",
+                },
                 boxed: {
                     dependencyType: "stateVariable",
                     variableName: "boxed",
@@ -1319,8 +1390,13 @@ export class SectioningComponent extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // The two differ only where a `handGraded` answer is involved;
+                // see `completedColorRequiresCredit` above for which is right
+                // when.
                 const titleStateKey = titleStateKeyFromCredit(
-                    dependencyValues.creditAchieved,
+                    dependencyValues.completedColorRequiresCredit
+                        ? dependencyValues.creditAchieved
+                        : dependencyValues.creditAchievedForProgress,
                 );
                 const titleColor =
                     dependencyValues.sectionTitleStateColors[titleStateKey];

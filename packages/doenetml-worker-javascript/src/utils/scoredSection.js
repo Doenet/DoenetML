@@ -563,6 +563,71 @@ export function returnScoredSectionStateVariableDefinition() {
         },
     };
 
+    stateVariableDefinitions.creditAchievedForProgress = {
+        description:
+            "Aggregate credit achieved (between 0 and 1) for scored descendants of this section, used when deciding whether the section has been completed. Differs from `creditAchieved` only in that a hand-graded answer counts as fully correct once a non-blank response has been submitted.",
+        defaultValue: 0,
+        stateVariablesDeterminingDependencies: [
+            "aggregateScores",
+            "scoredDescendants",
+        ],
+        returnDependencies({ stateValues }) {
+            let dependencies = {
+                aggregateScores: {
+                    dependencyType: "stateVariable",
+                    variableName: "aggregateScores",
+                },
+            };
+            if (stateValues.aggregateScores) {
+                dependencies.scoredDescendants = {
+                    dependencyType: "stateVariable",
+                    variableName: "scoredDescendants",
+                };
+                for (let [
+                    ind,
+                    descendant,
+                ] of stateValues.scoredDescendants.entries()) {
+                    dependencies["creditAchievedForProgress" + ind] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: descendant.componentIdx,
+                        variableName: "creditAchievedForProgress",
+                    };
+                }
+            }
+
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            if (!dependencyValues.aggregateScores) {
+                return { setValue: { creditAchievedForProgress: 0 } };
+            }
+
+            let creditSum = 0;
+            let totalWeight = 0;
+
+            for (let [
+                ind,
+                component,
+            ] of dependencyValues.scoredDescendants.entries()) {
+                let weight = component.stateValues.weight;
+                creditSum +=
+                    dependencyValues["creditAchievedForProgress" + ind] *
+                    weight;
+                totalWeight += weight;
+            }
+
+            let creditAchievedForProgress;
+            if (totalWeight > 0) {
+                creditAchievedForProgress = creditSum / totalWeight;
+            } else {
+                // give full credit if there are no scored items
+                creditAchievedForProgress = 1;
+            }
+
+            return { setValue: { creditAchievedForProgress } };
+        },
+    };
+
     stateVariableDefinitions.creditAchievedIfSubmit = {
         defaultValue: 0,
         stateVariablesDeterminingDependencies: [

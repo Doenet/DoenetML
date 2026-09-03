@@ -8,6 +8,7 @@ import {
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateTextInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -1522,6 +1523,127 @@ describe("Sectioning tag tests @group3", async () => {
         });
         await submitAnswer({ componentIdx: answer1Idx, core });
         await check_values(0.5);
+    });
+
+    // A hand-graded answer scores 0 until an instructor gets to it, which is
+    // long after the reader has finished. The bar reflects what the reader can
+    // act on, so by default it goes green once they have answered everything.
+    it("title color counts a hand-graded answer as completed once answered", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <exercise name="exer" boxed notStartedColor="beige" inProgressColor="cyan" completedColor="blue">
+      <title>An exercise</title>
+
+      <p>1+1=<answer name="ans1">2</answer></p>
+      <p>Why? <answer handGraded name="ans2" type="text" /></p>
+    </exercise>
+    `,
+        });
+
+        const exerIdx = await resolvePathToNodeIdx("exer");
+        const answer1Idx = await resolvePathToNodeIdx("ans1");
+        const answer2Idx = await resolvePathToNodeIdx("ans2");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const mathInputIdx =
+            stateVariables[answer1Idx].stateValues.inputChildren[0]
+                .componentIdx;
+        const textInputIdx =
+            stateVariables[answer2Idx].stateValues.inputChildren[0]
+                .componentIdx;
+
+        expect(stateVariables[exerIdx].stateValues.titleColor).eq("beige");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answer1Idx, core });
+
+        // Half the answers are done, so the bar is in progress either way.
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[exerIdx].stateValues.titleColor).eq("cyan");
+
+        // An untouched input is not an answer, so it does not finish the bar.
+        await submitAnswer({ componentIdx: answer2Idx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[exerIdx].stateValues.titleColor).eq("cyan");
+
+        await updateTextInputValue({
+            text: "because it is",
+            componentIdx: textInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answer2Idx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[exerIdx].stateValues.titleColor).eq("blue");
+
+        // The score itself is still half, awaiting the grade.
+        expect(stateVariables[exerIdx].stateValues.creditAchieved).eq(0.5);
+    });
+
+    // The opt-out, for an instructor who wants the bar to mean "graded and
+    // correct". It inherits, so setting it on the enclosing section covers
+    // every section within.
+    it("completedColorRequiresCredit holds the bar until the grade arrives", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="outer" completedColorRequiresCredit>
+      <exercise name="exer" boxed notStartedColor="beige" inProgressColor="cyan" completedColor="blue">
+        <title>An exercise</title>
+
+        <p>Why? <answer handGraded name="ans" type="text" /></p>
+      </exercise>
+    </section>
+
+    <exercise name="loose" boxed notStartedColor="beige" inProgressColor="cyan" completedColor="blue">
+      <title>Another exercise</title>
+
+      <p>Why? <answer handGraded name="ans" type="text" /></p>
+    </exercise>
+    `,
+        });
+
+        const exerIdx = await resolvePathToNodeIdx("exer");
+        const looseIdx = await resolvePathToNodeIdx("loose");
+        const strictAnswerIdx = await resolvePathToNodeIdx("exer.ans");
+        const looseAnswerIdx = await resolvePathToNodeIdx("loose.ans");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Inherited from the enclosing section rather than set on the exercise.
+        expect(
+            stateVariables[exerIdx].stateValues.completedColorRequiresCredit,
+        ).eq(true);
+        expect(
+            stateVariables[looseIdx].stateValues.completedColorRequiresCredit,
+        ).eq(false);
+
+        for (const [answerIdx, sectionIdx] of [
+            [strictAnswerIdx, exerIdx],
+            [looseAnswerIdx, looseIdx],
+        ]) {
+            const textInputIdx =
+                stateVariables[answerIdx].stateValues.inputChildren[0]
+                    .componentIdx;
+            await updateTextInputValue({
+                text: "because it is",
+                componentIdx: textInputIdx,
+                core,
+            });
+            await submitAnswer({ componentIdx: answerIdx, core });
+        }
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Same response, same ungraded score, opposite bars.
+        expect(stateVariables[exerIdx].stateValues.titleColor).eq("beige");
+        expect(stateVariables[looseIdx].stateValues.titleColor).eq("blue");
+        expect(stateVariables[exerIdx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[looseIdx].stateValues.creditAchieved).eq(0);
     });
 
     it("determine if starts with introduction or ends with conclusion", async () => {

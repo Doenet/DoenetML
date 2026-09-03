@@ -4,6 +4,7 @@ import {
     submitAnswer,
     updateMathInputValue,
     updateSelectedIndices,
+    updateTextInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -2406,5 +2407,214 @@ describe("Cascade tag tests @group4", async () => {
         expect(stateVariables[lead2Idx].stateValues.renderInlineForListItem).eq(
             true,
         );
+    });
+
+    // A hand-graded answer's `creditAchieved` stays 0 until an instructor grades
+    // it, which happens outside the document entirely. Scoring the cascade on it
+    // would leave the reader stuck at that step no matter what they wrote, so
+    // progress asks instead whether they actually responded.
+    it("a hand-graded answer completes a step once a non-blank response is submitted", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <section name="section1">
+    <p name="p">What is 1+1? <answer name="ans">2</answer></p>
+  </section>
+
+  <section name="section2">
+    <p name="p">Explain your reasoning. <answer handGraded name="ans" type="text" /></p>
+  </section>
+
+  <section name="section3">
+    <p name="p">What is 3-4? <answer name="ans">-1</answer></p>
+  </section>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section3Idx = await resolvePathToNodeIdx("section3");
+        const ans1Idx = await resolvePathToNodeIdx("section1.p.ans");
+        const ans2Idx = await resolvePathToNodeIdx("section2.p.ans");
+        const ans3Idx = await resolvePathToNodeIdx("section3.p.ans");
+
+        let stateVariables = await getStateVariables(core);
+        const mathInput1Idx = getMathInputIdx(stateVariables, ans1Idx);
+        const textInputIdx =
+            stateVariables[ans2Idx].stateValues.inputChildren[0].componentIdx;
+        const mathInput3Idx = getMathInputIdx(stateVariables, ans3Idx);
+
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(0);
+
+        await submitMathAnswer({
+            core,
+            latex: "2",
+            mathInputIdx: mathInput1Idx,
+            answerIdx: ans1Idx,
+        });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
+        expect(stateVariables[section3Idx].stateValues.hideChildren).eq(true);
+
+        // Submitting an untouched input is not a response, so the step stays put.
+        await submitAnswer({ componentIdx: ans2Idx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[ans2Idx].stateValues.responseHasBeenSubmitted).eq(
+            true,
+        );
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
+        expect(stateVariables[section3Idx].stateValues.hideChildren).eq(true);
+
+        // Nor is whitespace. The response is recorded exactly as typed, so it
+        // is the blankness test that has to trim rather than the input.
+        await updateTextInputValue({
+            text: "   ",
+            componentIdx: textInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ans2Idx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[ans2Idx].stateValues.submittedResponses).eqls([
+            "   ",
+        ]);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
+        expect(stateVariables[section3Idx].stateValues.hideChildren).eq(true);
+
+        await updateTextInputValue({
+            text: "because it is",
+            componentIdx: textInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ans2Idx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(2);
+        expect(stateVariables[section3Idx].stateValues.hideChildren).eq(false);
+
+        // The score itself is untouched: the answer is still awaiting grading.
+        expect(stateVariables[ans2Idx].stateValues.creditAchieved).eq(0);
+        expect(stateVariables[section2Idx].stateValues.creditAchieved).eq(0);
+
+        await submitMathAnswer({
+            core,
+            latex: "-1",
+            mathInputIdx: mathInput3Idx,
+            answerIdx: ans3Idx,
+        });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(3);
+
+        // Clearing the response takes the step back: what the cascade tracks is
+        // the response standing now, not that one was submitted at some point.
+        await updateTextInputValue({
+            text: "",
+            componentIdx: textInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ans2Idx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
+    });
+
+    // The same rule for a math response, where "blank" is the placeholder an
+    // empty `<mathInput>` submits rather than an empty string.
+    it("a blank math response does not complete a hand-graded step", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <section name="section1">
+    <p name="p">Show your work. <answer handGraded name="ans" /></p>
+  </section>
+
+  <section name="section2">
+    <p name="p">What is 1+1? <answer name="ans">2</answer></p>
+  </section>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const ansIdx = await resolvePathToNodeIdx("section1.p.ans");
+
+        let stateVariables = await getStateVariables(core);
+        const mathInputIdx = getMathInputIdx(stateVariables, ansIdx);
+
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(0);
+
+        await submitMathAnswer({
+            core,
+            latex: "x+1",
+            mathInputIdx,
+            answerIdx: ansIdx,
+        });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(0);
+    });
+
+    // A step that mixes the two kinds of answer is complete only when both are:
+    // the hand-graded one contributes its full weight once answered, so the
+    // auto-graded one still has to be right.
+    it("a hand-graded answer alongside an auto-graded one", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="w">
+  <section name="section1">
+    <p name="p1">What is 1+1? <answer name="ans">2</answer></p>
+    <p name="p2">Why? <answer handGraded name="ans" type="text" /></p>
+  </section>
+
+  <section name="section2">
+    <p name="p">What is 3-4? <answer name="ans">-1</answer></p>
+  </section>
+</cascade>`,
+        });
+
+        const wIdx = await resolvePathToNodeIdx("w");
+        const autoIdx = await resolvePathToNodeIdx("section1.p1.ans");
+        const handIdx = await resolvePathToNodeIdx("section1.p2.ans");
+
+        let stateVariables = await getStateVariables(core);
+        const mathInputIdx = getMathInputIdx(stateVariables, autoIdx);
+        const textInputIdx =
+            stateVariables[handIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateTextInputValue({
+            text: "it just is",
+            componentIdx: textInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: handIdx, core });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(0);
+
+        await submitMathAnswer({
+            core,
+            latex: "3",
+            mathInputIdx,
+            answerIdx: autoIdx,
+        });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(0);
+
+        await submitMathAnswer({
+            core,
+            latex: "2",
+            mathInputIdx,
+            answerIdx: autoIdx,
+        });
+
+        stateVariables = await getStateVariables(core);
+        expect(stateVariables[wIdx].stateValues.numCompleted).eq(1);
     });
 });

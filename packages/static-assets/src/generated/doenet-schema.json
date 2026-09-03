@@ -38012,6 +38012,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -38263,6 +38273,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -38785,6 +38801,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -39036,6 +39062,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -39558,6 +39590,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -39809,6 +39851,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -40331,6 +40379,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -40582,6 +40640,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -41104,6 +41168,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -41364,6 +41438,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -41886,6 +41966,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -42137,6 +42227,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -42659,6 +42755,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -42919,6 +43025,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -43441,6 +43553,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -43701,6 +43823,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -44223,6 +44351,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -44483,6 +44621,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -45005,6 +45149,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -45265,6 +45419,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -45787,6 +45947,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -46038,6 +46208,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -46560,6 +46736,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -46811,6 +46997,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -47333,6 +47525,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -47584,6 +47786,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -48106,6 +48314,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -48357,6 +48575,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -48879,6 +49103,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -49130,6 +49364,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -49652,6 +49892,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -49903,6 +50153,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -50430,6 +50686,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -50673,6 +50939,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -51199,6 +51471,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -51433,6 +51715,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -51959,6 +52247,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -52193,6 +52491,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -122493,6 +122797,16 @@
                     "type": "text"
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "description": "Whether the completed color requires full `creditAchieved`, so that a section holding a hand-graded answer stays in progress until an instructor grades it. By default a hand-graded answer counts as completed once a non-blank response has been submitted.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "inProgressColor",
                     "description": "Color used to indicate this section is in progress.",
                     "defaultValue": "var(--mainGray)",
@@ -122757,6 +123071,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer holds the section in progress until an instructor grades it."
                 },
                 {
                     "name": "open",

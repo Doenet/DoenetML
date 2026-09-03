@@ -95,18 +95,25 @@ export default class Cascade extends SectioningComponent {
             definition: () => ({ setValue: { childrenAggregateScores: true } }),
         };
 
+        // Progress reads `creditAchievedForProgress` rather than
+        // `creditAchieved`, and the two differ in exactly one place: a
+        // hand-graded answer. Its `creditAchieved` stays 0 until an instructor
+        // grades it, long after the reader has moved on, so scoring the cascade
+        // on it would strand the reader at that step for good. Progress counts
+        // such an answer as correct once the reader has actually responded.
         stateVariableDefinitions.childCreditAchieved = {
             returnDependencies: () => ({
                 children: {
                     dependencyType: "child",
                     childGroups: ["anything"],
-                    variableNames: ["creditAchieved"],
+                    variableNames: ["creditAchievedForProgress"],
                     variablesOptional: true,
                 },
             }),
             definition({ dependencyValues }) {
                 const childCreditAchieved = dependencyValues.children.map(
-                    (child) => child.stateValues?.creditAchieved ?? null,
+                    (child) =>
+                        child.stateValues?.creditAchievedForProgress ?? null,
                 );
 
                 return { setValue: { childCreditAchieved } };
