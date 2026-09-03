@@ -45,6 +45,19 @@ const INLINE_WRAPPERS = new Set([
 ]);
 
 /**
+ * Elements that export as their children with nothing of their own around them, so what
+ * they hold is what decides whether they stand on their own or are read as part of a run.
+ */
+const TRANSPARENT_CONTAINERS = new Set([
+    "_fragment",
+    "document",
+    "div",
+    "cascade",
+    "paginator",
+    "choice",
+]);
+
+/**
  * Elements that stand on their own on the page. Anything else is read as part of a run of
  * text, and a paragraph carrying writing space takes it in rather than leaving it beside a
  * block, since a list item holds a run of text or a series of blocks and never a mix.
@@ -271,7 +284,7 @@ function isBlockContent(
     if (!element) {
         return false;
     }
-    if (element.name === "_fragment") {
+    if (TRANSPARENT_CONTAINERS.has(element.name)) {
         return element.children.some((c) => isBlockContent(c, flatDast));
     }
     if (element.name === "choiceInput") {

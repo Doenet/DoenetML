@@ -235,6 +235,20 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("blocks inside a wrapper that shows only its children still stand", async () => {
+        // A `<paginator>`, like a `<div>`, exports as its children alone, so what it
+        // holds is what decides whether the paragraph takes it in.
+        source = `<ol><li><paginator><p>Content</p></paginator><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p>Content</p><p workspace="1.25in"></p></li>`,
+        );
+
+        source = `<div><p>Content</p></div><answer type="text" handGraded expanded />`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Content</p><p workspace="1.25in"></p>`,
+        );
+    });
+
     it("a list item's blocks are left standing beside the room to write", async () => {
         // A list item already holding blocks takes no run in: the paragraph
         // carrying the space stands as one more block of its own.
