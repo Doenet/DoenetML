@@ -33,6 +33,14 @@ export default class BooleanComponent extends InlineComponent {
             description:
                 "Whether children compared via this boolean use symbolic equality.",
         };
+        attributes.allowUnits = {
+            createComponentOfType: "boolean",
+            createStateVariable: "allowUnits",
+            defaultValue: true,
+            public: true,
+            description:
+                "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+        };
         attributes.expandOnCompare = {
             createComponentOfType: "boolean",
             createStateVariable: "expandOnCompare",
@@ -246,6 +254,10 @@ export default class BooleanComponent extends InlineComponent {
                 symbolicEquality: {
                     dependencyType: "stateVariable",
                     variableName: "symbolicEquality",
+                },
+                allowUnits: {
+                    dependencyType: "stateVariable",
+                    variableName: "allowUnits",
                 },
                 expandOnCompare: {
                     dependencyType: "stateVariable",

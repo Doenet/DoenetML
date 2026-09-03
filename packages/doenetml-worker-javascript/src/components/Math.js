@@ -28,6 +28,7 @@ import {
     superSubscriptsToUnicode,
     unicodeToSuperSubscripts,
     preprocessMathInverseDefinition,
+    treeHasUnits,
 } from "../utils/math";
 import { createInputStringFromChildren } from "../utils/parseMath";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../utils/mathVectorMatrixStateVariables";
@@ -822,6 +823,31 @@ export default class MathComponent extends InlineComponent {
                 return {
                     setValue: {
                         isNumeric: Number.isFinite(dependencyValues.number),
+                    },
+                };
+            },
+        };
+
+        // hasUnits is independent of isNumber and isNumeric: it asks how the
+        // expression is written rather than what it is worth. `50%` and `0.5`
+        // evaluate to the same constant, but only the former has units.
+        stateVariableDefinitions.hasUnits = {
+            description:
+                "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                return {
+                    setValue: {
+                        hasUnits: treeHasUnits(dependencyValues.value.tree),
                     },
                 };
             },

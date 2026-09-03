@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import type { Tree } from "math-expressions";
+import type { Expression, Tree } from "math-expressions";
 
 import { subsets, vectorOperators, roundForDisplay } from "@doenet/utils";
 
@@ -474,6 +474,83 @@ export function normalizeLatexString(
     latexString = removeRepeatedSuperSubScripts(latexString);
 
     return latexString;
+}
+
+/**
+ * Whether `tree` carries a unit anywhere within it.
+ *
+ * A quantity written with a unit — `50%`, `$5`, `30 deg`, `30^\circ` — parses
+ * to a `unit` operator node rather than to the bare number it is worth, so a
+ * percent and the decimal it equals are distinguishable here even though both
+ * evaluate to the same constant. That distinction is what lets a numeric check
+ * such as `<isNumber>` refuse `50%` while still accepting `1/2`.
+ *
+ * Only an operator node can be a unit, so a leaf — a number, or a symbol, even
+ * one spelled `unit` — is never one. Within a node the first element names the
+ * operation and is tested directly; the remaining elements are the operands and
+ * are the only ones descended into.
+ */
+export function treeHasUnits(tree: Tree): boolean {
+    if (!Array.isArray(tree)) {
+        return false;
+    }
+    return tree[0] === "unit" || tree.slice(1).some(treeHasUnits);
+}
+
+/**
+ * Evaluate the `isNumber` / `isInteger` check on a math expression.
+ *
+ * Shared by the two spellings of each check — the components `<isNumber>` and
+ * `<isInteger>`, and the functions `isnumber(...)` and `isinteger(...)` written
+ * inside a `<boolean>`, `<when>`, or `<award>` — so that a single rule decides
+ * what counts.
+ *
+ * When `allowUnits` is false, a quantity written with a unit fails the check
+ * even though it evaluates to a number: `50%` is rejected while the `1/2` it
+ * equals is still accepted. The unit test runs against the expression as
+ * written, before any simplification, so `isnumber(50% - 50%)` is refused too
+ * rather than slipping through as the `0` it simplifies to.
+ *
+ * `simplify` controls whether the expression is simplified before it is
+ * evaluated, which the function spelling does and the component spelling does
+ * not — the one respect in which the two spellings still differ, so
+ * `isnumber(x-x)` is true where `<isNumber>x-x</isNumber>` is not.
+ */
+export function evaluateNumericPredicate({
+    predicate,
+    expression,
+    allowUnits = true,
+    simplify = false,
+}: {
+    predicate: "isnumber" | "isinteger";
+    expression: Expression;
+    allowUnits?: boolean;
+    simplify?: boolean;
+}): boolean {
+    if (!allowUnits && treeHasUnits(expression.tree)) {
+        return false;
+    }
+
+    const numericValue = (
+        simplify ? expression.simplify() : expression
+    ).evaluate_to_constant();
+
+    // `evaluate_to_constant` never answers `null`: it answers `NaN` when the
+    // expression has no numeric value, and a `Complex` when the value is not
+    // real. Neither is a number this check accepts.
+    if (typeof numericValue !== "number" || !Number.isFinite(numericValue)) {
+        return false;
+    }
+
+    if (predicate === "isnumber") {
+        return true;
+    }
+
+    // Evaluating an expression numerically can land an integer result just
+    // beside the integer, so accept anything within a relative tolerance of
+    // the nearest one.
+    const rounded = Math.round(numericValue);
+    return Math.abs(rounded - numericValue) <= 1e-15 * Math.abs(numericValue);
 }
 
 export function isValidVariable(expression: {

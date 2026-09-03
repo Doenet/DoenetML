@@ -13545,4 +13545,42 @@ describe("Math tag tests @group3", async () => {
                 .renderMode,
         ).eq("inline");
     });
+
+    it("hasUnits distinguishes a quantity with a unit from the number it equals", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="percent">50%</math>
+    <math name="decimal">0.5</math>
+    <math name="fraction">1/2</math>
+    <math name="degrees">30 deg</math>
+    <math name="degreeSymbol" format="latex">30^\\circ</math>
+    <math name="currency">&#36;5</math>
+    <math name="nested">50% + 0</math>
+    <math name="variable">x</math>
+    <math name="unitVariable" splitSymbols="false">unit</math>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        async function hasUnits(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .hasUnits;
+        }
+
+        // `50%` and `0.5` evaluate to the same constant, so only `hasUnits`
+        // tells them apart.
+        expect(await hasUnits("percent")).eq(true);
+        expect(await hasUnits("decimal")).eq(false);
+        expect(await hasUnits("fraction")).eq(false);
+        expect(await hasUnits("degrees")).eq(true);
+        expect(await hasUnits("degreeSymbol")).eq(true);
+        expect(await hasUnits("currency")).eq(true);
+        // A unit anywhere in the expression counts, not just at the top.
+        expect(await hasUnits("nested")).eq(true);
+        expect(await hasUnits("variable")).eq(false);
+        // A variable spelled `unit` is a symbol, not a unit. (`splitSymbols`
+        // is off so that it stays one symbol rather than a product of four.)
+        expect(await hasUnits("unitVariable")).eq(false);
+    });
 });

@@ -997,6 +997,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -7354,6 +7360,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -7506,6 +7522,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -7743,6 +7766,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -7895,6 +7928,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -8132,6 +8172,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -8284,6 +8334,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -8521,6 +8578,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -8673,6 +8740,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -8910,6 +8984,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -9062,6 +9146,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -9299,6 +9390,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -9451,6 +9552,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -9752,6 +9860,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -9904,6 +10022,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -10205,6 +10330,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -10357,6 +10492,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -10658,6 +10800,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -10826,6 +10978,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -11701,6 +11860,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -12582,6 +12747,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -13451,6 +13622,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -14324,6 +14501,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -15195,6 +15378,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -16053,6 +16242,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -16880,6 +17075,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -17727,6 +17928,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -18570,6 +18777,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -19417,6 +19630,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -20260,6 +20479,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -21141,6 +21366,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -22018,6 +22249,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -22916,6 +23153,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -23812,6 +24055,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -24689,6 +24938,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -25570,6 +25825,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -26447,6 +26708,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -27328,6 +27595,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -28207,6 +28480,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -29084,6 +29363,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -29990,6 +30275,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -58827,6 +59118,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -68562,6 +68859,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -68714,6 +69021,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -69707,6 +70021,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -72663,6 +72983,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -82840,6 +83166,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "forceFullCheckWorkButton",
                     "description": "Whether to always render a full-size check-work button.",
                     "defaultValue": false,
@@ -83231,6 +83567,13 @@
                     "description": "Whether comparison uses symbolic equality (rather than numeric evaluation).",
                     "fromAttribute": true,
                     "highlighted": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "fromAttribute": true
                 },
                 {
                     "name": "forceFullCheckWorkButton",
@@ -83784,6 +84127,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing them.",
                     "defaultValue": false,
@@ -83987,6 +84340,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether comparison uses symbolic equality (rather than numeric evaluation).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -84377,6 +84737,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -84539,6 +84909,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -92186,6 +92563,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -101692,6 +102075,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -104069,6 +104458,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
@@ -113916,6 +114311,12 @@
                     "description": "Whether the expression evaluates to any number (including infinities)."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
@@ -117473,6 +117874,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -117664,6 +118075,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -118719,6 +119137,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnits",
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "expandOnCompare",
                     "description": "Whether to expand math expressions before comparing.",
                     "defaultValue": false,
@@ -118945,6 +119373,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -119784,6 +120219,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to any number (including infinities)."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "latex",
