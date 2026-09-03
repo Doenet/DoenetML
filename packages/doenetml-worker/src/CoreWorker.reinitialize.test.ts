@@ -85,23 +85,6 @@ async function initialize(worker: CoreWorker, source: string) {
     return worker.initializeJavascriptCore(INIT_ARGS);
 }
 
-/**
- * Reject if `promise` has not settled within `ms`. The worker's serialization
- * queue, once wedged, holds every later call forever, and the suite's timeout
- * is three minutes; a wait bounded here fails the test in seconds.
- */
-function within<T>(ms: number, promise: Promise<T>): Promise<T> {
-    return Promise.race([
-        promise,
-        new Promise<T>((_, reject) =>
-            setTimeout(
-                () => reject(new Error(`did not settle within ${ms}ms`)),
-                ms,
-            ),
-        ),
-    ]);
-}
-
 describe.skipIf(!wasmAvailable)("CoreWorker re-initialization (#1533)", () => {
     beforeAll(() => {
         // The worker locates its WASM through a global the code that starts
@@ -160,16 +143,23 @@ describe.skipIf(!wasmAvailable)("CoreWorker re-initialization (#1533)", () => {
         expect(result.allPossibleVariants.length).toBeGreaterThan(0);
     });
 
-    it("releases its queue after a failed precondition", async () => {
-        // A precondition thrown ahead of the `try` skipped the `finally` that
-        // hands the queue on, and every later call on the worker hung.
-        const worker = new CoreWorker();
-        worker.setCoreType("javascript");
-        await expect(
-            worker.initializeJavascriptCore(INIT_ARGS),
-        ).rejects.toThrow(/before setting source and flags/);
+    it(
+        "releases its queue after a failed precondition",
+        { timeout: 10_000 },
+        async () => {
+            // A precondition thrown ahead of the `try` skipped the `finally`
+            // that hands the queue on, and every later call on the worker
+            // hung. A wedged queue holds the second call forever, and the
+            // suite's timeout is three minutes; the test's own bound fails it
+            // in seconds.
+            const worker = new CoreWorker();
+            worker.setCoreType("javascript");
+            await expect(
+                worker.initializeJavascriptCore(INIT_ARGS),
+            ).rejects.toThrow(/before setting source and flags/);
 
-        const result = await within(10_000, initialize(worker, "<p>later</p>"));
-        expect(result.allPossibleVariants.length).toBeGreaterThan(0);
-    });
+            const result = await initialize(worker, "<p>later</p>");
+            expect(result.allPossibleVariants.length).toBeGreaterThan(0);
+        },
+    );
 });

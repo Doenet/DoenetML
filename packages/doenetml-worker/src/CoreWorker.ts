@@ -371,7 +371,8 @@ export class CoreWorker {
             // Checked inside the `try`, so that a failed precondition
             // releases the queue in the `finally` like every other failure
             // here. Thrown ahead of it, the queue stayed held and every later
-            // call on this worker hung (Doenet/DoenetApps#2957).
+            // call on this worker hung (Doenet/DoenetApps#2957; #1312 tracks
+            // the methods below that still check ahead of their `try`).
             if (
                 !this.source_set ||
                 !this.flags_set ||

@@ -241,8 +241,8 @@ export function createCoreWorker(): CoreWorkerHandle {
  *
  * So initializations are serialized here, per worker: one started while
  * another is in flight waits for it to settle, then runs whole. Run whole
- * after its predecessor it is correct as it stands, its own `setSource`
- * putting the DAST back, so settlement is all it waits for: a predecessor
+ * after its predecessor, it is correct as it stands — its own `setSource`
+ * puts the DAST back — so settlement is all it waits for: a predecessor
  * that failed is its own caller's to report.
  *
  * Weakly keyed, so an entry goes with the worker it describes and nothing
