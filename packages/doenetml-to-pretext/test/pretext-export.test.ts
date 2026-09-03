@@ -118,6 +118,76 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("an expanded input becomes room to write inside a handout", async () => {
+        // A text area is a place to write a long answer, which on paper is blank
+        // space. PreTeXt only leaves that space inside a printout division.
+        source = `<p>Explain your reasoning: <textInput expanded /></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+              "<handout>
+              <p workspace="1.25in">Explain your reasoning: </p>
+              </handout>"
+            `);
+    });
+
+    it("room to write is sized by the input's height", async () => {
+        source = `<p>Explain: <textInput expanded height="3in" /></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p workspace="3in">`,
+        );
+    });
+
+    it("two expanded inputs in a paragraph each get their own room", async () => {
+        source = `<p>A <textInput expanded /> B <textInput expanded height="2in" /></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p workspace="3.25in">`,
+        );
+    });
+
+    it("a hand-graded answer written on its own gets room to write in", async () => {
+        // The `expanded` answer sugars in an expanded text input, but is written
+        // outside any paragraph, so the space needs a paragraph of its own.
+        source = `<answer type="text" handGraded expanded />`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+              "<handout>
+              <p workspace="1.25in"></p>
+              </handout>"
+            `);
+    });
+
+    it("a hand-graded answer in a list item keeps the item's text in the paragraph", async () => {
+        // A list item holds either inline content or blocks, never a mix, so the
+        // paragraph carrying the space takes in the text written alongside it.
+        source = `<ol><li>Why? <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Why? </p></li>`,
+        );
+    });
+
+    it("room to write inside a problem stays inside the problem", async () => {
+        source = `<problem><p>Explain.</p><answer type="text" handGraded expanded /></problem>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Explain.</p><p workspace="1.25in"></p></problem>`,
+        );
+    });
+
+    it("a document without an expanded input is not made into a handout", async () => {
+        source = `<p>Short answer: <textInput /></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>Short answer: <fillin characters="8"></fillin></p>"`,
+        );
+    });
+
+    it("only the section holding an expanded input becomes a handout", async () => {
+        source = `<section><title>A</title><p>Why? <textInput expanded /></p></section><section><title>B</title><p>Plain</p></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<handout xml:id="doenet-id-1">`);
+        expect(exported).toContain(`<section xml:id="doenet-id-6">`);
+    });
+
     it("an unfilled input inside an <m> becomes a fillin", async () => {
         // An input written inside an expression is a blank the reader writes
         // on, so it exports as PreTeXt's own <fillin> rather than as nothing.

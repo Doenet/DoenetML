@@ -237,9 +237,26 @@ export class PtxCompiler {
                         ) ||
                         hastElementContainsClass(node, "autopermalink") ||
                         hastElementContainsClass(node, "ptx-content-footer") ||
-                        hastElementContainsClass(node, "ptx-page-footer")
+                        hastElementContainsClass(node, "ptx-page-footer") ||
+                        // Controls for PreTeXt's own print preview. They are driven by
+                        // PreTeXt's javascript, which this page does not load.
+                        hastElementContainsClass(
+                            node,
+                            "print-preview-header",
+                        ) ||
+                        hastElementContainsClass(node, "print-links")
                     ) {
                         hastMutateToEmptyString(node);
+                    }
+
+                    // Room for a reader to write, requested by a `workspace` attribute in
+                    // the PreTeXt source. PreTeXt leaves the height to the javascript that
+                    // lays out its print preview, so give the space its height here.
+                    if (hastElementContainsClass(node, "workspace")) {
+                        const space = node.properties["dataSpace"];
+                        if (typeof space === "string" && space !== "") {
+                            node.properties.style = `display: block; height: ${space};`;
+                        }
                     }
 
                     // Inline svg images creatd by PreFigure. Thee have a class of `ChemAccess-element`
