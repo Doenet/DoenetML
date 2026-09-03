@@ -390,4 +390,177 @@ describe("Boolean Operator tag tests @group4", async () => {
         });
         await check_items(x, x1, x2, strict);
     });
+    it("allowUnits excludes quantities written with a unit", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n"/>
+    <isNumber name="num">$n</isNumber>
+    <isNumber name="numNoUnits" allowUnits="false">$n</isNumber>
+    <boolean name="numFn">isnumber($n)</boolean>
+    <boolean name="numFnNoUnits" allowUnits="false">isnumber($n)</boolean>
+    <isInteger name="int">$n</isInteger>
+    <isInteger name="intNoUnits" allowUnits="false">$n</isInteger>
+    <boolean name="intFn">isinteger($n)</boolean>
+    <boolean name="intFnNoUnits" allowUnits="false">isinteger($n)</boolean>
+    `,
+        });
+
+        // The component and function spellings of each check must agree, so
+        // every expectation is asserted against both.
+        async function check_items({
+            isNumber,
+            isNumberNoUnits,
+            isInteger,
+            isIntegerNoUnits,
+        }: {
+            isNumber: boolean;
+            isNumberNoUnits: boolean;
+            isInteger: boolean;
+            isIntegerNoUnits: boolean;
+        }) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const expected = {
+                num: isNumber,
+                numFn: isNumber,
+                numNoUnits: isNumberNoUnits,
+                numFnNoUnits: isNumberNoUnits,
+                int: isInteger,
+                intFn: isInteger,
+                intNoUnits: isIntegerNoUnits,
+                intFnNoUnits: isIntegerNoUnits,
+            };
+            for (const [name, value] of Object.entries(expected)) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .value,
+                    name,
+                ).eq(value);
+            }
+        }
+
+        async function set_input(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        }
+
+        // A percent evaluates to a number, so only `allowUnits="false"`
+        // rejects it.
+        await set_input("50\\%");
+        await check_items({
+            isNumber: true,
+            isNumberNoUnits: false,
+            isInteger: false,
+            isIntegerNoUnits: false,
+        });
+
+        // `100%` is 1, an integer, until units are excluded.
+        await set_input("100\\%");
+        await check_items({
+            isNumber: true,
+            isNumberNoUnits: false,
+            isInteger: true,
+            isIntegerNoUnits: false,
+        });
+
+        // A unit anywhere in the expression is enough to reject it.
+        await set_input("50\\%+0");
+        await check_items({
+            isNumber: true,
+            isNumberNoUnits: false,
+            isInteger: false,
+            isIntegerNoUnits: false,
+        });
+
+        // The decimal a percent equals is still accepted, which is the whole
+        // point of the attribute.
+        await set_input("0.5");
+        await check_items({
+            isNumber: true,
+            isNumberNoUnits: true,
+            isInteger: false,
+            isIntegerNoUnits: false,
+        });
+
+        // As is any other unit-free way of writing it.
+        await set_input("\\frac{1}{2}");
+        await check_items({
+            isNumber: true,
+            isNumberNoUnits: true,
+            isInteger: false,
+            isIntegerNoUnits: false,
+        });
+
+        await set_input("3");
+        await check_items({
+            isNumber: true,
+            isNumberNoUnits: true,
+            isInteger: true,
+            isIntegerNoUnits: true,
+        });
+
+        // `allowUnits` changes nothing about what is not a number at all.
+        await set_input("x");
+        await check_items({
+            isNumber: false,
+            isNumberNoUnits: false,
+            isInteger: false,
+            isIntegerNoUnits: false,
+        });
+    });
+
+    it("allowUnits on an answer reaches isnumber inside a when", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">
+      <mathInput name="mi"/>
+      <award name="award"><when>isnumber($mi) and 0 <= $mi <= 1</when></award>
+    </answer>
+    <answer name="ansNoUnits" allowUnits="false">
+      <mathInput name="miNoUnits"/>
+      <award name="awardNoUnits"><when>isnumber($miNoUnits) and 0 <= $miNoUnits <= 1</when></award>
+    </answer>
+    `,
+        });
+
+        async function check_credit(award: number, awardNoUnits: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("award")].stateValues
+                    .creditAchievedIfSubmit,
+                "award",
+            ).eq(award);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("awardNoUnits")]
+                    .stateValues.creditAchievedIfSubmit,
+                "awardNoUnits",
+            ).eq(awardNoUnits);
+        }
+
+        async function set_inputs(latex: string) {
+            for (const name of ["mi", "miNoUnits"]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    core,
+                });
+            }
+        }
+
+        // `allowUnits` set on the answer reaches the `<when>` through the
+        // `<award>`, so only the second answer rejects a percent.
+        await set_inputs("50\\%");
+        await check_credit(1, 0);
+
+        await set_inputs("0.5");
+        await check_credit(1, 1);
+    });
 });

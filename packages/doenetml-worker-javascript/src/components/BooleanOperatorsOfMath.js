@@ -1,4 +1,47 @@
 import BooleanBaseOperatorOfMath from "./abstract/BooleanBaseOperatorOfMath";
+import { evaluateNumericPredicate } from "../utils/math";
+
+/**
+ * The `booleanOperator` state variable shared by `<isNumber>` and
+ * `<isInteger>`. Both take exactly one math child and apply the correspondingly
+ * named check to it, honoring the inherited `allowUnits` attribute so that they
+ * agree with the `isnumber(...)` / `isinteger(...)` functions written inside a
+ * `<boolean>`.
+ *
+ * `componentName` names the component in the arity warning, so it reads as the
+ * tag the author wrote.
+ */
+function returnNumericPredicateOperator({ predicate, componentName }) {
+    return {
+        returnDependencies: () => ({
+            allowUnits: {
+                dependencyType: "stateVariable",
+                variableName: "allowUnits",
+            },
+        }),
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                booleanOperator: function (values) {
+                    if (values.length === 0) {
+                        return false;
+                    }
+                    if (values.length !== 1) {
+                        console.warn(
+                            `${componentName} requires exactly one math child`,
+                        );
+                        return null;
+                    }
+
+                    return evaluateNumericPredicate({
+                        predicate,
+                        expression: values[0],
+                        allowUnits: dependencyValues.allowUnits,
+                    });
+                },
+            },
+        }),
+    };
+}
 
 export class IsInteger extends BooleanBaseOperatorOfMath {
     static componentType = "isInteger";
@@ -9,38 +52,11 @@ export class IsInteger extends BooleanBaseOperatorOfMath {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.booleanOperator.definition = () => ({
-            setValue: {
-                booleanOperator: function (values) {
-                    if (values.length === 0) {
-                        return false;
-                    }
-                    if (values.length !== 1) {
-                        console.warn(
-                            "IsInteger requires exactly one math child",
-                        );
-                        return null;
-                    }
-                    let numericValue = values[0].evaluate_to_constant();
-
-                    if (!Number.isFinite(numericValue)) {
-                        return false;
-                    }
-
-                    // to account for round off error, round to nearest integer
-                    // and check if close to that integer
-                    let rounded = Math.round(numericValue);
-                    if (
-                        Math.abs(rounded - numericValue) <=
-                        1e-15 * Math.abs(numericValue)
-                    ) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                },
-            },
-        });
+        stateVariableDefinitions.booleanOperator =
+            returnNumericPredicateOperator({
+                predicate: "isinteger",
+                componentName: "IsInteger",
+            });
 
         return stateVariableDefinitions;
     }
@@ -55,24 +71,11 @@ export class IsNumber extends BooleanBaseOperatorOfMath {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.booleanOperator.definition = () => ({
-            setValue: {
-                booleanOperator: function (values) {
-                    if (values.length === 0) {
-                        return false;
-                    }
-                    if (values.length !== 1) {
-                        console.warn(
-                            "IsNumber requires exactly one math child",
-                        );
-                        return null;
-                    }
-                    let numericValue = values[0].evaluate_to_constant();
-
-                    return Number.isFinite(numericValue);
-                },
-            },
-        });
+        stateVariableDefinitions.booleanOperator =
+            returnNumericPredicateOperator({
+                predicate: "isnumber",
+                componentName: "IsNumber",
+            });
 
         return stateVariableDefinitions;
     }

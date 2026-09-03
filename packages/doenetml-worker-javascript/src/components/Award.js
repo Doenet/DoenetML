@@ -52,6 +52,15 @@ export default class Award extends BaseComponent {
             description:
                 "Whether comparison uses symbolic equality (rather than numeric evaluation).",
         };
+        attributes.allowUnits = {
+            createComponentOfType: "boolean",
+            createStateVariable: "allowUnits",
+            defaultValue: true,
+            public: true,
+            fallBackToParentStateVariable: "allowUnits",
+            description:
+                "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+        };
         attributes.expandOnCompare = {
             createComponentOfType: "boolean",
             createStateVariable: "expandOnCompare",
@@ -503,6 +512,10 @@ export default class Award extends BaseComponent {
                 symbolicEquality: {
                     dependencyType: "stateVariable",
                     variableName: "symbolicEquality",
+                },
+                allowUnits: {
+                    dependencyType: "stateVariable",
+                    variableName: "allowUnits",
                 },
                 expandOnCompare: {
                     dependencyType: "stateVariable",

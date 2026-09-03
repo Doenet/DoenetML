@@ -476,6 +476,73 @@ export function normalizeLatexString(
     return latexString;
 }
 
+/**
+ * Whether `tree` carries a unit anywhere within it.
+ *
+ * A quantity written with a unit — `50%`, `$5`, `30 deg`, `30^\circ` — parses
+ * to a `unit` operator node rather than to the bare number it is worth, so a
+ * percent and the decimal it equals are distinguishable here even though both
+ * evaluate to the same constant. That distinction is what lets a numeric check
+ * such as `<isNumber>` refuse `50%` while still accepting `1/2`.
+ *
+ * The head of an operator node names the operation rather than an operand, so
+ * only the operands are descended into — a variable that happens to be spelled
+ * `unit` is a string, not a `unit` node, and is correctly ignored.
+ */
+export function treeHasUnits(tree: Tree): boolean {
+    if (!Array.isArray(tree)) {
+        return false;
+    }
+    return tree[0] === "unit" || tree.slice(1).some(treeHasUnits);
+}
+
+/**
+ * Evaluate the `isNumber` / `isInteger` check on a math expression.
+ *
+ * Shared by the two spellings of each check — the components `<isNumber>` and
+ * `<isInteger>`, and the functions `isnumber(...)` and `isinteger(...)` written
+ * inside a `<boolean>` or `<when>` — so the two always agree on what counts.
+ *
+ * When `allowUnits` is false, a quantity written with a unit fails the check
+ * even though it evaluates to a number: `50%` is rejected while the `1/2` it
+ * equals is still accepted. `simplify` controls whether the expression is
+ * simplified before it is evaluated, which the function spelling does and the
+ * component spelling does not.
+ */
+export function evaluateNumericPredicate({
+    predicate,
+    expression,
+    allowUnits = true,
+    simplify = false,
+}: {
+    predicate: "isnumber" | "isinteger";
+    expression: any;
+    allowUnits?: boolean;
+    simplify?: boolean;
+}): boolean {
+    if (!allowUnits && treeHasUnits(expression.tree)) {
+        return false;
+    }
+
+    const numericValue = (
+        simplify ? expression.simplify() : expression
+    ).evaluate_to_constant();
+
+    if (!Number.isFinite(numericValue)) {
+        return false;
+    }
+
+    if (predicate === "isnumber") {
+        return true;
+    }
+
+    // Evaluating an expression numerically can land an integer result just
+    // beside the integer, so accept anything within a relative tolerance of
+    // the nearest one.
+    const rounded = Math.round(numericValue);
+    return Math.abs(rounded - numericValue) <= 1e-15 * Math.abs(numericValue);
+}
+
 export function isValidVariable(expression: {
     tree: any;
     [key: string]: unknown;

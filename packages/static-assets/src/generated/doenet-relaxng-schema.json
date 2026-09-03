@@ -1486,6 +1486,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -10717,6 +10723,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -11121,6 +11134,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "expandOnCompare",
                     "type": "boolean",
                     "isArray": false,
@@ -11311,6 +11331,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -11466,6 +11493,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -11659,6 +11693,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -11814,6 +11855,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -12007,6 +12055,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -12162,6 +12217,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -12355,6 +12417,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -12510,6 +12579,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -12703,6 +12779,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -12858,6 +12941,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -13051,6 +13141,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -13398,6 +13495,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -13591,6 +13695,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -13941,6 +14052,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "expandOnCompare",
                     "type": "boolean",
                     "isArray": false,
@@ -14125,6 +14243,13 @@
                     ]
                 },
                 "symbolicEquality": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "allowUnits": {
                     "optional": true,
                     "type": [
                         "true",
@@ -14491,6 +14616,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -15345,6 +15477,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -16211,6 +16349,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -17071,6 +17215,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -17935,6 +18085,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -18797,6 +18953,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -19646,6 +19808,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -20467,6 +20635,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -21305,6 +21479,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -22139,6 +22319,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -22977,6 +23163,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -23811,6 +24003,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -24677,6 +24875,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -25539,6 +25743,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -26419,6 +26629,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -27297,6 +27513,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -28159,6 +28381,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -29025,6 +29253,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -29887,6 +30121,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -30753,6 +30993,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -31617,6 +31863,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -32479,6 +32731,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -33351,6 +33609,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -72297,6 +72561,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -84715,6 +84985,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -85116,6 +85393,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -86107,6 +86391,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -89939,6 +90229,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -99551,6 +99847,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "forceFullCheckWorkButton": {
                     "optional": true,
                     "type": [
@@ -100143,6 +100446,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "forceFullCheckWorkButton",
                     "type": "boolean",
                     "isArray": false,
@@ -100558,6 +100868,13 @@
                     ]
                 },
                 "symbolicEquality": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "allowUnits": {
                     "optional": true,
                     "type": [
                         "true",
@@ -101017,6 +101334,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "expandOnCompare",
                     "type": "boolean",
                     "isArray": false,
@@ -101273,6 +101597,13 @@
                     ]
                 },
                 "symbolicEquality": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "allowUnits": {
                     "optional": true,
                     "type": [
                         "true",
@@ -101687,6 +102018,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -110052,6 +110390,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -122884,6 +123228,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -125341,6 +125691,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
@@ -139921,6 +140277,12 @@
                     "description": "Whether the expression evaluates to a finite number."
                 },
                 {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
+                },
+                {
                     "name": "isNumeric",
                     "type": "boolean",
                     "isArray": false,
@@ -144170,6 +144532,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -144544,6 +144913,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -145653,6 +146029,13 @@
                         "false"
                     ]
                 },
+                "allowUnits": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "expandOnCompare": {
                     "optional": true,
                     "type": [
@@ -146053,6 +146436,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether children compared via this boolean use symbolic equality.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
                     "fromAttribute": true
                 },
                 {
@@ -146717,6 +147107,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the expression evaluates to a finite number."
+                },
+                {
+                    "name": "hasUnits",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the expression contains a unit, such as a percent, a currency, or an angle in degrees."
                 },
                 {
                     "name": "isNumeric",
