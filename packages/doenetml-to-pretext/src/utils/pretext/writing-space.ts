@@ -51,7 +51,8 @@ const BLOCK_ELEMENTS = new Set([
     "blockQuote",
     "blockquote",
     "poem",
-    "displayDoenetML",
+    // A `<codeEditor>` exports as a `<program>`, but a `<displayDoenetML>` is not here:
+    // it exports as the text it shows, with no element around it.
     "codeEditor",
     "program",
     "console",

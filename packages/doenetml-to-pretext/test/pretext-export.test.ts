@@ -196,6 +196,21 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a component showing text is taken in, though a block one is not", async () => {
+        // `<displayDoenetML>` shows its text with no element around it, so it is
+        // part of the run; `<codeEditor>` exports as a `<program>`, which stands
+        // on its own and is left standing.
+        source = `<ol><li><displayDoenetML>Why?</displayDoenetML> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Why? </p></li>`,
+        );
+
+        source = `<ol><li><codeEditor>x</codeEditor><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `</program><p workspace="1.25in"></p></li>`,
+        );
+    });
+
     it("a list item's blocks are left standing beside the room to write", async () => {
         // A list item already holding blocks takes no run in: the paragraph
         // carrying the space stands as one more block of its own.
