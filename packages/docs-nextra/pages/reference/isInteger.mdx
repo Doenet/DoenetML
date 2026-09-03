@@ -37,8 +37,8 @@ The `<isInteger>{:dn}` component checks to see whether the enclosed value is an 
 
 ```doenet-editor-horiz
 <p><mathInput name="mi" prefill="100%"><label>Enter an integer</label></mathInput></p>
-<p>Counting a percent as a number: <isInteger>$mi</isInteger></p>
-<p>Not counting a percent as a number: <isInteger allowUnits="false">$mi</isInteger></p>
+<p>Counting a percent as an integer: <isInteger>$mi</isInteger></p>
+<p>Not counting a percent as an integer: <isInteger allowUnits="false">$mi</isInteger></p>
 ```
 
 
@@ -50,12 +50,12 @@ the same value, such as `1` or `4/4`.
 
 
 The `isinteger()` function written inside a [`<boolean>{:dn}`](boolean), [`<when>{:dn}`](when),
-[`<award>{:dn}`](award), or [`<answer>{:dn}`](answer) takes the same `allowUnits` attribute, so
+[`<award>{:dn}`](award), or [`<answer>{:dn}`](answer1) takes the same `allowUnits` attribute, so
 both spellings of the check treat units the same way. To ask the question of a `<math>{:dn}`
 directly, use its [`hasUnits`](math2#property-example-hasunits) property.
 
 
 `<isInteger>{:dn}` also takes `allowUnits` from whatever component encloses it, when that component
-sets it. Writing `allowUnits="false"` once on an [`<answer>{:dn}`](answer) therefore governs the
+sets it. Writing `allowUnits="false"` once on an [`<answer>{:dn}`](answer1) therefore governs the
 `<isInteger>{:dn}` tags inside its awards as well as the `isinteger()` functions written there. An
 `<isInteger>{:dn}` with nothing relevant around it keeps the default of allowing units.

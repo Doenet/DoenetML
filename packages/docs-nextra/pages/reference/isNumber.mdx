@@ -59,12 +59,12 @@ the same value, such as `0.5` or `1/2`.
 
 
 The `isnumber()` function written inside a [`<boolean>{:dn}`](boolean), [`<when>{:dn}`](when),
-[`<award>{:dn}`](award), or [`<answer>{:dn}`](answer) takes the same `allowUnits` attribute, so
+[`<award>{:dn}`](award), or [`<answer>{:dn}`](answer1) takes the same `allowUnits` attribute, so
 both spellings of the check treat units the same way. To ask the question of a `<math>{:dn}`
 directly, use its [`hasUnits`](math2#property-example-hasunits) property.
 
 
 `<isNumber>{:dn}` also takes `allowUnits` from whatever component encloses it, when that component
-sets it. Writing `allowUnits="false"` once on an [`<answer>{:dn}`](answer) therefore governs the
+sets it. Writing `allowUnits="false"` once on an [`<answer>{:dn}`](answer1) therefore governs the
 `<isNumber>{:dn}` tags inside its awards as well as the `isnumber()` functions written there. An
 `<isNumber>{:dn}` with nothing relevant around it keeps the default of allowing units.

@@ -45,6 +45,9 @@ function returnSingleMathChildOperator(componentType, evaluate) {
  * variable resolves to null). A setting can still travel several levels,
  * because each link in an `<answer>` → `<award>` → `<when>` chain falls back in
  * turn; but a tag written outside such a chain keeps its own default.
+ *
+ * Must stay unexported: `ComponentTypes.js` registers every export of this file
+ * as a component type, and this class declares no `componentType` of its own.
  */
 class NumericPredicateOfMath extends BooleanBaseOperatorOfMath {
     /**
