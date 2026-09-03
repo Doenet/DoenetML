@@ -151,6 +151,12 @@ export default class Document extends BaseComponent {
         // state variable.
         delete stateVariableDefinitions.aggregateScores;
 
+        // `creditAchievedForProgress` exists so a `<cascade>` can ask whether a
+        // step is complete. A document is never a step of one, and the shared
+        // definition is written against the `aggregateScores` just deleted, so
+        // it goes too rather than being overridden the way `creditAchieved` is.
+        delete stateVariableDefinitions.creditAchievedForProgress;
+
         // The shared submit labels read the *enclosing* document's language,
         // which is right for everything inside a document and wrong for the
         // document itself: an ancestor dependency skips the component it runs

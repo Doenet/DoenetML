@@ -43752,6 +43752,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -44696,6 +44703,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -44908,6 +44921,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -45852,6 +45872,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -46064,6 +46090,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -47008,6 +47041,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -47220,6 +47259,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -48166,6 +48212,12 @@
                     "description": "The displayed title text for this section."
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
+                },
+                {
                     "name": "open",
                     "type": "boolean",
                     "isArray": false,
@@ -48374,6 +48426,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
                     ]
                 },
                 "inProgressColor": {
@@ -49329,6 +49388,12 @@
                     "description": "The displayed title text for this section."
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
+                },
+                {
                     "name": "open",
                     "type": "boolean",
                     "isArray": false,
@@ -49537,6 +49602,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
                     ]
                 },
                 "inProgressColor": {
@@ -50483,6 +50555,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -50695,6 +50773,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -51646,6 +51731,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -51858,6 +51949,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -52809,6 +52907,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -53021,6 +53125,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -53972,6 +54083,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -54184,6 +54301,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -55137,6 +55261,12 @@
                     "description": "The displayed title text for this section."
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
+                },
+                {
                     "name": "open",
                     "type": "boolean",
                     "isArray": false,
@@ -55345,6 +55475,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
                     ]
                 },
                 "inProgressColor": {
@@ -56291,6 +56428,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -56503,6 +56646,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -57447,6 +57597,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -57659,6 +57815,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -58603,6 +58766,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -58815,6 +58984,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -59759,6 +59935,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -59971,6 +60153,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -60915,6 +61104,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -61127,6 +61322,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -62071,6 +62273,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -62287,6 +62495,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
                     ]
                 },
                 "inProgressColor": {
@@ -63228,6 +63443,12 @@
                     "description": "The displayed title text for this section."
                 },
                 {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
+                },
+                {
                     "name": "open",
                     "type": "boolean",
                     "isArray": false,
@@ -63442,6 +63663,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
                     ]
                 },
                 "inProgressColor": {
@@ -64374,6 +64602,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -64592,6 +64826,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -65522,6 +65763,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",
@@ -150400,6 +150647,13 @@
                         "string"
                     ]
                 },
+                "completedColorRequiresCredit": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "inProgressColor": {
                     "optional": true,
                     "type": [
@@ -151351,6 +151605,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed title text for this section."
+                },
+                {
+                    "name": "completedColorRequiresCredit",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
                     "name": "open",

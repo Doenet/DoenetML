@@ -274,6 +274,56 @@ will instead be colored according to its own answer's correctness.
 
 ---
 
+### Attribute Example: completedColorRequiresCredit
+
+
+```doenet-example
+<section boxed aggregateScores name="lenient">
+  <title>Colored once answered</title>
+  <p><answer><label>What is <m>1+1</m>?</label>2</answer></p>
+  <p><answer handGraded type="text">
+    <label>Explain your reasoning.</label>
+  </answer></p>
+</section>
+
+<section boxed aggregateScores completedColorRequiresCredit name="strict">
+  <title>Colored once graded</title>
+  <p><answer><label>What is <m>1+1</m>?</label>2</answer></p>
+  <p><answer handGraded type="text">
+    <label>Explain your reasoning.</label>
+  </answer></p>
+</section>
+```
+
+
+
+A [`handGraded`](answer2a#example-handgraded) `<answer>{:dn}` scores no credit
+until an instructor grades it, which happens after the learner has finished. By
+default the title banner does not wait for that: such an answer counts as
+completed as soon as the learner submits a response that is not blank, so
+answering both questions above turns the first banner green.
+
+The second section sets `completedColorRequiresCredit`, which opts out of that.
+Its banner stays gray no matter what the learner submits, and turns green only
+once an instructor has given the hand-graded answer credit. The attribute is
+inherited by every section nested inside the one that sets it, so an instructor
+who wants this throughout an activity can set it once on the outermost section.
+
+The attribute changes the color and nothing else. Both sections report the same
+`creditAchieved`, and in a [`<cascade>{:dn}`](cascade) both would reveal the next
+step alike.
+
+Both sections above set `aggregateScores`, without which a plain
+`<section>{:dn}` does not roll up the credit of the answers it contains and so
+never leaves its not-started color. A `<cascade>{:dn}` turns that on for its
+children automatically, and the problem-flavored sections — `<problem>{:dn}`,
+`<exercise>{:dn}`, `<question>{:dn}` and `<activity>{:dn}` — have it on by
+default. Everywhere else, `<section>{:dn}` and `<aside>{:dn}` and the rest, it
+has to be spelled out.
+
+
+---
+
 ### Attribute Example: boxed
 
 

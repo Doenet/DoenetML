@@ -4,12 +4,114 @@ import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";
 import { codedDiagnostic } from "./diagnostics";
 import { returnLocalizedDefaultStateVariableDefinition } from "./contentLocale";
+import { BLANK_PLACEHOLDER } from "./embeddedMathInputs";
 
 function returnScoredContainerAncestorDependency(...variableNames) {
     return {
         dependencyType: "ancestor",
         variableNames,
     };
+}
+
+/**
+ * Whether a math expression's tree carries nothing the reader typed.
+ *
+ * A whole expression that is the placeholder U+FF3F — what math-expressions
+ * uses for a missing subexpression, and what an untouched math-flavored input
+ * submits — is blank. One that is merely *partly* blank, `x + \uFF3F`, is
+ * something the reader typed and is not.
+ *
+ * A `<matrixInput>` is the case that needs unwrapping: untouched, it submits a
+ * matrix of placeholders rather than a bare one, and neither the dimensions
+ * around them nor the tuples holding the rows are a response.
+ *
+ * @param {unknown} tree - a math-expression `tree`, or a subtree of one
+ * @returns {boolean}
+ */
+function mathTreeIsBlank(tree) {
+    if (tree === BLANK_PLACEHOLDER) {
+        return true;
+    }
+
+    // ["matrix", ["tuple", nRows, nColumns], ["tuple", ...rows]], each row
+    // itself a tuple of entries.
+    if (Array.isArray(tree) && tree[0] === "matrix") {
+        return matrixEntriesAreBlank(tree[2]);
+    }
+
+    return false;
+}
+
+/**
+ * Whether every entry of a matrix's rows tuple — or of one such row — is the
+ * blank placeholder. Anything that is not the tuple structure a matrix is built
+ * from is not something this can call blank.
+ *
+ * @param {unknown} tuple - the rows of a matrix tree, or one of those rows
+ * @returns {boolean}
+ */
+function matrixEntriesAreBlank(tuple) {
+    return (
+        Array.isArray(tuple) &&
+        tuple[0] === "tuple" &&
+        tuple
+            .slice(1)
+            .every(
+                (entry) =>
+                    entry === BLANK_PLACEHOLDER || matrixEntriesAreBlank(entry),
+            )
+    );
+}
+
+/**
+ * Whether a single submitted response value carries nothing the reader typed.
+ *
+ * Pressing submit on an untouched input still records a response, so "was
+ * something submitted?" and "did the reader respond?" are different questions.
+ * The empty value differs by input: the math-flavored inputs submit a
+ * math-expression built from the blank placeholder, a `<textInput>` an empty
+ * string, and a `<choiceInput>` with nothing selected no response value at all.
+ *
+ * A `<booleanInput>` is the exception with no blank state of its own: untouched
+ * it submits `false`, which is indistinguishable from the reader deliberately
+ * leaving the box unchecked, so it counts as a response either way.
+ *
+ * @param {unknown} response - one entry of `submittedResponses`
+ * @returns {boolean}
+ */
+function responseIsBlank(response) {
+    if (response === null || response === undefined) {
+        return true;
+    }
+    if (typeof response === "string") {
+        return response.trim() === "";
+    }
+    if (typeof response === "number") {
+        return Number.isNaN(response);
+    }
+    if (Array.isArray(response)) {
+        return response.every(responseIsBlank);
+    }
+    if (typeof response === "object" && "tree" in response) {
+        return mathTreeIsBlank(response.tree);
+    }
+    return false;
+}
+
+/**
+ * Whether a submission carried nothing the reader entered, either because there
+ * were no response values at all or because every one of them is blank.
+ *
+ * Filling one input of several is entering something, so a single non-blank
+ * value is enough. Note that an author can add values of their own to the
+ * responses with `<considerAsResponses>` or `isResponse`; those count here like
+ * any other, having been declared responses.
+ *
+ * @param {unknown[]} submittedResponses - the answer's `submittedResponses`
+ * @returns {boolean}
+ */
+function submittedResponsesAreBlank(submittedResponses) {
+    return submittedResponses.every(responseIsBlank);
 }
 
 export function returnStandardAnswerAttributes() {
@@ -347,6 +449,67 @@ export function returnStandardAnswerStateVariableDefinition() {
                         value: desiredStateVariableValues.responseHasBeenSubmitted,
                     },
                 ],
+            };
+        },
+    };
+
+    stateVariableDefinitions.creditAchievedForProgress = {
+        description:
+            "The credit this answer contributes when deciding whether the content around it has been completed, as a `<cascade>` does. Equal to `creditAchieved`, except that a hand-graded answer counts as fully correct once a non-blank response has been submitted.",
+        stateVariablesDeterminingDependencies: ["handGraded"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                handGraded: {
+                    dependencyType: "stateVariable",
+                    variableName: "handGraded",
+                },
+            };
+
+            if (stateValues.handGraded) {
+                // The submitted responses are worth resolving only for a
+                // hand-graded answer. Every enclosing section aggregates this
+                // variable to color its heading, so an unconditional dependency
+                // would pull the whole response array of every answer in the
+                // document into the initial render.
+                dependencies.responseHasBeenSubmitted = {
+                    dependencyType: "stateVariable",
+                    variableName: "responseHasBeenSubmitted",
+                };
+                dependencies.submittedResponses = {
+                    dependencyType: "stateVariable",
+                    variableName: "submittedResponses",
+                };
+            } else {
+                dependencies.creditAchieved = {
+                    dependencyType: "stateVariable",
+                    variableName: "creditAchieved",
+                };
+            }
+
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            if (!dependencyValues.handGraded) {
+                return {
+                    setValue: {
+                        creditAchievedForProgress:
+                            dependencyValues.creditAchieved,
+                    },
+                };
+            }
+
+            // A hand-graded answer keeps `creditAchieved` at 0 until an
+            // instructor grades it, which is well after the reader is done
+            // with it. Progress therefore asks the only question that can be
+            // answered here: did the reader actually respond?
+            const responded =
+                dependencyValues.responseHasBeenSubmitted &&
+                !submittedResponsesAreBlank(
+                    dependencyValues.submittedResponses,
+                );
+
+            return {
+                setValue: { creditAchievedForProgress: responded ? 1 : 0 },
             };
         },
     };

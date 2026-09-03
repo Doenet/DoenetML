@@ -26,6 +26,23 @@ into its own, and the cascade would have no way to tell when the child is
 "done". You therefore do not need to set `aggregateScores` by hand on
 cascade children.
 
+A `handGraded` [`<answer>{:dn}`](answer2a#example-handgraded) is the one
+exception to "answered correctly". Its credit stays at 0 until an instructor
+grades it, which happens long after the learner has moved on, so a cascade would
+otherwise stop there for good. Instead, such an answer counts as completed as
+soon as the learner submits a response that is not blank — submitting an
+untouched input does not count, except for a `<booleanInput>{:dn}`, whose
+unchecked box is itself an answer. The answer's actual `creditAchieved` is
+unchanged; it is still awaiting a grade.
+
+The same rule colors the heading bar of a `boxed` or `collapsible` section, so a
+step whose questions have all been answered shows as completed rather than
+staying gray until an instructor gets to it. Set
+[`completedColorRequiresCredit`](section#attribute-example-completedcolorrequirescredit)
+on a section, or on any section that encloses it, to have the bar wait for the
+real credit instead; that affects only the color, never when the cascade
+advances.
+
 
 <AttrPropDisplay name='cascade'/>
 
