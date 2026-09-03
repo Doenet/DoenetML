@@ -1,11 +1,3 @@
-import type {
-    AnnotatedElementRef,
-    DastAttribute,
-    FlatDastElement,
-    FlatDastElementContent,
-    FlatDastRoot,
-} from "@doenet/doenetml-worker";
-
 /**
  * An expanded `<textInput>` is a text area where a reader writes a long answer. On paper
  * that is blank space, which PreTeXt spells as a `workspace` attribute on the block the
@@ -15,6 +7,12 @@ import type {
  * A document with no expanded input is left exactly as it was: wrapping it in a printout
  * would add a heading, a print-preview bar, and (in LaTeX) its own page geometry.
  */
+import type {
+    AnnotatedElementRef,
+    FlatDastElement,
+    FlatDastElementContent,
+    FlatDastRoot,
+} from "@doenet/doenetml-worker";
 
 /** A `componentSize`, as the height of an input is reported. */
 type ComponentSize = { size: number; isAbsolute: boolean };
@@ -22,8 +20,18 @@ type ComponentSize = { size: number; isAbsolute: boolean };
 /** An absolute `componentSize` is measured in pixels. */
 const PIXELS_PER_INCH = 96;
 
-/** The height an expanded `<textInput>` gets when its own height is not a printable length. */
+/**
+ * The height an expanded `<textInput>` gets when its own height is not a printable length.
+ * It matches the default of the component's `height` attribute, so that an input that says
+ * nothing about its height gets the same space on paper as it takes on screen.
+ */
 const DEFAULT_HEIGHT_IN_PIXELS = 120;
+
+/**
+ * Elements that render as their children alone. An input inside one of these is written,
+ * as far as the page is concerned, where the wrapper is.
+ */
+const TRANSPARENT_WRAPPERS = new Set(["answer", "_fragment"]);
 
 /**
  * Give every expanded `<textInput>` in `flatDast` room to write in, and turn the divisions
@@ -46,33 +54,18 @@ export function addWritingSpace(flatDast: FlatDastRoot) {
     for (const input of expandedInputs) {
         // Rebuilt each time around, since placing one input's space moves content.
         const parents = buildParentMap(flatDast);
-        // PreTeXt puts the space after the block it is asked for, so the paragraph the
-        // input is written in is what carries it.
-        const paragraph = findAncestor(
-            input,
-            parents,
-            (element) => element.name === "p",
-        );
-        const container = findPrintoutContainer(
-            paragraph ?? input,
-            parents,
-            flatDast,
-        );
+        const container = findPrintoutContainer(input, parents, flatDast);
         if (!container) {
             continue;
         }
-        if (paragraph) {
-            removeFromParent(input, parents);
+        const paragraph = paragraphForSpace(input, parents, flatDast);
+        if (!paragraph) {
+            continue;
         }
-        // An input written outside any paragraph — a hand-graded `<answer>` on a line
-        // of its own, say — gets a paragraph of its own, standing where it stood, so
-        // that the space stays where the reader is meant to write.
-        const target =
-            paragraph ?? paragraphInPlaceOf(input, parents, flatDast);
         // Two expanded inputs in one paragraph get room for both.
         requested.set(
-            target,
-            (requested.get(target) ?? 0) + heightInInches(input),
+            paragraph,
+            (requested.get(paragraph) ?? 0) + heightInInches(input),
         );
         containers.add(container);
     }
@@ -108,23 +101,34 @@ function heightInInches(input: FlatDastElement) {
 }
 
 /**
- * Elements that render as their children alone. An input inside one of these is written,
- * as far as the page is concerned, where the wrapper is.
- */
-const TRANSPARENT_WRAPPERS = new Set(["answer", "_fragment"]);
-
-/**
- * Put a paragraph where `input` is written and return it, since the paragraph is what
- * carries the writing space. Where the input is one of a run of inline content — a
- * question written straight into a list item, say — the paragraph takes in that run,
+ * The paragraph that carries the space `input` asks for, with the input itself taken out of
+ * the document: the space stands where the input stood. PreTeXt puts the space after the
+ * block it is asked for, so an input written inside a paragraph hands the space to that
+ * paragraph.
+ *
+ * An input written outside any paragraph — a hand-graded `<answer>` on a line of its own,
+ * say — gets a paragraph of its own, standing where it stood, so that the space stays where
+ * the reader is meant to write. Where the input is one of a run of inline content — a
+ * question written straight into a list item, say — that new paragraph takes in the run,
  * because a list item holds either inline content or blocks, never a mix of the two.
+ *
+ * Returns `undefined` when the input sits in no element at all and so has no place to put a
+ * paragraph, leaving it to export as the short `<fillin>` blank.
  */
-function paragraphInPlaceOf(
+function paragraphForSpace(
     input: FlatDastElement,
     parents: Map<number, FlatDastElement>,
     flatDast: FlatDastRoot,
 ) {
-    const paragraph = addElement(flatDast, { name: "p", children: [] });
+    const enclosing = findAncestor(
+        input,
+        parents,
+        (element) => element.name === "p",
+    );
+    if (enclosing) {
+        removeFromParent(input, parents);
+        return enclosing;
+    }
 
     // The input's own slot in the content around it, which is the wrapper it is sugared
     // into rather than the input itself when there is one.
@@ -135,24 +139,30 @@ function paragraphInPlaceOf(
         parent = parents.get(slot.data.id);
     }
     if (!parent) {
-        return paragraph;
+        return undefined;
     }
 
-    const withoutSlot = parent.children.filter(
-        (child) => typeof child === "string" || child.id !== slot.data.id,
+    const slotIndex = parent.children.findIndex(
+        (child) => typeof child !== "string" && child.id === slot.data.id,
     );
+    const slotRef = parent.children[slotIndex];
+    // Only the input goes: a wrapper it was sugared into stays, since that wrapper is what
+    // renders the question's label.
+    removeFromParent(input, parents);
+
+    const paragraph = addElement(flatDast, "p", []);
     const hasInlineContent = parent.children.some(
         (child) => typeof child === "string" && child.trim() !== "",
     );
     if (hasInlineContent) {
-        paragraph.children = withoutSlot;
+        paragraph.children = parent.children;
         parent.children = [refTo(paragraph)];
+    } else if (slot === input) {
+        // Nothing is left of the slot, so the paragraph simply takes its place.
+        parent.children.splice(slotIndex, 0, refTo(paragraph));
     } else {
-        parent.children = parent.children.map((child) =>
-            typeof child !== "string" && child.id === slot.data.id
-                ? refTo(paragraph)
-                : child,
-        );
+        parent.children.splice(slotIndex, 1, refTo(paragraph));
+        paragraph.children = [slotRef];
     }
     return paragraph;
 }
@@ -165,7 +175,7 @@ function setWorkspace(paragraph: FlatDastElement, inches: number) {
         type: "attribute",
         name: "workspace",
         children: [{ type: "text", value: `${rounded}in` }],
-    } as DastAttribute;
+    };
 }
 
 /**
@@ -203,54 +213,41 @@ function makePrintout(
     }
 
     // The document itself. Its title stays where it is, since the `<article>` built around
-    // the document needs one, and is repeated on the handout so that the printed page is
-    // headed by the activity's title.
-    const title = container.children.find(
-        (child) => elementOf(child, flatDast)?.name === "title",
+    // the document needs one, and is rendered a second time on the handout so that the
+    // printed page is headed by the activity's title. That second rendering is annotated a
+    // duplicate, so it claims none of the `xml:id`s the first one already owns.
+    const titleRef = container.children.find(
+        (child): child is AnnotatedElementRef =>
+            elementOf(child, flatDast)?.name === "title",
     );
     const handoutChildren = container.children.filter(
-        (child) => child !== title,
+        (child) => child !== titleRef,
     );
-    if (title) {
-        handoutChildren.unshift(
-            copyElement(elementOf(title, flatDast)!, flatDast),
-        );
+    if (titleRef) {
+        handoutChildren.unshift({ id: titleRef.id, annotation: "duplicate" });
     }
 
-    const handout = addElement(flatDast, {
-        name: "handout",
-        attributes: {},
-        children: handoutChildren,
-    });
-    container.children = title ? [title, refTo(handout)] : [refTo(handout)];
-}
-
-/** A shallow copy of `element` that renders the same content a second time. */
-function copyElement(element: FlatDastElement, flatDast: FlatDastRoot) {
-    return refTo(
-        addElement(flatDast, {
-            ...element,
-            children: [...element.children],
-        }),
-    );
+    const handout = addElement(flatDast, "handout", handoutChildren);
+    container.children = titleRef
+        ? [titleRef, refTo(handout)]
+        : [refTo(handout)];
 }
 
 /** Append a new element to `flatDast`, giving it the next available id. */
 function addElement(
     flatDast: FlatDastRoot,
-    element: Partial<FlatDastElement> & {
-        name: string;
-        children: FlatDastElementContent[];
-    },
-) {
-    const newElement = {
+    name: string,
+    children: FlatDastElementContent[],
+): FlatDastElement {
+    const element: FlatDastElement = {
         type: "element",
+        name,
         attributes: {},
-        ...element,
-        data: { ...element.data, id: flatDast.elements.length },
-    } as FlatDastElement;
-    flatDast.elements.push(newElement);
-    return newElement;
+        children,
+        data: { id: flatDast.elements.length },
+    };
+    flatDast.elements.push(element);
+    return element;
 }
 
 function refTo(element: FlatDastElement): AnnotatedElementRef {

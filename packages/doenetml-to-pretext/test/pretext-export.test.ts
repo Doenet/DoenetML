@@ -156,6 +156,18 @@ describe("Pretext export", async () => {
             `);
     });
 
+    it("a hand-graded answer keeps its label alongside the room to write", async () => {
+        // Only the input is replaced by the space; the answer wrapping it still
+        // renders the label that asks the question.
+        source = `<answer type="text" handGraded expanded><label>Explain</label></answer>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "<handout>
+          <p workspace="1.25in">Explain</p>
+          </handout>"
+        `);
+    });
+
     it("a hand-graded answer in a list item keeps the item's text in the paragraph", async () => {
         // A list item holds either inline content or blocks, never a mix, so the
         // paragraph carrying the space takes in the text written alongside it.
@@ -186,6 +198,23 @@ describe("Pretext export", async () => {
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported).toContain(`<handout xml:id="doenet-id-1">`);
         expect(exported).toContain(`<section xml:id="doenet-id-6">`);
+    });
+
+    it("the handout wrapped around a whole document repeats its title", async () => {
+        // The `<article>` PreTeXt builds around the document has to keep the title,
+        // so the handout renders it a second time to head the printed page.
+        source = `<title>My activity</title><p>Why? <textInput expanded /></p>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <title>My activity</title><handout>
+          <title>My activity</title><p workspace="1.25in">Why? </p>
+          </handout>
+          </article>
+          </pretext>"
+        `);
     });
 
     it("an unfilled input inside an <m> becomes a fillin", async () => {
