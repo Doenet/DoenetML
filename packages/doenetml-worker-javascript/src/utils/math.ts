@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import type { Tree } from "math-expressions";
+import type { Expression, Tree } from "math-expressions";
 
 import { subsets, vectorOperators, roundForDisplay } from "@doenet/utils";
 
@@ -516,7 +516,7 @@ export function evaluateNumericPredicate({
     simplify = false,
 }: {
     predicate: "isnumber" | "isinteger";
-    expression: any;
+    expression: Expression;
     allowUnits?: boolean;
     simplify?: boolean;
 }): boolean {
@@ -528,7 +528,7 @@ export function evaluateNumericPredicate({
         simplify ? expression.simplify() : expression
     ).evaluate_to_constant();
 
-    if (!Number.isFinite(numericValue)) {
+    if (numericValue === null || !Number.isFinite(numericValue)) {
         return false;
     }
 

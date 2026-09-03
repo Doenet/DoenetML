@@ -8,8 +8,8 @@ import { evaluateNumericPredicate } from "../utils/math";
  * agree with the `isnumber(...)` / `isinteger(...)` functions written inside a
  * `<boolean>`.
  *
- * `componentName` names the component in the arity warning, so it reads as the
- * tag the author wrote.
+ * `componentName` is the class name used in the arity warning, matching how the
+ * sibling operators in this file name themselves.
  */
 function returnNumericPredicateOperator({ predicate, componentName }) {
     return {

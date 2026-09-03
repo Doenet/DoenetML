@@ -13553,6 +13553,8 @@ describe("Math tag tests @group3", async () => {
     <math name="decimal">0.5</math>
     <math name="fraction">1/2</math>
     <math name="degrees">30 deg</math>
+    <math name="degreeSymbol" format="latex">30^\\circ</math>
+    <math name="currency">&#36;5</math>
     <math name="nested">50% + 0</math>
     <math name="variable">x</math>
     <math name="unitVariable">unit</math>
@@ -13572,6 +13574,8 @@ describe("Math tag tests @group3", async () => {
         expect(await hasUnits("decimal")).eq(false);
         expect(await hasUnits("fraction")).eq(false);
         expect(await hasUnits("degrees")).eq(true);
+        expect(await hasUnits("degreeSymbol")).eq(true);
+        expect(await hasUnits("currency")).eq(true);
         // A unit anywhere in the expression counts, not just at the top.
         expect(await hasUnits("nested")).eq(true);
         expect(await hasUnits("variable")).eq(false);
