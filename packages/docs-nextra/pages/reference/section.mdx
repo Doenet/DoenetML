@@ -278,16 +278,20 @@ will instead be colored according to its own answer's correctness.
 
 
 ```doenet-example
-<section boxed name="lenient">
+<section boxed aggregateScores name="lenient">
   <title>Colored once answered</title>
-  <p>What is <m>1+1</m>? <answer>2</answer></p>
-  <p>Explain your reasoning. <answer handGraded type="text" /></p>
+  <p><answer><label>What is <m>1+1</m>?</label>2</answer></p>
+  <p><answer handGraded type="text">
+    <label>Explain your reasoning.</label>
+  </answer></p>
 </section>
 
-<section boxed completedColorRequiresCredit name="strict">
+<section boxed aggregateScores completedColorRequiresCredit name="strict">
   <title>Colored once graded</title>
-  <p>What is <m>1+1</m>? <answer>2</answer></p>
-  <p>Explain your reasoning. <answer handGraded type="text" /></p>
+  <p><answer><label>What is <m>1+1</m>?</label>2</answer></p>
+  <p><answer handGraded type="text">
+    <label>Explain your reasoning.</label>
+  </answer></p>
 </section>
 ```
 
@@ -306,6 +310,12 @@ right. It is inherited by the sections within, so setting it once on an enclosin
 section applies it throughout. Either way the reported `creditAchieved` is the
 same — only the color differs, never when a [`<cascade>{:dn}`](cascade)
 advances.
+
+Both sections above set `aggregateScores`, without which a plain
+`<section>{:dn}` does not roll up the credit of the answers it contains and so
+never leaves its not-started color. A `<cascade>{:dn}` turns that on for its
+children automatically, and `<problem>{:dn}` and `<exercise>{:dn}` have it on by
+default, so it is only a plain section that needs it spelled out.
 
 
 ---

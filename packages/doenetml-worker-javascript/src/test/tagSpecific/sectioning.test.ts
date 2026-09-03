@@ -1646,6 +1646,102 @@ describe("Sectioning tag tests @group3", async () => {
         expect(stateVariables[looseIdx].stateValues.creditAchieved).eq(0);
     });
 
+    // Mirrors the `completedColorRequiresCredit` example on the `<section>`
+    // reference page, which nothing else executes — docs examples are rendered
+    // at build time, never run. It is a plain `<section>`, so it needs
+    // `aggregateScores` spelled out to roll up the answers it contains at all;
+    // the third section here is the same markup without it, and is why the
+    // example says so.
+    it("the section reference example for completedColorRequiresCredit", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section boxed aggregateScores name="lenient">
+      <title>Colored once answered</title>
+      <p><answer name="auto"><label>What is <m>1+1</m>?</label>2</answer></p>
+      <p><answer handGraded type="text" name="hand">
+        <label>Explain your reasoning.</label>
+      </answer></p>
+    </section>
+
+    <section boxed aggregateScores completedColorRequiresCredit name="strict">
+      <title>Colored once graded</title>
+      <p><answer name="auto"><label>What is <m>1+1</m>?</label>2</answer></p>
+      <p><answer handGraded type="text" name="hand">
+        <label>Explain your reasoning.</label>
+      </answer></p>
+    </section>
+
+    <section boxed name="unaggregated">
+      <title>No aggregateScores</title>
+      <p><answer name="auto"><label>What is <m>1+1</m>?</label>2</answer></p>
+      <p><answer handGraded type="text" name="hand">
+        <label>Explain your reasoning.</label>
+      </answer></p>
+    </section>
+    `,
+        });
+
+        const sectionNames = ["lenient", "strict", "unaggregated"] as const;
+
+        async function answerSection(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const autoIdx = await resolvePathToNodeIdx(`${name}.auto`);
+            const handIdx = await resolvePathToNodeIdx(`${name}.hand`);
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx:
+                    stateVariables[autoIdx].stateValues.inputChildren[0]
+                        .componentIdx,
+                core,
+            });
+            await submitAnswer({ componentIdx: autoIdx, core });
+
+            await updateTextInputValue({
+                text: "because it is",
+                componentIdx:
+                    stateVariables[handIdx].stateValues.inputChildren[0]
+                        .componentIdx,
+                core,
+            });
+            await submitAnswer({ componentIdx: handIdx, core });
+        }
+
+        // Every input the example creates carries a label, so the page does not
+        // model markup that trips the accessibility diagnostic.
+        expect(
+            core.core?.diagnostics?.filter((d: any) =>
+                d.message.includes("accessibility"),
+            ),
+        ).eqls([]);
+
+        for (const name of sectionNames) {
+            await answerSection(name);
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const titleColorOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .titleColor;
+
+        // The claim the page makes: answering both questions turns the first
+        // banner green, and the second stays gray awaiting the grade.
+        expect(await titleColorOf("lenient")).eq("var(--lightGreen)");
+        expect(await titleColorOf("strict")).eq("var(--mainGray)");
+
+        // And the reason `aggregateScores` is in the example: without it a
+        // plain section rolls up nothing, so the banner never turns green
+        // however much the reader answers.
+        expect(await titleColorOf("unaggregated")).eq("var(--mainGray)");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("unaggregated")]
+                .stateValues.creditAchieved,
+        ).eq(0);
+    });
+
     it("determine if starts with introduction or ends with conclusion", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
