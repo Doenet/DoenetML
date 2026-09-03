@@ -233,16 +233,32 @@ export const SAVED_STATE_UNAVAILABLE_MESSAGE =
  * (or a rejection) leaves the original deadline alone. Widening only ever
  * grants more time, so a task can never be cut short by an answer that arrives
  * late.
+ *
+ * `restartAt` is for a task that spends its first stretch waiting its turn
+ * (#1533): a boot restarted mid-handshake queues behind the initialization
+ * already in flight on its worker, and that wait is not the work the budget
+ * was sized for. When it resolves, the budget in force is counted from that
+ * moment. The wait itself stays bounded — until the turn comes, the deadline
+ * is the one the task started with — so a task whose turn never comes still
+ * times out.
  */
 export function withTimeout<T>(
     task: () => Promise<T>,
     ms: number,
     label: string,
-    widenedMs?: Promise<number> | null,
+    {
+        widenedMs,
+        restartAt,
+    }: {
+        widenedMs?: Promise<number> | null;
+        restartAt?: Promise<void> | null;
+    } = {},
 ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         let settled = false;
-        const startedAt = Date.now();
+        // When the budget in force started counting: at the call, until
+        // `restartAt` moves it.
+        let startedAt = Date.now();
         // The budget currently in force — reported in the timeout message, so
         // a reader sees the deadline that actually expired rather than the one
         // the attempt started with.
@@ -265,10 +281,10 @@ export function withTimeout<T>(
                 }
                 budgetMs = wider;
                 clearTimeout(timer);
-                // Measured from the original start, not from now: the wider
-                // budget is what this attempt should have had all along, and
-                // restarting the clock would hand it the time already spent
-                // twice over.
+                // Measured from the start of the clock in force, not from
+                // now: the wider budget is what this attempt should have had
+                // all along, and restarting the clock would hand it the time
+                // already spent twice over.
                 timer = setTimeout(
                     expire,
                     Math.max(0, startedAt + wider - Date.now()),
@@ -278,6 +294,22 @@ export function withTimeout<T>(
                 // A budget that never arrives just leaves the deadline as it
                 // was; the handler only satisfies "no fire-and-forget
                 // promises".
+            });
+        restartAt
+            ?.then(() => {
+                if (settled) {
+                    return;
+                }
+                // The budget in force, counted from now. The wait is over,
+                // and the deadline was bounding it until this moment; a
+                // widening that lands later measures from here.
+                startedAt = Date.now();
+                clearTimeout(timer);
+                timer = setTimeout(expire, budgetMs);
+            })
+            .catch(() => {
+                // A turn that never comes leaves the deadline as it was; the
+                // handler only satisfies "no fire-and-forget promises".
             });
         task().then(
             (value) => {

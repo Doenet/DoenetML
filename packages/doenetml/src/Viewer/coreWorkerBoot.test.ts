@@ -167,7 +167,7 @@ describe("withTimeout widening (#1718)", () => {
                 ),
             30,
             "widened while running",
-            Promise.resolve(5_000),
+            { widenedMs: Promise.resolve(5_000) },
         );
         expect(value).toBe("handshook");
     });
@@ -183,7 +183,7 @@ describe("withTimeout widening (#1718)", () => {
                 ),
             5_000,
             "not narrowed",
-            Promise.resolve(1),
+            { widenedMs: Promise.resolve(1) },
         );
         expect(value).toBe("handshook");
     });
@@ -196,7 +196,7 @@ describe("withTimeout widening (#1718)", () => {
             () => new Promise<void>(() => {}),
             1,
             "hangs",
-            Promise.resolve(40),
+            { widenedMs: Promise.resolve(40) },
         ).catch((e) => e);
         expect(isHandshakeTimeout(err)).toBe(true);
         expect(String((err as Error).message)).toContain("40ms");
@@ -210,10 +210,66 @@ describe("withTimeout widening (#1718)", () => {
             () => new Promise<void>(() => {}),
             1,
             "hangs",
-            Promise.reject(new Error("no census")),
+            { widenedMs: Promise.reject(new Error("no census")) },
         ).catch((e) => e);
         expect(isHandshakeTimeout(err)).toBe(true);
         expect(String((err as Error).message)).toContain("1ms");
+    });
+});
+
+describe("withTimeout restart (#1533)", () => {
+    // A boot restarted mid-handshake waits its turn behind the initialization
+    // already in flight on its worker. Counted against one budget, two healthy
+    // handshakes back to back would overrun it on a slow machine and discard a
+    // worker that was working. So the budget is counted afresh from the turn,
+    // while the wait before it is still bounded.
+
+    /** A task that waits `waitMs` for its turn, then works for `workMs`. */
+    function queuedTask(waitMs: number, workMs: number) {
+        let turn = () => {};
+        const turnCame = new Promise<void>((resolve) => {
+            turn = resolve;
+        });
+        function task() {
+            return new Promise<string>((resolve) => {
+                setTimeout(() => {
+                    turn();
+                    setTimeout(() => resolve("handshook"), workMs);
+                }, waitMs);
+            });
+        }
+        return { task, turnCame };
+    }
+
+    it("counts the budget from the turn, not from the start", async () => {
+        // Waiting and working each take most of the budget; only a deadline
+        // re-based at the turn lets the work finish.
+        const { task, turnCame } = queuedTask(100, 100);
+        const value = await withTimeout(task, 150, "re-based at the turn", {
+            restartAt: turnCame,
+        });
+        expect(value).toBe("handshook");
+    });
+
+    it("still bounds a wait for a turn that never comes", async () => {
+        const err = await withTimeout(
+            () => new Promise<void>(() => {}),
+            20,
+            "no turn",
+            { restartAt: new Promise<void>(() => {}) },
+        ).catch((e) => e);
+        expect(isHandshakeTimeout(err)).toBe(true);
+    });
+
+    it("counts a widening granted before the turn from the turn", async () => {
+        // The seat's wider budget is the one in force when the turn comes, so
+        // that is what the turn counts from.
+        const { task, turnCame } = queuedTask(30, 100);
+        const value = await withTimeout(task, 10, "widened then re-based", {
+            widenedMs: Promise.resolve(200),
+            restartAt: turnCame,
+        });
+        expect(value).toBe("handshook");
     });
 });
 

@@ -268,6 +268,7 @@ export async function initializeCoreWorker({
     fetchExternalDoenetML,
     documentLocale,
     localeResources,
+    onQueueTurn,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -288,16 +289,20 @@ export async function initializeCoreWorker({
      * the worker and never needs to be supplied.
      */
     localeResources?: Record<string, string> | null;
+    /**
+     * Called when this initialization's turn on the worker comes: after the
+     * initialization ahead of it, if any, has settled, just before its first
+     * round trip. Not called when its own preparation failed. The boot ladder
+     * re-bases its handshake watchdog on it (#1533).
+     */
+    onQueueTurn?: () => void;
 }) {
     /**
-     * Everything one initialization does, in order: its own work first — the
-     * parse, the expansion of external references and the `lang` resolution,
-     * which overlap whatever is in flight on the worker — and then the round
-     * trips, once `predecessor` (the initialization ahead of it on this
-     * worker, if any) has settled. Only the round trips are serialized; see
-     * `initializationInFlight`.
+     * This initialization's own work: the parse, the expansion of external
+     * references and the `lang` resolution. Main-thread work that never
+     * touches the worker, so it overlaps whatever is in flight there.
      */
-    async function initializeAfter(predecessor: Promise<unknown> | undefined) {
+    async function prepare() {
         let dast = lezerToDast(doenetML);
 
         if (fetchExternalDoenetML) {
@@ -319,12 +324,33 @@ export async function initializeCoreWorker({
             readDocumentLang(dast),
             documentLocale,
         );
+        return { dast, resolvedDocumentLocale };
+    }
 
+    /**
+     * Everything one initialization does: its own work, then — once
+     * `predecessor` (the initialization ahead of it on this worker, if any)
+     * has settled — the round trips. Only the round trips are serialized; see
+     * `initializationInFlight`.
+     *
+     * Settles no earlier than its predecessor, whatever becomes of its own
+     * work. This promise is what the initialization behind it waits on, and
+     * one that failed while its predecessor was still on the worker would
+     * otherwise wave that successor through to interleave with it.
+     */
+    async function initializeAfter(predecessor: Promise<unknown> | undefined) {
+        const [own] = await Promise.allSettled([prepare()]);
         if (predecessor) {
             // Settlement is all that is waited for; see
             // `initializationInFlight`.
             await Promise.allSettled([predecessor]);
         }
+        if (own.status === "rejected") {
+            throw own.reason;
+        }
+        const { dast, resolvedDocumentLocale } = own.value;
+
+        onQueueTurn?.();
 
         await coreWorker.setCoreType("javascript");
         await coreWorker.setSource({ source: doenetML, dast });

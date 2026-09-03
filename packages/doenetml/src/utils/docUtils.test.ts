@@ -104,13 +104,20 @@ function initialize(
         documentStructureCallback({ docId }: { docId: string }) {
             log.push(`structure:${docId}`);
         },
+        onQueueTurn() {
+            log.push(`turn:${doc}`);
+        },
         ...extra,
     });
 }
 
-/** The round trips one initialization of `doc` makes, in order. */
+/**
+ * What one initialization of `doc` records, in order: its turn, its round
+ * trips, and its structure report.
+ */
 function sequenceFor(doc: string): string[] {
     return [
+        `turn:${doc}`,
         "setCoreType",
         `setSource:${doc}`,
         "setFlags",
@@ -195,11 +202,42 @@ describe("initializeCoreWorker serialization (#1533)", () => {
         // The failed run stops where it failed; the successor's own
         // `setSource` is what restores the worker, so it runs whole.
         expect(log).toEqual([
+            "turn:A",
             "setCoreType",
             "setSource:A",
             "setFlags",
             ...sequenceFor("B"),
         ]);
+    });
+
+    it("holds a failed initialization's place until its predecessor has settled", async () => {
+        // An initialization whose own work fails settles no earlier than the
+        // one ahead of it. The one behind it waits on its promise, and one
+        // that settled at once would wave that successor onto a worker the
+        // predecessor is still initializing. It gets no turn either: nothing
+        // of its own will run.
+        const log: string[] = [];
+        const { remote, release } = fakeRemote(log, {
+            holdInitializationOf: "A",
+        });
+
+        const first = initialize(remote, "A", log);
+        const second = initialize(remote, "B", log, {
+            doenetML: `<p>B</p><p copy="doenet:broken" />`,
+            fetchExternalDoenetML: () => {
+                throw new Error("fetch failed");
+            },
+        });
+        const third = initialize(remote, "C", log);
+        await settle();
+
+        // The first is held in its last round trip; the third is waiting.
+        expect(log).toEqual(sequenceFor("A").slice(0, -1));
+
+        release();
+        await expect(second).rejects.toThrow("fetch failed");
+        await Promise.all([first, third]);
+        expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
     });
 
     it("parses and expands a queued initialization while its predecessor is in flight", async () => {

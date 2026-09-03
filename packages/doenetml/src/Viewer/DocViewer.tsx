@@ -1577,6 +1577,7 @@ export function DocViewer({
     async function initializeCoreWorkerForDoc(
         worker: Remote<CoreWorker>,
         ownerCoreId = coreId.current,
+        onQueueTurn?: () => void,
     ) {
         // `ownerCoreId` is the document this initialization speaks for. A
         // rebuild re-rolls `coreId` while these round trips are in flight and
@@ -1585,6 +1586,10 @@ export function DocViewer({
         // the successor announces its own. Callers launched before the
         // re-roll (a boot ladder) pass the id they captured; the default
         // serves call sites that hold ownership when they call.
+        //
+        // `onQueueTurn` goes through to `initializeCoreWorker`, which calls it
+        // when this initialization's turn on the worker comes (#1533); the
+        // boot ladder re-bases its watchdog on it.
         const result = await initializeCoreWorker({
             coreWorker: worker,
             doenetML,
@@ -1603,6 +1608,7 @@ export function DocViewer({
             fetchExternalDoenetML,
             documentLocale,
             localeResources: availableCatalogs,
+            onQueueTurn,
         });
         if (stillSpeaksForDocument(ownerCoreId)) {
             setEffectiveDocumentLocale(result.resolvedDocumentLocale);
@@ -1612,6 +1618,7 @@ export function DocViewer({
 
     async function reinitializeCoreAndTerminateAnimations(
         ownerCoreId = coreId.current,
+        onQueueTurn?: () => void,
     ) {
         if (coreWorker.current !== null) {
             preventMoreAnimations.current = true;
@@ -1631,7 +1638,7 @@ export function DocViewer({
         coreCreated.current = false;
         coreCreationInProgress.current = false;
 
-        await initializeCoreWorkerForDoc(remote, ownerCoreId);
+        await initializeCoreWorkerForDoc(remote, ownerCoreId, onQueueTurn);
 
         return remote;
     }
@@ -2657,6 +2664,7 @@ export function DocViewer({
     async function handshakeCore(
         attempt: number,
         ownerCoreId: string,
+        onQueueTurn?: () => void,
     ): Promise<Remote<CoreWorker>> {
         let thisCoreWorker = coreWorker.current;
 
@@ -2670,8 +2678,10 @@ export function DocViewer({
             //  - attempt > 0 — a retry, whose predecessor worker may be wedged.
             // reinitializeCoreAndTerminateAnimations tears down any existing
             // worker and boots + initializes a new one.
-            thisCoreWorker =
-                await reinitializeCoreAndTerminateAnimations(ownerCoreId);
+            thisCoreWorker = await reinitializeCoreAndTerminateAnimations(
+                ownerCoreId,
+                onQueueTurn,
+            );
         } else {
             // attempt 0, a worker already exists, and its core isn't created —
             // reuse that worker (skipping a fresh boot + WASM init) and just
@@ -2679,7 +2689,11 @@ export function DocViewer({
             // the initial-pass `!render` branch pre-created a worker to report
             // document structure, or a document/parameter change reset
             // `coreCreated` while keeping the existing worker.
-            await initializeCoreWorkerForDoc(thisCoreWorker, ownerCoreId);
+            await initializeCoreWorkerForDoc(
+                thisCoreWorker,
+                ownerCoreId,
+                onQueueTurn,
+            );
         }
 
         // [Doenet/DoenetApps#2957] Test seam — simulate a handshake-phase
@@ -2882,12 +2896,35 @@ export function DocViewer({
                               return budgetMsFor(concurrentHandshakes);
                           })
                         : null;
+                // When this attempt's initialization gets its turn on the
+                // worker. A boot restarted mid-handshake queues behind the
+                // initialization already in flight on the worker it found
+                // (#1533), and that wait must not come out of the budget the
+                // attempt's own round trips were given: on a slow machine,
+                // two healthy handshakes back to back would overrun one
+                // budget and discard a worker that was working. So the
+                // deadline is re-based at the turn. The wait itself stays
+                // bounded, by the budget running while it lasted — an
+                // initialization hung on a wedged worker never yields a turn,
+                // and the watchdog still catches that.
+                let signalQueueTurn = () => {};
+                const queueTurn = new Promise<void>((resolve) => {
+                    signalQueueTurn = resolve;
+                });
                 try {
                     thisCoreWorker = await withTimeout(
-                        () => handshakeCore(attempt, coreIdWhenCalled),
+                        () =>
+                            handshakeCore(
+                                attempt,
+                                coreIdWhenCalled,
+                                signalQueueTurn,
+                            ),
                         openingWatchdogMs,
                         `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
-                        seatWidenedWatchdogMs,
+                        {
+                            widenedMs: seatWidenedWatchdogMs,
+                            restartAt: queueTurn,
+                        },
                     );
                     handshakeSucceeded = true;
                     break;
