@@ -131,10 +131,11 @@ export class CoreWorker {
      * it — the JavaScript core has consumed it by then, and the Rust core
      * keeps its copy only for the rust core-type's later
      * `returnNormalizedDastRoot` calls — so a second initialization with no
-     * `setSource` in between has nothing to initialize from. `source_set` cannot say so: the source was set, and still is; what
-     * is gone is the DAST derived from it. Without this flag that second
-     * initialization failed inside the Rust core with a message saying the
-     * source had never been set, which is the opposite of what happened.
+     * `setSource` in between has nothing to initialize from. `source_set`
+     * cannot say so: the source was set, and still is; what is gone is the
+     * DAST derived from it. Without this flag that second initialization
+     * failed inside the Rust core with a message saying the source had never
+     * been set, which is the opposite of what happened.
      */
     initialization_data_released = false;
     flags_set = false;

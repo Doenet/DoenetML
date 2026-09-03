@@ -84,13 +84,13 @@ function fakeRemote(
 }
 
 /**
- * Start an initialization of document `doc` on `remote`; `extra` overrides
- * any of its arguments.
+ * Start an initialization of document `doc` on `remote`, recording its
+ * structure report in `log`; `extra` overrides any of its arguments.
  */
 function initialize(
     remote: Comlink.Remote<CoreWorker>,
     doc: string,
-    log?: string[],
+    log: string[],
     extra: Partial<Parameters<typeof initializeCoreWorker>[0]> = {},
 ) {
     return initializeCoreWorker({
@@ -101,11 +101,9 @@ function initialize(
         docId: doc,
         requestedVariantIndex: 1,
         attemptNumber: 1,
-        documentStructureCallback: log
-            ? ({ docId }: { docId: string }) => {
-                  log.push(`structure:${docId}`);
-              }
-            : undefined,
+        documentStructureCallback({ docId }: { docId: string }) {
+            log.push(`structure:${docId}`);
+        },
         ...extra,
     });
 }

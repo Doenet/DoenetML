@@ -13,11 +13,11 @@ import {
 // `initializeCoreWorker` drives a worker through several separately awaited
 // round trips, and the boot ladder reuses a worker whose core is not yet
 // created. So a boot started while an initialization was still in flight on
-// that worker used to start a second one there, interleaved with the first. The second then initialized from a
-// document DAST the first had already released, its handshake failed, and the
-// ladder discarded the worker as wedged and booted a replacement: the document
-// rendered a worker and a WASM init late, behind a warning saying the source
-// had never been set.
+// that worker used to start a second one there, interleaved with the first.
+// The second then initialized from a document DAST the first had already
+// released, its handshake failed, and the ladder discarded the worker as
+// wedged and booted a replacement: the document rendered a worker and a WASM
+// init late, behind a warning saying the source had never been set.
 //
 // Three ordinary ways in are pinned here. The observable is how many core
 // workers get constructed: one means the later boot ran on the worker it
