@@ -200,6 +200,15 @@ describe("Pretext export", async () => {
         expect(exported).toContain(`<section xml:id="doenet-id-6">`);
     });
 
+    it("an expanded input stays a blank where no printout can hold the space", async () => {
+        // No PreTeXt printout may contain a division, so a section that also holds
+        // sections of its own cannot become a handout, and the input keeps its blank.
+        source = `<section><title>A</title><p>Why? <textInput expanded /></p><section><title>B</title><p>Inner</p></section></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).not.toContain(`handout`);
+        expect(exported).toContain(`<fillin characters="8"></fillin>`);
+    });
+
     it("the handout wrapped around a whole document repeats its title", async () => {
         // The `<article>` PreTeXt builds around the document has to keep the title,
         // so the handout renders it a second time to head the printed page.

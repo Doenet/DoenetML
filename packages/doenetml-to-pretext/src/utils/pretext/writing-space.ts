@@ -83,7 +83,7 @@ function isExpandedTextInput(element: FlatDastElement | undefined) {
         return false;
     }
     const props = propsOf(element);
-    // A hidden input is not rendered at all, so it needs no room.
+    // A hidden input asks the reader nothing, so it claims no room.
     return props.expanded === true && props.hidden !== true;
 }
 
@@ -142,10 +142,11 @@ function paragraphForSpace(
         return undefined;
     }
 
+    // Where the slot sits among its siblings, read before the input is taken out, since
+    // taking it out shifts everything after it along.
     const slotIndex = parent.children.findIndex(
         (child) => typeof child !== "string" && child.id === slot.data.id,
     );
-    const slotRef = parent.children[slotIndex];
     // Only the input goes: a wrapper it was sugared into stays, since that wrapper is what
     // renders the question's label.
     removeFromParent(input, parents);
@@ -161,8 +162,8 @@ function paragraphForSpace(
         // Nothing is left of the slot, so the paragraph simply takes its place.
         parent.children.splice(slotIndex, 0, refTo(paragraph));
     } else {
-        parent.children.splice(slotIndex, 1, refTo(paragraph));
-        paragraph.children = [slotRef];
+        paragraph.children = [parent.children[slotIndex]];
+        parent.children[slotIndex] = refTo(paragraph);
     }
     return paragraph;
 }
@@ -205,10 +206,11 @@ function makePrintout(
     container: FlatDastElement | FlatDastRoot,
     flatDast: FlatDastRoot,
 ) {
-    if (isElement(container) && container.name === "division") {
-        // `divisionType` is the name of the tag a division exports as.
-        (propsOf(container) as { divisionType: string }).divisionType =
-            "handout";
+    if (container.type === "element" && container.name === "division") {
+        // `divisionType` is the name of the tag a division exports as. Written straight
+        // into `data`, since `propsOf` hands back a stand-in for missing props.
+        const data = container.data as { props?: Record<string, unknown> };
+        (data.props ??= {}).divisionType = "handout";
         return;
     }
 
@@ -326,12 +328,10 @@ function elementOf(child: FlatDastElementContent, flatDast: FlatDastRoot) {
     return typeof child === "string" ? undefined : flatDast.elements[child.id];
 }
 
+/**
+ * The resolved `forRenderer` state values of `element`. The converter runs the core, so
+ * these — rather than the element's (empty) attributes — say how it was written.
+ */
 function propsOf(element: FlatDastElement): Record<string, unknown> {
     return (element.data as { props?: Record<string, unknown> }).props ?? {};
-}
-
-function isElement(
-    node: FlatDastElement | FlatDastRoot,
-): node is FlatDastElement {
-    return (node as FlatDastElement).type === "element";
 }
