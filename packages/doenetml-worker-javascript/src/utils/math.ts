@@ -502,15 +502,19 @@ export function treeHasUnits(tree: Tree): boolean {
  *
  * Shared by the two spellings of each check — the components `<isNumber>` and
  * `<isInteger>`, and the functions `isnumber(...)` and `isinteger(...)` written
- * inside a `<boolean>` or `<when>` — so that a single rule decides what counts.
+ * inside a `<boolean>`, `<when>`, or `<award>` — so that a single rule decides
+ * what counts.
  *
  * When `allowUnits` is false, a quantity written with a unit fails the check
  * even though it evaluates to a number: `50%` is rejected while the `1/2` it
- * equals is still accepted. `simplify` controls whether the expression is
- * simplified before it is evaluated, which the function spelling does and the
- * component spelling does not — the one respect in which the two spellings
- * still differ, so `isnumber(x-x)` is true where `<isNumber>x-x</isNumber>` is
- * not.
+ * equals is still accepted. The unit test runs against the expression as
+ * written, before any simplification, so `isnumber(50% - 50%)` is refused too
+ * rather than slipping through as the `0` it simplifies to.
+ *
+ * `simplify` controls whether the expression is simplified before it is
+ * evaluated, which the function spelling does and the component spelling does
+ * not — the one respect in which the two spellings still differ, so
+ * `isnumber(x-x)` is true where `<isNumber>x-x</isNumber>` is not.
  */
 export function evaluateNumericPredicate({
     predicate,

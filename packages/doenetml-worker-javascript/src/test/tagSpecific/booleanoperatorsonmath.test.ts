@@ -598,4 +598,36 @@ describe("Boolean Operator tag tests @group4", async () => {
         expect(await value("numOutside"), "numOutside").eq(true);
         expect(await value("intOutside"), "intOutside").eq(true);
     });
+
+    it("allowUnits looks at the expression as written, before simplification", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="cancelingUnits">isnumber(50% - 50%)</boolean>
+    <boolean name="cancelingUnitsNoUnits" allowUnits="false">isnumber(50% - 50%)</boolean>
+    <isNumber name="tagSimplifies">x-x</isNumber>
+    <boolean name="fnSimplifies">isnumber(x-x)</boolean>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function value(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .value;
+        }
+
+        // The function spelling simplifies before evaluating, so `50% - 50%`
+        // is worth 0. `allowUnits="false"` still refuses it, because the unit
+        // test runs against the expression as written.
+        expect(await value("cancelingUnits"), "cancelingUnits").eq(true);
+        expect(
+            await value("cancelingUnitsNoUnits"),
+            "cancelingUnitsNoUnits",
+        ).eq(false);
+
+        // That simplification is the one respect in which the two spellings
+        // still differ: `x-x` has no numeric value until it is simplified, so
+        // only the function spelling calls it a number.
+        expect(await value("tagSimplifies"), "tagSimplifies").eq(false);
+        expect(await value("fnSimplifies"), "fnSimplifies").eq(true);
+    });
 });

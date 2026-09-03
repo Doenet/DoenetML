@@ -366,10 +366,11 @@ export function evaluateLogic({
         return evaluateNumericPredicate({
             predicate: operands[0],
             expression,
-            // `allowUnits` is absent for callers that don't offer the
-            // attribute — `<number convertBoolean>` builds its dependency
-            // values by hand — which the helper reads as its default of
-            // `true`, so units stay allowed there as they always have been.
+            // `<boolean>`, `<when>`, and `<award>` all supply `allowUnits`.
+            // `<number convertBoolean>`, the one caller that offers no such
+            // attribute, leaves the key absent, which the helper reads as its
+            // default of `true` — so units stay allowed there as they always
+            // have been.
             allowUnits: dependencyValues.allowUnits,
             // TODO: should we simplify before evaluating to constant?
             simplify: true,

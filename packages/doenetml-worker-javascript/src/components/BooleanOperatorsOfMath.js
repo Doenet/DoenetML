@@ -8,15 +8,15 @@ import { evaluateNumericPredicate } from "../utils/math";
  *
  * No children at all is the ordinary state of a half-typed document, so it
  * answers `false` quietly; two or more is an authoring mistake, so it warns and
- * answers `null`. `componentName` is the class name used in that warning.
+ * answers `null`. `componentType` is the tag name reported in that warning.
  */
-function returnSingleMathChildOperator(componentName, evaluate) {
+function returnSingleMathChildOperator(componentType, evaluate) {
     return function (values) {
         if (values.length === 0) {
             return false;
         }
         if (values.length !== 1) {
-            console.warn(`${componentName} requires exactly one math child`);
+            console.warn(`<${componentType}> requires exactly one math child`);
             return null;
         }
         return evaluate(values[0]);
@@ -24,102 +24,87 @@ function returnSingleMathChildOperator(componentName, evaluate) {
 }
 
 /**
- * The `booleanOperator` state variable shared by `<isNumber>` and
- * `<isInteger>`. Both apply the correspondingly named check to their single
- * math child, honoring the `allowUnits` attribute they inherit from
- * `<boolean>` so that they treat a quantity written with a unit the same way
- * the `isnumber(...)` / `isinteger(...)` functions do.
- */
-function returnNumericPredicateOperator({ predicate, componentName }) {
-    return {
-        returnDependencies: () => ({
-            allowUnits: {
-                dependencyType: "stateVariable",
-                variableName: "allowUnits",
-            },
-        }),
-        definition: ({ dependencyValues }) => ({
-            setValue: {
-                booleanOperator: returnSingleMathChildOperator(
-                    componentName,
-                    (expression) =>
-                        evaluateNumericPredicate({
-                            predicate,
-                            expression,
-                            allowUnits: dependencyValues.allowUnits,
-                        }),
-                ),
-            },
-        }),
-    };
-}
-
-/**
- * Give `<isNumber>` and `<isInteger>` the parent fall-back for `allowUnits`
- * that `<boolean>` deliberately does not have.
+ * Shared implementation of `<isNumber>` and `<isInteger>`, which differ only in
+ * which check they name. Each applies its check to its single math child,
+ * honoring the `allowUnits` attribute they inherit from `<boolean>` so that
+ * they treat a quantity written with a unit the same way the `isnumber(...)` /
+ * `isinteger(...)` functions do.
  *
- * The comparison settings `<boolean>` declares — `symbolicEquality` and the
- * rest — each govern a comparison the `<boolean>` performs itself, so there is
- * no second way to spell them and nothing to stay consistent with. `allowUnits`
- * is the exception: the same check is written either as one of these tags or as
- * the matching `isnumber(...)` / `isinteger(...)` function, and the function is
+ * These two tags also take a parent fall-back for `allowUnits` that `<boolean>`
+ * deliberately does not have. The comparison settings `<boolean>` declares —
+ * `symbolicEquality` and the rest — each govern a comparison the `<boolean>`
+ * performs itself, so there is no second way to spell them and nothing to stay
+ * consistent with. `allowUnits` is the exception: the same check is written
+ * either as one of these tags or as the matching function, and the function is
  * evaluated by the enclosing `<when>` or `<award>`, which does fall back to its
- * parent. Without this, `<answer allowUnits="false">` would reach the function
- * spelling and not the tag.
+ * parent. Without the fall-back, `<answer allowUnits="false">` would reach the
+ * function spelling and not the tag.
  *
- * The fall-back is a single level and fires only when the parent's value was
- * set rather than defaulted, so a tag written anywhere else keeps its own
- * default: a parent without the state variable resolves to null.
+ * Each component consults only its immediate parent, and only when that
+ * parent's value was set rather than defaulted (a parent without the state
+ * variable resolves to null). A setting can still travel several levels,
+ * because each link in an `<answer>` → `<award>` → `<when>` chain falls back in
+ * turn; but a tag written outside such a chain keeps its own default.
  */
-function addAllowUnitsParentFallback(attributes) {
-    attributes.allowUnits.fallBackToParentStateVariable = "allowUnits";
-    return attributes;
+class NumericPredicateOfMath extends BooleanBaseOperatorOfMath {
+    /**
+     * Which check to apply: `"isnumber"` or `"isinteger"`, the same names the
+     * function spelling uses. Set by each subclass.
+     */
+    static predicate;
+
+    static createAttributesObject() {
+        const attributes = super.createAttributesObject();
+        attributes.allowUnits.fallBackToParentStateVariable = "allowUnits";
+        return attributes;
+    }
+
+    static returnStateVariableDefinitions() {
+        const stateVariableDefinitions = super.returnStateVariableDefinitions();
+        const { predicate, componentType } = this;
+
+        stateVariableDefinitions.booleanOperator = {
+            returnDependencies: () => ({
+                allowUnits: {
+                    dependencyType: "stateVariable",
+                    variableName: "allowUnits",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    booleanOperator: returnSingleMathChildOperator(
+                        componentType,
+                        (expression) =>
+                            evaluateNumericPredicate({
+                                predicate,
+                                expression,
+                                allowUnits: dependencyValues.allowUnits,
+                            }),
+                    ),
+                },
+            }),
+        };
+
+        return stateVariableDefinitions;
+    }
 }
 
-export class IsInteger extends BooleanBaseOperatorOfMath {
+export class IsInteger extends NumericPredicateOfMath {
     static componentType = "isInteger";
+    static predicate = "isinteger";
 
     static componentDocs = {
         summary: "True when the math child evaluates to an integer",
     };
-    static createAttributesObject() {
-        return addAllowUnitsParentFallback(super.createAttributesObject());
-    }
-
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.booleanOperator =
-            returnNumericPredicateOperator({
-                predicate: "isinteger",
-                componentName: "IsInteger",
-            });
-
-        return stateVariableDefinitions;
-    }
 }
 
-export class IsNumber extends BooleanBaseOperatorOfMath {
+export class IsNumber extends NumericPredicateOfMath {
     static componentType = "isNumber";
+    static predicate = "isnumber";
 
     static componentDocs = {
         summary: "True when the math child evaluates to a finite number",
     };
-    static createAttributesObject() {
-        return addAllowUnitsParentFallback(super.createAttributesObject());
-    }
-
-    static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.booleanOperator =
-            returnNumericPredicateOperator({
-                predicate: "isnumber",
-                componentName: "IsNumber",
-            });
-
-        return stateVariableDefinitions;
-    }
 }
 
 export class IsBetween extends BooleanBaseOperatorOfMath {
@@ -151,6 +136,7 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+        const componentType = this.componentType;
 
         stateVariableDefinitions.booleanOperator = {
             returnDependencies: () => ({
@@ -184,7 +170,7 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
                 return {
                     setValue: {
                         booleanOperator: returnSingleMathChildOperator(
-                            "IsBetween",
+                            componentType,
                             (expression) => {
                                 let numericValue =
                                     expression.evaluate_to_constant();

@@ -1592,13 +1592,23 @@ function createArrayElementDescription(
  * `Parent`, so walking the constructor prototype chain visits each ancestor
  * class in turn. The walk stops at the first prototype that isn't a class
  * with a `componentType` (i.e. `Function.prototype` / `Object`).
+ *
+ * A componentType is recorded once. An intermediate class that shares
+ * implementation between siblings without being a component type of its own
+ * (e.g. the base of `<isNumber>` and `<isInteger>`) declares no
+ * `componentType` and so inherits its parent's, which would otherwise appear
+ * twice in a row.
  */
 function abstractAncestorChain(cClass: ComponentClass): string[] {
     const chain: string[] = [];
     let current: unknown = Object.getPrototypeOf(cClass);
     while (typeof current === "function") {
         const ct = (current as { componentType?: unknown }).componentType;
-        if (typeof ct === "string" && ct.startsWith("_")) {
+        if (
+            typeof ct === "string" &&
+            ct.startsWith("_") &&
+            !chain.includes(ct)
+        ) {
             chain.push(ct);
         }
         current = Object.getPrototypeOf(current);
