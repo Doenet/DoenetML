@@ -112,6 +112,39 @@ function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
     );
 }
 
+/**
+ * Error codes that mean "the page around this viewer does not speak SPLICE",
+ * not "your saved work could not be loaded" (Doenet/DoenetML#1795).
+ *
+ * This is Canvas's postMessage vocabulary, and an embedded viewer meets it
+ * without anyone arranging for it to. Canvas listens for `message` on every
+ * page it serves, and answers any subject outside its own allow-list with
+ * `{ subject: "<subject>.response", message_id, error: { code:
+ * "unsupported_subject" } }` — quoting the id it was sent, so the reply is
+ * addressed to this viewer's open request and carries no `message`, since
+ * Canvas omits that field when it has no text for it. Embed a Doenet
+ * activity in a Canvas page and every `SPLICE.getState` comes back as one of
+ * these. Reported at community.doenet.org/t/305.
+ *
+ * Read as a host failure, that reply told a reader their saved work was
+ * unavailable — on an embed that has no host, no saved work, and nothing
+ * wrong with it. So these are logged and dropped: they say a request went
+ * unanswered, which is the same thing as no answer, and the request stays
+ * open for a host that does speak SPLICE.
+ *
+ * Matched by code alone, and only against this documented set. Nothing stops
+ * a genuine SPLICE host from reporting a load failure with any code it likes,
+ * so keeping the set to the platform vocabulary — rather than, say, dropping
+ * every error a viewer cannot render — leaves a host's own failures reaching
+ * the reader.
+ */
+const NON_SPLICE_PLATFORM_ERROR_CODES = new Set([
+    "unsupported_subject",
+    "unauthorized",
+    "wrong_origin",
+    "bad_request",
+]);
+
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
@@ -1194,8 +1227,10 @@ export function DocViewer({
                             setStage("readyToCreateCore");
                         }
                     } else if (e.data.error) {
-                        // The host cannot produce this document's saved state
-                        // and says why. This is a notice beside the document,
+                        // A host that cannot produce this document's saved
+                        // state, saying why — or a page that is not a host at
+                        // all, of which more below. When it is a host, its
+                        // message is a notice beside the document,
                         // never in place of it (#1741): the boot does not wait
                         // for this answer and the request is left open (see
                         // above), so an error can land at any point in a
@@ -1210,30 +1245,59 @@ export function DocViewer({
                         // usable state has answered, whatever else it also
                         // reported.
                         //
-                        // The message has to be text, not merely present: it
-                        // is stored and later rendered as a React child, and
-                        // anything else throws there. Beside the document
-                        // that would reach the error boundary and replace
-                        // exactly the document this branch exists to keep;
-                        // beneath the failure pane, which is returned above
-                        // that boundary, nothing would catch it at all. A
-                        // reply the viewer cannot read costs the generic
-                        // notice instead — the same as one that carries no
-                        // recognizable error shape. (`error` is known
-                        // non-null here: this branch is gated on its
-                        // truthiness.)
+                        // Only a string `message` is shown. It is stored and
+                        // later rendered as a React child, so anything else
+                        // throws there: beside the document that throw would
+                        // reach the error boundary and replace exactly the
+                        // document this branch exists to keep, and beneath
+                        // the failure pane, which is returned above that
+                        // boundary, nothing would catch it at all. The
+                        // `code` is for the console, and is not required —
+                        // a reply carrying only text still has text to show.
+                        // (`error` is known truthy here: this branch is
+                        // gated on it.)
                         const error = e.data.error;
+                        const isObject =
+                            typeof error === "object" && error !== null;
+                        const code = isObject ? error.code : undefined;
+                        const message =
+                            isObject && typeof error.message === "string"
+                                ? error.message
+                                : undefined;
+
                         if (
-                            typeof error === "object" &&
-                            "code" in error &&
-                            typeof error.message === "string"
+                            typeof code === "string" &&
+                            NON_SPLICE_PLATFORM_ERROR_CODES.has(code)
                         ) {
+                            // Not a host: a platform saying it does not know
+                            // what was asked of it. Nothing to tell the
+                            // reader — see
+                            // `NON_SPLICE_PLATFORM_ERROR_CODES`.
                             console.log(
-                                `error ${error.code} getting state: ${error.message}`,
+                                `ignoring "${code}" answer to SPLICE.getState from a page that does not speak SPLICE`,
                             );
-                            setStateLoadNotice(error.message);
+                        } else if (message !== undefined) {
+                            console.log(
+                                code === undefined
+                                    ? `error getting state: ${message}`
+                                    : `error ${code} getting state: ${message}`,
+                            );
+                            setStateLoadNotice(message);
                         } else {
-                            setStateLoadNotice("Invalid response to getState");
+                            // An error the viewer cannot put on screen. The
+                            // host is told what is wrong with it, and the
+                            // reader is told nothing: the only text available
+                            // to show would be the viewer's own, and
+                            // "Invalid response to getState" — which is what
+                            // used to appear here — describes the host's bug
+                            // to someone who cannot act on it, over a
+                            // document that is working. A host with a load
+                            // failure worth reporting reports it as the
+                            // documented `{ code, message }`.
+                            console.warn(
+                                "Ignoring an unreadable error in a SPLICE.getState response; a reportable failure needs a string `message`:",
+                                error,
+                            );
                         }
                     }
                     // A reply with neither usable state nor an error is a host

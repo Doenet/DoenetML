@@ -16,6 +16,13 @@ import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 // matching. Both are answers now, and `packages/standalone/README.md` asks for
 // the id where a host can send it.
 //
+// Not every error is the reader's business, though. A viewer embedded in a
+// page that does not speak SPLICE gets answered anyway — Canvas replies to
+// any subject it does not recognize, on any of its pages — and reading that
+// as a host failure told readers their saved work was unavailable on embeds
+// that have no host and no saved work (Doenet/DoenetML#1795). Those replies,
+// and any error with no text the viewer can show, are dropped.
+//
 // Every reply here carries an error. What an error leaves possible for an
 // answerer that does have state — restoring the document over the error
 // screen — is `DoenetViewer.getStateFirstAnswerWins.cy.tsx`.
@@ -297,6 +304,119 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
             cy.wait(SETTLE);
             cy.contains("storage unavailable").should("not.exist");
             cy.contains("the document that replaced it").should("exist");
+        });
+    });
+
+    it("surfaces an error carrying a message but no `code`", () => {
+        // The `code` is for the console; the `message` is the whole of what
+        // a reader gets. A reply that has the text but not the code still
+        // has something to say, and used to be discarded for the viewer's
+        // own words instead.
+        interceptGetState().then(({ win, request }) => {
+            mountViewer();
+            afterGetStateRequest(request);
+
+            cy.then(() => {
+                answer(win, {
+                    messageId: request.id!,
+                    error: { message: "storage unavailable" },
+                });
+            });
+
+            cy.contains("storage unavailable", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+        });
+    });
+
+    for (const code of [
+        "unsupported_subject",
+        "unauthorized",
+        "wrong_origin",
+        "bad_request",
+    ]) {
+        it(`ignores a "${code}" answer from a page that does not speak SPLICE`, () => {
+            // Canvas's postMessage vocabulary, which an embedded viewer meets
+            // without anyone arranging for it: Canvas listens on every page it
+            // serves and answers any subject outside its allow-list this way,
+            // quoting the id it was sent. Read as a host failure it told a
+            // reader their saved work was unavailable, on an embed that has no
+            // host and no saved work (Doenet/DoenetML#1795).
+            interceptGetState().then(({ win, request }) => {
+                mountViewer();
+                afterGetStateRequest(request);
+
+                cy.then(() => {
+                    answer(win, {
+                        messageId: request.id!,
+                        error: { code },
+                    });
+                });
+
+                cy.contains("the document itself", {
+                    timeout: VIEWER_TIMEOUT,
+                }).should("exist");
+                cy.wait(SETTLE);
+                cy.contains("Your saved work could not be loaded").should(
+                    "not.exist",
+                );
+            });
+        });
+    }
+
+    it("still surfaces a host failure that carries a platform code AND a message", () => {
+        // Only the codes decide, and they decide against showing anything —
+        // so a reply carrying one is dropped even when it has text. Asserting
+        // that keeps the rule from quietly weakening into "drop it unless it
+        // says something", which Canvas's reply would slip through the moment
+        // Canvas started passing a message.
+        interceptGetState().then(({ win, request }) => {
+            mountViewer();
+            afterGetStateRequest(request);
+
+            cy.then(() => {
+                answer(win, {
+                    messageId: request.id!,
+                    error: {
+                        code: "unsupported_subject",
+                        message: "Not supported inside Rich Content Editor",
+                    },
+                });
+            });
+
+            cy.contains("the document itself", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+            cy.wait(SETTLE);
+            cy.contains("Not supported inside Rich Content Editor").should(
+                "not.exist",
+            );
+        });
+    });
+
+    it("ignores an error the viewer cannot put on screen", () => {
+        // No string `message` is nothing to show. The viewer used to fill the
+        // gap with "Invalid response to getState", which describes the host's
+        // bug to a reader who cannot act on it.
+        interceptGetState().then(({ win, request }) => {
+            mountViewer();
+            afterGetStateRequest(request);
+
+            cy.then(() => {
+                answer(win, {
+                    messageId: request.id!,
+                    error: { code: 500 },
+                });
+            });
+
+            cy.contains("the document itself", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+            cy.wait(SETTLE);
+            cy.contains("Invalid response to getState").should("not.exist");
+            cy.contains("Your saved work could not be loaded").should(
+                "not.exist",
+            );
         });
     });
 
