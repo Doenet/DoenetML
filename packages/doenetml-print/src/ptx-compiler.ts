@@ -49,6 +49,15 @@ const DECODER = new TextDecoder();
  * instructions and permalinks, page footers, and the controls for PreTeXt's own print
  * preview, which are driven by javascript this page does not load.
  */
+/**
+ * How tall a workspace may say it is: a number of inches or centimeters, and nothing else.
+ * PreTeXt asks only that the length end in `in` or `cm` and copies the rest of the value
+ * into the page untouched, so a value that arrives in any other shape is left without a
+ * height rather than written into a style declaration, where it could carry along
+ * declarations of its own.
+ */
+const WORKSPACE_HEIGHT = /^\d+(\.\d+)?(in|cm)$/;
+
 const CLASSES_TO_DROP = [
     "diagcess__instructions",
     "autopermalink",
@@ -256,8 +265,11 @@ export class PtxCompiler {
                     // lays out its print preview, so give the space its height here.
                     if (hastElementContainsClass(node, "workspace")) {
                         const space = node.properties["dataSpace"];
-                        if (typeof space === "string" && space !== "") {
-                            node.properties.style = `display: block; height: ${space};`;
+                        if (
+                            typeof space === "string" &&
+                            WORKSPACE_HEIGHT.test(space.trim())
+                        ) {
+                            node.properties.style = `display: block; height: ${space.trim()};`;
                         }
                     }
 

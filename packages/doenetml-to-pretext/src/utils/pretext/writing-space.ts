@@ -35,46 +35,76 @@ const DEFAULT_HEIGHT_IN_PIXELS = 120;
 const TRANSPARENT_WRAPPERS = new Set(["answer", "_fragment"]);
 
 /**
- * Elements that are read as part of a run of text rather than standing on their own. An
- * element not named here is taken to stand on its own, so that content the paragraph
- * carrying the writing space does not recognize is left beside it rather than swallowed.
+ * Elements that stand on their own on the page. Anything else is read as part of a run of
+ * text, and a paragraph carrying writing space takes it in rather than leaving it beside a
+ * block, since a list item holds a run of text or a series of blocks and never a mix.
+ *
+ * Naming the blocks is what keeps this list short enough to stay right: far more elements
+ * are read as text than stand on their own, and it is text that is written beside an input.
+ * Either way a name the list has not heard of prints where it was written; only the source
+ * PreTeXt is asked to make sense of, so the list errs towards the commoner reading.
  */
-const INLINE_ELEMENTS = new Set([
-    // Inline mathematics and values.
-    "m",
-    "math",
-    "text",
-    "number",
-    "boolean",
-    "abs",
-    "angle",
-    "atom",
-    "derivative",
-    "point",
-    "asList",
-    // Inline text formatting.
-    "alert",
-    "attr",
-    "c",
-    "em",
-    "q",
-    "ellipsis",
-    "mdash",
-    "nbsp",
-    "lq",
-    "rq",
-    "lsq",
-    "rsq",
-    "sq",
-    // Cross references.
-    "ref",
-    "xref",
-    // Inputs, and the answers they are sugared into.
-    "answer",
-    "textInput",
-    "mathInput",
-    "booleanInput",
-    "choiceInput",
+const BLOCK_ELEMENTS = new Set([
+    // Text laid out as its own block.
+    "p",
+    "pre",
+    "blockQuote",
+    "blockquote",
+    "poem",
+    "displayDoenetML",
+    "codeEditor",
+    "program",
+    "console",
+    // Displayed mathematics, as opposed to mathematics inside a sentence.
+    "me",
+    "md",
+    "men",
+    "mdn",
+    // Lists.
+    "ol",
+    "ul",
+    "dl",
+    "li",
+    "list",
+    // Figures, tables and other drawn blocks.
+    "graph",
+    "image",
+    "figure",
+    "video",
+    "audio",
+    "table",
+    "tabular",
+    "spreadsheet",
+    "orbitalDiagram",
+    "sideBySide",
+    "sidebyside",
+    // Blocks that hold a piece of the document.
+    "division",
+    "section",
+    "subsection",
+    "subsubsection",
+    "worksheet",
+    "handout",
+    "page",
+    "title",
+    "introduction",
+    "conclusion",
+    "objectives",
+    "outcomes",
+    "assemblage",
+    "aside",
+    "exercise",
+    "task",
+    // Statements set apart from the text around them.
+    "definition",
+    "example",
+    "problem",
+    "question",
+    "theorem",
+    "proof",
+    "activity",
+    "remark",
+    "note",
 ]);
 
 /**
@@ -193,16 +223,16 @@ function paragraphForSpace(
     );
     // What the slot was written among, which decides whether the new paragraph stands
     // beside its siblings or takes them in.
-    const alongsideInlineContent = parent.children.some(
+    const alongsideBlocks = parent.children.some(
         (child, index) =>
-            index !== slotIndex && isInlineContent(child, flatDast),
+            index !== slotIndex && isBlockContent(child, flatDast),
     );
     // Only the input goes: a wrapper it was sugared into stays, since that wrapper is what
     // renders the question's label.
     removeFromParent(input, parents);
 
     const paragraph = addElement(flatDast, "p", []);
-    if (alongsideInlineContent) {
+    if (!alongsideBlocks) {
         paragraph.children = parent.children;
         parent.children = [refTo(paragraph)];
     } else if (slot === input) {
@@ -216,24 +246,24 @@ function paragraphForSpace(
 }
 
 /**
- * Whether `child` is part of a run of text: written-out text, an inline element, or a
- * reference that renders one.
+ * Whether `child` stands on its own on the page: a block, or a reference that renders one.
+ * Written-out text never does.
  */
-function isInlineContent(
+function isBlockContent(
     child: FlatDastElementContent,
     flatDast: FlatDastRoot,
 ): boolean {
     if (typeof child === "string") {
-        return child.trim() !== "";
+        return false;
     }
     const element = elementOf(child, flatDast);
     if (!element) {
         return false;
     }
     if (element.name === "_fragment") {
-        return element.children.some((c) => isInlineContent(c, flatDast));
+        return element.children.some((c) => isBlockContent(c, flatDast));
     }
-    return INLINE_ELEMENTS.has(element.name);
+    return BLOCK_ELEMENTS.has(element.name);
 }
 
 /** Ask PreTeXt for `inches` of blank space after `paragraph`. */

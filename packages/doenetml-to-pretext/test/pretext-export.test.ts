@@ -186,6 +186,16 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a list item's other components are taken into the paragraph too", async () => {
+        // The run is decided by naming the components that stand on their own,
+        // so one that renders as text is taken in whether or not the export has
+        // been taught anything else about it.
+        source = `<ol><li><latex>x^2</latex> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">x^2 </p></li>`,
+        );
+    });
+
     it("a list item's blocks are left standing beside the room to write", async () => {
         // A list item already holding blocks takes no run in: the paragraph
         // carrying the space stands as one more block of its own.
