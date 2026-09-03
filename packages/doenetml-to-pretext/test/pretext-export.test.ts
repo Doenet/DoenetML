@@ -226,6 +226,15 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("room to write is placed outside the formatting around the question", async () => {
+        // A paragraph may not sit inside `<em>`, so the space is placed outside
+        // it and the formatting is taken into the paragraph with the rest.
+        source = `<ol><li><em>Why? <answer type="text" handGraded expanded /></em></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in"><em>Why? </em></p></li>`,
+        );
+    });
+
     it("a list item's blocks are left standing beside the room to write", async () => {
         // A list item already holding blocks takes no run in: the paragraph
         // carrying the space stands as one more block of its own.

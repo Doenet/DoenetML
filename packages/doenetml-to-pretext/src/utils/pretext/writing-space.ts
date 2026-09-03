@@ -28,11 +28,21 @@ const PIXELS_PER_INCH = 96;
 const DEFAULT_HEIGHT_IN_PIXELS = 120;
 
 /**
- * Wrappers that stand on the page where the input inside them stands: the `<answer>` an
- * input is sugared into, and the fragment a reference to that input renders as. The space
- * an input asks for is placed where the outermost such wrapper sits.
+ * Wrappers with no room for a paragraph inside them, which the space an input asks for is
+ * therefore placed outside of, at the outermost such wrapper. Two kinds: the `<answer>` an
+ * input is sugared into and the fragment a reference to it renders as, which stand where
+ * their children stand; and the formatting an author writes around a phrase, which holds a
+ * run of text and nothing more.
  */
-const TRANSPARENT_WRAPPERS = new Set(["answer", "_fragment"]);
+const INLINE_WRAPPERS = new Set([
+    "answer",
+    "_fragment",
+    "em",
+    "alert",
+    "attr",
+    "c",
+    "q",
+]);
 
 /**
  * Elements that stand on their own on the page. Anything else is read as part of a run of
@@ -205,11 +215,11 @@ function paragraphForSpace(
         return enclosing;
     }
 
-    // The input's own slot in the content around it, which is the wrapper it is sugared
-    // into rather than the input itself when there is one.
+    // The input's own slot in the content around it: the outermost wrapper that has no
+    // room for the paragraph, rather than the input itself when there is one.
     let slot: FlatDastElement = input;
     let parent = parents.get(slot.data.id);
-    while (parent && TRANSPARENT_WRAPPERS.has(parent.name)) {
+    while (parent && INLINE_WRAPPERS.has(parent.name)) {
         slot = parent;
         parent = parents.get(slot.data.id);
     }

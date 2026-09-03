@@ -54,9 +54,10 @@ const DECODER = new TextDecoder();
  * PreTeXt asks only that the length end in `in` or `cm` and copies the rest of the value
  * into the page untouched, so a value that arrives in any other shape is left without a
  * height rather than written into a style declaration, where it could carry along
- * declarations of its own.
+ * declarations of its own. The number may be written without its leading zero, as `.5in`,
+ * which PreTeXt and CSS both read as a length.
  */
-const WORKSPACE_HEIGHT = /^\d+(\.\d+)?(in|cm)$/;
+const WORKSPACE_HEIGHT = /^(\d+(\.\d+)?|\.\d+)(in|cm)$/;
 
 const CLASSES_TO_DROP = [
     "diagcess__instructions",
