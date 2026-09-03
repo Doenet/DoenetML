@@ -486,8 +486,8 @@ logged to the console instead:
   it sends. The other three refuse a subject the platform does recognize,
   and are reserved alongside it. They all mean the page is not a host, which
   is the same to the viewer as no answer at all. Do not report a genuine
-  load failure with one of these codes — any other code, with a `message`,
-  reaches the student.
+  load failure with one of these codes — any other code, or none at all,
+  reaches the student as long as it comes with a `message`.
 
 A request has a single answer: the **first** response carrying state for
 this `cid` is the one the viewer reboots from, and every response after

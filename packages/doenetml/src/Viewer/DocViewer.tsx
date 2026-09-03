@@ -1239,9 +1239,9 @@ export function DocViewer({
                         // A host that cannot produce this document's saved
                         // state, saying why — or a page that is not a host at
                         // all, of which more below. When it is a host, its
-                        // message is a notice beside the document,
-                        // never in place of it (#1741): the boot does not wait
-                        // for this answer and the request is left open (see
+                        // message is a notice beside the document, never in
+                        // place of it (#1741): the boot does not wait for
+                        // this answer and the request is left open (see
                         // above), so an error can land at any point in a
                         // perfectly healthy document's life — including
                         // minutes in, on a reader who is working in it. What
@@ -1281,9 +1281,13 @@ export function DocViewer({
                             // Not a host: a platform saying it does not know
                             // what was asked of it. Nothing to tell the
                             // reader — see
-                            // `NON_SPLICE_PLATFORM_ERROR_CODES`.
+                            // `NON_SPLICE_PLATFORM_ERROR_CODES`. The whole
+                            // error goes to the console, so a host that
+                            // reached for one of these codes for a real load
+                            // failure can see its own message being dropped.
                             console.log(
                                 `ignoring "${code}" answer to SPLICE.getState from a page that does not speak SPLICE`,
+                                error,
                             );
                         } else if (message !== undefined) {
                             console.log(
