@@ -90,7 +90,7 @@ An `<image/>{:dn}` can be placed on a `<graph>{:dn}`. Control the size of the im
 
 
 
-The `width` attribute specifies the absolute width of the image. Doenet determines the `size` category corresponds to that width and sizes the image accordingly.
+The `width` attribute specifies the width of the image. Doenet determines the `size` category that corresponds to that width and sizes the image accordingly, so the image is not drawn at exactly the width given: `width="400px"` and `width="50%"` both produce a `medium` image, 425 pixels wide. (On a `<graph/>{:dn}` the width is used as given instead, measured against the graph's own scale.) A width may be written as a number of pixels, as a physical measurement (`6in`), or as a percentage — but of the 850-pixel maximum a component may take, not of the space around the image, so `50%` picks `medium` however narrow the surrounding column is. See [Sizes](../concepts/essentialConcepts#sizes).
 
 
 

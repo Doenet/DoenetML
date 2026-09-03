@@ -85457,12 +85457,12 @@
                 },
                 {
                     "name": "width",
-                    "description": "Display width of the input.",
+                    "description": "Display width of the input. Defaults to 100% when expanded, and to 100px otherwise.",
                     "type": "componentSize"
                 },
                 {
                     "name": "height",
-                    "description": "Display height of the input.",
+                    "description": "Display height of the input. Applies only to an expanded input.",
                     "defaultValue": {
                         "size": 120,
                         "isAbsolute": true
@@ -85601,7 +85601,7 @@
                     "name": "height",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "Display height of the input.",
+                    "description": "Display height of the input. Applies only to an expanded input.",
                     "fromAttribute": true
                 },
                 {
@@ -85691,7 +85691,7 @@
                     "name": "width",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "Display width of the input."
+                    "description": "Display width of the input. Defaults to 100% when expanded, and to 100px otherwise."
                 },
                 {
                     "name": "value",

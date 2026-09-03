@@ -16,6 +16,7 @@ import "./choiceInput.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
+    wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
@@ -338,11 +339,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         .filter(Boolean)
         .join(" ");
 
-    // For inline, the default is a small check work button,
-    // for non-inline, the default is a full check work button
-    const fullCheckWork = SVs.inline
-        ? SVs.forceFullCheckWorkButton
-        : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
+    // An inline choice input is a word-sized dropdown in a sentence; a
+    // non-inline one is a block of choices with room beneath it.
+    const fullCheckWork = wantsFullCheckWorkButton(SVs, !SVs.inline);
 
     const checkWorkComponent = createCheckWorkComponent(
         SVs,

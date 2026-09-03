@@ -3,7 +3,11 @@
 import { Link } from "nextra-theme-docs";
 import React, { useMemo, useState } from "react";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import { isMathDefaultValue } from "@doenet/static-assets/schema";
+import {
+    formatComponentSize,
+    isComponentSizeValue,
+    isMathDefaultValue,
+} from "@doenet/static-assets/schema";
 
 /** Types the rendering code special-cases. */
 export type KnownPropAttrType =
@@ -698,6 +702,8 @@ function formatType(typeName?: PropAttrType, isArray?: boolean) {
  * altogether. Math-expression defaults (the `{ type: "math", latex }`
  * sentinel produced by `get-schema.ts`) are rendered through MathJax so the
  * actual expression — not the raw serialized object — appears in the docs.
+ * Size defaults (the runtime's `{ size, isAbsolute }` pair) are printed the
+ * same way an author would write them, `120px` or `50%`, for the same reason.
  */
 function renderDefaultValue(value: unknown): React.ReactNode {
     if (value == null) {
@@ -727,6 +733,11 @@ function renderDefaultValue(value: unknown): React.ReactNode {
     }
     if (typeof value === "boolean" || typeof value === "number") {
         return String(value);
+    }
+    if (isComponentSizeValue(value)) {
+        // The schema carries a size as the runtime's `{ size, isAbsolute }`
+        // pair; show the author the `120px` / `50%` they would actually type.
+        return formatComponentSize(value);
     }
     return JSON.stringify(value);
 }

@@ -64,10 +64,16 @@ export default class Textinput extends Input {
         };
         attributes.width = {
             createComponentOfType: "componentSize",
-            description: "Display width of the input.",
+            // The default is conditional, so it cannot be declared here for
+            // the schema to pick up; saying it in the description is what puts
+            // it in front of an author, in the reference table and the
+            // context-sensitive help alike.
+            description:
+                "Display width of the input. Defaults to 100% when expanded, and to 100px otherwise.",
         };
         attributes.height = {
-            description: "Display height of the input.",
+            description:
+                "Display height of the input. Applies only to an expanded input.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: { size: 120, isAbsolute: true },
@@ -142,7 +148,11 @@ export default class Textinput extends Input {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.width = {
-            description: "Display width of the input.",
+            // Matches the `width` attribute's description: the attribute and
+            // the property are listed side by side in the reference tables and
+            // in the help panel, so they say the same thing about the default.
+            description:
+                "Display width of the input. Defaults to 100% when expanded, and to 100px otherwise.",
             forRenderer: true,
             hasEssential: true,
             public: true,
@@ -169,13 +179,18 @@ export default class Textinput extends Input {
                         },
                     };
                 } else {
+                    // An expanded input is a block of writing space, so it
+                    // fills the column it sits in and stays in proportion when
+                    // the reader's window is narrow. A word-sized input keeps
+                    // an absolute width instead: it flows inline with the
+                    // sentence around it, where a share of the column would
+                    // mean nothing.
                     return {
                         useEssentialOrDefaultValue: {
                             width: {
-                                defaultValue: {
-                                    size: dependencyValues.expanded ? 600 : 100,
-                                    isAbsolute: true,
-                                },
+                                defaultValue: dependencyValues.expanded
+                                    ? { size: 100, isAbsolute: false }
+                                    : { size: 100, isAbsolute: true },
                             },
                         },
                     };

@@ -38,6 +38,34 @@ export function calculateValidationState(
 }
 
 /**
+ * Whether the check-work button should carry its label, rather than being the
+ * compact icon-only one — the `showText` argument of
+ * `createCheckWorkComponent`.
+ *
+ * Which size is the default depends on the shape of what the button sits with,
+ * so the caller passes that in as `fullByDefault`. An input that takes a block
+ * of its own — an expanded `<textInput>`, a `<choiceInput>` that is not
+ * `inline`, an `<answer>` with no input field at all — has a line beneath it to
+ * put a labelled button on, so the full button is its default. A word-sized
+ * input flows in a sentence, where a labelled button beside it would crowd the
+ * line, so the compact one is the default there.
+ *
+ * `forceFullCheckWorkButton` overrides either default. `forceSmallCheckWorkButton`
+ * overrides only the full one — an input whose default is already the small
+ * button has nothing to ask for — and loses to `forceFullCheckWorkButton` when
+ * both are given, which is the precedence the `<answer>` reference documents.
+ */
+export function wantsFullCheckWorkButton(
+    SVs: Record<string, any>,
+    fullByDefault: boolean,
+): boolean {
+    return fullByDefault
+        ? Boolean(SVs.forceFullCheckWorkButton) ||
+              !SVs.forceSmallCheckWorkButton
+        : Boolean(SVs.forceFullCheckWorkButton);
+}
+
+/**
  * Create the check work button and state text of an answers.
  *
  * Inputs:

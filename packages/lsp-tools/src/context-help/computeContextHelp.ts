@@ -40,6 +40,7 @@ import { COMPLETION_TYPES } from "../completion-types";
 import type {
     FunctionNamesBreakdownPayload,
     HelpContent,
+    SizeSyntaxPayload,
     SuggestionItem,
 } from "./types";
 
@@ -820,6 +821,108 @@ function computeFunctionNamesBreakdownForAttribute(
     };
 }
 
+/**
+ * Component type whose value is a length: a bare number of pixels, a number
+ * with a unit, or a percentage. Matching on the type rather than on
+ * `width`/`height` by name means a `componentSize` attribute added to the
+ * worker later is explained without a change here.
+ */
+const COMPONENT_SIZE_TYPE = "componentSize";
+
+/**
+ * Elements whose `width` selects the nearest named `size` preset instead of
+ * being used as a literal length — the value is a hint, not a measurement, so
+ * the panel says so. See {@link SizeSyntaxPayload.snapsToSizePreset}.
+ */
+const ELEMENTS_SNAPPING_WIDTH_TO_SIZE: ReadonlySet<string> = new Set([
+    "graph",
+    "image",
+    "video",
+]);
+
+/**
+ * Elements whose `width` is read only as a share of the width around them.
+ * A side-by-side layout divides its row into percentages; an absolute width
+ * there raises the `side-by-side-absolute-widths` warning and is coerced to
+ * relative, so the absolute forms are not offered.
+ */
+const ELEMENTS_WITH_RELATIVE_ONLY_WIDTH: ReadonlySet<string> = new Set([
+    "sideBySide",
+    "sbsGroup",
+]);
+
+/**
+ * The accepted length forms, in the order the panel lists them: the absolute
+ * units first (pixels being the one an author reaches for), then the relative
+ * one. `mm` is left out as the near-duplicate of `cm` rather than because it
+ * is rejected.
+ *
+ * The list is filtered down for the two attributes that take only part of it
+ * — see {@link computeSizeSyntaxForAttribute}. Naming a form only to rule it
+ * out is more confusing than never raising it, so each attribute is offered
+ * exactly what it honors.
+ */
+const COMPONENT_SIZE_EXAMPLES: SizeSyntaxPayload["examples"] = [
+    { value: "600", kind: "absolute" },
+    { value: "600px", kind: "absolute" },
+    { value: "6in", kind: "absolute" },
+    { value: "450pt", kind: "absolute" },
+    { value: "15cm", kind: "absolute" },
+    { value: "50%", kind: "relative" },
+];
+
+const COMPONENT_SIZE_ABSOLUTE_EXAMPLES: SizeSyntaxPayload["examples"] =
+    COMPONENT_SIZE_EXAMPLES.filter((e) => e.kind === "absolute");
+
+const COMPONENT_SIZE_RELATIVE_EXAMPLES: SizeSyntaxPayload["examples"] =
+    COMPONENT_SIZE_EXAMPLES.filter((e) => e.kind === "relative");
+
+/**
+ * Pick the forms an attribute actually honors:
+ *
+ * - A **height** gets the absolute forms only. A percentage needs a containing
+ *   block with a definite size to measure against; along the block axis there
+ *   is none, so a percentage height resolves to `auto` and the element falls
+ *   back to its content height.
+ * - A **side-by-side width** gets the relative form only, since the runtime
+ *   coerces an absolute one (see {@link ELEMENTS_WITH_RELATIVE_ONLY_WIDTH}).
+ * - Every other `componentSize` attribute gets the full list.
+ */
+function componentSizeExamplesFor(
+    elementName: string,
+    isHeight: boolean,
+): SizeSyntaxPayload["examples"] {
+    if (isHeight) return COMPONENT_SIZE_ABSOLUTE_EXAMPLES;
+    if (ELEMENTS_WITH_RELATIVE_ONLY_WIDTH.has(elementName)) {
+        return COMPONENT_SIZE_RELATIVE_EXAMPLES;
+    }
+    return COMPONENT_SIZE_EXAMPLES;
+}
+
+/**
+ * Build the "Accepted sizes" payload for an attribute, or `undefined` when the
+ * attribute's value is not a length. Every `componentSize` attribute qualifies,
+ * so a size attribute added to the worker later is explained without a change
+ * here; `_componentSizeList` attributes (a `<sideBySide>`'s `widths` and
+ * `margins`) are deliberately not, since a list of sizes needs a different
+ * explanation than a single one.
+ */
+function computeSizeSyntaxForAttribute(
+    elementName: string,
+    schemaAttr: SchemaAttribute,
+): SizeSyntaxPayload | undefined {
+    if (schemaAttr.type !== COMPONENT_SIZE_TYPE) return undefined;
+
+    const isHeight = schemaAttr.name.toLowerCase() === "height";
+    const snapsToSizePreset =
+        !isHeight && ELEMENTS_SNAPPING_WIDTH_TO_SIZE.has(elementName);
+
+    return {
+        examples: componentSizeExamplesFor(elementName, isHeight),
+        ...(snapsToSizePreset ? { snapsToSizePreset: true } : {}),
+    };
+}
+
 function helpForAttribute(
     ownEntry: ElementSchema | undefined,
     effectiveEntry: SchemaEntryForHelp | undefined,
@@ -849,6 +952,8 @@ function helpForAttribute(
         activeDefaultCtx,
     );
 
+    const sizeSyntax = computeSizeSyntaxForAttribute(ownEntry.name, schemaAttr);
+
     return {
         kind: "attribute",
         elementName: ownEntry.name,
@@ -871,6 +976,7 @@ function helpForAttribute(
         ...(activeDefault ? { activeDefault } : {}),
         ...(styleBreakdown ? { styleBreakdown } : {}),
         ...(functionNamesBreakdown ? { functionNamesBreakdown } : {}),
+        ...(sizeSyntax ? { sizeSyntax } : {}),
     };
 }
 

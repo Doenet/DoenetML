@@ -119,6 +119,109 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("shows the accepted sizes, and offers a height no percentage", () => {
+        const doenetML = `<textInput expanded width="600" height="300"/>`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "width",
+        );
+
+        openHelpTab();
+        // Cursor inside the "width" attribute name.
+        moveCursorToOffset(doenetML.indexOf("width") + 2);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            cy.get(".help-attribute-name").should("contain.text", "width");
+            cy.contains(".help-detail-label", "Accepted sizes:").should(
+                "exist",
+            );
+            // The two forms an author cannot guess from the description alone.
+            cy.get(".help-size-syntax").should("contain.text", "600px");
+            cy.get(".help-size-syntax").should("contain.text", "50%");
+            cy.get(".help-size-syntax").should(
+                "contain.text",
+                "A bare number is pixels. A percentage is a share of the width",
+            );
+            // The conditional default rides in the description, since the
+            // schema can only carry an unconditional one.
+            cy.get(".help-description").should(
+                "contain.text",
+                "Defaults to 100% when expanded",
+            );
+        });
+
+        // A height takes the absolute forms only, and a percentage is not
+        // raised at all — neither offered nor ruled out.
+        moveCursorToOffset(doenetML.indexOf("height") + 2);
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            cy.get(".help-attribute-name").should("contain.text", "height");
+            cy.get(".help-size-syntax").should("contain.text", "600px");
+            cy.get(".help-size-syntax").should("not.contain.text", "%");
+            // The note stops at the pixels sentence — no percentage clause.
+            cy.get(".help-size-syntax").should(
+                "contain.text",
+                "A bare number is pixels.",
+            );
+            // The schema's `{ size, isAbsolute }` pair is shown as authorable
+            // text, not as the raw object.
+            cy.contains(".help-detail-label", "Default:").should("exist");
+            cy.get(".help-value-item").should("contain.text", "120px");
+        });
+    });
+
+    it("says a graph width picks the nearest size preset", () => {
+        const doenetML = `<graph width="400px"/>`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "width",
+        );
+
+        openHelpTab();
+        moveCursorToOffset(doenetML.indexOf("width") + 2);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            cy.get(".help-size-syntax").should(
+                "contain.text",
+                "nearest size preset",
+            );
+        });
+    });
+
+    it("offers a sideBySide width the percentage only", () => {
+        const doenetML = `<sideBySide width="50%"><p>a</p><p>b</p></sideBySide>`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "width",
+        );
+
+        openHelpTab();
+        moveCursorToOffset(doenetML.indexOf("width") + 2);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            // A side-by-side divides its row into shares, so an absolute width
+            // is coerced. Neither the chips nor the note raise one.
+            cy.get(".help-size-syntax").should("contain.text", "50%");
+            cy.get(".help-size-syntax").should("not.contain.text", "px");
+            cy.get(".help-size-syntax").should(
+                "not.contain.text",
+                "A bare number",
+            );
+            cy.get(".help-size-syntax").should(
+                "contain.text",
+                "A percentage is a share of the width",
+            );
+        });
+    });
+
     it("redirects <row> inside <matrix> to matrixRow help via childAliases", () => {
         const doenetML = `<matrix>\n<row>1 2 3</row>\n</matrix>`;
         cy.window().then((win) => {

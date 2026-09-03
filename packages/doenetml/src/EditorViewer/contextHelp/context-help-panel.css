@@ -253,12 +253,15 @@
 }
 
 /*
- * Resolved function-names breakdown (#1205). Stacks a label/values pair —
- * optionally repeated for `Added on this input:` and `Removed on this
- * input:` rows — vertically so the chip list wraps without competing
- * with the labels.
+ * Sections that stack a label above a wrapping chip list instead of sharing a
+ * row with it, so the chips never compete with the label for width:
+ *  - the resolved function-names breakdown (#1205), whose label/values pair
+ *    repeats for the `Added on this input:` and `Removed on this input:` rows;
+ *  - the accepted-sizes list for a `componentSize` attribute, which adds notes
+ *    below the chips that read as full sentences.
  */
-.editor-panel .help-function-names-breakdown {
+.editor-panel .help-function-names-breakdown,
+.editor-panel .help-size-syntax {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;

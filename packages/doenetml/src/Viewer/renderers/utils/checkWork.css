@@ -1,6 +1,12 @@
 .doenet-viewer button.check-work {
     position: relative;
-    height: 24px;
+    /*
+     * A minimum rather than a fixed height: the label is a translated phrase
+     * ("Submit Response", and longer in other languages) that wraps when the
+     * button is narrow, and a fixed height clipped the second line instead of
+     * growing to hold it.
+     */
+    min-height: 24px;
     display: inline-block;
     padding: 1px 6px 1px 6px;
     /* border: var(--mainBorder); */

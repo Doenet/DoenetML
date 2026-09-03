@@ -90,7 +90,7 @@ Multiple `<award>{:dn}` components may also be used for answers with more comple
 ### Example: `<answer>{:dn}` for graded free-response
 ```doenet-example
 <p>
-  <answer type="text" handGraded expanded forceFullCheckWorkButton>
+  <answer type="text" handGraded expanded>
     <label>Explain how you solved the problem</label>
   </answer>
 </p>
@@ -100,6 +100,7 @@ Multiple `<award>{:dn}` components may also be used for answers with more comple
 
 The `handGraded` attribute defers grading for a human to score later. 
  When combined with the `expanded` attribute of a text answer, the result is a 
- graded free-response style question.  The `forceFullCheckWorkButton` attribute was added just for aesthetics.
+ graded free-response style question. The expanded input fills the width available to it,
+ and its full check work button sits beneath it.
 
 
