@@ -967,11 +967,16 @@ export async function replaceCompositeChildren({
                 ),
             );
 
+            // An enclosing composite recorded this child as one entry of its
+            // own range; now that the child has become `replacements.length`
+            // children, widen that range and put the replacements' eligibility
+            // in the entry's place. `potentialListComponents` is indexed from
+            // the range's own `firstInd`, not from the parent's children.
             for (let otherCompositeObject of parent.compositeReplacementActiveRange) {
                 if (otherCompositeObject.lastInd >= childInd) {
                     otherCompositeObject.lastInd += replacements.length - 1;
                     otherCompositeObject.potentialListComponents.splice(
-                        childInd,
+                        childInd - otherCompositeObject.firstInd,
                         1,
                         ...replacementsCanBeInList,
                     );
