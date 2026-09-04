@@ -2720,4 +2720,64 @@ describe("RepeatForSequence tag tests @group3", async () => {
         expect(warnings[0].code).eq("doenet-w0104");
         expect(warnings[0].args).eqls({ reference: "$g[$n]" });
     });
+
+    it("reference to an iteration keeps the nested referent when the index changes", async () => {
+        // The cases above resolve once, while the document is being built. Changing the
+        // index makes the reference copy a *different* iteration and re-resolve, so this
+        // covers the fallback on the update path rather than only the initial one.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="3" />
+
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p name="p2"><m>x = $r[$n]</m></p>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x = 3");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x = 5");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("reference into nested repeats keeps both nested referents", async () => {
+        // Lifting an iteration out of two nested repeats carries references to two
+        // different `valueName`s, each out of scope at the landing site, and each has to
+        // fall back independently.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeatForSequence from="1" to="3" valueName="i" name="outer">
+      <repeatForSequence from="1" to="3" valueName="j" name="inner">
+        <group><number>$i</number> <number>$j</number></group>
+      </repeatForSequence>
+    </repeatForSequence>
+
+    <p name="p2">$outer[2].inner[3]</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("2 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
 });
