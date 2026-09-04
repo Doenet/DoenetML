@@ -479,4 +479,79 @@ $fi.iterates
             ).eq("Title: yes, no, maybe");
         });
     });
+
+    it("commas follow the innermost composite", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<p name="listOnly"><numberList>1 2 3</numberList></p>
+<p name="listOff"><numberList asList="false">1 2 3</numberList></p>
+<p name="listInsideGroup"><group><numberList>1 2 3</numberList></group></p>
+<p name="listInsideGroupNoList"><group asList="false"><numberList>1 2 3</numberList></group></p>
+<p name="noListInsideList"><group asList><numberList asList="false">1 2 3</numberList></group></p>
+<p name="groupIsOneItem"><group asList><group><number>1</number><number>2</number></group><number>3</number></group></p>
+<p name="twoLists"><group><numberList>1 2</numberList><numberList>3 4</numberList></group></p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#listOnly").should("have.text", "1, 2, 3");
+        cy.get("#listOff").should("have.text", "123");
+        cy.get("#listInsideGroup").should("have.text", "1, 2, 3");
+        cy.get("#listInsideGroupNoList").should("have.text", "1, 2, 3");
+        cy.get("#noListInsideList").should("have.text", "123");
+        cy.get("#groupIsOneItem").should("have.text", "12, 3");
+        cy.get("#twoLists").should("have.text", "1, 23, 4");
+    });
+
+    it("skips empty and hidden replacements", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<p name="emptyInMiddle"><group asList><number>1</number><sequence length="0" /><number>2</number></group></p>
+<p name="emptyAtStart"><group asList><sequence length="0" /><number>1</number><number>2</number></group></p>
+<p name="hiddenItem"><group asList><number hide>1</number><number>2</number><number>3</number></group></p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#emptyInMiddle").should("have.text", "1, 2");
+        cy.get("#emptyAtStart").should("have.text", "1, 2");
+        cy.get("#hiddenItem").should("have.text", "2, 3");
+    });
+
+    it("keeps the commas through a reference to a list or a repeat", () => {
+        // A reference to a composite must show the same commas the composite
+        // itself shows. `$r[1]` and `$g` do not today: a reference that lands
+        // on a composite copies its final replacements, flattening away the
+        // inner composite whose `asList` made the list — see the `it.fails`
+        // cases in `compositeCommas.test.tsx`.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<setup>
+    <numberList name="nl">1 2 3 4</numberList>
+    <group name="g"><numberList>1 2 3 4</numberList></group>
+    <repeatForSequence name="r" from="1" to="2">$nl</repeatForSequence>
+</setup>
+<p name="toList">$nl</p>
+<p name="extendList"><numberList extend="$nl" /></p>
+<p name="toRepeat">$r</p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#toList").should("have.text", "1, 2, 3, 4");
+        cy.get("#extendList").should("have.text", "1, 2, 3, 4");
+        cy.get("#toRepeat").should("have.text", "1, 2, 3, 4, 1, 2, 3, 4");
+    });
 });
