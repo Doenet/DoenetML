@@ -8,7 +8,9 @@ import { returnSubmitLabelStateVariableDefinitions } from "./answer";
  * A section aggregates several credit variables — `creditAchieved`,
  * `creditAchievedForProgress`, `creditAchievedIfSubmit` — that differ only in
  * which variable is read off each descendant, so they all gather their
- * dependencies here. Each descendant's value arrives as `<variableName><index>`
+ * dependencies here. (`creditAchievedForCheckWork` is the exception: it usually
+ * takes no dependencies at all, and reads two variables off a descendant when it
+ * does. See {@link returnCheckWorkCreditStateVariableDefinition}.) Each descendant's value arrives as `<variableName><index>`
  * alongside the `scoredDescendants` that give the indices their meaning; when
  * the section does not aggregate scores, nothing but `aggregateScores` is
  * depended on.
@@ -75,6 +77,193 @@ function aggregateCreditOverScoredDescendants(
     }
 
     return totalWeight > 0 ? creditSum / totalWeight : creditWhenNothingScored;
+}
+
+/**
+ * The credit a section-wide check-work button reports, and the credit the
+ * answers under it are colored by.
+ *
+ * This is what `creditAchieved` reports except in one case: when every scored
+ * descendant carries `weight="0"`. The two differ there because they answer
+ * different questions. `creditAchieved` asks what the section is *worth* —
+ * nothing carries weight, so nothing can be lost, and the reader is credited in
+ * full, the same rule that credits a reader for a section holding no answers at
+ * all. The button asks whether there is work here still to get right, and an
+ * ungraded answer is still an answer, so when no weight distinguishes the
+ * descendants they are weighed equally rather than treated as absent.
+ * Otherwise the weighted mean is taken, and a zero-weight descendant among
+ * weighted ones contributes nothing, exactly as it does to the score.
+ *
+ * Only called in the cases `checkWorkCreditNeedsAggregating` singles out; every
+ * other case resolves to `null` without depending on anything. Each descendant's
+ * credit arrives as `creditForCheckWork<index>`, carrying its
+ * `creditAchievedForCheckWork` when it has one (an aggregating container, so a
+ * zero-weight subsection passes its own equal-weighted credit up) and otherwise
+ * its `creditAchieved` (an `<answer>`, or a container that took the `null` path).
+ *
+ * @param {object} dependencyValues - the resolved dependencies
+ * @returns {number} a credit between 0 and 1
+ */
+function aggregateCreditForCheckWork(dependencyValues) {
+    const descendants = dependencyValues.scoredDescendants;
+
+    const totalWeight = descendants.reduce(
+        (sum, descendant) => sum + descendant.stateValues.weight,
+        0,
+    );
+    const useUnitWeights = !(totalWeight > 0);
+
+    let creditSum = 0;
+    let weightSum = 0;
+
+    for (const [ind, descendant] of descendants.entries()) {
+        const weight = useUnitWeights ? 1 : descendant.stateValues.weight;
+        const stateValues =
+            dependencyValues["creditForCheckWork" + ind].stateValues;
+        const credit =
+            stateValues.creditAchievedForCheckWork ??
+            stateValues.creditAchieved;
+
+        creditSum += credit * weight;
+        weightSum += weight;
+    }
+
+    return creditSum / weightSum;
+}
+
+/**
+ * Whether `creditAchievedForCheckWork` has to aggregate over the scored
+ * descendants at all, decided from values that are already resolved so that the
+ * usual case costs nothing.
+ *
+ * The variable exists for a rare shape — a section-wide check work whose
+ * answers all carry `weight="0"` — and everywhere else it would report exactly
+ * what `creditAchieved` reports. Rather than build a second aggregation graph
+ * beside the three that already fan out from every scored container
+ * (`creditAchieved`, `creditAchievedForProgress`, `creditAchievedIfSubmit`),
+ * and so add another staleness path to walk on every submission, those cases
+ * take no dependencies and resolve to `null`; the renderer and `Input.js` read
+ * `creditAchievedForCheckWork ?? creditAchieved` and land on the same number.
+ *
+ * @param {object} stateValues - `suppressAnswerSubmitButtons`,
+ *   `scoredDescendants`, and (unless `alwaysAggregate`) `aggregateScores`
+ * @param {boolean} alwaysAggregate - for the document, which has no
+ *   `aggregateScores` to consult
+ * @returns {boolean} whether the aggregating dependencies are needed
+ */
+function checkWorkCreditNeedsAggregating(stateValues, alwaysAggregate) {
+    // Outside a section-wide check work there is no section-wide button and no
+    // section-driven answer coloring, so nothing reads this.
+    if (!stateValues.suppressAnswerSubmitButtons) {
+        return false;
+    }
+
+    // A non-aggregating container nested inside one: `scoredDescendants`
+    // flattens it away in favor of its own scored descendants, so nothing reads
+    // this either.
+    if (!alwaysAggregate && !stateValues.aggregateScores) {
+        return false;
+    }
+
+    const descendants = stateValues.scoredDescendants;
+
+    // Nothing scored: `creditAchieved` already credits it in full, which is the
+    // answer here too.
+    if (descendants.length === 0) {
+        return false;
+    }
+
+    // Something carries weight, so the weighted mean applies — and with every
+    // descendant a leaf, that mean *is* `creditAchieved`. An aggregating
+    // descendant still has to be asked, because it may be a subsection whose own
+    // descendants all carry `weight="0"`.
+    const anyPositiveWeight = descendants.some(
+        (descendant) => descendant.stateValues.weight > 0,
+    );
+    const anyAggregatingDescendant = descendants.some(
+        // The same test `scoredDescendants` uses to tell a container it keeps
+        // from a leaf it cannot look inside.
+        (descendant) => descendant.stateValues.scoredDescendants !== undefined,
+    );
+
+    return !anyPositiveWeight || anyAggregatingDescendant;
+}
+
+/**
+ * The `creditAchievedForCheckWork` state variable: the credit a section-wide
+ * check-work button reports, which is `null` — meaning "read `creditAchieved`
+ * instead" — in every case but the one described on
+ * {@link aggregateCreditForCheckWork}.
+ *
+ * Shared so the document, which always aggregates and so cannot use the
+ * `aggregateScores` the shared set defines, gets the same rule rather than a
+ * second copy of it.
+ *
+ * @param {object} [options]
+ * @param {boolean} [options.alwaysAggregate] - skip the `aggregateScores` check
+ * @returns {object} a state variable definition
+ */
+export function returnCheckWorkCreditStateVariableDefinition({
+    alwaysAggregate = false,
+} = {}) {
+    const stateVariablesDeterminingDependencies = [
+        "suppressAnswerSubmitButtons",
+        "scoredDescendants",
+    ];
+    if (!alwaysAggregate) {
+        stateVariablesDeterminingDependencies.push("aggregateScores");
+    }
+
+    return {
+        forRenderer: true,
+        defaultValue: null,
+        stateVariablesDeterminingDependencies,
+        returnDependencies({ stateValues }) {
+            if (
+                !checkWorkCreditNeedsAggregating(stateValues, alwaysAggregate)
+            ) {
+                return {};
+            }
+
+            const dependencies = {
+                scoredDescendants: {
+                    dependencyType: "stateVariable",
+                    variableName: "scoredDescendants",
+                },
+            };
+
+            for (const [
+                ind,
+                descendant,
+            ] of stateValues.scoredDescendants.entries()) {
+                dependencies["creditForCheckWork" + ind] = {
+                    dependencyType: "multipleStateVariables",
+                    componentIdx: descendant.componentIdx,
+                    variableNames: [
+                        "creditAchievedForCheckWork",
+                        "creditAchieved",
+                    ],
+                    // An `<answer>` has only the latter, which is what its
+                    // check-work credit would be anyway.
+                    variablesOptional: true,
+                };
+            }
+
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            if (dependencyValues.scoredDescendants === undefined) {
+                return { setValue: { creditAchievedForCheckWork: null } };
+            }
+
+            return {
+                setValue: {
+                    creditAchievedForCheckWork:
+                        aggregateCreditForCheckWork(dependencyValues),
+                },
+            };
+        },
+    };
 }
 
 /**
@@ -204,7 +393,9 @@ export function returnScoredSectionAttributes() {
  * `numAttemptsLeft`) — which, when exhausted, disables the enclosed answers via
  * their own propagated `numAttemptsLeft`. The aggregation portion includes
  * `scoredDescendants`, `aggregateScores`, `creditAchieved`, and related
- * variables. The document reuses this set but deletes `aggregateScores` and
+ * variables — including `creditAchievedForCheckWork`, the credit the
+ * section-wide button reports when weights alone would say the section is
+ * already worth full marks. The document reuses this set but deletes `aggregateScores` and
  * overrides `creditAchieved`; see `Document.js`.
  */
 export function returnScoredSectionStateVariableDefinition() {
@@ -631,6 +822,9 @@ export function returnScoredSectionStateVariableDefinition() {
             };
         },
     };
+
+    stateVariableDefinitions.creditAchievedForCheckWork =
+        returnCheckWorkCreditStateVariableDefinition();
 
     stateVariableDefinitions.creditAchievedIfSubmit = {
         defaultValue: 0,

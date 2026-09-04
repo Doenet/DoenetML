@@ -202,6 +202,11 @@ export default class Input extends InlineComponent {
                             stateValues.sectionDeterminingColorCorrectness,
                         variableNames: [
                             "justSubmitted",
+                            // The section colors its inputs by the same credit
+                            // its button reports, which parts company with
+                            // `creditAchieved` only when every answer under it
+                            // carries `weight="0"`; `null` otherwise.
+                            "creditAchievedForCheckWork",
                             "creditAchieved",
                             "showCorrectness",
                             "colorCorrectness",
@@ -387,7 +392,10 @@ export default class Input extends InlineComponent {
                 const comp =
                     dependencyValues.componentDeterminingDisplayedCorrectness;
                 if (comp) {
-                    const overallCredit = comp.stateValues.creditAchieved ?? 0;
+                    const overallCredit =
+                        comp.stateValues.creditAchievedForCheckWork ??
+                        comp.stateValues.creditAchieved ??
+                        0;
                     // Per-input coloring when colorInputsSeparately is active.
                     const creditAchievedPerInput =
                         dependencyValues.answerCreditAchievedPerInput

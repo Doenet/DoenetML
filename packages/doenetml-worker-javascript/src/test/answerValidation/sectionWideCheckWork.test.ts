@@ -586,4 +586,172 @@ describe("section-wide check work attribute tests @group2", async () => {
             ),
         ).eq(true);
     });
+    // A container that is worth no points is credited in full — that is how a
+    // reader gets credit for a document holding no answers, and how a
+    // `<cascade>` step with nothing to answer stops blocking the next one. When
+    // the container does hold answers and they all carry `weight="0"`, the
+    // scoring rule still says "worth nothing, so nothing lost", but the button
+    // is being asked something else: are these answers right? That question is
+    // answered by `creditAchievedForCheckWork`, which is `null` — meaning "the
+    // score is the answer here too" — everywhere else.
+
+    async function submit_two_answers(
+        core: PublicDoenetMLCore,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        responses: string[],
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        for (const [ind, latex] of responses.entries()) {
+            await updateMathInputValue({
+                latex,
+                componentIdx:
+                    stateVariables[await resolvePathToNodeIdx(`a${ind + 1}`)]
+                        .stateValues.inputChildren[0].componentIdx,
+                core,
+            });
+        }
+        for (let ind = 0; ind < responses.length; ind++) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(`a${ind + 1}`),
+                core,
+            });
+        }
+    }
+
+    it("check work reports the answers when every weight is zero", async () => {
+        const doenetML = `
+  <p name="p" sectionWideCheckWork>
+    1: <answer name="a1" weight="0">1</answer>,
+    2: <answer name="a2" weight="0">2</answer>
+  </p>
+  `;
+
+        for (const [responses, creditForCheckWork] of [
+            [["3", "4"], 0],
+            [["1", "4"], 0.5],
+            [["1", "2"], 1],
+        ] as [string[], number][]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            await submit_two_answers(core, resolvePathToNodeIdx, responses);
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const p = stateVariables[await resolvePathToNodeIdx("p")];
+
+            expect(p.stateValues.creditAchievedForCheckWork).eq(
+                creditForCheckWork,
+            );
+            // The score is untouched: nothing in the paragraph carries weight,
+            // so there is still nothing to lose.
+            expect(p.stateValues.creditAchieved).eq(1);
+        }
+    });
+
+    it("a zero-weight answer beside a weighted one still counts for nothing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p name="p" sectionWideCheckWork>
+    1: <answer name="a1">1</answer>,
+    2: <answer name="a2" weight="0">2</answer>
+  </p>
+  `,
+        });
+
+        await submit_two_answers(core, resolvePathToNodeIdx, ["1", "999"]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const p = stateVariables[await resolvePathToNodeIdx("p")];
+
+        // One answer carries weight, so the ordinary weighted rule applies and
+        // the wrong zero-weight answer contributes nothing to either value.
+        expect(p.stateValues.creditAchieved).eq(1);
+        expect(p.stateValues.creditAchievedForCheckWork).eq(null);
+    });
+
+    it("check work credit is null when the score already answers the question", async () => {
+        // `null` is not an absence of information, it is the whole point: the
+        // core builds no aggregating dependencies in these cases, so submitting
+        // an answer has no second credit chain to walk. A change that starts
+        // returning a number here has quietly added that cost back.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p name="pWeighted" sectionWideCheckWork>
+    1: <answer name="a1">1</answer>,
+    2: <answer name="a2">2</answer>
+  </p>
+  <p name="pEmpty" sectionWideCheckWork>no answers here</p>
+  <section name="secOrdinary" aggregateScores>
+    <answer name="a3" weight="0">3</answer>
+  </section>
+  `,
+        });
+
+        await submit_two_answers(core, resolvePathToNodeIdx, ["1", "999"]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Normal weights: the weighted mean is the score.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pWeighted")].stateValues
+                .creditAchievedForCheckWork,
+        ).eq(null);
+        // Nothing to check, so the "credit for opening it" rule stands and the
+        // button reports the score, as it always has.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pEmpty")].stateValues
+                .creditAchievedForCheckWork,
+        ).eq(null);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pEmpty")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        // No section-wide check work at all, even with a zero-weight answer:
+        // there is no button to report to.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("secOrdinary")]
+                .stateValues.creditAchievedForCheckWork,
+        ).eq(null);
+    });
+
+    it("a zero-weight section passes its check work credit up", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d" sectionWideCheckWork>
+    <problem name="prob">
+      1: <answer name="a1" weight="0">1</answer>,
+      2: <answer name="a2" weight="0">2</answer>
+    </problem>
+  </document>
+  `,
+        });
+
+        await submit_two_answers(core, resolvePathToNodeIdx, ["1", "999"]);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The problem carries the default weight 1, so the document's weighted
+        // mean is the problem's credit — which, by the scoring rule, is a full
+        // 1. The button has to look past that to the answers themselves.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("prob")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                .creditAchieved,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("prob")].stateValues
+                .creditAchievedForCheckWork,
+        ).eq(0.5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                .creditAchievedForCheckWork,
+        ).eq(0.5);
+    });
 });

@@ -16,6 +16,22 @@ export type ValidationState =
     "unvalidated" | "correct" | "incorrect" | "partialcorrect";
 
 /**
+ * The credit this button reports, which is not always the credit the component
+ * is worth.
+ *
+ * A section-wide check-work button whose answers all carry `weight="0"` is the
+ * one place the two part company: the section is worth full marks because
+ * nothing in it can lose any, but the button is being asked whether the answers
+ * are right. The core hands such a section a separate
+ * `creditAchievedForCheckWork`, and hands `null` to everything else — every
+ * other section, and every `<answer>` and input, which do not carry the variable
+ * at all — so the fallback here is the usual path rather than the exception.
+ */
+function checkWorkCredit(SVs: Record<string, any>): number {
+    return SVs.creditAchievedForCheckWork ?? SVs.creditAchieved;
+}
+
+/**
  * Calculate if the current response of an answer blank has already been validated,
  * and, if so, the correctness of the response.
  *
@@ -26,9 +42,10 @@ export function calculateValidationState(
 ): ValidationState {
     let validationState: ValidationState = "unvalidated";
     if (SVs.justSubmitted || SVs.numAttemptsLeft < 1) {
-        if (SVs.creditAchieved === 1) {
+        const creditAchieved = checkWorkCredit(SVs);
+        if (creditAchieved === 1) {
             validationState = "correct";
-        } else if (SVs.creditAchieved === 0) {
+        } else if (creditAchieved === 0) {
             validationState = "incorrect";
         } else {
             validationState = "partialcorrect";
@@ -180,7 +197,7 @@ export function createCheckWorkComponent(
             );
         } else {
             // partially correct
-            const percent = Math.round(SVs.creditAchieved * 100);
+            const percent = Math.round(checkWorkCredit(SVs) * 100);
             const partialText = SVs.creditIsReducedByAttempt
                 ? t("answer-percent-credit", { percent }, `${percent}% Credit`)
                 : t(
