@@ -192,6 +192,47 @@ export class RefResolutionDependency extends Dependency {
         this.missingComponentBlockers = [];
     }
 
+    /**
+     * The origins to re-resolve this composite's reference from, best first.
+     *
+     * A reference is normally re-resolved from where it now sits, which is what lets a
+     * copied reference find a copied referent: every iteration of a `<repeat>` supplies
+     * its own `valueName`, so the copy of `$i` in each iteration must resolve against
+     * that iteration and not the template.
+     *
+     * A copy can also land where the name it references is not in scope at all, though.
+     * `$r[3]` on `<repeat name="r" valueName="i"><number>$i</number></repeat>` copies
+     * the `<number>` and the `$i` inside it to wherever the reference appears, and `i`
+     * lives inside the repeat, invisible from there. Such a copy shadows the component
+     * it was copied from, and still refers to whatever that one refers to, so fall back
+     * on resolving the reference where the shadowed component sits.
+     */
+    *originsToResolveFrom(composite: any) {
+        const visitedSources = new Set<number>();
+        const yieldedOrigins = new Set<number>();
+
+        let source = composite;
+
+        while (
+            source?.refResolution &&
+            !visitedSources.has(source.componentIdx)
+        ) {
+            visitedSources.add(source.componentIdx);
+
+            const origin = source.refResolution.nodesInResolvedPath[0];
+
+            if (origin != undefined && !yieldedOrigins.has(origin)) {
+                yieldedOrigins.add(origin);
+                yield origin;
+            }
+
+            source =
+                this.dependencyHandler._components[
+                    source.shadows?.componentIdx
+                ];
+        }
+    }
+
     async determineDownstreamComponents({ force = false } = {}) {
         this.compositeReplacementDependencies = [];
 
@@ -338,45 +379,55 @@ export class RefResolutionDependency extends Dependency {
         //     skip_parent_search,
         // );
 
-        try {
-            refResolution = this.dependencyHandler.core.resolvePath!(
-                { path: resolveComponentResult.path },
-                composite.refResolution.nodesInResolvedPath[0],
-                skip_parent_search,
-            );
-        } catch (e) {
-            // console.log("resolve error", e);
-            if (e === "NonUniqueReferent" || e === "NoReferent") {
-                const referenceText = getDoenetMLStringForReference();
+        let resolutionError: unknown;
 
-                // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
-                // Rather than duplicating code to make the messages,
-                // we could make sure that `ref_resolve` formats the messages in this case, too.
-                this.dependencyHandler.core.addDiagnostic(
-                    codedDiagnostic({
-                        type: "warning",
-                        // Spread rather than a ternary on the value: the
-                        // code has to sit next to `code:` as a literal, or
-                        // `lint:i18n` reads it as a code nothing raises.
-                        ...(e === "NonUniqueReferent"
-                            ? { code: "doenet-w0105" as const }
-                            : { code: "doenet-w0104" as const }),
-                        args: { reference: `$${referenceText}` },
-                        position: composite.position,
-                        sourceDoc: composite.sourceDoc,
-                    }),
+        for (const origin of this.originsToResolveFrom(composite)) {
+            try {
+                refResolution = this.dependencyHandler.core.resolvePath!(
+                    { path: resolveComponentResult.path },
+                    origin,
+                    skip_parent_search,
                 );
-
-                this.extendIdx = -1;
-                this.unresolvedPath = this.originalPath;
-                return {
-                    success: true,
-                    downstreamComponentIndices: [],
-                    downstreamComponentTypes: [],
-                };
-            } else {
-                throw e;
+                resolutionError = undefined;
+                break;
+            } catch (e) {
+                // console.log("resolve error", e);
+                if (e === "NonUniqueReferent" || e === "NoReferent") {
+                    resolutionError = e;
+                } else {
+                    throw e;
+                }
             }
+        }
+
+        if (resolutionError !== undefined) {
+            const referenceText = getDoenetMLStringForReference();
+
+            // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
+            // Rather than duplicating code to make the messages,
+            // we could make sure that `ref_resolve` formats the messages in this case, too.
+            this.dependencyHandler.core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    // Spread rather than a ternary on the value: the
+                    // code has to sit next to `code:` as a literal, or
+                    // `lint:i18n` reads it as a code nothing raises.
+                    ...(resolutionError === "NonUniqueReferent"
+                        ? { code: "doenet-w0105" as const }
+                        : { code: "doenet-w0104" as const }),
+                    args: { reference: `$${referenceText}` },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+
+            this.extendIdx = -1;
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
         }
 
         this.extendIdx = refResolution.nodeIdx;

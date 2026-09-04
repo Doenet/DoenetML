@@ -8,6 +8,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2634,5 +2635,29 @@ describe("RepeatForSequence tag tests @group3", async () => {
         }));
 
         await check_items(2, 2);
+    });
+
+    it("reference to an iteration keeps the referent of a reference nested inside it", async () => {
+        // The copy of `<number>$i</number>` that `$r[3]` creates lands in the `<m>`,
+        // where the repeat's `i` is out of scope. The copy still refers to the third
+        // iteration's `i`, so it resolves where the component it shadows sits rather
+        // than reporting no referent for `$i`.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p name="p2"><m>x_3 = $r[3]</m></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x₃ = 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 });
