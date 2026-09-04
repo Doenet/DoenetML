@@ -526,12 +526,11 @@ $fi.iterates
         cy.get("#hiddenItem").should("have.text", "2, 3");
     });
 
-    it("keeps the commas through a reference to a list or a repeat", () => {
-        // A reference to a composite must show the same commas the composite
-        // itself shows. `$r[1]` and `$g` do not today: a reference that lands
-        // on a composite copies its final replacements, flattening away the
-        // inner composite whose `asList` made the list — see the `it.fails`
-        // cases in `compositeCommas.test.tsx`.
+    it("keeps the commas through a reference to a list, a group, or a repeat", () => {
+        // A reference to a composite shows the same commas the composite
+        // itself shows: a reference that lands on a composite copies its
+        // replacements, keeping whole any composite among them that can be a
+        // list of its own.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -543,7 +542,9 @@ $fi.iterates
 </setup>
 <p name="toList">$nl</p>
 <p name="extendList"><numberList extend="$nl" /></p>
+<p name="toGroup">$g</p>
 <p name="toRepeat">$r</p>
+<p name="toRepeatItem">$r[1]</p>
   `,
                 },
                 "*",
@@ -552,7 +553,9 @@ $fi.iterates
 
         cy.get("#toList").should("have.text", "1, 2, 3, 4");
         cy.get("#extendList").should("have.text", "1, 2, 3, 4");
+        cy.get("#toGroup").should("have.text", "1, 2, 3, 4");
         cy.get("#toRepeat").should("have.text", "1, 2, 3, 4, 1, 2, 3, 4");
+        cy.get("#toRepeatItem").should("have.text", "1, 2, 3, 4");
     });
 
     it("puts the comma where the whitespace between two items was", () => {
