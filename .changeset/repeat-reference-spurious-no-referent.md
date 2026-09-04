@@ -19,6 +19,8 @@ Referencing one iteration of a repeat, as in
 
 copies the iteration's `<number>` — and the `$i` inside it — to where the reference appears. The copy was then re-resolved from where it landed, and `i` lives inside the repeat, invisible from the `<m>`, so the document reported "No referent found for reference: `$i`" even though the reference had resolved and the value showed correctly. The warning went away if the reference or the `<number>` wrapper was removed, which is what made it look spurious.
 
-Re-resolving from where a copy lands is what lets each iteration of a repeat bind `$i` to its own value, so that stays. A copy that lands somewhere the name is out of scope now falls back on resolving the reference where the component it shadows sits, which is where the reference came from and still points.
+Re-resolving from where a copy lands is what lets each iteration of a repeat bind `$i` to its own value, so that stays. A copy that lands somewhere the name is out of scope now falls back on resolving the reference where the component it shadows sits — which is where the reference came from and still points — and keeps falling back however many times the reference has been copied, so referencing the `<m>` above stays quiet too.
+
+A reference that resolves nowhere still reports the same warning it always did, at the same place.
 
 Closes #1424.

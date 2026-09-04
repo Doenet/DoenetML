@@ -208,11 +208,14 @@ export class RefResolutionDependency extends Dependency {
      * it was copied from, and still refers to whatever that one refers to, so fall back
      * on resolving the reference where the shadowed component sits.
      *
-     * A shadowing copy is a structural duplicate of what it shadows, so every component
-     * in the `shadows` chain carries the same reference — the same path resolved from a
-     * different place — which is what makes their origins interchangeable candidates.
+     * A shadowing copy is a structural duplicate of what it shadows: its `refResolution`
+     * is serialized from the shadowed component's, so the two carry the same reference —
+     * the same path resolved from a different place — which is what makes their origins
+     * interchangeable candidates. That is why the walk stops at the first link with no
+     * `refResolution` of its own: a component whose reference did not come from the one
+     * it shadows says nothing about where this reference should resolve.
      */
-    *originsToResolveFrom(composite: any) {
+    *originsToResolveFrom(composite: any): Generator<number> {
         // Guards against a cycle in the `shadows` chain, so the walk terminates even if
         // the chain does not.
         const visitedSources = new Set<number>();

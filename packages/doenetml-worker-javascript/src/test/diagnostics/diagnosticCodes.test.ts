@@ -335,12 +335,13 @@ describe("coded diagnostics reach the record @group4", () => {
         );
     });
 
-    // The other branch of the same `catch`. Both codes have to sit next to
-    // `code:` as literals for `lint:i18n` to see them raised, which is why
+    // The other branch of the same warning site — the one `RefResolutionDependency`
+    // reaches once no candidate origin resolves the reference. Both codes have to sit
+    // next to `code:` as literals for `lint:i18n` to see them raised, which is why
     // that site spreads a ternary of objects rather than choosing the value —
     // and a workaround that only one branch exercises is a workaround nobody
     // would notice breaking.
-    it("codes the other resolution failure the same catch reports", async () => {
+    it("codes the other resolution failure the same warning site reports", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <repeat name="r" for="1 2" valueName="v">

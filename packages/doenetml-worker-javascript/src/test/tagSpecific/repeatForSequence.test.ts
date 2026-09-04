@@ -2684,4 +2684,28 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
+
+    it("reference to an iteration still warns when the nested reference resolves nowhere", async () => {
+        // The counterpart of the two cases above: falling back to the origins up the
+        // `shadows` chain must not swallow a reference that has no referent anywhere.
+        // `$g[1]` indexes past the end of an empty group, which the Rust resolver leaves
+        // for the worker, so every candidate origin fails and the warning is still
+        // raised — once, and reported at the reference the author wrote.
+        let { core } = await createTestCore({
+            doenetML: `
+    <group name="g" />
+
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number extend="$g[1]" />
+    </repeatForSequence></p>
+
+    <p name="p2"><m>x_3 = $r[3]</m></p>
+    `,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0104");
+        expect(warnings[0].args).eqls({ reference: "$g[1]" });
+    });
 });
