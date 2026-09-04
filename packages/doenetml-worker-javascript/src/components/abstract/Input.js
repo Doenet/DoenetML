@@ -205,9 +205,9 @@ export default class Input extends InlineComponent {
                             // The section colors its inputs by the same credit
                             // its button reports, so the two can never
                             // disagree. It parts company with `creditAchieved`
-                            // only when nothing scored under the section
-                            // carries any weight, and is `null` otherwise —
-                            // hence the fallback below.
+                            // only where a region under the section carries no
+                            // weight at all, and is `null` otherwise — hence
+                            // the fallback below.
                             "creditAchievedForCheckWork",
                             "creditAchieved",
                             "showCorrectness",

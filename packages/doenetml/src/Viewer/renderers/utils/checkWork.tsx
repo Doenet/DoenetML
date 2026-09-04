@@ -19,13 +19,14 @@ export type ValidationState =
  * The credit this button reports, which is not always the credit the component
  * is worth.
  *
- * A section-wide check-work button whose answers all carry `weight="0"` is the
- * one place the two part company: the section is worth full marks because
- * nothing in it can lose any, but the button is being asked whether the answers
- * are right. The core hands such a section a separate
- * `creditAchievedForCheckWork` and hands `null` to every other section, so the
- * fallback here is the usual path rather than the exception. An `<answer>` or
- * an input does not carry the variable at all, and falls back the same way.
+ * A section-wide check-work button over a region that carries no weight — every
+ * answer under it `weight="0"`, or a subsection of it in that state — is where
+ * the two part company: the region is worth full marks because nothing in it can
+ * lose any, but the button is being asked whether the answers are right. The
+ * core hands such a section a separate `creditAchievedForCheckWork` and hands
+ * `null` to every other section, so the fallback here is the usual path rather
+ * than the exception. An `<answer>` or an input does not carry the variable at
+ * all, and falls back the same way.
  */
 function checkWorkCredit(SVs: Record<string, any>): number {
     return SVs.creditAchievedForCheckWork ?? SVs.creditAchieved;

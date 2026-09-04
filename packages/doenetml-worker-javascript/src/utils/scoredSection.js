@@ -86,23 +86,27 @@ function aggregateCreditOverScoredDescendants(
  * The credit a section-wide check-work button reports, and the credit the
  * answers under it are colored by.
  *
- * This is what `creditAchieved` reports except in one case: when every scored
- * descendant carries `weight="0"`. The two differ there because they answer
- * different questions. `creditAchieved` asks what the section is *worth* —
- * nothing carries weight, so nothing can be lost, and the reader is credited in
- * full, the same rule that credits a reader for a section holding no answers at
- * all. The button asks whether there is work here still to get right, and an
- * ungraded answer is still an answer, so when no weight distinguishes the
- * descendants they are weighed equally rather than treated as absent.
- * Otherwise the weighted mean is taken, and a zero-weight descendant among
- * weighted ones contributes nothing, exactly as it does to the score.
+ * This is what `creditAchieved` reports except where a whole region under the
+ * button carries no weight at all: a container whose scored descendants all
+ * have `weight="0"`, whether that container is the section itself or a
+ * subsection of one whose other parts are weighted. The two differ there
+ * because they answer different questions. `creditAchieved` asks what the
+ * container is *worth* — nothing carries weight, so nothing can be lost, and
+ * the reader is credited in full, the same rule that credits a reader for a
+ * container holding no answers at all. The button asks whether there is work
+ * here still to get right, and an ungraded answer is still an answer, so when
+ * no weight distinguishes the descendants they are weighed equally rather than
+ * treated as absent. Otherwise the weighted mean is taken, and a zero-weight
+ * descendant among weighted ones contributes nothing, exactly as it does to the
+ * score.
  *
  * Only called in the cases `checkWorkCreditNeedsAggregating` singles out; every
  * other case resolves to `null` without depending on anything. Each descendant's
  * credit arrives as `creditForCheckWork<index>`, carrying its
  * `creditAchievedForCheckWork` when it has one (an aggregating container, so a
- * zero-weight subsection passes its own equal-weighted credit up) and otherwise
- * its `creditAchieved` (an `<answer>`, or a container that took the `null` path).
+ * zero-weight subsection passes its own equal-weighted credit up in place of the
+ * full marks its score claims) and otherwise its `creditAchieved` (an
+ * `<answer>`, or a container that took the `null` path).
  *
  * @param {object} dependencyValues - the resolved dependencies
  * @returns {number} a credit between 0 and 1
@@ -142,14 +146,23 @@ function aggregateCreditForCheckWork(dependencyValues) {
  * descendants at all, decided from values that are already resolved so that the
  * usual case costs nothing.
  *
- * The variable exists for a rare shape — a section-wide check work whose
- * answers all carry `weight="0"` — and everywhere else it would report exactly
- * what `creditAchieved` reports. Rather than build a second aggregation graph
- * beside the three that already fan out from every scored container
- * (`creditAchieved`, `creditAchievedForProgress`, `creditAchievedIfSubmit`),
- * and so add another staleness path to walk on every submission, those cases
- * take no dependencies and resolve to `null`; the renderer and `Input.js` read
- * `creditAchievedForCheckWork ?? creditAchieved` and land on the same number.
+ * The variable exists for a rare shape — a section-wide check work with a
+ * region under it that carries no weight at all — and everywhere else it would
+ * report exactly what `creditAchieved` reports. Rather than build a second
+ * aggregation graph beside the three that already fan out from every scored
+ * container (`creditAchieved`, `creditAchievedForProgress`,
+ * `creditAchievedIfSubmit`), and so add another staleness path to walk on every
+ * submission, those cases take no dependencies and resolve to `null`; the
+ * renderer and `Input.js` read `creditAchievedForCheckWork ?? creditAchieved`
+ * and land on the same number.
+ *
+ * Everything consulted here is already resolved for every scored container —
+ * `creditAchieved` is itself keyed on `aggregateScores` and `scoredDescendants`,
+ * and `showCheckWork` on `suppressAnswerSubmitButtons` — so reaching the `null`
+ * answer costs no more than the test. The one place the chain is entered
+ * despite ordinary weights is a section-wide check work holding an aggregating
+ * subsection, since only that subsection can say whether it is a zero-weight
+ * region; the recursion then stops at the first level that is not.
  *
  * @param {object} stateValues - `suppressAnswerSubmitButtons`,
  *   `scoredDescendants`, and (unless `alwaysAggregate`) `aggregateScores`
