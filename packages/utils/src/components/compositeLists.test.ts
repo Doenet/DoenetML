@@ -33,7 +33,9 @@ function sketch(groups: CompositeGroup<string>[]): string {
         .join(" ");
 }
 
-const isBlank = (value: string) => value.trim() === "";
+function isBlank(value: string) {
+    return value.trim() === "";
+}
 
 describe("groupCompositeRanges", () => {
     it("hands back the children when no composite contributed any", () => {

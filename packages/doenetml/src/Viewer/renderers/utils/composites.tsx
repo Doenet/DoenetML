@@ -7,11 +7,16 @@ import {
     type CompositeRange,
 } from "@doenet/utils";
 
-// If consecutive children are from a composite with asList set,
-// then display those children separated by commas.
-// compositeReplacementActiveRange is an array for each composite that
-// contributed to the active children of the component.
-
+/**
+ * Put `", "` between the replacements of a composite that asks to be shown as
+ * a list, and wrap every composite's replacements in a span carrying its name.
+ *
+ * `compositeReplacementActiveRange` is the core's record of which of
+ * `children` each composite produced. Which of those composites are lists, and
+ * where the commas go among a list's items, is decided by the grouping in
+ * `@doenet/utils`, shared with the `text` state variable so that what a reader
+ * sees and what `text` says cannot drift apart.
+ */
 export function addCommasForCompositeRanges({
     compositeReplacementActiveRange,
     children,
@@ -41,39 +46,30 @@ export function addCommasForCompositeRanges({
         removedInd,
     });
 
-    return renderGroups(groups);
+    return groups.map(renderGroup);
 }
 
 function isBlankStringChild(child: React.ReactNode) {
     return typeof child === "string" && child.trim() === "";
 }
 
-function renderGroups(
-    groups: CompositeGroup<React.ReactNode>[],
-): React.ReactNode[] {
-    const rendered: React.ReactNode[] = [];
-
-    for (const group of groups) {
-        if (group.kind === "child") {
-            rendered.push(group.value);
-            continue;
-        }
-
-        const items = group.asList
-            ? separateWithCommas(group.items)
-            : renderGroups(group.items);
-
-        // Whether or not we added commas, we still add a span with the id of
-        // the composite so that links to the composite name will scroll to the
-        // right location.
-        rendered.push(
-            <React.Fragment key={group.range.compositeName}>
-                <span id={group.range.compositeName}>{items}</span>
-            </React.Fragment>,
-        );
+/**
+ * A child as it was given, or a composite's items inside a span with the id of
+ * the composite, so that a link to the composite's name scrolls to its place —
+ * whether or not the composite became a list.
+ */
+function renderGroup(group: CompositeGroup<React.ReactNode>): React.ReactNode {
+    if (group.kind === "child") {
+        return group.value;
     }
-
-    return rendered;
+    const items = group.asList
+        ? separateWithCommas(group.items)
+        : group.items.map(renderGroup);
+    return (
+        <span key={group.range.compositeName} id={group.range.compositeName}>
+            {items}
+        </span>
+    );
 }
 
 /**
@@ -87,8 +83,7 @@ function separateWithCommas(
     const commaBefore = listCommaPositions(
         items.map((item) => isBlankGroup(item, isBlankStringChild)),
     );
-    return items.flatMap((item, ind) => [
-        ...(commaBefore[ind] ? [", "] : []),
-        ...renderGroups([item]),
-    ]);
+    return items.flatMap((item, ind) =>
+        commaBefore[ind] ? [", ", renderGroup(item)] : [renderGroup(item)],
+    );
 }

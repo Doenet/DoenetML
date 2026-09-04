@@ -108,19 +108,9 @@ export function groupCompositeRanges<T>({
     endInd = children.length - 1,
     removedInd = null,
 }: GroupCompositeRangesOptions<T>): CompositeGroup<T>[] {
-    if (!ranges || ranges.length === 0) {
-        const items: CompositeGroup<T>[] = [];
-        for (let ind = startInd; ind <= endInd; ind++) {
-            if (!isAbsent(children[ind])) {
-                items.push({ kind: "child", value: children[ind], index: ind });
-            }
-        }
-        return items;
-    }
-
     const { items } = groupRange({
         children,
-        ranges,
+        ranges: ranges ?? [],
         startInd,
         endInd,
         eligibility: null,
@@ -170,7 +160,7 @@ function groupRange<T>({
     // are not picked up as plain ones.
     let nextInd = startInd;
 
-    const addPlainChildren = (upTo: number) => {
+    function addPlainChildren(upTo: number) {
         for (let ind = nextInd; ind < upTo; ind++) {
             const value = children[ind];
             if (isAbsent(value)) {
@@ -181,7 +171,7 @@ function groupRange<T>({
                 eligible.push(eligibility[ind - startInd] ?? false);
             }
         }
-    };
+    }
 
     for (let rangeInd = 0; rangeInd < ranges.length; rangeInd++) {
         const range = ranges[rangeInd];

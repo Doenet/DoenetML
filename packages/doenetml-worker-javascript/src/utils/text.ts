@@ -18,8 +18,9 @@ export function textFromComponent(component: any): string {
     }
 }
 
-const isBlankString = (child: any) =>
-    typeof child === "string" && child.trim() === "";
+function isBlankString(child: any) {
+    return typeof child === "string" && child.trim() === "";
+}
 
 /**
  * Concatenate the text from `children` into one string, putting commas between
@@ -43,41 +44,36 @@ export function textFromChildren(
         skipRange: (range) => Boolean(range.hidden),
     });
 
-    return textFromGroups(groups, textFromComponentConverter);
+    return groups
+        .map((group) => textFromGroup(group, textFromComponentConverter))
+        .join("");
 }
 
-function textFromGroups(
-    groups: CompositeGroup<any>[],
-    convert: (value: any, index: number, array: any[]) => string,
+/** The text of one child, or of everything one composite produced. */
+function textFromGroup(
+    group: CompositeGroup<any>,
+    convert: (value: any) => string,
 ): string {
-    return groups
-        .map((group) => {
-            if (group.kind === "child") {
-                return convert(group.value, 0, [group.value]);
-            }
-            const parts = group.items.map((item) =>
-                textFromGroups([item], convert),
-            );
-            if (!group.asList) {
-                return parts.join("");
-            }
-            // A part that came out empty — a hidden child, say — is no more an
-            // item of the list than whitespace is.
-            const commaBefore = listCommaPositions(
-                group.items.map(
-                    (item, ind) =>
-                        parts[ind] === "" || isBlankGroup(item, isBlankString),
-                ),
-            );
-            // Whitespace an item's own text ends with is left off in front of
-            // the comma that follows it.
-            return parts
-                .map((part, ind) =>
-                    commaBefore[ind + 1] ? part.trimEnd() : part,
-                )
-                .map((part, ind) => (commaBefore[ind] ? ", " + part : part))
-                .join("");
-        })
+    if (group.kind === "child") {
+        return convert(group.value);
+    }
+    const parts = group.items.map((item) => textFromGroup(item, convert));
+    if (!group.asList) {
+        return parts.join("");
+    }
+    // A part that came out empty — a hidden child, say — is no more an item of
+    // the list than whitespace is.
+    const commaBefore = listCommaPositions(
+        group.items.map(
+            (item, ind) =>
+                parts[ind] === "" || isBlankGroup(item, isBlankString),
+        ),
+    );
+    // Whitespace an item's own text ends with is left off in front of the comma
+    // that follows it.
+    return parts
+        .map((part, ind) => (commaBefore[ind + 1] ? part.trimEnd() : part))
+        .map((part, ind) => (commaBefore[ind] ? ", " + part : part))
         .join("");
 }
 

@@ -100,16 +100,9 @@ function stringFromGroups(
             // string (a non-string child becoming a code based on `codePre`).
             strings.push(
                 baseStringFromChildren({
-                    children: context.children,
+                    ...context,
                     startInd: group.index,
                     endInd: group.index,
-                    nonStringIndByChild: context.nonStringIndByChild,
-                    format: context.format,
-                    codePre: context.codePre,
-                    createDisplayedMathString:
-                        context.createDisplayedMathString,
-                    displayedMathSlotForChild:
-                        context.displayedMathSlotForChild,
                 }),
             );
             continue;
