@@ -540,6 +540,12 @@ export class DetermineDependenciesDependency extends Dependency {
             this.dependencyHandler._components[this.upstreamComponentIdx];
 
         for (let varName of this.upstreamVariableNames) {
+            // `resolveItem` clears its `determineDependencies` blockers before it
+            // starts on the rest, and throws if one reappears while it is working,
+            // so a variable that is mid-resolution gets no new blocker here. That
+            // makes it essential that `resolveItem` clear `currentlyResolving` on
+            // every exit, early returns included: a flag left set silences this
+            // dependency for the rest of the variable's life.
             if (!(
                 component &&
                 component.state[varName] &&

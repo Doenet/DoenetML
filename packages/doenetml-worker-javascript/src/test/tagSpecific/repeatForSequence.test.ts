@@ -155,6 +155,49 @@ describe("RepeatForSequence tag tests @group3", async () => {
         ).eq(pText);
     });
 
+    it("index into a nested repeatForSequence from outside a block", async () => {
+        // A reference sitting directly in the document, or in the `extend` of a
+        // component that does, is resolved before the inner repeat has expanded,
+        // so its resolution has to be redone once the inner repeat supplies
+        // index resolutions.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="3" valueName="i" name="a">
+      <repeatForSequence from="1" to="3" valueName="j" name="b">
+        <number name="c">$i + 3$j</number>
+      </repeatForSequence>
+    </repeatForSequence></p>
+
+    <number name="n1" extend="$a[2][1][3]" />
+    <number name="n2" extend="$a[2].b[3]" />
+    <number name="n3" extend="$a[2][1][3].c" />
+    <number name="n4" extend="$a[2].b[3].c" />
+    <number name="n5">$a[2][1][3]</number>
+    <number name="n6">$a[2].b[3]</number>
+    <number name="n7">$a[2][1][3].c</number>
+    <number name="n8">$a[2].b[3].c</number>
+    <p name="p1">$a[2][1][3]</p>
+    <p name="p2">$a[2].b[3]</p>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        for (let i = 1; i <= 8; i++) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(`n${i}`)].stateValues
+                    .value,
+            ).eq(11);
+        }
+
+        for (let name of ["p1", "p2"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq("11");
+        }
+    });
+
     it("three nested repeatForSequences with graphs and copied", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
