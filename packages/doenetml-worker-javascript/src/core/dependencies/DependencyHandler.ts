@@ -2764,43 +2764,21 @@ export class DependencyHandler {
                     });
                 }
                 previousNFailures = nFailures;
-                nFailures = 0;
 
-                for (let blockerType in neededForItem) {
-                    if (blockerType === "determineDependencies") {
-                        throw Error(
-                            `Shouldn't have determine dependencies blocker after determining dependencies: ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`,
-                        );
-                    }
+                let passResult = await this._resolveBlockersOfItem({
+                    neededForItem,
+                    item: { componentIdx, type, stateVariable, dependency },
+                    forceBlockers: false,
+                    tolerateFailures: force,
+                    expandComposites,
+                });
 
-                    // shallow copy, as items may be deleted as resolve items
-                    for (let code of [...neededForItem[blockerType]]) {
-                        let [
-                            blockerComponentIdx,
-                            blockerStateVariable,
-                            blockerDependency,
-                        ] = typeof code === "string" ? code.split("|") : [code];
-
-                        let result: any = await this.resolveItem({
-                            componentIdx: blockerComponentIdx,
-                            type: blockerType,
-                            stateVariable: blockerStateVariable,
-                            dependency: blockerDependency,
-                            //force, //recurseUpstream
-                            expandComposites,
-                        });
-
-                        if (!result.success) {
-                            if (force) {
-                                nFailures++;
-                            } else {
-                                // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
-                                // this.resolveLevels--;
-                                return result;
-                            }
-                        }
-                    }
+                if (passResult.failure) {
+                    // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
+                    // this.resolveLevels--;
+                    return passResult.failure;
                 }
+                nFailures = passResult.nFailures;
             }
 
             if (nFailures > 0) {
@@ -2816,39 +2794,18 @@ export class DependencyHandler {
                 });
 
                 while (Object.keys(neededForItem).length > 0) {
-                    for (let blockerType in neededForItem) {
-                        if (blockerType === "determineDependencies") {
-                            throw Error(
-                                `Shouldn't have determine dependencies blocker after determining dependencies: ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`,
-                            );
-                        }
+                    let passResult = await this._resolveBlockersOfItem({
+                        neededForItem,
+                        item: { componentIdx, type, stateVariable, dependency },
+                        forceBlockers: force,
+                        tolerateFailures: false,
+                        expandComposites,
+                    });
 
-                        // shallow copy, as items may be deleted as resolve items
-                        for (let code of [...neededForItem[blockerType]]) {
-                            let [
-                                blockerComponentIdx,
-                                blockerStateVariable,
-                                blockerDependency,
-                            ] =
-                                typeof code === "string"
-                                    ? code.split("|")
-                                    : [code];
-
-                            let result: any = await this.resolveItem({
-                                componentIdx: blockerComponentIdx,
-                                type: blockerType,
-                                stateVariable: blockerStateVariable,
-                                dependency: blockerDependency,
-                                force, //recurseUpstream
-                                expandComposites,
-                            });
-
-                            if (!result.success) {
-                                // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
-                                // this.resolveLevels--;
-                                return result;
-                            }
-                        }
+                    if (passResult.failure) {
+                        // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
+                        // this.resolveLevels--;
+                        return passResult.failure;
                     }
                 }
             }
@@ -2907,6 +2864,75 @@ export class DependencyHandler {
         // this.resolveLevels--;
 
         return finalResult;
+    }
+
+    /**
+     * Make one pass over `neededForItem`, the live record of what is still
+     * blocking `item`, resolving each blocker in turn. Entries drop out of the
+     * record as their blockers resolve, so the caller can loop until it is
+     * empty.
+     *
+     * `forceBlockers` is passed on to each blocker's own `resolveItem`.
+     * `tolerateFailures` decides what an unresolved blocker means: when false,
+     * the pass stops and hands back that blocker's result as `failure` for the
+     * caller to propagate; when true, the pass continues and reports how many
+     * blockers failed as `nFailures`.
+     */
+    async _resolveBlockersOfItem({
+        neededForItem,
+        item,
+        forceBlockers,
+        tolerateFailures,
+        expandComposites,
+    }: {
+        neededForItem: Record<string, any>;
+        item: {
+            componentIdx: any;
+            type: string;
+            stateVariable?: string;
+            dependency?: string;
+        };
+        forceBlockers: boolean;
+        tolerateFailures: boolean;
+        expandComposites: boolean;
+    }): Promise<{ failure?: any; nFailures: number }> {
+        let nFailures = 0;
+
+        for (let blockerType in neededForItem) {
+            if (blockerType === "determineDependencies") {
+                throw Error(
+                    `Shouldn't have determine dependencies blocker after determining dependencies: ${item.componentIdx}, ${item.type}, ${item.stateVariable}, ${item.dependency}`,
+                );
+            }
+
+            // shallow copy, as items may be deleted as resolve items
+            for (let code of [...neededForItem[blockerType]]) {
+                let [
+                    blockerComponentIdx,
+                    blockerStateVariable,
+                    blockerDependency,
+                ] = typeof code === "string" ? code.split("|") : [code];
+
+                let result: any = await this.resolveItem({
+                    componentIdx: blockerComponentIdx,
+                    type: blockerType,
+                    stateVariable: blockerStateVariable,
+                    dependency: blockerDependency,
+                    force: forceBlockers,
+                    expandComposites,
+                });
+
+                if (!result.success) {
+                    if (tolerateFailures) {
+                        nFailures++;
+                    } else {
+                        return { failure: result, nFailures };
+                    }
+                }
+            }
+        }
+
+        return { nFailures };
     }
 
     checkForCircularResolveBlocker({

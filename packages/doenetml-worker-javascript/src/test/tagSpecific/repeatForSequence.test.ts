@@ -156,10 +156,11 @@ describe("RepeatForSequence tag tests @group3", async () => {
     });
 
     it("index into a nested repeatForSequence from outside a block", async () => {
-        // A reference sitting directly in the document, or in the `extend` of a
-        // component that does, is resolved before the inner repeat has expanded,
-        // so its resolution has to be redone once the inner repeat supplies
-        // index resolutions.
+        // The `extend` of a component sitting directly in the document is
+        // resolved before the inner repeat has expanded, so its resolution has
+        // to be redone once that repeat supplies index resolutions. The same
+        // references written as child content, or inside a `<p>`, are resolved
+        // after the expansion and were already correct.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><repeatForSequence from="1" to="3" valueName="i" name="a">
