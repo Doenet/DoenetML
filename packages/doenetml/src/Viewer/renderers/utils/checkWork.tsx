@@ -23,9 +23,9 @@ export type ValidationState =
  * one place the two part company: the section is worth full marks because
  * nothing in it can lose any, but the button is being asked whether the answers
  * are right. The core hands such a section a separate
- * `creditAchievedForCheckWork`, and hands `null` to everything else — every
- * other section, and every `<answer>` and input, which do not carry the variable
- * at all — so the fallback here is the usual path rather than the exception.
+ * `creditAchievedForCheckWork` and hands `null` to every other section, so the
+ * fallback here is the usual path rather than the exception. An `<answer>` or
+ * an input does not carry the variable at all, and falls back the same way.
  */
 function checkWorkCredit(SVs: Record<string, any>): number {
     return SVs.creditAchievedForCheckWork ?? SVs.creditAchieved;

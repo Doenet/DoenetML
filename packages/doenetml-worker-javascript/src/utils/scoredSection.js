@@ -8,12 +8,15 @@ import { returnSubmitLabelStateVariableDefinitions } from "./answer";
  * A section aggregates several credit variables — `creditAchieved`,
  * `creditAchievedForProgress`, `creditAchievedIfSubmit` — that differ only in
  * which variable is read off each descendant, so they all gather their
- * dependencies here. (`creditAchievedForCheckWork` is the exception: it usually
- * takes no dependencies at all, and reads two variables off a descendant when it
- * does. See {@link returnCheckWorkCreditStateVariableDefinition}.) Each descendant's value arrives as `<variableName><index>`
+ * dependencies here. Each descendant's value arrives as `<variableName><index>`
  * alongside the `scoredDescendants` that give the indices their meaning; when
  * the section does not aggregate scores, nothing but `aggregateScores` is
  * depended on.
+ *
+ * `creditAchievedForCheckWork` is the one credit variable that does not come
+ * through here: it usually takes no dependencies at all, and reads two
+ * variables off a descendant when it does. See
+ * {@link returnCheckWorkCreditStateVariableDefinition}.
  *
  * Requires `stateVariablesDeterminingDependencies` of `["aggregateScores",
  * "scoredDescendants"]` on the state variable using it.
@@ -111,21 +114,24 @@ function aggregateCreditForCheckWork(dependencyValues) {
         (sum, descendant) => sum + descendant.stateValues.weight,
         0,
     );
+    // Negated so a `NaN` total lands here too, as it does in
+    // `aggregateCreditOverScoredDescendants`.
     const useUnitWeights = !(totalWeight > 0);
+    // There is always at least one descendant to divide by: the caller only
+    // reaches this when `checkWorkCreditNeedsAggregating` said so, and that
+    // rules out an empty section.
+    const weightSum = useUnitWeights ? descendants.length : totalWeight;
 
     let creditSum = 0;
-    let weightSum = 0;
 
     for (const [ind, descendant] of descendants.entries()) {
-        const weight = useUnitWeights ? 1 : descendant.stateValues.weight;
-        const stateValues =
-            dependencyValues["creditForCheckWork" + ind].stateValues;
+        const { stateValues } = dependencyValues["creditForCheckWork" + ind];
         const credit =
             stateValues.creditAchievedForCheckWork ??
             stateValues.creditAchieved;
 
-        creditSum += credit * weight;
-        weightSum += weight;
+        creditSum +=
+            credit * (useUnitWeights ? 1 : descendant.stateValues.weight);
     }
 
     return creditSum / weightSum;
@@ -395,8 +401,8 @@ export function returnScoredSectionAttributes() {
  * `scoredDescendants`, `aggregateScores`, `creditAchieved`, and related
  * variables — including `creditAchievedForCheckWork`, the credit the
  * section-wide button reports when weights alone would say the section is
- * already worth full marks. The document reuses this set but deletes `aggregateScores` and
- * overrides `creditAchieved`; see `Document.js`.
+ * already worth full marks. The document reuses this set but deletes
+ * `aggregateScores` and overrides `creditAchieved`; see `Document.js`.
  */
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};

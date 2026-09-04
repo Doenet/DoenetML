@@ -586,6 +586,7 @@ describe("section-wide check work attribute tests @group2", async () => {
             ),
         ).eq(true);
     });
+
     // A container that is worth no points is credited in full — that is how a
     // reader gets credit for a document holding no answers, and how a
     // `<cascade>` step with nothing to answer stops blocking the next one. When
@@ -595,21 +596,25 @@ describe("section-wide check work attribute tests @group2", async () => {
     // answered by `creditAchievedForCheckWork`, which is `null` — meaning "the
     // score is the answer here too" — everywhere else.
 
-    async function submit_two_answers(
+    /**
+     * Type `responses` into the math inputs of the answers named `a1`, `a2`, …
+     * in order, then submit those answers. Returns the componentIdx of each
+     * input, so a test can also check the color the section gives it.
+     */
+    async function submit_answers(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
         responses: string[],
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
+        const inputIndices: number[] = [];
         for (const [ind, latex] of responses.entries()) {
-            await updateMathInputValue({
-                latex,
-                componentIdx:
-                    stateVariables[await resolvePathToNodeIdx(`a${ind + 1}`)]
-                        .stateValues.inputChildren[0].componentIdx,
-                core,
-            });
+            const componentIdx =
+                stateVariables[await resolvePathToNodeIdx(`a${ind + 1}`)]
+                    .stateValues.inputChildren[0].componentIdx;
+            inputIndices.push(componentIdx);
+            await updateMathInputValue({ latex, componentIdx, core });
         }
         for (let ind = 0; ind < responses.length; ind++) {
             await submitAnswer({
@@ -617,6 +622,8 @@ describe("section-wide check work attribute tests @group2", async () => {
                 core,
             });
         }
+
+        return inputIndices;
     }
 
     it("check work reports the answers when every weight is zero", async () => {
@@ -635,7 +642,11 @@ describe("section-wide check work attribute tests @group2", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
             });
-            await submit_two_answers(core, resolvePathToNodeIdx, responses);
+            const inputIndices = await submit_answers(
+                core,
+                resolvePathToNodeIdx,
+                responses,
+            );
 
             const stateVariables = await core.returnAllStateVariables(
                 false,
@@ -649,6 +660,13 @@ describe("section-wide check work attribute tests @group2", async () => {
             // The score is untouched: nothing in the paragraph carries weight,
             // so there is still nothing to lose.
             expect(p.stateValues.creditAchieved).eq(1);
+            // The inputs are colored by what the button says, not by the score,
+            // so a red button never sits beside green borders.
+            for (const inputIdx of inputIndices) {
+                expect(stateVariables[inputIdx].stateValues.creditAchieved).eq(
+                    creditForCheckWork,
+                );
+            }
         }
     });
 
@@ -662,7 +680,7 @@ describe("section-wide check work attribute tests @group2", async () => {
   `,
         });
 
-        await submit_two_answers(core, resolvePathToNodeIdx, ["1", "999"]);
+        await submit_answers(core, resolvePathToNodeIdx, ["1", "999"]);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const p = stateVariables[await resolvePathToNodeIdx("p")];
@@ -691,7 +709,7 @@ describe("section-wide check work attribute tests @group2", async () => {
   `,
         });
 
-        await submit_two_answers(core, resolvePathToNodeIdx, ["1", "999"]);
+        await submit_answers(core, resolvePathToNodeIdx, ["1", "999"]);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -730,7 +748,7 @@ describe("section-wide check work attribute tests @group2", async () => {
   `,
         });
 
-        await submit_two_answers(core, resolvePathToNodeIdx, ["1", "999"]);
+        await submit_answers(core, resolvePathToNodeIdx, ["1", "999"]);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 

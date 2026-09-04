@@ -203,9 +203,11 @@ export default class Input extends InlineComponent {
                         variableNames: [
                             "justSubmitted",
                             // The section colors its inputs by the same credit
-                            // its button reports, which parts company with
-                            // `creditAchieved` only when every answer under it
-                            // carries `weight="0"`; `null` otherwise.
+                            // its button reports, so the two can never
+                            // disagree. It parts company with `creditAchieved`
+                            // only when nothing scored under the section
+                            // carries any weight, and is `null` otherwise —
+                            // hence the fallback below.
                             "creditAchievedForCheckWork",
                             "creditAchieved",
                             "showCorrectness",
