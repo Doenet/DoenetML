@@ -319,6 +319,10 @@ describe("coded diagnostics reach the record @group4", () => {
         // Extending with an index defers resolution until core knows the
         // group's replacements, so this warning is the worker's own rather
         // than the one the Rust resolver raises for a plainly absent name.
+        // The resolver hands back `g` with the index still unresolved, so this
+        // is `RefResolutionDependency`'s *later* warning — the one for an
+        // expanded composite with no replacement at that index — and not the
+        // one the test below reaches.
         const { core } = await createTestCore({
             doenetML: `
 <group name="g"></group>
@@ -335,13 +339,17 @@ describe("coded diagnostics reach the record @group4", () => {
         );
     });
 
-    // The other branch of the same warning site — the one `RefResolutionDependency`
-    // reaches once no candidate origin resolves the reference. Both codes have to sit
-    // next to `code:` as literals for `lint:i18n` to see them raised, which is why
-    // that site spreads a ternary of objects rather than choosing the value —
-    // and a workaround that only one branch exercises is a workaround nobody
-    // would notice breaking.
-    it("codes the other resolution failure the same warning site reports", async () => {
+    // A different site: the warning `RefResolutionDependency` raises once no
+    // candidate origin resolves the reference. It reports `doenet-w0105` here
+    // and `doenet-w0104` when the failure is a missing rather than an ambiguous
+    // referent, and both codes have to sit next to `code:` as literals for
+    // `lint:i18n` to see them raised — which is why that site spreads a ternary
+    // of objects rather than choosing the value. This pins the ambiguous branch;
+    // the missing one is pinned by "reference to an iteration still warns when
+    // the nested reference resolves nowhere" in `repeatForSequence.test.ts`, and
+    // a workaround that only one branch exercises is a workaround nobody would
+    // notice breaking.
+    it("codes the resolution failure raised after every candidate origin fails", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <repeat name="r" for="1 2" valueName="v">
