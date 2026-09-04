@@ -8,6 +8,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2634,5 +2635,149 @@ describe("RepeatForSequence tag tests @group3", async () => {
         }));
 
         await check_items(2, 2);
+    });
+
+    it("reference to an iteration keeps the referent of a reference nested inside it", async () => {
+        // The copy of `<number>$i</number>` that `$r[3]` creates lands in the `<m>`,
+        // where the repeat's `i` is out of scope. The copy still refers to the third
+        // iteration's `i`, so it resolves where the component it shadows sits rather
+        // than reporting no referent for `$i`.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p name="p2"><m>x_3 = $r[3]</m></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x₃ = 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("reference to a reference to an iteration keeps the nested referent", async () => {
+        // Referencing the `<m>` copies the copy of `$i` again, so the reference that has
+        // to be resolved is two shadows away from the iteration whose `i` it means. The
+        // whole `shadows` chain has to be walked, not just its first link.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p><m name="m1">x_3 = $r[3]</m></p>
+    <p name="p3">$m1</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("x₃ = 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("reference to an iteration still warns when the nested reference resolves nowhere", async () => {
+        // The counterpart of the two cases above: falling back to the origins up the
+        // `shadows` chain must not swallow a reference that has no referent anywhere.
+        //
+        // With the `<mathInput>` left blank, `$n` is not an index the resolver can use,
+        // so `$g[$n]` has no referent — not from inside the iteration where it was
+        // written, and not from the copy `$r[3]` lifts into the `<div>`. Every candidate
+        // origin therefore throws, and the diagnostic that follows the candidate loop is
+        // still raised: once (identical warnings are deduplicated by source position),
+        // reported against `$g[$n]` as the author wrote it rather than against `$r[3]`.
+        //
+        // The reference has to fail on an *index* to reach that loop at all: a name the
+        // Rust resolver cannot find is reported when the document is flattened, long
+        // before this dependency re-resolves anything. An index the resolver simply
+        // leaves unresolved (`$g[1]` against an empty group, say) does not reach it
+        // either — the resolution succeeds and the missing replacement is reported
+        // further down, at a site this change does not touch.
+        let { core } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" />
+    <group name="g"><number>7</number></group>
+
+    <repeatForSequence from="1" to="5" valueName="i" name="r">
+      <p><number>$i</number> <number extend="$g[$n]" /></p>
+    </repeatForSequence>
+
+    <div name="d">$r[3]</div>
+    `,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0104");
+        expect(warnings[0].args).eqls({ reference: "$g[$n]" });
+    });
+
+    it("reference to an iteration keeps the nested referent when the index changes", async () => {
+        // The cases above resolve once, while the document is being built. Changing the
+        // index makes the reference copy a *different* iteration and re-resolve, so this
+        // covers the fallback on the update path rather than only the initial one.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="3" />
+
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p name="p2"><m>x = $r[$n]</m></p>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x = 3");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x = 5");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("reference into nested repeats keeps both nested referents", async () => {
+        // Lifting an iteration out of two nested repeats carries references to two
+        // different `valueName`s, each out of scope at the landing site, and each has to
+        // fall back independently.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeatForSequence from="1" to="3" valueName="i" name="outer">
+      <repeatForSequence from="1" to="3" valueName="j" name="inner">
+        <group><number>$i</number> <number>$j</number></group>
+      </repeatForSequence>
+    </repeatForSequence>
+
+    <p name="p2">$outer[2].inner[3]</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("2 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 });
