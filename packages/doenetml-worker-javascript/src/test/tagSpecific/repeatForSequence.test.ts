@@ -155,6 +155,72 @@ describe("RepeatForSequence tag tests @group3", async () => {
         ).eq(pText);
     });
 
+    it("index into a nested repeatForSequence from outside a block", async () => {
+        // The `extend` of a component sitting directly in the document is
+        // resolved before the inner repeat has expanded, so its resolution has
+        // to be redone once that repeat supplies index resolutions. The same
+        // references written as child content, or inside a `<p>`, are resolved
+        // after the expansion and were already correct.
+        //
+        // The `<p>` around the repeats is load-bearing, so don't "simplify" it
+        // away: with the repeats at the top level of the document, every form
+        // below resolves correctly even with the bug present. Any element around
+        // them will do — `<section>` reproduces it too.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="3" valueName="i" name="a">
+      <repeatForSequence from="1" to="3" valueName="j" name="b">
+        <number name="c">$i + 3$j</number>
+      </repeatForSequence>
+    </repeatForSequence></p>
+
+    <number name="n1" extend="$a[2][1][3]" />
+    <number name="n2" extend="$a[2].b[3]" />
+    <number name="n3" extend="$a[2][1][3].c" />
+    <number name="n4" extend="$a[2].b[3].c" />
+    <number name="n5">$a[2][1][3]</number>
+    <number name="n6">$a[2].b[3]</number>
+    <number name="n7">$a[2][1][3].c</number>
+    <number name="n8">$a[2].b[3].c</number>
+    <p name="p1">$a[2][1][3]</p>
+    <p name="p2">$a[2].b[3]</p>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Collected into one object so a failure names every form that broke,
+        // not just the first.
+        let values: Record<string, unknown> = {};
+        for (let i = 1; i <= 8; i++) {
+            let name = `n${i}`;
+            values[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.value;
+        }
+        for (let name of ["p1", "p2"]) {
+            values[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+
+        // Every form names the same number: $i + 3$j at i=2, j=3.
+        expect(values).toEqual({
+            n1: 11,
+            n2: 11,
+            n3: 11,
+            n4: 11,
+            n5: 11,
+            n6: 11,
+            n7: 11,
+            n8: 11,
+            p1: "11",
+            p2: "11",
+        });
+    });
+
     it("three nested repeatForSequences with graphs and copied", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
