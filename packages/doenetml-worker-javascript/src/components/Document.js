@@ -7,6 +7,7 @@ import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { SUPPORTED_LOCALES, resolveDocumentLocale } from "@doenet/i18n";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
+    returnCheckWorkCreditStateVariableDefinition,
     returnScoredSectionAttributes,
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
@@ -587,6 +588,15 @@ export default class Document extends BaseComponent {
                 return { setValue: { creditAchieved, percentCreditAchieved } };
             },
         };
+
+        // Overrides the shared `creditAchievedForCheckWork` for the same reason
+        // as `creditAchieved` above: the document always aggregates, rather
+        // than only when `aggregateScores` is enabled. The rule is unchanged,
+        // so it still comes from the shared definition.
+        stateVariableDefinitions.creditAchievedForCheckWork =
+            returnCheckWorkCreditStateVariableDefinition({
+                alwaysAggregate: true,
+            });
 
         // Overrides the shared `creditAchievedIfSubmit` for the same reason as
         // `creditAchieved` above: the document always aggregates, rather than
