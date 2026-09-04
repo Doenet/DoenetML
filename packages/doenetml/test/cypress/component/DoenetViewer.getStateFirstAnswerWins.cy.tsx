@@ -1,6 +1,10 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
-import { captureReports, flushState } from "./utils/splice";
+import {
+    captureReports,
+    saveStateAfterTyping,
+    TEXT_INPUT,
+} from "./utils/splice";
 
 // One `SPLICE.getState` request, one answer.
 //
@@ -21,42 +25,9 @@ const DOC = `<p>Enter text: <textInput name="ti" /></p>
 <p>You typed: $ti.value</p>`;
 
 const VIEWER_TIMEOUT = 30_000;
-const TEXT_INPUT = "input.doenet-textinput, input:not([type=checkbox])";
 
 /** How long after the first answer the second answerer replies. */
 const SECOND_ANSWER_DELAY = 500;
-
-/**
- * Type `text` into the document and return the state a persistence host would
- * have saved for it.
- *
- * Routine state reports are throttled to one a minute
- * (`StatePersistence.saveChangesToDatabase`), so the flush is what makes the
- * capture deterministic: it pushes what the document is holding through the
- * ordinary `SPLICE.reportScoreAndState` channel a host saves from.
- */
-function saveStateAfterTyping(reports: any[], text: string, flushId: string) {
-    cy.get(TEXT_INPUT).type(`{selectall}{backspace}${text}{enter}`);
-    cy.contains(`You typed: ${text}`, { timeout: VIEWER_TIMEOUT }).should(
-        "exist",
-    );
-    flushState(flushId);
-    return cy
-        .wrap(null, { timeout: VIEWER_TIMEOUT })
-        .should(() => {
-            expect(
-                reports.some((r) => String(r.state?.coreState).includes(text)),
-                `a report carried "${text}"`,
-            ).to.eq(true);
-        })
-        .then(
-            () =>
-                [...reports]
-                    .reverse()
-                    .find((r) => String(r.state?.coreState).includes(text))
-                    .state,
-        );
-}
 
 /**
  * Play two competing answerers for the next `SPLICE.getState`: reply at once
@@ -133,16 +104,22 @@ describe("DoenetViewer SPLICE.getState with more than one answerer", () => {
             cy.contains("Enter text:", { timeout: VIEWER_TIMEOUT }).should(
                 "exist",
             );
-            saveStateAfterTyping(reports, "round one", "capture-stale").then(
-                (state) => {
-                    this.staleState = state;
-                },
-            );
-            saveStateAfterTyping(reports, "round two", "capture-fresh").then(
-                (state) => {
-                    this.freshState = state;
-                },
-            );
+            saveStateAfterTyping(
+                reports,
+                "round one",
+                "capture-stale",
+                VIEWER_TIMEOUT,
+            ).then((state) => {
+                this.staleState = state;
+            });
+            saveStateAfterTyping(
+                reports,
+                "round two",
+                "capture-fresh",
+                VIEWER_TIMEOUT,
+            ).then((state) => {
+                this.freshState = state;
+            });
         });
     });
 

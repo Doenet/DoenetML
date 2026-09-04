@@ -1,6 +1,6 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
-import { captureReports, flushState } from "./utils/splice";
+import { captureReports, flushState, TEXT_INPUT } from "./utils/splice";
 
 // Flush pending state when the page goes away (Doenet/DoenetML#1726).
 //
@@ -29,7 +29,6 @@ const DOC = `<p>Enter text: <textInput name="ti" /></p>
 <p>You typed: $ti.value</p>`;
 
 const VIEWER_TIMEOUT = 30_000;
-const TEXT_INPUT = "input.doenet-textinput, input:not([type=checkbox])";
 
 function hasValue(reports: any[], value: string) {
     return reports.some((r) => String(r.state?.coreState).includes(value));

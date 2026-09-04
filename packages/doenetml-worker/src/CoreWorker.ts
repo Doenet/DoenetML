@@ -107,12 +107,37 @@ function ensureWasmInitialized(): Promise<unknown> {
     return wasmInitPromise;
 }
 
+/**
+ * What the calls that need the document DAST throw once an initialization has
+ * released it and no `setSource` has put it back (#1533). One string for all
+ * of them, so a caller sees the same diagnosis whichever call it reached.
+ */
+const RELEASED_INITIALIZATION_DATA_MESSAGE =
+    "Cannot initialize from the document DAST: it was released when the " +
+    "previous initialization completed. Call setSource again before " +
+    "re-initializing.";
+
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
     javascriptCore?: PublicDoenetMLCoreJavascript;
     wasm_initialized = false;
     javascript_initialized = false;
     source_set = false;
+    /**
+     * Whether the document DAST the Rust core retains has been released since
+     * the source was last set (#1533).
+     *
+     * `initializeJavascriptCore` and `returnFlatDastFromJS` end by releasing
+     * it — the JavaScript core has consumed it by then, and the Rust core
+     * keeps its copy only for the rust core-type's later
+     * `returnNormalizedDastRoot` calls — so a second initialization with no
+     * `setSource` in between has nothing to initialize from. `source_set`
+     * cannot say so: the source was set, and still is; what is gone is the
+     * DAST derived from it. Without this flag that second initialization
+     * failed inside the Rust core with a message saying the source had never
+     * been set, which is the opposite of what happened.
+     */
+    _initializationDataReleased = false;
     flags_set = false;
     core_type: "rust" | "javascript" = "rust";
 
@@ -246,6 +271,7 @@ export class CoreWorker {
                 args.source,
             );
             this.source_set = true;
+            this._initializationDataReleased = false;
         } catch (err) {
             console.error("Error when setting source", err);
             throw err;
@@ -341,18 +367,26 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
-        if (
-            !this.source_set ||
-            !this.flags_set ||
-            !this.javascriptCore ||
-            !this.doenetCore
-        ) {
-            throw Error(
-                "Cannot initialize javascript core before setting source and flags",
-            );
-        }
-
         try {
+            // Checked inside the `try`, so that a failed precondition
+            // releases the queue in the `finally` like every other failure
+            // here. Thrown ahead of it, the queue stayed held and every later
+            // call on this worker hung (Doenet/DoenetApps#2957; #1312 tracks
+            // the methods below that still check ahead of their `try`).
+            if (
+                !this.source_set ||
+                !this.flags_set ||
+                !this.javascriptCore ||
+                !this.doenetCore
+            ) {
+                throw Error(
+                    "Cannot initialize javascript core before setting source and flags",
+                );
+            }
+            if (this._initializationDataReleased) {
+                throw Error(RELEASED_INITIALIZATION_DATA_MESSAGE);
+            }
+
             let normalizedRoot = this.doenetCore.return_normalized_dast_root();
 
             const doenetCore = this.doenetCore;
@@ -413,6 +447,7 @@ export class CoreWorker {
             // core-type path still needs it for later
             // `returnNormalizedDastRoot` calls, so only release here).
             this.doenetCore.release_initialization_data();
+            this._initializationDataReleased = true;
             return initializedResult;
         } catch (err) {
             console.error(err);
@@ -521,6 +556,9 @@ export class CoreWorker {
             // resolver consumers — return the minimal shape consumers expect.
             return { nodes: [] };
         }
+        if (this._initializationDataReleased) {
+            throw Error(RELEASED_INITIALIZATION_DATA_MESSAGE);
+        }
         return this.doenetCore.return_normalized_dast_root();
     }
 
@@ -531,6 +569,9 @@ export class CoreWorker {
     private async returnFlatDastFromJS() {
         if (!this.javascriptCore || !this.doenetCore) {
             throw Error("Cannot return dast before setting source and flags");
+        }
+        if (this._initializationDataReleased) {
+            throw Error(RELEASED_INITIALIZATION_DATA_MESSAGE);
         }
 
         let normalizedRoot = this.doenetCore.return_normalized_dast_root();
@@ -584,6 +625,7 @@ export class CoreWorker {
         // path still needs it for later `returnNormalizedDastRoot` calls, so
         // only release here).
         this.doenetCore.release_initialization_data();
+        this._initializationDataReleased = true;
 
         const args = {
             coreId: "a",

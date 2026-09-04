@@ -220,6 +220,96 @@ export function createCoreWorker(): CoreWorkerHandle {
     return { remote, kill: () => worker.terminate() };
 }
 
+/**
+ * An initialization's place in a worker's queue; see `initializationInFlight`.
+ */
+type QueueSlot = {
+    /**
+     * Settles once every initialization up to and including this one is
+     * finished with the worker: its own round trips are over, or it will
+     * never make any. Never rejects — what the initialization behind it needs
+     * to know is only that the worker is free.
+     */
+    done: Promise<void>;
+    /** Settle this initialization's own part of `done`. Idempotent. */
+    release: () => void;
+    /**
+     * Whether its round trips have begun. Set in the same turn as the first
+     * one is made, so a successor reading it sees either a slot that can
+     * still yield or one whose round trips it must wait out.
+     */
+    begun: boolean;
+    /**
+     * Set when a successor found it abandoned before it had begun; it then
+     * makes no round trips.
+     */
+    yielded: boolean;
+    /** Its owner's `abandoned` predicate, for a successor to consult. */
+    abandoned?: () => boolean;
+};
+
+/** A fresh slot, whose `done` follows `predecessor`'s before its own release. */
+function queueSlot(
+    predecessor: QueueSlot | undefined,
+    abandoned?: () => boolean,
+): QueueSlot {
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => {
+        release = resolve;
+    });
+    async function done() {
+        if (predecessor) {
+            await predecessor.done;
+        }
+        await released;
+    }
+    return { done: done(), release, begun: false, yielded: false, abandoned };
+}
+
+/**
+ * The initialization in flight on each core worker, keyed by the worker's
+ * Comlink remote (#1533).
+ *
+ * `initializeCoreWorker` drives a worker through several separately awaited
+ * round trips, and the worker serializes each call on its own, so two
+ * initializations started against one worker interleave in arrival order:
+ *
+ *     A.setSource, B.setSource, A.setFlags, B.setFlags, ...
+ *     A.initializeJavascriptCore, B.initializeJavascriptCore
+ *
+ * The first `initializeJavascriptCore` releases the document DAST the Rust
+ * core retained, the JavaScript core having consumed it, and the second then
+ * has nothing to initialize from and fails the boot. Nothing unusual reaches
+ * that: a `SPLICE.getState` answer arriving while the optimistic first boot
+ * is still in its round trips restarts the boot on the same worker, so does a
+ * rebuild that lands mid-boot, and so does `render` turning true while the
+ * priming initialization of a `render={false}` viewer is still in flight.
+ *
+ * So initializations are serialized here, per worker: one started while
+ * another is in flight waits for the worker to be free of it, then runs
+ * whole. Run whole after its predecessor, it is correct as it stands — its
+ * own `setSource` puts the DAST back — so a predecessor that failed is its
+ * own caller's to report.
+ *
+ * Of the initializations queued behind the one on the worker, only the
+ * newest belongs to a document the viewer still shows — each rebuild retires
+ * the last — so the rest step aside (`abandoned`): at their turn, or, when
+ * one is queued behind them before they have reached the worker, right then,
+ * so that a preparation still waiting on a fetch holds nobody up. The newest
+ * thus waits for the one initialization on the worker and no more, however
+ * many rebuilds landed in between.
+ *
+ * Weakly keyed, so an entry goes with the worker it describes and nothing
+ * here has to be told when a worker is discarded. One discarded with an
+ * initialization queued on it never answers that initialization's round
+ * trips, which is where an unserialized one would have hung too; the boot
+ * ladder's watchdog is what bounds a hung handshake.
+ */
+const initializationInFlight = new WeakMap<
+    Comlink.Remote<CoreWorker>,
+    QueueSlot
+>();
+
 export async function initializeCoreWorker({
     coreWorker,
     doenetML,
@@ -232,6 +322,8 @@ export async function initializeCoreWorker({
     fetchExternalDoenetML,
     documentLocale,
     localeResources,
+    onQueueTurn,
+    abandoned,
 }: {
     coreWorker: Comlink.Remote<CoreWorker>;
     doenetML: string;
@@ -252,62 +344,142 @@ export async function initializeCoreWorker({
      * the worker and never needs to be supplied.
      */
     localeResources?: Record<string, string> | null;
+    /**
+     * Called when this initialization's turn on the worker comes: after the
+     * initialization ahead of it, if any, has settled, just before its first
+     * round trip. Not called for one that makes no round trips — its own
+     * preparation failed, or it stepped aside. The boot ladder re-bases its
+     * handshake watchdog on it (#1533).
+     */
+    onQueueTurn?: () => void;
+    /**
+     * Whether the document this initialization was started for has moved on.
+     * Consulted when its turn comes, and when another initialization is
+     * queued behind it before it has reached the worker. Answering true means
+     * it steps aside: no round trip is made and the call resolves to `null`,
+     * so the initialization behind it is not kept waiting on work nobody
+     * wants.
+     */
+    abandoned?: () => boolean;
 }) {
-    let dast = lezerToDast(doenetML);
+    /**
+     * This initialization's own work: the parse, the expansion of external
+     * references and the `lang` resolution. Main-thread work that never
+     * touches the worker, so it overlaps whatever is in flight there.
+     */
+    async function prepare() {
+        let dast = lezerToDast(doenetML);
 
-    if (fetchExternalDoenetML) {
-        dast = await expandExternalReferences(dast, fetchExternalDoenetML);
+        if (fetchExternalDoenetML) {
+            dast = await expandExternalReferences(dast, fetchExternalDoenetML);
+        }
+
+        dast = normalizeDocumentDast(dast, true);
+
+        // The content's language, for the `lang` attribute on the rendered
+        // wrapper. Resolved from the DAST we already parsed rather than asked
+        // of the core, so it is available before the first render — a screen
+        // reader should not have to wait for evaluation to learn what
+        // language it is reading. The core reaches the same tag for its own
+        // `document.locale`, running the same helper over the same authored
+        // `lang` and the locale sent below, so the attribute always reports
+        // the language the content was rendered in — English, for a document
+        // nobody declared one for.
+        const resolvedDocumentLocale = resolveDocumentLocale(
+            readDocumentLang(dast),
+            documentLocale,
+        );
+        return { dast, resolvedDocumentLocale };
     }
 
-    dast = normalizeDocumentDast(dast, true);
+    /**
+     * Everything one initialization does: its own work, then — once the
+     * worker is free of `predecessor` (the initialization ahead of it on this
+     * worker, if any) — the round trips, unless its document has moved on by
+     * then, in which case none, and `null`. Only the round trips are
+     * serialized; see `initializationInFlight`. Its place in the queue is
+     * `slot`, which the `finally` below releases however this ends.
+     */
+    async function initializeAfter(
+        predecessor: QueueSlot | undefined,
+        slot: QueueSlot,
+    ) {
+        const { dast, resolvedDocumentLocale } = await prepare();
+        if (predecessor) {
+            await predecessor.done;
+        }
+        if (slot.yielded || abandoned?.()) {
+            return null;
+        }
+        slot.begun = true;
 
-    await coreWorker.setCoreType("javascript");
-    await coreWorker.setSource({ source: doenetML, dast });
-    await coreWorker.setFlags({ flags });
-    // Sent unconditionally, even with nothing configured: a reused worker
-    // (the shared-core pool) would otherwise keep the previous document's
-    // locale. Only the host's half of the rule is applied here — an authored
-    // `<document lang>` belongs to the `<document>` carrying it, and the core
-    // applies it there, once per `<document>`, so what it wants from the host
-    // is the ambient preference to fall back on. It goes through the shared
-    // helper all the same, so the fallback to English is written in one place
-    // and the tag the core stores is canonical for everything that later
-    // negotiates against it.
-    await coreWorker.setLocaleData({
-        localeData: {
-            locale: resolveDocumentLocale(undefined, documentLocale),
-            resources: localeResources ?? {},
-        },
-    });
+        onQueueTurn?.();
 
-    const result = await coreWorker.initializeJavascriptCore({
-        activityId,
-        docId,
-        requestedVariantIndex,
-        attemptNumber,
-    });
+        await coreWorker.setCoreType("javascript");
+        await coreWorker.setSource({ source: doenetML, dast });
+        await coreWorker.setFlags({ flags });
+        // Sent unconditionally, even with nothing configured: a reused worker
+        // (the shared-core pool) would otherwise keep the previous document's
+        // locale. Only the host's half of the rule is applied here — an
+        // authored `<document lang>` belongs to the `<document>` carrying it,
+        // and the core applies it there, once per `<document>`, so what it
+        // wants from the host is the ambient preference to fall back on. It
+        // goes through the shared helper all the same, so the fallback to
+        // English is written in one place and the tag the core stores is
+        // canonical for everything that later negotiates against it.
+        await coreWorker.setLocaleData({
+            localeData: {
+                locale: resolveDocumentLocale(undefined, documentLocale),
+                resources: localeResources ?? {},
+            },
+        });
 
-    documentStructureCallback?.({
-        activityId,
-        docId,
-        args: {
-            allPossibleVariants: result.allPossibleVariants,
-            baseComponentCounts: result.baseComponentCounts,
-        },
-    });
+        const result = await coreWorker.initializeJavascriptCore({
+            activityId,
+            docId,
+            requestedVariantIndex,
+            attemptNumber,
+        });
 
-    // The content's language, for the `lang` attribute on the rendered
-    // wrapper. Resolved from the DAST we already parsed rather than asked of
-    // the core, so it is available before the first render — a screen reader
-    // should not have to wait for evaluation to learn what language it is
-    // reading. The core reaches the same tag for its own `document.locale`,
-    // running the same helper over the same authored `lang` and the locale
-    // sent above, so the attribute always reports the language the content was
-    // rendered in — English, for a document nobody declared one for.
-    const resolvedLocale = resolveDocumentLocale(
-        readDocumentLang(dast),
-        documentLocale,
-    );
+        documentStructureCallback?.({
+            activityId,
+            docId,
+            args: {
+                allPossibleVariants: result.allPossibleVariants,
+                baseComponentCounts: result.baseComponentCounts,
+            },
+        });
 
-    return { ...result, resolvedDocumentLocale: resolvedLocale };
+        return { ...result, resolvedDocumentLocale };
+    }
+
+    // The place in the worker's queue is taken here, synchronously, when the
+    // initialization is asked for — before any of its own work. So
+    // initializations run in the order they were asked for, whatever each
+    // one's expansion costs: the last to run is the newest, and the worker
+    // ends up holding the document the viewer is showing even when an older
+    // initialization's external references were slow to fetch.
+    const predecessor = initializationInFlight.get(coreWorker);
+    if (predecessor && !predecessor.begun && predecessor.abandoned?.()) {
+        // A predecessor that has not reached the worker and whose document
+        // has moved on yields its place now that something is behind it: its
+        // preparation may be waiting on a fetch that never settles, and none
+        // of that concerns the worker. Its `done` still follows the slots
+        // ahead of it, so this initialization waits for the worker exactly as
+        // long as it must.
+        predecessor.yielded = true;
+        predecessor.release();
+    }
+    const slot = queueSlot(predecessor, abandoned);
+    initializationInFlight.set(coreWorker, slot);
+    try {
+        return await initializeAfter(predecessor, slot);
+    } finally {
+        slot.release();
+        // The entry is this initialization's to clear only while nothing has
+        // queued behind it; a successor's entry is the successor's.
+        if (initializationInFlight.get(coreWorker) === slot) {
+            initializationInFlight.delete(coreWorker);
+        }
+    }
 }
