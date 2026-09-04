@@ -11,25 +11,25 @@ vi.mock("hyperformula");
 
 /**
  * The replacements of a composite that asks to be shown as a list are separated
- * by commas automatically, and that happens twice over, from the same core data,
- * in two independent implementations:
+ * by commas automatically, and that happens four times over from the same core
+ * data:
  *
  * - the renderers insert `", "` between React children
  *   (`addCommasForCompositeRanges`, `doenetml/src/Viewer/renderers/utils/composites.tsx`);
  * - the `text` state variable joins the children's text with `", "`
- *   (`textFromChildren`, `doenetml-worker-javascript/src/utils/text.ts`).
+ *   (`textFromChildren`, `doenetml-worker-javascript/src/utils/text.ts`);
+ * - the string a `<math>` parses gets its commas
+ *   (`createInputStringFromChildren`, `doenetml-worker-javascript/src/utils/parseMath.ts`);
+ * - the FlatDast the prototype renderers read gets `<asList>` wrappers
+ *   (`applyCompositeListWrapping`, `doenetml-worker/src/compositeListWrapping.ts`).
  *
- * A third, `applyCompositeListWrapping`
- * (`doenetml-worker/src/compositeListWrapping.ts`), reproduces the renderers'
- * grouping for the prototype renderers, and a fourth, `parseMath.ts`, does it
- * for the children of a `<math>`.
- *
- * All of them read one array the core builds in
- * `CompositeExpander.replaceCompositeChildren`: for each composite that
+ * All four read one array the core builds in
+ * `CompositeExpander.replaceCompositeChildren` — for each composite that
  * contributed children, the index range those children occupy, whether the
  * composite has `asList` set, and whether each replacement is eligible to be a
- * list item. Every case below therefore checks *both* pathways, since the way
- * they go wrong is by disagreeing.
+ * list item — and group it with `groupCompositeRanges` (`@doenet/utils`). What
+ * each does with a group is its own, so every case below checks the `text`
+ * value and the text the renderers would show against the same expectation.
  *
  * `renderedText` runs the shipped renderer code over the shipped renderer state
  * and stands in only for the individual child renderers; see
@@ -352,12 +352,12 @@ describe("Automatic commas between composite replacements @group3", () => {
 });
 
 describe("Automatic commas inside a <math> @group3", () => {
-    // `createInputStringFromChildrenSub` (`utils/parseMath.ts`) is the same
-    // algorithm again, joining the children into the string that gets parsed
-    // into a math expression. It wraps the list in parentheses when what sits
-    // next to it is not a delimiter, and to find that out it walks outward past
-    // whitespace-only strings — a walk that used to never move its index, so a
-    // component child (or a blank string) on either side hung the core.
+    // `createInputStringFromChildren` (`utils/parseMath.ts`) joins the children
+    // into the string that gets parsed into a math expression. It wraps a list
+    // in parentheses when what sits next to it is not a delimiter, and to find
+    // that out it walks outward past whitespace-only strings — a walk that used
+    // to never move its index, so a component child (or a blank string) on
+    // either side hung the core.
     it("wraps the list when a neighbor is not a delimiter", async () => {
         const cases: Record<string, string> = {
             alone: `<numberList>1 2</numberList>`,

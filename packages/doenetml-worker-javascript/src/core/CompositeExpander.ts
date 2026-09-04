@@ -1240,7 +1240,9 @@ export async function changeInactiveComponentAndDescendants({
  * keeps replacements past `replacementsToWithhold`. `stopIfHaveProp`,
  * if set, names a state variable: a composite that publicly exposes
  * that variable is treated as the replacement itself rather than
- * recursed into.
+ * recursed into. `stopAtListComposites` does the same for a composite
+ * that can be shown as a list (its state has `asList`), so that a copy
+ * of the replacements keeps the list, commas and all.
  */
 export function recursivelyReplaceCompositesWithReplacements({
     core,
