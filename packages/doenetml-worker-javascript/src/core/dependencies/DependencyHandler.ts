@@ -2687,12 +2687,11 @@ export class DependencyHandler {
             );
         }
 
-        let neededForItem = this.peekNeededToResolve({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
-        });
+        // The four fields that identify this item, passed as a unit to
+        // everything below that addresses it.
+        const item = { componentIdx, type, stateVariable, dependency };
+
+        let neededForItem = this.peekNeededToResolve(item);
 
         // first resolve determine dependencies, if it exists
 
@@ -2756,18 +2755,13 @@ export class DependencyHandler {
                     break;
                 }
                 if (nFailures > 0) {
-                    neededForItem = this.peekNeededToResolve({
-                        componentIdx,
-                        type,
-                        stateVariable,
-                        dependency,
-                    });
+                    neededForItem = this.peekNeededToResolve(item);
                 }
                 previousNFailures = nFailures;
 
                 let passResult = await this._resolveBlockersOfItem({
                     neededForItem,
-                    item: { componentIdx, type, stateVariable, dependency },
+                    item,
                     forceBlockers: false,
                     tolerateFailures: force,
                     expandComposites,
@@ -2786,17 +2780,12 @@ export class DependencyHandler {
                 // it means we are forcing.
                 // Try one more time while passing force to resolveItem
 
-                neededForItem = this.peekNeededToResolve({
-                    componentIdx,
-                    type,
-                    stateVariable,
-                    dependency,
-                });
+                neededForItem = this.peekNeededToResolve(item);
 
                 while (Object.keys(neededForItem).length > 0) {
                     let passResult = await this._resolveBlockersOfItem({
                         neededForItem,
-                        item: { componentIdx, type, stateVariable, dependency },
+                        item,
                         forceBlockers: force,
                         tolerateFailures: false,
                         expandComposites,
@@ -2817,10 +2806,7 @@ export class DependencyHandler {
 
         // item is resolved
         let finalResult = await this.resolveIfReady({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
+            ...item,
             force,
             recurseUpstream,
             expandComposites,
@@ -2829,12 +2815,7 @@ export class DependencyHandler {
         if (!finalResult.success) {
             // after removing all blockers, we still can't resolve
 
-            let stillNeededForItem = this.peekNeededToResolve({
-                componentIdx,
-                type,
-                stateVariable,
-                dependency,
-            });
+            let stillNeededForItem = this.peekNeededToResolve(item);
 
             let numNeeded = Object.keys(stillNeededForItem).length;
 
@@ -2847,10 +2828,7 @@ export class DependencyHandler {
                     // then we can try again
 
                     finalResult = await this.resolveItem({
-                        componentIdx,
-                        type,
-                        stateVariable,
-                        dependency,
+                        ...item,
                         force,
                         recurseUpstream,
                         expandComposites,

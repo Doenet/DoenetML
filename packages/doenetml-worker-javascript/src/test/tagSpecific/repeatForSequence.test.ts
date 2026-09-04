@@ -161,6 +161,11 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // to be redone once that repeat supplies index resolutions. The same
         // references written as child content, or inside a `<p>`, are resolved
         // after the expansion and were already correct.
+        //
+        // The `<p>` around the repeats is load-bearing, so don't "simplify" it
+        // away: with the repeats at the top level of the document, every form
+        // below resolves correctly even with the bug present. Any element around
+        // them will do — `<section>` reproduces it too.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><repeatForSequence from="1" to="3" valueName="i" name="a">
