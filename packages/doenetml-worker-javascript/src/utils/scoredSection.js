@@ -86,27 +86,23 @@ function aggregateCreditOverScoredDescendants(
  * The credit a section-wide check-work button reports, and the credit the
  * answers under it are colored by.
  *
- * This is what `creditAchieved` reports except where a whole region under the
- * button carries no weight at all: a container whose scored descendants all
- * have `weight="0"`, whether that container is the section itself or a
- * subsection of one whose other parts are weighted. The two differ there
- * because they answer different questions. `creditAchieved` asks what the
- * container is *worth* — nothing carries weight, so nothing can be lost, and
- * the reader is credited in full, the same rule that credits a reader for a
- * container holding no answers at all. The button asks whether there is work
- * here still to get right, and an ungraded answer is still an answer, so when
- * no weight distinguishes the descendants they are weighed equally rather than
- * treated as absent. Otherwise the weighted mean is taken, and a zero-weight
- * descendant among weighted ones contributes nothing, exactly as it does to the
- * score.
+ * This is the weighted mean `creditAchieved` takes, except where a whole region
+ * under the button carries no weight at all: a container whose scored
+ * descendants all have `weight="0"`, whether that container is the section
+ * itself or a subsection of one whose other parts are weighted. There the two
+ * answer different questions. `creditAchieved` asks what the container is
+ * *worth* — nothing carries weight, so nothing can be lost, and the reader is
+ * credited in full, the same rule that credits a reader for a container holding
+ * no answers at all. The button asks whether there is work here still to get
+ * right, and an ungraded answer is still an answer, so with no weight to tell
+ * the descendants apart it weighs them equally. A zero-weight descendant among
+ * weighted ones still contributes nothing, exactly as it does to the score.
  *
- * Only called in the cases `checkWorkCreditNeedsAggregating` singles out; every
- * other case resolves to `null` without depending on anything. Each descendant's
- * credit arrives as `creditForCheckWork<index>`, carrying its
- * `creditAchievedForCheckWork` when it has one (an aggregating container, so a
- * zero-weight subsection passes its own equal-weighted credit up in place of the
- * full marks its score claims) and otherwise its `creditAchieved` (an
- * `<answer>`, or a container that took the `null` path).
+ * Each descendant's credit arrives as `creditForCheckWork<index>`, carrying its
+ * own `creditAchievedForCheckWork` when it has one — so a zero-weight
+ * subsection passes its equal-weighted credit up in place of the full marks its
+ * score claims — and its `creditAchieved` otherwise (an `<answer>`, or a
+ * container that took the `null` path).
  *
  * @param {object} dependencyValues - the resolved dependencies
  * @returns {number} a credit between 0 and 1
@@ -118,8 +114,7 @@ function aggregateCreditForCheckWork(dependencyValues) {
         (sum, descendant) => sum + descendant.stateValues.weight,
         0,
     );
-    // Negated so a `NaN` total lands here too, as it does in
-    // `aggregateCreditOverScoredDescendants`.
+    // Negated so a `NaN` total takes the same branch a zero one does.
     const useUnitWeights = !(totalWeight > 0);
     // There is always at least one descendant to divide by: the caller only
     // reaches this when `checkWorkCreditNeedsAggregating` said so, and that
@@ -146,9 +141,8 @@ function aggregateCreditForCheckWork(dependencyValues) {
  * descendants at all, decided from values that are already resolved so that the
  * usual case costs nothing.
  *
- * The variable exists for a rare shape — a section-wide check work with a
- * region under it that carries no weight at all — and everywhere else it would
- * report exactly what `creditAchieved` reports. Rather than build a second
+ * Outside the rare shape {@link aggregateCreditForCheckWork} describes, the
+ * value would be exactly `creditAchieved`. Rather than build a fourth
  * aggregation graph beside the three that already fan out from every scored
  * container (`creditAchieved`, `creditAchievedForProgress`,
  * `creditAchievedIfSubmit`), and so add another staleness path to walk on every
@@ -415,7 +409,8 @@ export function returnScoredSectionAttributes() {
  * variables — including `creditAchievedForCheckWork`, the credit the
  * section-wide button reports when weights alone would say the section is
  * already worth full marks. The document reuses this set but deletes
- * `aggregateScores` and overrides `creditAchieved`; see `Document.js`.
+ * `aggregateScores` and overrides the credit variables that consult it; see
+ * `Document.js`.
  */
 export function returnScoredSectionStateVariableDefinition() {
     const stateVariableDefinitions = {};

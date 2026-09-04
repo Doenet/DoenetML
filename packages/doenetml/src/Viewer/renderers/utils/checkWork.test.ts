@@ -2,10 +2,9 @@ import { describe, expect, it } from "vitest";
 import { calculateValidationState } from "./checkWork";
 
 /**
- * The state variables a submitted section-wide check-work button arrives with.
- * `creditAchievedForCheckWork` is the credit the button reports; it is `null`
- * for every container but one whose scored region carries no weight, and absent
- * altogether on an `<answer>` or an input.
+ * The state variables a submitted check-work button arrives with.
+ * `creditAchievedForCheckWork` is `null` for every container but one whose
+ * scored region carries no weight, and absent on an `<answer>` or an input.
  */
 function submittedSVs(SVs: Record<string, any>) {
     return { justSubmitted: true, numAttemptsLeft: Infinity, ...SVs };

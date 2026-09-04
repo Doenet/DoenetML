@@ -587,14 +587,11 @@ describe("section-wide check work attribute tests @group2", async () => {
         ).eq(true);
     });
 
-    // A container that is worth no points is credited in full — that is how a
-    // reader gets credit for a document holding no answers, and how a
-    // `<cascade>` step with nothing to answer stops blocking the next one. When
-    // the container does hold answers and they all carry `weight="0"`, the
-    // scoring rule still says "worth nothing, so nothing lost", but the button
-    // is being asked something else: are these answers right? That question is
-    // answered by `creditAchievedForCheckWork`, which is `null` — meaning "the
-    // score is the answer here too" — everywhere else.
+    // A container worth no points is credited in full, so a section whose
+    // answers all carry `weight="0"` scores 1 however they were filled in. The
+    // button is being asked something else — are these answers right? — and
+    // reports `creditAchievedForCheckWork`, which is `null` wherever the score
+    // already answers that too.
 
     /**
      * Type `responses` into the math inputs of the answers named `a1`, `a2`, …

@@ -589,11 +589,10 @@ export default class Document extends BaseComponent {
             },
         };
 
-        // Overrides the shared `creditAchievedForCheckWork` for the same
-        // reason `creditAchieved` is overridden: the shared definition consults
-        // the `aggregateScores` deleted above, where a document always
-        // aggregates. The rule itself is unchanged, so it comes from the same
-        // place rather than being written out a second time.
+        // Overrides the shared `creditAchievedForCheckWork` for the same reason
+        // as `creditAchieved` above: the document always aggregates, rather
+        // than only when `aggregateScores` is enabled. The rule is unchanged,
+        // so it still comes from the shared definition.
         stateVariableDefinitions.creditAchievedForCheckWork =
             returnCheckWorkCreditStateVariableDefinition({
                 alwaysAggregate: true,
