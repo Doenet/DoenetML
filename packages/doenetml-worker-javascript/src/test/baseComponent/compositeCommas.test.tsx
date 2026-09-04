@@ -261,6 +261,33 @@ describe("Automatic commas between composite replacements @group3", () => {
         });
     });
 
+    it("puts the comma where the whitespace between two items was", async () => {
+        // Issue #499: the spaces an author puts between the items of a list
+        // group are where the commas go, and an empty composite among them
+        // is nothing at all.
+        await checkParagraphs(
+            {
+                spaced: {
+                    body: `<group asList><number>1</number> <number>2</number> <number>3</number></group>`,
+                    expected: "1, 2, 3",
+                },
+                withEmpty: {
+                    body: `<group asList><number>1</number> <number>2</number> $s <number>3</number></group>`,
+                    expected: "1, 2, 3",
+                },
+                withTwoEmpty: {
+                    body: `<group asList><number>1</number> <number>2</number> $s $s2 <number>3</number></group>`,
+                    expected: "1, 2, 3",
+                },
+                onOwnLines: {
+                    body: `\n<group asList>\n<number>1</number> <number>2</number> $s <number>3</number>\n</group>\n`,
+                    expected: "\n\n1, 2, 3\n\n",
+                },
+            },
+            `<setup><sequence name="s" length="0" /><sequence name="s2" length="0" /></setup>\n`,
+        );
+    });
+
     it("keeps the commas through a reference to the list", async () => {
         await checkParagraphs(
             {
@@ -287,6 +314,25 @@ describe("Automatic commas between composite replacements @group3", () => {
             `<setup>
                 <numberList name="nl">1 2 3 4</numberList>
                 <repeatForSequence name="r" from="1" to="2">$nl</repeatForSequence>
+            </setup>\n`,
+        );
+    });
+
+    it("keeps the commas through a reference into a nested repeat", async () => {
+        // Issue #596.
+        await checkParagraphs(
+            {
+                item: {
+                    body: `This should have commas: $a[1]`,
+                    expected: "This should have commas: 6, 8",
+                },
+            },
+            `<setup>
+                <repeatForSequence from="1" to="2" name="a" valueName="x">
+                    <repeatForSequence from="5" to="7" step="2" name="b" valueName="y">
+                        <number>$x+$y</number>
+                    </repeatForSequence>
+                </repeatForSequence>
             </setup>\n`,
         );
     });

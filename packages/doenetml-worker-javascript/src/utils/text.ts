@@ -1,5 +1,7 @@
 import {
     groupCompositeRanges,
+    isBlankGroup,
+    listCommaPositions,
     type CompositeGroup,
     type CompositeRange,
 } from "@doenet/utils";
@@ -16,13 +18,17 @@ export function textFromComponent(component: any): string {
     }
 }
 
+const isBlankString = (child: any) =>
+    typeof child === "string" && child.trim() === "";
+
 /**
  * Concatenate the text from `children` into one string, putting commas between
  * the replacements of a composite that asks to be shown as a list.
  *
- * The grouping — which children came from which composite, and which of those
- * composites are lists — is `groupCompositeRanges`, shared with the renderers
- * so that what a reader sees and what `text` says cannot drift apart.
+ * The grouping — which children came from which composite, which of those
+ * composites are lists, and where the commas go — is shared with the renderers
+ * through `@doenet/utils`, so that what a reader sees and what `text` says
+ * cannot drift apart.
  */
 export function textFromChildren(
     children: any,
@@ -32,7 +38,7 @@ export function textFromChildren(
         children,
         ranges: children.compositeReplacementRange as
             CompositeRange[] | undefined,
-        isBlank: (child) => typeof child === "string" && child.trim() === "",
+        isBlank: isBlankString,
         // A hidden composite contributes nothing, not even its children's text.
         skipRange: (range) => Boolean(range.hidden),
     });
@@ -55,16 +61,22 @@ function textFromGroups(
             if (!group.asList) {
                 return parts.join("");
             }
-            // A part that came out empty — a hidden child, say — is not an item
-            // of the list and gets no comma of its own. Trailing whitespace an
-            // item's own text ends with is left off in front of a comma; the
-            // last item keeps it, since it separates the list from what follows.
+            // A part that came out empty — a hidden child, say — is no more an
+            // item of the list than whitespace is.
+            const commaBefore = listCommaPositions(
+                group.items.map(
+                    (item, ind) =>
+                        parts[ind] === "" || isBlankGroup(item, isBlankString),
+                ),
+            );
+            // Whitespace an item's own text ends with is left off in front of
+            // the comma that follows it.
             return parts
-                .filter((part) => part !== "")
-                .map((part, ind, all) =>
-                    ind === all.length - 1 ? part : part.trimEnd(),
+                .map((part, ind) =>
+                    commaBefore[ind + 1] ? part.trimEnd() : part,
                 )
-                .join(", ");
+                .map((part, ind) => (commaBefore[ind] ? ", " + part : part))
+                .join("");
         })
         .join("");
 }

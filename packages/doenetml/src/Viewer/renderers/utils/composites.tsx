@@ -1,6 +1,8 @@
 import React from "react";
 import {
     groupCompositeRanges,
+    isBlankGroup,
+    listCommaPositions,
     type CompositeGroup,
     type CompositeRange,
 } from "@doenet/utils";
@@ -46,13 +48,6 @@ function isBlankStringChild(child: React.ReactNode) {
     return typeof child === "string" && child.trim() === "";
 }
 
-function isBlankGroup(group: CompositeGroup<React.ReactNode>): boolean {
-    if (group.kind === "child") {
-        return isBlankStringChild(group.value);
-    }
-    return group.items.every(isBlankGroup);
-}
-
 function renderGroups(
     groups: CompositeGroup<React.ReactNode>[],
 ): React.ReactNode[] {
@@ -83,28 +78,17 @@ function renderGroups(
 
 /**
  * Put `", "` between the items of a composite shown as a list. The whitespace
- * an author wrote around the replacements is not an item: no comma is placed
- * next to it, and the comma goes in front of it rather than after, so nothing
- * puts a space before a comma.
+ * an author wrote around the replacements is not an item, and no comma is
+ * placed next to it.
  */
 function separateWithCommas(
     items: CompositeGroup<React.ReactNode>[],
 ): React.ReactNode[] {
-    const blank = items.map(isBlankGroup);
-    const separated: React.ReactNode[] = [];
-
-    for (const [ind, item] of items.entries()) {
-        if (
-            ind > 0 &&
-            !blank[ind - 1] &&
-            blank.slice(ind).some((isBlank) => !isBlank)
-        ) {
-            // The item before this one is not whitespace and some item still to
-            // come is not either, so the two are separated by a comma.
-            separated.push(", ");
-        }
-        separated.push(...renderGroups([item]));
-    }
-
-    return separated;
+    const commaBefore = listCommaPositions(
+        items.map((item) => isBlankGroup(item, isBlankStringChild)),
+    );
+    return items.flatMap((item, ind) => [
+        ...(commaBefore[ind] ? [", "] : []),
+        ...renderGroups([item]),
+    ]);
 }

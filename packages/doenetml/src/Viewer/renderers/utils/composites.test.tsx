@@ -209,7 +209,7 @@ describe("addCommasForCompositeRanges", () => {
                 potentialListComponents: [true, true, true, true, true],
             }),
         ]);
-        expect(shown(result)).eq("\n  1,  2\n  ");
+        expect(shown(result)).eq("\n  1, 2\n  ");
     });
 
     it("skips a composite that produced no replacements", () => {

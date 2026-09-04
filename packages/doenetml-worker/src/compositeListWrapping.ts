@@ -21,10 +21,11 @@ function isBlankStringChild(child: FlatDastElementContent) {
 
 /**
  * The prototype's `<asList>` renderer treats each FlatDast child as a list item.
- * Whitespace-only strings in the JS child-instruction stream are separators
- * around authored inline replacements, not their own list items, so keep leading
- * and trailing blanks outside the wrapper when possible and remove inter-item
- * blanks from the wrapper's child list.
+ * The whitespace at either end of a list, which the grouping keeps because it
+ * separates the list from what surrounds it, is moved outside the wrapper; and
+ * a blank string that reaches the middle (the grouping drops the blanks between
+ * items, but a composite that produced only whitespace is spliced in as one) is
+ * left out of it.
  */
 function trimAsListBlankChildren(children: FlatDastElementContent[]): {
     leadingBlankChildren: FlatDastElementContent[];

@@ -554,4 +554,29 @@ $fi.iterates
         cy.get("#extendList").should("have.text", "1, 2, 3, 4");
         cy.get("#toRepeat").should("have.text", "1, 2, 3, 4, 1, 2, 3, 4");
     });
+
+    it("puts the comma where the whitespace between two items was", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<setup><sequence name="s" length="0" /><sequence name="s2" length="0" /></setup>
+<p name="spaced"><group asList><number>1</number> <number>2</number> <number>3</number></group></p>
+<p name="withEmpty"><group asList><number>1</number> <number>2</number> $s $s2 <number>3</number></group></p>
+<repeatForSequence from="1" to="2" name="a" valueName="x">
+  <repeatForSequence from="5" to="7" step="2" name="b" valueName="y">
+    <number>$x+$y</number>
+  </repeatForSequence>
+</repeatForSequence>
+<p name="nestedRepeatItem">$a[1]</p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#spaced").should("have.text", "1, 2, 3");
+        cy.get("#withEmpty").should("have.text", "1, 2, 3");
+        cy.get("#nestedRepeatItem").should("have.text", "6, 8");
+    });
 });

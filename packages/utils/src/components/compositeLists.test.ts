@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     groupCompositeRanges,
+    listCommaPositions,
     type CompositeGroup,
     type CompositeRange,
 } from "./compositeLists";
@@ -209,9 +210,10 @@ describe("groupCompositeRanges", () => {
         ).eq(`group1("1")`);
     });
 
-    it("keeps whitespace in the tree but not as an item", () => {
+    it("keeps the whitespace at the ends of a list, and drops what a comma replaces", () => {
         // Two replacements separated by authored whitespace are a two-item
-        // list, not a three-item one.
+        // list, not a three-item one. The comma takes the place of the
+        // whitespace between them; the whitespace around the list stays.
         expect(
             sketch(
                 groupCompositeRanges<string>({
@@ -232,7 +234,34 @@ describe("groupCompositeRanges", () => {
                     isBlank,
                 }),
             ),
-        ).eq(`list1("\\n" "1" " " "2" "\\n")`);
+        ).eq(`list1("\\n" "1" "2" "\\n")`);
+    });
+
+    it("keeps a composite that produced only whitespace in its place", () => {
+        // The renderers anchor the composite's name there.
+        expect(
+            sketch(
+                groupCompositeRanges<string>({
+                    children: ["1", " ", "2"],
+                    ranges: [
+                        range({
+                            compositeIdx: 10,
+                            firstInd: 0,
+                            lastInd: 2,
+                            potentialListComponents: [true, true, true],
+                        }),
+                        range({
+                            compositeIdx: 11,
+                            firstInd: 1,
+                            lastInd: 1,
+                            asList: false,
+                            potentialListComponents: [true],
+                        }),
+                    ],
+                    isBlank,
+                }),
+            ),
+        ).eq(`list10("1" group11(" ") "2")`);
     });
 
     it("takes the whitespace off the end of an item a comma will follow", () => {
@@ -371,5 +400,32 @@ describe("groupCompositeRanges", () => {
         };
         collect(groups);
         expect(indices).toEqual([0, 1, 2]);
+    });
+});
+
+describe("listCommaPositions", () => {
+    it("puts a comma in front of every item that has one before it", () => {
+        expect(listCommaPositions([false, false, false])).toEqual([
+            false,
+            true,
+            true,
+        ]);
+    });
+
+    it("puts none next to the whitespace at either end", () => {
+        expect(listCommaPositions([true, false, false, true])).toEqual([
+            false,
+            false,
+            true,
+            false,
+        ]);
+    });
+
+    it("puts one comma, not two, around a blank in the middle", () => {
+        expect(listCommaPositions([false, true, false])).toEqual([
+            false,
+            true,
+            false,
+        ]);
     });
 });

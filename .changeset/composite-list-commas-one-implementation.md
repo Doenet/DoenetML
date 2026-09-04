@@ -12,4 +12,6 @@ A reference to a list keeps the list's commas, and no comma has a space in front
 
 Whitespace at the end of a list item no longer lands in front of the comma that follows it. `<group asList><group><number>1</number> </group><group><number>2</number> </group></group>` read `1 , 2` and now reads `1, 2`.
 
+The whitespace an author puts between the items of a list group is where the commas go, in `text` as in the rendered list. `<group asList><number>1</number> <number>2</number></group>` had a `text` of `1, , 2`; it now reads `1, 2`, and an empty composite among the items, such as a sequence of length zero, changes nothing.
+
 Underneath, the commas were being worked out four times over from the same data — once for the renderers, once for `text`, once for the string a `<math>` parses, and once for the FlatDast the prototype renderers read. Those four now share one implementation of the grouping, so what a reader sees and what `text` says cannot drift apart again.

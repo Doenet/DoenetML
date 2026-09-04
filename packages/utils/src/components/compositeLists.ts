@@ -10,7 +10,8 @@
  * parses, and the FlatDast the prototype renderers read — and they differ only
  * in what they do with a group once they have one. {@link groupCompositeRanges}
  * is the part they share: it turns the flat array of ranges into a tree, and
- * decides which nodes of that tree are lists.
+ * decides which nodes of that tree are lists. {@link listCommaPositions} then
+ * says where the commas go among a list's items.
  */
 
 /**
@@ -59,9 +60,10 @@ export type GroupCompositeRangesOptions<T> = {
     isAbsent?: (value: T) => boolean;
     /**
      * A whitespace-only child. Authored whitespace around a composite's
-     * replacements separates them rather than being one of them: it stays in
-     * the tree, but is not an item, and it is dropped from the end of an item a
-     * comma will follow.
+     * replacements separates them rather than being one of them: it is never
+     * an item, and in a list it stays only where no comma takes its place,
+     * before the first item and after the last. Between two items it goes, as
+     * does the whitespace at the end of an item a comma will follow.
      */
     isBlank?: (value: T) => boolean;
     /**
@@ -222,10 +224,10 @@ function groupRange<T>({
         }
 
         const listItems = rangeItems.filter(
-            (item) => !isBlankItem(item, isBlank),
+            (item) => !isBlankGroup(item, isBlank),
         );
         const allEligible = rangeEligible.every(
-            (value, ind) => value || isBlankItem(rangeItems[ind], isBlank),
+            (value, ind) => value || isBlankGroup(rangeItems[ind], isBlank),
         );
         const asList =
             Boolean(range.asList) && allEligible && listItems.length > 1;
@@ -235,7 +237,7 @@ function groupRange<T>({
             range,
             asList,
             items: asList
-                ? trimBeforeCommas(rangeItems, isBlank, trimEnd)
+                ? prepareListItems(rangeItems, isBlank, trimEnd)
                 : rangeItems,
         });
         if (eligibility) {
@@ -273,42 +275,71 @@ function shiftForRemovedChild(
     return { firstInd, lastInd };
 }
 
-function isBlankItem<T>(
-    item: CompositeGroup<T> | undefined,
+/**
+ * Whether a node of the tree is only whitespace: a blank child, or a composite
+ * that produced nothing but blank children.
+ */
+export function isBlankGroup<T>(
+    group: CompositeGroup<T>,
     isBlank: (value: T) => boolean,
 ): boolean {
-    if (item === undefined) {
-        return true;
+    if (group.kind === "child") {
+        return isBlank(group.value);
     }
-    if (item.kind === "child") {
-        return isBlank(item.value);
-    }
-    return item.items.every((sub) => isBlankItem(sub, isBlank));
+    return group.items.every((item) => isBlankGroup(item, isBlank));
 }
 
 /**
- * Take the whitespace off the end of every item a comma will follow, so that
- * nothing puts a space in front of a comma. The last item keeps its trailing
- * whitespace: no comma follows it, and it separates the list from whatever
- * comes next.
+ * Where the commas go among the items of a list, given which items are blank:
+ * in front of every item that has an item before it. No comma lands next to
+ * the whitespace at either end of the list, and a blank left in the middle, a
+ * composite that produced only whitespace, gets one comma rather than two.
  */
-function trimBeforeCommas<T>(
+export function listCommaPositions(blank: boolean[]): boolean[] {
+    return blank.map(
+        (_, ind) =>
+            ind > 0 &&
+            !blank[ind - 1] &&
+            blank.slice(ind).some((isBlank) => !isBlank),
+    );
+}
+
+/**
+ * The items of a list as the commas will separate them. A blank child between
+ * two items goes, since the comma takes its place, and so does the whitespace
+ * at the end of an item a comma will follow, so that nothing puts a space in
+ * front of a comma. The whitespace before the first item and after the last
+ * stays: no comma replaces it, and it separates the list from what surrounds
+ * it. A composite that produced only whitespace also stays, so that the
+ * renderers can still anchor its name to its place.
+ */
+function prepareListItems<T>(
     items: CompositeGroup<T>[],
     isBlank: (value: T) => boolean,
     trimEnd: (value: T) => T,
 ): CompositeGroup<T>[] {
+    const firstItemInd = items.findIndex(
+        (item) => !isBlankGroup(item, isBlank),
+    );
     let lastItemInd = items.length - 1;
-    while (lastItemInd >= 0 && isBlankItem(items[lastItemInd], isBlank)) {
+    while (
+        lastItemInd > firstItemInd &&
+        isBlankGroup(items[lastItemInd], isBlank)
+    ) {
         lastItemInd--;
     }
 
-    // Only an item a comma actually follows: whitespace between two items is a
-    // separator in its own right and stays as it is.
-    return items.map((item, ind) =>
-        ind < lastItemInd && !isBlankItem(item, isBlank)
-            ? trimItemEnd(item, isBlank, trimEnd)
-            : item,
-    );
+    const prepared: CompositeGroup<T>[] = [];
+    for (const [ind, item] of items.entries()) {
+        if (ind < firstItemInd || ind >= lastItemInd) {
+            prepared.push(item);
+        } else if (!isBlankGroup(item, isBlank)) {
+            prepared.push(trimItemEnd(item, isBlank, trimEnd));
+        } else if (item.kind === "composite") {
+            prepared.push(item);
+        }
+    }
+    return prepared;
 }
 
 /**
@@ -326,7 +357,7 @@ function trimItemEnd<T>(
     }
 
     let end = item.items.length;
-    while (end > 0 && isBlankItem(item.items[end - 1], isBlank)) {
+    while (end > 0 && isBlankGroup(item.items[end - 1], isBlank)) {
         end--;
     }
     if (end === 0) {
