@@ -101930,7 +101930,10 @@
                     "values": [
                         "uniform",
                         "discreteUniform",
-                        "gaussian"
+                        "gaussian",
+                        "hypergeometric",
+                        "binomial",
+                        "poisson"
                     ],
                     "autocompleteValues": [
                         {
@@ -101944,6 +101947,18 @@
                         {
                             "value": "gaussian",
                             "description": "Normal (Gaussian) distribution with the specified mean and standard deviation."
+                        },
+                        {
+                            "value": "hypergeometric",
+                            "description": "Number of successes when drawing `numDraws` items without replacement from a population of `numTotal` items containing `numSuccesses` successes."
+                        },
+                        {
+                            "value": "binomial",
+                            "description": "Number of successes in `numTrials` independent trials that each succeed with the given `probability`."
+                        },
+                        {
+                            "value": "poisson",
+                            "description": "Poisson distribution with the specified mean (which defaults to 1)."
                         }
                     ],
                     "type": "keyword"
@@ -101989,6 +102004,36 @@
                     "description": "Values to exclude from the sample space.",
                     "defaultValue": [],
                     "type": "numberList"
+                },
+                {
+                    "name": "numTotal",
+                    "description": "Size of the population drawn from (hypergeometric).",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "numSuccesses",
+                    "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "numDraws",
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "numTrials",
+                    "description": "Number of independent trials making up each sample (binomial).",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "probability",
+                    "description": "Probability that each trial succeeds (binomial).",
+                    "defaultValue": 0.5,
+                    "type": "number"
                 },
                 {
                     "name": "displayDigits",
@@ -102054,6 +102099,41 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Distribution from which to sample.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Size of the population drawn from (hypergeometric).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numSuccesses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numTrials",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of independent trials making up each sample (binomial).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "probability",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Probability that each trial succeeds (binomial).",
                     "fromAttribute": true
                 },
                 {
@@ -102206,7 +102286,10 @@
                     "values": [
                         "uniform",
                         "discreteUniform",
-                        "gaussian"
+                        "gaussian",
+                        "hypergeometric",
+                        "binomial",
+                        "poisson"
                     ],
                     "autocompleteValues": [
                         {
@@ -102220,6 +102303,18 @@
                         {
                             "value": "gaussian",
                             "description": "Normal (Gaussian) distribution with the specified mean and standard deviation."
+                        },
+                        {
+                            "value": "hypergeometric",
+                            "description": "Number of successes when drawing `numDraws` items without replacement from a population of `numTotal` items containing `numSuccesses` successes."
+                        },
+                        {
+                            "value": "binomial",
+                            "description": "Number of successes in `numTrials` independent trials that each succeed with the given `probability`."
+                        },
+                        {
+                            "value": "poisson",
+                            "description": "Poisson distribution with the specified mean (which defaults to 1)."
                         }
                     ],
                     "type": "keyword"
@@ -102265,6 +102360,36 @@
                     "description": "Values to exclude from the sample space.",
                     "defaultValue": [],
                     "type": "numberList"
+                },
+                {
+                    "name": "numTotal",
+                    "description": "Size of the population drawn from (hypergeometric).",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "numSuccesses",
+                    "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "numDraws",
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "numTrials",
+                    "description": "Number of independent trials making up each sample (binomial).",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "probability",
+                    "description": "Probability that each trial succeeds (binomial).",
+                    "defaultValue": 0.5,
+                    "type": "number"
                 },
                 {
                     "name": "displayDigits",
@@ -102340,6 +102465,41 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Distribution from which to sample.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Size of the population drawn from (hypergeometric).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numSuccesses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numTrials",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of independent trials making up each sample (binomial).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "probability",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Probability that each trial succeeds (binomial).",
                     "fromAttribute": true
                 },
                 {

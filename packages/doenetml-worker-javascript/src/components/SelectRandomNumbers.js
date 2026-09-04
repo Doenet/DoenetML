@@ -98,6 +98,26 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     dependencyType: "stateVariable",
                     variableName: "standardDeviation",
                 },
+                numTotal: {
+                    dependencyType: "stateVariable",
+                    variableName: "numTotal",
+                },
+                numSuccesses: {
+                    dependencyType: "stateVariable",
+                    variableName: "numSuccesses",
+                },
+                numDraws: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDraws",
+                },
+                numTrials: {
+                    dependencyType: "stateVariable",
+                    variableName: "numTrials",
+                },
+                probability: {
+                    dependencyType: "stateVariable",
+                    variableName: "probability",
+                },
                 variants: {
                     dependencyType: "stateVariable",
                     variableName: "variants",

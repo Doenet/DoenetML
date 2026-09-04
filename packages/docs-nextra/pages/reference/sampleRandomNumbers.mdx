@@ -324,3 +324,103 @@ The `type` attribute of the `<sampleRandomNumbers/>{:dn}` component is specified
 as `gaussian`. The `gaussian` selection generates standard normal variables (mean 0, variance 1). In 
 this example, the `mean` and the `standardDeviation` are defined with attributes.
 
+
+
+---
+
+### Attribute Example: type = "hypergeometric"
+
+
+```doenet-example
+<p>An urn holds 20 marbles, 7 of which are red. 
+  Draw 5 marbles without replacement and count the red ones, 
+  repeated 10 times:
+  <sampleRandomNumbers 
+    name="x" 
+    type="hypergeometric" 
+    numTotal="20" 
+    numSuccesses="7" 
+    numDraws="5" 
+    numSamples="10"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>Expected number of red marbles per draw: $x.mean</p>
+```
+
+
+
+The `hypergeometric` type counts the successes obtained when drawing `numDraws` 
+items *without replacement* from a population of `numTotal` items containing 
+`numSuccesses` successes. Because the draws within a single sample deplete the 
+population, this is the without-replacement counterpart of the `binomial` type.
+
+Each sample lies between $\max(0, n - (N - K))$ and $\min(n, K)$, where 
+$N$ is `numTotal`, $K$ is `numSuccesses`, and $n$ is `numDraws`.
+
+
+
+---
+
+### Attribute Example: type = "binomial"
+
+
+```doenet-example
+<p>Flip a biased coin 10 times and count the heads, repeated 10 times:
+  <sampleRandomNumbers 
+    name="x" 
+    type="binomial" 
+    numTrials="10" 
+    probability="0.3" 
+    numSamples="10"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>Expected number of heads per sample: $x.mean</p>
+```
+
+
+
+The `binomial` type counts the successes in `numTrials` independent trials that 
+each succeed with the given `probability`. If unspecified, `numTrials` is 1 and 
+`probability` is 0.5, so `type="binomial"` on its own produces a fair coin flip 
+reported as 0 or 1.
+
+
+
+---
+
+### Attribute Example: type = "poisson"
+
+
+```doenet-example
+<p>Number of calls arriving each hour, averaging 4 per hour:
+  <sampleRandomNumbers 
+    name="x" 
+    type="poisson" 
+    mean="4" 
+    numSamples="10"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>Variance of the distribution: $x.variance</p>
+```
+
+
+
+The `poisson` type is determined entirely by its `mean`, which also equals its 
+variance. Unlike the `gaussian` type, whose `mean` defaults to 0, the `mean` of a 
+`poisson` distribution defaults to 1, since a Poisson distribution with mean 0 
+always returns 0.

@@ -646,6 +646,383 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    // A helper for the discrete distributions whose edge cases have a single
+    // determined answer, where drawing statistics would be beside the point.
+    async function get_sampled_values(doenetML: string, name: string) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx(name);
+        return stateVariables[componentIdx].replacements!.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+    }
+
+    it("hypergeometric, 5 draws from 20 items with 7 successes", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="7" numDraws="5" numToSelect="20" />`,
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="7" numDraws="5" numSamples="20" />`,
+        ];
+
+        // mean = n*K/N; variance = n*(K/N)*((N-K)/N)*(N-n)/(N-1)
+        const expectedMean = (5 * 7) / 20;
+        const expectedVariance = (5 * (7 / 20) * (13 / 20) * 15) / 19;
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 10,
+                validValues: [0, 1, 2, 3, 4, 5],
+                allowedMeanMid: expectedMean,
+                allowedMeanSpread: 0.1,
+                allowedVarianceMid: expectedVariance,
+                allowedVarianceSpread: 0.15,
+                expectedMean,
+                expectedVariance,
+            });
+        }
+    });
+
+    // Exercises both symmetries used to keep the sampling loop short:
+    // more draws than are left behind, and more successes than failures.
+    it("hypergeometric, drawing most of a mostly-successful population", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="15" numDraws="16" numToSelect="20" />`,
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="15" numDraws="16" numSamples="20" />`,
+        ];
+
+        const expectedMean = (16 * 15) / 20;
+        const expectedVariance = (16 * (15 / 20) * (5 / 20) * 4) / 19;
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 10,
+                // support is max(0, n-(N-K)) to min(n, K), i.e. 11 to 15
+                validValues: [11, 12, 13, 14, 15],
+                allowedMeanMid: expectedMean,
+                allowedMeanSpread: 0.1,
+                allowedVarianceMid: expectedVariance,
+                allowedVarianceSpread: 0.12,
+                expectedMean,
+                expectedVariance,
+            });
+        }
+    });
+
+    it("degenerate hypergeometric parameters", async () => {
+        // drawing the whole population always yields every success
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="4" numDraws="10" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([4, 4, 4, 4, 4]);
+
+        // drawing nothing always yields no successes
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="4" numDraws="0" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0, 0]);
+
+        // a population with no successes yields no successes
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="0" numDraws="4" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0, 0]);
+
+        // a population that is all successes yields all successes
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="10" numDraws="4" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([4, 4, 4, 4, 4]);
+    });
+
+    it("a one-item hypergeometric population has zero variance", async () => {
+        // the finite population correction divides by numTotal - 1, but with a
+        // single item the draw is determined, so the variance is 0 rather than NaN
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1" numSuccesses="1" numDraws="1" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(1, 1e-10);
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            0,
+            1e-10,
+        );
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviation,
+        ).closeTo(0, 1e-10);
+
+        expect(
+            stateVariables[componentIdx].replacements!.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
+            ),
+        ).eqls([1, 1, 1]);
+    });
+
+    it("invalid hypergeometric parameters give NaN", async () => {
+        const doenetMLs = [
+            // unspecified population
+            `<sampleRandomNumbers name="s" type="hypergeometric" numSamples="3" />`,
+            // more successes than items
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="11" numDraws="4" numSamples="3" />`,
+            // more draws than items
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="4" numDraws="11" numSamples="3" />`,
+            // negative count
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="-1" numDraws="4" numSamples="3" />`,
+            // non-integer count
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10.5" numSuccesses="4" numDraws="4" numSamples="3" />`,
+            // an empty population has no distribution to report
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="0" numSuccesses="0" numDraws="0" numSamples="3" />`,
+        ];
+
+        for (let doenetML of doenetMLs) {
+            const values = await get_sampled_values(doenetML, "s");
+            expect(values.length).eq(3);
+            for (let value of values) {
+                expect(Number.isNaN(value)).eq(true);
+            }
+        }
+    });
+
+    it("binomial, 10 trials with probability 0.3", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="binomial" numTrials="10" probability="0.3" numToSelect="20" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="10" probability="0.3" numSamples="20" />`,
+        ];
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 10,
+                validValues: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                allowedMeanMid: 3,
+                allowedMeanSpread: 0.15,
+                allowedVarianceMid: 2.1,
+                allowedVarianceSpread: 0.3,
+                expectedMean: 3,
+                expectedVariance: 2.1,
+            });
+        }
+    });
+
+    it("binomial defaults to a single fair trial", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="binomial" numSamples="20" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            0.5,
+            1e-10,
+        );
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            0.25,
+            1e-10,
+        );
+
+        for (let replacement of stateVariables[componentIdx].replacements!) {
+            const value =
+                stateVariables[replacement.componentIdx].stateValues.value;
+            expect([0, 1].includes(value)).eq(true);
+        }
+    });
+
+    it("degenerate and invalid binomial parameters", async () => {
+        // probability 0 never succeeds, probability 1 always succeeds
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="0" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0]);
+
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="1" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([6, 6, 6, 6]);
+
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="0" probability="0.5" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0]);
+
+        for (let doenetML of [
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="1.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="-0.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="6.5" probability="0.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="3" />`,
+        ]) {
+            for (let value of await get_sampled_values(doenetML, "s")) {
+                expect(Number.isNaN(value)).eq(true);
+            }
+        }
+    });
+
+    it("poisson with mean 4", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="poisson" mean="4" numToSelect="20" />`,
+            `<sampleRandomNumbers name="s" type="poisson" mean="4" numSamples="20" />`,
+        ];
+
+        // The support is unbounded, but with mean 4 the chance of exceeding 30
+        // is below 10^(-16), so this doubles as an integrality check.
+        const validValues = [...Array(31).keys()];
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 10,
+                validValues,
+                allowedMeanMid: 4,
+                allowedMeanSpread: 0.2,
+                allowedVarianceMid: 4,
+                allowedVarianceSpread: 0.5,
+                expectedMean: 4,
+                expectedVariance: 4,
+            });
+        }
+    });
+
+    it("poisson mean defaults to 1, not to the shared default of 0", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="poisson" numSamples="20" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(1, 1e-10);
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            1,
+            1e-10,
+        );
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviation,
+        ).closeTo(1, 1e-10);
+    });
+
+    it("degenerate and invalid poisson parameters", async () => {
+        // a Poisson distribution with mean 0 is deterministic
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="poisson" mean="0" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0]);
+
+        for (let value of await get_sampled_values(
+            `<sampleRandomNumbers name="s" type="poisson" mean="-1" numSamples="3" />`,
+            "s",
+        )) {
+            expect(Number.isNaN(value)).eq(true);
+        }
+    });
+
+    it("resample the discrete distributions", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><sampleRandomNumbers name="hyper" type="hypergeometric" numTotal="50" numSuccesses="25" numDraws="20" numSamples="20" /></p>
+    <p><sampleRandomNumbers name="binom" type="binomial" numTrials="20" probability="0.5" numSamples="20" /></p>
+    <p><sampleRandomNumbers name="pois" type="poisson" mean="10" numSamples="20" /></p>
+
+    <callAction name="resampleHyper" target="$hyper" actionName="resample"><label>Resample</label></callAction>
+    <callAction name="resampleBinom" target="$binom" actionName="resample"><label>Resample</label></callAction>
+    <callAction name="resamplePois" target="$pois" actionName="resample"><label>Resample</label></callAction>
+    `,
+        });
+
+        async function values_of(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx(name);
+            return stateVariables[componentIdx].replacements!.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
+            );
+        }
+
+        for (let [name, button] of [
+            ["hyper", "resampleHyper"],
+            ["binom", "resampleBinom"],
+            ["pois", "resamplePois"],
+        ]) {
+            const before = await values_of(name);
+            expect(before.length).eq(20);
+
+            await callAction({
+                core,
+                componentIdx: await resolvePathToNodeIdx(button),
+            });
+
+            const after = await values_of(name);
+            expect(after.length).eq(20);
+            // 20 samples from these distributions repeating exactly is
+            // vanishingly unlikely, so the values must have changed
+            expect(after).not.eqls(before);
+            for (let value of after) {
+                expect(Number.isInteger(value)).eq(true);
+            }
+        }
+    });
+
+    it("same discrete samples for given variant if variantDeterminesSeed", async () => {
+        const doenetML = `
+    <sampleRandomNumbers name="hyper" type="hypergeometric" numTotal="50" numSuccesses="25" numDraws="20" numSamples="10" variantDeterminesSeed />
+    <sampleRandomNumbers name="binom" type="binomial" numTrials="20" probability="0.3" numSamples="10" variantDeterminesSeed />
+    <sampleRandomNumbers name="pois" type="poisson" mean="6" numSamples="10" variantDeterminesSeed />
+    `;
+
+        async function values_for_variant(requestedVariantIndex: number) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, number[]> = {};
+            for (let name of ["hyper", "binom", "pois"]) {
+                const componentIdx = await resolvePathToNodeIdx(name);
+                result[name] = stateVariables[componentIdx].replacements!.map(
+                    (x) => stateVariables[x.componentIdx].stateValues.value,
+                );
+            }
+            return result;
+        }
+
+        const first = await values_for_variant(1);
+        const firstAgain = await values_for_variant(1);
+        const second = await values_for_variant(2);
+
+        expect(firstAgain).eqls(first);
+        expect(second).not.eqls(first);
+    });
+
     it("asList", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

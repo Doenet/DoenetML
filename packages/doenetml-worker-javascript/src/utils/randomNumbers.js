@@ -1,3 +1,101 @@
+// Beyond this many expected `rng()` calls per variate, the linear-time samplers below
+// get noticeably slow. We still return exact samples; the warning just tells an author
+// why their document is sluggish.
+const WORK_PER_VARIATE_WARNING_THRESHOLD = 1e4;
+
+/**
+ * Sample a single hypergeometric variate: the number of successes obtained when drawing
+ * `numDraws` items without replacement from a population of `numTotal` items, of which
+ * `numSuccesses` are successes.
+ *
+ * Draws the items one at a time, shrinking the urn as it goes, which is O(numDraws).
+ * The two symmetries of the distribution are applied first so that the loop is never
+ * longer than it has to be: we can draw the items left behind instead of the items
+ * taken, and we can count failures instead of successes.
+ */
+export function sampleHypergeometric({
+    numTotal,
+    numSuccesses,
+    numDraws,
+    rng,
+}) {
+    // draw the smaller of the taken and left-behind groups
+    const complementDraws = numDraws > numTotal - numDraws;
+    let draws = complementDraws ? numTotal - numDraws : numDraws;
+
+    // track the smaller of the successes and failures
+    const complementSuccesses = numSuccesses > numTotal - numSuccesses;
+    let tracked = complementSuccesses ? numTotal - numSuccesses : numSuccesses;
+
+    let trackedLeft = tracked;
+    let totalLeft = numTotal;
+    let count = 0;
+
+    for (let i = 0; i < draws; i++) {
+        if (rng() * totalLeft < trackedLeft) {
+            count++;
+            trackedLeft--;
+        }
+        totalLeft--;
+    }
+
+    // undo the substitutions, innermost first
+    if (complementDraws) {
+        count = tracked - count;
+    }
+    if (complementSuccesses) {
+        count = numDraws - count;
+    }
+
+    return count;
+}
+
+/**
+ * Sample a single binomial variate: the number of successes in `numTrials` independent
+ * trials that each succeed with probability `probability`. Runs the trials directly,
+ * which is O(numTrials).
+ */
+export function sampleBinomial({ numTrials, probability, rng }) {
+    let count = 0;
+    for (let i = 0; i < numTrials; i++) {
+        if (rng() < probability) {
+            count++;
+        }
+    }
+    return count;
+}
+
+/**
+ * Sample a single Poisson variate with the given mean, using Knuth's method: multiply
+ * uniforms until the product drops below e^(-mean). Takes O(mean) draws on average.
+ */
+export function samplePoisson({ mean, rng }) {
+    if (mean === 0) {
+        return 0;
+    }
+
+    const limit = Math.exp(-mean);
+    let count = 0;
+    let product = rng();
+
+    while (product > limit) {
+        count++;
+        product *= rng();
+    }
+
+    return count;
+}
+
+function warnSlowSampling(type, workPerVariate) {
+    if (workPerVariate > WORK_PER_VARIATE_WARNING_THRESHOLD) {
+        console.warn(
+            `Sampling from a ${type} distribution with these parameters requires about ${Math.round(
+                workPerVariate,
+            )} random draws per sample, which may be slow.`,
+        );
+    }
+}
+
 export function sampleFromRandomNumbers({
     type,
     numSamples,
@@ -8,6 +106,11 @@ export function sampleFromRandomNumbers({
     step,
     exclude,
     numDiscreteValues,
+    numTotal,
+    numSuccesses,
+    numDraws,
+    numTrials,
+    probability,
     rng,
 }) {
     if (type === "gaussian") {
@@ -50,6 +153,96 @@ export function sampleFromRandomNumbers({
 
         for (let i = 0; i < numSamples; i++) {
             sampledValues.push(from + rng() * diff);
+        }
+
+        return sampledValues;
+    } else if (type === "hypergeometric") {
+        if (
+            !Number.isInteger(numTotal) ||
+            !Number.isInteger(numSuccesses) ||
+            !Number.isInteger(numDraws) ||
+            numTotal < 1 ||
+            numSuccesses < 0 ||
+            numDraws < 0 ||
+            numSuccesses > numTotal ||
+            numDraws > numTotal
+        ) {
+            console.warn(
+                "Invalid numTotal (" +
+                    numTotal +
+                    "), numSuccesses (" +
+                    numSuccesses +
+                    "), or numDraws (" +
+                    numDraws +
+                    ") for a hypergeometric random variable. numTotal must be a positive integer, and numSuccesses and numDraws must be non-negative integers no larger than numTotal.",
+            );
+
+            return Array(numSamples).fill(NaN);
+        }
+
+        warnSlowSampling(
+            "hypergeometric",
+            Math.min(numDraws, numTotal - numDraws),
+        );
+
+        let sampledValues = [];
+
+        for (let i = 0; i < numSamples; i++) {
+            sampledValues.push(
+                sampleHypergeometric({
+                    numTotal,
+                    numSuccesses,
+                    numDraws,
+                    rng,
+                }),
+            );
+        }
+
+        return sampledValues;
+    } else if (type === "binomial") {
+        if (
+            !Number.isInteger(numTrials) ||
+            numTrials < 0 ||
+            !(probability >= 0) ||
+            !(probability <= 1)
+        ) {
+            console.warn(
+                "Invalid numTrials (" +
+                    numTrials +
+                    ") or probability (" +
+                    probability +
+                    ") for a binomial random variable. numTrials must be a non-negative integer and probability must be between 0 and 1.",
+            );
+
+            return Array(numSamples).fill(NaN);
+        }
+
+        warnSlowSampling("binomial", numTrials);
+
+        let sampledValues = [];
+
+        for (let i = 0; i < numSamples; i++) {
+            sampledValues.push(sampleBinomial({ numTrials, probability, rng }));
+        }
+
+        return sampledValues;
+    } else if (type === "poisson") {
+        if (!(mean >= 0) || !Number.isFinite(mean)) {
+            console.warn(
+                "Invalid mean (" +
+                    mean +
+                    ") for a Poisson random variable. It must be a non-negative number.",
+            );
+
+            return Array(numSamples).fill(NaN);
+        }
+
+        warnSlowSampling("Poisson", mean);
+
+        let sampledValues = [];
+
+        for (let i = 0; i < numSamples; i++) {
+            sampledValues.push(samplePoisson({ mean, rng }));
         }
 
         return sampledValues;
