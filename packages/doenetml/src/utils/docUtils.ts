@@ -221,6 +221,52 @@ export function createCoreWorker(): CoreWorkerHandle {
 }
 
 /**
+ * An initialization's place in a worker's queue; see `initializationInFlight`.
+ */
+type QueueSlot = {
+    /**
+     * Settles once every initialization up to and including this one is
+     * finished with the worker: its own round trips are over, or it will
+     * never make any. Never rejects — what the initialization behind it needs
+     * to know is only that the worker is free.
+     */
+    done: Promise<void>;
+    /** Settle this initialization's own part of `done`. Idempotent. */
+    release: () => void;
+    /**
+     * Whether its round trips have begun. Set in the same turn as the first
+     * one is made, so a successor reading it sees either a slot that can
+     * still yield or one whose round trips it must wait out.
+     */
+    begun: boolean;
+    /**
+     * Set when a successor found it abandoned before it had begun; it then
+     * makes no round trips when its own preparation settles.
+     */
+    yielded: boolean;
+    /** Its owner's `abandoned` predicate, for a successor to consult. */
+    abandoned?: () => boolean;
+};
+
+/** A fresh slot, whose `done` follows `predecessor`'s before its own release. */
+function queueSlot(
+    predecessor: QueueSlot | undefined,
+    abandoned?: () => boolean,
+): QueueSlot {
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => {
+        release = resolve;
+    });
+    async function done() {
+        if (predecessor) {
+            await predecessor.done;
+        }
+        await released;
+    }
+    return { done: done(), release, begun: false, yielded: false, abandoned };
+}
+
+/**
  * The initialization in flight on each core worker, keyed by the worker's
  * Comlink remote (#1533).
  *
@@ -240,16 +286,18 @@ export function createCoreWorker(): CoreWorkerHandle {
  * priming initialization of a `render={false}` viewer is still in flight.
  *
  * So initializations are serialized here, per worker: one started while
- * another is in flight waits for it to settle, then runs whole. Run whole
- * after its predecessor, it is correct as it stands — its own `setSource`
- * puts the DAST back — so settlement is all it waits for: a predecessor
- * that failed is its own caller's to report.
+ * another is in flight waits for the worker to be free of it, then runs
+ * whole. Run whole after its predecessor, it is correct as it stands — its
+ * own `setSource` puts the DAST back — so a predecessor that failed is its
+ * own caller's to report.
  *
  * Of the initializations queued behind the one on the worker, only the
  * newest belongs to a document the viewer still shows — each rebuild retires
- * the last — so the rest step aside at their turn (`abandoned`), and the
- * newest waits for the one on the worker and no more, however many rebuilds
- * landed in between.
+ * the last — so the rest step aside (`abandoned`): at their turn, or, when
+ * one is queued behind them before they have reached the worker, right then,
+ * so that a preparation still waiting on a fetch holds nobody up. The newest
+ * thus waits for the one initialization on the worker and no more, however
+ * many rebuilds landed in between.
  *
  * Weakly keyed, so an entry goes with the worker it describes and nothing
  * here has to be told when a worker is discarded. One discarded with an
@@ -259,7 +307,7 @@ export function createCoreWorker(): CoreWorkerHandle {
  */
 const initializationInFlight = new WeakMap<
     Comlink.Remote<CoreWorker>,
-    Promise<unknown>
+    QueueSlot
 >();
 
 export async function initializeCoreWorker({
@@ -342,31 +390,24 @@ export async function initializeCoreWorker({
     }
 
     /**
-     * Everything one initialization does: its own work, then — once
-     * `predecessor` (the initialization ahead of it on this worker, if any)
-     * has settled — the round trips. Only the round trips are serialized; see
-     * `initializationInFlight`.
-     *
-     * Settles no earlier than its predecessor, whatever becomes of its own
-     * work. This promise is what the initialization behind it waits on, and
-     * one that failed while its predecessor was still on the worker would
-     * otherwise wave that successor through to interleave with it.
+     * Everything one initialization does: its own work, then — once the
+     * worker is free of `predecessor` (the initialization ahead of it on this
+     * worker, if any) — the round trips. Only the round trips are serialized;
+     * see `initializationInFlight`. Its place in the queue is `slot`, which
+     * the `finally` below releases however this ends.
      */
-    async function initializeAfter(predecessor: Promise<unknown> | undefined) {
-        const [own] = await Promise.allSettled([prepare()]);
+    async function initializeAfter(
+        predecessor: QueueSlot | undefined,
+        slot: QueueSlot,
+    ) {
+        const { dast, resolvedDocumentLocale } = await prepare();
         if (predecessor) {
-            // Settlement is all that is waited for; see
-            // `initializationInFlight`.
-            await Promise.allSettled([predecessor]);
+            await predecessor.done;
         }
-        if (own.status === "rejected") {
-            throw own.reason;
-        }
-        const { dast, resolvedDocumentLocale } = own.value;
-
-        if (abandoned?.()) {
+        if (slot.yielded || abandoned?.()) {
             return null;
         }
+        slot.begun = true;
 
         onQueueTurn?.();
 
@@ -415,16 +456,26 @@ export async function initializeCoreWorker({
     // the last to run is the newest, and the worker ends up holding the
     // document the viewer is showing even when an older initialization's
     // external references were slow to fetch.
-    const initialization = initializeAfter(
-        initializationInFlight.get(coreWorker),
-    );
-    initializationInFlight.set(coreWorker, initialization);
+    const predecessor = initializationInFlight.get(coreWorker);
+    if (predecessor && !predecessor.begun && predecessor.abandoned?.()) {
+        // A predecessor that has not reached the worker and whose document
+        // has moved on yields its place now that something is behind it: its
+        // preparation may be waiting on a fetch that never settles, and none
+        // of that concerns the worker. Its `done` still follows the slots
+        // ahead of it, so this initialization waits for the worker exactly as
+        // long as it must.
+        predecessor.yielded = true;
+        predecessor.release();
+    }
+    const slot = queueSlot(predecessor, abandoned);
+    initializationInFlight.set(coreWorker, slot);
     try {
-        return await initialization;
+        return await initializeAfter(predecessor, slot);
     } finally {
+        slot.release();
         // The entry is this initialization's to clear only while nothing has
         // queued behind it; a successor's entry is the successor's.
-        if (initializationInFlight.get(coreWorker) === initialization) {
+        if (initializationInFlight.get(coreWorker) === slot) {
             initializationInFlight.delete(coreWorker);
         }
     }

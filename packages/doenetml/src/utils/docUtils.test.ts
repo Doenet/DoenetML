@@ -211,11 +211,11 @@ describe("initializeCoreWorker serialization (#1533)", () => {
     });
 
     it("holds a failed initialization's place until its predecessor has settled", async () => {
-        // An initialization whose own work fails settles no earlier than the
-        // one ahead of it. The one behind it waits on its promise, and one
-        // that settled at once would wave that successor onto a worker the
-        // predecessor is still initializing. It gets no turn either: nothing
-        // of its own will run.
+        // An initialization whose own work fails still holds its place in the
+        // queue: the one behind it waits on its slot, which settles no earlier
+        // than the slots ahead of it, so a failure while the predecessor is
+        // still on the worker cannot wave the successor onto it. It gets no
+        // turn either: nothing of its own will run.
         const log: string[] = [];
         const { remote, release } = fakeRemote(log, {
             holdInitializationOf: "A",
@@ -229,13 +229,16 @@ describe("initializeCoreWorker serialization (#1533)", () => {
             },
         });
         const third = initialize(remote, "C", log);
+        // Its failure is its own caller's, reported as soon as it happens —
+        // holding its place in the queue does not hold its result.
+        const secondFailed = expect(second).rejects.toThrow("fetch failed");
         await settle();
 
         // The first is held in its last round trip; the third is waiting.
         expect(log).toEqual(sequenceFor("A").slice(0, -1));
 
         release();
-        await expect(second).rejects.toThrow("fetch failed");
+        await secondFailed;
         await Promise.all([first, third]);
         expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
     });
@@ -261,6 +264,35 @@ describe("initializeCoreWorker serialization (#1533)", () => {
 
         release();
         expect(await second).toBeNull();
+        await Promise.all([first, third]);
+        expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
+    });
+
+    it("passes an abandoned initialization whose preparation never settles", async () => {
+        // An initialization the viewer has moved on from can be stuck in its
+        // own preparation — a fetch of external references that never
+        // answers — long after it stopped mattering. Queueing another behind
+        // it releases its place at once, since it has not reached the worker,
+        // and the newcomer waits only for the initialization actually on the
+        // worker.
+        const log: string[] = [];
+        const { remote, release } = fakeRemote(log, {
+            holdInitializationOf: "A",
+        });
+
+        const first = initialize(remote, "A", log);
+        // Never settles: its fetch never answers. Nothing awaits it.
+        const stuck = initialize(remote, "B", log, {
+            doenetML: `<p>B</p><p copy="doenet:never" />`,
+            fetchExternalDoenetML: () => new Promise<string>(() => {}),
+            abandoned: () => true,
+        });
+        stuck.catch(() => {});
+        const third = initialize(remote, "C", log);
+        await settle();
+        expect(log).toEqual(sequenceFor("A").slice(0, -1));
+
+        release();
         await Promise.all([first, third]);
         expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
     });
