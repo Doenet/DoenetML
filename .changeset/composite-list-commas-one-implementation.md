@@ -1,0 +1,15 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+---
+
+A reference to a list keeps the list's commas, and no comma has a space in front of it.
+
+`$r[1]` and `$g` showed `1234` where the composite they name showed `1, 2, 3, 4`, in the rendered list and in `text` alike. A reference that lands on a composite copies its replacements, and did so recursively down to plain components — which is what makes `$mp[1]` reach the point inside a repeat item rather than the `<setup>` beside it — but recursing that far also flattened away every composite in between, and with it the `asList` that made the replacements a list. The recursion now stops at a composite that can be a list of its own, so the reference copies that composite and the list survives; composites that cannot be a list are still recursed through, so what a reference resolves to is unchanged.
+
+Whitespace at the end of a list item no longer lands in front of the comma that follows it. `<group asList><group><number>1</number> </group><group><number>2</number> </group></group>` read `1 , 2` and now reads `1, 2`.
+
+Underneath, the commas were being worked out four times over from the same data — once for the renderers, once for `text`, once for the string a `<math>` parses, and once for the FlatDast the prototype renderers read. Those four now share one implementation of the grouping, so what a reader sees and what `text` says cannot drift apart again.

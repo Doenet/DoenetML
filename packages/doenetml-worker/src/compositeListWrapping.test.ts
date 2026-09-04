@@ -285,11 +285,10 @@ describe("applyCompositeListWrapping", () => {
         expect(byId[12].children).toEqual([ref(3), ref(4)]);
     });
 
-    it("leaves trailing blank strings inside nested composite wrappers, matching production", () => {
-        // Production stores a grouped nested composite as an array containing a
-        // React fragment. `removeEndingBlankString` does not recurse into that
-        // array before the enclosing asList comma, so the FlatDast bridge must
-        // not pre-trim nested synthetic wrappers either.
+    it("takes the trailing blank off an item a comma will follow", () => {
+        // Nothing should put a space in front of a comma, so the whitespace an
+        // item ends with is left off. Here that leaves the inner composite with
+        // a single child, which needs no wrapper of its own.
         const contents: ChildContent[] = [ref(1), " ", ref(2)];
         const crar: CompositeReplacementRange[] = [
             {
@@ -317,9 +316,8 @@ describe("applyCompositeListWrapping", () => {
         const byId = Object.fromEntries(
             wrapperElements.map((w) => [w.data.id, w]),
         );
-        expect(byId[10].children).toEqual([ref(11), ref(2)]);
-        expect(byId[11].name).toBe("_fragment");
-        expect(byId[11].children).toEqual([ref(1), " "]);
+        expect(byId[10].children).toEqual([ref(1), ref(2)]);
+        expect(byId[11]).toBeUndefined();
     });
 
     it("nests an inner asList composite inside an outer asList composite", () => {

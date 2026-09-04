@@ -248,6 +248,19 @@ describe("Automatic commas between composite replacements @group3", () => {
         });
     });
 
+    it("takes an item's trailing whitespace off in front of a comma", async () => {
+        await checkParagraphs({
+            blankInsideItem: {
+                body: `<group asList><group><number>1</number> </group><group><number>2</number> </group></group>`,
+                expected: "1, 2 ",
+            },
+            blankBetweenItems: {
+                body: `<repeatForSequence from="1" to="3" valueName="v" asList><number>$v</number> </repeatForSequence>`,
+                expected: "1, 2, 3",
+            },
+        });
+    });
+
     it("keeps the commas through a reference to the list", async () => {
         await checkParagraphs(
             {
@@ -337,12 +350,13 @@ describe("Automatic commas inside a <math> @group3", () => {
  * and the case can be moved into the suite above.
  */
 describe("Automatic commas: known defects @group3", () => {
-    // The `text` pathway trims the end of every item but the last, so
-    // whitespace an item ends with never lands in front of a comma. The
-    // renderers' equivalent, `removeEndingBlankString`, only looks inside a
-    // child whose `props.children` is an array, which a rendered component
-    // child never has — so it never reaches the trailing space, and the
-    // rendered list shows "a , b" where the text says "a, b".
+    // Whitespace that belongs to the list — a blank string between two
+    // replacements — is now taken off in front of a comma in both pathways.
+    // Whitespace inside a child component's own text is not: `text` reads that
+    // component's text and can trim it, while the renderers only hand React the
+    // child and never see, let alone reach into, what it draws. Closing this
+    // means either giving up the trim on the `text` side, which reads worse, or
+    // telling the child renderer it leads a comma.
     it.fails("trims an item's trailing space in both pathways", async () => {
         await checkParagraphs({
             trailing: {
