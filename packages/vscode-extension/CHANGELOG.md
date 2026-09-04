@@ -1,5 +1,753 @@
 # @doenet/vscode-extension
 
+## 0.7.26
+
+### Patch Changes
+
+- 5872790: A `handGraded` answer no longer stops a `<cascade>`, and no longer holds a
+  section's title banner gray.
+
+    A hand-graded answer keeps a credit of 0 until an instructor grades it, which
+    happens well after the reader is done with the document. A cascade step
+    containing one therefore never reached full credit, and the reader was left
+    there with no way forward however much they wrote.
+
+    Such an answer now counts as complete as soon as the reader submits a response
+    that is not blank; submitting an untouched input does not count, except for a
+    `<booleanInput>`, whose unchecked box is itself an answer. The same rule colors
+    the title banner of a `boxed` or `collapsible` section, so a section whose
+    questions have all been answered shows as completed rather than waiting for a
+    grade the reader cannot see.
+
+    The new `completedColorRequiresCredit` attribute opts a section's banner back
+    into waiting for the real credit, and is inherited by the sections within it.
+    It affects only the color, never when a cascade advances. Either way the
+    reported `creditAchieved` is unchanged — a hand-graded answer is still awaiting
+    its grade.
+
+- fd6ce8f: An attribute that refers back to the component it is on is reported as a
+  circular dependency instead of hanging the page.
+
+    `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`
+    asks for a selection that cannot be made until the exclusion is known, and an
+    exclusion that cannot be evaluated until the selection is made. The two chased
+    each other — no warning, no error, the tab growing until it ran out of memory —
+    and the same happened for any attribute written in terms of the component's own
+    values: `<sequence name="a" from="1" to="10" exclude="$a[1]"/>` among them, and
+    the matching shapes on `<select>`, `<repeat>`, and `<conditionalContent>`.
+
+    Doenet had recognized the cycle all along and raised its usual error naming the
+    components involved; the error was being dropped rather than reported, because
+    the step that raised it was started and never waited for. It is waited for now,
+    so the cycle is reported.
+
+    The report arrives as the document's failure, which is what a circular
+    reference has always done — `<math name="m">$m</math>` fails a document the
+    same way. Confining the report to the component at fault, as a composite that
+    reports a cycle in its own replacements manages to, is left for later.
+
+- b70a5c6: The context-sensitive help explains what a `width` or `height` accepts.
+
+    With the cursor on one of these attributes, the help panel now lists the forms its value
+    may take — `600`, `600px`, `6in`, `450pt`, `15cm`, and, for a width, `50%` —
+    along with a note naming the unit each carries. Each attribute is offered only
+    what it honors: a height gets the absolute forms, since a percentage there has
+    no page height to measure itself against, and a `<sideBySide>` width gets the
+    percentage, since it divides a row into shares. The `width` of a `<graph>`,
+    `<image>` or `<video>` is marked as choosing the nearest `size` preset rather
+    than being used exactly.
+
+    The panel keys off the attribute's type rather than its name, so every attribute
+    taking a single size is covered. A size default also reads as `120px` now,
+    instead of as the internal `{"size":120,"isAbsolute":true}` — in the reference
+    tables as well as the panel.
+
+- c39ee37: Offer a retry when a document's core cannot be started.
+
+    The failure pane advised reloading the page, which is the wrong advice on the page that produces most of these failures: a section that starts many documents at once on a slow device. Reloading restarts all of them, and the reader who tried it was worse off the second time.
+
+    A failed document now offers **Try again**, which starts that one document over — a fresh saved-state load and boot ladder, without reloading the page or re-parsing the bundle — and shows that it is working rather than leaving a blank pane while it boots. The message beside the button leaves out the reload advice, and still names contention when that is what the failure is attributable to.
+
+    The offer is made once per document. A retry that fails too is shown the previous message, whose advice to reload is by then the honest next step, and no further button — so the reader is never left clicking at a document that will not start. A viewer handed a different document — an editor recompile, a host moving on to the next activity — starts the count over.
+
+    Both panes are announced now, since a reader who cannot see them is otherwise told nothing about what their click did: the button removes itself when clicked, so the "Initializing…" pane that replaces it reports politely that the retry is working, and the failure pane interrupts the way a failed renderer already does.
+
+    A message raised while a document was still starting no longer outlives it: a host that reports it cannot produce the saved state puts its message where the document would be, and a document that then starts is no longer left behind it.
+
+    A boot-scheduling host needs no changes to keep up: a retry that succeeds reports `initializedCallback` as any boot does, which is what clears the `failed` mark the `@doenet/standalone` coordinator put on the activity, and a retry that fails reports `coreStartFailedCallback` again.
+
+- 59a59e0: Editor: keep offering element names when the character after the cursor cannot be part of a tag name.
+
+    Typing `<` opened the element menu, and typing the first letter of the tag name emptied it, whenever the character immediately following the cursor was one that ends a tag name, such as `}`, `{`, `)`, `]`, `$`, `&`, `%`, or `\`. The menu now stays open and filters by what has been typed, as it does when nothing follows the cursor.
+
+    The case that surfaces this is a tag typed inside a brace group of typeset math, such as an input in the bounds of an integral: because the editor closes brackets as you type, `<me>\int_{` is already `<me>\int_{|}` by the time you type `<`, so every tag written there hit this.
+
+    The context-help panel follows the same correction: while you type such a tag name it now describes the element being named, rather than listing the elements allowed inside it.
+
+    Closes #1767.
+
+- fc5cbf3: Render a `<textInput>` or an inline `<choiceInput>` in place inside typeset math.
+
+    An input written inside `<m>`, `<me>`, `<men>`, or an `<mrow>` of an `<md>` is now drawn where it is written, inside the typeset expression, instead of being flattened to its current value. The motivating case is an aligned `<md>` derivation where the reader fills in the missing step in the place that step belongs; the rows stay aligned around the input, because the space it needs is measured before the display is typeset.
+
+    Not every input can be embedded. A `<choiceInput>` that is not `inline` or an `expanded` `<textInput>` is too large to sit in a line of mathematics, a `<textInput>` with a relative `width` (`%` or `em`) has nothing to measure against, and math drawn on a graph is a single picture with no room for a control; each of those also renders as it did before, and now warns that the input is not being drawn inside the expression.
+
+    The public `latex`, `text`, and `math` properties still report a filled-in input's value — for a choice input, the choice it has selected, which previously contributed nothing — so `$m.latex` remains the static rendering of the expression, and an input left empty now leaves a blank there instead of nothing. Previously it contributed nothing at all, which did not leave a gap so much as delete a term: `<m>x = <textInput/> + 3</m>` produced `x =  + 3`, in which the `+` is no longer an operator but a sign. It now produces `x = \underline{\hspace{2em}} + 3`; `text` reads `x = ＿ + 3`, and `math` keeps its shape as `x = ＿ + 3` rather than collapsing to a bare placeholder.
+
+    A PreTeXt export writes those blanks out as `<fillin>`, the element PreTeXt's own content model provides for them, so an exported worksheet shows a gap where the reader is meant to write. An input the reader has already filled in exports its value instead.
+
+    An embedded input is described to a screen reader by the expression it sits in — `<m>x = <textInput/> + 3</m>` reads as "x equals blank plus 3" — unless the author names it with a `<shortDescription>`, a `<label>`, or a `<label for>`. Its visible label is not drawn, since there is nowhere inside an equation to put it; a `<label>`'s text becomes the input's accessible name instead, and a `<shortDescription>` given alongside it remains its description.
+
+- df46355: Render a `<mathInput>` in place inside typeset math.
+
+    A math input written inside `<m>`, `<me>`, `<men>`, or an `<mrow>` of an `<md>` is now drawn where it is written, alongside the text and choice inputs that could already be. The motivating case is an aligned `<md>` derivation in which the reader writes the missing step, as mathematics, on the line that step belongs to.
+
+    A math input is the one input that grows as the reader types — in both directions, with the caret inside it — which is why it could not be embedded before. The room reserved for the field follows it exactly, growing and shrinking with it, and the expression is re-typeset around it in the same frame as each keystroke when that is cheap enough — which it is for an expression of ordinary size — and a beat behind when it is not, so that a large display does not hold up the typing. A centered display recenters as the field grows, by half of each character; drawn in step with the keystroke, that reads as the expression breathing rather than jumping. The input keeps its caret while the expression is re-typeset around it. An author who places a reference such as `$mi.immediateValue` _before_ the input in its row should expect the input to move over as it is typed into.
+
+    `<mathInput>` gains a public `latex` property, the committed value written as LaTeX. This is what a field embedded in an expression contributes to that expression's `latex`, `text`, and `math` — so `<m>x = <mathInput/></m>` reports `x = \sqrt{2}` rather than the plain-text `x = sqrt(2)` it would otherwise have reported — and it is available to authors in its own right, as `<math>` has had it.
+
+    A field left empty leaves a blank in those properties, and a PreTeXt export writes it out as a `<fillin>`, exactly as an empty text input already did. Inside an expression the field's visible label is not drawn, since there is nowhere in an equation to put it; the expression names the field to a screen reader instead, unless the author names it with a `<shortDescription>`, a `<label>`, or a `<label for>`. The typeset preview, when an author asks for one, opens above the field rather than beside it, where the rest of the equation is.
+
+    Math drawn on a `<graph>` is a single picture with no room for a control, so a math input there renders as it did before, and now warns to say so.
+
+- b70a5c6: An expanded `<textInput>` carries its check-work button beneath it.
+
+    An expanded input fills the width it is given, so a button beside it was
+    squeezed against the right margin, its label wrapping onto a second line that
+    the button's fixed height then clipped. The button now sits under the input, as
+    it already does under the choices of a non-inline `<choiceInput>`, and it is the
+    full labelled button by default there — `forceFullCheckWorkButton` is no longer
+    needed to get one, and `forceSmallCheckWorkButton` asks for the compact one. A
+    word-sized input is unchanged: its small button still rides beside it on the
+    line. An expanded input's `<description>` popover moves under it too, travelling
+    with the button.
+
+    Every check-work button now grows to hold a label that wraps, rather than
+    clipping it, which a long translated label could run into anywhere.
+
+- b70a5c6: An expanded `<textInput>` is sized by its `width` and `height` again.
+
+    The textarea an expanded input renders had dropped both dimensions from its
+    style, so it fell back to the browser's default box — about twenty columns and
+    two rows — no matter what was authored, and `width` and `height` did nothing.
+
+    An expanded input now also takes a relative width: `width="50%"` is half the
+    column it sits in, where before a percentage resolved against the input's own
+    shrink-to-fit row and produced an arbitrary size. Its default width is now 100%
+    rather than 600 pixels, and it never grows wider than the column even when an
+    absolute width asks for more, so it shrinks to fit a narrow window. The width of
+    a word-sized (not `expanded`) input is unchanged.
+
+    On a `<graph>` a text input is drawn as a one-line field however it is written,
+    so `expanded` no longer changes its size there: it is the same width as any
+    other input on the graph. A percentage width has nothing to be a share of on a
+    graph, so an input given one falls back to the word-sized 100 pixels rather than
+    to the arbitrary size it used to get.
+
+    The reference table and the help panel now name the two defaults, and say that
+    `height` applies only to an expanded input.
+
+- fba4ff8: Export an `expanded` `<textInput>` as room to write on, rather than as a one-line blank.
+
+    An expanded text input is a text area for a long answer, so on paper it should be blank space, not the short `<fillin>` rule a one-line input exports as. This covers a hand-graded `<answer type="text" handGraded expanded />`, which sugars in such an input. PreTeXt writes that space as a `workspace` attribute on the block the space follows, and only leaves the space inside a printout division — so a document holding an expanded input is exported as a `<handout>`: either the section containing the input, or the whole document when it has no sections. The space is as tall as the input, so `<answer handGraded><textInput expanded height="3in" /></answer>` exports as `workspace="3in"`, and two expanded inputs in one paragraph get room for both.
+
+    The space is left where the reader is meant to write. An input written inside a paragraph puts the space after that paragraph; one written outside any paragraph — an `<answer>` on a line of its own — gets a paragraph of its own standing where it stood, so the space stays inside the problem or list item that asked the question rather than after it. Where that input was written among a run of text — as in `<li>Why? <answer type="text" handGraded expanded /></li>`, or beside an expression such as `<m>2+2=</m>` — the new paragraph takes in the run, since a list item holds either a run of text or blocks and never a mix. Only the input itself gives way to the space, so an answer's label still asks its question in front of it.
+
+    A document with no expanded input is exported exactly as before. Wrapping it in a printout would change how the page reads — a printout carries its own heading, a print-preview bar, and its own page geometry — so the wrapping only happens where the space is needed. No PreTeXt printout may hold a section, so where the space has nowhere to go — the input's section holds sections of its own, or the input sits outside every section of a document that has them — the input still exports as a `<fillin>`.
+
+    In the printed output, that space is now drawn: PreTeXt leaves the height of a workspace to the javascript behind its own print preview, which a printed DoenetML document does not load, so the height is written into the page instead. PreTeXt's print-preview controls, which need that same javascript, are dropped from the page along with the other on-screen navigation.
+
+- 87edd1f: Remove two unreachable plural branches from the Khmer catalog and stop any
+  catalog from gaining another.
+
+    Khmer has a single plural category, so the `[one]` branches in its
+    `attempts-remaining` and `answer-show-responses` could never be selected. Both
+    were byte-identical to the default beside them, so nothing rendered
+    differently; what changes is that the dead text is gone.
+
+    `lint:i18n` now fails on any catalog that names a plural category its own
+    locale cannot select — whether because CLDR gives the locale no such category,
+    or because CLDR has no data for the tag at all and the branch would be chosen
+    by the runtime's default language.
+
+- 412efd0: An activity embedded in a page that does not speak SPLICE no longer tells readers their saved work could not be loaded.
+
+    Canvas listens for messages on every page it serves and answers any it does not recognize with `error: { code: "unsupported_subject" }`, quoting the id it was sent. So a Doenet activity embedded in a Canvas page got that back for its `SPLICE.getState` request, from a page that is not a host at all — and the viewer read it as a host reporting a failure. Readers were told their saved work was unavailable on an activity that has no saved work and nothing wrong with it; before the notice moved beside the document, the same reply replaced the activity entirely.
+
+    The viewer now recognizes that platform vocabulary — `unsupported_subject`, `unauthorized`, `wrong_origin`, `bad_request` — as a page saying it will not act on what was asked of it, which is the same to the viewer as no answer at all: it is logged and dropped, and the request stays open for a host that does speak SPLICE. Those four codes are reserved for that; a host's own load failures reach the reader under any other code.
+
+    An error the viewer cannot put on screen — one with no string `message` — is now logged and dropped too, rather than shown as "Invalid response to getState". That named the host's bug to a reader who could do nothing about it, over a document that was working. An error carrying text but no `code` is now shown rather than discarded.
+
+    Closes #1795.
+
+- b489f95: Stop the virtual keyboard tray from leaving an unhandled promise rejection behind when it is torn down.
+
+    The tray is a React root of its own, shared by every viewer on the page and unmounted when the last of them goes away. Its keys are `<MathJax>` elements, and a typeset can still be in flight at that moment: unmounting clears the elements' refs, so the typeset reaches MathJax with a null element and rejects with `Typesetting failed: Cannot read properties of null (reading 'contains')`. Nothing is rendered wrong by it — the tray is on its way out — but the rejection is unhandled, so it reaches `window.onunhandledrejection` and any error reporting a host has wired up there. It became easier to hit now that focusing a math input on a touch device opens the tray by itself.
+
+    `MathJaxContext` now takes a `signal`, and the tray aborts it as it tears the tray down. A `<MathJax>` element reaches the engine in stages — waiting on the context promise, then on `startup.promise`, and only then reading the element it is to typeset — so each stage is gated on the signal: once aborted, none of them proceeds and no typeset starts against a tree that is going away. The rest of the engine is passed through untouched, since it is the page's one shared MathJax and cancelling the tray's view of it must not disturb anyone else's.
+
+- a092ce4: A host that cannot produce a document's saved state no longer takes the document away.
+
+    The viewer does not wait for the host's answer to `SPLICE.getState` — it boots and restores if state arrives — and the request stays open until an answer carries usable state. So an error could land on a document that had been on screen and worked in for minutes, and it replaced that document with a red box nothing but a page reload cleared.
+
+    What the host says is now a notice beside the document, in the reader's language and carrying the host's own words. The document, and the work in it, stay where they are, and the host is not told the document failed. A reader who cannot see the notice is told about it politely, without being interrupted in what they were doing.
+
+    The failure pane also follows a rule instead of an arrival order. It is reserved for failures that leave no document at all — a core that never started, saved state that could not be read — so a document that failed to start and a host that could not produce its saved work no longer overwrite each other: the pane says the core never started, and what the host said is shown beneath it. The **Try again** button stays with the failure it addresses, rather than following whichever message settled last.
+
+- 0912dfc: `<legend>` honors its `layer` attribute and can draw an opaque box behind itself.
+
+    A legend's swatches, and its box, are now drawn at the DoenetML `layer` the
+    legend asks for, offset the same way the rest of a graph's contents are.
+    `<legend layer="3">` therefore sits above a `layer="2"` rectangle, where before
+    it was painted underneath one. A legend now defaults to `layer="1"` rather than
+    `layer="0"`, so that it still sits above everything on the default layer, as its
+    marker swatches did before.
+
+    Its labels are a different matter, and the `layer` does less for them: they are
+    drawn as HTML overlaid on the board, so they paint above the graph's contents
+    whatever layer is asked for. Lowering a legend's layer sends its swatches behind
+    a curve but leaves its labels in front — the same asymmetry that made the
+    opaque-rectangle workaround look half-broken.
+
+    The new `boxed` attribute draws an opaque box behind the legend, so a curve
+    passing behind it is hidden rather than tangled up with the labels. The box
+    paints the graph's background color, or the `backgroundColor` of the legend's
+    `<styleDefinition>` when one is set, and is bordered so it reads as a panel in
+    both light and dark presentation.
+
+    Legend labels now follow the theme, and the legend's `<styleDefinition>`, rather
+    than being painted black whatever the theme was: they read white on a dark canvas
+    and take the style definition's `textColor` when one is set, so an author who
+    paints the box a color of their own can name the text color that reads against it.
+
+    A `<legend>` inside a `<graph>` also honors `hide` at last: it was drawn whether
+    or not it was hidden, which `boxed` would have made plain, since a hidden legend
+    would still have painted an opaque box over the graph.
+
+    Legend labels are also kept on one line. A label too long for the room beside
+    its swatch used to wrap, which made it taller than the single row the legend
+    gives each entry — overlapping the entry below it and overflowing the box drawn
+    around them. It now runs past the graph's edge instead.
+
+    Closes #1717.
+
+- 2d73ffa: A legend's swatches now follow the document's theme.
+
+    Every swatch was painted with the light-mode color of the object it stands for,
+    whatever the theme, so in dark mode a legend could disagree with the objects it
+    describes: a curve drawn in its dark-mode color beside a swatch drawn in its
+    light-mode one. A swatch is now painted with the color the current theme calls
+    for, and is repainted when the theme is switched, alongside the box and the
+    labels, which already were.
+
+- 5196324: A legend is now redrawn in place instead of being rebuilt from scratch.
+
+    Every change to a `<graph>`'s legend — a label whose text depends on something
+    the student changes, a style, the graph being panned or zoomed, the position or
+    the box — used to delete every swatch and label and create them again. With
+    MathJax labels that meant a fresh typesetting pass each time, and the legend
+    visibly flashed and shifted.
+
+    The legend now keeps its objects and updates them: a label whose text changed is
+    given the new text, a swatch takes the new colors, and everything moves to the
+    new geometry. What still has to be built or thrown away is only what cannot be
+    carried over — an entry the legend gains or loses, an entry that changes what
+    kind of swatch it draws, a label that gains or loses latex or moves to a new
+    layer, the backing box as `boxed` is switched on or off, and everything at once
+    when the legend is hidden. Switching the box on no longer takes the swatches and
+    labels with it, which is the difference.
+
+    Closes #402.
+
+- ea79074: Math can now be written with MathJax's `units` extension.
+
+    `\units` typesets a quantity beside its unit with the spacing a typesetter
+    would use, instead of leaving authors to approximate it with `\,` and
+    `\mathrm`. The same extension supplies `\unitfrac` and `\nicefrac`.
+
+    ```
+    <m>\units{9.8}{\text{m}/\text{s}^2}</m>
+    ```
+
+    Documents embedded in a page that provides its own MathJax now render the same
+    way they do on doenet.org. Doenet reuses such an engine rather than clobbering
+    it, which meant none of Doenet's configuration applied there — `\units` and
+    macros such as `\var` typeset as their own names. Doenet now teaches that engine
+    its macros and packages before rendering.
+
+- 6144b32: The `text` property of an `<md>` reads an aligned display whose rows use a
+  literal `&`.
+
+    `<md><mrow>q &amp;= \sin(x)</mrow></md>` and the same display written with
+    Doenet's `\amp` macro render identically, but only the macro spelling was
+    stripped before each row was parsed. A row aligned with `&` could not be read,
+    and `text` silently handed back the raw LaTeX — `\notag` and `\\` included —
+    instead of the plain-text expression.
+
+    Both spellings are stripped now, by one helper shared with the accessible name
+    of a math input embedded in an `<mrow>`. That name reads a marker opening a row
+    correctly too, rather than consuming the `\\` row break before it.
+
+- 2bf1527: Three message catalogs are now identified by the code of the language they are
+  actually written in rather than by the macrolanguage code above it: Northern
+  Kurdish is `kmr` (was `ku`), Komi-Zyrian is `kpv` (was `kv`) and Meadow Mari is
+  `mhr` (was `chm`). Each of the three shares its macrolanguage with a language
+  that has a separate catalog here — Central Kurdish, Komi-Permyak and Hill Mari
+  — so the old names claimed to cover readers they could not serve.
+
+    A host that supplies its own catalog for one of these languages through
+    `localeResources` keeps being served its own copy, whether it keys it on the
+    old code or the new one. Locale negotiation now treats an alias as an extra
+    fallback rather than a replacement, so a host catalog keyed on the old code is
+    still preferred over the bundled one — which also fixes the same latent problem
+    for `no`, `tw` and `man`.
+
+    Documents keep working unchanged. `<document lang="ku">`, `lang="kv"` and
+    `lang="chm"` still reach these catalogs, as do the new codes, and a browser
+    sending either form is served the same way it was before. `<document lang>`
+    autocomplete now offers the new codes, still under the English names CLDR gives
+    the macrolanguage — "Kurdish", "Komi", "Mari" — because ICU canonicalizes each
+    new code back onto it.
+
+    One deployment does need a change: a host that serves its own copy of the
+    catalog directory alongside the bundle and has hand-placed a translation in
+    `ku/`, `kv/` or `chm/` must move it to `kmr/`, `kpv/` or `mhr/`. The viewer now
+    fetches the new directory names, and a locale whose files 404 falls back to
+    English rather than failing the render. A copy the build takes from the package
+    picks up the new names on its own.
+
+- 7a33de5: Seed unreviewed message catalogs for fifteen more languages of the Americas:
+  Kalaallisut (`kl`), Inuktitut (`iu`), Yucatec Maya (`yua`), Qʼeqchiʼ (`kek`),
+  Garifuna (`cab`), Mískito (`miq`), Papiamentu (`pap`), Sranan Tongo (`srn`),
+  Jamaican Creole (`jam`), Guadeloupean Creole French (`gcf`), Saint Lucian
+  Creole French (`acf`), Guianese Creole French (`gcr`), Belize Kriol (`bzj`),
+  Aukan (`djk`) and Saramaccan (`srm`). A document declaring one of them now
+  renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English.
+
+    Inuktitut is written in Canadian Aboriginal syllabics and has a dual, so a
+    count in it selects one of three forms rather than one of two. It also leaves
+    the geometry nouns to fall back to English rather than writing them in roman letters inside a syllabic sentence, so a
+    style description in Inuktitut is part English by design.
+
+    An Inuinnaqtun (`ikt`) reader is served English rather than the Inuktitut
+    catalog, because Inuinnaqtun is written in roman letters and that catalog is
+    written in syllabics. Nine of the fifteen are creoles and none of them is
+    reachable through its lexifier: `gcf` does not answer a request for French,
+    and French does not answer a request for `gcf`.
+
+    All fifteen leave the two chemistry tables to fall back to English, since
+    school science across these communities is taught in Dutch, Danish, Spanish,
+    French or English.
+
+- 1beb269: Seed unreviewed message catalogs for fifteen more languages of the Caucasus and
+  the Kurdish-speaking world: Abkhaz (`ab`), Adyghe (`ady`), Kabardian (`kbd`),
+  Avar (`av`), Lezgian (`lez`), Dargwa (`dar`), Lak (`lbe`), Tabasaran (`tab`),
+  Ingush (`inh`), Karachay-Balkar (`krc`), Kumyk (`kum`), Nogai (`nog`), Talysh
+  (`tly`), Kurmanji Kurdish (`ku`) and Central Kurdish (`ckb`). A document
+  declaring one of these languages now renders its style descriptions, section
+  headings, boolean words, answer buttons, editor chrome and diagnostics in it
+  instead of falling back to English. The chemistry element tables are
+  deliberately left out of all fifteen and still fall back to English.
+
+    Central Kurdish is written in the Perso-Arabic script and renders right to
+    left, the eleventh such catalog. Kurmanji beside it is Latin and renders left
+    to right, and a reader arriving under a Southern Kurdish code (`sdh`) or the
+    ISO 639-3 code for Kurmanji (`kmr`) now reaches it rather than English; a
+    Sorani reader keeps reaching the Sorani catalog rather than being folded onto
+    Kurmanji.
+
+    Two of the fifteen are locales CLDR has no name for, so Lak and Tabasaran now
+    supply their own names to `<document lang>`'s autocomplete instead of appearing
+    as bare codes.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Three carry an additional confidence caveat
+    worth naming: `locales/tly` (Talysh) is the least certain of the fifteen,
+    `locales/dar` (Dargwa) records that seven of its colour words are still
+    Russian, and `locales/nog` (Nogai) records that its editor vocabulary is
+    largely coined. Correcting any of this needs no permission.
+
+- 3ee5557: Seed unreviewed message catalogs for two Bantu languages of Uganda: Chiga
+  (`cgg`, Rukiga) and Soga (`xog`, Olusoga). A document declaring either now
+  renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English, and `<document lang>` autocompletes both from CLDR's own
+  names.
+
+    Both sit at 439/575 keys rather than the 445 recent batches reach. The two
+    chemistry element tables are left out for the school-system reason — Uganda
+    teaches science in English from upper primary, so the fallback is the language
+    the periodic table is actually taught in — and six further keys are left out
+    deliberately: the three remaining chemistry prose messages, so the chemistry
+    group falls back entire rather than appearing half in Rukiga and half in
+    English inside one sentence; `noun.slope-field` and `noun.vector-field`, where
+    neither language has a term and a phrase would have been the seed's invention
+    rather than a word; and `noun.rectangle`, where the descriptive phrase either
+    language would use means _four-sided figure_ and so names a quadrilateral, not
+    a rectangle.
+
+    Both are written in Latin script, left to right, with the initial vowel — the
+    augment — written as part of the word, so a line is «omurongo» and
+    «olunyiriri» rather than «murongo» and «lunyiriri». Both put a describing word
+    after its noun and agree it with the noun's class rather than with a gender,
+    so `$gender` carries a class token: five classes in Soga and five in Chiga.
+    Neither keeps English's order of the three style adjectives, because both
+    render the dash pattern as an associative phrase — «na tucweka», «n'obutundu»
+    — which cannot sit between two adjectives, so both read width, colour, then
+    pattern.
+
+    CLDR has plural rules for both, and the class prefix does the marking rather
+    than a suffix, so «ekirikuruga» and «ebirikuruga» differ at the front of the
+    word rather than the end. Not every noun does: a class 9/10 noun is spelt the
+    same in both numbers and the number shows on what agrees with it instead, and
+    where the counted noun is one that does not inflect at all — a Lusoga class-15
+    verbal noun — the two branches are the same string. Each header says which of
+    the three its counted selects are doing rather than coining a countable noun
+    to hide it.
+
+    This batch was assembled as **fifteen** languages of Kenya, Uganda and
+    Tanzania and thirteen were left out rather than shipped: Kamba, Gusii,
+    Kalenjin, Luyia, Masai, Meru, Samburu, Taita, Embu, Teso, Shambala, Vunjo and
+    Machame. Attempted honestly they came to between 0 and 91 keys of 575 — against
+    the 439 the two that ship reach — and they are recorded on #1655 with the
+    coverage each reached and the orthography each attempt settled. `lint:i18n`
+    does not report them at all, because no catalog for them exists to be partial;
+    a document declaring one of the thirteen renders in English exactly as it did
+    before.
+
+    These two are machine-generated seeds pending review by speakers (#1521), and
+    each file's header says so and names where it is weakest. Both name the loan
+    language they keep openly — English, not Swahili — and both name a near
+    relative already on this roster as the first thing a reviewer should hunt for:
+    Luganda intrusion in Soga, which is catchable because Lusoga writes `dh` where
+    Luganda writes `z` or `j`, and Ankole rather than Kigezi vocabulary in Chiga,
+    which is not catchable by a rule and so is stated as a question instead.
+
+    Numbers written into a message render in Latin digits in both, so a digit
+    inside a sentence matches the count formatted beside it.
+
+- 7272b46: Seed unreviewed message catalogs for fifteen more regional and minority
+  languages of Europe: Aragonese (`an`), Extremaduran (`ext`), Ladino (`lad`),
+  Mirandese (`mwl`), Walloon (`wa`), Arpitan (`frp`), Norman (`nrf`), Lombard
+  (`lmo`), Emilian (`egl`), Ladin (`lld`), Cornish (`kw`), Manx (`gv`), Bavarian
+  (`bar`), Northern Frisian (`frr`) and Romani (`rom`). A document declaring one
+  of them now renders its style descriptions, section headings, boolean words,
+  answer buttons, editor chrome and diagnostics in that language instead of
+  falling back to English.
+
+    All fifteen are written in the Latin script and lay out left to right — which
+    took a fix rather than nothing. CLDR maximizes `lad` to the Hebrew script
+    Judeo-Spanish was written in for four centuries, so a Ladino document would
+    have laid a Latin catalog out right to left; `directionOf` now follows the
+    script a catalog is actually written in for a bare tag, while a tag that names
+    its script, such as `lad-Hebr`, still gets that script's direction.
+
+    Twelve of the fifteen put a shape's adjectives behind its noun, so an Aragonese
+    document reads «linia gorda discontinua roya» where a Bavarian one reads «dicke
+    gstrichlte rode Linie». Fourteen agree those adjectives with the noun's gender:
+    twelve by an ending, and Cornish and Manx by an initial mutation instead —
+    «tew» before a masculine noun and «dew» before a feminine one. Northern Frisian
+    writes one invariant form, which is Mooring's grammar rather than a gap in the
+    seed.
+
+    Five of the fifteen have plural rules of their own in CLDR, ending a run of two
+    batches with none. Cornish reaches all six plural categories from ordinary
+    counts — the third language on the roster whose rules do, after Welsh and
+    Arabic — and its catalog writes four of them by name; Walloon's singular covers
+    zero as well as one; Manx and Ladin each declare a `many` no realistic count in
+    these messages reaches — Manx's belongs to counts written with a decimal
+    fraction, which none here are, and Ladin's only to exact whole millions — and
+    neither catalog writes a branch for it.
+
+    The other ten have no rules at all, so a category branch in one of them would be
+    chosen by whatever language the runtime fell back to. Two consequences show in
+    the messages themselves. `field-function-wrong-num-outputs` forks on how many
+    outputs a component needs rather than on a count's grammar, so all ten write the
+    exact-value branch `[1]` where English writes the category `[one]` — the same
+    mechanism `attempts-remaining`'s `[0]` uses — while the five with rules of their
+    own keep the category. And where a `[one]` would have read the same words as its
+    default, it is dropped rather than written twice, which is why Lombard and
+    Emilian have fewer count forks than the English they were seeded from.
+
+    The chemistry element tables are left out of all fifteen, so a document in one
+    of these languages still shows the element names in English. Thirteen are the
+    school-system case — chemistry is taught in Spanish, Portuguese, French,
+    Italian, German or English wherever these languages are spoken, and each
+    catalog's header names which. Ladino and Romani are the two whose speakers are
+    spread across several school systems, so there is no single language to point
+    at.
+
+    `<document lang>` autocompletes all fifteen. Norman and Ladin are offered from
+    hand-written entries, since CLDR gives neither tag an English name or an
+    endonym — though it does have plural rules for Ladin, and names for it in a
+    scattering of other languages, Italian and Czech among them.
+
+    These are machine-generated seeds pending review by speakers (#1521), and each
+    file's header says so and names where it is weakest. Ten of the fifteen are
+    Romance languages sitting beside a national Romance language whose words are
+    one respelling away, so every header names the written standard it follows —
+    the Academia de l'Aragonés proposal, OSCEC, Aki Yerushalayim, the Convenção
+    Ortográfica, _rifondou walon_, ORB, Jèrriais, classical Milanese, Bolognese,
+    Ladin Dolomitan, the Cornish Standard Written Form, traditional Manx
+    orthography, Central Bavarian, Mooring and the Romani Union alphabet — and says
+    what it borrowed and from where.
+
+    Numbers written into a message render in Latin digits in every one of the
+    fifteen, so a digit inside a sentence matches the count formatted beside it.
+
+- 19b00e5: Seed unreviewed message catalogs for fifteen more regional languages of
+  Europe, five Germanic, five Romance and five Slavic: Norwegian Nynorsk (`nn`),
+  Scots (`sco`), Swiss German (`gsw`), Colognian (`ksh`) and Limburgish (`li`);
+  Friulian (`fur`), Venetian (`vec`), Ligurian (`lij`), Piedmontese (`pms`) and
+  Neapolitan (`nap`); Upper Sorbian (`hsb`), Lower Sorbian (`dsb`), Kashubian
+  (`csb`), Silesian (`szl`) and Rusyn (`rue`). A document declaring one of them
+  now renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English.
+
+    Norwegian Nynorsk is complete, the periodic table included. The other fourteen
+    leave the chemistry element tables out and still fall back to English for
+    them; each catalog's header says why in its own words.
+
+    `<document lang>` autocompletes all fifteen, and CLDR has a name for every one
+    of them, so no hand-written roster entry was needed.
+
+    No existing reader is sent anywhere new. `no` still resolves to Bokmål: a
+    reader who says only `no` has not said which written standard they read, and
+    pointing it at the new Nynorsk catalog would be a substitution rather than a
+    canonicalization.
+
+    Eight of the fifteen have CLDR plural data and use it; the other seven write
+    no category branch at all, because nothing could select one correctly. Upper
+    and Lower Sorbian write a living grammatical dual, and Colognian a `zero`, both
+    selected by their own CLDR rules.
+
+- 68d412e: Seed unreviewed message catalogs for eleven more languages of Oceania:
+  Marshallese (`mh`), Chuukese (`chk`), Pohnpeian (`pon`), Kosraean (`kos`),
+  Gilbertese (`gil`), Niuean (`niu`), Tokelauan (`tkl`), Tuvaluan (`tvl`),
+  Rarotongan (`rar`), Wallisian (`wls`) and Bislama (`bi`). A document declaring
+  one of them now renders its style descriptions, section headings, boolean
+  words, answer buttons, editor chrome and diagnostics in that language instead
+  of falling back to English. The chemistry element tables are deliberately left
+  out of all eleven and still fall back to English.
+
+    These are the first catalogs to carry the messages that name a blank inside
+    typeset math and the warning about an input that cannot be drawn there.
+
+    `<document lang>` autocompletes all eleven. Wallisian is offered as "Wallisian
+    (Fakaʻuvea)" from a hand-written entry, since CLDR has no name for the tag in
+    any language.
+
+    No existing reader is sent anywhere new: none of the eleven was previously
+    folded onto another catalog.
+
+    The catalogs are not equally complete, and each says in its own header where it
+    stands. Nine write their own vocabulary throughout, and two write the catalog's
+    frame in the language around English technical nouns. Nothing was invented to
+    fill a gap.
+
+- 3c4f5b8: Seed unreviewed message catalogs for fifteen more languages of the Silk Road:
+  Crimean Tatar (`crh`), Gagauz (`gag`), Karakalpak (`kaa`), Khakas (`kjh`),
+  Southern Altai (`alt`), Mazanderani (`mzn`), Gilaki (`glk`), Northern Luri
+  (`lrc`), Balochi (`bal`), Hazaragi (`haz`), Muslim Tat (`ttt`), Zazaki
+  (`zza`), Shughni (`sgh`), Dungan (`dng`) and Wakhi (`wbl`). A document
+  declaring one of them now renders its style descriptions, section headings,
+  boolean words, answer buttons, editor chrome and diagnostics in that language
+  instead of falling back to English.
+
+    Five of them — `mzn`, `glk`, `lrc`, `bal` and `haz` — are written in the
+    Perso-Arabic script, so a document declaring one lays out right to left. The
+    mathematics inside it does not: notation stays left-to-right, as it already
+    does in Arabic and Hebrew.
+
+    The chemistry element tables are left out of twelve of the fifteen and still
+    fall back to English. The exceptions are `mzn`, `glk` and `lrc`, which carry
+    the Persian table unchanged, because chemistry in Māzandarān, Gilan and
+    Lorestan is taught, examined and printed in Persian and that list is the one
+    those readers actually use. `locales/glk` and `locales/lrc` translate every
+    key, as `locales/nn` does. `locales/ttt` additionally leaves ten of the longest
+    diagnostics messages in English and says so in its own header.
+
+    `<document lang>` autocompletes all fifteen. Khakas, Wakhi, Dungan, Shughni
+    and Hazaragi are offered from hand-written entries, since CLDR has no name for
+    those tags in any language.
+
+    Two macrolanguages gain members, so some readers who reached English before
+    now reach a catalog: a Northern Zazaki (`kiu`) reader reaches `locales/zza`,
+    and Western (`bgn`) and Eastern (`bgp`) Balochi readers reach `locales/bal`.
+    Both catalogs' headers say which variety they are written in, so a reader
+    served through one of those entries may meet spellings they have to adjust to.
+    No reader is moved off a catalog they already reached.
+
+    The catalogs are not equally complete, and each says in its own header where it
+    stands — `locales/ttt` marks itself the least certain, `locales/sgh` records
+    that its diagnostics are a Tajik and Russian loan register with a Shughni
+    frame, and `locales/kjh` records that Khakas has almost no written technical
+    register to draw on. Nothing was invented to fill a gap.
+
+- b3856ea: Seed unreviewed message catalogs for fifteen more languages of South Asia and
+  its diaspora: Awadhi (`awa`), Chhattisgarhi (`hne`), Magahi (`mag`), Marwari
+  (`mwr`), Garhwali (`gbm`), Kumaoni (`kfy`), Newar (`new`), Sylheti (`syl`),
+  Tulu (`tcy`), Mizo (`lus`), Khasi (`kha`), Garo (`grt`), Saraiki (`skr`),
+  Brahui (`brh`) and Fiji Hindi (`hif`). A document declaring one of them now
+  renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English.
+
+    Five scripts: Devanagari for the six Hindi-belt and Uttarakhand catalogs and
+    for Newar, the Bengali script for Sylheti, Kannada for Tulu, Latin for Mizo,
+    Khasi, Garo and Fiji Hindi, and Perso-Arabic for Saraiki and Brahui. **Saraiki
+    and Brahui lay out right to left**, which takes the roster's right-to-left
+    catalogs from sixteen to eighteen; the other thirteen lay out left to right.
+
+    Thirteen of the fifteen put a shape's adjectives in front of its noun, as
+    English does. Khasi and Mizo put them behind it, so a Khasi document reads
+    «lain bakhraw badash basaw» where a Garo one — the same state, the other
+    order — reads «dal·gipa dashgipa gitchak lain». Saraiki is the one catalog of
+    the fifteen that agrees its adjectives with the noun's gender; the other
+    fourteen write one invariant form, which is a fact about the language in eight
+    of them and a stated gap in the seed in six.
+
+    The chemistry element tables are left out of all fifteen, so a document in one
+    of these languages still shows the element names in English. Thirteen are the
+    school-system case — chemistry is taught in Hindi, Nepali, Bengali, Urdu or
+    English wherever these languages are spoken — and Marwari has no settled list
+    of all 118 in any case. Tulu is the one whose neighbour cannot help either:
+    a Tulu pupil meets the table in Kannada, and `locales/kn` omits it too. Each
+    catalog's header says which case it is in.
+
+    `<document lang>` autocompletes all fifteen. Chhattisgarhi, Garhwali, Kumaoni,
+    Sylheti, Garo and Saraiki are offered from hand-written entries, since CLDR
+    has no name for those tags in any language.
+
+    These are machine-generated seeds pending review by speakers (#1521), and each
+    file's header says so and names where it is weakest. In the nine Indo-Aryan
+    catalogs, and in Newar beside them, the technical vocabulary is largely
+    borrowed — Hindi in the six Hindi-belt and Uttarakhand catalogs, Nepali in
+    Newar, Bengali in Sylheti, Urdu in Saraiki — and
+    what is the language's own is the grammar around it and, more often than not,
+    the colour words. Every header declares that rather than leaving it to be
+    discovered.
+
+    Numbers written into a message render in Latin digits in every one of the
+    fifteen, so a digit inside a sentence matches the count formatted beside it.
+
+- 14d2009: Seed unreviewed message catalogs for fifteen languages of maritime and
+  mainland Southeast Asia: Buginese (`bug`), Makasar (`mak`), Banjar (`bjn`),
+  Gorontalo (`gor`), Nias (`nia`), Toba Batak (`bbc`), Iban (`iba`),
+  Kadazandusun (`dtp`), Pangasinan (`pag`), Chavacano (`cbk`), Tausug (`tsg`),
+  Maranao (`mrw`), Shan (`shn`), Mon (`mnw`) and S'gaw Karen (`ksw`). A document
+  declaring one of them now renders its style descriptions, section headings,
+  boolean words, answer buttons, editor chrome and diagnostics in that language
+  instead of falling back to English.
+
+    Twelve are written in the Latin script and three — Shan, Mon and S'gaw Karen —
+    in the Myanmar script. All fifteen lay out left to right, so nothing about
+    direction changes.
+
+    The chemistry element tables are left out of all fifteen, so a document in one
+    of these languages still shows the element names in English. None of the
+    fifteen is a language chemistry is taught in: secondary science in these
+    regions runs in Indonesian, Malay, English or Burmese, so there is no settled
+    list of element names in Buginese or Mon to write down, and an invented one
+    would be worse than the English. Readers in the English-medium systems get
+    their own school vocabulary; the rest get a second language rather than a
+    first. Each catalog's header says which case it is in.
+
+    `<document lang>` autocompletes all fifteen. Chavacano, Tausug, Maranao, Mon
+    and S'gaw Karen are offered from hand-written entries, since CLDR has no name
+    for those tags in any language; Chavacano is listed as "Chavacano (cbk)"
+    because both «Chavacano» and «Chabacano» are in live use for it and the
+    catalog does not choose between them. Two of the fifteen are offered under the
+    name CLDR gives them rather than the one their catalog writes — "Batak Toba"
+    for `bbc` and "Central Dusun" for `dtp` — because the autocomplete fills gaps
+    in CLDR and never overrides it.
+
+    Malay gains its members, so many readers who reached English before now reach
+    a catalog: Brunei Malay (`kxd`), Kedah Malay (`meo`), Pattani Malay (`mfa`),
+    Central Malay (`pse`), Sabah Malay (`msi`), North Moluccan Malay (`max`)
+    and Manado Malay (`xmm`) and twenty-five other varieties now reach
+    `locales/ms`. The list has thirty-three entries; the thirty-third is Standard
+    Malay (`zsm`) itself, which already reached that catalog because ICU rewrites
+    the tag. `locales/ms` is Standard Malay, so a reader served through one of the
+    thirty-two may meet spellings they have to adjust to. A Pattani reader who writes in Jawi is served Rumi.
+    Indonesian, Minangkabau and Banjar readers are deliberately left out of that
+    list, because each has a catalog of its own. Coastal Kadazan (`kzj`) readers
+    reach the new `locales/dtp`. No reader is moved off a catalog they already
+    reached.
+
+    Numbers written into a message render in Latin digits in every language,
+    including the three written in the Myanmar script, so a digit inside a sentence
+    matches the count formatted beside it and the mathematics around it.
+
+- a6e6d3e: Seed unreviewed message catalogs for fifteen more Uralic languages of northern
+  Europe and Siberia: Southern Sami (`sma`), Lule Sami (`smj`), Inari Sami
+  (`smn`), Skolt Sami (`sms`), Kildin Sami (`sjd`), Veps (`vep`), Livvi-Karelian
+  (`olo`), Karelian (`krl`), Võro (`vro`), Meänkieli (`fit`), Moksha (`mdf`),
+  Komi-Permyak (`koi`), Hill Mari (`mrj`), Khanty (`kca`) and Mansi (`mns`). A
+  document declaring one of these languages now renders its style descriptions,
+  section headings, boolean words, answer buttons, editor chrome and diagnostics
+  in it instead of falling back to English. The chemistry element tables are
+  deliberately left out of all fifteen and still fall back to English.
+
+    Two of the new catalogs change where an existing reader is sent. A
+    Komi-Permyak (`koi`) reader was previously served the Komi-Zyrian catalog and a
+    Hill Mari (`mrj`) reader the Meadow Mari one, because each is a member of a
+    macrolanguage the roster had a catalog for; both now reach their own catalog
+    instead. Readers arriving under the other members of those macrolanguages
+    (`kpv`, `mhr`) are unaffected, and a Moksha (`mdf`) reader who previously
+    reached English now reaches Moksha.
+
+    Two contrast warnings now reach the reader in the language they were written
+    for. `style-definition-insufficient-contrast` selects a branch by a symbolic
+    key the core passes in, and Meänkieli's catalog had translated two of those
+    keys along with the prose around them, so a text-on-background and a
+    text-on-canvas warning both fell through to the wrong branch; both select
+    correctly again. A Efik reader gets the same repair in
+    `variant-attribute-wrong-type-for-sequence`, whose catalog had dropped the
+    "a number" branch entirely and answered "an integer" for both — that one
+    predates this batch and is fixed here because the check that found it is new.
+
+    Four of the fifteen are locales CLDR has no name for, so Kildin Sami,
+    Livvi-Karelian, Khanty and Mansi now supply their own names to
+    `<document lang>`'s autocomplete instead of appearing as bare codes.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Five carry an additional confidence caveat worth
+    naming: `locales/kca` (Khanty) and `locales/mns` (Mansi) record that much of
+    their editor and diagnostics vocabulary is coined rather than attested, and
+    that a further set of words — "error", "line", "page", "figure" and the
+    school-genre section names — is still unadapted Russian because the seed could
+    establish no Khanty or Mansi form,
+    `locales/sjd` (Kildin Sami) is the least certain of the five Sami catalogs,
+    `locales/vro` (Võro) records that two of its messages read with the wrong case
+    and that its word for a right-hand side is probably the word for "good", and
+    `locales/mdf` (Moksha) names the six Erzya residues it still carries — the
+    ablative ending, the abessive ending, the word for "equal", everything derived
+    from the word for "many", the demonstrative and the word for a part — where the
+    seed could not establish the Moksha form. Nine other catalogs now record, in
+    the same way, a word of their own that carries two concepts at once and that
+    the seed could not split.
+    Correcting any of this needs no permission.
+
+- ae70028: Keep the worker when a document's boot is restarted mid-handshake.
+
+    A boot restarted while the first one was still shaking hands with its core worker used to run a second initialization on the same worker, interleaved with the first. Three ordinary things restart a boot that way: a host answering `SPLICE.getState` at once, as doenet.org's assignment page does; a source edit, attempt change, locale switch or retry landing mid-boot; and `render` turning true on a viewer still priming its worker. The second initialization then initialized from a document DAST the first had already released, its handshake failed with a misleading `Cannot create normalized dast root before source is set`, and the boot ladder discarded the worker as wedged and booted a replacement — so the document rendered a worker and a WASM compile late, and on a page sharing one worker among documents the discard quarantined that worker for its siblings too.
+
+    Initializations are now serialized per worker: a boot that finds one in flight waits for it to settle, then runs whole on the worker it found — no failed handshake, no discarded worker, no replacement to boot. The second initialization still runs (skipping it when nothing has changed is #1800); what is gone is the failure and the second worker. They queue in the order they were asked for, so the worker ends up holding the document on screen even when an older initialization's external references were slow to fetch. A restarted boot's handshake watchdog counts from its turn on the worker, so the wait behind the initialization ahead of it does not come out of the time its own handshake was given; and an initialization the viewer has already moved on from steps aside instead of running — at its turn, or as soon as another is queued behind it — so that wait is for the one initialization already on the worker and no more. The worker itself now refuses to initialize twice from one source and says why, and a refused initialization no longer leaves the worker's call queue held.
+
+    Closes #1533.
+
+- 0b5a848: Editor: keep suggesting a hyphenated snippet name across its hyphens.
+
+    Nine of the ten completion snippets have hyphenated names, and the menu emptied on the hyphen: typing `<answer` offered `answer-labeled`, and typing the `-` that comes next offered nothing at all. The same happened to `<multiple-`, `<table-`, `<video-` and `<if-`. The suggestions now survive the hyphen, so a snippet can be reached by typing its name straight through.
+
+    More generally, a tag name is now recognized as one whatever character it ends on — `.`, `:` and accented letters behaved like `-` — so the context-help panel no longer describes the enclosing element while a name is being typed.
+
+    Closes #1780.
+
 ## 0.7.25
 
 ### Patch Changes
