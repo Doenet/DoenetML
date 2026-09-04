@@ -8,6 +8,7 @@ export * from "./media/retrieveTextFile";
 export * from "./copy/deepFunctions";
 export * from "./copy/parseStringify";
 export * from "./components/domain";
+export * from "./components/compositeLists";
 export * from "./components/enumeration";
 export * from "./components/function";
 export * from "./components/mathInputFunctionNames";
