@@ -184,19 +184,36 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
+        // Collected into one object so a failure names every form that broke,
+        // not just the first.
+        let values: Record<string, unknown> = {};
         for (let i = 1; i <= 8; i++) {
-            expect(
-                stateVariables[await resolvePathToNodeIdx(`n${i}`)].stateValues
-                    .value,
-            ).eq(11);
+            let name = `n${i}`;
+            values[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.value;
+        }
+        for (let name of ["p1", "p2"]) {
+            values[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
         }
 
-        for (let name of ["p1", "p2"]) {
-            expect(
-                stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                    .text,
-            ).eq("11");
-        }
+        // Every form names the same number: $i + 3$j at i=2, j=3.
+        expect(values).toEqual({
+            n1: 11,
+            n2: 11,
+            n3: 11,
+            n4: 11,
+            n5: 11,
+            n6: 11,
+            n7: 11,
+            n8: 11,
+            p1: "11",
+            p2: "11",
+        });
     });
 
     it("three nested repeatForSequences with graphs and copied", async () => {

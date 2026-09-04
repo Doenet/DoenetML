@@ -542,9 +542,9 @@ export class DetermineDependenciesDependency extends Dependency {
         for (let varName of this.upstreamVariableNames) {
             // Skip a variable that is mid-resolution: `resolveItem` clears its
             // `determineDependencies` blockers up front and throws if one
-            // reappears while it is working. So `currentlyResolving` has to be
-            // cleared on every exit from `resolveItem` — a flag left set
-            // silences this dependency for the rest of the variable's life.
+            // reappears while it is working. `resolveItem` clears the flag in a
+            // `finally` for that reason — one left set silences this dependency
+            // for the rest of the variable's life.
             if (!(
                 component &&
                 component.state[varName] &&

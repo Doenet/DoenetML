@@ -2877,6 +2877,10 @@ export class DependencyHandler {
      * the pass stops and hands back that blocker's result as `failure` for the
      * caller to propagate; when true, the pass continues and reports how many
      * blockers failed as `nFailures`.
+     *
+     * A `determineDependencies` blocker reaching here is a bug, so it throws:
+     * `resolveItem` resolves those before it sets `currentlyResolving`, and
+     * that flag is what stops a new one from being added while it works.
      */
     async _resolveBlockersOfItem({
         neededForItem,
