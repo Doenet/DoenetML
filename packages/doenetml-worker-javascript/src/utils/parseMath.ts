@@ -213,68 +213,72 @@ function createInputStringFromChildrenSub({
 
                     let wrap = false;
 
-                    // First check if there is a non-delimiter to the left
-                    if (rangeFirstInd > 0) {
+                    // First check if there is a non-delimiter to the left,
+                    // looking past any whitespace-only strings.
+                    for (
                         let prevInd = rangeFirstInd - 1;
-                        while (prevInd >= 0) {
-                            let prevChild = children[prevInd];
-                            if (typeof prevChild === "string") {
-                                prevChild = prevChild.trim();
-                                if (prevChild.length > 0) {
-                                    if (
-                                        !leftDelimiters.includes(
-                                            prevChild[prevChild.length - 1],
-                                        )
-                                    ) {
-                                        // The string to the left did not contain one of the delimiters,
-                                        // so we must wrap the list.
-                                        wrap = true;
-                                    }
-                                    break;
-                                }
-                            } else {
-                                // There is a non-string child to the left,
-                                // so we must wrap the list
-                                wrap = true;
-                            }
+                        prevInd >= 0;
+                        prevInd--
+                    ) {
+                        let prevChild = children[prevInd];
+                        if (typeof prevChild !== "string") {
+                            // There is a non-string child to the left,
+                            // so we must wrap the list
+                            wrap = true;
+                            break;
                         }
+                        prevChild = prevChild.trim();
+                        if (prevChild.length === 0) {
+                            continue;
+                        }
+                        if (
+                            !leftDelimiters.includes(
+                                prevChild[prevChild.length - 1],
+                            )
+                        ) {
+                            // The string to the left did not contain one of the delimiters,
+                            // so we must wrap the list.
+                            wrap = true;
+                        }
+                        break;
                     }
 
                     if (!wrap) {
                         // Since we didn't have a non-delimiter to the left,
-                        // check if there is a non-delimiter to the right.
-                        if (rangeLastInd < children.length - 1) {
+                        // check if there is a non-delimiter to the right,
+                        // again looking past any whitespace-only strings.
+                        for (
                             let nextInd = rangeLastInd + 1;
-                            while (nextInd <= children.length - 1) {
-                                let nextChild = children[nextInd];
-                                if (typeof nextChild === "string") {
-                                    nextChild = nextChild.trim();
-                                    if (nextChild.length > 0) {
-                                        let nextChar = nextChild[0];
-                                        // If the format is latex,
-                                        // the delimiter could be escaped by a \
-                                        if (
-                                            format === "latex" &&
-                                            nextChar === "\\" &&
-                                            nextChild.length > 1
-                                        ) {
-                                            nextChar = nextChild[1];
-                                        }
-                                        if (
-                                            !rightDelimiters.includes(nextChar)
-                                        ) {
-                                            // The string to the right did not contain one of the delimiters,
-                                            // so we must wrap the list.
-                                            wrap = true;
-                                        }
-                                        break;
-                                    }
-                                } else {
-                                    // There is a non-string child to the right,
-                                    // so we must wrap the list
-                                    wrap = true;
-                                }
+                            nextInd < children.length;
+                            nextInd++
+                        ) {
+                            let nextChild = children[nextInd];
+                            if (typeof nextChild !== "string") {
+                                // There is a non-string child to the right,
+                                // so we must wrap the list
+                                wrap = true;
+                                break;
                             }
+                            nextChild = nextChild.trim();
+                            if (nextChild.length === 0) {
+                                continue;
+                            }
+                            let nextChar = nextChild[0];
+                            // If the format is latex,
+                            // the delimiter could be escaped by a \
+                            if (
+                                format === "latex" &&
+                                nextChar === "\\" &&
+                                nextChild.length > 1
+                            ) {
+                                nextChar = nextChild[1];
+                            }
+                            if (!rightDelimiters.includes(nextChar)) {
+                                // The string to the right did not contain one of the delimiters,
+                                // so we must wrap the list.
+                                wrap = true;
+                            }
+                            break;
                         }
                     }
 
