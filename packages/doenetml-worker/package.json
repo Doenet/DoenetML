@@ -48,6 +48,7 @@
                 "dist/**/*.wasm*"
             ],
             "dependencies": [
+                "../utils:build",
                 "../doenetml-worker-javascript:build",
                 "../doenetml-worker-rust:build"
             ]
