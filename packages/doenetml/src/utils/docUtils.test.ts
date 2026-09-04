@@ -244,11 +244,9 @@ describe("initializeCoreWorker serialization (#1533)", () => {
     });
 
     it("lets an initialization whose document has moved on step aside at its turn", async () => {
-        // Of the initializations queued behind the one on the worker, only
-        // the newest belongs to a document the viewer still shows. The rest
-        // step aside when their turn comes — no round trip, no turn, `null`
-        // for a result — so the newest waits for the one on the worker and
-        // no more, however many rebuilds landed in between.
+        // An initialization the viewer has moved on from by the time its
+        // turn comes makes no round trip, gets no turn, and resolves to
+        // `null`.
         const log: string[] = [];
         const { remote, release } = fakeRemote(log, {
             holdInitializationOf: "A",
@@ -258,42 +256,51 @@ describe("initializeCoreWorker serialization (#1533)", () => {
         const second = initialize(remote, "B", log, {
             abandoned: () => true,
         });
-        const third = initialize(remote, "C", log);
         await settle();
         expect(log).toEqual(sequenceFor("A").slice(0, -1));
 
         release();
         expect(await second).toBeNull();
-        await Promise.all([first, third]);
-        expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
+        await first;
+        expect(log).toEqual(sequenceFor("A"));
     });
 
-    it("passes an abandoned initialization whose preparation never settles", async () => {
-        // An initialization the viewer has moved on from can be stuck in its
-        // own preparation — a fetch of external references that never
-        // answers — long after it stopped mattering. Queueing another behind
-        // it releases its place at once, since it has not reached the worker,
-        // and the newcomer waits only for the initialization actually on the
-        // worker.
+    it("releases an abandoned initialization's place as soon as one is queued behind it", async () => {
+        // Of the initializations queued behind the one on the worker, only
+        // the newest belongs to a document the viewer still shows, and an
+        // older one may be stuck in its own preparation — a fetch of external
+        // references slow to answer — long after it stopped mattering. So
+        // queueing another behind it releases its place at once: the
+        // newcomer waits only for the initialization actually on the worker,
+        // however many rebuilds landed in between, and the one released makes
+        // no round trip once its preparation does settle.
         const log: string[] = [];
         const { remote, release } = fakeRemote(log, {
             holdInitializationOf: "A",
         });
+        const slowFetch = deferred();
 
         const first = initialize(remote, "A", log);
-        // Never settles: its fetch never answers. Nothing awaits it.
-        const stuck = initialize(remote, "B", log, {
-            doenetML: `<p>B</p><p copy="doenet:never" />`,
-            fetchExternalDoenetML: () => new Promise<string>(() => {}),
+        const second = initialize(remote, "B", log, {
+            doenetML: `<p>B</p><p copy="doenet:slow" />`,
+            fetchExternalDoenetML: async () => {
+                await slowFetch.promise;
+                return "<p>external</p>";
+            },
             abandoned: () => true,
         });
-        stuck.catch(() => {});
         const third = initialize(remote, "C", log);
         await settle();
         expect(log).toEqual(sequenceFor("A").slice(0, -1));
 
+        // The third runs right after the first, while the second is still
+        // waiting on its fetch.
         release();
         await Promise.all([first, third]);
+        expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
+
+        slowFetch.resolve();
+        expect(await second).toBeNull();
         expect(log).toEqual([...sequenceFor("A"), ...sequenceFor("C")]);
     });
 

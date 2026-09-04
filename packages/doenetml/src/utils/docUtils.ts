@@ -241,7 +241,7 @@ type QueueSlot = {
     begun: boolean;
     /**
      * Set when a successor found it abandoned before it had begun; it then
-     * makes no round trips when its own preparation settles.
+     * makes no round trips.
      */
     yielded: boolean;
     /** Its owner's `abandoned` predicate, for a successor to consult. */
@@ -347,15 +347,18 @@ export async function initializeCoreWorker({
     /**
      * Called when this initialization's turn on the worker comes: after the
      * initialization ahead of it, if any, has settled, just before its first
-     * round trip. Not called when its own preparation failed. The boot ladder
-     * re-bases its handshake watchdog on it (#1533).
+     * round trip. Not called for one that makes no round trips — its own
+     * preparation failed, or it stepped aside. The boot ladder re-bases its
+     * handshake watchdog on it (#1533).
      */
     onQueueTurn?: () => void;
     /**
-     * Consulted when this initialization's turn comes. Answering true means
-     * the document it was started for has moved on, and it steps aside: no
-     * round trip is made and the call resolves to `null`, so the
-     * initialization behind it is not kept waiting on work nobody wants.
+     * Whether the document this initialization was started for has moved on.
+     * Consulted when its turn comes, and when another initialization is
+     * queued behind it before it has reached the worker. Answering true means
+     * it steps aside: no round trip is made and the call resolves to `null`,
+     * so the initialization behind it is not kept waiting on work nobody
+     * wants.
      */
     abandoned?: () => boolean;
 }) {
@@ -392,9 +395,10 @@ export async function initializeCoreWorker({
     /**
      * Everything one initialization does: its own work, then — once the
      * worker is free of `predecessor` (the initialization ahead of it on this
-     * worker, if any) — the round trips. Only the round trips are serialized;
-     * see `initializationInFlight`. Its place in the queue is `slot`, which
-     * the `finally` below releases however this ends.
+     * worker, if any) — the round trips, unless its document has moved on by
+     * then, in which case none, and `null`. Only the round trips are
+     * serialized; see `initializationInFlight`. Its place in the queue is
+     * `slot`, which the `finally` below releases however this ends.
      */
     async function initializeAfter(
         predecessor: QueueSlot | undefined,
@@ -449,13 +453,12 @@ export async function initializeCoreWorker({
         return { ...result, resolvedDocumentLocale };
     }
 
-    // The place in the worker's queue is taken here, when the initialization
-    // is asked for: `initializeAfter` runs synchronously to its first await,
-    // and the entry is written in the same turn. So initializations run in
-    // the order they were asked for, whatever each one's expansion costs —
-    // the last to run is the newest, and the worker ends up holding the
-    // document the viewer is showing even when an older initialization's
-    // external references were slow to fetch.
+    // The place in the worker's queue is taken here, synchronously, when the
+    // initialization is asked for — before any of its own work. So
+    // initializations run in the order they were asked for, whatever each
+    // one's expansion costs: the last to run is the newest, and the worker
+    // ends up holding the document the viewer is showing even when an older
+    // initialization's external references were slow to fetch.
     const predecessor = initializationInFlight.get(coreWorker);
     if (predecessor && !predecessor.begun && predecessor.abandoned?.()) {
         // A predecessor that has not reached the worker and whose document
