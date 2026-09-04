@@ -265,15 +265,29 @@ describe("Automatic commas between composite replacements @group3", () => {
         );
     });
 
-    it("keeps the commas through a reference to the whole repeat", async () => {
+    it("keeps the commas through a reference into a repeat", async () => {
         await checkParagraphs(
             {
                 whole: { body: `$r`, expected: "1, 2, 3, 4, 1, 2, 3, 4" },
+                item: { body: `$r[1]`, expected: "1, 2, 3, 4" },
             },
             `<setup>
                 <numberList name="nl">1 2 3 4</numberList>
                 <repeatForSequence name="r" from="1" to="2">$nl</repeatForSequence>
             </setup>\n`,
+        );
+    });
+
+    it("keeps the commas through a reference to a group", async () => {
+        await checkParagraphs(
+            {
+                group: { body: `$g`, expected: "1, 2, 3" },
+                extended: {
+                    body: `<group extend="$g" />`,
+                    expected: "1, 2, 3",
+                },
+            },
+            `<setup><group name="g"><numberList>1 2 3</numberList></group></setup>\n`,
         );
     });
 });
@@ -323,32 +337,6 @@ describe("Automatic commas inside a <math> @group3", () => {
  * and the case can be moved into the suite above.
  */
 describe("Automatic commas: known defects @group3", () => {
-    // A reference that lands on a composite copies that composite's *final*
-    // replacements — the components, with every composite between them and the
-    // reference flattened away — while `compositeReplacementActiveRange` still
-    // records only the outermost composite. The `asList` of everything in
-    // between is lost, so the list stops being a list.
-    it.fails("keeps the commas through a reference into a repeat", async () => {
-        await checkParagraphs(
-            {
-                item: { body: `$r[1]`, expected: "1, 2, 3, 4" },
-            },
-            `<setup>
-                <numberList name="nl">1 2 3 4</numberList>
-                <repeatForSequence name="r" from="1" to="2">$nl</repeatForSequence>
-            </setup>\n`,
-        );
-    });
-
-    it.fails("keeps the commas through a reference to a group", async () => {
-        await checkParagraphs(
-            {
-                group: { body: `$g`, expected: "1, 2, 3" },
-            },
-            `<setup><group name="g"><numberList>1 2 3</numberList></group></setup>\n`,
-        );
-    });
-
     // The `text` pathway trims the end of every item but the last, so
     // whitespace an item ends with never lands in front of a comma. The
     // renderers' equivalent, `removeEndingBlankString`, only looks inside a

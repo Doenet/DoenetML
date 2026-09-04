@@ -332,6 +332,8 @@ export default class Copy extends CompositeComponent {
                             recursive: true,
                             recurseNonStandardComposites:
                                 stateValues.unresolvedPath != null,
+                            stopAtListComposites:
+                                stateValues.unresolvedPath == null,
                             includeWithheldReplacements: true,
                             stopIfHaveProp: firstPropNameFromPath,
                         };

@@ -1248,12 +1248,14 @@ export function recursivelyReplaceCompositesWithReplacements({
     recurseNonStandardComposites = false,
     includeWithheldReplacements = false,
     stopIfHaveProp,
+    stopAtListComposites = false,
 }: {
     core: Core;
     replacements: any[];
     recurseNonStandardComposites?: boolean;
     includeWithheldReplacements?: boolean;
     stopIfHaveProp?: string;
+    stopAtListComposites?: boolean;
 }): {
     compositesFound: number[];
     newReplacements: any[];
@@ -1290,6 +1292,11 @@ export function recursivelyReplaceCompositesWithReplacements({
             }
         }
 
+        if (stopAtListComposites && "asList" in replacement.state) {
+            newReplacements.push(replacement);
+            continue;
+        }
+
         compositesFound.push(replacement.componentIdx);
 
         if (!replacement.isExpanded) {
@@ -1318,6 +1325,7 @@ export function recursivelyReplaceCompositesWithReplacements({
             recurseNonStandardComposites,
             includeWithheldReplacements,
             stopIfHaveProp,
+            stopAtListComposites,
         });
         compositesFound.push(...recursionResult.compositesFound);
         newReplacements.push(...recursionResult.newReplacements);
