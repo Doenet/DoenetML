@@ -2660,4 +2660,28 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
+
+    it("reference to a reference to an iteration keeps the nested referent", async () => {
+        // Referencing the `<m>` copies the copy of `$i` again, so the reference that has
+        // to be resolved is two shadows away from the iteration whose `i` it means. The
+        // whole `shadows` chain has to be walked, not just its first link.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p><m name="m1">x_3 = $r[3]</m></p>
+    <p name="p3">$m1</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("x₃ = 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
 });

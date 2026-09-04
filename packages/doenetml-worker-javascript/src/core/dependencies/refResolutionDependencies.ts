@@ -164,7 +164,8 @@ export class RefResolutionIndexDependencies extends Dependency {
  *
  * If `refResolution.nodeIdx` has any composite descendants
  * or any indices of the path have composites, these composites are first expanded.
- * Then, the `originalPath` path is resolved using the first node of `refResolution.nodesInResolvedPath` as the origin;
+ * Then, the `originalPath` path is resolved from the first of the candidate origins that
+ * `originsToResolveFrom` yields (normally the first node of `refResolution.nodesInResolvedPath`);
  * `nodeIdx` is updated to the matched component, and `unresolvedPath` is updated to any remaining unresolved path.
  *
  * If an index is encountered (which halts the rust resolver), then
@@ -193,7 +194,7 @@ export class RefResolutionDependency extends Dependency {
     }
 
     /**
-     * The origins to re-resolve this composite's reference from, best first.
+     * The origins to re-resolve `composite`'s reference from, best first.
      *
      * A reference is normally re-resolved from where it now sits, which is what lets a
      * copied reference find a copied referent: every iteration of a `<repeat>` supplies
@@ -206,9 +207,17 @@ export class RefResolutionDependency extends Dependency {
      * lives inside the repeat, invisible from there. Such a copy shadows the component
      * it was copied from, and still refers to whatever that one refers to, so fall back
      * on resolving the reference where the shadowed component sits.
+     *
+     * A shadowing copy is a structural duplicate of what it shadows, so every component
+     * in the `shadows` chain carries the same reference — the same path resolved from a
+     * different place — which is what makes their origins interchangeable candidates.
      */
     *originsToResolveFrom(composite: any) {
+        // Guards against a cycle in the `shadows` chain, so the walk terminates even if
+        // the chain does not.
         const visitedSources = new Set<number>();
+        // Two components in the chain can share an origin; resolving from the same place
+        // a second time would only repeat the same failure.
         const yieldedOrigins = new Set<number>();
 
         let source = composite;
@@ -226,6 +235,7 @@ export class RefResolutionDependency extends Dependency {
                 yield origin;
             }
 
+            // A component that shadows nothing, or whose source is gone, ends the chain.
             source =
                 this.dependencyHandler._components[
                     source.shadows?.componentIdx
@@ -355,8 +365,6 @@ export class RefResolutionDependency extends Dependency {
             ]);
         }
 
-        let refResolution;
-
         /**
          * Given the ref resolution `composite.refResolution`
          * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
@@ -375,11 +383,19 @@ export class RefResolutionDependency extends Dependency {
         // console.log(
         //     "resolve path",
         //     { path: resolveComponentResult.path },
-        //     composite.refResolution.nodesInResolvedPath[0],
+        //     [...this.originsToResolveFrom(composite)],
         //     skip_parent_search,
         // );
 
-        let resolutionError: unknown;
+        // The resolution from the first candidate origin that produced one; left
+        // `undefined` if every candidate failed (or if there was no candidate to try).
+        let refResolution;
+
+        // The failure reported if no candidate origin resolves. It is the failure of the
+        // first candidate — the reference's own position — since that is the one that
+        // describes the document the author wrote; later candidates are only fallbacks.
+        let firstResolutionError:
+            "NonUniqueReferent" | "NoReferent" | undefined;
 
         for (const origin of this.originsToResolveFrom(composite)) {
             try {
@@ -388,19 +404,18 @@ export class RefResolutionDependency extends Dependency {
                     origin,
                     skip_parent_search,
                 );
-                resolutionError = undefined;
                 break;
             } catch (e) {
                 // console.log("resolve error", e);
                 if (e === "NonUniqueReferent" || e === "NoReferent") {
-                    resolutionError = e;
+                    firstResolutionError ??= e;
                 } else {
                     throw e;
                 }
             }
         }
 
-        if (resolutionError !== undefined) {
+        if (refResolution === undefined) {
             const referenceText = getDoenetMLStringForReference();
 
             // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
@@ -412,7 +427,7 @@ export class RefResolutionDependency extends Dependency {
                     // Spread rather than a ternary on the value: the
                     // code has to sit next to `code:` as a literal, or
                     // `lint:i18n` reads it as a code nothing raises.
-                    ...(resolutionError === "NonUniqueReferent"
+                    ...(firstResolutionError === "NonUniqueReferent"
                         ? { code: "doenet-w0105" as const }
                         : { code: "doenet-w0104" as const }),
                     args: { reference: `$${referenceText}` },
