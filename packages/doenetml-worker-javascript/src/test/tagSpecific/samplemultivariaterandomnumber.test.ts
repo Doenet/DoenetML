@@ -4,6 +4,7 @@ import { getDiagnosticsByType } from "../utils/diagnostics";
 import { callAction } from "../utils/actions";
 import {
     multivariateSamplingDiagnostics,
+    sampleFromMultivariateDistribution,
     sampleMultivariateHypergeometric,
 } from "../../utils/randomNumbers";
 import seedrandom from "seedrandom";
@@ -299,6 +300,29 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         ).eqls([0, 0]);
         expect(stateVariables[componentIdx].stateValues.means).eqls([0, 0]);
         expect(stateVariables[componentIdx].stateValues.variances).eqls([0, 0]);
+    });
+
+    it("no categories at all produces no numbers rather than NaN", async () => {
+        // `numInCategories` is the one parameter with a default, and the length of
+        // that list is what decides how many numbers there are to report. Leaving it
+        // off therefore does not behave like leaving off `type` or `numDraws`, which
+        // give a full-length list of NaN: there is nothing to report at all. The
+        // reason is still explained, so the emptiness is not silent.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numDraws="0" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].replacements!.length).eq(0);
+        expect(stateVariables[componentIdx].stateValues.means).eqls([]);
+        expect(stateVariables[componentIdx].stateValues.variances).eqls([]);
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+        expect(diagnostics.warnings.map((w: any) => w.code)).eqls([
+            "doenet-w0135",
+        ]);
     });
 
     it("invalid parameters give NaN", async () => {
@@ -676,6 +700,51 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         for (const value of stateVariables[componentIdx].stateValues.means) {
             expect(Number.isNaN(value)).eq(true);
         }
+    });
+
+    it("the sampler refuses a type it has no distribution for", () => {
+        // The `type` attribute rejects an unknown name before a document can reach
+        // the sampler, but the sampler is exported and other code calls it directly.
+        // An unrecognized name has to refuse there too, rather than falling through
+        // to whichever distribution the code happened to try first — otherwise
+        // adding a second distribution to `validValues` without wiring up its
+        // sampler would quietly hand back hypergeometric counts.
+        const rng = seedrandom.alea("refuses-unknown-type");
+        const parameters = { numInCategories: [5, 3, 2], numDraws: 4 };
+
+        for (const type of [
+            null,
+            "gaussian",
+            // a property every object inherits: reachable through the prototype
+            // chain, so a membership test that walks it would call `Object` here
+            "constructor",
+        ]) {
+            const { sampledValues, diagnostics } =
+                sampleFromMultivariateDistribution({
+                    ...parameters,
+                    type,
+                    rng,
+                });
+
+            expect(sampledValues.length, String(type)).eq(3);
+            for (const value of sampledValues) {
+                expect(Number.isNaN(value), String(type)).eq(true);
+            }
+            expect(
+                diagnostics.map((d: any) => d.code),
+                String(type),
+            ).eqls(["doenet-w0137"]);
+        }
+
+        // and the one name it does answer to still draws
+        const { sampledValues, diagnostics } =
+            sampleFromMultivariateDistribution({
+                ...parameters,
+                type: "hypergeometric",
+                rng,
+            });
+        expect(sampledValues.reduce((a: number, b: number) => a + b, 0)).eq(4);
+        expect(diagnostics).eqls([]);
     });
 
     it("resampling and reloading keep reporting why the parameters are unusable", async () => {

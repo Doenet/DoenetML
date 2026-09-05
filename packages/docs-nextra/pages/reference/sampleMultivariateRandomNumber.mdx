@@ -9,8 +9,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 <ComponentDisplay name='sampleMultivariateRandomNumber'/>
 
-`<sampleMultivariateRandomNumber/>{:dn}` draws a single *vector-valued* random number and 
-expands to one [Number](../concepts/essentialConcepts#component-types) per category. 
+`<sampleMultivariateRandomNumber/>{:dn}` draws a single *vector-valued* random number, 
+producing one [Number](../concepts/essentialConcepts#component-types) per category. 
 It differs from `<sampleRandomNumbers/>{:dn}`, where each sample is a single number drawn 
 independently of the others: here the numbers within one sample are drawn together and are 
 *not* independent of each other, since they describe how one set of draws was divided 
@@ -158,6 +158,12 @@ $n \frac{K_i}{N}\left(1 - \frac{K_i}{N}\right)\frac{N-n}{N-1}$, where $N$ is `nu
 $K_i$ is the size of category $i$, and $n$ is `numDraws`. Individual entries are 
 available as `means[1]`, `variances[1]`, and so on.
 
+Two populations are small enough that those formulas divide by zero, and both are 
+reported as the zero they describe rather than as `NaN`. A population with nothing in 
+it ($N = 0$) has every count, mean, and variance equal to zero, since there is nothing 
+to draw. A population holding a single item ($N = 1$) has zero variance, because the 
+one draw available always finds that item in the same category.
+
 
 ## Limits on the sample
 
@@ -174,11 +180,16 @@ Counts must also stay exact. Each category, the population they add up to, and
 numbers can no longer be told apart; a larger population is treated as unusable in 
 the same way.
 
-`type`, `numInCategories`, and `numDraws` have no defaults to fall back on. If any is 
-omitted, if `type` names a distribution that does not exist, or if the other two do not 
-describe a population &mdash; a category that is not a whole number, or more draws than 
-there are items &mdash; every count is `NaN`, as are the reported `means` and 
-`variances`.
+`type` and `numDraws` have no defaults to fall back on. If either is omitted, if `type` 
+names a distribution that does not exist, or if the population is not one that can be 
+drawn from &mdash; a category that is not a whole number, or more draws than there are 
+items &mdash; every count is `NaN`, as are the reported `means` and `variances`.
+
+Omitting `numInCategories` behaves differently, because the length of that list is what 
+decides how many numbers there are to report. With no categories given there is nothing 
+to sample and nothing to sample it from, so the component produces no numbers at all and 
+`means` and `variances` are both empty &mdash; not a list of `NaN`. A warning still 
+explains that the population is missing.
 
 `type` is required rather than defaulting to `hypergeometric` on purpose. It is the 
 only multivariate distribution available so far, but it is unlikely to remain the most 

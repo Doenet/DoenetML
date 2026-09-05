@@ -66,7 +66,7 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
 
     static componentDocs = {
         summary:
-            "Samples a single vector-valued random number from a multivariate distribution, expanding to one number per category",
+            "Samples one number per category from a multivariate distribution, drawn together rather than independently",
     };
 
     static takesIndex = true;

@@ -685,6 +685,18 @@ export function sampleFromRandomNumbers({
 }
 
 /**
+ * The multivariate distributions that can be sampled from, each mapped to the function
+ * that draws one vector-valued variate from it.
+ *
+ * Adding a distribution here and to the `type` attribute's `validValues` is all it
+ * takes; a name in one list but not the other refuses to sample rather than quietly
+ * drawing from whichever distribution happened to be first.
+ */
+const MULTIVARIATE_SAMPLERS = {
+    hypergeometric: sampleMultivariateHypergeometric,
+};
+
+/**
  * What these parameters have to say for themselves, drawing nothing: whether they can
  * be sampled from at all, and either the reason they cannot or a notice that sampling
  * them will be slow.
@@ -693,7 +705,11 @@ export function sampleFromRandomNumbers({
  * the decision to sample and the explanation given to the author cannot drift apart.
  */
 function inspectMultivariateParameters({ type, numInCategories, numDraws }) {
-    if (type == null) {
+    // A name no sampler answers to is treated exactly as no name at all, which is
+    // what the `type` attribute already does with one: it rejects the value and falls
+    // back to its `null` default. Matching that here keeps a direct caller of this
+    // helper from getting a draw that a document with the same `type` would refuse.
+    if (type == null || !Object.hasOwn(MULTIVARIATE_SAMPLERS, type)) {
         return {
             sampleable: false,
             diagnostics: [
@@ -761,9 +777,7 @@ export function sampleFromMultivariateDistribution({
     }
 
     return {
-        // "hypergeometric" is the only type currently offered, and the `type`
-        // attribute's validValues keep any other named one from reaching here
-        sampledValues: sampleMultivariateHypergeometric({
+        sampledValues: MULTIVARIATE_SAMPLERS[type]({
             numInCategories,
             numDraws,
             rng,
