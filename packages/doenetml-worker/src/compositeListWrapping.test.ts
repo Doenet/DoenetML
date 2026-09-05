@@ -320,6 +320,29 @@ describe("applyCompositeListWrapping", () => {
         expect(byId[11]).toBeUndefined();
     });
 
+    it("takes the trailing whitespace off a string that ends an item", () => {
+        // The prototype's `<asList>` renderer puts the comma right after each
+        // child, so the string must not end with a space.
+        const contents: ChildContent[] = ["a ", ref(2)];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 10,
+                firstInd: 0,
+                lastInd: 1,
+                asList: true,
+                potentialListComponents: [true, true],
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual([ref(10)]);
+        expect(wrapperElements[0].children).toEqual(["a", ref(2)]);
+    });
+
     it("leaves a composite that produced only whitespace out of the list", () => {
         // The grouping keeps such a composite in its place, for the doenetml
         // renderers to anchor its name to; the prototype's <asList> would show

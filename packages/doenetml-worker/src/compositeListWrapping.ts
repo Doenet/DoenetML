@@ -161,6 +161,10 @@ export function applyCompositeListWrapping(
         ranges: compositeReplacementActiveRange,
         isAbsent: (child) => child === null,
         isBlank: isBlankChild,
+        // A string that ends an item loses its trailing whitespace, as in the
+        // React renderers, so the prototype's comma sits right against it.
+        trimEnd: (child) =>
+            typeof child === "string" ? child.trimEnd() : child,
     });
 
     const wrapperElements: FlatDastElement[] = [];
