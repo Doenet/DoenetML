@@ -1,0 +1,156 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<tally>{:dn}`
+
+<ComponentDisplay name='tally'/>
+
+`<tally>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that renders how many times each category appears among its arguments: a
+list of counts, one per category.
+
+Where [`<count>{:dn}`](count) reports how many values there are in total,
+`<tally>{:dn}` reports how many there are of each kind.
+
+Name the categories with `categories` to fix which ones are counted and in what order.
+Omit it and the categories are the distinct values present, in sorted order — sorted
+rather than first-seen, so the same data always reads the same way however it happened
+to arrive. Either way, the categories are readable back as `.categories`, so a table or
+a chart can be driven off the same component that did the counting.
+
+Values are compared the way [`<sort>{:dn}`](sort) compares them, so `<tally>{:dn}` counts
+a `<textList>{:dn}` as readily as a `<numberList>{:dn}`. When counting text, set
+`type="text"` so that any bare strings and declared categories are read as text too.
+
+<AttrPropDisplay name='tally'/>
+
+## Examples
+
+### Example: counting the values that are there
+
+
+```doenet-editor-horiz
+<textList name="fruit">apple fig apple pear fig apple</textList>
+
+<tally name="t" type="text">$fruit</tally>
+
+<p>Fruit: $fruit</p>
+<p>Categories: $t.categories</p>
+<p>Counts: $t</p>
+```
+
+
+
+With no `categories` attribute, the categories are whatever distinct values turned up,
+in sorted order.
+
+
+
+---
+
+### Example: naming the categories
+
+
+```doenet-editor-horiz
+<numberList name="rolls">3 1 6 3 3 5 1</numberList>
+
+<p>Rolls: $rolls</p>
+<p>Counts: <tally categories="1 2 3 4 5 6">$rolls</tally></p>
+```
+
+
+
+Declaring the categories keeps a slot for the ones nothing matched — 2 and 4 here — so
+the counts stay lined up with the faces they are counts of. Left to infer its own
+categories, `<tally>{:dn}` would report only the four values that actually appeared.
+
+
+
+---
+
+### Example: counting a simulation
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <textList name="labels">North South East West</textList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<sampleRandomNumbers name="draws" type="discreteUniform"
+  from="1" to="$total" numSamples="60" />
+
+<searchSorted name="which" target="$draws">$cum</searchSorted>
+<tally name="counts" categories="1 2 3 4">$which</tally>
+
+<p>Subpopulation sizes: $pop (total $total)</p>
+<p>Regions: $labels</p>
+<p>Sampled counts: $counts</p>
+<p>Total sampled: <sum>$counts</sum></p>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+Three tags do the whole simulation, whatever `numSamples` is:
+[`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
+[`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
+in, and `<tally>{:dn}` counts them. Raising `numSamples` adds a draw and a subpopulation
+index apiece, but no markup and no counts — `<tally>{:dn}` reports one count per
+category however large the sample. Because every draw lands in exactly one
+subpopulation, the counts always sum to the number of samples.
+
+
+
+---
+
+### Example: the result is an ordinary list
+
+
+```doenet-editor-horiz
+<numberList name="rolls">3 1 6 3 3 5 1</numberList>
+
+<tally name="t" categories="1 2 3 4 5 6">$rolls</tally>
+
+<p>Counts: $t</p>
+<p>Threes: $t[3]</p>
+<p>Most common face appeared <max>$t</max> times.</p>
+<p>Total rolls: <sum>$t</sum></p>
+```
+
+
+
+The counts index, aggregate and extend like any other list.
+
+
+
+---
+
+### Example: values outside the declared categories
+
+
+```doenet-editor-horiz
+<numberList name="scores">1 2 9 9</numberList>
+
+<p>Counts: <tally categories="1 2">$scores</tally></p>
+```
+
+
+
+A value matching none of the declared categories is not counted anywhere, so the counts
+do not sum to the number of values. That is reported as an information message rather
+than a warning, since a list fed by an input legitimately holds values outside the
+categories while a student is still typing.
+
+A value that is not a number at all — a `<number>{:dn}` whose content does not parse —
+matches nothing in the same way, and so falls under that same message when the
+categories are declared. When they are inferred it gets no category and no message: a
+value that is not equal even to itself cannot be a category, and every occurrence would
+otherwise become one of its own, labeled `NaN` and counted zero times.

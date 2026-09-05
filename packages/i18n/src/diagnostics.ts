@@ -87,6 +87,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0034": "variant-non-constant-exclude-not-implemented",
     "doenet-i0048": "attribute-value-invalid-using-default",
     "doenet-i0049": "index-operator-no-values",
+    "doenet-i0050": "tally-values-outside-categories",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -223,6 +224,10 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0135": "sample-multivariate-parameters-invalid",
     "doenet-w0136": "sample-multivariate-draws-too-many",
     "doenet-w0137": "sample-multivariate-type-not-specified",
+    "doenet-w0138": "bin-counts-missing-bins",
+    "doenet-w0139": "bin-counts-too-few-cut-points",
+    "doenet-w0140": "bin-counts-values-not-numeric",
+    "doenet-w0141": "bin-counts-cut-points-decreasing",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

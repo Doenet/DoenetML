@@ -1,0 +1,156 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<binCounts>{:dn}`
+
+<ComponentDisplay name='binCounts'/>
+
+`<binCounts>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+component that renders how many of its arguments fall into each interval between the
+cut points given by `bins`: a list of counts, one per interval. Where
+[`<tally>{:dn}`](tally) counts values that are *equal* to a category,
+`<binCounts>{:dn}` counts values that fall *between* two cut points, which is what a
+histogram of a continuous quantity needs.
+
+`n + 1` cut points define `n` intervals, so `bins="0 1 2"` gives two counts.
+
+## Which end of a bin includes its cut point
+
+A value landing exactly on a cut point has to be counted on one side or the other, and
+there is no universal convention: NumPy, matplotlib and Julia close bins on the left,
+while R, pandas and Excel close them on the right. `closed` chooses, and defaults to
+`"left"` — `[a, b)` — which matches NumPy and the class intervals of most statistics
+textbooks ("10 to under 20").
+
+Whichever way `closed` points, **the outermost cut point is always included**, so
+neither the smallest nor the largest value is silently dropped. With `closed="left"`
+the last bin is `[a, b]`; with `closed="right"` the first bin is `[a, b]`.
+
+Values outside the outermost cut points are not counted at all, so unlike
+[`<tally>{:dn}`](tally) with inferred categories, the counts need not sum to the number
+of values. A value that is not a number at all — a `<number>{:dn}` whose content does
+not parse — lands in no bin either. Neither situation is reported.
+
+The cut points must all be numbers, and must not decrease. Two equal cut points are
+allowed, but a cut point smaller than the one before it describes a bin running
+backwards, which is reported as a warning, and no counts are produced. A cut point
+that is not a number at all is reported the same way.
+
+Two equal cut points name an empty bin *between* other bins, since a value equal to
+them belongs to whichever neighbor claims that edge. At either end the outermost cut
+point is always included, so it wins: `bins="0 1 1"` counts the value `1` in the last
+bin rather than nowhere. That is the same rule that keeps the largest value from being
+dropped, and dropping it is what forcing the zero-width bin empty would do.
+
+The values must be numeric as well. If any of them is text or a boolean — something
+that could never be placed between numeric cut points — `<binCounts>{:dn}` warns and
+reports a 0 for every bin, rather than no counts at all, so that a chart's axis does
+not collapse because one entry in the list turned out to be a word.
+
+<AttrPropDisplay name='binCounts'/>
+
+## Examples
+
+### Example: binning a set of values
+
+
+```doenet-editor-horiz
+<numberList name="edges">0 1 2</numberList>
+<numberList name="v">0 0.5 1 1.5 2</numberList>
+
+<p>Values: $v</p>
+<p>Cut points: $edges</p>
+<p>closed="left": <binCounts bins="$edges">$v</binCounts></p>
+<p>closed="right": <binCounts bins="$edges" closed="right">$v</binCounts></p>
+```
+
+
+
+Left-closed, the bins are `[0, 1)` and `[1, 2]`, so 1 is counted in the second.
+Right-closed they are `[0, 1]` and `(1, 2]`, so 1 is counted in the first. Both include
+0 and 2, because the outermost cut points always belong to a bin.
+
+
+
+---
+
+### Example: a histogram of a continuous sample
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+</setup>
+
+<sampleRandomNumbers name="z" type="gaussian"
+  mean="0" variance="4" numSamples="200" />
+
+<p>Counts per unit interval: <binCounts name="h" bins="$edges">$z</binCounts></p>
+<p>Counted: <sum>$h</sum> of 200 — the rest fell outside ±3, where there is no bin.</p>
+
+<callAction actionName="resample" target="$z">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+Raising `numSamples` does not add counts: one `<binCounts>{:dn}` bins the whole sample
+and reports one count per bin, so the six counts here stay six however many values were
+drawn. The draws themselves are still a component each — but binning them a
+[`<repeat>{:dn}`](repeat) at a time would build a whole operator for every draw on top
+of that.
+
+
+
+---
+
+### Example: counting a weighted population directly
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<sampleRandomNumbers name="draws" type="discreteUniform"
+  from="1" to="$total" numSamples="60" />
+
+<p>Subpopulation sizes: $pop (total $total)</p>
+<p>Sampled counts: <binCounts bins="0 $cum" closed="right">$draws</binCounts></p>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+With cumulative subpopulation sizes as the cut points, right-closed bins *are* the
+subpopulations: individuals 1–30, 31–75, 76–87 and 88–147. This reaches the same counts
+as [`<searchSorted>{:dn}`](searchSorted) followed by [`<tally>{:dn}`](tally), without
+the intermediate list of subpopulation indices — use whichever you also want to show.
+
+
+
+---
+
+### Example: an empty sample
+
+
+```doenet-editor-horiz
+<numberList name="edges">0 1 2</numberList>
+<numberList name="none" />
+
+<p>Counts: <binCounts bins="$edges">$none</binCounts></p>
+```
+
+
+
+Every bin reports 0 rather than the result being empty. The bins exist whether or not
+anything landed in them, which is what keeps a chart's axis from moving when the data
+changes.

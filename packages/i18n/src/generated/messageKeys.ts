@@ -531,6 +531,11 @@ export type MessageKey =
     | "sample-multivariate-parameters-invalid"
     | "sample-multivariate-draws-too-many"
     | "sample-multivariate-type-not-specified"
+    | "tally-values-outside-categories"
+    | "bin-counts-missing-bins"
+    | "bin-counts-too-few-cut-points"
+    | "bin-counts-values-not-numeric"
+    | "bin-counts-cut-points-decreasing"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1128,6 +1133,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sample-multivariate-parameters-invalid",
     "sample-multivariate-draws-too-many",
     "sample-multivariate-type-not-specified",
+    "tally-values-outside-categories",
+    "bin-counts-missing-bins",
+    "bin-counts-too-few-cut-points",
+    "bin-counts-values-not-numeric",
+    "bin-counts-cut-points-decreasing",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

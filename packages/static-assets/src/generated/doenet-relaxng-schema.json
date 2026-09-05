@@ -55,6 +55,8 @@
         "argMax",
         "indexOf",
         "searchSorted",
+        "tally",
+        "binCounts",
         "clampFunction",
         "wrapFunctionPeriodic",
         "derivative",
@@ -461,6 +463,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -1169,6 +1177,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -1979,6 +1993,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -2688,6 +2708,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -3424,6 +3450,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -4411,6 +4443,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -5394,6 +5432,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -6609,6 +6653,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -7303,6 +7353,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -8170,6 +8226,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -8849,6 +8911,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -9526,6 +9594,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -10654,6 +10728,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -11345,6 +11425,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -13714,6 +13800,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -14285,6 +14377,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -14871,6 +14969,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -15544,6 +15648,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -16443,6 +16553,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -17336,6 +17452,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -18233,6 +18355,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -19128,6 +19256,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -20017,6 +20151,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -20886,6 +21026,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -21747,6 +21893,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -22618,6 +22770,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -23487,6 +23645,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -24354,6 +24518,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -25237,6 +25407,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -26134,6 +26310,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -27038,6 +27220,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -27951,6 +28139,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -28855,6 +29049,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -29750,6 +29950,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -30649,6 +30855,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -31544,6 +31756,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -32443,6 +32661,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -33338,6 +33562,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -34245,6 +34475,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -35020,6 +35256,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -35449,6 +35691,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -35882,6 +36130,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -36313,6 +36567,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -36742,6 +37002,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -37347,6 +37613,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -38668,6 +38940,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -39871,6 +40149,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -40743,6 +41027,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -41333,6 +41623,1774 @@
                 }
             ]
         },
+        "tally": {
+            "type": "element",
+            "name": "tally",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "avoidScientificNotation": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "categories": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
+                },
+                {
+                    "ref": "cascade"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "categories",
+                    "isArray": true,
+                    "description": "The categories the counts are counts of, in the same order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        "binCounts": {
+            "type": "element",
+            "name": "binCounts",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "avoidScientificNotation": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "bins": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "closed": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
+                },
+                {
+                    "ref": "cascade"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "closed",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which end of each bin includes its cut point.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                }
+            ]
+        },
         "clampFunction": {
             "type": "element",
             "name": "clampFunction",
@@ -41701,6 +43759,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -42717,6 +44781,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -43731,6 +45801,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -44595,6 +46671,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -45165,6 +47247,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -45756,6 +47844,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -46343,6 +48437,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -46934,6 +49034,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -47521,6 +49627,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -48112,6 +50224,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -48699,6 +50817,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -49290,6 +51414,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -49879,6 +52009,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -50466,6 +52602,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -52282,6 +54424,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -53482,6 +55630,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -54686,6 +56840,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -55886,6 +58046,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -57097,6 +59263,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -58297,6 +60469,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -59508,6 +61686,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -60715,6 +62899,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -61926,6 +64116,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -63135,6 +65331,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -64335,6 +66537,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -65539,6 +67747,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -66739,6 +68953,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -67943,6 +70163,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -69145,6 +71371,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -70345,6 +72577,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -71555,6 +73793,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -72749,6 +74993,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -73941,6 +76191,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -75570,6 +77826,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -77770,6 +80032,12 @@
                     "ref": "constrainToInterior"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -78479,6 +80747,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -79327,6 +81601,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -80994,6 +83274,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -81718,6 +84004,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -83571,6 +85863,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -84472,6 +86770,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -85459,6 +87763,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -86379,6 +88689,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -87215,6 +89531,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -88083,6 +90405,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -89649,6 +91977,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -90233,6 +92567,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -90977,6 +93317,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -91787,6 +94133,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -92694,6 +95046,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -93284,6 +95642,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -93736,6 +96100,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -94454,6 +96824,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -95334,6 +97710,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -96126,6 +98508,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -96619,6 +99007,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -97065,6 +99459,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -97611,6 +100011,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -98671,6 +101077,12 @@
                     "ref": "constrainToInterior"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -99369,6 +101781,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -100221,6 +102639,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -104900,6 +107324,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -105731,6 +108161,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -106566,6 +109002,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -107321,6 +109763,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -107829,6 +110277,12 @@
                 },
                 {
                     "ref": "mrow"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -108419,6 +110873,12 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -109138,6 +111598,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -109977,6 +112443,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -110904,6 +113376,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -111619,6 +114097,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -112372,6 +114856,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -113225,6 +115715,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -113863,6 +116359,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -114823,6 +117325,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -115728,6 +118236,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -116359,6 +118873,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -117384,6 +119904,12 @@
                 },
                 {
                     "ref": "isBetween"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -118501,6 +121027,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -120144,6 +122676,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -120921,6 +123459,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -121992,6 +124536,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -122995,6 +125545,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -124782,6 +127338,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -125554,6 +128116,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -126347,6 +128915,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -127210,6 +129784,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -130486,6 +133066,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -131286,6 +133872,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -132452,6 +135044,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -135441,6 +138039,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -137721,6 +140325,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -138584,6 +141194,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -139208,6 +141824,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -139822,6 +142444,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -140653,6 +143281,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -141498,6 +144132,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -142862,6 +145502,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -144259,6 +146905,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -145064,6 +147716,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -145892,6 +148550,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -146691,6 +149355,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -147284,6 +149954,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -148243,6 +150919,12 @@
                     "ref": "constrainToInterior"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -148896,6 +151578,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -149761,6 +152449,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -150605,6 +153299,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -151384,6 +154084,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -152221,6 +154927,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -153073,6 +155785,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -154902,6 +157620,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -155421,6 +158145,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -156238,6 +158968,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -157220,6 +159956,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -158042,6 +160784,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -158793,6 +161541,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -160002,6 +162756,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -160540,6 +163300,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -161205,6 +163971,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -162043,6 +164815,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -163985,6 +166763,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -164975,6 +167759,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -165636,6 +168426,12 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -166013,6 +168809,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -166488,6 +169290,12 @@
                 },
                 {
                     "ref": "mrow"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
