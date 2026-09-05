@@ -429,17 +429,67 @@ export function validPoissonMean(mean) {
  * also keeps `sampleMultivariateHypergeometric` from being handed an empty partition,
  * which has no final category to absorb the remaining draws.
  */
-export function validMultivariateHypergeometricParameters({
-    numInCategories,
-    numDraws,
-}) {
+function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
+    if (
+        numInCategories.length === 0 ||
+        !numInCategories.every((num) => Number.isInteger(num) && num >= 0) ||
+        !Number.isInteger(numDraws) ||
+        numDraws < 0 ||
+        numDraws > sumOf(numInCategories)
+    ) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0135",
+            args: {
+                // an omitted numberList arrives empty rather than as null
+                numInCategories:
+                    numInCategories.length === 0
+                        ? "not-set"
+                        : numInCategories.join(", "),
+                numDraws: reportedValue(numDraws),
+            },
+        });
+    }
+
+    if (
+        multivariateHypergeometricWork({ numInCategories, numDraws }) >
+        MAX_WORK_PER_VARIATE
+    ) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0136",
+            args: {
+                numDraws,
+                numTotal: sumOf(numInCategories),
+                numCategories: numInCategories.length,
+                maxDraws: MAX_WORK_PER_VARIATE,
+            },
+        });
+    }
+
+    return null;
+}
+
+/**
+ * An upper bound on the draws one multivariate variate costs. Every category but the
+ * last is a univariate hypergeometric draw against the part of the population not yet
+ * accounted for; neither the draws remaining nor the items left behind ever grows as
+ * that part shrinks, so no such draw costs more than one against the whole population.
+ */
+function multivariateHypergeometricWork({ numInCategories, numDraws }) {
+    const numTotal = sumOf(numInCategories);
     return (
-        numInCategories.length > 0 &&
-        numInCategories.every((num) => Number.isInteger(num) && num >= 0) &&
-        Number.isInteger(numDraws) &&
-        numDraws >= 0 &&
-        numDraws <= sumOf(numInCategories)
+        (numInCategories.length - 1) * Math.min(numDraws, numTotal - numDraws)
     );
+}
+
+/**
+ * Whether `numInCategories` and `numDraws` describe a multivariate hypergeometric
+ * distribution this can actually sample from. Shared with the component so that the
+ * reported means and variances are NaN for exactly the parameters whose samples are.
+ */
+export function validMultivariateHypergeometricParameters(parameters) {
+    return multivariateHypergeometricProblem(parameters) === null;
 }
 
 /**
@@ -624,8 +674,11 @@ export function sampleFromRandomNumbers({
 
 /**
  * Draw one vector-valued sample from the multivariate distribution named by `type`,
- * returning one number per category — or one NaN per category, with a warning, when
- * the parameters describe no such distribution.
+ * returning one number per category alongside any diagnostics it raised — or one NaN
+ * per category when the parameters describe no distribution this can sample from.
+ *
+ * As with `sampleFromRandomNumbers`, the diagnostics come back rather than being
+ * logged, so the state variable that calls this can pass them on to the reader.
  */
 export function sampleFromMultivariateDistribution({
     type,
@@ -633,33 +686,27 @@ export function sampleFromMultivariateDistribution({
     numDraws,
     rng,
 }) {
-    if (
-        !validMultivariateHypergeometricParameters({
-            numInCategories,
-            numDraws,
-        })
-    ) {
-        console.warn(
-            `Invalid numInCategories (${numInCategories}) or numDraws (${numDraws}) for a multivariate ${type} random variable. numInCategories must be a non-empty list of non-negative integers, and numDraws must be a non-negative integer no larger than their sum.`,
-        );
-
-        return Array(numInCategories.length).fill(NaN);
+    const problem = multivariateHypergeometricProblem({
+        numInCategories,
+        numDraws,
+    });
+    if (problem) {
+        return unsampleable(numInCategories.length, problem);
     }
 
-    const numTotal = sumOf(numInCategories);
-
-    // Upper bound on the work: every category but the last costs a univariate
-    // hypergeometric draw against the part of the population not yet accounted for.
-    // Neither the draws remaining nor the items left behind ever grows as that part
-    // shrinks, so no such draw is more work than one against the whole population.
-    warnSlowSampling(
-        "multivariate hypergeometric",
-        (numInCategories.length - 1) * Math.min(numDraws, numTotal - numDraws),
-    );
-
-    // "hypergeometric" is the only type currently offered, and the `type` attribute's
-    // validValues keep any other from reaching here
-    return sampleMultivariateHypergeometric({ numInCategories, numDraws, rng });
+    return {
+        // "hypergeometric" is the only type currently offered, and the `type`
+        // attribute's validValues keep any other from reaching here
+        sampledValues: sampleMultivariateHypergeometric({
+            numInCategories,
+            numDraws,
+            rng,
+        }),
+        diagnostics: slowSamplingDiagnostics(
+            `multivariate ${type}`,
+            multivariateHypergeometricWork({ numInCategories, numDraws }),
+        ),
+    };
 }
 
 export function sampleFromNumberList({

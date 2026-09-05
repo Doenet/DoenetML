@@ -1012,3 +1012,21 @@ index-operator-missing-target =
 # whose only children were references that produced nothing.
 index-operator-no-values =
     `{ $component }` has no values to look through, so it gives 0, which is not the index of any item.
+## `<sampleMultivariateRandomNumber>`
+
+# Translators: `numInCategories` and `numDraws` are DoenetML attribute names. Leave
+# them in English exactly as written. `not-set` marks an attribute the author left
+# off altogether, as opposed to one holding an unusable value.
+
+sample-multivariate-parameters-invalid =
+    Invalid numInCategories ({ $numInCategories ->
+        [not-set] not set
+       *[other] { $numInCategories }
+    }) or numDraws ({ $numDraws ->
+        [not-set] not set
+       *[other] { $numDraws }
+    }) for a multivariate random variable. numInCategories must list at least one category, each a non-negative whole number, and numDraws must be a non-negative whole number no larger than their total.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-multivariate-draws-too-many =
+    Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, or use fewer categories.

@@ -334,12 +334,13 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                     };
                 }
 
-                let sampledValues =
+                const { sampledValues, diagnostics } =
                     sampleFromMultivariateDistribution(dependencyValues);
 
                 return {
                     setEssentialValue: { sampledValues },
                     setValue: { sampledValues },
+                    sendDiagnostics: diagnostics,
                 };
             },
             inverseDefinition({ desiredStateVariableValues }) {
@@ -583,7 +584,10 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let sampledValues = sampleFromMultivariateDistribution({
+        // Any diagnostic these parameters raise was already sent when `sampledValues`
+        // was first computed, and resampling cannot change them, so there is nothing
+        // new to report here — and an action has no `sendDiagnostics` in any case.
+        const { sampledValues } = sampleFromMultivariateDistribution({
             type: await this.stateValues.type,
             numInCategories: await this.stateValues.numInCategories,
             numDraws: await this.stateValues.numDraws,

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import { callAction } from "../utils/actions";
 import { sampleMultivariateHypergeometric } from "../../utils/randomNumbers";
 import seedrandom from "seedrandom";
@@ -334,6 +335,88 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         for (let value of stateVariables[componentIdx].stateValues.variances) {
             expect(value).closeTo(0, 1e-10);
         }
+    });
+
+    it("unusable parameters are reported to the author, not just the console", async () => {
+        // A console warning is invisible to someone authoring a document, so the
+        // reason has to arrive as a diagnostic the surrounding tooling can show.
+        const cases: [string, Record<string, unknown>][] = [
+            [
+                `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="11" />`,
+                { numInCategories: "5, 3, 2", numDraws: 11 },
+            ],
+            [
+                // numDraws left off entirely, which has no default to fall back on
+                `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" />`,
+                { numInCategories: "5, 3, 2", numDraws: "not-set" },
+            ],
+            [
+                // and with no categories either
+                `<sampleMultivariateRandomNumber name="s" />`,
+                { numInCategories: "not-set", numDraws: "not-set" },
+            ],
+            [
+                `<sampleMultivariateRandomNumber name="s" numInCategories="5.5 3" numDraws="2" />`,
+                { numInCategories: "5.5, 3", numDraws: 2 },
+            ],
+        ];
+
+        for (const [doenetML, args] of cases) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+
+            const warnings = getDiagnosticsByType(core).warnings.filter(
+                (w) => w.code === "doenet-w0135",
+            );
+            expect(warnings.length, doenetML).eq(1);
+            expect(warnings[0].args).eqls(args);
+            // the reader should never be shown a raw JavaScript value
+            expect(warnings[0].message).not.toContain("null");
+            expect(warnings[0].message).not.toContain("undefined");
+        }
+    });
+
+    it("a draw too large to sample promptly is refused, not attempted", async () => {
+        // Drawing each category costs a univariate hypergeometric draw, so this would
+        // otherwise run for minutes rather than returning.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="1000000000 1000000000 1000000000" numDraws="1500000000" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0136",
+        );
+        expect(warnings.length).eq(1);
+        expect(warnings[0].args).eqls({
+            numDraws: 1500000000,
+            numTotal: 3000000000,
+            numCategories: 3,
+            maxDraws: 1e7,
+        });
+
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+        for (const value of stateVariables[componentIdx].stateValues.means) {
+            expect(Number.isNaN(value)).eq(true);
+        }
+    });
+
+    it("valid parameters raise no diagnostics", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />`,
+        });
+        await core.returnAllStateVariables(false, true);
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.warnings.length).eq(0);
+        expect(diagnostics.errors.length).eq(0);
     });
 
     it("resample draws a new vector", async () => {
