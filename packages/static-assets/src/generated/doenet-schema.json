@@ -54,6 +54,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -158,7 +160,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -348,6 +350,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -403,7 +407,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1218,6 +1222,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -1322,7 +1328,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1694,6 +1700,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -1798,7 +1806,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -2174,6 +2182,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -2359,7 +2369,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -2731,6 +2741,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -2916,7 +2928,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -3288,6 +3300,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -3473,7 +3487,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4123,6 +4137,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -4229,7 +4245,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4607,6 +4623,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -4792,7 +4810,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -4998,6 +5016,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -5102,7 +5122,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5441,6 +5461,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -5545,7 +5567,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5884,6 +5906,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -5988,7 +6012,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -6903,6 +6927,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -7007,7 +7033,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -7346,6 +7372,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -7419,7 +7447,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "122221111111111111111111111222221122222122222122020222212222201221222212222221112221211222221111111110212120",
+            "childBuckets": "12222111111111111111111111122222112222222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_booleanOperatorOneInput",
                 "_inline",
@@ -9773,6 +9801,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -9828,7 +9858,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -10237,6 +10267,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -10292,7 +10324,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -10701,6 +10733,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -10756,7 +10790,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -11195,6 +11229,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -11250,7 +11286,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -12085,6 +12121,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -12140,7 +12178,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -12975,6 +13013,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -13030,7 +13070,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -13857,6 +13897,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -13912,7 +13954,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -14739,6 +14781,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -14794,7 +14838,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -15621,6 +15665,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -15676,7 +15722,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -16490,6 +16536,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -16545,7 +16593,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -17330,6 +17378,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -17385,7 +17435,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -18186,6 +18236,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -18241,7 +18293,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -19042,6 +19094,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -19097,7 +19151,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -19898,6 +19952,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -19953,7 +20009,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -20754,6 +20810,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -20809,7 +20867,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -21644,6 +21702,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -21699,7 +21759,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -22534,6 +22594,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -22589,7 +22651,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -23441,6 +23503,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -23496,7 +23560,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -24348,6 +24412,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -24403,7 +24469,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -25238,6 +25304,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -25293,7 +25361,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -26128,6 +26196,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -26183,7 +26253,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -27018,6 +27088,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -27073,7 +27145,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -27908,6 +27980,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -27963,7 +28037,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -28798,6 +28872,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -28853,7 +28929,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -29688,6 +29764,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -29743,7 +29821,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -30605,6 +30683,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -30660,7 +30740,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -30878,6 +30958,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -30933,7 +31015,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31151,6 +31233,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -31206,7 +31290,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31424,6 +31508,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -31479,7 +31565,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31697,6 +31783,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -31752,7 +31840,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31989,6 +32077,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -32174,7 +32264,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -33013,6 +33103,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -33198,7 +33290,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -34037,6 +34129,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -34222,7 +34316,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
                 "_composite",
@@ -34297,7 +34391,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
+                    "description": "Component type to interpret bare string children as. Also decides how `target` is read, since it has no type of its own.",
                     "highlighted": true,
                     "defaultValue": null,
                     "values": [
@@ -34458,6 +34552,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -34643,7 +34739,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
                 "_composite",
@@ -34718,7 +34814,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
+                    "description": "Component type to interpret bare string children as. Also decides how `target` is read, since it has no type of its own.",
                     "highlighted": true,
                     "defaultValue": null,
                     "values": [
@@ -34851,6 +34947,893 @@
             "layoutCategory": "other"
         },
         {
+            "name": "tally",
+            "children": [
+                "title",
+                "rightHandSide",
+                "xLabel",
+                "yLabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "br",
+                "hr",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "iff",
+                "implies",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "cumulativeSum",
+                "cumulativeProduct",
+                "cumulativeMin",
+                "cumulativeMax",
+                "differences",
+                "argMin",
+                "argMax",
+                "indexOf",
+                "searchSorted",
+                "tally",
+                "binCounts",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "part",
+                "task",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odeSystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "fractionInput",
+                "solution",
+                "givenAnswer",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "annotations",
+                "annotation",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "repeat",
+                "repeatForSequence",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "variantControl",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intComma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "moduleAttributes",
+                "setup",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "sortIndices",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
+                "regionHalfPlane",
+                "codeEditor",
+                "hasSameFactoring",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "stickyGroup",
+                "pretzel",
+                "cascade",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "abstractAncestors": [
+                "_countingListOperator",
+                "_composite",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "type",
+                    "description": "Component type to interpret bare string children as. Also decides how `categories` is read, since it has no type of its own.",
+                    "highlighted": true,
+                    "defaultValue": null,
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "categories",
+                    "description": "The categories to count, in the order the counts are reported. Omit to count the distinct values present, in sorted order.",
+                    "highlighted": true,
+                    "type": "_componentListWithSelectableType"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "categories",
+                    "isArray": true,
+                    "description": "The categories the counts are counts of, in the same order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true,
+            "takesIndex": true,
+            "docsSlug": "tally",
+            "summary": "How many times each category appears in a list",
+            "layoutCategory": "other"
+        },
+        {
+            "name": "binCounts",
+            "children": [
+                "title",
+                "rightHandSide",
+                "xLabel",
+                "yLabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "br",
+                "hr",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "iff",
+                "implies",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "cumulativeSum",
+                "cumulativeProduct",
+                "cumulativeMin",
+                "cumulativeMax",
+                "differences",
+                "argMin",
+                "argMax",
+                "indexOf",
+                "searchSorted",
+                "tally",
+                "binCounts",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "part",
+                "task",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odeSystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "fractionInput",
+                "solution",
+                "givenAnswer",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "annotations",
+                "annotation",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "repeat",
+                "repeatForSequence",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "variantControl",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intComma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "moduleAttributes",
+                "setup",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "sortIndices",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionBetweenCurves",
+                "slopeField",
+                "vectorField",
+                "regionHalfPlane",
+                "codeEditor",
+                "hasSameFactoring",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "stickyGroup",
+                "pretzel",
+                "cascade",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "abstractAncestors": [
+                "_countingListOperator",
+                "_composite",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "type",
+                    "description": "Component type to interpret bare string children as.",
+                    "highlighted": true,
+                    "defaultValue": null,
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "bins",
+                    "description": "The cut points, in increasing order. `n + 1` cut points define `n` bins.",
+                    "highlighted": true,
+                    "type": "numberList"
+                },
+                {
+                    "name": "closed",
+                    "description": "Which end of each bin includes its cut point.",
+                    "highlighted": true,
+                    "defaultValue": "left",
+                    "values": [
+                        "left",
+                        "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left",
+                            "description": "Bins are `[a, b)`, matching NumPy and the usual textbook class interval. The last bin also includes its upper cut point, so the largest value is not dropped."
+                        },
+                        {
+                            "value": "right",
+                            "description": "Bins are `(a, b]`, matching R, pandas and Excel. The first bin also includes its lower cut point, so the smallest value is not dropped."
+                        }
+                    ],
+                    "type": "keyword"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "closed",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which end of each bin includes its cut point.",
+                    "fromAttribute": true,
+                    "highlighted": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true,
+            "takesIndex": true,
+            "docsSlug": "binCounts",
+            "summary": "How many values fall in each interval between cut points",
+            "layoutCategory": "other"
+        },
+        {
             "name": "clampFunction",
             "children": [
                 "rightHandSide",
@@ -34889,6 +35872,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -34947,7 +35932,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -35836,6 +36821,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -35894,7 +36881,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -36783,6 +37770,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -36841,7 +37830,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -37734,6 +38723,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -37789,7 +38780,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_textOperatorOfMath",
                 "_inline",
@@ -38212,6 +39203,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -38316,7 +39309,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -38515,6 +39508,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -38619,7 +39614,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -38818,6 +39813,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -38922,7 +39919,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -39121,6 +40118,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -39225,7 +40224,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -39424,6 +40423,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -39528,7 +40529,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -39727,6 +40728,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -39831,7 +40834,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40030,6 +41033,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -40134,7 +41139,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40333,6 +41338,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -40437,7 +41444,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40636,6 +41643,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -40740,7 +41749,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40939,6 +41948,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -41043,7 +42054,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42437,6 +43448,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -42619,7 +43632,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -43237,6 +44250,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -43419,7 +44434,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -44037,6 +45052,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -44219,7 +45236,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -44837,6 +45854,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -45019,7 +46038,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45637,6 +46656,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -45819,7 +46840,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46446,6 +47467,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -46628,7 +47651,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -47246,6 +48269,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -47428,7 +48453,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -48055,6 +49080,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -48237,7 +49264,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -48864,6 +49891,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -49046,7 +50075,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49673,6 +50702,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -49855,7 +50886,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -50482,6 +51513,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -50664,7 +51697,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -51282,6 +52315,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -51464,7 +52499,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -52082,6 +53117,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -52264,7 +53301,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -52882,6 +53919,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -53064,7 +54103,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -53682,6 +54721,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -53864,7 +54905,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54482,6 +55523,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -54664,7 +55707,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -55282,6 +56325,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -55464,7 +56509,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_unnumberedSectioningComponent",
                 "_sectioningComponent",
@@ -56079,6 +57124,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -56261,7 +57308,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -56866,6 +57913,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -57048,7 +58097,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -58350,6 +59399,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -58535,7 +59586,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -60129,6 +61180,8 @@
                 "constraintUnion",
                 "attractToConstraint",
                 "constrainToInterior",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "text",
                 "textList",
@@ -60167,7 +61220,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "11201111111111111111111111122222112211022010122121111222111111112222012222222222222222222222222222222",
+            "childBuckets": "1120111111111111111111111112222211221102201012212111122211111111222222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -60869,6 +61922,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -60923,7 +61978,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
+            "childBuckets": "11201222211111111111111111111112222211222222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -61534,6 +62589,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -61583,7 +62640,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120111010122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
+            "childBuckets": "112011101012222111111111111111111111122222112222222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -63287,6 +64344,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -63342,7 +64401,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -64145,6 +65204,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -64198,7 +65259,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0201222211111111111111111111112222211222222222221222202221222220122122212222221222221212222",
+            "childBuckets": "020122221111111111111111111111222221122222222222221222202221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -65959,6 +67020,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -66144,7 +67207,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -66340,6 +67403,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -66525,7 +67590,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -66897,6 +67962,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -67082,7 +68149,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -67454,6 +68521,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -67639,7 +68708,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67835,6 +68904,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -68020,7 +69091,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -68240,6 +69311,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -68425,7 +69498,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -69359,6 +70432,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -69413,7 +70488,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11200012222111111111111111111111122222112222222222212222022221222222222122212222221222221212222",
+            "childBuckets": "1120001222211111111111111111111112222211222222222222212222022221222222222122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -69928,6 +71003,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -70084,7 +71161,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -70281,6 +71358,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -70437,7 +71516,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -70644,6 +71723,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -70826,7 +71907,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -72512,6 +73593,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "atom",
                 "ion",
@@ -72571,7 +73654,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
+            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -72989,6 +74072,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "atom",
                 "ion",
@@ -73030,7 +74115,7 @@
                 "latex",
                 "intervalList"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212",
+            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222211222222212",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -73232,6 +74317,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -73338,7 +74425,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -73697,6 +74784,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -73770,7 +74859,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "122221111111111111111111111222221122222122222122020222212222201221222212222221112221211222221111111110212120",
+            "childBuckets": "12222111111111111111111111122222112222222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -74345,6 +75434,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -74400,7 +75491,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -75200,6 +76291,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -75255,7 +76348,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -75532,6 +76625,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -75587,7 +76682,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -75860,6 +76955,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "electronConfiguration",
                 "text",
@@ -75919,7 +77016,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111112222211222122022210112222122222212222112222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122222122022210112222122222212222112222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -76227,6 +77324,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -76412,7 +77511,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -76663,6 +77762,8 @@
                 "constraintUnion",
                 "attractToConstraint",
                 "constrainToInterior",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "text",
                 "textList",
@@ -76701,7 +77802,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "11201111111111111111111111122222112211022010122121111222111111112222012222222222222222222222222222222",
+            "childBuckets": "1120111111111111111111111112222211221102201012212111122211111111222222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -77384,6 +78485,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -77439,7 +78542,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -78232,6 +79335,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -78286,7 +79391,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
+            "childBuckets": "11201222211111111111111111111112222211222222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -83584,6 +84689,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -83638,7 +84745,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
+            "childBuckets": "11201222211111111111111111111112222211222222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -84475,6 +85582,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -84529,7 +85638,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
+            "childBuckets": "11201222211111111111111111111112222211222222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -85203,6 +86312,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -85252,7 +86363,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120111010122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
+            "childBuckets": "112011101012222111111111111111111111122222112222222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -86141,6 +87252,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -86195,7 +87308,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0212222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
+            "childBuckets": "021222211111111111111111111112222211222222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -86406,6 +87519,8 @@
                 "me",
                 "men",
                 "mrow",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -86444,7 +87559,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "111111111111111111111112222211221022101222121112222222222222222222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122102210122212111222222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -86725,6 +87840,8 @@
                 "pointList",
                 "intervalList",
                 "vectorList",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "text",
                 "textList",
@@ -86763,7 +87880,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112011111111111111111111111222221122110220101221211112222222012222222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222112211022010122121111222222222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -87476,6 +88593,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "electronConfiguration",
                 "text",
@@ -87534,7 +88653,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "112011111111111111111111111222221122212202221011222122222212222112222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222112222212202221011222122222212222112222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -88051,6 +89170,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -88115,7 +89236,7 @@
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "02111111011000122221111111111111111111111222221122222122222100001021222001221222122222211122212112221111111110011",
+            "childBuckets": "0211111101100012222111111111111111111111122222112222222122222100001021222001221222122222211122212112221111111110011",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -89092,6 +90213,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -89164,7 +90287,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "0212222111111111111111111111122222112222212222212202022221222220122122212222221112221211222221111111110212120",
+            "childBuckets": "021222211111111111111111111112222211222222212222212202022221222220122122212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_base"
             ],
@@ -89710,6 +90833,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -89783,7 +90908,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "122221111111111111111111111222221122222122222122020222212222201221222212222221112221211222221111111110212120",
+            "childBuckets": "12222111111111111111111111122222112222222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -90226,6 +91351,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -90280,7 +91407,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11200012222111111111111111111111122222112222222222212222022221222222222122212222221222221212222",
+            "childBuckets": "1120001222211111111111111111111112222211222222222222212222022221222222222122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -91101,6 +92228,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "atom",
                 "ion",
@@ -91140,7 +92269,7 @@
                 "latex",
                 "intervalList"
             ],
-            "childBuckets": "11200022222222222222222222222222222222222222222222212220222222222222222222222221122222212",
+            "childBuckets": "1120002222222222222222222222222222222222222222222222212220222222222222222222222221122222212",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -91658,6 +92787,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -91712,7 +92843,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120001111111110221112222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
+            "childBuckets": "112000111111111022111222211111111111111111111112222211222222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -92582,6 +93713,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -92767,7 +93900,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -93019,6 +94152,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "electronConfiguration",
                 "text",
@@ -93095,7 +94230,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "11111111111111111111111222221122110202221011222212222221112211122222222222222222222222222222111111111021212",
+            "childBuckets": "1111111111111111111111122222112222110202221011222212222221112211122222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -93527,6 +94662,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "electronConfiguration",
                 "text",
@@ -93603,7 +94740,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "11111111111111111111111222221122110202221011222212222221112211122222222222222222222222222222111111111021212",
+            "childBuckets": "1111111111111111111111122222112222110202221011222212222221112211122222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -94113,6 +95250,8 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "atom",
                 "ion",
@@ -94152,7 +95291,7 @@
                 "graph",
                 "annotations"
             ],
-            "childBuckets": "0200011111111111111111111111222221122222111110222111111111111111221222122221212122121111111112220011122222222212202222201222222112220212220010000000",
+            "childBuckets": "020001111111111111111111111122222112222211111022211111111111111122122212222121212212111111111222001112222222222212202222201222222112220212220010000000",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -95416,6 +96555,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -95474,7 +96615,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -97127,6 +98268,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -97182,7 +98325,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -97990,6 +99133,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -98175,7 +99320,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -98569,6 +99714,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "electronConfiguration",
                 "text",
@@ -98625,7 +99772,7 @@
                 "label",
                 "matchesPattern"
             ],
-            "childBuckets": "222222222222222222222222222222221202222220122222222222221122221211222222222222222222202",
+            "childBuckets": "22222222222222222222222222222222221202222220122222222222221122221211222222222222222222202",
             "abstractAncestors": [
                 "_base"
             ],
@@ -99550,6 +100697,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -99754,7 +100903,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -101218,6 +102367,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -101373,7 +102524,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "02111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "0211111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -101605,6 +102756,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -101759,7 +102912,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "20111111111111111111111111111111111111111111222221122111111111111111111111112211111111121212222121212211111111111222221222122222211121111212222112211111222111111111111111111111111111111111111111111111111111",
+            "childBuckets": "2011111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222221222122222211121111212222112211111222111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -101993,6 +103146,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -102178,7 +103333,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -102369,6 +103524,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -102554,7 +103711,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -104855,6 +106012,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -105040,7 +106199,7 @@
                 "vectorList",
                 "else"
             ],
-            "childBuckets": "1011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
+            "childBuckets": "101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -105217,6 +106376,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -105321,7 +106482,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -106150,6 +107311,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -106335,7 +107498,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -109038,6 +110201,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -109223,7 +110388,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -111441,6 +112606,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -111625,7 +112792,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "01111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -111825,6 +112992,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "atom",
                 "ion",
@@ -111884,7 +113053,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
+            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -112302,6 +113471,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "atom",
                 "ion",
@@ -112361,7 +113532,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
+            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -112813,6 +113984,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -112998,7 +114171,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -113191,6 +114364,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -113376,7 +114551,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -113571,6 +114746,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -113756,7 +114933,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -114537,6 +115714,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -114720,7 +115899,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -115711,6 +116890,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -115896,7 +117077,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -116079,6 +117260,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -116264,7 +117447,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -116440,6 +117623,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -116624,7 +117809,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "01001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "0100111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -116792,6 +117977,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -116896,7 +118083,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -117100,6 +118287,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -117256,7 +118445,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -117467,6 +118656,8 @@
                 "constraintUnion",
                 "attractToConstraint",
                 "constrainToInterior",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "text",
                 "textList",
@@ -117505,7 +118696,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "11201111111111111111111111122222112211022010122121111222111111112222012222222222222222222222222222222",
+            "childBuckets": "1120111111111111111111111112222211221102201012212111122211111111222222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -118222,6 +119413,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -118407,7 +119600,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -118671,6 +119864,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -118856,7 +120051,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -119120,6 +120315,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -119305,7 +120502,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -119499,6 +120696,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -119554,7 +120753,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -120065,6 +121264,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -120120,7 +121321,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -121031,6 +122232,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -121216,7 +122419,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -122610,6 +123813,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -122659,7 +123864,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111012122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
+            "childBuckets": "11101212222111111111111111111111122222112222222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -122979,6 +124184,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "equilibriumPoint",
                 "equilibriumLine",
@@ -123028,7 +124235,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111012122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
+            "childBuckets": "11101212222111111111111111111111122222112222222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -123644,6 +124851,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -123829,7 +125038,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -124241,6 +125450,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -124296,7 +125507,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -125048,6 +126259,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -125152,7 +126365,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -125509,6 +126722,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -125564,7 +126779,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -126907,6 +128122,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -126962,7 +128179,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -127268,6 +128485,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "extractMathOperator",
                 "atom",
                 "ion",
@@ -127348,7 +128567,7 @@
                 "md",
                 "mdn"
             ],
-            "childBuckets": "122011122222222211111111111111111111112222211221221022202221222122221222222111221222112111111111111111111222222222222222222201",
+            "childBuckets": "12201112222222221111111111111111111111222221122221221022202221222122221222222111221222112111111111111111111222222222222222222201",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -127780,6 +128999,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -127965,7 +129186,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -128161,6 +129382,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -128346,7 +129569,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -129337,6 +130560,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -129519,7 +130744,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -130155,6 +131380,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -130259,7 +131486,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -130470,6 +131697,8 @@
                 "me",
                 "men",
                 "mrow",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -130504,7 +131733,7 @@
                 "bestFitLine",
                 "latex"
             ],
-            "childBuckets": "111111111111111111111112222211221102201212221211112222222222222222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122110220121222121111222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -130713,6 +131942,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -130765,7 +131996,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "022122221111111111111111111111222221122222222222122220222212222222222221222222122222121222",
+            "childBuckets": "02212222111111111111111111111122222112222222222222122220222212222222222221222222122222121222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -130988,6 +132219,8 @@
                 "me",
                 "men",
                 "mrow",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -131026,7 +132259,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "111111111111111111111112222211221022101222121112222222222222222222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122102210122212111222222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -131462,6 +132695,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -131517,7 +132752,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -131793,6 +133028,8 @@
                 "argMax",
                 "indexOf",
                 "searchSorted",
+                "tally",
+                "binCounts",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -131848,7 +133085,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
