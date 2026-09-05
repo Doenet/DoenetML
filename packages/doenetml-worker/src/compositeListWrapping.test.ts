@@ -320,6 +320,69 @@ describe("applyCompositeListWrapping", () => {
         expect(byId[11]).toBeUndefined();
     });
 
+    it("leaves a composite that produced only whitespace out of the list", () => {
+        // The grouping keeps such a composite in its place, for the doenetml
+        // renderers to anchor its name to; the prototype's <asList> would show
+        // it as an item, so it is left out here, however many blank strings it
+        // produced.
+        const contents: ChildContent[] = [ref(1), " ", " ", ref(2)];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 10,
+                firstInd: 0,
+                lastInd: 3,
+                asList: true,
+                potentialListComponents: [true, true, true, true],
+            },
+            {
+                compositeIdx: 11,
+                firstInd: 1,
+                lastInd: 2,
+                asList: false,
+                potentialListComponents: [true, true],
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual([ref(10)]);
+        expect(wrapperElements).toHaveLength(1);
+        expect(wrapperElements[0].data.id).toBe(10);
+        expect(wrapperElements[0].children).toEqual([ref(1), ref(2)]);
+    });
+
+    it("puts the whitespace a list ends with outside the wrapper, from a composite too", () => {
+        const contents: ChildContent[] = [ref(1), ref(2), " ", " "];
+        const crar: CompositeReplacementRange[] = [
+            {
+                compositeIdx: 10,
+                firstInd: 0,
+                lastInd: 3,
+                asList: true,
+                potentialListComponents: [true, true, true, true],
+            },
+            {
+                compositeIdx: 11,
+                firstInd: 2,
+                lastInd: 3,
+                asList: false,
+                potentialListComponents: [true, true],
+            },
+        ];
+
+        const { children, wrapperElements } = applyCompositeListWrapping(
+            contents,
+            crar,
+        );
+
+        expect(children).toEqual([ref(10), " ", " "]);
+        expect(wrapperElements).toHaveLength(1);
+        expect(wrapperElements[0].children).toEqual([ref(1), ref(2)]);
+    });
+
     it("nests an inner asList composite inside an outer asList composite", () => {
         // Outer asList (idx 10) with two replacements: a plain ref and an inner
         // asList composite (idx 11) with two items.

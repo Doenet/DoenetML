@@ -1,5 +1,6 @@
 import {
     groupCompositeRanges,
+    isBlankGroup,
     type CompositeGroup,
     type CompositeRange,
 } from "@doenet/utils";
@@ -15,48 +16,8 @@ export type { CompositeRange as CompositeReplacementRange };
  */
 export type ChildContent = FlatDastElementContent | null;
 
-function isBlankStringChild(child: FlatDastElementContent) {
+function isBlankChild(child: ChildContent) {
     return typeof child === "string" && child.trim() === "";
-}
-
-/**
- * The prototype's `<asList>` renderer treats each FlatDast child as a list item.
- * The whitespace at either end of a list, which the grouping keeps because it
- * separates the list from what surrounds it, is moved outside the wrapper; and
- * a blank string that reaches the middle (the grouping drops the blanks between
- * items, but a composite that produced only whitespace is spliced in as one) is
- * left out of it.
- */
-function trimAsListBlankChildren(children: FlatDastElementContent[]): {
-    leadingBlankChildren: FlatDastElementContent[];
-    listChildren: FlatDastElementContent[];
-    trailingBlankChildren: FlatDastElementContent[];
-} {
-    const firstNonBlankInd = children.findIndex((c) => !isBlankStringChild(c));
-
-    if (firstNonBlankInd === -1) {
-        return {
-            leadingBlankChildren: children,
-            listChildren: [],
-            trailingBlankChildren: [],
-        };
-    }
-
-    let lastNonBlankInd = children.length - 1;
-    while (
-        lastNonBlankInd > firstNonBlankInd &&
-        isBlankStringChild(children[lastNonBlankInd])
-    ) {
-        lastNonBlankInd--;
-    }
-
-    return {
-        leadingBlankChildren: children.slice(0, firstNonBlankInd),
-        listChildren: children
-            .slice(firstNonBlankInd, lastNonBlankInd + 1)
-            .filter((c) => !isBlankStringChild(c)),
-        trailingBlankChildren: children.slice(lastNonBlankInd + 1),
-    };
 }
 
 /**
@@ -83,8 +44,13 @@ function makeWrapperElement(
  * Turn the grouped children into FlatDast children, emitting the wrapper
  * elements that need to exist in `elements[]`.
  *
- * - A list group always becomes an `<asList>` wrapper (it has more than one
- *   non-blank item).
+ * - A list group becomes an `<asList>` wrapper holding its items; the grouping
+ *   has settled that there are at least two. The prototype's `<asList>`
+ *   renderer treats every child as an item, so what the grouping keeps in a
+ *   list without its being an item cannot go inside the wrapper: the
+ *   whitespace at either end of the list goes outside it — or nowhere, when an
+ *   enclosing list would take it for an item in turn — and a composite that
+ *   produced only whitespace is left out.
  * - A non-list group is materialized as a single unit only when it must be —
  *   i.e. it has more than one child *and* sits inside a list, where the list
  *   would otherwise treat each of its children as a separate item. It is then
@@ -108,42 +74,46 @@ function materializeGroups(
         }
 
         if (group.asList) {
-            const rawChildren = materializeGroups(
-                group.items,
-                true,
-                wrapperElements,
+            const blank = group.items.map((item) =>
+                isBlankGroup(item, isBlankChild),
             );
-            const {
-                leadingBlankChildren,
-                listChildren,
-                trailingBlankChildren,
-            } = trimAsListBlankChildren(rawChildren);
+            const firstItemInd = blank.indexOf(false);
+            const lastItemInd = blank.lastIndexOf(false);
+            const items = group.items
+                .slice(firstItemInd, lastItemInd + 1)
+                .filter((_, ind) => !blank[firstItemInd + ind]);
 
             if (!contextIsList) {
-                out.push(...leadingBlankChildren);
+                out.push(
+                    ...materializeGroups(
+                        group.items.slice(0, firstItemInd),
+                        false,
+                        wrapperElements,
+                    ),
+                );
             }
             wrapperElements.push(
                 makeWrapperElement(
                     group.range.compositeIdx,
                     "asList",
-                    listChildren,
+                    materializeGroups(items, true, wrapperElements),
                 ),
             );
             out.push({ id: group.range.compositeIdx, annotation: "original" });
             if (!contextIsList) {
-                out.push(...trailingBlankChildren);
+                out.push(
+                    ...materializeGroups(
+                        group.items.slice(lastItemInd + 1),
+                        false,
+                        wrapperElements,
+                    ),
+                );
             }
             continue;
         }
 
         const children = materializeGroups(group.items, false, wrapperElements);
-        if (children.length === 0) {
-            continue;
-        }
-        if (children.length === 1) {
-            // Already a single unit; no wrapper needed.
-            out.push(children[0]);
-        } else if (contextIsList) {
+        if (contextIsList && children.length > 1) {
             // Must be one unit so the enclosing list delimits it correctly.
             wrapperElements.push(
                 makeWrapperElement(
@@ -154,7 +124,8 @@ function materializeGroups(
             );
             out.push({ id: group.range.compositeIdx, annotation: "original" });
         } else {
-            // Not inside a list: splice inline, adding no structure.
+            // A single child is already one unit, and outside a list the
+            // children are spliced inline, adding no structure.
             out.push(...children);
         }
     }
@@ -167,9 +138,10 @@ function materializeGroups(
  * requires it, `<_fragment>`) parents that reproduce exactly the commas the
  * doenetml renderers add.
  *
- * The grouping itself — which children came from which composite, and which of
- * those composites are lists — is `groupCompositeRanges`, shared with the
- * renderers and with the `text` state variable, so the three cannot drift apart.
+ * The grouping itself — which children came from which composite, which of
+ * those composites are lists, and what whitespace belongs to a list — is
+ * `groupCompositeRanges`, shared with the renderers, the `text` state
+ * variable, and the string a `<math>` parses, so the four cannot drift apart.
  *
  * @param childContents The parent's children aligned with the child-instruction
  *   index space (use `null` for absent child instructions) so the range indices
@@ -187,7 +159,7 @@ export function applyCompositeListWrapping(
         children: childContents,
         ranges: compositeReplacementActiveRange,
         isAbsent: (child) => child === null,
-        isBlank: (child) => child !== null && isBlankStringChild(child),
+        isBlank: isBlankChild,
     });
 
     const wrapperElements: FlatDastElement[] = [];
