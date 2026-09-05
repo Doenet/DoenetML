@@ -386,12 +386,6 @@ export default class ConditionalContent extends CompositeComponent {
     addOwnPotentialRendererTypes(rendererTypes, visited) {
         super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        if (this.serializedChildren) {
-            for (let rendererType of this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren,
-            )) {
-                rendererTypes.add(rendererType);
-            }
-        }
+        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
     }
 }

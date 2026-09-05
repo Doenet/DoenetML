@@ -87,10 +87,6 @@ export default class Case extends BaseComponent {
     addOwnPotentialRendererTypes(rendererTypes, visited) {
         super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        for (let rendererType of this.potentialRendererTypesFromSerializedComponents(
-            this.serializedChildren,
-        )) {
-            rendererTypes.add(rendererType);
-        }
+        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
     }
 }

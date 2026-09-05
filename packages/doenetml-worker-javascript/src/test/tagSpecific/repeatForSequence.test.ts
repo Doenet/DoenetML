@@ -2787,11 +2787,11 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // reachable along many paths at once. Traversals that followed every path
         // separately took time exponential in the number of iterations, which turned
         // a recurrence like this cumulative sum into a hung document; twelve
-        // iterations took roughly an hour. Keep the assertion generous — this guards
-        // against exponential growth, not against a modest slowdown.
+        // iterations took roughly an hour. The test's timeout is what guards against
+        // that; it is deliberately far above the time this now takes, since we are
+        // catching exponential growth, not a modest slowdown.
         const numIterations = 12;
 
-        const t0 = Date.now();
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <numberList name="vals"><sequence from="1" to="${numIterations}" /></numberList>
@@ -2805,13 +2805,14 @@ describe("RepeatForSequence tag tests @group3", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const elapsed = Date.now() - t0;
 
         // cumulative sums of 1..12
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78");
 
-        expect(elapsed).toBeLessThan(60000);
-    }, 90000);
+        // Not asserting on warnings here: this document also draws spurious
+        // "No referent found" warnings for the references inside the repeat's
+        // template, which is a separate, pre-existing issue.
+    }, 60000);
 });

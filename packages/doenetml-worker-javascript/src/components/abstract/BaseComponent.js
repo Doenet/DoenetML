@@ -157,6 +157,10 @@ export default class BaseComponent {
         return this.constructor.rendererType;
     }
 
+    /**
+     * The renderer types that this component and everything reachable from it
+     * could create, so the viewer knows which renderers to load.
+     */
     get allPotentialRendererTypes() {
         const rendererTypes = new Set();
         this.addPotentialRendererTypes(rendererTypes, new Set());
@@ -177,8 +181,9 @@ export default class BaseComponent {
      * a repeat whose iterations reference the previous iteration builds — is
      * traversed exponentially many times.
      *
-     * Subclasses extend `addOwnPotentialRendererTypes`; this method is the
-     * guarded entry point that recursion goes through.
+     * This is the guarded entry point that every step of the recursion goes
+     * through. Subclasses must not override it; they override
+     * `addOwnPotentialRendererTypes` instead.
      */
     addPotentialRendererTypes(rendererTypes, visited) {
         if (visited.has(this.componentIdx)) {
@@ -189,6 +194,14 @@ export default class BaseComponent {
         this.addOwnPotentialRendererTypes(rendererTypes, visited);
     }
 
+    /**
+     * The body of `addPotentialRendererTypes`, called once per component.
+     *
+     * Subclasses override this to contribute renderer types that the component
+     * graph alone does not reveal; an override must call `super` and must
+     * recurse through `addPotentialRendererTypes` (passing `visited` along)
+     * rather than calling this method directly, so the guard is not bypassed.
+     */
     addOwnPotentialRendererTypes(rendererTypes, visited) {
         rendererTypes.add("_error");
         if (this.rendererType) {
@@ -261,6 +274,27 @@ export default class BaseComponent {
             } else {
                 child.addPotentialRendererTypes(rendererTypes, visited);
             }
+        }
+    }
+
+    /**
+     * Add to `rendererTypes` the renderer types that `this.serializedChildren`
+     * could create.
+     *
+     * Components that hold on to serialized children which are not (or not
+     * yet) part of the component graph — a repeat's template, the branches of
+     * a conditional — call this from `addOwnPotentialRendererTypes`, since
+     * walking the graph would not reach them.
+     */
+    addPotentialRendererTypesFromSerializedChildren(rendererTypes) {
+        if (!this.serializedChildren) {
+            return;
+        }
+
+        for (let rendererType of this.potentialRendererTypesFromSerializedComponents(
+            this.serializedChildren,
+        )) {
+            rendererTypes.add(rendererType);
         }
     }
 
