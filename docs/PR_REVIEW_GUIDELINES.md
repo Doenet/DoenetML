@@ -125,7 +125,22 @@ Review whether the PR includes adequate tests:
 
 ## Documentation
 
-Review whether the PR updates or adds documentation as needed:
+These pages are written for **authors writing DoenetML activities**, not for developers
+working on the implementation. That distinction is the first thing to check in any docs
+change, because a PR's own author has just been reading the implementation and it leaks
+into the prose easily.
+
+Nothing should appear in a page that an author could not observe from the DoenetML side:
+no source files, function names or internal state-variable identifiers; no walking through
+what the runtime does internally; no componentTypes an author never writes. Attribute
+names, child tags and properties are fine — those *are* the author-facing surface. The test
+is whether an author could discover the statement by experimenting. Where a behavior does
+come from something internal, describe the behavior, not the mechanism. The
+[`doenetml-docs-authoring`](../.github/skills/doenetml-docs-authoring/SKILL.md) skill is the
+authority here and covers the specific cases; consult it rather than working from this
+paragraph.
+
+Then review whether the PR updates or adds documentation as needed:
 
 - If the PR changes user-visible behavior (new features, changed defaults, renamed
   attributes, etc.), check whether the corresponding page(s) in `packages/docs-nextra/`
