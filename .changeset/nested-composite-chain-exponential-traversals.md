@@ -28,6 +28,6 @@ The cost was not in evaluating the recurrence. Components form a directed acycli
 - `allPotentialRendererTypes`, which collects the renderers a document may need to load, recursed into children and into replacements. It now walks each component once, which loses nothing because every path contributed to the same set of renderer types.
 - `ancestorsIncludingComposites`, used when propagating dependency blockers, walked up both the parent chain and the chain of the composite a replacement came from — chains that converge on the same ancestors. It now remembers the ancestors it has already worked out for a component.
 
-The renderer types collected are unchanged. The example above loads in 3 seconds, and cost now grows with the number of components rather than exponentially.
+The renderer types collected are unchanged. The example above loads in a few seconds, and cost now grows with the number of components rather than exponentially.
 
 Documents that nest composites only a few deep — the overwhelming majority — were never affected and are unchanged.

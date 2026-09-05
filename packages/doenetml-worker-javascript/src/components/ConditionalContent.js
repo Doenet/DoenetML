@@ -383,9 +383,10 @@ export default class ConditionalContent extends CompositeComponent {
         });
     }
 
-    addOwnPotentialRendererTypes(rendererTypes, visited) {
-        super.addOwnPotentialRendererTypes(rendererTypes, visited);
-
-        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
-    }
+    // No `addOwnPotentialRendererTypes` override here, unlike the sibling
+    // composites that hold a template: this class defines no
+    // `keepChildrenSerialized`, so `ComponentBuilder` always gives it an empty
+    // `serializedChildren` and such an override could contribute nothing. The
+    // branches are covered by `Case`, which does keep its children serialized
+    // and does report their renderer types.
 }

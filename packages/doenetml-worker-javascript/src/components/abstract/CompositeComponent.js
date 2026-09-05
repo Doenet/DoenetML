@@ -120,11 +120,16 @@ export default class CompositeComponent extends BaseComponent {
     // the static function calculateReplacementChanges.
     replacementsToWithhold = 0;
 
+    /**
+     * A composite reaches components along a second kind of link: its
+     * `replacements`, which are spliced in as children of the composite's own
+     * parent. Follow those as well as the children.
+     */
     addOwnPotentialRendererTypes(rendererTypes, visited) {
         super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        // we still recurse to all children, even though was skipped at base component
-        // due to not having a rendererType
+        // Walk the children here: a composite has no `rendererType`, so the
+        // base implementation returned before reaching them.
         this.addPotentialRendererTypesFromChildren(rendererTypes, visited);
 
         if (this.replacements) {

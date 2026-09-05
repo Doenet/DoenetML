@@ -2793,8 +2793,8 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // The blowup happens inside synchronous recursion, so vitest cannot preempt
         // it: a regression shows up as this test never finishing rather than as a
         // clean timeout failure. The timeout below is a backstop for a regression
-        // that does yield, and a record of the intended scale — this takes a couple
-        // of seconds today, so CI jitter comes nowhere near it.
+        // that does yield, and a record of the intended scale — this runs in about
+        // four seconds today, so CI jitter comes nowhere near it.
         const numIterations = 12;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -2818,6 +2818,8 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         // Not asserting on warnings here: this document also draws spurious
         // "No referent found" warnings for the references inside the repeat's
-        // template, which is a separate, pre-existing issue.
+        // template, which is a separate, pre-existing issue tracked as
+        // https://github.com/Doenet/DoenetML/issues/1822. Add a warning
+        // assertion here once that is fixed.
     }, 60000);
 });

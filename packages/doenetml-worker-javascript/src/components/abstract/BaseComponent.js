@@ -162,7 +162,9 @@ export default class BaseComponent {
      * could create, so the viewer knows which renderers to load.
      */
     get allPotentialRendererTypes() {
-        const rendererTypes = new Set();
+        // `_error` is seeded here rather than contributed by a component: the
+        // viewer needs the error renderer available for any document at all.
+        const rendererTypes = new Set(["_error"]);
         this.addPotentialRendererTypes(rendererTypes, new Set());
         return [...rendererTypes];
     }
@@ -197,7 +199,7 @@ export default class BaseComponent {
     /**
      * The body of `addPotentialRendererTypes`, called once per component.
      *
-     * Subclasses override this to reach what the walk below does not: further
+     * Subclasses override this to reach what the walk here does not: further
      * links out of the component (a composite's replacements) or renderer
      * types that no component reveals (a repeat's serialized template). An
      * override must call `super`, and must step to another component through
@@ -205,7 +207,6 @@ export default class BaseComponent {
      * calling this method directly, so the guard is not bypassed.
      */
     addOwnPotentialRendererTypes(rendererTypes, visited) {
-        rendererTypes.add("_error");
         if (this.rendererType) {
             rendererTypes.add(this.rendererType);
         }
@@ -292,9 +293,12 @@ export default class BaseComponent {
      * could create.
      *
      * Components that hold on to serialized children which are not (or not
-     * yet) part of the component graph — a repeat's template, the branches of
-     * a conditional — call this from `addOwnPotentialRendererTypes`, since
-     * walking the graph would not reach them.
+     * yet) part of the component graph — a repeat's template, a `<case>` of a
+     * conditional — call this from `addOwnPotentialRendererTypes`, since
+     * walking the graph would not reach them. Only classes with a static
+     * `keepChildrenSerialized` have anything here; `ComponentBuilder` gives
+     * every other component an empty array, and the field is optional on a
+     * component instance, hence the guard.
      */
     addPotentialRendererTypesFromSerializedChildren(rendererTypes) {
         if (!this.serializedChildren) {
