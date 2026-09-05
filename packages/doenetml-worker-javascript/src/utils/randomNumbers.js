@@ -133,7 +133,7 @@ export function samplePoisson({ mean, rng }) {
  * `double()`, so that the result depends on nothing but the sequence `rng` yields:
  * a generator without that method produces the same numbers here, and a variant
  * stays reproducible. Both halves are exact, since 2^32 divides evenly by 2^26 and
- * 2^27, so no value is favoured.
+ * 2^27, so no value is favored.
  *
  * Only the samplers added alongside this use it. The gaussian, uniform and
  * discrete-uniform paths keep their single 32-bit draw, because changing how many

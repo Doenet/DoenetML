@@ -778,7 +778,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     } else {
                         variance = dependencyValues.specifiedVariance;
                     }
-                    // a spread or centre that describes no distribution leaves no
+                    // a spread or center that describes no distribution leaves no
                     // moments to report either, matching what the samples report
                     if (!validGaussianParameters(dependencyValues)) {
                         variance = NaN;
