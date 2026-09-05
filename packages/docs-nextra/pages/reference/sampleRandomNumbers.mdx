@@ -368,19 +368,6 @@ If any of the three attributes is omitted, or they do not describe a population
 (for example, more successes or more draws than there are items), every sample is 
 `NaN`, as are the reported `mean`, `variance`, and `standardDeviation`.
 
-The three discrete distributions &mdash; `hypergeometric`, `binomial`, and `poisson` 
-&mdash; draw their samples one item, trial, or event at a time, so very large 
-parameters would take a long time and leave the page unresponsive while they ran. 
-Parameters that would need more than ten million draws for a single sample are 
-therefore treated as unusable, giving `NaN` samples and statistics along with a 
-warning explaining what to change. The limit is far above the populations, trial 
-counts, and rates that arise in practice; it is there so that mistyping an extra 
-digit reports a problem instead of freezing the activity. An order of magnitude 
-below that, from a million draws per sample, the samples are still drawn as asked, 
-but a warning notes that sampling may be slow. Note that both figures apply to 
-each sample individually &mdash; a large `numSamples` still takes proportionally 
-longer.
-
 
 
 ---
@@ -443,3 +430,20 @@ The `poisson` type is determined entirely by its `mean`, which also equals its
 variance. Unlike the `gaussian` type, whose `mean` defaults to 0, the `mean` of a 
 `poisson` distribution defaults to 1, since a Poisson distribution with mean 0 
 always returns 0.
+
+
+
+## Limits on the discrete distributions
+
+The three discrete distributions &mdash; `hypergeometric`, `binomial`, and `poisson` 
+&mdash; draw their samples one item, trial, or event at a time, so very large 
+parameters would take a long time and leave the page unresponsive while they ran. 
+Parameters that would need more than ten million draws for a single sample are 
+therefore treated as unusable, giving `NaN` samples and statistics along with a 
+warning explaining what to change. The limit is far above the populations, trial 
+counts, and rates that arise in practice; it is there so that mistyping an extra 
+digit reports a problem instead of freezing the activity. An order of magnitude 
+below that, from a million draws per sample, the samples are still drawn as asked, 
+but a warning notes that sampling may be slow. Note that both figures apply to 
+each sample individually &mdash; a large `numSamples` still takes proportionally 
+longer.
