@@ -51,6 +51,15 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         stateVariableDefinitions.from.additionalStateVariablesDefined[0].immutable = true;
         stateVariableDefinitions.from.additionalStateVariablesDefined[1].immutable = true;
 
+        // The distribution parameters are frozen alongside the moments: a selection
+        // is made once, so a parameter that kept updating would describe something
+        // other than the numbers on the page.
+        stateVariableDefinitions.numTotal.immutable = true;
+        stateVariableDefinitions.numSuccesses.immutable = true;
+        stateVariableDefinitions.numDraws.immutable = true;
+        stateVariableDefinitions.numTrials.immutable = true;
+        stateVariableDefinitions.probability.immutable = true;
+
         stateVariableDefinitions.mean.immutable = true;
         stateVariableDefinitions.variance.immutable = true;
         stateVariableDefinitions.standardDeviation.immutable = true;
@@ -90,13 +99,16 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     dependencyType: "stateVariable",
                     variableName: "numDiscreteValues",
                 },
+                // the gaussian's parameters as written, not the reported moments,
+                // which are NaN for anything unusable and so could not say which of
+                // the two was wrong
                 mean: {
                     dependencyType: "stateVariable",
-                    variableName: "mean",
+                    variableName: "gaussianMean",
                 },
                 standardDeviation: {
                     dependencyType: "stateVariable",
-                    variableName: "standardDeviation",
+                    variableName: "gaussianStandardDeviation",
                 },
                 numTotal: {
                     dependencyType: "stateVariable",
@@ -155,12 +167,22 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                             );
                         }
 
-                        // just give the desired values without any verification
+                        // Take the values as given, but still check the parameters
+                        // they came from: replaying a variant should report the same
+                        // problems as generating it, rather than accepting the saved
+                        // numbers silently. Asking for none draws nothing, so the
+                        // variant's own randomness is untouched.
+                        const { diagnostics } = sampleFromRandomNumbers({
+                            ...dependencyValues,
+                            numSamples: 0,
+                        });
+
                         return {
                             setEssentialValue: {
                                 selectedValues: desiredValues,
                             },
                             setValue: { selectedValues: desiredValues },
+                            sendDiagnostics: diagnostics,
                         };
                     }
                 }

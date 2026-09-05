@@ -47,7 +47,7 @@ export function sampleHypergeometric({
     let count = 0;
 
     for (let i = 0; i < draws; i++) {
-        if (rng() * totalLeft < trackedLeft) {
+        if (preciseUniform(rng) * totalLeft < trackedLeft) {
             count++;
             trackedLeft--;
         }
@@ -73,7 +73,7 @@ export function sampleHypergeometric({
 export function sampleBinomial({ numTrials, probability, rng }) {
     let count = 0;
     for (let i = 0; i < numTrials; i++) {
-        if (rng() < probability) {
+        if (preciseUniform(rng) < probability) {
             count++;
         }
     }
@@ -92,7 +92,7 @@ export function sampleBinomial({ numTrials, probability, rng }) {
 function sampleExponential(rng) {
     let uniform = 0;
     while (uniform === 0) {
-        uniform = rng();
+        uniform = preciseUniform(rng);
     }
     return -Math.log(uniform);
 }
@@ -115,6 +115,52 @@ export function samplePoisson({ mean, rng }) {
     }
 
     return count;
+}
+
+/**
+ * One uniform draw from [0, 1) with the full 53 bits of a double.
+ *
+ * `seedrandom.alea`, which Core supplies, returns exact multiples of 2^-32 — only
+ * about four billion distinct values. That is ample for the distributions that
+ * predate these, but not for the samplers below: `sampleHypergeometric` compares
+ * against `numSuccesses / numTotal`, and `sampleBinomial` against `probability`,
+ * either of which can legitimately be smaller than 2^-32. At that point a 32-bit
+ * draw can only ever answer with its single zero value, so the event happens with
+ * probability 2^-32 rather than the one asked for — for a population of 2^53 with
+ * one success, too likely by a factor of two million.
+ *
+ * Two draws are combined explicitly rather than calling the generator's own
+ * `double()`, so that the result depends on nothing but the sequence `rng` yields:
+ * a generator without that method produces the same numbers here, and a variant
+ * stays reproducible. Both halves are exact, since 2^32 divides evenly by 2^26 and
+ * 2^27, so no value is favoured.
+ *
+ * Only the samplers added alongside this use it. The gaussian, uniform and
+ * discrete-uniform paths keep their single 32-bit draw, because changing how many
+ * values they consume would renumber every variant of every document already
+ * written against them.
+ */
+function preciseUniform(rng) {
+    const high = Math.floor(rng() * 0x4000000); // 26 bits
+    const low = Math.floor(rng() * 0x8000000); // 27 bits
+    return (high * 0x8000000 + low) / 0x20000000000000; // / 2^53
+}
+
+/**
+ * Whether `mean` and `standardDeviation` describe a gaussian distribution that can
+ * be sampled from. An infinite spread passes a bare `>= 0` test but produces
+ * infinite or NaN values, so finiteness is checked on both.
+ *
+ * Shared with the component, so that the reported moments are NaN for exactly the
+ * parameters whose samples are NaN — the same guarantee the discrete distributions
+ * give.
+ */
+export function validGaussianParameters({ mean, standardDeviation }) {
+    return (
+        Number.isFinite(mean) &&
+        Number.isFinite(standardDeviation) &&
+        standardDeviation >= 0
+    );
 }
 
 /** How many draws `sampleHypergeometric` makes for one variate. */
@@ -284,7 +330,9 @@ export function validPoissonMean(mean) {
  * feels slow, which they cannot learn from anywhere else.
  */
 function slowSamplingDiagnostics(distribution, workPerVariate) {
-    if (workPerVariate <= WORK_PER_VARIATE_WARNING_THRESHOLD) {
+    // Inclusive at the threshold: both reference pages describe the notice as
+    // starting *from* a million draws per value.
+    if (workPerVariate < WORK_PER_VARIATE_WARNING_THRESHOLD) {
         return [];
     }
 
@@ -337,7 +385,7 @@ export function sampleFromRandomNumbers({
             : 0;
 
     if (type === "gaussian") {
-        if (!(standardDeviation >= 0) || !Number.isFinite(mean)) {
+        if (!validGaussianParameters({ mean, standardDeviation })) {
             return unsampleable(
                 numToSample,
                 codedDiagnostic({

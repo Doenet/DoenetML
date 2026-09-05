@@ -1,5 +1,6 @@
 import {
     sampleFromRandomNumbers,
+    validGaussianParameters,
     validBinomialParameters,
     validHypergeometricParameters,
     validPoissonMean,
@@ -151,44 +152,39 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
         attributes.numTotal = {
             createComponentOfType: "number",
-            createStateVariable: "numTotal",
+            createStateVariable: "specifiedNumTotal",
             defaultValue: null,
-            public: true,
             description: "Size of the population drawn from (hypergeometric).",
         };
 
         attributes.numSuccesses = {
             createComponentOfType: "number",
-            createStateVariable: "numSuccesses",
+            createStateVariable: "specifiedNumSuccesses",
             defaultValue: null,
-            public: true,
             description:
                 "Number of successes in the population drawn from (hypergeometric).",
         };
 
         attributes.numDraws = {
             createComponentOfType: "number",
-            createStateVariable: "numDraws",
+            createStateVariable: "specifiedNumDraws",
             defaultValue: null,
-            public: true,
             description:
                 "Number of items drawn without replacement to form each sample (hypergeometric).",
         };
 
         attributes.numTrials = {
             createComponentOfType: "number",
-            createStateVariable: "numTrials",
+            createStateVariable: "specifiedNumTrials",
             defaultValue: 1,
-            public: true,
             description:
                 "Number of independent trials making up each sample (binomial).",
         };
 
         attributes.probability = {
             createComponentOfType: "number",
-            createStateVariable: "probability",
+            createStateVariable: "specifiedProbability",
             defaultValue: 0.5,
-            public: true,
             description: "Probability that each trial succeeds (binomial).",
         };
 
@@ -396,6 +392,148 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // one to NaN. The sampler needs the original: told only that the rate is NaN,
         // it could not tell a malformed value from one too large to draw promptly,
         // and would report the wrong reason to the author.
+        // The distribution parameters are exposed through derived state variables
+        // rather than straight off the attributes, so that `<selectRandomNumbers>`
+        // can freeze them alongside the moments it already freezes. A public value
+        // that kept updating while the frozen selection ignored it would describe a
+        // distribution the component is not using.
+        stateVariableDefinitions.numTotal = {
+            description: "Size of the population drawn from (hypergeometric).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnDependencies: () => ({
+                specifiedNumTotal: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedNumTotal",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { numTotal: dependencyValues.specifiedNumTotal },
+            }),
+        };
+
+        stateVariableDefinitions.numSuccesses = {
+            description:
+                "Number of successes in the population drawn from (hypergeometric).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnDependencies: () => ({
+                specifiedNumSuccesses: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedNumSuccesses",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    numSuccesses: dependencyValues.specifiedNumSuccesses,
+                },
+            }),
+        };
+
+        stateVariableDefinitions.numDraws = {
+            description:
+                "Number of items drawn without replacement to form each sample (hypergeometric).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnDependencies: () => ({
+                specifiedNumDraws: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedNumDraws",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { numDraws: dependencyValues.specifiedNumDraws },
+            }),
+        };
+
+        stateVariableDefinitions.numTrials = {
+            description:
+                "Number of independent trials making up each sample (binomial).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnDependencies: () => ({
+                specifiedNumTrials: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedNumTrials",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { numTrials: dependencyValues.specifiedNumTrials },
+            }),
+        };
+
+        stateVariableDefinitions.probability = {
+            description: "Probability that each trial succeeds (binomial).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnDependencies: () => ({
+                specifiedProbability: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedProbability",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    probability: dependencyValues.specifiedProbability,
+                },
+            }),
+        };
+
+        // The gaussian's parameters as the author gave them, before the reported
+        // moments reduce an unusable pair to NaN. The sampler needs the originals
+        // for the same reason `poissonMean` exists: told only that both are NaN, its
+        // warning would implicate a mean the author never wrote when it was the
+        // spread that was wrong.
+        stateVariableDefinitions.gaussianMean = {
+            returnDependencies: () => ({
+                specifiedMean: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedMean",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { gaussianMean: dependencyValues.specifiedMean ?? 0 },
+            }),
+        };
+
+        stateVariableDefinitions.gaussianStandardDeviation = {
+            returnDependencies: () => ({
+                specifiedVariance: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedVariance",
+                },
+                specifiedStandardDeviation: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedStandardDeviation",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                // whichever of the two the author set; the same choice the reported
+                // variance makes below
+                const variance =
+                    usedDefault.specifiedVariance &&
+                    !usedDefault.specifiedStandardDeviation
+                        ? dependencyValues.specifiedStandardDeviation ** 2
+                        : dependencyValues.specifiedVariance;
+
+                return {
+                    setValue: {
+                        gaussianStandardDeviation: Math.sqrt(variance),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.poissonMean = {
             returnDependencies: () => ({
                 specifiedMean: {
@@ -429,9 +567,13 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     },
                 };
                 if (stateValues.type === "gaussian") {
-                    dependencies.specifiedMean = {
+                    dependencies.mean = {
                         dependencyType: "stateVariable",
-                        variableName: "specifiedMean",
+                        variableName: "gaussianMean",
+                    };
+                    dependencies.standardDeviation = {
+                        dependencyType: "stateVariable",
+                        variableName: "gaussianStandardDeviation",
                     };
                 } else if (stateValues.type === "poisson") {
                     dependencies.poissonMean = {
@@ -490,7 +632,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
             definition({ dependencyValues }) {
                 let mean;
                 if (dependencyValues.type === "gaussian") {
-                    mean = dependencyValues.specifiedMean ?? 0;
+                    mean = validGaussianParameters(dependencyValues)
+                        ? dependencyValues.mean
+                        : NaN;
                 } else if (dependencyValues.type === "poisson") {
                     // out-of-range parameters describe no distribution, so this
                     // case and the two below report NaN, just as their samples do
@@ -556,6 +700,15 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     dependencies.specifiedStandardDeviation = {
                         dependencyType: "stateVariable",
                         variableName: "specifiedStandardDeviation",
+                    };
+                    // read only to decide whether there is a distribution at all
+                    dependencies.mean = {
+                        dependencyType: "stateVariable",
+                        variableName: "gaussianMean",
+                    };
+                    dependencies.standardDeviation = {
+                        dependencyType: "stateVariable",
+                        variableName: "gaussianStandardDeviation",
                     };
                 } else if (stateValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,
@@ -624,6 +777,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                             dependencyValues.specifiedStandardDeviation ** 2;
                     } else {
                         variance = dependencyValues.specifiedVariance;
+                    }
+                    // a spread or centre that describes no distribution leaves no
+                    // moments to report either, matching what the samples report
+                    if (!validGaussianParameters(dependencyValues)) {
+                        variance = NaN;
                     }
                 } else if (dependencyValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,
@@ -740,13 +898,16 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "numDiscreteValues",
                     },
+                    // the gaussian's parameters as written, not the reported
+                    // moments, which are NaN for anything unusable and so could not
+                    // say which of the two was wrong
                     mean: {
                         dependencyType: "stateVariable",
-                        variableName: "mean",
+                        variableName: "gaussianMean",
                     },
                     standardDeviation: {
                         dependencyType: "stateVariable",
-                        variableName: "standardDeviation",
+                        variableName: "gaussianStandardDeviation",
                     },
                     numTotal: {
                         dependencyType: "stateVariable",
@@ -807,8 +968,20 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     Object.keys(changes).length === 0 ||
                     justUpdatedForNewComponent
                 ) {
+                    // Keep the values, but re-check the parameters: they have not
+                    // changed, so whatever was wrong with them still is, and an
+                    // author who reloads a document should not lose the explanation
+                    // for why its samples are NaN. Asking for no samples draws
+                    // nothing, so this consumes no randomness and leaves a variant
+                    // reproducible.
+                    const { diagnostics } = sampleFromRandomNumbers({
+                        ...dependencyValues,
+                        numSamples: 0,
+                    });
+
                     return {
                         useEssentialOrDefaultValue: { sampledValues: true },
+                        sendDiagnostics: diagnostics,
                     };
                 }
 
@@ -1068,8 +1241,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         const { sampledValues } = sampleFromRandomNumbers({
             type: await this.stateValues.type,
             numSamples: await this.stateValues.numSamples,
-            standardDeviation: await this.stateValues.standardDeviation,
-            mean: await this.stateValues.mean,
+            standardDeviation: await this.stateValues.gaussianStandardDeviation,
+            mean: await this.stateValues.gaussianMean,
             to: await this.stateValues.to,
             from: await this.stateValues.from,
             step: await this.stateValues.step,

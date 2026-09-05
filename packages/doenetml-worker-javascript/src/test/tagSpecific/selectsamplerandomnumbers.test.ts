@@ -829,6 +829,125 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(reportedMean).closeTo(5, 1e-6);
     });
 
+    it("a gaussian that describes no distribution reports NaN moments", async () => {
+        // The three discrete distributions report NaN moments for exactly the
+        // parameters whose samples are NaN; the gaussian now does the same, rather
+        // than reporting a plausible spread beside NaN samples.
+        for (const doenetML of [
+            `<sampleRandomNumbers name="s" type="gaussian" variance="-1" numSamples="3" />`,
+            // Infinity passes a bare `>= 0` test but samples to Infinity or NaN
+            `<sampleRandomNumbers name="s" type="gaussian" variance="Infinity" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="gaussian" standardDeviation="Infinity" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="gaussian" mean="Infinity" numSamples="3" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            await expect_nan_distribution(doenetML, 3);
+
+            const warnings = getDiagnosticsByType(core).warnings;
+            expect(warnings.length, doenetML).eq(1);
+            expect(warnings[0].code).eq("doenet-w0126");
+        }
+
+        // a gaussian that does describe a distribution is untouched
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="gaussian" mean="10" variance="4" numSamples="3" />`,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+        expect(stateValues.mean).closeTo(10, 1e-10);
+        expect(stateValues.variance).closeTo(4, 1e-10);
+        expect(stateValues.standardDeviation).closeTo(2, 1e-10);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("resampling keeps reporting why the parameters are unusable", async () => {
+        // Reusing values rather than drawing them — after a resample, or when saved
+        // values are loaded back — takes a branch that never reached the sampler, so
+        // the explanation used to disappear while the NaN it explained remained.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="3" /></p>
+    <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
+    `,
+        });
+        await core.returnAllStateVariables(false, true);
+        expect(
+            getDiagnosticsByType(core).warnings.filter(
+                (w) => w.code === "doenet-w0129",
+            ).length,
+        ).eq(1);
+
+        await callAction({
+            core,
+            componentIdx: await resolvePathToNodeIdx("again"),
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // still explained, and still not doubled up
+        expect(
+            getDiagnosticsByType(core).warnings.filter(
+                (w) => w.code === "doenet-w0129",
+            ).length,
+        ).eq(1);
+        for (const replacement of stateVariables[
+            await resolvePathToNodeIdx("s")
+        ].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+    });
+
+    it("a selected distribution's parameters are frozen with its selection", async () => {
+        // `<selectRandomNumbers>` freezes its moments, so a parameter that kept
+        // tracking a reference would describe a distribution other than the numbers
+        // on the page.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="10" />
+    <selectRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numToSelect="4" />
+    `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
+
+        await updateMathInputValue({
+            latex: "40",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
+    });
+
+    it("a sampled distribution's parameters still follow a reference", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="10" />
+    <sampleRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numSamples="4" />
+    `,
+        });
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        await updateMathInputValue({
+            latex: "40",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[componentIdx].stateValues.numTrials).eq(40);
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            20,
+            1e-10,
+        );
+    });
+
     it("selectRandomNumbers forwards its diagnostics too", async () => {
         // `<selectRandomNumbers>` defines its own `selectedValues` rather than
         // inheriting `sampledValues`, so it forwards diagnostics by a separate path

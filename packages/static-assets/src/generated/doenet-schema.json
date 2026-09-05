@@ -102102,41 +102102,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numTotal",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Size of the population drawn from (hypergeometric).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numSuccesses",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of successes in the population drawn from (hypergeometric).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numDraws",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numTrials",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of independent trials making up each sample (binomial).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "probability",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Probability that each trial succeeds (binomial).",
-                    "fromAttribute": true
-                },
-                {
                     "name": "numToSelect",
                     "type": "integer",
                     "isArray": false,
@@ -102166,6 +102131,36 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Upper bound of the sampling range."
+                },
+                {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Size of the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numSuccesses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of successes in the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric)."
+                },
+                {
+                    "name": "numTrials",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of independent trials making up each sample (binomial)."
+                },
+                {
+                    "name": "probability",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Probability that each trial succeeds (binomial)."
                 },
                 {
                     "name": "mean",
@@ -102468,41 +102463,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numTotal",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Size of the population drawn from (hypergeometric).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numSuccesses",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of successes in the population drawn from (hypergeometric).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numDraws",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numTrials",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of independent trials making up each sample (binomial).",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "probability",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Probability that each trial succeeds (binomial).",
-                    "fromAttribute": true
-                },
-                {
                     "name": "variantDeterminesSeed",
                     "type": "boolean",
                     "isArray": false,
@@ -102532,6 +102492,36 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Upper bound of the sampling range."
+                },
+                {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Size of the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numSuccesses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of successes in the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric)."
+                },
+                {
+                    "name": "numTrials",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of independent trials making up each sample (binomial)."
+                },
+                {
+                    "name": "probability",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Probability that each trial succeeds (binomial)."
                 },
                 {
                     "name": "mean",
