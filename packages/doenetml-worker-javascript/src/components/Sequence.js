@@ -481,8 +481,8 @@ export default class Sequence extends CompositeComponent {
         return { replacementChanges, diagnostics, nComponents };
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
         let type = "number";
         if (this.attributes.type && this.attributes.type.primitive) {
@@ -496,10 +496,6 @@ export default class Sequence extends CompositeComponent {
             this.componentInfoObjects.allComponentClasses[
                 type === "letters" ? "text" : type
             ].rendererType;
-        if (!allPotentialRendererTypes.includes(rendererType)) {
-            allPotentialRendererTypes.push(rendererType);
-        }
-
-        return allPotentialRendererTypes;
+        rendererTypes.add(rendererType);
     }
 }

@@ -232,23 +232,56 @@ function replacementsForComposites({
     return replacements;
 }
 
+/**
+ * Return the component indices of all ancestors of `comp`, following both the
+ * parent chain and, for a replacement, the chain of the composite that created
+ * it.
+ */
 export function ancestorsIncludingComposites(comp, components) {
+    return ancestorsIncludingCompositesMemoized(comp, components, new Map());
+}
+
+/**
+ * The recursion behind `ancestorsIncludingComposites`, with `memo` mapping a
+ * component index to the ancestors already computed for it in this call.
+ *
+ * The two chains we follow converge: a composite's replacements are placed
+ * under the composite's own parent, so `comp` and `comp.replacementOf`
+ * typically share ancestors. Without `memo`, a component sitting under `k`
+ * nested composites would walk the shared upper chain `2^k` times. The
+ * component graph does not change while we recurse, so a repeat visit can
+ * reuse the earlier answer.
+ *
+ * A memoized array can be handed back to more than one caller within the
+ * recursion, so it must not be mutated. `memo` is created fresh per top-level
+ * call and discarded with it, so the array that reaches the outside caller is
+ * unaliased.
+ */
+function ancestorsIncludingCompositesMemoized(comp, components, memo) {
     if (comp.ancestors === undefined || comp.ancestors.length === 0) {
         return [];
+    }
+
+    const memoized = memo.get(comp.componentIdx);
+    if (memoized !== undefined) {
+        return memoized;
     }
 
     let comps = [comp.ancestors[0].componentIdx];
 
     let parent = components[comp.ancestors[0].componentIdx];
     if (parent) {
-        comps.push(...ancestorsIncludingComposites(parent, components));
+        comps.push(
+            ...ancestorsIncludingCompositesMemoized(parent, components, memo),
+        );
     }
 
     if (comp.replacementOf) {
         comps.push(comp.replacementOf.componentIdx);
-        let replacementAs = ancestorsIncludingComposites(
+        let replacementAs = ancestorsIncludingCompositesMemoized(
             comp.replacementOf,
             components,
+            memo,
         );
         for (let a of replacementAs) {
             if (!comps.includes(a)) {
@@ -256,6 +289,8 @@ export function ancestorsIncludingComposites(comp, components) {
             }
         }
     }
+
+    memo.set(comp.componentIdx, comps);
 
     return comps;
 }

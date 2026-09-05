@@ -2780,4 +2780,46 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
+
+    it("iterations referring to the previous iteration stay tractable", async () => {
+        // Each iteration wraps the previous one in a conditionalContent -> group ->
+        // copy chain, so iteration `n` sits under `n` nested composites and is
+        // reachable along many paths at once. Traversals that followed every path
+        // separately took time exponential in the number of iterations, which turned
+        // a recurrence like this cumulative sum into a hung document; twelve
+        // iterations took roughly an hour, and reverting either half of the fix on
+        // its own still leaves this test running for many minutes.
+        //
+        // The blowup happens inside synchronous recursion, so vitest cannot preempt
+        // it: a regression shows up as this test never finishing rather than as a
+        // clean timeout failure. The timeout below is a backstop for a regression
+        // that does yield, and a record of the intended scale — this runs in about
+        // four seconds today, so CI jitter comes nowhere near it.
+        const numIterations = 12;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="vals"><sequence from="1" to="${numIterations}" /></numberList>
+    <p name="p"><repeatForSequence from="1" to="${numIterations}" valueName="i" name="cumSums">
+      <number><conditionalContent>
+        <case condition="$i=1">$vals[1]</case>
+        <else>$cumSums[$i-1] + $vals[$i]</else>
+      </conditionalContent></number>
+    </repeatForSequence></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // cumulative sums of 1..12
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78");
+
+        // Not asserting on warnings here: this document also draws spurious
+        // "No referent found" warnings for the references inside the repeat's
+        // template, which is a separate, pre-existing issue tracked as
+        // https://github.com/Doenet/DoenetML/issues/1822. Add a warning
+        // assertion here once that is fixed.
+    }, 60000);
 });

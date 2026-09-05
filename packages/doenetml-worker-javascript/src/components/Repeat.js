@@ -739,20 +739,10 @@ export default class Repeat extends CompositeComponent {
         return { success: true, desiredVariant };
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        let additionalRendererTypes =
-            this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren,
-            );
-        for (let rendererType of additionalRendererTypes) {
-            if (!allPotentialRendererTypes.includes(rendererType)) {
-                allPotentialRendererTypes.push(rendererType);
-            }
-        }
-
-        return allPotentialRendererTypes;
+        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
     }
 }
 
