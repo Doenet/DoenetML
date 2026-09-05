@@ -674,6 +674,33 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         return await current_values(core, resolvePathToNodeIdx, name);
     }
 
+    // Parameters that describe no distribution: every sample and every reported
+    // moment must come back NaN, so that a document never shows a plausible-looking
+    // mean or variance alongside samples that could not be drawn.
+    async function expect_nan_distribution(
+        doenetML: string,
+        numSamples: number,
+    ) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        const stateValues = stateVariables[componentIdx].stateValues;
+
+        for (const property of ["mean", "variance", "standardDeviation"]) {
+            expect(Number.isNaN(stateValues[property]), property).eq(true);
+        }
+
+        const values = stateVariables[componentIdx].replacements!.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        expect(values.length).eq(numSamples);
+        for (const value of values) {
+            expect(Number.isNaN(value), `sample ${value}`).eq(true);
+        }
+    }
+
     /** log of "n choose k" */
     function logBinomial(n: number, k: number) {
         let result = 0;
@@ -690,9 +717,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         numDraws: number,
     ) {
         return (k: number) => {
+            // the support runs from max(0, n - (N - K)) to min(n, K); outside it
+            // one of the binomial coefficients is zero
             if (
                 k < 0 ||
                 k > numSuccesses ||
+                k > numDraws ||
                 numDraws - k > numTotal - numSuccesses
             ) {
                 return 0;
@@ -850,13 +880,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
     }
 
-    for (const mean of [4, 0.5, 0]) {
-        it(`poisson pmf for mean=${mean}`, () => {
-            const rng = seedrandom.alea(`pois-${mean}`);
+    // named poissonMean rather than mean so as not to shadow the mathjs `mean`
+    for (const poissonMean of [4, 0.5, 0]) {
+        it(`poisson pmf for mean=${poissonMean}`, () => {
+            const rng = seedrandom.alea(`pois-${poissonMean}`);
             check_against_pmf({
-                label: `poisson(${mean})`,
-                sample: () => samplePoisson({ mean, rng }),
-                pmf: poissonPmf(mean),
+                label: `poisson(${poissonMean})`,
+                sample: () => samplePoisson({ mean: poissonMean, rng }),
+                pmf: poissonPmf(poissonMean),
             });
         });
     }
@@ -1007,26 +1038,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ];
 
         for (let doenetML of doenetMLs) {
-            const values = await get_sampled_values(doenetML, "s");
-            expect(values.length).eq(3);
-            for (let value of values) {
-                expect(Number.isNaN(value)).eq(true);
-            }
+            await expect_nan_distribution(doenetML, 3);
         }
-
-        // a population that was never specified has no mean or variance to report
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: doenetMLs[0],
-        });
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-
-        expect(Number.isNaN(stateVariables[componentIdx].stateValues.mean)).eq(
-            true,
-        );
-        expect(
-            Number.isNaN(stateVariables[componentIdx].stateValues.variance),
-        ).eq(true);
     });
 
     it("binomial, 10 trials with probability 0.3", async () => {
@@ -1104,9 +1117,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             `<sampleRandomNumbers name="s" type="binomial" numTrials="6.5" probability="0.5" numSamples="3" />`,
             `<sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="3" />`,
         ]) {
-            for (let value of await get_sampled_values(doenetML, "s")) {
-                expect(Number.isNaN(value)).eq(true);
-            }
+            await expect_nan_distribution(doenetML, 3);
         }
     });
 
@@ -1163,12 +1174,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             ),
         ).eqls([0, 0, 0, 0]);
 
-        for (let value of await get_sampled_values(
+        await expect_nan_distribution(
             `<sampleRandomNumbers name="s" type="poisson" mean="-1" numSamples="3" />`,
-            "s",
-        )) {
-            expect(Number.isNaN(value)).eq(true);
-        }
+            3,
+        );
     });
 
     it("resample the discrete distributions", async () => {

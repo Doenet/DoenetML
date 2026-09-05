@@ -1,4 +1,9 @@
-import { sampleFromRandomNumbers } from "../utils/randomNumbers";
+import {
+    sampleFromRandomNumbers,
+    validBinomialParameters,
+    validHypergeometricParameters,
+    validPoissonMean,
+} from "../utils/randomNumbers";
 import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
@@ -457,18 +462,23 @@ export default class SampleRandomNumbers extends CompositeComponent {
                 } else if (dependencyValues.type === "poisson") {
                     // a Poisson distribution with mean zero is degenerate,
                     // so use 1 rather than the shared default of 0
-                    mean = usedDefault.specifiedMean
+                    const poissonMean = usedDefault.specifiedMean
                         ? 1
                         : dependencyValues.specifiedMean;
+                    // out-of-range parameters describe no distribution, so the
+                    // three cases below report NaN, just as their samples do
+                    mean = validPoissonMean(poissonMean) ? poissonMean : NaN;
                 } else if (dependencyValues.type === "hypergeometric") {
-                    mean =
-                        (dependencyValues.numDraws *
-                            dependencyValues.numSuccesses) /
-                        dependencyValues.numTotal;
+                    mean = validHypergeometricParameters(dependencyValues)
+                        ? (dependencyValues.numDraws *
+                              dependencyValues.numSuccesses) /
+                          dependencyValues.numTotal
+                        : NaN;
                 } else if (dependencyValues.type === "binomial") {
-                    mean =
-                        dependencyValues.numTrials *
-                        dependencyValues.probability;
+                    mean = validBinomialParameters(dependencyValues)
+                        ? dependencyValues.numTrials *
+                          dependencyValues.probability
+                        : NaN;
                 } else if (
                     dependencyValues.type === "discreteuniform" &&
                     dependencyValues.exclude.length > 0
@@ -587,25 +597,30 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         variance = dependencyValues.specifiedVariance;
                     }
                 } else if (dependencyValues.type === "poisson") {
+                    // the variance of a Poisson distribution equals its mean,
+                    // including the NaN that an out-of-range mean reports
                     variance = dependencyValues.mean;
                 } else if (dependencyValues.type === "hypergeometric") {
                     const N = dependencyValues.numTotal;
                     const K = dependencyValues.numSuccesses;
                     const n = dependencyValues.numDraws;
-                    // includes the finite population correction (N - n) / (N - 1),
-                    // which is 0/0 for a population of one item; that population
-                    // leaves nothing to vary, so its variance is 0. Any other
-                    // invalid population falls through to the formula, which
-                    // reports NaN just as the samples themselves do.
-                    variance =
-                        N === 1
-                            ? 0
-                            : (n * (K / N) * ((N - K) / N) * (N - n)) / (N - 1);
+                    if (!validHypergeometricParameters(dependencyValues)) {
+                        variance = NaN;
+                    } else if (N === 1) {
+                        // the finite population correction (N - n) / (N - 1) below
+                        // is 0/0 for a population of one item, which is determined
+                        // and so has variance 0
+                        variance = 0;
+                    } else {
+                        variance =
+                            (n * (K / N) * ((N - K) / N) * (N - n)) / (N - 1);
+                    }
                 } else if (dependencyValues.type === "binomial") {
-                    variance =
-                        dependencyValues.numTrials *
-                        dependencyValues.probability *
-                        (1 - dependencyValues.probability);
+                    variance = validBinomialParameters(dependencyValues)
+                        ? dependencyValues.numTrials *
+                          dependencyValues.probability *
+                          (1 - dependencyValues.probability)
+                        : NaN;
                 } else if (dependencyValues.type === "discreteuniform") {
                     if (dependencyValues.exclude.length > 0) {
                         // calculate manually in this case

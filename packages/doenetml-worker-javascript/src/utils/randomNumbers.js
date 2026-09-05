@@ -87,6 +87,52 @@ export function samplePoisson({ mean, rng }) {
     return count;
 }
 
+/**
+ * Whether `numTotal`, `numSuccesses`, and `numDraws` describe a hypergeometric
+ * distribution: a population of at least one item, split into a non-negative number
+ * of successes and failures, from which a non-negative number of items is drawn.
+ *
+ * Shared with the components so that the reported mean and variance are NaN for
+ * exactly the parameters whose samples are NaN.
+ */
+export function validHypergeometricParameters({
+    numTotal,
+    numSuccesses,
+    numDraws,
+}) {
+    return (
+        Number.isInteger(numTotal) &&
+        Number.isInteger(numSuccesses) &&
+        Number.isInteger(numDraws) &&
+        numTotal >= 1 &&
+        numSuccesses >= 0 &&
+        numDraws >= 0 &&
+        numSuccesses <= numTotal &&
+        numDraws <= numTotal
+    );
+}
+
+/**
+ * Whether `numTrials` and `probability` describe a binomial distribution: a
+ * non-negative whole number of trials, each succeeding with a probability in [0, 1].
+ */
+export function validBinomialParameters({ numTrials, probability }) {
+    return (
+        Number.isInteger(numTrials) &&
+        numTrials >= 0 &&
+        probability >= 0 &&
+        probability <= 1
+    );
+}
+
+/**
+ * Whether `mean` describes a Poisson distribution: a finite, non-negative rate.
+ * (An infinite mean would make the sampler below loop forever.)
+ */
+export function validPoissonMean(mean) {
+    return Number.isFinite(mean) && mean >= 0;
+}
+
 function warnSlowSampling(type, workPerVariate) {
     if (workPerVariate > WORK_PER_VARIATE_WARNING_THRESHOLD) {
         console.warn(
@@ -159,14 +205,11 @@ export function sampleFromRandomNumbers({
         return sampledValues;
     } else if (type === "hypergeometric") {
         if (
-            !Number.isInteger(numTotal) ||
-            !Number.isInteger(numSuccesses) ||
-            !Number.isInteger(numDraws) ||
-            numTotal < 1 ||
-            numSuccesses < 0 ||
-            numDraws < 0 ||
-            numSuccesses > numTotal ||
-            numDraws > numTotal
+            !validHypergeometricParameters({
+                numTotal,
+                numSuccesses,
+                numDraws,
+            })
         ) {
             console.warn(
                 `Invalid numTotal (${numTotal}), numSuccesses (${numSuccesses}), or numDraws (${numDraws}) for a hypergeometric random variable. numTotal must be a positive integer, and numSuccesses and numDraws must be non-negative integers no larger than numTotal.`,
@@ -185,12 +228,7 @@ export function sampleFromRandomNumbers({
             sampleHypergeometric({ numTotal, numSuccesses, numDraws, rng }),
         );
     } else if (type === "binomial") {
-        if (
-            !Number.isInteger(numTrials) ||
-            numTrials < 0 ||
-            !(probability >= 0) ||
-            !(probability <= 1)
-        ) {
+        if (!validBinomialParameters({ numTrials, probability })) {
             console.warn(
                 `Invalid numTrials (${numTrials}) or probability (${probability}) for a binomial random variable. numTrials must be a non-negative integer and probability must be between 0 and 1.`,
             );
@@ -204,9 +242,11 @@ export function sampleFromRandomNumbers({
             sampleBinomial({ numTrials, probability, rng }),
         );
     } else if (type === "poisson") {
-        if (!(mean >= 0) || !Number.isFinite(mean)) {
+        if (!validPoissonMean(mean)) {
+            // the mean arrives already reduced to NaN when the author's value is
+            // out of range, so there is nothing informative to echo back here
             console.warn(
-                `Invalid mean (${mean}) for a Poisson random variable. It must be a non-negative number.`,
+                `Invalid mean for a Poisson random variable. It must be a finite, non-negative number.`,
             );
 
             return Array(numSamples).fill(NaN);
