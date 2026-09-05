@@ -60,6 +60,15 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         stateVariableDefinitions.numTrials.immutable = true;
         stateVariableDefinitions.probability.immutable = true;
 
+        // The gaussian and poisson parameters are frozen for the same reason, and
+        // additionally because `selectedValues` reads them directly: they are what
+        // the selection was drawn from, so a moment derived from them later must see
+        // what the draw saw, not whatever a reference has since become.
+        stateVariableDefinitions.gaussianMean.immutable = true;
+        stateVariableDefinitions.gaussianStandardDeviation.immutable = true;
+        stateVariableDefinitions.gaussianStandardDeviation.additionalStateVariablesDefined[0].immutable = true;
+        stateVariableDefinitions.poissonMean.immutable = true;
+
         stateVariableDefinitions.mean.immutable = true;
         stateVariableDefinitions.variance.immutable = true;
         stateVariableDefinitions.standardDeviation.immutable = true;

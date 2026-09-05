@@ -990,6 +990,66 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("a selection freezes its moments even when nothing has read them yet", async () => {
+        // `selectedValues` is resolved eagerly, to expand the composite, but the
+        // reported moments are lazy. If a referenced parameter changes before
+        // anything reads them, a moment first evaluated afterwards would freeze the
+        // new parameter while the selected numbers came from the old one. Note the
+        // update happens before any `returnAllStateVariables`, which would otherwise
+        // resolve and freeze everything first and hide the problem.
+        for (const [type, expectedMean] of [
+            ["gaussian", 10],
+            ["poisson", 10],
+        ] as [string, number][]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="10" />
+    <selectRandomNumbers name="s" type="${type}" mean="$m" numToSelect="4" />
+    `,
+            });
+
+            await updateMathInputValue({
+                latex: "40",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+            expect(stateVariables[componentIdx].stateValues.mean, type).closeTo(
+                expectedMean,
+                1e-10,
+            );
+        }
+
+        // the same for the spread, which is a separate frozen input
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="sd" prefill="2" />
+    <selectRandomNumbers name="s" type="gaussian" standardDeviation="$sd" numToSelect="4" />
+    `,
+        });
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("sd"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviation,
+        ).closeTo(2, 1e-10);
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            4,
+            1e-10,
+        );
+    });
+
     it("a selected distribution's parameters are frozen with its selection", async () => {
         // `<selectRandomNumbers>` freezes its moments, so a parameter that kept
         // tracking a reference would describe a distribution other than the numbers

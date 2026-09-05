@@ -507,6 +507,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.gaussianStandardDeviation = {
+            additionalStateVariablesDefined: [
+                { variableName: "gaussianVariance" },
+            ],
             returnDependencies: () => ({
                 specifiedVariance: {
                     dependencyType: "stateVariable",
@@ -518,17 +521,31 @@ export default class SampleRandomNumbers extends CompositeComponent {
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                // Whichever of the two the author set. A supplied standard deviation
-                // is kept as written rather than squared and rooted back: that round
-                // trip loses its sign, so `standardDeviation="-2"` would be sampled
-                // as 2 while the warning says the attribute must be non-negative.
-                const gaussianStandardDeviation =
+                // Which of the two the author set decides both, so they are settled
+                // together and everything downstream reads these rather than the
+                // attributes: the reported variance would otherwise recompute from
+                // a reference that had since changed, describing a spread the
+                // selection was not drawn from.
+                const fromStandardDeviation =
                     usedDefault.specifiedVariance &&
-                    !usedDefault.specifiedStandardDeviation
-                        ? dependencyValues.specifiedStandardDeviation
-                        : Math.sqrt(dependencyValues.specifiedVariance);
+                    !usedDefault.specifiedStandardDeviation;
 
-                return { setValue: { gaussianStandardDeviation } };
+                return {
+                    setValue: {
+                        // A supplied standard deviation is kept as written rather
+                        // than squared and rooted back: that round trip loses its
+                        // sign, so `standardDeviation="-2"` would be sampled as 2
+                        // while the warning says it must be non-negative.
+                        gaussianStandardDeviation: fromStandardDeviation
+                            ? dependencyValues.specifiedStandardDeviation
+                            : Math.sqrt(dependencyValues.specifiedVariance),
+                        // and a supplied variance is likewise kept as written, so
+                        // that reporting it back does not round-trip through a root
+                        gaussianVariance: fromStandardDeviation
+                            ? dependencyValues.specifiedStandardDeviation ** 2
+                            : dependencyValues.specifiedVariance,
+                    },
+                };
             },
         };
 
@@ -691,13 +708,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     },
                 };
                 if (stateValues.type === "gaussian") {
-                    dependencies.specifiedVariance = {
+                    dependencies.gaussianVariance = {
                         dependencyType: "stateVariable",
-                        variableName: "specifiedVariance",
-                    };
-                    dependencies.specifiedStandardDeviation = {
-                        dependencyType: "stateVariable",
-                        variableName: "specifiedStandardDeviation",
+                        variableName: "gaussianVariance",
                     };
                     // read only to decide whether there is a distribution at all
                     dependencies.mean = {
@@ -767,20 +780,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
             definition({ dependencyValues, usedDefault }) {
                 let variance;
                 if (dependencyValues.type === "gaussian") {
-                    if (
-                        usedDefault.specifiedVariance &&
-                        !usedDefault.specifiedStandardDeviation
-                    ) {
-                        variance =
-                            dependencyValues.specifiedStandardDeviation ** 2;
-                    } else {
-                        variance = dependencyValues.specifiedVariance;
-                    }
                     // a spread or center that describes no distribution leaves no
                     // moments to report either, matching what the samples report
-                    if (!validGaussianParameters(dependencyValues)) {
-                        variance = NaN;
-                    }
+                    variance = validGaussianParameters(dependencyValues)
+                        ? dependencyValues.gaussianVariance
+                        : NaN;
                 } else if (dependencyValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,
                     // including the NaN that an out-of-range mean reports
