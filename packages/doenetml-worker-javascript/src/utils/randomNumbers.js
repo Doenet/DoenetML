@@ -676,29 +676,21 @@ export function sampleFromRandomNumbers({
 }
 
 /**
- * Draw one vector-valued sample from the multivariate distribution named by `type`,
- * returning one number per category alongside any diagnostics it raised — or one NaN
- * per category when the parameters describe no distribution this can sample from.
+ * What these parameters have to say for themselves, drawing nothing: whether they can
+ * be sampled from at all, and either the reason they cannot or a notice that sampling
+ * them will be slow.
  *
- * As with `sampleFromRandomNumbers`, the diagnostics come back rather than being
- * logged, so the state variable that calls this can pass them on to the reader.
+ * Both the draw and the diagnostics-only entry point below read this one answer, so
+ * the decision to sample and the explanation given to the author cannot drift apart.
  */
-/**
- * What these parameters have to say for themselves, drawing nothing: the reason
- * they cannot be sampled from, or a notice that sampling them will be slow, or
- * neither.
- *
- * Separate from the draw so that a component reusing values it already has — from
- * saved state, or from a resample — can still tell the author why they are NaN,
- * without consuming any randomness and so without disturbing a variant.
- */
-export function multivariateSamplingDiagnostics({
-    type,
-    numInCategories,
-    numDraws,
-}) {
+function inspectMultivariateParameters({ type, numInCategories, numDraws }) {
     if (type == null) {
-        return [codedDiagnostic({ type: "warning", code: "doenet-w0137" })];
+        return {
+            sampleable: false,
+            diagnostics: [
+                codedDiagnostic({ type: "warning", code: "doenet-w0137" }),
+            ],
+        };
     }
 
     const problem = multivariateHypergeometricProblem({
@@ -706,22 +698,45 @@ export function multivariateSamplingDiagnostics({
         numDraws,
     });
     if (problem) {
-        return [problem];
+        return { sampleable: false, diagnostics: [problem] };
     }
 
-    return slowSamplingDiagnostics(
-        `multivariate ${type}`,
-        multivariateHypergeometricWork({ numInCategories, numDraws }),
-    );
+    return {
+        sampleable: true,
+        diagnostics: slowSamplingDiagnostics(
+            `multivariate ${type}`,
+            multivariateHypergeometricWork({ numInCategories, numDraws }),
+        ),
+    };
 }
 
+/**
+ * The diagnostics these parameters raise, drawing nothing: the reason they cannot be
+ * sampled from, or a notice that sampling them will be slow, or neither.
+ *
+ * Separate from the draw so that a component reusing values it already has — from
+ * saved state, or from a resample — can still tell the author why they are NaN,
+ * without consuming any randomness and so without disturbing a variant.
+ */
+export function multivariateSamplingDiagnostics(parameters) {
+    return inspectMultivariateParameters(parameters).diagnostics;
+}
+
+/**
+ * Draw one vector-valued sample from the multivariate distribution named by `type`,
+ * returning one number per category alongside any diagnostics it raised — or one NaN
+ * per category when the parameters describe no distribution this can sample from.
+ *
+ * As with `sampleFromRandomNumbers`, the diagnostics come back rather than being
+ * logged, so the state variable that calls this can pass them on to the reader.
+ */
 export function sampleFromMultivariateDistribution({
     type,
     numInCategories,
     numDraws,
     rng,
 }) {
-    const diagnostics = multivariateSamplingDiagnostics({
+    const { sampleable, diagnostics } = inspectMultivariateParameters({
         type,
         numInCategories,
         numDraws,
@@ -729,10 +744,7 @@ export function sampleFromMultivariateDistribution({
 
     // anything that stopped it being sampled leaves one NaN per category, so a
     // caller never has to special-case the failure
-    if (
-        type == null ||
-        multivariateHypergeometricProblem({ numInCategories, numDraws })
-    ) {
+    if (!sampleable) {
         return {
             sampledValues: Array(numInCategories.length).fill(NaN),
             diagnostics,
