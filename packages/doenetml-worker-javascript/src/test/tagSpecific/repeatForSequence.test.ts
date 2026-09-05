@@ -2780,4 +2780,38 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
+
+    it("iterations referring to the previous iteration stay tractable", async () => {
+        // Each iteration wraps the previous one in a conditionalContent -> group ->
+        // copy chain, so iteration `n` sits under `n` nested composites and is
+        // reachable along many paths at once. Traversals that followed every path
+        // separately took time exponential in the number of iterations, which turned
+        // a recurrence like this cumulative sum into a hung document; twelve
+        // iterations took roughly an hour. Keep the assertion generous — this guards
+        // against exponential growth, not against a modest slowdown.
+        const numIterations = 12;
+
+        const t0 = Date.now();
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="vals"><sequence from="1" to="${numIterations}" /></numberList>
+    <p name="p"><repeatForSequence from="1" to="${numIterations}" valueName="i" name="cumSums">
+      <number><conditionalContent>
+        <case condition="$i=1">$vals[1]</case>
+        <else>$cumSums[$i-1] + $vals[$i]</else>
+      </conditionalContent></number>
+    </repeatForSequence></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const elapsed = Date.now() - t0;
+
+        // cumulative sums of 1..12
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78");
+
+        expect(elapsed).toBeLessThan(60000);
+    }, 90000);
 });

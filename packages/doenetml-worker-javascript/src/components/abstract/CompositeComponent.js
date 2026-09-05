@@ -120,32 +120,25 @@ export default class CompositeComponent extends BaseComponent {
     // the static function calculateReplacementChanges.
     replacementsToWithhold = 0;
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
         // we still recurse to all children, even though was skipped at base component
         // due to not having a rendererType
         for (const childIdxStr in this.allChildren) {
             let child = this.allChildren[childIdxStr].component;
-            for (let rendererType of child.allPotentialRendererTypes) {
-                if (!allPotentialRendererTypes.includes(rendererType)) {
-                    allPotentialRendererTypes.push(rendererType);
-                }
-            }
+            child.addPotentialRendererTypes(rendererTypes, visited);
         }
 
         if (this.replacements) {
             for (let replacement of this.replacements) {
                 if (typeof replacement === "object") {
-                    for (let rendererType of replacement.allPotentialRendererTypes) {
-                        if (!allPotentialRendererTypes.includes(rendererType)) {
-                            allPotentialRendererTypes.push(rendererType);
-                        }
-                    }
+                    replacement.addPotentialRendererTypes(
+                        rendererTypes,
+                        visited,
+                    );
                 }
             }
         }
-
-        return allPotentialRendererTypes;
     }
 }

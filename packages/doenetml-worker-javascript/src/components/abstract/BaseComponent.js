@@ -158,9 +158,41 @@ export default class BaseComponent {
     }
 
     get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = ["_error"];
+        const rendererTypes = new Set();
+        this.addPotentialRendererTypes(rendererTypes, new Set());
+        return [...rendererTypes];
+    }
+
+    /**
+     * Add to `rendererTypes` every renderer type that this component or its
+     * descendants could create.
+     *
+     * Components form a directed acyclic graph rather than a tree: a
+     * composite's replacements are spliced in as children of the composite's
+     * parent while the composite keeps pointing at them as replacements, so
+     * the same component is reachable along several paths. `visited` holds the
+     * components already accounted for, so each is walked once; since every
+     * path contributes to the same `rendererTypes` set, skipping a repeat
+     * visit loses nothing. Without it, a chain of `k` nested composites — what
+     * a repeat whose iterations reference the previous iteration builds — is
+     * traversed exponentially many times.
+     *
+     * Subclasses extend `addOwnPotentialRendererTypes`; this method is the
+     * guarded entry point that recursion goes through.
+     */
+    addPotentialRendererTypes(rendererTypes, visited) {
+        if (visited.has(this.componentIdx)) {
+            return;
+        }
+        visited.add(this.componentIdx);
+
+        this.addOwnPotentialRendererTypes(rendererTypes, visited);
+    }
+
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        rendererTypes.add("_error");
         if (this.rendererType) {
-            allPotentialRendererTypes.push(this.rendererType);
+            rendererTypes.add(this.rendererType);
         }
 
         // include any potential renderer type that could be
@@ -187,11 +219,8 @@ export default class BaseComponent {
                         ];
                     if (componentClass) {
                         let rendererType = componentClass.rendererType;
-                        if (
-                            rendererType &&
-                            !allPotentialRendererTypes.includes(rendererType)
-                        ) {
-                            allPotentialRendererTypes.push(rendererType);
+                        if (rendererType) {
+                            rendererTypes.add(rendererType);
                         }
                     }
                 }
@@ -213,18 +242,15 @@ export default class BaseComponent {
                     ];
                 if (componentClass) {
                     let rendererType = componentClass.rendererType;
-                    if (
-                        rendererType &&
-                        !allPotentialRendererTypes.includes(rendererType)
-                    ) {
-                        allPotentialRendererTypes.push(rendererType);
+                    if (rendererType) {
+                        rendererTypes.add(rendererType);
                     }
                 }
             }
         }
 
         if (!this.rendererType) {
-            return allPotentialRendererTypes;
+            return;
         }
 
         // recurse to all children
@@ -233,15 +259,9 @@ export default class BaseComponent {
             if (typeof child !== "object") {
                 continue;
             } else {
-                for (let rendererType of child.allPotentialRendererTypes) {
-                    if (!allPotentialRendererTypes.includes(rendererType)) {
-                        allPotentialRendererTypes.push(rendererType);
-                    }
-                }
+                child.addPotentialRendererTypes(rendererTypes, visited);
             }
         }
-
-        return allPotentialRendererTypes;
     }
 
     potentialRendererTypesFromSerializedComponents(serializedComponents) {

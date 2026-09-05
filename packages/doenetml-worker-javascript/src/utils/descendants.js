@@ -232,16 +232,40 @@ function replacementsForComposites({
     return replacements;
 }
 
-export function ancestorsIncludingComposites(comp, components) {
+/**
+ * Return the component indices of all ancestors of `comp`, following both the
+ * parent chain and, for a replacement, the chain of the composite that created
+ * it.
+ *
+ * Those two chains converge: a composite's replacements are placed under the
+ * composite's own parent, so `comp` and `comp.replacementOf` typically share
+ * ancestors. Without `memo`, a component sitting under `k` nested composites
+ * would walk the shared upper chain `2^k` times. `memo` holds the results
+ * computed so far in this call — the component graph does not change while we
+ * recurse, so a repeat visit can reuse the earlier answer.
+ *
+ * The arrays put in `memo` are returned directly to callers, so callers must
+ * not mutate what they get back.
+ */
+export function ancestorsIncludingComposites(
+    comp,
+    components,
+    memo = new Map(),
+) {
     if (comp.ancestors === undefined || comp.ancestors.length === 0) {
         return [];
+    }
+
+    const memoized = memo.get(comp.componentIdx);
+    if (memoized) {
+        return memoized;
     }
 
     let comps = [comp.ancestors[0].componentIdx];
 
     let parent = components[comp.ancestors[0].componentIdx];
     if (parent) {
-        comps.push(...ancestorsIncludingComposites(parent, components));
+        comps.push(...ancestorsIncludingComposites(parent, components, memo));
     }
 
     if (comp.replacementOf) {
@@ -249,6 +273,7 @@ export function ancestorsIncludingComposites(comp, components) {
         let replacementAs = ancestorsIncludingComposites(
             comp.replacementOf,
             components,
+            memo,
         );
         for (let a of replacementAs) {
             if (!comps.includes(a)) {
@@ -256,6 +281,8 @@ export function ancestorsIncludingComposites(comp, components) {
             }
         }
     }
+
+    memo.set(comp.componentIdx, comps);
 
     return comps;
 }

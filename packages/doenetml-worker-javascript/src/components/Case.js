@@ -84,19 +84,13 @@ export default class Case extends BaseComponent {
         return stateVariableDefinitions;
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        let additionalRendererTypes =
-            this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren,
-            );
-        for (let rendererType of additionalRendererTypes) {
-            if (!allPotentialRendererTypes.includes(rendererType)) {
-                allPotentialRendererTypes.push(rendererType);
-            }
+        for (let rendererType of this.potentialRendererTypesFromSerializedComponents(
+            this.serializedChildren,
+        )) {
+            rendererTypes.add(rendererType);
         }
-
-        return allPotentialRendererTypes;
     }
 }
