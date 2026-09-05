@@ -1,0 +1,73 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<differences>{:dn}`
+
+<ComponentDisplay name='differences'/>
+
+`<differences>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+component that renders the differences between successive arguments: for inputs
+$a_1, a_2, \ldots, a_n$ it gives $a_2 - a_1,\; a_3 - a_2,\; \ldots,\; a_n - a_{n-1}$.
+
+The result is one shorter than the input, and is empty when the input has fewer than
+two values. `<differences>{:dn}` is the inverse of
+[`<cumulativeSum>{:dn}`](cumulativeSum).
+
+<AttrPropDisplay name='differences'/>
+
+## Examples
+
+### Example: successive differences
+
+
+```doenet-editor-horiz
+<differences>30 75 87 147</differences>
+```
+
+
+
+Four inputs give three differences.
+
+
+
+---
+
+### Example: first differences of a sequence
+
+
+```doenet-editor-horiz
+<numberList name="squares">1 4 9 16 25 36</numberList>
+
+<p>Squares: $squares</p>
+<p>First differences: <differences name="d">$squares</differences></p>
+<p>Second differences: <differences>$d</differences></p>
+```
+
+
+
+The first differences of the squares are the odd numbers, and their differences are
+constant — the signature of a quadratic.
+
+
+
+---
+
+### Example: inverting a cumulative sum
+
+
+```doenet-editor-horiz
+<numberList name="nl">5 3 8 1</numberList>
+
+<cumulativeSum name="cum">$nl</cumulativeSum>
+
+<p>Original: $nl</p>
+<p>Cumulative sum: $cum</p>
+<p>Differences of the cumulative sum: <differences>$cum</differences></p>
+```
+
+
+
+Taking differences recovers the original values, except for the first one, which the
+cumulative sum folded into its starting entry.
