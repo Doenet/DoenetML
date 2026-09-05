@@ -6,6 +6,12 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import seedrandom from "seedrandom";
+import {
+    sampleBinomial,
+    sampleHypergeometric,
+    samplePoisson,
+} from "../../utils/randomNumbers";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import type { mean as MeanType, variance as VarianceType } from "mathjs";
 const { mean, variance } = me.math as {
@@ -668,6 +674,208 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         return await current_values(core, resolvePathToNodeIdx, name);
     }
 
+    /** log of "n choose k" */
+    function logBinomial(n: number, k: number) {
+        let result = 0;
+        for (let i = 0; i < k; i++) {
+            result += Math.log(n - i) - Math.log(i + 1);
+        }
+        return result;
+    }
+
+    /** exact hypergeometric pmf: C(K, k) * C(N - K, n - k) / C(N, n) */
+    function hypergeometricPmf(
+        numTotal: number,
+        numSuccesses: number,
+        numDraws: number,
+    ) {
+        return (k: number) => {
+            if (
+                k < 0 ||
+                k > numSuccesses ||
+                numDraws - k > numTotal - numSuccesses
+            ) {
+                return 0;
+            }
+            return Math.exp(
+                logBinomial(numSuccesses, k) +
+                    logBinomial(numTotal - numSuccesses, numDraws - k) -
+                    logBinomial(numTotal, numDraws),
+            );
+        };
+    }
+
+    /** exact binomial pmf: C(n, k) * p^k * (1 - p)^(n - k) */
+    function binomialPmf(numTrials: number, probability: number) {
+        return (k: number) => {
+            if (k < 0 || k > numTrials) {
+                return 0;
+            }
+            // the k = 0 and k = numTrials terms are skipped rather than
+            // evaluated, so that probability 0 or 1 gives 0 rather than NaN
+            let logProbability = logBinomial(numTrials, k);
+            if (k > 0) {
+                logProbability += k * Math.log(probability);
+            }
+            if (k < numTrials) {
+                logProbability += (numTrials - k) * Math.log(1 - probability);
+            }
+            return Math.exp(logProbability);
+        };
+    }
+
+    /** exact Poisson pmf: e^(-mean) * mean^k / k! */
+    function poissonPmf(mean: number) {
+        return (k: number) => {
+            if (k < 0) {
+                return 0;
+            }
+            let logProbability = -mean;
+            for (let i = 1; i <= k; i++) {
+                logProbability += Math.log(mean) - Math.log(i);
+            }
+            return Math.exp(logProbability);
+        };
+    }
+
+    /**
+     * Draw many variates from `sample` and compare the frequency of each outcome
+     * with its exact probability. Matching the pmf outcome by outcome is a much
+     * stronger check than matching a mean and a variance, which any number of
+     * wrong distributions could also do.
+     */
+    function check_against_pmf({
+        label,
+        sample,
+        pmf,
+        trials = 100000,
+        allowedDeviation = 0.01,
+    }: {
+        label: string;
+        sample: () => number;
+        pmf: (k: number) => number;
+        trials?: number;
+        allowedDeviation?: number;
+    }) {
+        const observed = new Map<number, number>();
+        let brokenInvariant: string | null = null;
+
+        for (let i = 0; i < trials; i++) {
+            const value = sample();
+
+            // Checked with plain conditionals rather than expect() so the
+            // assertion machinery doesn't dominate a 100k-iteration loop.
+            if (
+                brokenInvariant === null &&
+                (!Number.isInteger(value) || !(pmf(value) > 0))
+            ) {
+                brokenInvariant = `${label} produced ${value}, which is outside its support`;
+            }
+
+            observed.set(value, (observed.get(value) ?? 0) + 1);
+        }
+
+        expect(brokenInvariant).eq(null);
+
+        let massObserved = 0;
+        let worstDeviation = 0;
+        for (const [value, count] of observed) {
+            const exact = pmf(value);
+            worstDeviation = Math.max(
+                worstDeviation,
+                Math.abs(count / trials - exact),
+            );
+            massObserved += exact;
+        }
+
+        expect(worstDeviation, `worst pmf deviation for ${label}`).lessThan(
+            allowedDeviation,
+        );
+        // Every outcome seen carries real probability (checked above) and together
+        // they account for essentially all of it, so no part of the support was
+        // systematically missed. Outcomes rarer than about 1e-5 can legitimately
+        // go unseen in 100k trials, hence the 1e-4 slack.
+        expect(
+            massObserved,
+            `probability mass covered by ${label}`,
+        ).greaterThan(1 - 1e-4);
+    }
+
+    // The four cases below cover every combination of the two symmetries the
+    // sampler uses to keep its loop short: drawing the items left behind instead
+    // of the items taken, and counting failures instead of successes.
+    const hypergeometricCases: [number, number, number][] = [
+        [20, 7, 5], // few draws, few successes: no substitution
+        [20, 7, 16], // many draws: the left-behind items are drawn instead
+        [20, 15, 5], // many successes: failures are counted instead
+        [20, 15, 16], // both substitutions at once
+        [10, 0, 4], // a population with no successes
+        [1, 1, 1], // a population of one item
+    ];
+
+    for (const [numTotal, numSuccesses, numDraws] of hypergeometricCases) {
+        it(`hypergeometric pmf for numTotal=${numTotal}, numSuccesses=${numSuccesses}, numDraws=${numDraws}`, () => {
+            const rng = seedrandom.alea(
+                `hyper-${numTotal}-${numSuccesses}-${numDraws}`,
+            );
+            check_against_pmf({
+                label: `hypergeometric(${numTotal}, ${numSuccesses}, ${numDraws})`,
+                sample: () =>
+                    sampleHypergeometric({
+                        numTotal,
+                        numSuccesses,
+                        numDraws,
+                        rng,
+                    }),
+                pmf: hypergeometricPmf(numTotal, numSuccesses, numDraws),
+            });
+        });
+    }
+
+    const binomialCases: [number, number][] = [
+        [10, 0.3],
+        [1, 0.5], // a single fair trial, the default parameters
+        [5, 0.9], // heavily skewed toward success
+        [0, 0.5], // no trials at all
+    ];
+
+    for (const [numTrials, probability] of binomialCases) {
+        it(`binomial pmf for numTrials=${numTrials}, probability=${probability}`, () => {
+            const rng = seedrandom.alea(`binom-${numTrials}-${probability}`);
+            check_against_pmf({
+                label: `binomial(${numTrials}, ${probability})`,
+                sample: () => sampleBinomial({ numTrials, probability, rng }),
+                pmf: binomialPmf(numTrials, probability),
+            });
+        });
+    }
+
+    for (const mean of [4, 0.5, 0]) {
+        it(`poisson pmf for mean=${mean}`, () => {
+            const rng = seedrandom.alea(`pois-${mean}`);
+            check_against_pmf({
+                label: `poisson(${mean})`,
+                sample: () => samplePoisson({ mean, rng }),
+                pmf: poissonPmf(mean),
+            });
+        });
+    }
+
+    it("poisson stays centered for a mean too large for e^(-mean)", () => {
+        // e^(-1000) underflows to 0, so a sampler that multiplied uniforms until
+        // the product dropped below it would stall around 745 whatever the mean.
+        // Enumerating the pmf out here is impractical, so check the moments: the
+        // standard deviation is about 32, and over 5000 draws the sample mean has
+        // a standard error of about 0.45.
+        const rng = seedrandom.alea("pois-1000");
+        const values = Array.from({ length: 5000 }, () =>
+            samplePoisson({ mean: 1000, rng }),
+        );
+
+        expect(mean(values), "sample mean").closeTo(1000, 3);
+        expect(variance(values), "sample variance").closeTo(1000, 100);
+    });
+
     it("hypergeometric, 5 draws from 20 items with 7 successes", async () => {
         const doenetMLs = [
             `<selectRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="7" numDraws="5" numToSelect="20" />`,
@@ -695,32 +903,33 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
-    // Exercises both symmetries used to keep the sampling loop short:
-    // more draws than are left behind, and more successes than failures.
+    // The shape of this distribution is already pinned down exactly by the pmf
+    // tests above; what is checked here is that the component reports the right
+    // moments and stays inside the support when the population is lopsided.
     it("hypergeometric, drawing most of a mostly-successful population", async () => {
-        const doenetMLs = [
-            `<selectRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="15" numDraws="16" numToSelect="20" />`,
-            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="15" numDraws="16" numSamples="20" />`,
-        ];
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="15" numDraws="16" numSamples="20" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
 
-        const expectedMean = (16 * 15) / 20;
-        const expectedVariance = (16 * (15 / 20) * (5 / 20) * 4) / 19;
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            (16 * 15) / 20,
+            1e-10,
+        );
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            (16 * (15 / 20) * (5 / 20) * 4) / 19,
+            1e-10,
+        );
 
-        for (let doenetML of doenetMLs) {
-            await test_combined_statistics({
-                doenetML,
-                name: "s",
-                numSamplesPerComponent: 20,
-                numRepetitions: 10,
-                // support is max(0, n-(N-K)) to min(n, K), i.e. 11 to 15
-                validValues: [11, 12, 13, 14, 15],
-                allowedMeanMid: expectedMean,
-                allowedMeanSpread: 0.1,
-                allowedVarianceMid: expectedVariance,
-                allowedVarianceSpread: 0.12,
-                expectedMean,
-                expectedVariance,
-            });
+        // support is max(0, n - (N - K)) to min(n, K), i.e. 11 to 15
+        for (let value of await current_values(
+            core,
+            resolvePathToNodeIdx,
+            "s",
+        )) {
+            expect(value).gte(11);
+            expect(value).lte(15);
         }
     });
 
@@ -943,21 +1152,6 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(
             stateVariables[componentIdx].stateValues.standardDeviation,
         ).closeTo(1, 1e-10);
-    });
-
-    it("poisson stays centered on a mean too large for e^(-mean)", async () => {
-        // e^(-1000) underflows to 0, so a sampler that multiplies uniforms until
-        // the product drops below it would stall around 745 no matter the mean
-        const values = await get_sampled_values(
-            `<sampleRandomNumbers name="s" type="poisson" mean="1000" numSamples="20" />`,
-            "s",
-        );
-
-        // the standard deviation is about 32, so 200 is over six of them away
-        for (let value of values) {
-            expect(Number.isInteger(value)).eq(true);
-            expect(Math.abs(value - 1000)).lessThan(200);
-        }
     });
 
     it("degenerate and invalid poisson parameters", async () => {

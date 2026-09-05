@@ -91,7 +91,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createComponentOfType: "number",
             createStateVariable: "specifiedMean",
             defaultValue: 0,
-            description: "Mean of the sampling distribution (Gaussian).",
+            description:
+                "Mean of the sampling distribution (Gaussian or Poisson). Defaults to 0 for Gaussian and 1 for Poisson.",
         };
 
         attributes.standardDeviation = {

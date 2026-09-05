@@ -21,11 +21,13 @@ export function sampleHypergeometric({
 }) {
     // draw the smaller of the taken and left-behind groups
     const complementDraws = numDraws > numTotal - numDraws;
-    let draws = complementDraws ? numTotal - numDraws : numDraws;
+    const draws = complementDraws ? numTotal - numDraws : numDraws;
 
     // track the smaller of the successes and failures
     const complementSuccesses = numSuccesses > numTotal - numSuccesses;
-    let tracked = complementSuccesses ? numTotal - numSuccesses : numSuccesses;
+    const tracked = complementSuccesses
+        ? numTotal - numSuccesses
+        : numSuccesses;
 
     let trackedLeft = tracked;
     let totalLeft = numTotal;
