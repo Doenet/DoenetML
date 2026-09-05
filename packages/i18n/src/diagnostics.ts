@@ -228,6 +228,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0139": "bin-counts-too-few-cut-points",
     "doenet-w0140": "bin-counts-values-not-numeric",
     "doenet-w0141": "bin-counts-cut-points-decreasing",
+    "doenet-w0142": "bar-chart-bar-width-invalid",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

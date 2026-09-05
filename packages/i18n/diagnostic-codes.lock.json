@@ -236,5 +236,6 @@
     "doenet-w0138": "bin-counts-missing-bins",
     "doenet-w0139": "bin-counts-too-few-cut-points",
     "doenet-w0140": "bin-counts-values-not-numeric",
-    "doenet-w0141": "bin-counts-cut-points-decreasing"
+    "doenet-w0141": "bin-counts-cut-points-decreasing",
+    "doenet-w0142": "bar-chart-bar-width-invalid"
 }

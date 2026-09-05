@@ -29,6 +29,7 @@ export default {
     award2a: { title: "award (Attributes 1)" },
     award2b: { title: "award (Attributes 2)" },
     award3: { title: "award (Properties)" },
+    barChart: { title: "barChart" },
     bestFitLine: { title: "bestFitLine" },
     bezierControls: { title: "bezierControls" },
     binCounts: { title: "binCounts" },
