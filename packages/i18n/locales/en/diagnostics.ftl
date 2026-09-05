@@ -994,7 +994,9 @@ sample-poisson-mean-invalid =
 sample-poisson-mean-too-large =
     A poisson mean of { $mean } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce the mean.
 
-# $distribution is the value of the `type` attribute, e.g. "binomial"; $draws is
-# roughly how many random draws each sample needs.
+# $distribution names the distribution, e.g. "binomial"; $draws is roughly how many
+# random draws each value needs. Raised by both `<sampleRandomNumbers>` and
+# `<selectRandomNumbers>`, which count values with `numSamples` and `numToSelect`
+# respectively, so the wording names neither.
 sample-distribution-slow =
-    Each sample from this { $distribution } distribution needs about { $draws } random draws, so sampling may be slow. Reduce the distribution's parameters, or numSamples, if the page feels sluggish.
+    Each value from this { $distribution } distribution needs about { $draws } random draws, so sampling may be slow. Reduce the distribution's parameters, or ask for fewer values, if the page feels sluggish.

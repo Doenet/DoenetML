@@ -156,9 +156,15 @@ function unsampleable(numSamples, problem) {
  */
 function hypergeometricProblem({ numTotal, numSuccesses, numDraws }) {
     if (
-        !Number.isInteger(numTotal) ||
-        !Number.isInteger(numSuccesses) ||
-        !Number.isInteger(numDraws) ||
+        // Safe integers, not merely whole ones: `Number.isInteger(1e308)` is true,
+        // but at that magnitude the sampler's `totalLeft--` no longer changes
+        // anything and `numDraws * numSuccesses` overflows to Infinity, so the
+        // reported mean would be Infinity rather than a number. Capping counts at
+        // 2^53 keeps every product exactly representable, and is no real limit on a
+        // population.
+        !Number.isSafeInteger(numTotal) ||
+        !Number.isSafeInteger(numSuccesses) ||
+        !Number.isSafeInteger(numDraws) ||
         numTotal < 1 ||
         numSuccesses < 0 ||
         numDraws < 0 ||
@@ -205,7 +211,8 @@ export function validHypergeometricParameters(parameters) {
  */
 function binomialProblem({ numTrials, probability }) {
     if (
-        !Number.isInteger(numTrials) ||
+        // safe integers, for the reason given on the hypergeometric above
+        !Number.isSafeInteger(numTrials) ||
         numTrials < 0 ||
         !(probability >= 0) ||
         !(probability <= 1)

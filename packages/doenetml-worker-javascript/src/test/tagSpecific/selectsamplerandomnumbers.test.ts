@@ -800,6 +800,35 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("a population too large to count exactly is refused", async () => {
+        // `Number.isInteger(1e308)` is true, and a small `numDraws` keeps the work
+        // bound satisfied, so such a population would otherwise be accepted — and
+        // then `numDraws * numSuccesses` overflows, reporting a mean of Infinity
+        // while the sampler's urn never actually shrinks.
+        await expect_nan_distribution(
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1e308" numSuccesses="5e307" numDraws="10" numSamples="3" />`,
+            3,
+        );
+
+        // just past the safe-integer boundary
+        await expect_nan_distribution(
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="9007199254740993" numSuccesses="10" numDraws="10" numSamples="3" />`,
+            3,
+        );
+
+        // ...while a population right at the boundary is still sampled, and its
+        // reported mean is a number rather than Infinity
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="9007199254740991" numSuccesses="4503599627370496" numDraws="10" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const reportedMean = stateVariables[componentIdx].stateValues.mean;
+        expect(Number.isFinite(reportedMean)).eq(true);
+        expect(reportedMean).closeTo(5, 1e-6);
+    });
+
     it("selectRandomNumbers forwards its diagnostics too", async () => {
         // `<selectRandomNumbers>` defines its own `selectedValues` rather than
         // inheriting `sampledValues`, so it forwards diagnostics by a separate path
