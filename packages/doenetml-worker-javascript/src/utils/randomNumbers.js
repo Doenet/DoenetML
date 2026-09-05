@@ -12,6 +12,10 @@ import { codedDiagnostic } from "./diagnostics";
 // distributions that predate these.
 const MAX_WORK_PER_VARIATE = 1e7;
 
+// The number of distinct values a double can hold in [0, 1), and so the finest
+// resolution any sampler here can draw at.
+const TWO_TO_THE_53 = 0x20000000000000;
+
 // Well below the hard limit a document is merely sluggish rather than stuck, which is
 // worth saying but not worth refusing.
 const WORK_PER_VARIATE_WARNING_THRESHOLD = 1e6;
@@ -47,7 +51,7 @@ export function sampleHypergeometric({
     let count = 0;
 
     for (let i = 0; i < draws; i++) {
-        if (preciseUniform(rng) * totalLeft < trackedLeft) {
+        if (uniformBelow(rng, totalLeft) < trackedLeft) {
             count++;
             trackedLeft--;
         }
@@ -118,16 +122,15 @@ export function samplePoisson({ mean, rng }) {
 }
 
 /**
- * One uniform draw from [0, 1) with the full 53 bits of a double.
+ * One uniform draw from [0, 1) with the full 53 bits of a double, and the whole
+ * number behind it.
  *
  * `seedrandom.alea`, which Core supplies, returns exact multiples of 2^-32 — only
  * about four billion distinct values. That is ample for the distributions that
- * predate these, but not for the samplers below: `sampleHypergeometric` compares
- * against `numSuccesses / numTotal`, and `sampleBinomial` against `probability`,
- * either of which can legitimately be smaller than 2^-32. At that point a 32-bit
- * draw can only ever answer with its single zero value, so the event happens with
- * probability 2^-32 rather than the one asked for — for a population of 2^53 with
- * one success, too likely by a factor of two million.
+ * predate these, but not for the samplers below, which compare against quantities
+ * that can legitimately be far smaller: a 32-bit draw can only answer such a
+ * comparison with its single zero value, so the event happens with probability
+ * 2^-32 rather than the one asked for.
  *
  * Two draws are combined explicitly rather than calling the generator's own
  * `double()`, so that the result depends on nothing but the sequence `rng` yields:
@@ -135,15 +138,53 @@ export function samplePoisson({ mean, rng }) {
  * stays reproducible. Both halves are exact, since 2^32 divides evenly by 2^26 and
  * 2^27, so no value is favored.
  *
+ * 53 bits is where this ends, not merely where it currently stops: it is the whole
+ * resolution of the number type. `uniformBelow` below sidesteps it for the
+ * hypergeometric, which needs only whole numbers and so can be exact across every
+ * population it accepts. `sampleBinomial` cannot, because a probability is a real
+ * number: one smaller than 2^-53 is below the finest value a draw can take, so it
+ * occurs at that floor rather than at its own rate. Distinguishing the two would
+ * take on the order of 2^53 samples, and the smallest population the floor is
+ * wrong for holds nine quadrillion items.
+ *
  * Only the samplers added alongside this use it. The gaussian, uniform and
  * discrete-uniform paths keep their single 32-bit draw, because changing how many
  * values they consume would renumber every variant of every document already
  * written against them.
  */
-function preciseUniform(rng) {
+function preciseUniformInteger(rng) {
     const high = Math.floor(rng() * 0x4000000); // 26 bits
     const low = Math.floor(rng() * 0x8000000); // 27 bits
-    return (high * 0x8000000 + low) / 0x20000000000000; // / 2^53
+    return high * 0x8000000 + low;
+}
+
+function preciseUniform(rng) {
+    return preciseUniformInteger(rng) / TWO_TO_THE_53;
+}
+
+/**
+ * A whole number drawn uniformly from [0, `bound`), exactly, for any `bound` up to
+ * 2^53.
+ *
+ * Comparing a [0, 1) draw against `successes / total` would not be exact: that
+ * quotient rarely lands on the 2^53 grid, so the number of grid points below it is
+ * rounded up, and one extra point out of 2^53 is a factor of two when the quotient
+ * is itself near 2^-53. Drawing the integer instead removes the quotient. The
+ * values at or above the largest whole multiple of `bound` are rejected and redrawn
+ * rather than folded back in, since folding is what would leave the low remainders
+ * more likely than the high ones; the discarded band is under one part in 2^53 of
+ * the range, so a redraw is essentially never needed.
+ */
+function uniformBelow(rng, bound) {
+    // the largest multiple of `bound` that fits, so every remainder is equally likely
+    const limit = Math.floor(TWO_TO_THE_53 / bound) * bound;
+
+    let drawn = preciseUniformInteger(rng);
+    while (drawn >= limit) {
+        drawn = preciseUniformInteger(rng);
+    }
+
+    return drawn % bound;
 }
 
 /**

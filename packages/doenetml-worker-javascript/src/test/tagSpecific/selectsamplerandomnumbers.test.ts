@@ -800,6 +800,42 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("the hypergeometric is exact at the top of the population range", async () => {
+        // Comparing a [0, 1) draw against numSuccesses / numTotal rounds the number
+        // of representable draws below that quotient up to a whole one, which is a
+        // factor of two when the quotient is itself near the finest value a draw can
+        // take. Drawing the whole number directly removes the quotient, so a
+        // population at the very top of the accepted range is still drawn exactly.
+        const rng = seedrandom.alea("top-of-range");
+        const numTotal = Number.MAX_SAFE_INTEGER;
+        const trials = 200000;
+
+        // half the population are successes, so each draw is a fair coin; a rounding
+        // artifact anywhere in the comparison would show up as a biased one
+        let successes = 0;
+        for (let i = 0; i < trials; i++) {
+            successes += sampleHypergeometric({
+                numTotal,
+                numSuccesses: (numTotal - 1) / 2,
+                numDraws: 1,
+                rng,
+            });
+        }
+        expect(successes / trials).closeTo(0.5, 0.01);
+
+        // and a population with no successes never yields one, however large
+        for (let i = 0; i < 1000; i++) {
+            expect(
+                sampleHypergeometric({
+                    numTotal,
+                    numSuccesses: 0,
+                    numDraws: 1,
+                    rng,
+                }),
+            ).eq(0);
+        }
+    });
+
     it("each refusal message states a condition the value actually fails", async () => {
         // A message that lists only conditions the author already satisfies leaves
         // them no way to find the real one. Every value below is refused, so each
