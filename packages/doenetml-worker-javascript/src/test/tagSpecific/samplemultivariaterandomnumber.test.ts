@@ -408,6 +408,33 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         }
     });
 
+    it("a draw below the limit but slow to make is still sampled, with a notice", async () => {
+        // Between the point where a document turns sluggish and the point where the
+        // draw is refused, the sample is taken as asked and the author is told why
+        // the page feels slow — something no other part of the document can tell them.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="3000000 3000000" numDraws="3000000" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0133");
+        expect(warnings[0].args).eqls({
+            distribution: "multivariate hypergeometric",
+            draws: 3000000,
+        });
+
+        const values = stateVariables[componentIdx].replacements!.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        expect(values.reduce((a, c) => a + c, 0)).eq(3000000);
+        for (const value of values) {
+            expect(value).closeTo(1500000, 20000);
+        }
+    });
+
     it("valid parameters raise no diagnostics", async () => {
         const { core } = await createTestCore({
             doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />`,

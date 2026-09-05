@@ -262,11 +262,11 @@ function hypergeometricWork({ numTotal, numDraws }) {
  * How a parameter is written into a diagnostic: the number the author gave, or the
  * sentinel `"not-set"` for one they left off.
  *
- * The hypergeometric parameters are the only ones with no default, so an omitted
- * one reaches a message as `null` — a word out of the implementation rather than
- * anything the author typed, and omitting one is the first way most authors reach
- * that message. The catalog selects on the sentinel and says "not set" in the
- * reader's language instead.
+ * The hypergeometric parameters, and the multivariate `numDraws`, are the only
+ * ones with no default, so an omitted one reaches a message as `null` — a word out
+ * of the implementation rather than anything the author typed, and omitting one is
+ * the first way most authors reach those messages. The catalog selects on the
+ * sentinel and says "not set" in the reader's language instead.
  */
 function reportedValue(value) {
     return value == null ? "not-set" : value;
@@ -419,15 +419,27 @@ export function validPoissonMean(mean) {
 }
 
 /**
- * Whether `numInCategories` and `numDraws` describe a multivariate hypergeometric
- * distribution: a population split into at least one category of a non-negative whole
- * number of items, from which a non-negative whole number of items no larger than the
- * whole population is drawn.
+ * An upper bound on the draws one multivariate variate costs. Every category but the
+ * last is a univariate hypergeometric draw against the part of the population not yet
+ * accounted for; neither the draws remaining nor the items left behind ever grows as
+ * that part shrinks, so no such draw costs more than one against the whole population.
+ */
+function multivariateHypergeometricWork({ numInCategories, numDraws }) {
+    const numTotal = sumOf(numInCategories);
+    return (
+        (numInCategories.length - 1) * Math.min(numDraws, numTotal - numDraws)
+    );
+}
+
+/**
+ * Why `numInCategories` and `numDraws` cannot be sampled from, or `null` if they can.
+ * A usable set is a population split into at least one category of a non-negative
+ * whole number of items, from which a non-negative whole number of items no larger
+ * than the whole population is drawn few enough times to finish promptly.
  *
- * Shared with the component so that the reported means and variances are NaN for
- * exactly the parameters whose samples are NaN. Insisting on at least one category
- * also keeps `sampleMultivariateHypergeometric` from being handed an empty partition,
- * which has no final category to absorb the remaining draws.
+ * Insisting on at least one category also keeps `sampleMultivariateHypergeometric`
+ * from being handed an empty partition, which has no final category to absorb the
+ * remaining draws.
  */
 function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
     if (
@@ -471,22 +483,8 @@ function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
 }
 
 /**
- * An upper bound on the draws one multivariate variate costs. Every category but the
- * last is a univariate hypergeometric draw against the part of the population not yet
- * accounted for; neither the draws remaining nor the items left behind ever grows as
- * that part shrinks, so no such draw costs more than one against the whole population.
- */
-function multivariateHypergeometricWork({ numInCategories, numDraws }) {
-    const numTotal = sumOf(numInCategories);
-    return (
-        (numInCategories.length - 1) * Math.min(numDraws, numTotal - numDraws)
-    );
-}
-
-/**
  * Whether `numInCategories` and `numDraws` describe a multivariate hypergeometric
- * distribution this can actually sample from. Shared with the component so that the
- * reported means and variances are NaN for exactly the parameters whose samples are.
+ * distribution this can actually sample from. Shared with the component, as above.
  */
 export function validMultivariateHypergeometricParameters(parameters) {
     return multivariateHypergeometricProblem(parameters) === null;

@@ -994,10 +994,11 @@ sample-poisson-mean-invalid =
 sample-poisson-mean-too-large =
     A poisson mean of { $mean } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce the mean.
 
-# $distribution names the distribution, e.g. "binomial"; $draws is roughly how many
-# random draws each value needs. Raised by both `<sampleRandomNumbers>` and
-# `<selectRandomNumbers>`, which count values with `numSamples` and `numToSelect`
-# respectively, so the wording names neither.
+# $distribution names the distribution being sampled, e.g. "binomial" or
+# "multivariate hypergeometric"; $draws is roughly how many random draws each value
+# needs. Raised by `<sampleRandomNumbers>`, `<selectRandomNumbers>` and
+# `<sampleMultivariateRandomNumber>`, which count values with `numSamples`,
+# `numToSelect` and one vector respectively, so the wording names no attribute.
 sample-distribution-slow =
     Each value from this { $distribution } distribution needs about { $draws } random draws, so sampling may be slow. Reduce the distribution's parameters, or ask for fewer values, if the page feels sluggish.
 
@@ -1013,11 +1014,16 @@ index-operator-missing-target =
 index-operator-no-values =
     `{ $component }` has no values to look through, so it gives 0, which is not the index of any item.
 ## `<sampleMultivariateRandomNumber>`
+##
+## Translators: `numInCategories` and `numDraws` are DoenetML attribute names.
+## They are written into these messages as they stand and must be left in English
+## exactly as written. Each names the attribute the author has to change, so a
+## message that translated one would point at an attribute that does not exist.
 
-# Translators: `numInCategories` and `numDraws` are DoenetML attribute names. Leave
-# them in English exactly as written. `not-set` marks an attribute the author left
-# off altogether, as opposed to one holding an unusable value.
-
+# Neither attribute has a default, so leaving one out is the commonest way to reach
+# this message. Each arrives either as the value the author wrote or as `not-set`
+# for an attribute they left off entirely; translate the "not set" wording, but
+# leave the `not-set` key that selects it untouched.
 sample-multivariate-parameters-invalid =
     Invalid numInCategories ({ $numInCategories ->
         [not-set] not set
@@ -1025,8 +1031,10 @@ sample-multivariate-parameters-invalid =
     }) or numDraws ({ $numDraws ->
         [not-set] not set
        *[other] { $numDraws }
-    }) for a multivariate random variable. numInCategories must list at least one category, each a non-negative whole number, and numDraws must be a non-negative whole number no larger than their total.
+    }) for a multivariate hypergeometric random variable. numInCategories must list at least one category, each a non-negative whole number, and numDraws must be a non-negative whole number no larger than their total.
 
 # $maxDraws is the largest number of random draws allowed for a single sample.
+# Drawing nearly the whole population is as cheap as drawing almost none of it, so
+# raising numDraws is a fix as well as lowering it.
 sample-multivariate-draws-too-many =
-    Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, or use fewer categories.
+    Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, bring it closer to numTotal, or use fewer categories.
