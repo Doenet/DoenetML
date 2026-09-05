@@ -7,6 +7,50 @@ import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
+/**
+ * The parameters the `means` and `variances` arrays are computed from. They are
+ * global rather than per-key because every category's moment is determined by the
+ * whole population, not just by its own entry — and both arrays read exactly the
+ * same ones, so a distribution added later adds its parameters here once.
+ */
+function returnMomentDependencies() {
+    return {
+        globalDependencies: {
+            type: {
+                dependencyType: "stateVariable",
+                variableName: "type",
+            },
+            numInCategories: {
+                dependencyType: "stateVariable",
+                variableName: "numInCategories",
+            },
+            numDraws: {
+                dependencyType: "stateVariable",
+                variableName: "numDraws",
+            },
+            numTotal: {
+                dependencyType: "stateVariable",
+                variableName: "numTotal",
+            },
+        },
+    };
+}
+
+/**
+ * Whether the closed forms the `means` and `variances` arrays use apply to what
+ * the author asked for. Those formulas are the multivariate hypergeometric's, so
+ * they describe a distribution only when that is the one named and its parameters
+ * are ones it can be sampled from. Anything else — no `type` at all, or parameters
+ * that describe no population — has no moments to report and gets the NaN its
+ * samples get; another distribution will bring its own branch.
+ */
+function hasHypergeometricMoments(globalDependencyValues) {
+    return (
+        globalDependencyValues.type === "hypergeometric" &&
+        validMultivariateHypergeometricParameters(globalDependencyValues)
+    );
+}
+
 export default class SampleMultivariateRandomNumber extends CompositeComponent {
     constructor(args) {
         super(args);
@@ -167,43 +211,14 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numCategories];
             },
-            returnArrayDependenciesByKey() {
-                return {
-                    globalDependencies: {
-                        type: {
-                            dependencyType: "stateVariable",
-                            variableName: "type",
-                        },
-                        numInCategories: {
-                            dependencyType: "stateVariable",
-                            variableName: "numInCategories",
-                        },
-                        numDraws: {
-                            dependencyType: "stateVariable",
-                            variableName: "numDraws",
-                        },
-                        numTotal: {
-                            dependencyType: "stateVariable",
-                            variableName: "numTotal",
-                        },
-                    },
-                };
-            },
+            returnArrayDependenciesByKey: returnMomentDependencies,
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 let means = {};
 
                 const N = globalDependencyValues.numTotal;
                 const n = globalDependencyValues.numDraws;
 
-                // parameters that describe no distribution have no moments either,
-                // so report the NaN that their samples report. These formulas are
-                // the hypergeometric's; with no distribution named there is nothing
-                // to compute, and another distribution will bring its own branch.
-                const valid =
-                    globalDependencyValues.type === "hypergeometric" &&
-                    validMultivariateHypergeometricParameters(
-                        globalDependencyValues,
-                    );
+                const valid = hasHypergeometricMoments(globalDependencyValues);
 
                 for (let arrayKey of arrayKeys) {
                     if (!valid) {
@@ -245,39 +260,14 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numCategories];
             },
-            returnArrayDependenciesByKey() {
-                return {
-                    globalDependencies: {
-                        type: {
-                            dependencyType: "stateVariable",
-                            variableName: "type",
-                        },
-                        numInCategories: {
-                            dependencyType: "stateVariable",
-                            variableName: "numInCategories",
-                        },
-                        numDraws: {
-                            dependencyType: "stateVariable",
-                            variableName: "numDraws",
-                        },
-                        numTotal: {
-                            dependencyType: "stateVariable",
-                            variableName: "numTotal",
-                        },
-                    },
-                };
-            },
+            returnArrayDependenciesByKey: returnMomentDependencies,
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 let variances = {};
 
                 const N = globalDependencyValues.numTotal;
                 const n = globalDependencyValues.numDraws;
 
-                const valid =
-                    globalDependencyValues.type === "hypergeometric" &&
-                    validMultivariateHypergeometricParameters(
-                        globalDependencyValues,
-                    );
+                const valid = hasHypergeometricMoments(globalDependencyValues);
 
                 for (let arrayKey of arrayKeys) {
                     if (!valid) {

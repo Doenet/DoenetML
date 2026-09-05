@@ -1015,10 +1015,11 @@ index-operator-no-values =
     `{ $component }` has no values to look through, so it gives 0, which is not the index of any item.
 ## `<sampleMultivariateRandomNumber>`
 ##
-## Translators: `numInCategories` and `numDraws` are DoenetML attribute names.
-## They are written into these messages as they stand and must be left in English
-## exactly as written. Each names the attribute the author has to change, so a
-## message that translated one would point at an attribute that does not exist.
+## Translators: `type`, `numInCategories` and `numDraws` are DoenetML attribute
+## names, and `hypergeometric` is one of the values `type` takes. They are written
+## into these messages as they stand and must be left in English exactly as
+## written. Each names the attribute the author has to change, so a message that
+## translated one would point at an attribute that does not exist.
 
 # Neither attribute has a default, so leaving one out is the commonest way to reach
 # this message. Each arrives either as the value the author wrote or as `not-set`
@@ -1039,8 +1040,9 @@ sample-multivariate-parameters-invalid =
 sample-multivariate-draws-too-many =
     Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, bring it closer to numTotal, or use fewer categories.
 
-# Deliberately has no default: which multivariate distribution is meant is not
-# something to guess on the author's behalf, and defaulting to one would make any
-# later change of default silently reinterpret documents that relied on it.
+# `type` has no default, so this is what leaving it off gets. A type the attribute
+# does not recognize falls back to no type at all and reaches this message too,
+# after a separate one naming the value that was rejected — hence "no distribution
+# was named" rather than wording that assumes the attribute is missing.
 sample-multivariate-type-not-specified =
-    No type was given for this multivariate random variable, so nothing was sampled. Add a type attribute naming the distribution, such as `type="hypergeometric"`.
+    No multivariate distribution was named for this random variable, so nothing was sampled. Give the type attribute the name of a distribution, such as `type="hypergeometric"`.

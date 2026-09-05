@@ -446,11 +446,16 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
 
-        const warnings = getDiagnosticsByType(core).warnings.filter(
-            (w) => w.code === "doenet-w0137",
+        // exactly one warning, raised once: the missing type is reported on its
+        // own rather than also as unusable parameters, and neither the moments
+        // nor the samples repeat it
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+        expect(diagnostics.warnings.length).eq(1);
+        expect(diagnostics.warnings[0].code).eq("doenet-w0137");
+        expect(diagnostics.warnings[0].message).toContain(
+            `type="hypergeometric"`,
         );
-        expect(warnings.length).eq(1);
-        expect(warnings[0].message).toContain(`type="hypergeometric"`);
 
         // nothing is guessed: the counts and both sets of moments are NaN, even
         // though the remaining parameters would describe a usable population
@@ -473,6 +478,29 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // the component did read
         expect(stateVariables[componentIdx].stateValues.numCategories).eq(3);
         expect(stateVariables[componentIdx].stateValues.numTotal).eq(10);
+    });
+
+    it("a type the attribute does not recognize samples nothing either", async () => {
+        // An unrecognized value falls back to the attribute's default, which is
+        // no type at all, so it lands in the same refusal — reported as the value
+        // that was rejected and then as the distribution that is now missing.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="gaussian" numInCategories="5 3 2" numDraws="4" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+        expect(diagnostics.warnings.length).eq(1);
+        expect(diagnostics.warnings[0].code).eq("doenet-w0136");
+        expect(diagnostics.infos.length).eq(1);
+        expect(diagnostics.infos[0].message).toContain("gaussian");
+
+        expect(stateVariables[componentIdx].stateValues.type).eq(null);
+        for (const value of stateVariables[componentIdx].stateValues.means) {
+            expect(Number.isNaN(value)).eq(true);
+        }
     });
 
     it("valid parameters raise no diagnostics", async () => {

@@ -44,10 +44,11 @@ The three numbers are the counts of each category among the drawn items, so they
 sum to `numDraws`. The number of categories &mdash; and therefore how many numbers are 
 produced &mdash; comes from the length of `numInCategories`.
 
-All three attributes are required, and the latter two must describe a population that 
-can actually be drawn from: `numInCategories` a list of non-negative whole numbers and `numDraws` a 
-non-negative whole number no larger than their sum. Anything else samples `NaN` for 
-every category, as do the `means` and `variances` properties below.
+`type`, `numInCategories`, and `numDraws` are all required, and the latter two must 
+describe a population that can actually be drawn from: `numInCategories` a list of 
+non-negative whole numbers and `numDraws` a non-negative whole number no larger than 
+their sum. Anything else samples `NaN` for every category, as do the `means` and 
+`variances` properties below.
 
 
 
@@ -168,9 +169,10 @@ above the populations that arise in practice; it is there so that mistyping an e
 digit reports a problem instead of freezing the activity.
 
 `type`, `numInCategories`, and `numDraws` have no defaults to fall back on. If any is 
-omitted, or the latter two do not describe a population &mdash; a category that is not 
-a whole number, or more draws than there are items &mdash; every count is `NaN`, as are 
-the reported `means` and `variances`.
+omitted, if `type` names a distribution that does not exist, or if the other two do not 
+describe a population &mdash; a category that is not a whole number, or more draws than 
+there are items &mdash; every count is `NaN`, as are the reported `means` and 
+`variances`.
 
 `type` is required rather than defaulting to `hypergeometric` on purpose. It is the 
 only multivariate distribution available so far, but it is unlikely to remain the most 

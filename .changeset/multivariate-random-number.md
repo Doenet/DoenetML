@@ -12,7 +12,7 @@ Every existing sampling component produces numbers that are independent of one a
 
 ```doenet
 <p>An urn holds 5 red, 3 blue, and 2 green marbles. Draw 4 without replacement:</p>
-<p><sampleMultivariateRandomNumber name="draw" numInCategories="5 3 2" numDraws="4" /></p>
+<p><sampleMultivariateRandomNumber name="draw" type="hypergeometric" numInCategories="5 3 2" numDraws="4" /></p>
 <p>Red: $draw[1], blue: $draw[2], green: $draw[3]</p>
 ```
 
