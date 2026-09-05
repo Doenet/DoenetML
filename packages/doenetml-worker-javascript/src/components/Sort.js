@@ -68,6 +68,28 @@ export default class Sort extends CompositeComponent {
             createPrimitiveOfType: "string",
             highlighted: true,
             description: "Component type to sort children as.",
+            validValues: [
+                {
+                    value: "number",
+                    description:
+                        "Read bare strings as numbers, ordered by value.",
+                },
+                {
+                    value: "math",
+                    description:
+                        "Read bare strings as math expressions, ordered by value.",
+                },
+                {
+                    value: "text",
+                    description:
+                        "Read bare strings as text, ordered alphabetically.",
+                },
+                {
+                    value: "boolean",
+                    description:
+                        "Read bare strings as booleans, ordered with false before true.",
+                },
+            ],
         };
 
         attributes.asList = {

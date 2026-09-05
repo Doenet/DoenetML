@@ -37042,7 +37042,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 }
             },
@@ -38355,7 +38358,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 }
             },
@@ -39668,7 +39674,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 },
                 "target": {
@@ -40987,7 +40996,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 },
                 "target": {
@@ -148942,7 +148954,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 },
                 "asList": {
@@ -149799,7 +149814,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 },
                 "asList": {
@@ -150637,7 +150655,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 },
                 "asList": {

@@ -87,8 +87,30 @@ export default class ListIndexBaseOperator extends MathComponent {
         attributes.type = {
             createPrimitiveOfType: "string",
             description:
-                "Component type to interpret bare string children as (math, number, text, or boolean).",
+                "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
             highlighted: true,
+            validValues: [
+                {
+                    value: "number",
+                    description:
+                        "Read bare strings as numbers, ordered by value.",
+                },
+                {
+                    value: "math",
+                    description:
+                        "Read bare strings as math expressions, ordered by value.",
+                },
+                {
+                    value: "text",
+                    description:
+                        "Read bare strings as text, ordered alphabetically.",
+                },
+                {
+                    value: "boolean",
+                    description:
+                        "Read bare strings as booleans, ordered with false before true.",
+                },
+            ],
         };
 
         // `<math>` highlights these because they shape the expression it parses

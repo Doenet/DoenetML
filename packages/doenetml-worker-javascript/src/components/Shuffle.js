@@ -28,6 +28,21 @@ export default class Shuffle extends CompositeComponent {
             highlighted: true,
             createPrimitiveOfType: "string",
             description: "Component type to shuffle children as.",
+            validValues: [
+                {
+                    value: "number",
+                    description: "Read bare strings as numbers.",
+                },
+                {
+                    value: "math",
+                    description: "Read bare strings as math expressions.",
+                },
+                { value: "text", description: "Read bare strings as text." },
+                {
+                    value: "boolean",
+                    description: "Read bare strings as booleans.",
+                },
+            ],
         };
 
         attributes.asList = {

@@ -32504,9 +32504,33 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
                     "highlighted": true,
-                    "type": "text"
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
                 }
             ],
             "properties": [
@@ -33503,9 +33527,33 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
                     "highlighted": true,
-                    "type": "text"
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
                 }
             ],
             "properties": [
@@ -34502,9 +34550,33 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
                     "highlighted": true,
-                    "type": "text"
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "target",
@@ -35508,9 +35580,33 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
                     "highlighted": true,
-                    "type": "text"
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "target",
@@ -119243,7 +119339,31 @@
                     "name": "type",
                     "description": "Component type to sort children as.",
                     "highlighted": true,
-                    "type": "text"
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "asList",
@@ -119667,7 +119787,31 @@
                     "name": "type",
                     "description": "Component type to sort children as.",
                     "highlighted": true,
-                    "type": "text"
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers, ordered by value."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions, ordered by value."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text, ordered alphabetically."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans, ordered with false before true."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "asList",
@@ -120056,7 +120200,31 @@
                     "name": "type",
                     "description": "Component type to shuffle children as.",
                     "highlighted": true,
-                    "type": "text"
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read bare strings as numbers."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read bare strings as math expressions."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read bare strings as text."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read bare strings as booleans."
+                        }
+                    ],
+                    "type": "keyword"
                 },
                 {
                     "name": "asList",

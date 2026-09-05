@@ -45,4 +45,6 @@ Sharing it also fixes a bug in `<sort>` itself, so `<sort type="boolean">` now r
 
 When an index operator comes back with 0 it now says why, since 0 is not the index of any item and the result alone does not distinguish the cases. Omitting `target` on `<indexOf>` or `<searchSorted>` is a warning — no document written that way can ever produce an answer. A target that is simply absent from the list, and an empty list with nothing to look through, are info messages instead: both arise legitimately while a page is still settling, when a list driven by an input is momentarily empty or does not yet hold the value being sought.
 
+The `type` attribute of `<sort>`, `<shuffle>` and the five index operators now declares the values it accepts — `number`, `math`, `text` and `boolean` — so the editor offers them, the reference pages list them with descriptions, and writing anything else is flagged rather than only warned about once the document runs. The set is unchanged; it was simply never declared.
+
 Closes #1816. Closes #1817. Closes #1823.
