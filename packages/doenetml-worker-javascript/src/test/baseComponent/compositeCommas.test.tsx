@@ -263,8 +263,9 @@ describe("Automatic commas between composite replacements @group3", () => {
 
     it("puts the comma where the whitespace between two items was", async () => {
         // Issue #499: the spaces an author puts between the items of a list
-        // group are where the commas go, and an empty composite among them
-        // is nothing at all.
+        // group are where the commas go. An empty composite among them is
+        // nothing at all, and one that has items is a single item of the
+        // list, with commas of its own.
         await checkParagraphs(
             {
                 spaced: {
@@ -279,12 +280,16 @@ describe("Automatic commas between composite replacements @group3", () => {
                     body: `<group asList><number>1</number> <number>2</number> $s $s2 <number>3</number></group>`,
                     expected: "1, 2, 3",
                 },
+                withItems: {
+                    body: `<group asList><number>1</number> <number>2</number> $s3 <number>3</number></group>`,
+                    expected: "1, 2, 7, 8, 3",
+                },
                 onOwnLines: {
                     body: `\n<group asList>\n<number>1</number> <number>2</number> $s <number>3</number>\n</group>\n`,
                     expected: "\n\n1, 2, 3\n\n",
                 },
             },
-            `<setup><sequence name="s" length="0" /><sequence name="s2" length="0" /></setup>\n`,
+            `<setup><sequence name="s" length="0" /><sequence name="s2" length="0" /><sequence name="s3" from="7" to="8" /></setup>\n`,
         );
     });
 
