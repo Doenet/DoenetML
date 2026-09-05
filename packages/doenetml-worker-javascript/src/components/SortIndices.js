@@ -26,7 +26,7 @@ export default class SortIndices extends Sort {
             "The indices that put a list in sorted order, rather than the sorted values",
     };
 
-    static allowInSchemaAsComponent = ["number", "_inline", "_block"];
+    static allowInSchemaAsComponent = ["number"];
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();

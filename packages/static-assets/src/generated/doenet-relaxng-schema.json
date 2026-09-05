@@ -83641,9 +83641,6 @@
                     "ref": "sort"
                 },
                 {
-                    "ref": "sortIndices"
-                },
-                {
                     "ref": "shuffle"
                 },
                 {

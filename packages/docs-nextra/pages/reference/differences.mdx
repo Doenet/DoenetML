@@ -12,8 +12,9 @@ component that renders the differences between successive arguments: for inputs
 $a_1, a_2, \ldots, a_n$ it gives $a_2 - a_1,\; a_3 - a_2,\; \ldots,\; a_n - a_{n-1}$.
 
 The result is one shorter than the input, and is empty when the input has fewer than
-two values. `<differences>{:dn}` is the inverse of
-[`<cumulativeSum>{:dn}`](cumulativeSum).
+two values. `<differences>{:dn}` undoes
+[`<cumulativeSum>{:dn}`](cumulativeSum), apart from the first value, which the
+running total has already absorbed.
 
 <AttrPropDisplay name='differences'/>
 

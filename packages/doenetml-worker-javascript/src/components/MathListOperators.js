@@ -4,22 +4,71 @@ import MathBaseListOperator from "./abstract/MathBaseListOperator";
 /**
  * Scan operators: math operators whose result is a list rather than a single
  * value. See `MathBaseListOperator` for the shared machinery.
+ *
+ * Each operator supplies two implementations of the same idea — one over plain
+ * numbers and one over math-expressions — and the base class picks between them
+ * based on whether every input is a number.
  */
 
 /**
- * Running `min`/`max` over a prefix, built symbolically. A one-element prefix
+ * The running result of folding `combine` over ever-longer prefixes of
+ * `inputs`. The first entry is `inputs[0]` itself, so the result is always the
+ * same length as the input and never introduces an identity element the author
+ * did not write.
+ */
+function runningFold(inputs, combine) {
+    let results = [];
+    let running;
+    for (let [ind, input] of inputs.entries()) {
+        running = ind === 0 ? input : combine(running, input);
+        results.push(running);
+    }
+    return results;
+}
+
+/**
+ * The differences between successive entries of `inputs`, using `subtract` to
+ * take each one. One shorter than the input, and empty for a single value.
+ */
+function successiveDifferences(inputs, subtract) {
+    return inputs.slice(1).map((input, ind) => subtract(input, inputs[ind]));
+}
+
+/**
+ * Running `min`/`max` over a prefix, built symbolically. Built directly from
+ * the whole prefix rather than by folding, so that the result is a single
+ * `min(a, b, c)` rather than a nest of two-argument calls. A one-element prefix
  * is returned as itself rather than as `min(a)`, which is correct but reads
  * badly.
  */
-function symbolicExtremeOfPrefix(prefix, operatorName) {
-    if (prefix.length === 1) {
-        return prefix[0];
-    }
-    return me.fromAst([
-        "apply",
-        operatorName,
-        ["tuple", ...prefix.map((x) => x.tree)],
-    ]);
+function symbolicExtremesOfPrefixes(inputs, operatorName) {
+    return inputs.map((input, ind) => {
+        if (ind === 0) {
+            return input;
+        }
+        return me.fromAst([
+            "apply",
+            operatorName,
+            ["tuple", ...inputs.slice(0, ind + 1).map((x) => x.tree)],
+        ]);
+    });
+}
+
+/**
+ * The pair of state variables every scan operator overrides: `numericListOperator`
+ * (numbers in, numbers out) and `listOperator` (math-expressions in and out).
+ */
+function returnScanStateVariableDefinitions({ numeric, symbolic }) {
+    return {
+        numericListOperator: {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { numericListOperator: numeric } }),
+        },
+        listOperator: {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { listOperator: symbolic } }),
+        },
+    };
 }
 
 export class CumulativeSum extends MathBaseListOperator {
@@ -31,43 +80,13 @@ export class CumulativeSum extends MathBaseListOperator {
     };
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.numericListOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    numericListOperator: function (inputs) {
-                        let results = [];
-                        let total = 0;
-                        for (let input of inputs) {
-                            total += input;
-                            results.push(total);
-                        }
-                        return results;
-                    },
-                },
+        return Object.assign(
+            super.returnStateVariableDefinitions(),
+            returnScanStateVariableDefinitions({
+                numeric: (inputs) => runningFold(inputs, (a, b) => a + b),
+                symbolic: (inputs) => runningFold(inputs, (a, b) => a.add(b)),
             }),
-        };
-
-        stateVariableDefinitions.listOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    listOperator: function (inputs) {
-                        let results = [];
-                        let total = null;
-                        for (let input of inputs) {
-                            total = total === null ? input : total.add(input);
-                            results.push(total);
-                        }
-                        return results;
-                    },
-                },
-            }),
-        };
-
-        return stateVariableDefinitions;
+        );
     }
 }
 
@@ -80,44 +99,14 @@ export class CumulativeProduct extends MathBaseListOperator {
     };
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.numericListOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    numericListOperator: function (inputs) {
-                        let results = [];
-                        let total = 1;
-                        for (let input of inputs) {
-                            total *= input;
-                            results.push(total);
-                        }
-                        return results;
-                    },
-                },
+        return Object.assign(
+            super.returnStateVariableDefinitions(),
+            returnScanStateVariableDefinitions({
+                numeric: (inputs) => runningFold(inputs, (a, b) => a * b),
+                symbolic: (inputs) =>
+                    runningFold(inputs, (a, b) => a.multiply(b)),
             }),
-        };
-
-        stateVariableDefinitions.listOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    listOperator: function (inputs) {
-                        let results = [];
-                        let total = null;
-                        for (let input of inputs) {
-                            total =
-                                total === null ? input : total.multiply(input);
-                            results.push(total);
-                        }
-                        return results;
-                    },
-                },
-            }),
-        };
-
-        return stateVariableDefinitions;
+        );
     }
 }
 
@@ -129,42 +118,13 @@ export class CumulativeMin extends MathBaseListOperator {
     };
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.numericListOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    numericListOperator: function (inputs) {
-                        let results = [];
-                        let running = Infinity;
-                        for (let input of inputs) {
-                            running = Math.min(running, input);
-                            results.push(running);
-                        }
-                        return results;
-                    },
-                },
+        return Object.assign(
+            super.returnStateVariableDefinitions(),
+            returnScanStateVariableDefinitions({
+                numeric: (inputs) => runningFold(inputs, Math.min),
+                symbolic: (inputs) => symbolicExtremesOfPrefixes(inputs, "min"),
             }),
-        };
-
-        stateVariableDefinitions.listOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    listOperator: function (inputs) {
-                        return inputs.map((_, ind) =>
-                            symbolicExtremeOfPrefix(
-                                inputs.slice(0, ind + 1),
-                                "min",
-                            ),
-                        );
-                    },
-                },
-            }),
-        };
-
-        return stateVariableDefinitions;
+        );
     }
 }
 
@@ -176,42 +136,13 @@ export class CumulativeMax extends MathBaseListOperator {
     };
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.numericListOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    numericListOperator: function (inputs) {
-                        let results = [];
-                        let running = -Infinity;
-                        for (let input of inputs) {
-                            running = Math.max(running, input);
-                            results.push(running);
-                        }
-                        return results;
-                    },
-                },
+        return Object.assign(
+            super.returnStateVariableDefinitions(),
+            returnScanStateVariableDefinitions({
+                numeric: (inputs) => runningFold(inputs, Math.max),
+                symbolic: (inputs) => symbolicExtremesOfPrefixes(inputs, "max"),
             }),
-        };
-
-        stateVariableDefinitions.listOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    listOperator: function (inputs) {
-                        return inputs.map((_, ind) =>
-                            symbolicExtremeOfPrefix(
-                                inputs.slice(0, ind + 1),
-                                "max",
-                            ),
-                        );
-                    },
-                },
-            }),
-        };
-
-        return stateVariableDefinitions;
+        );
     }
 }
 
@@ -224,38 +155,14 @@ export class Differences extends MathBaseListOperator {
     };
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.numericListOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    numericListOperator: function (inputs) {
-                        let results = [];
-                        for (let ind = 1; ind < inputs.length; ind++) {
-                            results.push(inputs[ind] - inputs[ind - 1]);
-                        }
-                        return results;
-                    },
-                },
+        return Object.assign(
+            super.returnStateVariableDefinitions(),
+            returnScanStateVariableDefinitions({
+                numeric: (inputs) =>
+                    successiveDifferences(inputs, (a, b) => a - b),
+                symbolic: (inputs) =>
+                    successiveDifferences(inputs, (a, b) => a.subtract(b)),
             }),
-        };
-
-        stateVariableDefinitions.listOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    listOperator: function (inputs) {
-                        let results = [];
-                        for (let ind = 1; ind < inputs.length; ind++) {
-                            results.push(inputs[ind].subtract(inputs[ind - 1]));
-                        }
-                        return results;
-                    },
-                },
-            }),
-        };
-
-        return stateVariableDefinitions;
+        );
     }
 }

@@ -93,62 +93,47 @@ export function extractComparableValue({
         };
     }
 
-    if (
-        componentInfoObjects.isInheritedComponentType({
-            inheritedComponentType: component.componentType,
-            baseComponentType: "point",
-        })
-    ) {
-        let compValue = component.stateValues[`x${sortByComponent}`];
-        let numericalValue = NaN;
-        let textValue = "";
-        let stillNumeric = true;
-        if (compValue) {
-            numericalValue = compValue.evaluate_to_constant();
-            if (Number.isNaN(numericalValue)) {
-                stillNumeric = false;
-            }
-            textValue = compValue.toString();
-        }
-        return {
-            value: {
-                componentIdx: component.componentIdx,
-                numericalValue,
-                textValue,
-            },
-            stillNumeric,
-        };
-    }
+    // Points and vectors are compared by one of their coordinates. A vector
+    // with `sortVectorsBy="tail"` uses its tail coordinate; everything else
+    // uses the displacement coordinate, which for a point is its position.
+    const isPoint = componentInfoObjects.isInheritedComponentType({
+        inheritedComponentType: component.componentType,
+        baseComponentType: "point",
+    });
+    const isVector = componentInfoObjects.isInheritedComponentType({
+        inheritedComponentType: component.componentType,
+        baseComponentType: "vector",
+    });
 
-    if (
-        componentInfoObjects.isInheritedComponentType({
-            inheritedComponentType: component.componentType,
-            baseComponentType: "vector",
-        })
-    ) {
-        let compValue;
-        if (sortVectorsBy === "displacement") {
-            compValue = component.stateValues[`x${sortByComponent}`];
-        } else {
-            compValue = component.stateValues[`tailX${sortByComponent}`];
+    if (isPoint || isVector) {
+        const coordinateName =
+            isVector && sortVectorsBy !== "displacement"
+                ? `tailX${sortByComponent}`
+                : `x${sortByComponent}`;
+        const compValue = component.stateValues[coordinateName];
+
+        // A missing coordinate (an index past the dimension of the point)
+        // leaves the value unusable but does not make the rest of the list
+        // non-numeric.
+        if (!compValue) {
+            return {
+                value: {
+                    componentIdx: component.componentIdx,
+                    numericalValue: NaN,
+                    textValue: "",
+                },
+                stillNumeric: true,
+            };
         }
-        let numericalValue = NaN;
-        let textValue = "";
-        let stillNumeric = true;
-        if (compValue) {
-            numericalValue = compValue.evaluate_to_constant();
-            if (Number.isNaN(numericalValue)) {
-                stillNumeric = false;
-            }
-            textValue = compValue.toString();
-        }
+
+        const numericalValue = compValue.evaluate_to_constant();
         return {
             value: {
                 componentIdx: component.componentIdx,
                 numericalValue,
-                textValue,
+                textValue: compValue.toString(),
             },
-            stillNumeric,
+            stillNumeric: !Number.isNaN(numericalValue),
         };
     }
 
@@ -177,9 +162,10 @@ export function compareExtractedValues(a, b, numeric) {
  * - `allAreNumeric` — whether the list should be compared numerically.
  *
  * `supportProps` controls whether the `sortByProp` attribute and the
- * point/vector component selectors are consulted. Components that only accept
- * math, number and text children (the scalar index operators) pass `false` and
- * get simpler dependencies.
+ * point/vector component selectors are consulted, and so whether a `propName`
+ * state variable is defined at all. Components that only accept math, number
+ * and text children (the scalar index operators) pass `false` and get simpler
+ * dependencies.
  */
 export function returnListValueStateVariableDefinitions({
     componentName,
@@ -187,22 +173,19 @@ export function returnListValueStateVariableDefinitions({
 }) {
     let stateVariableDefinitions = {};
 
-    stateVariableDefinitions.propName = {
-        returnDependencies: () =>
-            supportProps
-                ? {
-                      propName: {
-                          dependencyType: "attributePrimitive",
-                          attributeName: "sortByProp",
-                      },
-                  }
-                : {},
-        definition: function ({ dependencyValues }) {
-            return {
-                setValue: { propName: dependencyValues.propName ?? null },
-            };
-        },
-    };
+    if (supportProps) {
+        stateVariableDefinitions.propName = {
+            returnDependencies: () => ({
+                propName: {
+                    dependencyType: "attributePrimitive",
+                    attributeName: "sortByProp",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                return { setValue: { propName: dependencyValues.propName } };
+            },
+        };
+    }
 
     stateVariableDefinitions.componentIndicesForValues = {
         returnDependencies: () => ({
@@ -254,13 +237,13 @@ export function returnListValueStateVariableDefinitions({
                     dependencyType: "stateVariable",
                     variableName: "componentIndicesForValues",
                 },
-                propName: {
-                    dependencyType: "stateVariable",
-                    variableName: "propName",
-                },
             };
 
             if (supportProps) {
+                dependencies.propName = {
+                    dependencyType: "stateVariable",
+                    variableName: "propName",
+                };
                 dependencies.sortVectorsBy = {
                     dependencyType: "stateVariable",
                     variableName: "sortVectorsBy",
@@ -312,8 +295,7 @@ export function returnListValueStateVariableDefinitions({
             let listValues = [];
             let allAreNumeric = true;
 
-            let numValues =
-                dependencyValues.componentIndicesForValues?.length ?? 0;
+            let numValues = dependencyValues.componentIndicesForValues.length;
 
             for (let ind = 0; ind < numValues; ind++) {
                 let component = dependencyValues[`component${ind}`];

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -262,6 +263,45 @@ describe("List operator tag tests @group4", async () => {
                 resolvePathToNodeIdx,
                 name: "p",
                 text: "1, 3",
+            });
+        });
+
+        it("forceSymbolic and forceNumeric override the default choice", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="pSymbolic"><cumulativeSum forceSymbolic>1 2 3</cumulativeSum></p>
+    <p name="pNumeric"><cumulativeSum forceNumeric>1 x 3</cumulativeSum></p>
+    `,
+            });
+
+            // Symbolic accumulation leaves the sums unevaluated.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSymbolic",
+                text: "1, 1 + 2, 1 + 2 + 3",
+            });
+            // Numeric accumulation turns the non-numeric child into NaN.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pNumeric",
+                text: "1, NaN, NaN",
+            });
+        });
+
+        it("asList=false renders the results without separators", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><cumulativeSum asList="false">30 45 12</cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "307587",
             });
         });
 
@@ -638,6 +678,25 @@ describe("List operator tag tests @group4", async () => {
                 name: "pText",
                 text: "1",
             });
+        });
+
+        it("warnings name the component the author wrote", async () => {
+            let { core } = await createTestCore({
+                doenetML: `
+    <p name="p"><sortIndices type="bad">d a b</sortIndices></p>
+    `,
+            });
+
+            await core.returnAllStateVariables(false, true);
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.some((w) =>
+                    w.message.includes(
+                        "Invalid type bad for sortIndices component",
+                    ),
+                ),
+            ).eq(true);
         });
 
         it("a scan result feeds the index operators and a numberList", async () => {

@@ -4,7 +4,12 @@ import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import {
     calculateValueListReplacementChanges,
     createValueListReplacements,
+    returnPassThroughAttributes,
 } from "../../utils/valueListReplacements";
+import {
+    mathOperatorInputsFromChildren,
+    returnBreakStringsIntoMathsBySpacesSugarInstruction,
+} from "../../utils/mathOperatorChildren";
 
 /**
  * Base class for math operators that map a list of values to another list of
@@ -35,7 +40,7 @@ export default class MathBaseListOperator extends CompositeComponent {
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
-    static allowInSchemaAsComponent = ["math", "number", "_inline"];
+    static allowInSchemaAsComponent = ["math"];
 
     // Since the operator treats each child as a separate argument,
     // composites with no replacement should be ignored.
@@ -94,46 +99,9 @@ export default class MathBaseListOperator extends CompositeComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        function breakStringsIntoMathsBySpaces({
-            matchedChildren,
-            nComponents,
-            stateIdInfo,
-        }) {
-            // break any string by white space and wrap pieces with math or number
-
-            let newChildren = matchedChildren.reduce(function (a, c) {
-                if (typeof c === "string") {
-                    return [
-                        ...a,
-                        ...c
-                            .split(/\s+/)
-                            .filter((s) => s)
-                            .map((s) => ({
-                                type: "serialized",
-                                componentType: Number.isFinite(Number(s))
-                                    ? "number"
-                                    : "math",
-                                componentIdx: nComponents++,
-                                stateId: stateIdInfo
-                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                    : undefined,
-                                children: [s],
-                                attributes: {},
-                                doenetAttributes: {},
-                                state: {},
-                            })),
-                    ];
-                } else {
-                    return [...a, c];
-                }
-            }, []);
-
-            return { success: true, newChildren, nComponents };
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsIntoMathsBySpaces,
-        });
+        sugarInstructions.push(
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+        );
 
         return sugarInstructions;
     }
@@ -178,6 +146,10 @@ export default class MathBaseListOperator extends CompositeComponent {
                 } else if (dependencyValues.forceSymbolic) {
                     isNumericOperator = false;
                 } else if (dependencyValues.mathChildren.length === 0) {
+                    // Unlike `MathBaseOperator`, there is no shadow source to
+                    // fall back on: extending one of these composites copies
+                    // its children too, so a childless copy of a symbolic
+                    // operator cannot arise.
                     isNumericOperator = true;
                 } else {
                     // Have math children and aren't forced to be numeric or symbolic,
@@ -234,23 +206,15 @@ export default class MathBaseListOperator extends CompositeComponent {
                     return { setValue: { operatorResults: [] } };
                 }
 
-                if (dependencyValues.isNumericOperator) {
-                    let inputs = [];
-                    for (let child of dependencyValues.mathNumberChildren) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "number",
-                            })
-                        ) {
-                            inputs.push(child.stateValues.value);
-                        } else {
-                            inputs.push(
-                                child.stateValues.value.evaluate_to_constant(),
-                            );
-                        }
-                    }
+                let inputs = mathOperatorInputsFromChildren({
+                    children: dependencyValues.mathNumberChildren,
+                    isNumeric: dependencyValues.isNumericOperator,
+                    componentInfoObjects,
+                });
 
+                if (dependencyValues.isNumericOperator) {
+                    // The numeric operators work in plain numbers, so their
+                    // results have to be lifted back into math-expressions.
                     let results =
                         dependencyValues.numericListOperator(inputs) ?? [];
 
@@ -259,20 +223,6 @@ export default class MathBaseListOperator extends CompositeComponent {
                             operatorResults: results.map((x) => me.fromAst(x)),
                         },
                     };
-                }
-
-                let inputs = [];
-                for (let child of dependencyValues.mathNumberChildren) {
-                    if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "number",
-                        })
-                    ) {
-                        inputs.push(me.fromAst(child.stateValues.value));
-                    } else {
-                        inputs.push(child.stateValues.value);
-                    }
                 }
 
                 return {
@@ -303,24 +253,6 @@ export default class MathBaseListOperator extends CompositeComponent {
         return stateVariableDefinitions;
     }
 
-    /**
-     * The attributes that are forwarded from the composite onto each `<math>`
-     * replacement it creates, so that `<cumulativeSum displayDigits="3">`
-     * rounds each of its results.
-     */
-    static _attributesToForward(component) {
-        let attributesToConvert = {};
-        for (let attr of [
-            "fixed",
-            ...Object.keys(returnNumberDisplayAttributes()),
-        ]) {
-            if (attr in component.attributes) {
-                attributesToConvert[attr] = component.attributes[attr];
-            }
-        }
-        return attributesToConvert;
-    }
-
     static async createSerializedReplacements({
         component,
         componentInfoObjects,
@@ -331,7 +263,7 @@ export default class MathBaseListOperator extends CompositeComponent {
             component,
             values: await component.stateValues.operatorResults,
             componentType: "math",
-            attributesToConvert: this._attributesToForward(component),
+            attributesToConvert: returnPassThroughAttributes(component),
             componentInfoObjects,
             workspace,
             nComponents,
@@ -348,7 +280,7 @@ export default class MathBaseListOperator extends CompositeComponent {
             component,
             values: await component.stateValues.operatorResults,
             componentType: "math",
-            attributesToConvert: this._attributesToForward(component),
+            attributesToConvert: returnPassThroughAttributes(component),
             componentInfoObjects,
             workspace,
             nComponents,

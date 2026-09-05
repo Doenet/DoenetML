@@ -1,6 +1,10 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import MathComponent from "../Math";
 import me from "math-expressions";
+import {
+    mathOperatorInputsFromChildren,
+    returnBreakStringsIntoMathsBySpacesSugarInstruction,
+} from "../../utils/mathOperatorChildren";
 
 export default class MathOperator extends MathComponent {
     static componentType = "_mathOperator";
@@ -38,50 +42,9 @@ export default class MathOperator extends MathComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakStringsIntoMathsBySpaces = function ({
-            matchedChildren,
-            nComponents,
-            stateIdInfo,
-        }) {
-            // break any string by white space and wrap pieces with math or number
-
-            let newChildren = matchedChildren.reduce(function (a, c) {
-                if (typeof c === "string") {
-                    return [
-                        ...a,
-                        ...c
-                            .split(/\s+/)
-                            .filter((s) => s)
-                            .map((s) => ({
-                                type: "serialized",
-                                componentType: Number.isFinite(Number(s))
-                                    ? "number"
-                                    : "math",
-                                componentIdx: nComponents++,
-                                stateId: stateIdInfo
-                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                    : undefined,
-                                children: [s],
-                                attributes: {},
-                                doenetAttributes: {},
-                                state: {},
-                            })),
-                    ];
-                } else {
-                    return [...a, c];
-                }
-            }, []);
-
-            return {
-                success: true,
-                newChildren: newChildren,
-                nComponents,
-            };
-        };
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsIntoMathsBySpaces,
-        });
+        sugarInstructions.push(
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+        );
 
         return sugarInstructions;
     }
@@ -216,24 +179,15 @@ export default class MathOperator extends MathComponent {
                     return {
                         setValue: { unnormalizedValue: me.fromAst("\uff3f") },
                     };
-                } else if (dependencyValues.isNumericOperator) {
-                    let inputs = [];
-                    for (let child of dependencyValues.mathNumberChildren) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "number",
-                            })
-                        ) {
-                            inputs.push(child.stateValues.value);
-                        } else {
-                            // math
-                            let value =
-                                child.stateValues.value.evaluate_to_constant();
-                            inputs.push(value);
-                        }
-                    }
+                }
 
+                let inputs = mathOperatorInputsFromChildren({
+                    children: dependencyValues.mathNumberChildren,
+                    isNumeric: dependencyValues.isNumericOperator,
+                    componentInfoObjects,
+                });
+
+                if (dependencyValues.isNumericOperator) {
                     return {
                         setValue: {
                             unnormalizedValue: me.fromAst(
@@ -241,29 +195,14 @@ export default class MathOperator extends MathComponent {
                             ),
                         },
                     };
-                } else {
-                    let inputs = [];
-                    for (let child of dependencyValues.mathNumberChildren) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "number",
-                            })
-                        ) {
-                            inputs.push(me.fromAst(child.stateValues.value));
-                        } else {
-                            // math
-                            inputs.push(child.stateValues.value);
-                        }
-                    }
-
-                    return {
-                        setValue: {
-                            unnormalizedValue:
-                                dependencyValues.mathOperator(inputs),
-                        },
-                    };
                 }
+
+                return {
+                    setValue: {
+                        unnormalizedValue:
+                            dependencyValues.mathOperator(inputs),
+                    },
+                };
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,

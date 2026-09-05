@@ -1,4 +1,5 @@
 import { convertUnresolvedAttributesForComponentType } from "./dast/convertNormalizedDast";
+import { returnNumberDisplayAttributes } from "./numberDisplay";
 
 /**
  * Replacement bookkeeping for composites whose replacements are a list of
@@ -8,7 +9,10 @@ import { convertUnresolvedAttributesForComponentType } from "./dast/convertNorma
  * nothing to copy, so the composite creates value-carrying components the way
  * `<sequence>` does. And they differ from `<sequence>` in that the values come
  * from an already-computed array rather than from a formula, so the same code
- * serves every operator in the family.
+ * serves every operator in the family. `<sequence>` shares the per-replacement
+ * pieces below — `returnPassThroughAttributes` and `createOneReplacement` — but
+ * keeps its own change calculation, which has to reason about `from`, `step`
+ * and `exclude` rather than about an array of values.
  *
  * The reason this is more than "recreate everything" is reactivity: an operator
  * fed by a `<mathInput>` recomputes on every keystroke, and tearing down the
@@ -17,7 +21,31 @@ import { convertUnresolvedAttributesForComponentType } from "./dast/convertNorma
  * and only genuine length changes add or withhold components.
  */
 
-function createOneReplacement({
+/**
+ * The attributes a value-creating composite forwards onto each replacement it
+ * creates, so that `<cumulativeSum displayDigits="3">` rounds each of its
+ * results. `fixed` is included so an author can override the `fixed="true"`
+ * that these replacements otherwise carry — their values are computed, so they
+ * are not modifiable by default.
+ */
+export function returnPassThroughAttributes(component) {
+    let attributesToConvert = {};
+    for (let attr of [
+        "fixed",
+        ...Object.keys(returnNumberDisplayAttributes()),
+    ]) {
+        if (attr in component.attributes) {
+            attributesToConvert[attr] = component.attributes[attr];
+        }
+    }
+    return attributesToConvert;
+}
+
+/**
+ * Serialize one replacement carrying `value`, forwarding `attributesToConvert`
+ * from the composite onto it.
+ */
+export function createOneReplacement({
     value,
     componentType,
     attributesToConvert,

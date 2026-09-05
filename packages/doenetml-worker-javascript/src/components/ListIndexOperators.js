@@ -10,7 +10,10 @@ import { compareExtractedValues } from "../utils/listValues";
  * All indices are 1-based, matching `$list[1]`; `0` means "no such element".
  */
 
-/** The index of the first value for which `isBetter` prefers it over the running best. */
+/**
+ * The 1-based index of the smallest value when `wantSmaller`, and of the
+ * largest otherwise. An empty list gives 0.
+ */
 function indexOfExtreme({ values, numeric, wantSmaller }) {
     if (values.length === 0) {
         return 0;

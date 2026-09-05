@@ -12,7 +12,7 @@ Every math operator in DoenetML reduced a list to a single value — `<sum>`, `<
 
 Ten new components, in two families.
 
-**Cumulative scans** map a list to another list of the same length: `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`, `<cumulativeMax>`, and `<differences>` (which is one shorter, and inverts `<cumulativeSum>`). They accumulate numerically when every input is a number and symbolically otherwise, so `<cumulativeSum>x y z</cumulativeSum>` gives `x, x+y, x+y+z`. The result is an ordinary list: `$cum[3]`, `<sum>$cum</sum>` and `<numberList>$cum</numberList>` all work on it, and rounding attributes pass through to each value.
+**Cumulative scans** map a list to another list of the same length: `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`, `<cumulativeMax>`, and `<differences>` (which is one shorter, and undoes `<cumulativeSum>` apart from its first value). They accumulate numerically when every input is a number and symbolically otherwise, so `<cumulativeSum>x y z</cumulativeSum>` gives `x, x+y, x+y+z`. The result is an ordinary list: `$cum[3]`, `<sum>$cum</sum>` and `<numberList>$cum</numberList>` all work on it, and rounding attributes pass through to each value.
 
 **Index-returning operators** report a position rather than a value: `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>` and `<sortIndices>`. Indices are 1-based to match `$list[1]`, and `0` means "no such element". These are not math-only — they order values exactly as `<sort>` does, comparing numerically when every value is numeric and alphabetically otherwise, so `<indexOf type="text" target="Cal">$names</indexOf>` searches a `<textList>` as readily as `<argMin>` scans a `<numberList>`.
 

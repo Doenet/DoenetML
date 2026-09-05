@@ -80,7 +80,7 @@ export default class Sort extends CompositeComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoTypeSugarInstruction("sort"),
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
         );
 
         return sugarInstructions;
@@ -101,7 +101,7 @@ export default class Sort extends CompositeComponent {
         Object.assign(
             stateVariableDefinitions,
             returnListValueStateVariableDefinitions({
-                componentName: "sort",
+                componentName: this.componentType,
                 supportProps: true,
             }),
         );
