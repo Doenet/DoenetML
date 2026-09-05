@@ -90,7 +90,8 @@ export type GroupCompositeRangesOptions<T> = {
     /**
      * The index of a child the caller removed from `children` before calling —
      * `section.tsx` takes the `<title>` out of the array it renders. Ranges are
-     * shifted to match, and a range that ended on that child is dropped.
+     * shifted to match, and a range that began or ended on that child is
+     * dropped.
      */
     removedInd?: number | null;
 };
@@ -248,8 +249,9 @@ function groupRange<T>({
 
 /**
  * Where the caller removed a child before grouping, move a range to match.
- * Returns nothing for a range that ended on the removed child, which is no
- * longer a range of the children being grouped.
+ * Returns nothing for a range that began or ended on the removed child — the
+ * composite that produced the `<title>` — whose other children, if it had any,
+ * are then grouped as if no composite had produced them.
  */
 function shiftForRemovedChild(
     range: CompositeRange,
@@ -353,9 +355,10 @@ function prepareListItems<T>(
 }
 
 /**
- * Drop the whitespace-only children an item ends with, and take the trailing
- * whitespace off the child that is left at its end. `item` is not itself
- * blank, so a composite always has such a child.
+ * Drop the blank groups an item ends with — whitespace-only children, and
+ * composites that produced only those — and take the trailing whitespace off
+ * the child that is left at its end. `item` is not itself blank, so a
+ * composite always has such a child.
  */
 function trimItemEnd<T>(
     item: CompositeGroup<T>,
