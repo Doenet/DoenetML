@@ -102,8 +102,11 @@ export type GroupCompositeRangesOptions<T> = {
  * A composite's range is recorded before its replacements' ranges, and each of
  * those lies inside it. Ordered by where they start, the wider first where two
  * start together, every range comes right before the ranges of the composites
- * inside it, whatever order they were recorded in. One pass over them, with a
- * stack of the composites still open, then builds the tree.
+ * inside it, however the ranges of one composite's replacements were
+ * interleaved with its siblings'. Two ranges with the same span — a composite
+ * whose only replacement is a composite — keep their recorded order, the outer
+ * first, since the sort is stable. One pass over them, with a stack of the
+ * composites still open, then builds the tree.
  */
 export function groupCompositeRanges<T>({
     children,
@@ -193,7 +196,9 @@ export function groupCompositeRanges<T>({
         }
         const parent = open[open.length - 1];
         if (firstInd < parent.nextInd) {
-            // Inside a composite already left: not a range the core records.
+            // The replacement of a composite the caller asked to skip: its
+            // children were passed over above without opening it, so this
+            // range goes with it.
             continue;
         }
 
@@ -317,8 +322,9 @@ export function joinListText(parts: string[], blank: boolean[]): string {
  * at the end of an item a comma will follow, so that nothing puts a space in
  * front of a comma. The whitespace before the first item and after the last
  * stays: no comma replaces it, and it separates the list from what surrounds
- * it. A composite that produced only whitespace stays as well, emptied of that
- * whitespace, so that the renderers can still anchor its name to its place.
+ * it. Between two items, a composite that produced only whitespace stays as
+ * well, emptied of that whitespace, so that the renderers can still anchor its
+ * name to its place.
  */
 function prepareListItems<T>(
     items: CompositeGroup<T>[],

@@ -139,6 +139,34 @@ describe("groupCompositeRanges", () => {
         ).eq(`list10(group11("1" "2") "3")`);
     });
 
+    it("nests two composites with the same span in the order they were recorded", () => {
+        // A composite whose only replacement is a composite has the same span
+        // as that replacement. The core records the outer one first, and the
+        // ordering keeps them that way, so the inner one decides the list.
+        expect(
+            sketch(
+                groupCompositeRanges<string>({
+                    children: ["1", "2"],
+                    ranges: [
+                        range({
+                            compositeIdx: 10,
+                            firstInd: 0,
+                            lastInd: 1,
+                            asList: false,
+                            potentialListComponents: [true, true],
+                        }),
+                        range({
+                            compositeIdx: 11,
+                            firstInd: 0,
+                            lastInd: 1,
+                            potentialListComponents: [true, true],
+                        }),
+                    ],
+                }),
+            ),
+        ).eq(`group10(list11("1" "2"))`);
+    });
+
     it("finds a composite's replacements wherever their ranges were recorded", () => {
         // The core records a range when a composite expands, so the ranges of
         // one composite's replacements can come after its sibling's.
@@ -416,6 +444,34 @@ describe("groupCompositeRanges", () => {
                             firstInd: 1,
                             lastInd: 2,
                             hidden: true,
+                            potentialListComponents: [true, true],
+                        }),
+                    ],
+                    skipRange: (candidate) => Boolean(candidate.hidden),
+                }),
+            ),
+        ).eq(`"before" "after"`);
+    });
+
+    it("drops the composites inside a skipped composite along with it", () => {
+        // The replacements of a hidden composite can be composites of their
+        // own, each with a range of its own; those go with the one skipped.
+        expect(
+            sketch(
+                groupCompositeRanges<string>({
+                    children: ["before", "1", "2", "after"],
+                    ranges: [
+                        range({
+                            compositeIdx: 7,
+                            firstInd: 1,
+                            lastInd: 2,
+                            hidden: true,
+                            potentialListComponents: [true, true],
+                        }),
+                        range({
+                            compositeIdx: 8,
+                            firstInd: 1,
+                            lastInd: 2,
                             potentialListComponents: [true, true],
                         }),
                     ],
