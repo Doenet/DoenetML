@@ -528,6 +528,9 @@ export type MessageKey =
     | "sample-distribution-slow"
     | "index-operator-missing-target"
     | "index-operator-no-values"
+    | "sample-multivariate-parameters-invalid"
+    | "sample-multivariate-draws-too-many"
+    | "sample-multivariate-type-not-specified"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1122,6 +1125,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sample-distribution-slow",
     "index-operator-missing-target",
     "index-operator-no-values",
+    "sample-multivariate-parameters-invalid",
+    "sample-multivariate-draws-too-many",
+    "sample-multivariate-type-not-specified",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

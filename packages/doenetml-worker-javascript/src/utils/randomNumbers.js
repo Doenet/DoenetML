@@ -20,6 +20,11 @@ const TWO_TO_THE_53 = 0x20000000000000;
 // worth saying but not worth refusing.
 const WORK_PER_VARIATE_WARNING_THRESHOLD = 1e6;
 
+/** Total of a list of numbers, e.g. the population size a partition adds up to. */
+function sumOf(nums) {
+    return nums.reduce((a, c) => a + c, 0);
+}
+
 /**
  * Sample a single hypergeometric variate: the number of successes obtained when drawing
  * `numDraws` items without replacement from a population of `numTotal` items, of which
@@ -67,6 +72,44 @@ export function sampleHypergeometric({
     }
 
     return count;
+}
+
+/**
+ * Sample a single multivariate hypergeometric variate: the vector of per-category
+ * counts obtained when drawing `numDraws` items without replacement from a population
+ * partitioned into categories of sizes `numInCategories`.
+ *
+ * Draws each category's count in turn as a univariate hypergeometric against the part
+ * of the population not yet accounted for, which is exact rather than an approximation.
+ * The last category takes whatever draws remain, so the counts always sum to `numDraws`.
+ */
+export function sampleMultivariateHypergeometric({
+    numInCategories,
+    numDraws,
+    rng,
+}) {
+    const counts = [];
+
+    let remainingInPopulation = sumOf(numInCategories);
+    let remainingDraws = numDraws;
+
+    for (let i = 0; i < numInCategories.length - 1; i++) {
+        const count = sampleHypergeometric({
+            numTotal: remainingInPopulation,
+            numSuccesses: numInCategories[i],
+            numDraws: remainingDraws,
+            rng,
+        });
+
+        counts.push(count);
+        remainingInPopulation -= numInCategories[i];
+        remainingDraws -= count;
+    }
+
+    // whatever is left must come from the final category
+    counts.push(remainingDraws);
+
+    return counts;
 }
 
 /**
@@ -219,11 +262,11 @@ function hypergeometricWork({ numTotal, numDraws }) {
  * How a parameter is written into a diagnostic: the number the author gave, or the
  * sentinel `"not-set"` for one they left off.
  *
- * The hypergeometric parameters are the only ones with no default, so an omitted
- * one reaches a message as `null` — a word out of the implementation rather than
- * anything the author typed, and omitting one is the first way most authors reach
- * that message. The catalog selects on the sentinel and says "not set" in the
- * reader's language instead.
+ * The hypergeometric parameters, and the multivariate `numDraws`, are the only
+ * ones with no default, so an omitted one reaches a message as `null` — a word out
+ * of the implementation rather than anything the author typed, and omitting one is
+ * the first way most authors reach those messages. The catalog selects on the
+ * sentinel and says "not set" in the reader's language instead.
  */
 function reportedValue(value) {
     return value == null ? "not-set" : value;
@@ -373,6 +416,92 @@ function poissonMeanProblem(mean) {
  */
 export function validPoissonMean(mean) {
     return poissonMeanProblem(mean) === null;
+}
+
+/**
+ * An upper bound on the draws one multivariate variate costs. Every category but the
+ * last is a univariate hypergeometric draw against the part of the population not yet
+ * accounted for; neither the draws remaining nor the items left behind ever grows as
+ * that part shrinks, so no such draw costs more than one against the whole population.
+ */
+function multivariateHypergeometricWork({ numInCategories, numDraws }) {
+    const numTotal = sumOf(numInCategories);
+    return (
+        (numInCategories.length - 1) * Math.min(numDraws, numTotal - numDraws)
+    );
+}
+
+/**
+ * Why `numInCategories` and `numDraws` cannot be sampled from, or `null` if they can.
+ * A usable set is a population split into at least one category of a non-negative
+ * whole number of items, counting exactly both category by category and in total,
+ * from which a non-negative whole number of items no larger than the whole population
+ * is drawn few enough times to finish promptly.
+ *
+ * Insisting on at least one category also keeps `sampleMultivariateHypergeometric`
+ * from being handed an empty partition, which has no final category to absorb the
+ * remaining draws.
+ */
+function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
+    const numTotal = sumOf(numInCategories);
+
+    if (
+        numInCategories.length === 0 ||
+        // safe integers, for the reason given on the univariate hypergeometric
+        // above: `numDraws * numInCategories[i]` backs the reported means, and a
+        // merely-whole population large enough overflows it to Infinity
+        !numInCategories.every(
+            (num) => Number.isSafeInteger(num) && num >= 0,
+        ) ||
+        // and the total as well as each category, since that total — not any
+        // one category — is the largest population a draw is ever made against:
+        // the first category's is made against it, and each later one against a
+        // part of it. Past 2^53 it has no whole multiple of itself left below
+        // 2^53, so `uniformBelow` rejects every draw it makes and never returns
+        !Number.isSafeInteger(numTotal) ||
+        !Number.isSafeInteger(numDraws) ||
+        numDraws < 0 ||
+        numDraws > numTotal
+    ) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0135",
+            args: {
+                // an omitted numberList arrives empty rather than as null
+                numInCategories:
+                    numInCategories.length === 0
+                        ? "not-set"
+                        : numInCategories.join(", "),
+                numDraws: reportedValue(numDraws),
+            },
+        });
+    }
+
+    if (
+        multivariateHypergeometricWork({ numInCategories, numDraws }) >
+        MAX_WORK_PER_VARIATE
+    ) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0136",
+            args: {
+                numDraws,
+                numTotal,
+                numCategories: numInCategories.length,
+                maxDraws: MAX_WORK_PER_VARIATE,
+            },
+        });
+    }
+
+    return null;
+}
+
+/**
+ * Whether `numInCategories` and `numDraws` describe a multivariate hypergeometric
+ * distribution this can actually sample from. Shared with the component, as above.
+ */
+export function validMultivariateHypergeometricParameters(parameters) {
+    return multivariateHypergeometricProblem(parameters) === null;
 }
 
 /**
@@ -553,6 +682,118 @@ export function sampleFromRandomNumbers({
 
         return { sampledValues, diagnostics: [] };
     }
+}
+
+/**
+ * The multivariate distributions that can be sampled from, each mapped to the function
+ * that draws one vector-valued variate from it.
+ *
+ * A name in this map but not in the `type` attribute's `validValues`, or the reverse,
+ * refuses to sample rather than quietly drawing from whichever distribution happened to
+ * be first. That refusal is all this map buys, and registering a second distribution
+ * takes considerably more than adding it to the two lists: everything below is still
+ * written for the hypergeometric alone. The parameters describe an urn rather than any
+ * multivariate distribution — a joint gaussian would be given means and covariances,
+ * not `numInCategories` and `numDraws` — and the validity check, the cost estimate, and
+ * the two diagnostics reporting on them are all specific to that urn, down to the
+ * message text, which names the multivariate hypergeometric outright. A second
+ * distribution needs its own parameters, validation, cost estimate, and messages; what
+ * it inherits from here is only that forgetting them cannot pass for a working draw.
+ */
+const MULTIVARIATE_SAMPLERS = {
+    hypergeometric: sampleMultivariateHypergeometric,
+};
+
+/**
+ * What these parameters have to say for themselves, drawing nothing: whether they can
+ * be sampled from at all, and either the reason they cannot or a notice that sampling
+ * them will be slow.
+ *
+ * Both the draw and the diagnostics-only entry point below read this one answer, so
+ * the decision to sample and the explanation given to the author cannot drift apart.
+ */
+function inspectMultivariateParameters({ type, numInCategories, numDraws }) {
+    // A name no sampler answers to is treated exactly as no name at all, which is
+    // what the `type` attribute already does with one: it rejects the value and falls
+    // back to its `null` default. Matching that here keeps a direct caller of this
+    // helper from getting a draw that a document with the same `type` would refuse.
+    if (type == null || !Object.hasOwn(MULTIVARIATE_SAMPLERS, type)) {
+        return {
+            sampleable: false,
+            diagnostics: [
+                codedDiagnostic({ type: "warning", code: "doenet-w0137" }),
+            ],
+        };
+    }
+
+    // Hypergeometric-specific, as is the cost estimate below — see the note on
+    // MULTIVARIATE_SAMPLERS for what a second distribution would have to bring.
+    const problem = multivariateHypergeometricProblem({
+        numInCategories,
+        numDraws,
+    });
+    if (problem) {
+        return { sampleable: false, diagnostics: [problem] };
+    }
+
+    return {
+        sampleable: true,
+        diagnostics: slowSamplingDiagnostics(
+            `multivariate ${type}`,
+            multivariateHypergeometricWork({ numInCategories, numDraws }),
+        ),
+    };
+}
+
+/**
+ * The diagnostics these parameters raise, drawing nothing: the reason they cannot be
+ * sampled from, or a notice that sampling them will be slow, or neither.
+ *
+ * Separate from the draw so that a component reusing values it already has — from
+ * saved state, or from a resample — can still tell the author why they are NaN,
+ * without consuming any randomness and so without disturbing a variant.
+ */
+export function multivariateSamplingDiagnostics(parameters) {
+    return inspectMultivariateParameters(parameters).diagnostics;
+}
+
+/**
+ * Draw one vector-valued sample from the multivariate distribution named by `type`,
+ * returning one number per category alongside any diagnostics it raised — or one NaN
+ * per category when the parameters describe no distribution this can sample from.
+ *
+ * As with `sampleFromRandomNumbers`, the diagnostics come back rather than being
+ * logged, so the state variable that calls this can pass them on to the reader.
+ */
+export function sampleFromMultivariateDistribution({
+    type,
+    numInCategories,
+    numDraws,
+    rng,
+}) {
+    const { sampleable, diagnostics } = inspectMultivariateParameters({
+        type,
+        numInCategories,
+        numDraws,
+    });
+
+    // anything that stopped it being sampled leaves one NaN per category, so a
+    // caller never has to special-case the failure
+    if (!sampleable) {
+        return {
+            sampledValues: Array(numInCategories.length).fill(NaN),
+            diagnostics,
+        };
+    }
+
+    return {
+        sampledValues: MULTIVARIATE_SAMPLERS[type]({
+            numInCategories,
+            numDraws,
+            rng,
+        }),
+        diagnostics,
+    };
 }
 
 export function sampleFromNumberList({

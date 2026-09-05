@@ -127,6 +127,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -157,7 +158,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -384,6 +385,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -401,7 +403,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1289,6 +1291,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -1319,7 +1322,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1764,6 +1767,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -1794,7 +1798,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -2304,6 +2308,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -2354,7 +2359,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -2860,6 +2865,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -2910,7 +2916,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -3416,6 +3422,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -3466,7 +3473,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4189,6 +4196,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -4221,7 +4229,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222221112111121222211221111122200",
+            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4733,6 +4741,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -4783,7 +4792,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -5062,6 +5071,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -5092,7 +5102,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5504,6 +5514,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -5534,7 +5545,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5946,6 +5957,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -5976,7 +5988,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -6964,6 +6976,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -6994,7 +7007,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -7370,6 +7383,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -7405,7 +7419,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "12222111111111111111111111122222111122212222212202022221222220122122221222221112221211222221111111110212120",
+            "childBuckets": "122221111111111111111111111222221111222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_booleanOperatorOneInput",
                 "_inline",
@@ -9796,6 +9810,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -9813,7 +9828,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -10259,6 +10274,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -10276,7 +10292,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -10722,6 +10738,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -10739,7 +10756,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -11215,6 +11232,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -11232,7 +11250,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -12104,6 +12122,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -12121,7 +12140,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -12993,6 +13012,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -13010,7 +13030,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -13874,6 +13894,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -13891,7 +13912,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -14755,6 +14776,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -14772,7 +14794,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -15636,6 +15658,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -15653,7 +15676,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -16504,6 +16527,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -16521,7 +16545,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -17343,6 +17367,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -17360,7 +17385,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -18198,6 +18223,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -18215,7 +18241,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -19053,6 +19079,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -19070,7 +19097,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -19908,6 +19935,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -19925,7 +19953,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -20763,6 +20791,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -20780,7 +20809,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -21652,6 +21681,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -21669,7 +21699,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -22541,6 +22571,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -22558,7 +22589,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -23447,6 +23478,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -23464,7 +23496,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -24353,6 +24385,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -24370,7 +24403,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -25242,6 +25275,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -25259,7 +25293,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -26131,6 +26165,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -26148,7 +26183,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -27020,6 +27055,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -27037,7 +27073,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -27909,6 +27945,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -27926,7 +27963,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -28798,6 +28835,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -28815,7 +28853,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -29687,6 +29725,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -29704,7 +29743,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -30603,6 +30642,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -30620,7 +30660,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -30875,6 +30915,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -30892,7 +30933,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31147,6 +31188,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -31164,7 +31206,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31419,6 +31461,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -31436,7 +31479,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31691,6 +31734,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -31708,7 +31752,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222220122122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -32079,6 +32123,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -32129,7 +32174,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -33102,6 +33147,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -33152,7 +33198,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -34125,6 +34171,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -34175,7 +34222,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -35155,6 +35202,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -35205,7 +35253,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -36098,6 +36146,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -36118,7 +36167,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "12222111111111111111111111122222111111122222212222022221222222201122221222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -37044,6 +37093,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -37064,7 +37114,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "12222111111111111111111111122222111111122222212222022221222222201122221222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -37990,6 +38040,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -38010,7 +38061,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "12222111111111111111111111122222111111122222212222022221222222201122221222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -38940,6 +38991,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -38957,7 +39009,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_textOperatorOfMath",
                 "_inline",
@@ -39453,6 +39505,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -39483,7 +39536,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -39755,6 +39808,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -39785,7 +39839,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40057,6 +40111,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -40087,7 +40142,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40359,6 +40414,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -40389,7 +40445,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40661,6 +40717,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -40691,7 +40748,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40963,6 +41020,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -40993,7 +41051,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41265,6 +41323,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -41295,7 +41354,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41567,6 +41626,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -41597,7 +41657,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41869,6 +41929,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -41899,7 +41960,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42171,6 +42232,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -42201,7 +42263,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43727,6 +43789,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -43776,7 +43839,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -44526,6 +44589,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -44575,7 +44639,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45325,6 +45389,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -45374,7 +45439,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46124,6 +46189,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -46173,7 +46239,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46923,6 +46989,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -46972,7 +47039,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -47731,6 +47798,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -47780,7 +47848,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -48530,6 +48598,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -48579,7 +48648,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49338,6 +49407,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -49387,7 +49457,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -50146,6 +50216,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -50195,7 +50266,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -50954,6 +51025,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -51003,7 +51075,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -51762,6 +51834,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -51811,7 +51884,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -52561,6 +52634,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -52610,7 +52684,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -53360,6 +53434,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -53409,7 +53484,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54159,6 +54234,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -54208,7 +54284,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54958,6 +55034,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -55007,7 +55084,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -55757,6 +55834,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -55806,7 +55884,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -56556,6 +56634,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -56605,7 +56684,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_unnumberedSectioningComponent",
                 "_sectioningComponent",
@@ -57352,6 +57431,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -57401,7 +57481,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -58138,6 +58218,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -58187,7 +58268,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -59623,6 +59704,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -59673,7 +59755,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -61276,6 +61358,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -61304,7 +61387,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "1120111111111111111111111112222211111102201012212111122211111111222201222222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222111111022010122121111222111111112222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -62042,6 +62125,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -62059,7 +62143,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11201222211111111111111111111112222211112222222221222202222122222012212221222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -62701,6 +62785,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -62718,7 +62803,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112011101012222111111111111111111111122222111122222212222022221222220112221222221222221212222",
+            "childBuckets": "1120111010122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -64459,6 +64544,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -64476,7 +64562,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -65314,6 +65400,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -65331,7 +65418,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "020122221111111111111111111111222221111222222222122220222122222012212221222221222221212222",
+            "childBuckets": "0201222211111111111111111111112222211112222222221222202221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67226,6 +67313,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -67276,7 +67364,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67606,6 +67694,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -67656,7 +67745,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -68162,6 +68251,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -68212,7 +68302,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -68718,6 +68808,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -68768,7 +68859,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -69098,6 +69189,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -69148,7 +69240,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -69502,6 +69594,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -69552,7 +69645,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -70522,6 +70615,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -70539,7 +70633,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120001222211111111111111111111112222211112222222221222202222122222222212221222221222221212222",
+            "childBuckets": "11200012222111111111111111111111122222111122222222212222022221222222222122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -71127,6 +71221,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -71209,7 +71304,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -71479,6 +71574,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -71561,7 +71657,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -71900,6 +71996,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -71949,7 +72046,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -73659,6 +73756,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -73693,7 +73791,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "22222222222222222222222222222222222222222222222122202222222222222222222222211222222212111111111111111111",
+            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -74135,6 +74233,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -74151,7 +74250,7 @@
                 "latex",
                 "intervalList"
             ],
-            "childBuckets": "22222222222222222222222222222222222222222222222122202222222222222222222222211222222212",
+            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -74426,6 +74525,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -74458,7 +74558,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222221112111121222211221111122200",
+            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -74854,6 +74954,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -74889,7 +74990,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "12222111111111111111111111122222111122212222212202022221222220122122221222221112221211222221111111110212120",
+            "childBuckets": "122221111111111111111111111222221111222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -75501,6 +75602,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -75518,7 +75620,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -76355,6 +76457,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -76372,7 +76475,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -76686,6 +76789,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -76703,7 +76807,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -76995,6 +77099,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -77034,7 +77139,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111222221111212202221011222212222212222112222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211112122022210112222122222212222112222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -77476,6 +77581,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -77526,7 +77632,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -77786,6 +77892,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -77814,7 +77921,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "1120111111111111111111111112222211111102201012212111122211111111222201222222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222111111022010122121111222111111112222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -78534,6 +78641,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -78551,7 +78659,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -79380,6 +79488,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -79397,7 +79506,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11201222211111111111111111111112222211112222222221222202222122222012212221222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -84731,6 +84840,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -84748,7 +84858,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11201222211111111111111111111112222211112222222221222202222122222012212221222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -85621,6 +85731,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -85638,7 +85749,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11201222211111111111111111111112222211112222222221222202222122222012212221222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -86343,6 +86454,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -86360,7 +86472,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112011101012222111111111111111111111122222111122222212222022221222220112221222221222221212222",
+            "childBuckets": "1120111010122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -87285,6 +87397,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -87302,7 +87415,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "021222211111111111111111111112222211112222222221222202222122222012212221222221222221212222",
+            "childBuckets": "0212222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -87539,6 +87652,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -87550,7 +87664,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "11111111111111111111111222221111102210122212111222222222222222222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211111022101222121112222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -87840,6 +87954,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -87868,7 +87983,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "11201111111111111111111111122222111111022010122121111222222201222222222222222222222222222222",
+            "childBuckets": "112011111111111111111111111222221111110220101221211112222222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -88599,6 +88714,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -88638,7 +88754,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "11201111111111111111111111122222111121220222101122212222212222112222222222222222222222222222",
+            "childBuckets": "112011111111111111111111111222221111212202221011222122222212222112222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -89188,6 +89304,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -89218,7 +89335,7 @@
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "0211111101100012222111111111111111111111122222111122212222210000102122200122122212222211122212112221111111110011",
+            "childBuckets": "02111111011000122221111111111111111111111222221111222122222100001021222001221222122222211122212112221111111110011",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -90231,6 +90348,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -90266,7 +90384,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "021222211111111111111111111112222211112221222221220202222122222012212221222221112221211222221111111110212120",
+            "childBuckets": "0212222111111111111111111111122222111122212222212202022221222220122122212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_base"
             ],
@@ -90849,6 +90967,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -90884,7 +91003,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "12222111111111111111111111122222111122212222212202022221222220122122221222221112221211222221111111110212120",
+            "childBuckets": "122221111111111111111111111222221111222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -91363,6 +91482,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -91380,7 +91500,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120001222211111111111111111111112222211112222222221222202222122222222212221222221222221212222",
+            "childBuckets": "11200012222111111111111111111111122222111122222222212222022221222222222122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -92224,6 +92344,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -92239,7 +92360,7 @@
                 "latex",
                 "intervalList"
             ],
-            "childBuckets": "1120002222222222222222222222222222222222222222222221222022222222222222222222221122222212",
+            "childBuckets": "11200022222222222222222222222222222222222222222222212220222222222222222222222221122222212",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -92793,6 +92914,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -92810,7 +92932,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112000111111111022111222211111111111111111111112222211112222222221222202222122222012212221222221222221212222",
+            "childBuckets": "1120001111111110221112222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -93814,6 +93936,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -93864,7 +93987,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -94135,6 +94258,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -94191,7 +94315,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "1111111111111111111111122222111111020222101122221222221112211122222222222222222222222222222111111111021212",
+            "childBuckets": "11111111111111111111111222221111110202221011222212222221112211122222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -94642,6 +94766,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -94698,7 +94823,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "1111111111111111111111122222111111020222101122221222221112211122222222222222222222222222222111111111021212",
+            "childBuckets": "11111111111111111111111222221111110202221011222212222221112211122222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -95222,6 +95347,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -95246,7 +95372,7 @@
                 "graph",
                 "annotations"
             ],
-            "childBuckets": "020001111111111111111111111122222111122211111022211111111111111122122212222121212212111111111222001112222222221220222220122222112220212220010000000",
+            "childBuckets": "0200011111111111111111111111222221111222111110222111111111111111221222122221212122121111111112220011122222222212202222201222222112220212220010000000",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -96547,6 +96673,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -96567,7 +96694,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "12222111111111111111111111122222111111122222212222022221222222201122221222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -98257,6 +98384,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -98274,7 +98402,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -99216,6 +99344,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -99266,7 +99395,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -99679,6 +99808,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -99715,7 +99845,7 @@
                 "label",
                 "matchesPattern"
             ],
-            "childBuckets": "22222222222222222222222222222222120222222012222222222221122221211222222222222222222202",
+            "childBuckets": "222222222222222222222222222222221202222220122222222222221122221211222222222222222222202",
             "abstractAncestors": [
                 "_base"
             ],
@@ -100677,6 +100807,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -100843,7 +100974,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -102379,6 +102510,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -102461,7 +102593,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "0211111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222221222122222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "02111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -102765,6 +102897,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -102846,7 +102979,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "2011111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222122212222211121111212222112211111222111111111111111111111111111111111111111111111111111",
+            "childBuckets": "20111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222221222122222211121111212222112211111222111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -103214,6 +103347,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -103264,7 +103398,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -103589,6 +103723,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -103639,7 +103774,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -106073,6 +106208,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -106124,7 +106260,7 @@
                 "vectorList",
                 "else"
             ],
-            "childBuckets": "101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
+            "childBuckets": "1011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -106374,6 +106510,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -106404,7 +106541,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -107367,6 +107504,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -107417,7 +107555,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -109382,6 +109520,257 @@
             "layoutCategory": "other"
         },
         {
+            "name": "sampleMultivariateRandomNumber",
+            "children": [],
+            "childBuckets": "",
+            "abstractAncestors": [
+                "_composite",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "type",
+                    "description": "Multivariate distribution from which to sample. Required; there is no default.",
+                    "defaultValue": null,
+                    "values": [
+                        "hypergeometric"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "hypergeometric",
+                            "description": "Number of items of each category obtained when drawing `numDraws` items without replacement from a population partitioned into categories of the sizes given by `numInCategories`."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "numInCategories",
+                    "description": "Number of items of each category in the population drawn from. Its length determines how many numbers are sampled.",
+                    "defaultValue": [],
+                    "type": "numberList"
+                },
+                {
+                    "name": "numDraws",
+                    "description": "Number of items drawn without replacement from the population.",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "variantDeterminesSeed",
+                    "description": "Whether the document's variant index determines the random seed.",
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "type",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Multivariate distribution from which to sample. Required; there is no default.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numInCategories",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Number of items of each category in the population drawn from. Its length determines how many numbers are sampled.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement from the population.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "variantDeterminesSeed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the document's variant index determines the random seed.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numCategories",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of categories the population is partitioned into, which is how many numbers are sampled."
+                },
+                {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Total number of items in the population drawn from, i.e. the sum of `numInCategories`."
+                },
+                {
+                    "name": "means",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "Expected number of items sampled from each category, i.e. `numDraws * numInCategories[i] / numTotal`.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "variances",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "Variance of the number of items sampled from each category.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false,
+            "takesIndex": true,
+            "docsSlug": "sampleMultivariateRandomNumber",
+            "summary": "Samples one number per category from a multivariate distribution, drawn together rather than independently",
+            "layoutCategory": "other"
+        },
+        {
             "name": "selectPrimeNumbers",
             "children": [],
             "childBuckets": "",
@@ -110003,6 +110392,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -110053,7 +110443,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -112404,6 +112794,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -112454,7 +112845,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "01111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -112678,6 +113069,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -112712,7 +113104,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "22222222222222222222222222222222222222222222222122202222222222222222222222211222222212111111111111111111",
+            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -113154,6 +113546,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -113188,7 +113581,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "22222222222222222222222222222222222222222222222122202222222222222222222222211222222212111111111111111111",
+            "childBuckets": "222222222222222222222222222222222222222222222221222022222222222222222222222211222222212111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -113774,6 +114167,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -113824,7 +114218,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -114151,6 +114545,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -114201,7 +114596,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -114530,6 +114925,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -114580,7 +114976,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -115494,6 +115890,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -115543,7 +115940,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -116668,6 +117065,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -116718,7 +117116,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -117035,6 +117433,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -117085,7 +117484,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -117394,6 +117793,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -117444,7 +117844,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0100111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "01001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -117685,6 +118085,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -117715,7 +118116,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -117992,6 +118393,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -118074,7 +118476,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -118294,6 +118696,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -118322,7 +118725,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "1120111111111111111111111112222211111102201012212111122211111111222201222222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222111111022010122121111222111111112222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -119173,6 +119576,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -119223,7 +119627,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -119621,6 +120025,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -119671,7 +120076,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -120069,6 +120474,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -120119,7 +120525,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -120350,6 +120756,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -120367,7 +120774,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -120915,6 +121322,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -120932,7 +121340,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -121977,6 +122385,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -122027,7 +122436,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -123452,6 +123861,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -123469,7 +123879,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11101212222111111111111111111111122222111122222212222022221222220112221222221222221212222",
+            "childBuckets": "111012122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -123820,6 +124230,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -123837,7 +124248,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11101212222111111111111111111111122222111122222212222022221222220112221222221222221212222",
+            "childBuckets": "111012122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -124587,6 +124998,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -124637,7 +125049,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -125086,6 +125498,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -125103,7 +125516,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -125928,6 +126341,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -125958,7 +126372,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -126352,6 +126766,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -126369,7 +126784,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -127749,6 +128164,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -127766,7 +128182,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -128096,6 +128512,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -128151,7 +128568,7 @@
                 "md",
                 "mdn"
             ],
-            "childBuckets": "12201112222222221111111111111111111111222221111122102220222122212222122222111221222112111111111111111111222222222222222222201",
+            "childBuckets": "122011122222222211111111111111111111112222211111221022202221222122221222222111221222112111111111111111111222222222222222222201",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -128717,6 +129134,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -128767,7 +129185,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -129097,6 +129515,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -129147,7 +129566,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -130270,6 +130689,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -130319,7 +130739,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -131028,6 +131448,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -131058,7 +131479,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -131293,6 +131714,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -131302,7 +131724,7 @@
                 "bestFitLine",
                 "latex"
             ],
-            "childBuckets": "11111111111111111111111222221111110220121222121111222222222222222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211111102201212221211112222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -131546,6 +131968,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -131562,7 +131985,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "02212222111111111111111111111122222111122222222212222022221222222222222122222122222121222",
+            "childBuckets": "022122221111111111111111111111222221111222222222122220222212222222222221222222122222121222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -131811,6 +132234,7 @@
                 "cell",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "intComma",
@@ -131822,7 +132246,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "11111111111111111111111222221111102210122212111222222222222222222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211111022101222121112222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -132295,6 +132719,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -132312,7 +132737,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -132625,6 +133050,7 @@
                 "evaluate",
                 "selectRandomNumbers",
                 "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
                 "selectPrimeNumbers",
                 "samplePrimeNumbers",
                 "substitute",
@@ -132642,7 +133068,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "12222111111111111111111111122222111122222222212222022221222222222122221222221222221212222",
+            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"

@@ -212,6 +212,9 @@ export default {
     row_table: { title: "row (for table)" },
     rq: { title: "rq" },
     rsq: { title: "rsq" },
+    sampleMultivariateRandomNumber: {
+        title: "sampleMultivariateRandomNumber",
+    },
     samplePrimeNumbers: { title: "samplePrimeNumbers" },
     sampleRandomNumbers: { title: "sampleRandomNumbers" },
     sbsGroup: { title: "sbsGroup" },

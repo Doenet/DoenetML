@@ -121,6 +121,7 @@ import AnimateFromSequence from "./components/AnimateFromSequence";
 import Evaluate from "./components/Evaluate";
 import SelectRandomNumbers from "./components/SelectRandomNumbers";
 import SampleRandomNumbers from "./components/SampleRandomNumbers";
+import SampleMultivariateRandomNumber from "./components/SampleMultivariateRandomNumber";
 import SelectPrimeNumbers from "./components/SelectPrimeNumbers";
 import SamplePrimeNumbers from "./components/SamplePrimeNumbers";
 import Substitute from "./components/Substitute";
@@ -329,6 +330,7 @@ const componentTypeArray = [
     Evaluate,
     SelectRandomNumbers,
     SampleRandomNumbers,
+    SampleMultivariateRandomNumber,
     SelectPrimeNumbers,
     SamplePrimeNumbers,
     Substitute,
