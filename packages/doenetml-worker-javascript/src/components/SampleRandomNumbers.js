@@ -518,19 +518,17 @@ export default class SampleRandomNumbers extends CompositeComponent {
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                // whichever of the two the author set; the same choice the reported
-                // variance makes below
-                const variance =
+                // Whichever of the two the author set. A supplied standard deviation
+                // is kept as written rather than squared and rooted back: that round
+                // trip loses its sign, so `standardDeviation="-2"` would be sampled
+                // as 2 while the warning says the attribute must be non-negative.
+                const gaussianStandardDeviation =
                     usedDefault.specifiedVariance &&
                     !usedDefault.specifiedStandardDeviation
-                        ? dependencyValues.specifiedStandardDeviation ** 2
-                        : dependencyValues.specifiedVariance;
+                        ? dependencyValues.specifiedStandardDeviation
+                        : Math.sqrt(dependencyValues.specifiedVariance);
 
-                return {
-                    setValue: {
-                        gaussianStandardDeviation: Math.sqrt(variance),
-                    },
-                };
+                return { setValue: { gaussianStandardDeviation } };
             },
         };
 

@@ -838,6 +838,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             // Infinity passes a bare `>= 0` test but samples to Infinity or NaN
             `<sampleRandomNumbers name="s" type="gaussian" variance="Infinity" numSamples="3" />`,
             `<sampleRandomNumbers name="s" type="gaussian" standardDeviation="Infinity" numSamples="3" />`,
+            // squaring this into the variance and rooting it back out would lose
+            // the sign, sampling it as 2 while the warning says it must be positive
+            `<sampleRandomNumbers name="s" type="gaussian" standardDeviation="-2" numSamples="3" />`,
             `<sampleRandomNumbers name="s" type="gaussian" mean="Infinity" numSamples="3" />`,
         ]) {
             const { core } = await createTestCore({ doenetML });
@@ -861,35 +864,48 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
-    it("resampling keeps reporting why the parameters are unusable", async () => {
+    it("resampling and reloading keep reporting why the parameters are unusable", async () => {
         // Reusing values rather than drawing them — after a resample, or when saved
         // values are loaded back — takes a branch that never reached the sampler, so
         // the explanation used to disappear while the NaN it explained remained.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const doenetML = `
     <p><sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="3" /></p>
     <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
-    `,
-        });
-        await core.returnAllStateVariables(false, true);
-        expect(
-            getDiagnosticsByType(core).warnings.filter(
+    `;
+        function numExplanations(core: PublicDoenetMLCore) {
+            return getDiagnosticsByType(core).warnings.filter(
                 (w) => w.code === "doenet-w0129",
-            ).length,
-        ).eq(1);
+            ).length;
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(numExplanations(core)).eq(1);
 
         await callAction({
             core,
             componentIdx: await resolvePathToNodeIdx("again"),
         });
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await core.returnAllStateVariables(false, true);
 
         // still explained, and still not doubled up
-        expect(
-            getDiagnosticsByType(core).warnings.filter(
-                (w) => w.code === "doenet-w0129",
-            ).length,
-        ).eq(1);
+        expect(numExplanations(core)).eq(1);
+
+        // A core accumulates its diagnostics and dedupes them, so the count above
+        // would survive the reuse branch reporting nothing at all. A reload starts
+        // with none, which is where an unexplained NaN would actually reach an
+        // author: the values come back from saved state without the sampler ever
+        // being asked for them.
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(numExplanations(core)).eq(1);
         for (const replacement of stateVariables[
             await resolvePathToNodeIdx("s")
         ].replacements!) {
@@ -1052,9 +1068,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     });
 
     it("a gaussian with an impossible spread reports it", async () => {
-        // A negative `standardDeviation` would come back positive, since the spread
-        // is round-tripped through the variance; a negative `variance` is what
-        // actually reaches the sampler as an impossible spread.
+        // A supplied `standardDeviation` is kept as written, so a negative one is
+        // refused rather than squared back to positive; a negative `variance`
+        // reaches the sampler as an impossible spread the same way.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<sampleRandomNumbers name="s" type="gaussian" variance="-1" numSamples="3" />`,
         });
