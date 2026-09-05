@@ -342,6 +342,38 @@ describe("Automatic commas between composite replacements @group3", () => {
         );
     });
 
+    it("keeps the commas of a list operator, directly and through a reference", async () => {
+        // The list operators (`<cumulativeSum>`, `<differences>`, and so on)
+        // are composites with `asList` of their own, so a reference to one
+        // copies the operator and keeps its list.
+        await checkParagraphs(
+            {
+                direct: {
+                    body: `<cumulativeSum>1 2 3</cumulativeSum>`,
+                    expected: "1, 3, 6",
+                },
+                off: {
+                    body: `<cumulativeSum asList="false">1 2 3</cumulativeSum>`,
+                    expected: "136",
+                },
+                reference: { body: `$cs`, expected: "3, 4, 6" },
+                item: { body: `$cs[2]`, expected: "4" },
+                extended: {
+                    body: `<numberList extend="$cs" />`,
+                    expected: "3, 4, 6",
+                },
+                inGroup: {
+                    body: `<group asList><differences>1 4 9</differences> <text>x</text></group>`,
+                    expected: "3, 5, x",
+                },
+            },
+            `<setup>
+                <numberList name="nl">3 1 2</numberList>
+                <cumulativeSum name="cs">$nl</cumulativeSum>
+            </setup>\n`,
+        );
+    });
+
     it("keeps the commas through a reference to a group", async () => {
         await checkParagraphs(
             {
