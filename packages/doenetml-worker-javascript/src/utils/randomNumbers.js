@@ -444,8 +444,13 @@ function multivariateHypergeometricWork({ numInCategories, numDraws }) {
 function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
     if (
         numInCategories.length === 0 ||
-        !numInCategories.every((num) => Number.isInteger(num) && num >= 0) ||
-        !Number.isInteger(numDraws) ||
+        // safe integers, for the reason given on the univariate hypergeometric
+        // above: `numDraws * numInCategories[i]` backs the reported means, and a
+        // merely-whole population large enough overflows it to Infinity
+        !numInCategories.every(
+            (num) => Number.isSafeInteger(num) && num >= 0,
+        ) ||
+        !Number.isSafeInteger(numDraws) ||
         numDraws < 0 ||
         numDraws > sumOf(numInCategories)
     ) {

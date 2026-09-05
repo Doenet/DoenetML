@@ -376,6 +376,33 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         }
     });
 
+    it("a population too large to count exactly is refused", async () => {
+        // `Number.isInteger(1e308)` is true, so such a population would otherwise
+        // be accepted whenever the draws are few — and then the arithmetic behind
+        // `means` overflows to Infinity while the sampler's urn never shrinks.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="1e308 5e307" numDraws="10" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0134",
+        );
+        expect(warnings.length).eq(1);
+
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+        for (const value of stateVariables[componentIdx].stateValues.means) {
+            expect(Number.isNaN(value)).eq(true);
+        }
+    });
+
     it("a draw too large to sample promptly is refused, not attempted", async () => {
         // Drawing each category costs a univariate hypergeometric draw, so this would
         // otherwise run for minutes rather than returning.

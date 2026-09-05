@@ -21,3 +21,5 @@ The `numCategories`, `numTotal`, `means`, and `variances` properties describe th
 `type` accepts only `hypergeometric` so far, and is required rather than defaulting to it. It is unlikely to remain the most natural default — a joint normal distribution is the more usual multivariate one — so naming the distribution in every document means adding others later cannot change what an existing document does.
 
 Invalid parameters produce `NaN` for both the samples and those properties, along with a warning describing what to change. Because each category is drawn in turn, parameters that would need more than ten million random draws for a single sample are refused the same way, instead of leaving the page unresponsive while they ran.
+
+Counts must be whole numbers small enough to stay exact — up to about nine quadrillion. Past that the arithmetic behind the reported means overflows to infinity, so such a population is refused rather than sampled.
