@@ -5,8 +5,11 @@ import {
     returnStandardSequenceAttributes,
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
-import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import {
+    createOneReplacement,
+    returnPassThroughAttributeDeclarations,
+    returnPassThroughAttributes,
+} from "../utils/valueListReplacements";
 
 export default class Sequence extends CompositeComponent {
     static componentType = "sequence";
@@ -26,19 +29,9 @@ export default class Sequence extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.fixed = {
-            leaveRaw: true,
-            description:
-                "Whether this component's value is fixed and cannot be modified.",
-        };
-
-        const numberDisplayAttrs = returnNumberDisplayAttributes();
-        for (let attrName in numberDisplayAttrs) {
-            attributes[attrName] = {
-                leaveRaw: true,
-                description: numberDisplayAttrs[attrName].description,
-            };
-        }
+        // Passed through to each replacement rather than used by the sequence
+        // itself; see `returnPassThroughAttributes`.
+        Object.assign(attributes, returnPassThroughAttributeDeclarations());
 
         let sequenceAttributes = returnStandardSequenceAttributes();
         Object.assign(attributes, sequenceAttributes);
@@ -162,46 +155,19 @@ export default class Sequence extends CompositeComponent {
 
         let replacements = [];
 
-        let attributesToConvert = {};
-        for (let attr of [
-            "fixed",
-            ...Object.keys(returnNumberDisplayAttributes()),
-        ]) {
-            if (attr in component.attributes) {
-                attributesToConvert[attr] = component.attributes[attr];
-            }
-        }
+        const attributesToConvert = returnPassThroughAttributes(component);
 
         for (let componentValue of sequenceValues) {
-            // allow one to override the fixed (default true) attribute
-            // as well as rounding settings
-            // by specifying it on the sequence
-            let attributesFromComposite = {};
-
-            if (Object.keys(attributesToConvert).length > 0) {
-                const res = convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType,
-                    componentInfoObjects,
-                    nComponents,
-                    stateIdInfo,
-                });
-
-                nComponents = res.nComponents;
-                attributesFromComposite = res.attributes;
-            }
-
-            let serializedComponent = {
-                type: "serialized",
+            const res = createOneReplacement({
+                value: componentValue,
                 componentType,
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                attributes: attributesFromComposite,
-                doenetAttributes: {},
-                children: [],
-                state: { value: componentValue, fixed: true },
-            };
-            replacements.push(serializedComponent);
+                attributesToConvert,
+                componentInfoObjects,
+                nComponents,
+                stateIdInfo,
+            });
+            nComponents = res.nComponents;
+            replacements.push(res.serializedComponent);
         }
 
         // console.log(`replacements for ${component.componentIdx}`);
@@ -394,15 +360,8 @@ export default class Sequence extends CompositeComponent {
 
                 let newSerializedReplacements = [];
 
-                let attributesToConvert = {};
-                for (let attr of [
-                    "fixed",
-                    ...Object.keys(returnNumberDisplayAttributes()),
-                ]) {
-                    if (attr in component.attributes) {
-                        attributesToConvert[attr] = component.attributes[attr];
-                    }
-                }
+                const attributesToConvert =
+                    returnPassThroughAttributes(component);
 
                 for (
                     let ind = prevLength;
@@ -423,38 +382,16 @@ export default class Sequence extends CompositeComponent {
                         componentType = "text";
                     }
 
-                    // allow one to override the fixed (default true) attribute
-                    // as well as rounding settings
-                    // by specifying it on the sequence
-                    let attributesFromComposite = {};
-
-                    if (Object.keys(attributesToConvert).length > 0) {
-                        const res = convertUnresolvedAttributesForComponentType(
-                            {
-                                attributes: attributesToConvert,
-                                componentType,
-                                componentInfoObjects,
-                                nComponents,
-                                stateIdInfo,
-                            },
-                        );
-
-                        nComponents = res.nComponents;
-                        attributesFromComposite = res.attributes;
-                    }
-
-                    let serializedComponent = {
-                        type: "serialized",
+                    const res = createOneReplacement({
+                        value: componentValue,
                         componentType,
-                        componentIdx: nComponents++,
-                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                        attributes: attributesFromComposite,
-                        state: { value: componentValue, fixed: true },
-                        doenetAttributes: {},
-                        children: [],
-                    };
-
-                    newSerializedReplacements.push(serializedComponent);
+                        attributesToConvert,
+                        componentInfoObjects,
+                        nComponents,
+                        stateIdInfo,
+                    });
+                    nComponents = res.nComponents;
+                    newSerializedReplacements.push(res.serializedComponent);
                 }
 
                 let replacementInstruction = {

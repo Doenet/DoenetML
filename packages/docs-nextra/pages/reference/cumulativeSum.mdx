@@ -1,0 +1,97 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<cumulativeSum>{:dn}`
+
+<ComponentDisplay name='cumulativeSum'/>
+
+`<cumulativeSum>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+component that renders the running total of its arguments: a list whose $n$th entry
+is the sum of the first $n$ input values.
+
+Where [`<sum>{:dn}`](sum) reduces a list to a single value, `<cumulativeSum>{:dn}`
+produces a list the same length as its input.
+
+<AttrPropDisplay name='cumulativeSum'/>
+
+## Examples
+
+### Example: `<cumulativeSum>{:dn}` of a list of numbers
+
+
+```doenet-editor-horiz
+<cumulativeSum>30 45 12 60</cumulativeSum>
+```
+
+
+
+Each entry is the total of everything up to and including it, so the last entry equals
+the `<sum>{:dn}` of the whole list.
+
+
+
+---
+
+### Example: indexing into the result
+
+
+```doenet-editor-horiz
+<numberList name="pop">30 45 12 60</numberList>
+
+<cumulativeSum name="cum">$pop</cumulativeSum>
+
+<p>Running totals: $cum</p>
+<p>After three subpopulations: $cum[3]</p>
+```
+
+
+
+The result behaves like any other list: individual entries are available with
+`$cum[3]{:dn}`, and the whole thing can be passed on to another operator.
+
+
+
+---
+
+### Example: partial sums of a series
+
+
+```doenet-editor-horiz
+<p>Partial sums of <m>1/n^2</m>:</p>
+
+<cumulativeSum name="partial" displayDigits="5">
+  <number>1</number>
+  <number>1/4</number>
+  <number>1/9</number>
+  <number>1/16</number>
+  <number>1/25</number>
+  <number>1/36</number>
+</cumulativeSum>
+
+<p>These approach <m>\pi^2/6 \approx 1.6449</m>.</p>
+```
+
+
+
+Rounding attributes such as `displayDigits` are passed through to every value in
+the result.
+
+
+
+---
+
+### Example: symbolic partial sums
+
+
+```doenet-editor-horiz
+<mathList name="terms">x y z</mathList>
+
+<p><cumulativeSum>$terms</cumulativeSum></p>
+```
+
+
+
+When the inputs are not all numbers, `<cumulativeSum>{:dn}` accumulates symbolically,
+giving $x$, $x+y$, $x+y+z$.

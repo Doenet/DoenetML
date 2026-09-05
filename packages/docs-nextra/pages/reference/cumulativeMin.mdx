@@ -1,0 +1,56 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<cumulativeMin>{:dn}`
+
+<ComponentDisplay name='cumulativeMin'/>
+
+`<cumulativeMin>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+component that renders the running minimum of its arguments: a list whose $n$th entry
+is the smallest of the first $n$ input values.
+
+Where [`<min>{:dn}`](min) reduces a list to a single value, `<cumulativeMin>{:dn}`
+produces a list the same length as its input. The result never increases.
+
+<AttrPropDisplay name='cumulativeMin'/>
+
+## Examples
+
+### Example: running minimum
+
+
+```doenet-editor-horiz
+<numberList name="nl">3 1 4 1 5 9 2 6</numberList>
+
+<p>Values: $nl</p>
+<p>Running minimum: <cumulativeMin>$nl</cumulativeMin></p>
+```
+
+
+
+Each entry is the smallest value seen so far, so the list is non-increasing and its
+last entry is the `<min>{:dn}` of the whole input.
+
+
+
+---
+
+### Example: a record low
+
+
+```doenet-editor-horiz
+<numberList name="temps">4 -2 1 -7 0 -5</numberList>
+
+<cumulativeMin name="record">$temps</cumulativeMin>
+
+<p>Daily lows: $temps</p>
+<p>Record low through each day: $record</p>
+<p>Record after day 4: $record[4]</p>
+```
+
+
+
+A running extreme answers "what is the best (or worst) result so far?" at every point
+in a list, which a single `<min>{:dn}` cannot express.

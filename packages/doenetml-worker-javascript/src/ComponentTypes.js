@@ -4,6 +4,8 @@ import * as MdMdnMrow from "./components/MdMdnMrow";
 import * as BooleanOperators from "./components/BooleanOperators";
 import * as BooleanOperatorsOfMath from "./components/BooleanOperatorsOfMath";
 import * as MathOperators from "./components/MathOperators";
+import * as MathListOperators from "./components/MathListOperators";
+import * as ListIndexOperators from "./components/ListIndexOperators";
 import * as FunctionOperators from "./components/FunctionOperators";
 import * as TextOperatorsOfMath from "./components/TextOperatorsOfMath";
 import * as Extrema from "./components/Extrema";
@@ -147,6 +149,7 @@ import Caption from "./components/Caption";
 import Endpoint from "./components/Endpoint";
 import Sort from "./components/Sort";
 import Shuffle from "./components/Shuffle";
+import SortIndices from "./components/SortIndices";
 import SolveEquations from "./components/SolveEquations";
 import PostponeRenderContainer from "./components/PostponeRenderContainer";
 import SubsetOfRealsInput from "./components/SubsetOfRealsInput";
@@ -214,6 +217,8 @@ const componentTypeArray = [
     ...Object.values(BooleanOperators),
     ...Object.values(BooleanOperatorsOfMath),
     ...Object.values(MathOperators),
+    ...Object.values(MathListOperators),
+    ...Object.values(ListIndexOperators),
     ...Object.values(FunctionOperators),
     ...Object.values(TextOperatorsOfMath),
     ...Object.values(Extrema),
@@ -351,6 +356,7 @@ const componentTypeArray = [
     Caption,
     Endpoint,
     Sort,
+    SortIndices,
     Shuffle,
     SolveEquations,
     PostponeRenderContainer,

@@ -104,6 +104,44 @@ using the `<sort>{:dn}` component.
 
 ## Attribute Examples
 
+### Attribute Example: type
+
+
+```doenet-editor-horiz
+<p>Numbers: <sort type="number">101 542 51 234</sort></p>
+<p>Text: <sort type="text">orange apple banana</sort></p>
+<p>Booleans: <sort type="boolean">true false true</sort></p>
+```
+
+
+
+When the children are written as plain text rather than as components, `type` says how
+to read each whitespace-separated piece: as a `number`, a `math`, a `text`, or a
+`boolean`. Numbers and maths are ordered by value when every value is numeric;
+otherwise everything is ordered alphabetically, which puts `false` before `true`.
+
+Without `type`, there is nothing to say what each piece should become, so the text is
+left out of the result entirely: `<sort>d a b</sort>{:dn}` renders nothing at all, and
+two warnings report it — one that a `type` is needed, one naming the string that was
+ignored.
+
+`type` applies only to those bare strings. A referenced component already has a type of
+its own and is left as it is, so a referenced list keeps its individual items:
+
+```doenet-editor-horiz
+<setup>
+  <textList name="names">Ann Cal Bob</textList>
+</setup>
+
+<p>Sorted: <sort type="text">$names Zoe</sort></p>
+```
+
+This sorts four names, not the two values `Ann, Cal, Bob` and `Zoe`.
+
+
+
+---
+
 ### Attribute Example: sortByComponent
 
 

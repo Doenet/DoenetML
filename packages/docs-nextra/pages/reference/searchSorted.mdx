@@ -1,0 +1,117 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<searchSorted>{:dn}`
+
+<ComponentDisplay name='searchSorted'/>
+
+`<searchSorted>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that locates a value within an **already sorted** list. It renders the
+position at which the `target` would have to be inserted for the list to stay sorted.
+
+With the default `side="left"`, that position is the index of the first entry greater
+than or equal to the target. A target larger than every entry gives one past the end of
+the list.
+
+Unlike [`<indexOf>{:dn}`](indexOf), the target need not appear in the list; this
+answers "where does it belong?", not "is it there?". Ordering is numeric when the list
+is all numeric and alphabetical otherwise, so a sorted `<textList>{:dn}` works too.
+
+Every position in a list is at least 1, so the result is 1 or more whenever there is a
+target to place and something to place it among. The two cases that give 0 instead are
+both reported: omitting `target` is a warning, since nothing about that document could
+ever produce an answer, and an empty list is an info message.
+
+<AttrPropDisplay name='searchSorted'/>
+
+## Examples
+
+### Example: where a value belongs
+
+
+```doenet-editor-horiz
+<numberList name="cutoffs">30 75 87 147</numberList>
+
+<p>Sorted values: $cutoffs</p>
+<p>1 belongs at position <searchSorted target="1">$cutoffs</searchSorted></p>
+<p>31 belongs at position <searchSorted target="31">$cutoffs</searchSorted></p>
+<p>200 belongs at position <searchSorted target="200">$cutoffs</searchSorted></p>
+```
+
+
+
+A target smaller than everything gives 1; a target larger than everything gives 5, one
+past the last index.
+
+
+
+---
+
+### Example: sampling from a weighted population
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<sampleRandomNumbers name="u" type="discreteUniform"
+  from="1" to="$total" numSamples="1" />
+
+<searchSorted name="which" target="$u">$cum</searchSorted>
+
+<p>Subpopulation sizes: $pop (total $total)</p>
+<p>Individual number $u was drawn.</p>
+<p>That individual belongs to subpopulation $which, which has $pop[$which] members.</p>
+```
+
+
+
+This is the standard way to sample from a discrete distribution: accumulate the weights
+with [`<cumulativeSum>{:dn}`](cumulativeSum), draw uniformly from the total, then use
+`<searchSorted>{:dn}` to find which bucket the draw landed in. Because every individual
+in the population is equally likely to be drawn, each subpopulation is selected in
+proportion to its size.
+
+
+
+---
+
+### Example: `side` and repeated values
+
+
+```doenet-editor-horiz
+<numberList name="nl">1 2 2 2 3</numberList>
+
+<p>Values: $nl</p>
+<p>side="left": <searchSorted target="2" side="left">$nl</searchSorted></p>
+<p>side="right": <searchSorted target="2" side="right">$nl</searchSorted></p>
+```
+
+
+
+When the target equals several entries, `side` chooses which end of that run to report:
+`left` gives the first of them, `right` gives the position just after the last.
+
+
+
+---
+
+### Example: a sorted list of words
+
+
+```doenet-editor-horiz
+<textList name="words">apple banana fig pear</textList>
+
+<p>Words: $words</p>
+<p>"cherry" would be inserted at position
+   <searchSorted type="text" target="cherry">$words</searchSorted>.</p>
+```
+
+
+
+Only an ordering is needed, not arithmetic, so a sorted text list works the same way.

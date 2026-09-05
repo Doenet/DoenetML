@@ -1,8 +1,11 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { createNewComponentIndices } from "../utils/componentIndices";
-import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    compareExtractedValues,
+    returnBreakStringsIntoTypeSugarInstruction,
+    returnListValueStateVariableDefinitions,
+} from "../utils/listValues";
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
@@ -21,6 +24,7 @@ export default class Sort extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.sortVectorsBy = {
+            groupName: "sorting",
             description:
                 "Whether to sort vectors by component or by magnitude.",
             createComponentOfType: "text",
@@ -43,6 +47,7 @@ export default class Sort extends CompositeComponent {
         };
 
         attributes.sortByComponent = {
+            groupName: "sorting",
             description:
                 "Index of the component to sort by (when sorting vectors).",
             createComponentOfType: "integer",
@@ -53,19 +58,45 @@ export default class Sort extends CompositeComponent {
 
         attributes.sortByProp = {
             createPrimitiveOfType: "string",
+            highlighted: true,
+            groupName: "sorting",
             description:
                 'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
         };
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            highlighted: true,
             description: "Component type to sort children as.",
+            validValues: [
+                {
+                    value: "number",
+                    description:
+                        "Read bare strings as numbers, ordered by value.",
+                },
+                {
+                    value: "math",
+                    description:
+                        "Read bare strings as math expressions, ordered by value.",
+                },
+                {
+                    value: "text",
+                    description:
+                        "Read bare strings as text, ordered alphabetically.",
+                },
+                {
+                    value: "boolean",
+                    description:
+                        "Read bare strings as booleans, ordered with false before true.",
+                },
+            ],
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            highlighted: true,
             description:
                 "Whether to render the items separated by commas (true) or with no separator (false).",
         };
@@ -76,83 +107,9 @@ export default class Sort extends CompositeComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        function breakStringsMacrosIntoTypeBySpaces({
-            matchedChildren,
-            componentAttributes,
-            componentInfoObjects,
-            nComponents,
-        }) {
-            const diagnostics = [];
-            // only if all children are strings or macros
-            if (
-                !matchedChildren.every(
-                    (child) =>
-                        typeof child === "string" ||
-                        (child.extending && "Ref" in child.extending),
-                )
-            ) {
-                return { success: false };
-            }
-
-            let type;
-            if (componentAttributes.type?.value) {
-                type = componentAttributes.type.value;
-            } else {
-                if (
-                    matchedChildren.some((child) => typeof child === "string")
-                ) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0013",
-                            args: { component: "sort" },
-                        }),
-                    );
-                }
-                return { success: false, diagnostics };
-            }
-
-            if (!["math", "text", "number", "boolean"].includes(type)) {
-                console.warn(`Invalid type ${type}`);
-                diagnostics.push(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0014",
-                        args: { type, component: "sort" },
-                    }),
-                );
-                type = "math";
-            }
-
-            // break any string by white space and wrap pieces with type
-            let groupIntoComponentTypesSeparatedBySpaces =
-                returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                    componentType: type,
-                    forceComponentType: true,
-                });
-            let result = groupIntoComponentTypesSeparatedBySpaces({
-                matchedChildren,
-                componentInfoObjects,
-                nComponents,
-            });
-
-            if (result.success) {
-                let newChildren = result.newChildren;
-
-                return {
-                    success: true,
-                    newChildren,
-                    nComponents: result.nComponents,
-                    diagnostics,
-                };
-            } else {
-                return { success: false };
-            }
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsMacrosIntoTypeBySpaces,
-        });
+        sugarInstructions.push(
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+        );
 
         return sugarInstructions;
     }
@@ -169,252 +126,37 @@ export default class Sort extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.propName = {
-            returnDependencies: () => ({
-                propName: {
-                    dependencyType: "attributePrimitive",
-                    attributeName: "sortByProp",
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnListValueStateVariableDefinitions({
+                componentName: this.componentType,
+                supportProps: true,
             }),
-            definition: function ({ dependencyValues }) {
-                return { setValue: { propName: dependencyValues.propName } };
-            },
-        };
+        );
 
-        stateVariableDefinitions.componentIndicesForValues = {
+        stateVariableDefinitions.sortedValues = {
             returnDependencies: () => ({
-                children: {
-                    dependencyType: "child",
-                    childGroups: ["anything"],
-                    variableNames: ["componentIndicesInList"],
-                    variablesOptional: true,
+                listValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "listValues",
+                },
+                allAreNumeric: {
+                    dependencyType: "stateVariable",
+                    variableName: "allAreNumeric",
                 },
             }),
             definition({ dependencyValues }) {
-                let componentIndicesForValues = [];
-                const diagnostics = [];
-                for (let child of dependencyValues.children) {
-                    if (typeof child === "string") {
-                        diagnostics.push(
-                            codedDiagnostic({
-                                type: "warning",
-                                code: "doenet-w0015",
-                                args: { value: child, component: "sort" },
-                            }),
-                        );
-                        continue;
-                    }
-                    if (child.stateValues.componentIndicesInList) {
-                        componentIndicesForValues.push(
-                            ...child.stateValues.componentIndicesInList,
-                        );
-                    } else {
-                        componentIndicesForValues.push(child.componentIdx);
-                    }
-                }
+                let sortedValues = [...dependencyValues.listValues];
 
-                return {
-                    setValue: { componentIndicesForValues },
-                    sendDiagnostics: diagnostics,
-                };
-            },
-        };
+                sortedValues.sort((a, b) =>
+                    compareExtractedValues(
+                        a,
+                        b,
+                        dependencyValues.allAreNumeric,
+                    ),
+                );
 
-        stateVariableDefinitions.sortedValues = {
-            stateVariablesDeterminingDependencies: [
-                "componentIndicesForValues",
-                "sortByComponent",
-                "propName",
-            ],
-            returnDependencies({ stateValues }) {
-                let dependencies = {
-                    sortVectorsBy: {
-                        dependencyType: "stateVariable",
-                        variableName: "sortVectorsBy",
-                    },
-                    sortByComponent: {
-                        dependencyType: "stateVariable",
-                        variableName: "sortByComponent",
-                    },
-                    propName: {
-                        dependencyType: "stateVariable",
-                        variableName: "propName",
-                    },
-                };
-                if (stateValues.propName) {
-                    for (let [
-                        ind,
-                        cIdx,
-                    ] of stateValues.componentIndicesForValues.entries()) {
-                        dependencies[`component${ind}`] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: cIdx,
-                            variableName: stateValues.propName,
-                            variablesOptional: true,
-                            caseInsensitiveVariableMatch: true,
-                            publicStateVariablesOnly: true,
-                            returnAsComponentObject: true,
-                        };
-                    }
-                } else {
-                    for (let [
-                        ind,
-                        cIdx,
-                    ] of stateValues.componentIndicesForValues.entries()) {
-                        dependencies[`component${ind}`] = {
-                            dependencyType: "multipleStateVariables",
-                            componentIdx: cIdx,
-                            variableNames: [
-                                "value",
-                                `x${stateValues.sortByComponent}`,
-                                `tailX${stateValues.sortByComponent}`,
-                            ],
-                            variablesOptional: true,
-                        };
-                    }
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues, componentInfoObjects }) {
-                let allValues = [];
-                let allAreNumeric = true;
-                for (let depName in dependencyValues) {
-                    if (depName.substring(0, 9) !== "component") {
-                        continue;
-                    }
-                    let component = dependencyValues[depName];
-                    if (dependencyValues.propName) {
-                        let value = Object.values(component.stateValues)[0];
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue: Number(value),
-                            textValue: String(value),
-                        });
-                        if (!Number.isFinite(value)) {
-                            allAreNumeric = false;
-                        }
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "number",
-                        })
-                    ) {
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue: component.stateValues.value,
-                            textValue: String(component.stateValues.value),
-                        });
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "text",
-                        })
-                    ) {
-                        let numericalValue = NaN;
-                        let textValue = component.stateValues.value;
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue,
-                        });
-                        allAreNumeric = false;
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "math",
-                        })
-                    ) {
-                        let numericalValue =
-                            component.stateValues.value.evaluate_to_constant();
-                        if (Number.isNaN(numericalValue)) {
-                            allAreNumeric = false;
-                        }
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue: component.stateValues.value.toString(),
-                        });
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "point",
-                        })
-                    ) {
-                        let compValue =
-                            component.stateValues[
-                                `x${dependencyValues.sortByComponent}`
-                            ];
-                        let numericalValue = NaN;
-                        let textValue = "";
-                        if (compValue) {
-                            numericalValue = compValue.evaluate_to_constant();
-                            if (Number.isNaN(numericalValue)) {
-                                allAreNumeric = false;
-                            }
-                            textValue = compValue.toString();
-                        }
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue,
-                        });
-                    } else if (
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: component.componentType,
-                            baseComponentType: "vector",
-                        })
-                    ) {
-                        let numericalValue = NaN;
-                        let textValue = "";
-                        let compValue =
-                            component.stateValues[
-                                `x${dependencyValues.sortByComponent}`
-                            ];
-                        if (dependencyValues.sortVectorsBy === "displacement") {
-                            compValue =
-                                component.stateValues[
-                                    `x${dependencyValues.sortByComponent}`
-                                ];
-                        } else {
-                            compValue =
-                                component.stateValues[
-                                    `tailX${dependencyValues.sortByComponent}`
-                                ];
-                        }
-                        if (compValue) {
-                            numericalValue = compValue.evaluate_to_constant();
-                            if (Number.isNaN(numericalValue)) {
-                                allAreNumeric = false;
-                            }
-                            textValue = compValue.toString();
-                        }
-                        allValues.push({
-                            componentIdx: component.componentIdx,
-                            numericalValue,
-                            textValue,
-                        });
-                    }
-                }
-
-                if (allAreNumeric) {
-                    allValues.sort(
-                        (a, b) => a.numericalValue - b.numericalValue,
-                    );
-                } else {
-                    allValues.sort((a, b) =>
-                        a.textValue > b.textValue
-                            ? 1
-                            : a.textValue < b.textValue
-                              ? -1
-                              : 0,
-                    );
-                }
-
-                return {
-                    setValue: {
-                        sortedValues: allValues,
-                    },
-                };
+                return { setValue: { sortedValues } };
             },
         };
 

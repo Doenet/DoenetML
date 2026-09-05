@@ -86,6 +86,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0033": "variant-math-exclude-not-implemented",
     "doenet-i0034": "variant-non-constant-exclude-not-implemented",
     "doenet-i0048": "attribute-value-invalid-using-default",
+    "doenet-i0049": "index-operator-no-values",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -218,6 +219,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0131": "sample-poisson-mean-invalid",
     "doenet-w0132": "sample-poisson-mean-too-large",
     "doenet-w0133": "sample-distribution-slow",
+    "doenet-w0134": "index-operator-missing-target",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

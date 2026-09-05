@@ -1,0 +1,85 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<indexOf>{:dn}`
+
+<ComponentDisplay name='indexOf'/>
+
+`<indexOf>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that renders the position of the first of its arguments equal to the value
+given by the `target` attribute. Indices start at 1, and a target that does not occur
+in the list gives 0.
+
+A 0 for a target that is not in the list is the answer, not a problem, so nothing is
+reported for it. Omitting `target` altogether is a warning, since nothing about that
+document could ever produce an answer, and a list with no values at all is an info
+message.
+
+Values are compared numerically when they are all numeric, and as text otherwise, so
+`<indexOf>{:dn}` searches a `<textList>{:dn}` as readily as a `<numberList>{:dn}`.
+When searching text, set `type="text"` so that the target is read as text too.
+
+<AttrPropDisplay name='indexOf'/>
+
+## Examples
+
+### Example: finding a number
+
+
+```doenet-editor-horiz
+<numberList name="nl">10 20 30 20</numberList>
+
+<p>Values: $nl</p>
+<p>First position of 20: <indexOf target="20">$nl</indexOf></p>
+<p>Position of 25: <indexOf target="25">$nl</indexOf></p>
+```
+
+
+
+The value 20 occurs twice and the first occurrence is reported. A value that is absent
+gives 0, which is a position no list entry has.
+
+
+
+---
+
+### Example: finding a name
+
+
+```doenet-editor-horiz
+<textList name="names">Ann Bob Cal Dee</textList>
+
+<p>Names: $names</p>
+<p>Cal is in position <indexOf type="text" target="Cal">$names</indexOf>.</p>
+<p>Eve is in position <indexOf type="text" target="Eve">$names</indexOf>.</p>
+```
+
+
+
+`type="text"` tells `<indexOf>{:dn}` to read the target as text rather than as a
+number.
+
+
+
+---
+
+### Example: looking up a parallel list
+
+
+```doenet-editor-horiz
+<setup>
+  <textList name="symbols">H He Li Be</textList>
+  <numberList name="masses">1.008 4.003 6.94 9.012</numberList>
+</setup>
+
+<indexOf name="which" type="text" target="Li">$symbols</indexOf>
+
+<p>The atomic mass of Li is $masses[$which].</p>
+```
+
+
+
+Finding a position in one list and reading it out of another is the usual reason to
+want `<indexOf>{:dn}` rather than a test for membership.

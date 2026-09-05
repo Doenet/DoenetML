@@ -81,6 +81,42 @@ describe("Sort tag tests @group4", async () => {
         await test_sort({ core, resolvePathToNodeIdx, sorted_result });
     });
 
+    it("sort a referenced list with an explicit type", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <textList name="names">Ann Cal Bob</textList>
+  <p name="pList"><sort type="text">$names Zoe</sort></p>
+  `,
+        });
+
+        // `type` says what bare strings become; a reference already has a type
+        // of its own, so it is passed through rather than wrapped. Wrapping it
+        // used to fuse the list into the single value "Ann, Cal, Bob", leaving
+        // only two things to sort.
+        await test_sort({
+            core,
+            resolvePathToNodeIdx,
+            sorted_result: ["Ann", "Bob", "Cal", "Zoe"],
+            replacements_all_of_type: "text",
+        });
+    });
+
+    it("sort a referenced list with an explicit type and no strings", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <numberList name="nums">30 10 20</numberList>
+  <p name="pList"><sort type="number">$nums</sort></p>
+  `,
+        });
+
+        await test_sort({
+            core,
+            resolvePathToNodeIdx,
+            sorted_result: ["10", "20", "30"],
+            replacements_all_of_type: "number",
+        });
+    });
+
     it("sort dynamic maths", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

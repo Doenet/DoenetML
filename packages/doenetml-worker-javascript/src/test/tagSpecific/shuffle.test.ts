@@ -11,6 +11,31 @@ vi.mock("hyperformula");
 describe("Shuffle tag tests @group1", async () => {
     type VariantKey = `${number},${number}`;
 
+    it("shuffle a referenced list with an explicit type", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <textList name="names">Ann Cal Bob</textList>
+  <p name="pList"><shuffle name="sh" type="text">$names Zoe</shuffle></p>
+  `,
+        });
+
+        // `type` converts the bare string; the reference is passed through
+        // rather than wrapped, so there are four things to shuffle rather than
+        // the fused value "Ann, Cal, Bob" plus "Zoe".
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const shuffled = stateVariables[await resolvePathToNodeIdx("pList")];
+
+        expect(shuffled.activeChildren.length).eq(4);
+        expect(
+            shuffled.activeChildren
+                .map(
+                    (child) =>
+                        stateVariables[child.componentIdx].stateValues.value,
+                )
+                .sort(),
+        ).eqls(["Ann", "Bob", "Cal", "Zoe"]);
+    });
+
     it("consistent order for n elements for given variant", async () => {
         const doenetML = `
   <p>m: <mathInput prefill="1" name="m" /></p>

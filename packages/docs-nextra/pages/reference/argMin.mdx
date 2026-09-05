@@ -1,0 +1,85 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<argMin>{:dn}`
+
+<ComponentDisplay name='argMin'/>
+
+`<argMin>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that renders the **index** of the smallest of its arguments, rather than the
+value itself. Indices start at 1, ties resolve to the first occurrence, and an empty
+list gives 0. Since 0 is not the index of any item, an empty list also reports an
+info message saying there was nothing to look through.
+
+Because DoenetML lists can be indexed by a reference, the index that `<argMin>{:dn}`
+produces can be used to look up the matching entry of a *different* list — which is
+what makes it more useful than [`<min>{:dn}`](min) alone.
+
+Values are compared numerically when they are all numeric, and alphabetically
+otherwise, exactly as in [`<sort>{:dn}`](sort). So `<argMin>{:dn}` works on a
+`<textList>{:dn}` as readily as on a `<numberList>{:dn}`.
+
+<AttrPropDisplay name='argMin'/>
+
+## Examples
+
+### Example: the position of the smallest value
+
+
+```doenet-editor-horiz
+<numberList name="nl">3 1 4 1 5 9 2 6</numberList>
+
+<p>Values: $nl</p>
+<p>Smallest value: <min>$nl</min></p>
+<p>Position of the smallest value: <argMin>$nl</argMin></p>
+```
+
+
+
+The smallest value 1 occurs twice; `<argMin>{:dn}` reports the first of them.
+
+
+
+---
+
+### Example: looking up a matching entry
+
+
+```doenet-editor-horiz
+<setup>
+  <textList name="cities">Oslo Cairo Lima Perth</textList>
+  <numberList name="rainfall">33 1 4 22</numberList>
+</setup>
+
+<argMin name="driest">$rainfall</argMin>
+
+<p>Rainfall by city: $rainfall</p>
+<p>The driest city is $cities[$driest].</p>
+```
+
+
+
+The index from `<argMin>{:dn}` indexes into the parallel list of names. This is the
+main reason to want an index rather than a value.
+
+
+
+---
+
+### Example: alphabetically first
+
+
+```doenet-editor-horiz
+<textList name="fruit">pear apple fig banana</textList>
+
+<argMin name="first">$fruit</argMin>
+
+<p>Fruit: $fruit</p>
+<p>The alphabetically first is $fruit[$first].</p>
+```
+
+
+
+On text, "smallest" means alphabetically first.
