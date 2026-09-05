@@ -99,9 +99,11 @@ export type GroupCompositeRangesOptions<T> = {
 /**
  * Group `children` by the composites that produced them.
  *
- * Nesting is implicit in `ranges`: a composite whose replacements are
- * themselves composites comes first, and the ranges after it whose indices lie
- * inside its own are its replacements'. The tree makes that explicit.
+ * A composite's range is recorded before its replacements' ranges, and each of
+ * those lies inside it. Ordered by where they start, the wider first where two
+ * start together, every range comes right before the ranges of the composites
+ * inside it, whatever order they were recorded in. One pass over them, with a
+ * stack of the composites still open, then builds the tree.
  */
 export function groupCompositeRanges<T>({
     children,
@@ -114,138 +116,129 @@ export function groupCompositeRanges<T>({
     endInd = children.length - 1,
     removedInd = null,
 }: GroupCompositeRangesOptions<T>): CompositeGroup<T>[] {
-    const { items } = groupRange({
-        children,
-        ranges: ranges ?? [],
-        startInd,
-        endInd,
+    const ordered = (ranges ?? [])
+        .flatMap((range) => {
+            const span = shiftForRemovedChild(range, removedInd);
+            return span && span.firstInd >= startInd && span.lastInd <= endInd
+                ? [{ range, ...span }]
+                : [];
+        })
+        .sort((a, b) => a.firstInd - b.firstInd || b.lastInd - a.lastInd);
+
+    const root: OpenComposite<T> = {
+        range: null,
+        firstInd: startInd,
+        lastInd: endInd,
+        nextInd: startInd,
         eligibility: null,
-        isAbsent,
-        isBlank,
-        skipRange,
-        trimEnd,
-        removedInd,
-    });
-
-    return items;
-}
-
-/**
- * The items of one range, together with whether each is eligible to be an item
- * of the list the enclosing composite might form. Eligibility is only asked for
- * inside a range, since only a composite forms a list.
- */
-function groupRange<T>({
-    children,
-    ranges,
-    startInd,
-    endInd,
-    eligibility,
-    isAbsent,
-    isBlank,
-    skipRange,
-    trimEnd,
-    removedInd,
-}: {
-    children: T[];
-    ranges: CompositeRange[];
-    startInd: number;
-    endInd: number;
-    eligibility: boolean[] | null;
-    isAbsent: (value: T) => boolean;
-    isBlank: (value: T) => boolean;
-    skipRange: (range: CompositeRange) => boolean;
-    trimEnd: (value: T) => T;
-    removedInd: number | null;
-}): { items: CompositeGroup<T>[]; eligible: boolean[] } {
-    const items: CompositeGroup<T>[] = [];
-    const eligible: boolean[] = [];
-
-    // The first child not yet placed in the tree.
-    let nextInd = startInd;
+        items: [],
+        eligible: [],
+    };
+    const open: OpenComposite<T>[] = [root];
 
     /** Place the children before `upTo` that no composite produced. */
-    function addPlainChildren(upTo: number) {
-        for (; nextInd < upTo; nextInd++) {
-            const value = children[nextInd];
+    function addPlainChildren(node: OpenComposite<T>, upTo: number) {
+        for (; node.nextInd < upTo; node.nextInd++) {
+            const value = children[node.nextInd];
             if (isAbsent(value)) {
                 continue;
             }
-            items.push({ kind: "child", value, index: nextInd });
-            if (eligibility) {
-                eligible.push(eligibility[nextInd - startInd] ?? false);
+            node.items.push({ kind: "child", value, index: node.nextInd });
+            if (node.eligibility) {
+                node.eligible.push(
+                    node.eligibility[node.nextInd - node.firstInd] ?? false,
+                );
             }
         }
     }
 
-    for (let rangeInd = 0; rangeInd < ranges.length; rangeInd++) {
-        const range = ranges[rangeInd];
-        const shifted = shiftForRemovedChild(range, removedInd);
-        if (!shifted) {
+    /**
+     * Leave the innermost open composite: place the last of its children,
+     * decide whether it is a list, and put its group into the composite around
+     * it. A composite that produced nothing leaves nothing behind.
+     */
+    function closeInnermost() {
+        const node = open.pop()!;
+        addPlainChildren(node, node.lastInd + 1);
+        if (node.items.length === 0) {
+            return;
+        }
+        const parent = open[open.length - 1];
+        const listItems = node.items.filter(
+            (item) => !isBlankGroup(item, isBlank),
+        );
+        const allEligible = node.eligible.every(
+            (value, ind) => value || isBlankGroup(node.items[ind], isBlank),
+        );
+        const asList =
+            Boolean(node.range!.asList) && allEligible && listItems.length > 1;
+
+        parent.items.push({
+            kind: "composite",
+            range: node.range!,
+            asList,
+            items: asList
+                ? prepareListItems(node.items, isBlank, trimEnd)
+                : node.items,
+        });
+        if (parent.eligibility) {
+            parent.eligible.push(allEligible);
+        }
+    }
+
+    for (const { range, firstInd, lastInd } of ordered) {
+        // Leave every composite this range does not lie inside.
+        while (open.length > 1 && lastInd > open[open.length - 1].lastInd) {
+            closeInnermost();
+        }
+        const parent = open[open.length - 1];
+        if (firstInd < parent.nextInd) {
+            // Inside a composite already left: not a range the core records.
             continue;
         }
-        const { firstInd, lastInd } = shifted;
 
-        if (firstInd < nextInd || lastInd > endInd) {
-            // Not one of this range's own composites: either already accounted
-            // for, or reaching past the children being grouped.
-            continue;
-        }
-
-        addPlainChildren(firstInd);
-        // Past the composite's children — of which a composite that produced
-        // nothing, recorded with `lastInd === firstInd - 1`, has none.
-        nextInd = lastInd + 1;
+        addPlainChildren(parent, firstInd);
+        // Past the composite's children, of which one that produced nothing,
+        // recorded with `lastInd === firstInd - 1`, has none.
+        parent.nextInd = lastInd + 1;
 
         if (skipRange(range)) {
             continue;
         }
-
-        // The composite comes before the composites it produced, so its own are
-        // exactly the ranges after it.
-        const { items: rangeItems, eligible: rangeEligible } = groupRange({
-            children,
-            ranges: ranges.slice(rangeInd + 1),
-            startInd: firstInd,
-            endInd: lastInd,
-            eligibility: range.potentialListComponents ?? null,
-            isAbsent,
-            isBlank,
-            skipRange,
-            trimEnd,
-            removedInd,
-        });
-
-        if (rangeItems.length === 0) {
-            continue;
-        }
-
-        const listItems = rangeItems.filter(
-            (item) => !isBlankGroup(item, isBlank),
-        );
-        const allEligible = rangeEligible.every(
-            (value, ind) => value || isBlankGroup(rangeItems[ind], isBlank),
-        );
-        const asList =
-            Boolean(range.asList) && allEligible && listItems.length > 1;
-
-        items.push({
-            kind: "composite",
+        open.push({
             range,
-            asList,
-            items: asList
-                ? prepareListItems(rangeItems, isBlank, trimEnd)
-                : rangeItems,
+            firstInd,
+            lastInd,
+            nextInd: firstInd,
+            eligibility: range.potentialListComponents ?? null,
+            items: [],
+            eligible: [],
         });
-        if (eligibility) {
-            eligible.push(allEligible);
-        }
     }
+    while (open.length > 1) {
+        closeInnermost();
+    }
+    addPlainChildren(root, endInd + 1);
 
-    addPlainChildren(endInd + 1);
-
-    return { items, eligible };
+    return root.items;
 }
+
+/**
+ * A composite whose range has been entered and not yet left: what it holds so
+ * far, and whether each of those items is eligible to be an item of the list
+ * it might form. The root stands for the children being grouped as a whole;
+ * their eligibility is never asked for, since only a composite forms a list.
+ */
+type OpenComposite<T> = {
+    range: CompositeRange | null;
+    firstInd: number;
+    lastInd: number;
+    /** The first of its children not yet placed in the tree. */
+    nextInd: number;
+    eligibility: boolean[] | null;
+    items: CompositeGroup<T>[];
+    eligible: boolean[];
+};
 
 /**
  * Where the caller removed a child before grouping, move a range to match.

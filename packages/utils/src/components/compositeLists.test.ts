@@ -139,6 +139,46 @@ describe("groupCompositeRanges", () => {
         ).eq(`list10(group11("1" "2") "3")`);
     });
 
+    it("finds a composite's replacements wherever their ranges were recorded", () => {
+        // The core records a range when a composite expands, so the ranges of
+        // one composite's replacements can come after its sibling's.
+        expect(
+            sketch(
+                groupCompositeRanges<string>({
+                    children: ["1", "2", "3", "4"],
+                    ranges: [
+                        range({
+                            compositeIdx: 10,
+                            firstInd: 0,
+                            lastInd: 3,
+                            potentialListComponents: [true, true, true, true],
+                        }),
+                        range({
+                            compositeIdx: 11,
+                            firstInd: 0,
+                            lastInd: 1,
+                            asList: false,
+                            potentialListComponents: [true, true],
+                        }),
+                        range({
+                            compositeIdx: 12,
+                            firstInd: 2,
+                            lastInd: 3,
+                            asList: false,
+                            potentialListComponents: [true, true],
+                        }),
+                        range({
+                            compositeIdx: 13,
+                            firstInd: 0,
+                            lastInd: 1,
+                            potentialListComponents: [true, true],
+                        }),
+                    ],
+                }),
+            ),
+        ).eq(`list10(group11(list13("1" "2")) group12("3" "4"))`);
+    });
+
     it("counts an inner composite as one item, so two of them are two", () => {
         expect(
             sketch(

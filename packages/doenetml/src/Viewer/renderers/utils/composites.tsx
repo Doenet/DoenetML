@@ -14,8 +14,8 @@ import {
  * `compositeReplacementActiveRange` is the core's record of which of
  * `children` each composite produced. Which of those composites are lists, and
  * where the commas go among a list's items, is decided by the grouping in
- * `@doenet/utils`, shared with the `text` state variable so that what a reader
- * sees and what `text` says cannot drift apart.
+ * `@doenet/utils`, shared with the `text` state variable, so both decide the
+ * commas the same way.
  */
 export function addCommasForCompositeRanges({
     compositeReplacementActiveRange,

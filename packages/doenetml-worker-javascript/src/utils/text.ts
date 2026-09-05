@@ -28,8 +28,7 @@ function isBlankString(child: any) {
  *
  * The grouping — which children came from which composite, which of those
  * composites are lists, and where the commas go — is shared with the renderers
- * through `@doenet/utils`, so that what a reader sees and what `text` says
- * cannot drift apart.
+ * through `@doenet/utils`, so both decide the commas the same way.
  */
 export function textFromChildren(
     children: any,

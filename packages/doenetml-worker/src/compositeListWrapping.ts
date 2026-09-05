@@ -141,7 +141,8 @@ function materializeGroups(
  * The grouping itself — which children came from which composite, which of
  * those composites are lists, and what whitespace belongs to a list — is
  * `groupCompositeRanges`, shared with the renderers, the `text` state
- * variable, and the string a `<math>` parses, so the four cannot drift apart.
+ * variable, and the string a `<math>` parses, so all four decide the commas the
+ * same way.
  *
  * @param childContents The parent's children aligned with the child-instruction
  *   index space (use `null` for absent child instructions) so the range indices
