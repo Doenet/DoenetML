@@ -4,6 +4,12 @@ Review this PR. The first question is whether the code is **correct** — whethe
 what the PR, its documentation, and its own comments say it does. Everything else in this
 document is secondary to that.
 
+Look for the case that breaks the change, not the case that confirms it: a review that
+sets out to agree will find agreement. Report only what you can substantiate, and say what
+each finding rests on. A review that finds nothing real is a legitimate result and should
+be reported as one — findings offered to look thorough cost more to disprove than they
+were worth.
+
 ## Correctness
 
 Trace the main path of the change by hand and satisfy yourself that it produces the
@@ -13,14 +19,16 @@ what the code does.
 Work the edge cases deliberately. The ones that have actually shipped bugs in this
 codebase are:
 
-- **Empty input** — an empty list, or one whose only children were references that
-  produced nothing.
-- **`NaN` and non-numeric values**, including a `<number>` whose content does not parse
-  and so is numeric by type but `NaN` by value. Remember that *every* comparison against
-  `NaN` is false, so a guard phrased as "no element is out of order" passes a `NaN` that a
-  guard phrased as "every element is in order" would catch. A `NaN` also equals nothing —
-  not even another `NaN` — so anything that groups by equality will give each one a group
-  of its own.
+- **Empty input** — not just an empty literal, but input that looks non-empty in the
+  source and produces nothing: a reference that resolves to no components, a composite
+  with no replacements, a filter that removes everything.
+- **`NaN` and non-numeric values** — a value can satisfy a type check and still be
+  meaningless, as a `<number>` whose content does not parse is numeric by type and `NaN` by
+  value. Two properties of `NaN` break guards that look sound: every comparison against it
+  is false, so a condition written as a negation ("nothing is out of order") admits a `NaN`
+  that the positive form ("everything is in order") would reject; and it is equal to
+  nothing, not even to itself, so anything that groups, deduplicates or caches by equality
+  treats each occurrence as new.
 - **Boundary values** — the first and last element, a value lying exactly on a cut point,
   equal or duplicate values, and collections of one and of zero elements.
 - **Values that change over time**, especially anything driven by an input while a student
@@ -35,7 +43,9 @@ and establish the "before" by reading the code that used to run, not by assuming
 
 Reading is not verification. Where a finding can be settled by executing a document — which
 is most of them — write the smallest one that decides it, and report what it actually
-rendered. Delete any scratch file before you finish.
+rendered. Choose the input most likely to break the change rather than the one most likely
+to show it working; a passing example proves less than a failing one. Delete any scratch
+file before you finish.
 
 Say how you established each claim: **ran it**, **read the code**, or **assumed**. A review
 that does not distinguish these is hard to act on, because the reader cannot tell which
@@ -53,10 +63,12 @@ rather than against the code, so one error propagates and every later reader fin
 reassuringly consistent with everything around it. Go back to the code each time,
 including for the copy you have already read somewhere else.
 
-Claims about cost deserve particular suspicion. "One component rather than a thousand" is
-easy to write and rarely true: a composite creates one replacement per result, so a change
-that removes a thousand *operators* usually still creates a thousand *components*. State
-what is saved and what is not.
+Claims about cost deserve particular suspicion, because they are easy to write and
+expensive to check. A claim that a change reduces how much a document creates has to
+account for how components actually come into being: a composite creates one replacement
+per result, so removing N *operators* from the markup generally still creates N
+*components*. Establish the count by running a document and measuring it, and say what is
+saved and what is not.
 
 ## Scope
 
