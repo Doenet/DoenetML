@@ -375,3 +375,24 @@ always returns 0.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
+
+
+## Limits on the discrete distributions
+
+The three discrete distributions &mdash; `hypergeometric`, `binomial`, and `poisson` 
+&mdash; draw their values one item, trial, or event at a time, so very large 
+parameters would take a long time and leave the page unresponsive while they ran. 
+Parameters that would need more than ten million draws for a single value are 
+therefore treated as unusable, giving `NaN` values and statistics along with a 
+warning explaining what to change. The limit is far above the populations, trial 
+counts, and rates that arise in practice; it is there so that mistyping an extra 
+digit reports a problem instead of freezing the activity. An order of magnitude 
+below that, from a million draws per value, the values are still selected as asked, 
+but a warning notes that selection may be slow. Note that both figures apply to 
+each value individually &mdash; a large `numToSelect` still takes proportionally 
+longer.
+
+`hypergeometric` also has no defaults to fall back on. If any of `numTotal`, 
+`numSuccesses`, or `numDraws` is omitted, or they do not describe a population, 
+every value is `NaN`, as are the reported `mean`, `variance`, and 
+`standardDeviation`.

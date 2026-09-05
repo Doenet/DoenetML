@@ -800,6 +800,74 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("selectRandomNumbers forwards its diagnostics too", async () => {
+        // `<selectRandomNumbers>` defines its own `selectedValues` rather than
+        // inheriting `sampledValues`, so it forwards diagnostics by a separate path
+        // that the `<sampleRandomNumbers>` cases above never exercise.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<selectRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="11" numDraws="4" numToSelect="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0127",
+        );
+        expect(warnings.length).eq(1);
+        expect(warnings[0].args).eqls({
+            numTotal: 10,
+            numSuccesses: 11,
+            numDraws: 4,
+        });
+
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+    });
+
+    it("a fractional or unreadable numSamples does not break the sampler", async () => {
+        // `numSamples` is a number rather than an integer, so it can arrive
+        // fractional; `Array(1.5)` throws, which would take the whole document down.
+        for (const [numSamples, expected] of [
+            ["1.5", 2],
+            ["2.7", 3],
+            ["3", 3],
+        ] as [string, number][]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<sampleRandomNumbers name="s" type="binomial" numTrials="4" probability="0.5" numSamples="${numSamples}" />`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+            // the count matches what the long-standing loops produce, i.e. the ceiling
+            expect(
+                stateVariables[componentIdx].replacements!.length,
+                `numSamples="${numSamples}"`,
+            ).eq(expected);
+        }
+
+        // the same holds on the refusal path, which builds the run of NaN a
+        // different way
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="1.5" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        const values = stateVariables[componentIdx].replacements!.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        expect(values.length).eq(2);
+        for (const value of values) {
+            expect(Number.isNaN(value)).eq(true);
+        }
+    });
+
     it("a gaussian with an impossible spread reports it", async () => {
         // A negative `standardDeviation` would come back positive, since the spread
         // is round-tripped through the variance; a negative `variance` is what

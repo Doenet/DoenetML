@@ -81,6 +81,21 @@ export function sampleBinomial({ numTrials, probability, rng }) {
 }
 
 /**
+ * One draw from the exponential distribution with rate 1.
+ *
+ * The generator's range is [0, 1), so it can return exactly zero, and `-log(0)` is
+ * infinite — which would end a Poisson sample early and bias it low. Redrawing is
+ * how the Box-Muller transform above handles the same hazard.
+ */
+function sampleExponential(rng) {
+    let uniform = 0;
+    while (uniform === 0) {
+        uniform = rng();
+    }
+    return -Math.log(uniform);
+}
+
+/**
  * Sample a single Poisson variate with the given mean, by counting how many
  * exponential interarrival times fit within `mean`. This is Knuth's method written
  * with logarithms: accumulating `-log(rng())` until the total reaches `mean` is
@@ -90,11 +105,11 @@ export function sampleBinomial({ numTrials, probability, rng }) {
  */
 export function samplePoisson({ mean, rng }) {
     let count = 0;
-    let total = -Math.log(rng());
+    let total = sampleExponential(rng);
 
     while (total < mean) {
         count++;
-        total -= Math.log(rng());
+        total += sampleExponential(rng);
     }
 
     return count;
@@ -300,10 +315,18 @@ export function sampleFromRandomNumbers({
     poissonMean,
     rng,
 }) {
+    // `numSamples` is declared as a number, not an integer, so it can arrive
+    // fractional or NaN. The long-standing loops here take the ceiling of a
+    // fractional count, and `Array(1.5)` throws outright rather than rounding, so
+    // settle on one whole count up front and use it in every branch.
+    const numToSample = Number.isFinite(numSamples)
+        ? Math.max(0, Math.ceil(numSamples))
+        : 0;
+
     if (type === "gaussian") {
         if (!(standardDeviation >= 0) || !Number.isFinite(mean)) {
             return unsampleable(
-                numSamples,
+                numToSample,
                 codedDiagnostic({
                     type: "warning",
                     code: "doenet-w0126",
@@ -314,7 +337,7 @@ export function sampleFromRandomNumbers({
 
         let sampledValues = [];
 
-        for (let i = 0; i < numSamples; i++) {
+        for (let i = 0; i < numToSample; i++) {
             // Standard Normal variate using Box-Muller transform.
             let u = 0,
                 v = 0;
@@ -337,7 +360,7 @@ export function sampleFromRandomNumbers({
 
         let diff = to - from;
 
-        for (let i = 0; i < numSamples; i++) {
+        for (let i = 0; i < numToSample; i++) {
             sampledValues.push(from + rng() * diff);
         }
 
@@ -349,11 +372,11 @@ export function sampleFromRandomNumbers({
             numDraws,
         });
         if (problem) {
-            return unsampleable(numSamples, problem);
+            return unsampleable(numToSample, problem);
         }
 
         return {
-            sampledValues: Array.from({ length: numSamples }, () =>
+            sampledValues: Array.from({ length: numToSample }, () =>
                 sampleHypergeometric({ numTotal, numSuccesses, numDraws, rng }),
             ),
             diagnostics: slowSamplingDiagnostics(
@@ -364,11 +387,11 @@ export function sampleFromRandomNumbers({
     } else if (type === "binomial") {
         const problem = binomialProblem({ numTrials, probability });
         if (problem) {
-            return unsampleable(numSamples, problem);
+            return unsampleable(numToSample, problem);
         }
 
         return {
-            sampledValues: Array.from({ length: numSamples }, () =>
+            sampledValues: Array.from({ length: numToSample }, () =>
                 sampleBinomial({ numTrials, probability, rng }),
             ),
             diagnostics: slowSamplingDiagnostics("binomial", numTrials),
@@ -378,11 +401,11 @@ export function sampleFromRandomNumbers({
         // NaN for anything unusable and so cannot say what was wrong with it
         const problem = poissonMeanProblem(poissonMean);
         if (problem) {
-            return unsampleable(numSamples, problem);
+            return unsampleable(numToSample, problem);
         }
 
         return {
-            sampledValues: Array.from({ length: numSamples }, () =>
+            sampledValues: Array.from({ length: numToSample }, () =>
                 samplePoisson({ mean: poissonMean, rng }),
             ),
             diagnostics: slowSamplingDiagnostics("poisson", poissonMean),
@@ -405,7 +428,7 @@ export function sampleFromRandomNumbers({
                 }
             }
 
-            for (let i = 0; i < numSamples; i++) {
+            for (let i = 0; i < numToSample; i++) {
                 // random integer from 0 to numDiscreteValues-1
                 let ind = Math.floor(rng() * numDiscreteValues);
 
