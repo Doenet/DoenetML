@@ -9,6 +9,46 @@ import {
 } from "../../utils/listValues";
 
 /**
+ * The reasons an index operator can come back with 0 — no position at all —
+ * that are worth telling the author about, and the diagnostic each one gets.
+ *
+ * Not every 0 belongs here. `<indexOf>` answering 0 for a target that is not in
+ * the list is its documented result, not a problem, and reporting it would fire
+ * on ordinary correct documents — once per distinct value a student or author
+ * types into an input bound to `target`. The diagnostics queue is append-only
+ * and deduplicates by message, so anything that varies with a transient value
+ * accumulates permanently; only reasons that stay true of a settled document
+ * are reported.
+ *
+ * Omitting `target` is one such: nothing about that document can ever produce
+ * an answer, so it is a warning. Having no values at all is the other, and is
+ * only info, since a list driven by an input can legitimately be empty for a
+ * while.
+ */
+function diagnosticsForNoIndex(result, componentType) {
+    switch (result.reason) {
+        case "noTarget":
+            return [
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0134",
+                    args: { component: componentType },
+                }),
+            ];
+        case "noValues":
+            return [
+                codedDiagnostic({
+                    type: "info",
+                    code: "doenet-i0049",
+                    args: { component: componentType },
+                }),
+            ];
+        default:
+            return [];
+    }
+}
+
+/**
  * Base class for operators that report a *position* within a list rather than
  * a value from it: `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>`.
  *
@@ -24,54 +64,8 @@ import {
  * consistent with `$list[0]` being empty.
  *
  * Subclasses supply `indexOperator`, which receives `{ values, numeric }` and
- * returns the index.
+ * returns `{ index, reason? }`.
  */
-/**
- * The reasons an index operator can come back with 0 — no position at all —
- * and the diagnostic each one deserves.
- *
- * 0 is deliberately not a valid index (list indices start at 1), so an author
- * who gets one has usually made one of these three mistakes, and the result on
- * its own does not say which. Omitting `target` is a warning: nothing about
- * that document can ever produce an answer. The other two are info, because
- * both arise legitimately while a page is still settling — a list driven by an
- * input can be momentarily empty, and a target can be absent from a list that
- * is about to change.
- */
-function diagnosticsForNoIndex(result, componentType) {
-    switch (result.reason) {
-        case "noTarget":
-            return [
-                codedDiagnostic({
-                    type: "warning",
-                    code: "doenet-w0134",
-                    args: { component: componentType },
-                }),
-            ];
-        case "notFound":
-            return [
-                codedDiagnostic({
-                    type: "info",
-                    code: "doenet-i0049",
-                    args: {
-                        component: componentType,
-                        target: result.target ?? "",
-                    },
-                }),
-            ];
-        case "noValues":
-            return [
-                codedDiagnostic({
-                    type: "info",
-                    code: "doenet-i0050",
-                    args: { component: componentType },
-                }),
-            ];
-        default:
-            return [];
-    }
-}
-
 export default class ListIndexBaseOperator extends MathComponent {
     static componentType = "_listIndexOperator";
 
@@ -192,9 +186,8 @@ export default class ListIndexBaseOperator extends MathComponent {
             }),
         );
 
-        // Overridden by subclasses.
-        // Overridden by subclasses. Returns `{ index, reason?, target? }`;
-        // `reason` explains a zero so the base can raise the right diagnostic.
+        // Overridden by subclasses. Returns `{ index, reason? }`; `reason`
+        // explains a zero so the base can raise the right diagnostic.
         stateVariableDefinitions.indexOperator = {
             returnDependencies: () => ({}),
             definition: () => ({

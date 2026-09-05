@@ -527,7 +527,6 @@ export type MessageKey =
     | "sample-poisson-mean-too-large"
     | "sample-distribution-slow"
     | "index-operator-missing-target"
-    | "index-operator-target-not-found"
     | "index-operator-no-values"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
@@ -1122,7 +1121,6 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sample-poisson-mean-too-large",
     "sample-distribution-slow",
     "index-operator-missing-target",
-    "index-operator-target-not-found",
     "index-operator-no-values",
     "editor-update-viewer",
     "editor-update-viewer-title",

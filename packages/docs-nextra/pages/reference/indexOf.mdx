@@ -12,10 +12,10 @@ component that renders the position of the first of its arguments equal to the v
 given by the `target` attribute. Indices start at 1, and a target that does not occur
 in the list gives 0.
 
-Because 0 is not the index of any item, the reason for one is always reported. A target
-that is simply absent is an info message — a list still settling can legitimately not
-contain it yet — while omitting `target` altogether is a warning, since nothing about
-that document could ever produce an answer.
+A 0 for a target that is not in the list is the answer, not a problem, so nothing is
+reported for it. Omitting `target` altogether is a warning, since nothing about that
+document could ever produce an answer, and a list with no values at all is an info
+message.
 
 Values are compared numerically when they are all numeric, and as text otherwise, so
 `<indexOf>{:dn}` searches a `<textList>{:dn}` as readily as a `<numberList>{:dn}`.

@@ -86,8 +86,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0033": "variant-math-exclude-not-implemented",
     "doenet-i0034": "variant-non-constant-exclude-not-implemented",
     "doenet-i0048": "attribute-value-invalid-using-default",
-    "doenet-i0049": "index-operator-target-not-found",
-    "doenet-i0050": "index-operator-no-values",
+    "doenet-i0049": "index-operator-no-values",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",

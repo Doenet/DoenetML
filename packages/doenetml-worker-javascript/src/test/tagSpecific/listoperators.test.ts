@@ -391,21 +391,47 @@ describe("List operator tag tests @group4", async () => {
             ).eq(true);
         });
 
-        it("a target that is absent is info, not a warning", async () => {
-            // A list still settling can legitimately not contain the target
-            // yet, so this is reported but not flagged as a mistake.
+        it("a target that is absent is not reported at all", async () => {
+            // 0 for a target that is not in the list is what <indexOf> is for,
+            // not a mistake, so nothing is raised.
             const { warnings, infos } = await messagesFor(`
     <numberList name="nl">10 20 30</numberList>
     <p><indexOf target="99">$nl</indexOf></p>
     `);
-            expect(
-                infos.some(
-                    (m) =>
-                        m.includes("indexOf") &&
-                        m.includes("did not find `99`"),
-                ),
-            ).eq(true);
-            expect(warnings.some((m) => m.includes("`target`"))).eq(false);
+            expect(warnings).eqls([]);
+            expect(infos).eqls([]);
+        });
+
+        it("a target driven by an input accumulates no diagnostics", async () => {
+            // The diagnostics queue is append-only, so anything raised while a
+            // value is being typed would stay behind on a document that ends up
+            // perfectly correct — one entry per keystroke that missed.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">10 20 30</numberList>
+    <mathInput name="mi" prefill="1" />
+    <p name="p"><indexOf target="$mi">$nl</indexOf></p>
+    `,
+            });
+            for (const latex of ["2", "20", "3", "30"]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await core.returnAllStateVariables(false, true);
+            }
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "3",
+            });
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.message)).eqls([]);
+            expect(d.infos.map((i) => i.message)).eqls([]);
         });
 
         it("having nothing to look through is info", async () => {
@@ -440,9 +466,7 @@ describe("List operator tag tests @group4", async () => {
     <p><searchSorted target="25">$nl</searchSorted></p>
     `);
             const mine = (m: string) =>
-                m.includes("look for") ||
-                m.includes("did not find") ||
-                m.includes("look through");
+                m.includes("look for") || m.includes("look through");
             expect(warnings.filter(mine)).eqls([]);
             expect(infos.filter(mine)).eqls([]);
         });

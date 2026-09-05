@@ -1008,12 +1008,6 @@ sample-distribution-slow =
 index-operator-missing-target =
     `{ $component }` has no `target` to look for, so it cannot report a position and gives 0.
 
-# Raised when the operator ran but matched nothing. $component names the tag,
-# $target the value that was looked for. 0 is not the index of any item, since
-# list indices start at 1.
-index-operator-target-not-found =
-    `{ $component }` did not find `{ $target }` among its values, so it gives 0, which is not the index of any item.
-
 # Raised when the operator had no values to look through — an empty list, or one
 # whose only children were references that produced nothing.
 index-operator-no-values =

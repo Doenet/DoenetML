@@ -148,11 +148,10 @@ export class IndexOf extends ListIndexBaseOperator {
                                 return { index: ind + 1 };
                             }
                         }
-                        return {
-                            index: 0,
-                            reason: "notFound",
-                            target: target.textValue,
-                        };
+                        // A target that is not in the list is the documented
+                        // answer of `<indexOf>`, not a problem, so no reason
+                        // is attached and nothing is reported.
+                        return { index: 0 };
                     },
                 ),
             },
