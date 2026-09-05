@@ -1000,3 +1000,21 @@ sample-poisson-mean-too-large =
 # respectively, so the wording names neither.
 sample-distribution-slow =
     Each value from this { $distribution } distribution needs about { $draws } random draws, so sampling may be slow. Reduce the distribution's parameters, or ask for fewer values, if the page feels sluggish.
+
+## List index operators
+
+# Raised by the index-returning list operators (`<indexOf>`, `<searchSorted>`)
+# when no `target` was given. $component names the tag the author wrote.
+index-operator-missing-target =
+    `{ $component }` has no `target` to look for, so it cannot report a position and gives 0.
+
+# Raised when the operator ran but matched nothing. $component names the tag,
+# $target the value that was looked for. 0 is not the index of any item, since
+# list indices start at 1.
+index-operator-target-not-found =
+    `{ $component }` did not find `{ $target }` among its values, so it gives 0, which is not the index of any item.
+
+# Raised when the operator had no values to look through — an empty list, or one
+# whose only children were references that produced nothing.
+index-operator-no-values =
+    `{ $component }` has no values to look through, so it gives 0, which is not the index of any item.

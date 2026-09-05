@@ -10,7 +10,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<argMax>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
 component that renders the **index** of the largest of its arguments, rather than the
 value itself. Indices start at 1, ties resolve to the first occurrence, and an empty
-list gives 0.
+list gives 0. Since 0 is not the index of any item, an empty list also reports an
+info message saying there was nothing to look through.
 
 Because DoenetML lists can be indexed by a reference, the index that `<argMax>{:dn}`
 produces can be used to look up the matching entry of a *different* list — which is

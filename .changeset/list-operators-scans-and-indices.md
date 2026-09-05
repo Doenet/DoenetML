@@ -43,4 +43,6 @@ Sharing it also fixes a second bug, in `<sort>` and `<shuffle>`: an explicit `ty
 
 Sharing it also fixes a bug in `<sort>` itself, so `<sort type="boolean">` now renders differently than before: `type="boolean"` has always been an accepted type, but a boolean child had no comparable value and was silently skipped, so `<sort type="boolean">true false</sort>` rendered nothing at all. Boolean children are now ordered as text, which puts `false` before `true` — the same order `<indexOf>` uses when its `target` is a boolean. `<shuffle type="boolean">` was never affected, since it rearranges its children without comparing them.
 
+When an index operator comes back with 0 it now says why, since 0 is not the index of any item and the result alone does not distinguish the cases. Omitting `target` on `<indexOf>` or `<searchSorted>` is a warning — no document written that way can ever produce an answer. A target that is simply absent from the list, and an empty list with nothing to look through, are info messages instead: both arise legitimately while a page is still settling, when a list driven by an input is momentarily empty or does not yet hold the value being sought.
+
 Closes #1816. Closes #1817. Closes #1823.

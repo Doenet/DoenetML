@@ -354,6 +354,100 @@ describe("List operator tag tests @group4", async () => {
         });
     });
 
+    describe("diagnostics when no index can be reported", async () => {
+        async function messagesFor(doenetML: string) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+            const d = getDiagnosticsByType(core);
+            return {
+                warnings: d.warnings.map((w) => w.message),
+                infos: d.infos.map((i) => i.message),
+            };
+        }
+
+        it("omitting target is a warning, since no document can answer", async () => {
+            const idx = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><indexOf>$nl</indexOf></p>
+    `);
+            expect(
+                idx.warnings.some(
+                    (m) =>
+                        m.includes("indexOf") &&
+                        m.includes("has no `target` to look for"),
+                ),
+            ).eq(true);
+
+            const ss = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><searchSorted>$nl</searchSorted></p>
+    `);
+            expect(
+                ss.warnings.some(
+                    (m) =>
+                        m.includes("searchSorted") &&
+                        m.includes("has no `target` to look for"),
+                ),
+            ).eq(true);
+        });
+
+        it("a target that is absent is info, not a warning", async () => {
+            // A list still settling can legitimately not contain the target
+            // yet, so this is reported but not flagged as a mistake.
+            const { warnings, infos } = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><indexOf target="99">$nl</indexOf></p>
+    `);
+            expect(
+                infos.some(
+                    (m) =>
+                        m.includes("indexOf") &&
+                        m.includes("did not find `99`"),
+                ),
+            ).eq(true);
+            expect(warnings.some((m) => m.includes("`target`"))).eq(false);
+        });
+
+        it("having nothing to look through is info", async () => {
+            const argMin = await messagesFor(`<p><argMin></argMin></p>`);
+            expect(
+                argMin.infos.some(
+                    (m) =>
+                        m.includes("argMin") &&
+                        m.includes("has no values to look through"),
+                ),
+            ).eq(true);
+
+            // <searchSorted> otherwise always reports a position, so an empty
+            // list is the one case where it too comes back with 0.
+            const ss = await messagesFor(
+                `<p><searchSorted target="5"></searchSorted></p>`,
+            );
+            expect(
+                ss.infos.some(
+                    (m) =>
+                        m.includes("searchSorted") &&
+                        m.includes("has no values to look through"),
+                ),
+            ).eq(true);
+        });
+
+        it("an operator that finds an index reports nothing", async () => {
+            const { warnings, infos } = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><indexOf target="20">$nl</indexOf></p>
+    <p><argMax>$nl</argMax></p>
+    <p><searchSorted target="25">$nl</searchSorted></p>
+    `);
+            const mine = (m: string) =>
+                m.includes("look for") ||
+                m.includes("did not find") ||
+                m.includes("look through");
+            expect(warnings.filter(mine)).eqls([]);
+            expect(infos.filter(mine)).eqls([]);
+        });
+    });
+
     describe("index-returning operators", async () => {
         it("argMin and argMax of numbers", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({

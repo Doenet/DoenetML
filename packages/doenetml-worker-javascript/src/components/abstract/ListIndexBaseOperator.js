@@ -1,5 +1,6 @@
 import MathComponent from "../Math";
 import me from "math-expressions";
+import { codedDiagnostic } from "../../utils/diagnostics";
 import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import {
     comparableValueFromRaw,
@@ -25,6 +26,52 @@ import {
  * Subclasses supply `indexOperator`, which receives `{ values, numeric }` and
  * returns the index.
  */
+/**
+ * The reasons an index operator can come back with 0 — no position at all —
+ * and the diagnostic each one deserves.
+ *
+ * 0 is deliberately not a valid index (list indices start at 1), so an author
+ * who gets one has usually made one of these three mistakes, and the result on
+ * its own does not say which. Omitting `target` is a warning: nothing about
+ * that document can ever produce an answer. The other two are info, because
+ * both arise legitimately while a page is still settling — a list driven by an
+ * input can be momentarily empty, and a target can be absent from a list that
+ * is about to change.
+ */
+function diagnosticsForNoIndex(result, componentType) {
+    switch (result.reason) {
+        case "noTarget":
+            return [
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0134",
+                    args: { component: componentType },
+                }),
+            ];
+        case "notFound":
+            return [
+                codedDiagnostic({
+                    type: "info",
+                    code: "doenet-i0049",
+                    args: {
+                        component: componentType,
+                        target: result.target ?? "",
+                    },
+                }),
+            ];
+        case "noValues":
+            return [
+                codedDiagnostic({
+                    type: "info",
+                    code: "doenet-i0050",
+                    args: { component: componentType },
+                }),
+            ];
+        default:
+            return [];
+    }
+}
+
 export default class ListIndexBaseOperator extends MathComponent {
     static componentType = "_listIndexOperator";
 
@@ -84,6 +131,10 @@ export default class ListIndexBaseOperator extends MathComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // `this` is the class here, so a subclass names itself in its own
+        // diagnostics; inside a `definition` it would not be.
+        const componentType = this.componentType;
+
         // The result is an index, so there is no single child whose rounding
         // settings should be inherited.
         Object.assign(
@@ -120,9 +171,13 @@ export default class ListIndexBaseOperator extends MathComponent {
         );
 
         // Overridden by subclasses.
+        // Overridden by subclasses. Returns `{ index, reason?, target? }`;
+        // `reason` explains a zero so the base can raise the right diagnostic.
         stateVariableDefinitions.indexOperator = {
             returnDependencies: () => ({}),
-            definition: () => ({ setValue: { indexOperator: () => 0 } }),
+            definition: () => ({
+                setValue: { indexOperator: () => ({ index: 0 }) },
+            }),
         };
 
         // `<math>` describes `value` generically; for these components it is the
@@ -150,13 +205,19 @@ export default class ListIndexBaseOperator extends MathComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let index = dependencyValues.indexOperator({
+                const result = dependencyValues.indexOperator({
                     values: dependencyValues.listValues,
                     numeric: dependencyValues.allAreNumeric,
                 });
 
+                const index = result.index;
+
                 return {
                     setValue: { unnormalizedValue: me.fromAst(index) },
+                    sendDiagnostics: diagnosticsForNoIndex(
+                        result,
+                        componentType,
+                    ),
                 };
             },
         };
@@ -214,7 +275,10 @@ export function returnTargetStateVariableDefinition() {
 export function returnTargetSearchingIndexOperator(target, locate) {
     return ({ values, numeric }) => {
         if (target === null) {
-            return 0;
+            return { index: 0, reason: "noTarget" };
+        }
+        if (values.length === 0) {
+            return { index: 0, reason: "noValues" };
         }
         return locate({
             values,

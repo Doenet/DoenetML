@@ -61,7 +61,7 @@ function returnTargetSearchingIndexOperatorDefinition(
  */
 function indexOfExtreme({ values, numeric, wantSmaller }) {
     if (values.length === 0) {
-        return 0;
+        return { index: 0, reason: "noValues" };
     }
 
     let bestInd = 0;
@@ -77,7 +77,7 @@ function indexOfExtreme({ values, numeric, wantSmaller }) {
         }
     }
 
-    return bestInd + 1;
+    return { index: bestInd + 1 };
 }
 
 export class ArgMin extends ListIndexBaseOperator {
@@ -145,10 +145,14 @@ export class IndexOf extends ListIndexBaseOperator {
                                     numeric,
                                 ) === 0
                             ) {
-                                return ind + 1;
+                                return { index: ind + 1 };
                             }
                         }
-                        return 0;
+                        return {
+                            index: 0,
+                            reason: "notFound",
+                            target: target.textValue,
+                        };
                     },
                 ),
             },
@@ -225,7 +229,7 @@ export class SearchSorted extends ListIndexBaseOperator {
                             }
                         }
 
-                        return count + 1;
+                        return { index: count + 1 };
                     },
                     {
                         side: {

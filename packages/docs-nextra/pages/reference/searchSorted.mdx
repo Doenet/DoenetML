@@ -20,8 +20,9 @@ answers "where does it belong?", not "is it there?". Ordering is numeric when th
 is all numeric and alphabetical otherwise, so a sorted `<textList>{:dn}` works too.
 
 Every position in a list is at least 1, so the result is 1 or more whenever there is a
-target to place. Omitting `target` leaves nothing to locate and gives 0, the same
-"no answer" result the other index operators use.
+target to place and something to place it among. The two cases that give 0 instead are
+both reported: omitting `target` is a warning, since nothing about that document could
+ever produce an answer, and an empty list is an info message.
 
 <AttrPropDisplay name='searchSorted'/>
 
