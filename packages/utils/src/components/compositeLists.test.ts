@@ -240,8 +240,9 @@ describe("groupCompositeRanges", () => {
         ).eq(`list1("\\n" "1" "2" "\\n")`);
     });
 
-    it("keeps a composite that produced only whitespace in its place", () => {
-        // The renderers anchor the composite's name there.
+    it("keeps a composite that produced only whitespace in its place, emptied", () => {
+        // The renderers anchor the composite's name there; the whitespace
+        // itself goes, since the comma takes its place.
         expect(
             sketch(
                 groupCompositeRanges<string>({
@@ -264,7 +265,7 @@ describe("groupCompositeRanges", () => {
                     isBlank,
                 }),
             ),
-        ).eq(`list10("1" group11(" ") "2")`);
+        ).eq(`list10("1" group11() "2")`);
     });
 
     it("takes the whitespace off the end of an item a comma will follow", () => {

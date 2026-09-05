@@ -294,12 +294,14 @@ export function isBlankGroup<T>(
  * composite that produced only whitespace, gets one comma rather than two.
  */
 export function listCommaPositions(blank: boolean[]): boolean[] {
-    return blank.map(
-        (_, ind) =>
-            ind > 0 &&
-            !blank[ind - 1] &&
-            blank.slice(ind).some((isBlank) => !isBlank),
-    );
+    const commaBefore: boolean[] = new Array(blank.length);
+    // Walking from the right, whether an item is at this position or after it.
+    let itemAtOrAfter = false;
+    for (let ind = blank.length - 1; ind >= 0; ind--) {
+        itemAtOrAfter ||= !blank[ind];
+        commaBefore[ind] = ind > 0 && !blank[ind - 1] && itemAtOrAfter;
+    }
+    return commaBefore;
 }
 
 /**
@@ -322,8 +324,8 @@ export function joinListText(parts: string[], blank: boolean[]): string {
  * at the end of an item a comma will follow, so that nothing puts a space in
  * front of a comma. The whitespace before the first item and after the last
  * stays: no comma replaces it, and it separates the list from what surrounds
- * it. A composite that produced only whitespace also stays, so that the
- * renderers can still anchor its name to its place.
+ * it. A composite that produced only whitespace stays as well, emptied of that
+ * whitespace, so that the renderers can still anchor its name to its place.
  */
 function prepareListItems<T>(
     items: CompositeGroup<T>[],
@@ -348,10 +350,25 @@ function prepareListItems<T>(
         } else if (!isBlankGroup(item, isBlank)) {
             prepared.push(trimItemEnd(item, isBlank, trimEnd));
         } else if (item.kind === "composite") {
-            prepared.push(item);
+            prepared.push(withoutBlankChildren(item));
         }
     }
     return prepared;
+}
+
+/**
+ * A composite that produced only whitespace, with that whitespace taken out
+ * and only the composites inside it left, each emptied the same way.
+ */
+function withoutBlankChildren<T>(
+    group: CompositeGroup<T> & { kind: "composite" },
+): CompositeGroup<T> {
+    return {
+        ...group,
+        items: group.items.flatMap((item) =>
+            item.kind === "composite" ? [withoutBlankChildren(item)] : [],
+        ),
+    };
 }
 
 /**

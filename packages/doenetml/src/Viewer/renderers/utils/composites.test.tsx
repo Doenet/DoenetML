@@ -315,4 +315,29 @@ describe("addCommasForCompositeRanges", () => {
         ]);
         expect(shown(result)).eq("1, 2 and 3, 4");
     });
+
+    it("keeps the anchor of a composite that produced only whitespace", () => {
+        // The composite's span stays where it was, so a link to its name still
+        // scrolls there, but the whitespace it produced goes: the comma takes
+        // its place.
+        const children = [child("1", 0), " ", child("2", 2)];
+        const result = addCommas(children, [
+            range({
+                compositeName: "outer",
+                firstInd: 0,
+                lastInd: 2,
+                potentialListComponents: [true, true, true],
+            }),
+            range({
+                compositeName: "g",
+                firstInd: 1,
+                lastInd: 1,
+                asList: false,
+                potentialListComponents: [true],
+            }),
+        ]);
+        expect(renderToStaticMarkup(<>{result}</>)).eq(
+            '<span id="outer"><span>1</span>, <span id="g"></span><span>2</span></span>',
+        );
+    });
 });

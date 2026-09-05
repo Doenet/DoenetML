@@ -280,6 +280,10 @@ describe("Automatic commas between composite replacements @group3", () => {
                     body: `<group asList><number>1</number> <number>2</number> $s $s2 <number>3</number></group>`,
                     expected: "1, 2, 3",
                 },
+                blankGroupBetween: {
+                    body: `<group asList><number>1</number><group> </group><number>2</number></group>`,
+                    expected: "1, 2",
+                },
                 withItems: {
                     body: `<group asList><number>1</number> <number>2</number> $s3 <number>3</number></group>`,
                     expected: "1, 2, 7, 8, 3",
