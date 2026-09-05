@@ -123103,7 +123103,10 @@
                     "type": [
                         "uniform",
                         "discreteUniform",
-                        "gaussian"
+                        "gaussian",
+                        "hypergeometric",
+                        "binomial",
+                        "poisson"
                     ]
                 },
                 "mean": {
@@ -123143,6 +123146,36 @@
                     ]
                 },
                 "exclude": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numTotal": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numSuccesses": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numDraws": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numTrials": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "probability": {
                     "optional": true,
                     "type": [
                         "string"
@@ -123255,6 +123288,36 @@
                     "description": "Upper bound of the sampling range."
                 },
                 {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Size of the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numSuccesses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of successes in the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric)."
+                },
+                {
+                    "name": "numTrials",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of independent trials making up each sample (binomial)."
+                },
+                {
+                    "name": "probability",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Probability that each trial succeeds (binomial)."
+                },
+                {
                     "name": "mean",
                     "type": "number",
                     "isArray": false,
@@ -123348,7 +123411,10 @@
                     "type": [
                         "uniform",
                         "discreteUniform",
-                        "gaussian"
+                        "gaussian",
+                        "hypergeometric",
+                        "binomial",
+                        "poisson"
                     ]
                 },
                 "mean": {
@@ -123388,6 +123454,36 @@
                     ]
                 },
                 "exclude": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numTotal": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numSuccesses": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numDraws": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numTrials": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "probability": {
                     "optional": true,
                     "type": [
                         "string"
@@ -123506,6 +123602,36 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Upper bound of the sampling range."
+                },
+                {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Size of the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numSuccesses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of successes in the population drawn from (hypergeometric)."
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric)."
+                },
+                {
+                    "name": "numTrials",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of independent trials making up each sample (binomial)."
+                },
+                {
+                    "name": "probability",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Probability that each trial succeeds (binomial)."
                 },
                 {
                     "name": "mean",

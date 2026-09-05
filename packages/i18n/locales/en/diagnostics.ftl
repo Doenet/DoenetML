@@ -944,3 +944,59 @@ math-embedded-input-shape-unsuitable =
         [on-graph] This `<{ $component }>` is not shown because it is inside math drawn on a graph, which has no room for an input.
        *[relative-width] This `<{ $component }>` is not shown because it is inside math and has a relative width. Give the width in absolute units, such as `px`, instead.
     }
+
+## `<sampleRandomNumbers>` and `<selectRandomNumbers>`
+##
+## Translators: `mean`, `standardDeviation`, `variance`, `numTotal`,
+## `numSuccesses`, `numDraws`, `numTrials`, `probability` and `numSamples` are
+## DoenetML attribute names. They are written into these messages as they stand
+## and must be left in English exactly as written. Each of these names the
+## attribute the author has to change, so a message that translated one would
+## point at an attribute that does not exist.
+
+# The spread reaches the sampler as a standard deviation however it was written,
+# so a negative `variance` arrives here as a `standardDeviation` of NaN and the
+# message has to name both for the author to know what to edit.
+sample-gaussian-parameters-invalid =
+    Invalid mean ({ $mean }) or standardDeviation ({ $standardDeviation }) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be finite and non-negative. No numbers can be sampled.
+
+# These three attributes are the only ones with no default, so leaving one out is
+# the commonest way to reach this message. Each arrives either as the number the
+# author wrote or as `not-set` for an attribute they left off entirely; translate
+# the "not set" wording, but leave the `not-set` key that selects it untouched.
+sample-hypergeometric-parameters-invalid =
+    Invalid numTotal ({ $numTotal ->
+        [not-set] not set
+       *[other] { $numTotal }
+    }), numSuccesses ({ $numSuccesses ->
+        [not-set] not set
+       *[other] { $numSuccesses }
+    }), or numDraws ({ $numDraws ->
+        [not-set] not set
+       *[other] { $numDraws }
+    }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal. All three must also stay below about nine quadrillion, past which whole numbers can no longer be counted exactly.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-hypergeometric-draws-too-many =
+    Drawing { $numDraws } items from a population of { $numTotal } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, or bring it closer to numTotal.
+
+sample-binomial-parameters-invalid =
+    Invalid numTrials ({ $numTrials }) or probability ({ $probability }) for a binomial random variable. numTrials must be a non-negative whole number below about nine quadrillion, past which whole numbers can no longer be counted exactly, and probability must be between 0 and 1.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-binomial-trials-too-many =
+    Running { $numTrials } trials would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numTrials.
+
+sample-poisson-mean-invalid =
+    Invalid mean ({ $mean }) for a poisson random variable. The mean must be a finite, non-negative number.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-poisson-mean-too-large =
+    A poisson mean of { $mean } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce the mean.
+
+# $distribution names the distribution, e.g. "binomial"; $draws is roughly how many
+# random draws each value needs. Raised by both `<sampleRandomNumbers>` and
+# `<selectRandomNumbers>`, which count values with `numSamples` and `numToSelect`
+# respectively, so the wording names neither.
+sample-distribution-slow =
+    Each value from this { $distribution } distribution needs about { $draws } random draws, so sampling may be slow. Reduce the distribution's parameters, or ask for fewer values, if the page feels sluggish.
