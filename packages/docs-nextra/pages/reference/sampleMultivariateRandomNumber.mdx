@@ -1,0 +1,148 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+
+# `<sampleMultivariateRandomNumber/>{:dn}`
+
+
+<ComponentDisplay name='sampleMultivariateRandomNumber'/>
+
+`<sampleMultivariateRandomNumber/>{:dn}` draws a single *vector-valued* random number and 
+expands to one [Number](../concepts/essentialConcepts#component-types) per category. 
+It differs from `<sampleRandomNumbers/>{:dn}`, where each sample is a single number drawn 
+independently of the others: here the numbers within one sample are drawn together and are 
+*not* independent of each other, since they describe how one set of draws was divided 
+among the categories.
+
+
+<AttrPropDisplay name='sampleMultivariateRandomNumber'/>
+
+
+## Examples
+
+### Example: Default `<sampleMultivariateRandomNumber/>{:dn}`
+
+
+```doenet-editor-horiz
+<p>An urn holds 5 red, 3 blue, and 2 green marbles. 
+  Draw 4 of them without replacement:</p>
+
+<p><sampleMultivariateRandomNumber name="draw" 
+  numInCategories="5 3 2" 
+  numDraws="4" 
+/></p>
+
+<p>Red: $draw[1], blue: $draw[2], green: $draw[3]</p>
+```
+
+
+
+The three numbers are the counts of each category among the drawn items, so they always 
+sum to `numDraws`. The number of categories &mdash; and therefore how many numbers are 
+produced &mdash; comes from the length of `numInCategories`.
+
+
+
+---
+
+### Example: Using a re-sampling button
+
+
+```doenet-editor-horiz
+<p><sampleMultivariateRandomNumber name="draw" 
+  numInCategories="5 3 2" 
+  numDraws="4" 
+/></p>
+
+<callAction actionName="resample" target="$draw">
+  <label>Draw Again</label>
+</callAction>
+```
+
+
+
+The `<callAction>{:dn}` button draws a fresh set of items from the same population.
+
+
+
+## Attribute Examples
+
+### Attribute Example: numInCategories
+
+
+```doenet-example
+<p>A committee of 3 is chosen from 4 seniors, 5 juniors, 
+  6 sophomores, and 2 first-years:</p>
+
+<p><sampleMultivariateRandomNumber name="committee" 
+  numInCategories="4 5 6 2" 
+  numDraws="3" 
+/></p>
+
+<callAction actionName="resample" target="$committee">
+  <label>Choose Again</label>
+</callAction>
+```
+
+
+
+The `numInCategories` attribute gives the number of items of each category in the 
+population. Its length determines how many numbers are sampled, so this example 
+produces four numbers.
+
+
+
+---
+
+### Attribute Example: numDraws
+
+
+```doenet-example
+<p>Draw 8 of the 10 marbles:</p>
+
+<p><sampleMultivariateRandomNumber name="draw" 
+  numInCategories="5 3 2" 
+  numDraws="8" 
+/></p>
+
+<callAction actionName="resample" target="$draw">
+  <label>Draw Again</label>
+</callAction>
+```
+
+
+
+The `numDraws` attribute sets how many items are drawn, without replacement, from the 
+whole population. Drawing all of them would always return `numInCategories` itself.
+
+
+
+## Property Examples
+
+### Property Example: means, variances
+
+
+```doenet-example
+<p><sampleMultivariateRandomNumber name="draw" 
+  numInCategories="5 3 2" 
+  numDraws="4" 
+/></p>
+
+<callAction actionName="resample" target="$draw">
+  <label>Draw Again</label>
+</callAction>
+
+<p>Expected counts: $draw.means</p>
+<p>Variances: $draw.variances</p>
+<p>Population size: $draw.numTotal, in $draw.numCategories categories</p>
+```
+
+
+
+Each category's count on its own follows a hypergeometric distribution, so `means` 
+reports $n K_i / N$ and `variances` reports 
+$n \frac{K_i}{N}\left(1 - \frac{K_i}{N}\right)\frac{N-n}{N-1}$, where $N$ is `numTotal`, 
+$K_i$ is the size of category $i$, and $n$ is `numDraws`. Individual entries are 
+available as `means[1]`, `variances[1]`, and so on.

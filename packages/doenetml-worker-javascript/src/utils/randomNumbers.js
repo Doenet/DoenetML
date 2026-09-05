@@ -70,6 +70,44 @@ export function sampleHypergeometric({
 }
 
 /**
+ * Sample a single multivariate hypergeometric variate: the vector of per-category
+ * counts obtained when drawing `numDraws` items without replacement from a population
+ * partitioned into categories of sizes `numInCategories`.
+ *
+ * Draws each category's count in turn as a univariate hypergeometric against the part
+ * of the population not yet accounted for, which is exact rather than an approximation.
+ * The last category takes whatever draws remain, so the counts always sum to `numDraws`.
+ */
+export function sampleMultivariateHypergeometric({
+    numInCategories,
+    numDraws,
+    rng,
+}) {
+    const counts = [];
+
+    let remainingInPopulation = numInCategories.reduce((a, c) => a + c, 0);
+    let remainingDraws = numDraws;
+
+    for (let i = 0; i < numInCategories.length - 1; i++) {
+        const count = sampleHypergeometric({
+            numTotal: remainingInPopulation,
+            numSuccesses: numInCategories[i],
+            numDraws: remainingDraws,
+            rng,
+        });
+
+        counts.push(count);
+        remainingInPopulation -= numInCategories[i];
+        remainingDraws -= count;
+    }
+
+    // whatever is left must come from the final category
+    counts.push(remainingDraws);
+
+    return counts;
+}
+
+/**
  * Sample a single binomial variate: the number of successes in `numTrials` independent
  * trials that each succeed with probability `probability`. Runs the trials directly,
  * which is O(numTrials).

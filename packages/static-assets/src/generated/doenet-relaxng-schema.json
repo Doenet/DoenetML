@@ -192,6 +192,7 @@
         "evaluate",
         "selectRandomNumbers",
         "sampleRandomNumbers",
+        "sampleMultivariateRandomNumber",
         "selectPrimeNumbers",
         "samplePrimeNumbers",
         "substitute",
@@ -679,6 +680,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -1276,6 +1280,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -2191,6 +2198,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -2897,6 +2907,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -3813,6 +3826,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -4797,6 +4813,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -5777,6 +5796,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -6806,6 +6828,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -7682,6 +7707,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -8361,6 +8389,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -9037,6 +9068,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -9711,6 +9745,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -10836,6 +10873,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -11416,6 +11456,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -13782,6 +13825,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -14350,6 +14396,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -14933,6 +14982,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -15603,6 +15655,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -16499,6 +16554,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -17389,6 +17447,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -18283,6 +18344,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -19175,6 +19239,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -20061,6 +20128,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -20927,6 +20997,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -21785,6 +21858,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -22653,6 +22729,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -23519,6 +23598,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -24383,6 +24465,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -25263,6 +25348,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -26157,6 +26245,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -27058,6 +27149,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -27968,6 +28062,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -28869,6 +28966,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -29761,6 +29861,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -30657,6 +30760,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -31549,6 +31655,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -32445,6 +32554,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -33337,6 +33449,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -34239,6 +34354,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -42589,6 +42707,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -43598,6 +43719,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -44611,6 +44735,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -45472,6 +45599,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -46149,6 +46279,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -46733,6 +46866,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -47321,6 +47457,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -47905,6 +48044,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -48493,6 +48635,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -49077,6 +49222,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -49665,6 +49813,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -50249,6 +50400,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -50837,6 +50991,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -51421,6 +51578,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -53411,6 +53571,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -54608,6 +54771,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -55809,6 +55975,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -57006,6 +57175,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -58214,6 +58386,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -59411,6 +59586,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -60619,6 +60797,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -61823,6 +62004,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -63031,6 +63215,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -64237,6 +64424,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -65434,6 +65624,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -66635,6 +66828,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -67832,6 +68028,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -69033,6 +69232,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -70232,6 +70434,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -71429,6 +71634,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -72636,6 +72844,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -73827,6 +74038,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -75016,6 +75230,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -76648,6 +76865,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -78470,6 +78690,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -79257,6 +79480,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -80087,6 +80313,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -81769,6 +81998,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -82484,6 +82716,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -84631,6 +84866,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -85529,6 +85767,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -86513,6 +86754,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -87430,6 +87674,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -88263,6 +88510,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -89128,6 +89378,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -90397,6 +90650,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -91089,6 +91345,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -91830,6 +92089,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -92816,6 +93078,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -93392,6 +93657,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -93979,6 +94247,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -94577,6 +94848,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -95184,6 +95458,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -96061,6 +96338,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -96850,6 +97130,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -97340,6 +97623,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -97729,6 +98015,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -98619,6 +98908,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -99297,6 +99589,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -100078,6 +100373,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -100924,6 +101222,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -105600,6 +105901,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -106430,6 +106734,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -107245,6 +107552,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -108012,6 +108322,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -108487,6 +108800,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -109023,6 +109339,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -109766,6 +110085,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -110647,6 +110969,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -111580,6 +111905,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -112295,6 +112623,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -113042,6 +113373,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -113853,6 +114187,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -114527,6 +114864,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -115778,6 +116118,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -116333,6 +116676,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -116963,6 +117309,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -117970,6 +118319,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -119153,6 +119505,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -120793,6 +121148,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -121860,6 +122218,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -122579,6 +122940,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -123635,6 +123999,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -125524,6 +125891,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -126293,6 +126663,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -127271,6 +127644,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -128129,6 +128505,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -131399,6 +131778,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -132016,6 +132398,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -133362,6 +133747,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -135044,6 +135432,232 @@
                 }
             ]
         },
+        "sampleMultivariateRandomNumber": {
+            "type": "element",
+            "name": "sampleMultivariateRandomNumber",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "hypergeometric"
+                    ]
+                },
+                "numInCategories": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "numDraws": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "avoidScientificNotation": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "variantDeterminesSeed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "type",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Multivariate distribution from which to sample.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numInCategories",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Number of items of each category in the population drawn from. Its length determines how many numbers are sampled.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "numDraws",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Number of items drawn without replacement from the population.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "variantDeterminesSeed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the document's variant index determines the random seed.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numCategories",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of categories the population is partitioned into, which is how many numbers are sampled."
+                },
+                {
+                    "name": "numTotal",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Total number of items in the population drawn from, i.e. the sum of `numInCategories`."
+                },
+                {
+                    "name": "means",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "Expected number of items sampled from each category, i.e. `numDraws * numInCategories[i] / numTotal`.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "variances",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "Variance of the number of items sampled from each category.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ]
+        },
         "selectPrimeNumbers": {
             "type": "element",
             "name": "selectPrimeNumbers",
@@ -136120,6 +136734,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -138396,6 +139013,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -138927,6 +139547,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -139548,6 +140171,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -140493,6 +141119,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -141319,6 +141948,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -142161,6 +142793,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -143519,6 +144154,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -144916,6 +145554,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -145718,6 +146359,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -146540,6 +147184,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -147156,6 +147803,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -147746,6 +148396,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -148508,6 +149161,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -149535,6 +150191,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -151238,6 +151897,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -151723,6 +152385,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -152557,6 +153222,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -153697,6 +154365,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -155214,6 +155885,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -155730,6 +156404,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -156855,6 +157532,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -157539,6 +158219,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -158468,6 +159151,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -159108,6 +159794,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -160314,6 +161003,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -160810,6 +161502,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -161804,6 +162499,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -162637,6 +163335,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -164570,6 +165271,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -165380,6 +166084,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -165891,6 +166598,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -166298,6 +167008,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -166743,6 +167456,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
