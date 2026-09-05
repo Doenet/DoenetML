@@ -1,9 +1,9 @@
 import CompositeComponent from "./CompositeComponent";
 import me from "math-expressions";
-import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import {
     calculateValueListReplacementChanges,
     createValueListReplacements,
+    returnPassThroughAttributeDeclarations,
     returnPassThroughAttributes,
 } from "../../utils/valueListReplacements";
 import {
@@ -66,21 +66,10 @@ export default class MathBaseListOperator extends CompositeComponent {
                 "Whether to force the operator to evaluate numerically rather than symbolically.",
         };
 
-        attributes.fixed = {
-            leaveRaw: true,
-            description:
-                "Whether this component's value is fixed and cannot be modified.",
-        };
-
-        // Rounding settings are not used by the composite itself; they are
-        // passed through to each of the <math> components it creates.
-        const numberDisplayAttrs = returnNumberDisplayAttributes();
-        for (let attrName in numberDisplayAttrs) {
-            attributes[attrName] = {
-                leaveRaw: true,
-                description: numberDisplayAttrs[attrName].description,
-            };
-        }
+        // `fixed` and the rounding settings are not used by the composite
+        // itself; they are passed through to each of the <math> components it
+        // creates.
+        Object.assign(attributes, returnPassThroughAttributeDeclarations());
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",

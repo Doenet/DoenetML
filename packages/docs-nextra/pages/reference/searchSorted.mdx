@@ -19,6 +19,10 @@ Unlike [`<indexOf>{:dn}`](indexOf), the target need not appear in the list; this
 answers "where does it belong?", not "is it there?". Ordering is numeric when the list
 is all numeric and alphabetical otherwise, so a sorted `<textList>{:dn}` works too.
 
+Every position in a list is at least 1, so the result is 1 or more whenever there is a
+target to place. Omitting `target` leaves nothing to locate and gives 0, the same
+"no answer" result the other index operators use.
+
 <AttrPropDisplay name='searchSorted'/>
 
 ## Examples

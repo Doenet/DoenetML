@@ -85,7 +85,7 @@ export default class ListIndexBaseOperator extends MathComponent {
         // reads them as a list of independent values instead, so all of that
         // machinery goes — and with it every dependency on the `maths` and
         // `strings` child groups, which this component does not have. This is
-        // the same set `<evaluate>` and `<matrix>` drop for the same reason.
+        // the same set `<periodicSet>` drops, for the same reason.
         delete stateVariableDefinitions.codePre;
         delete stateVariableDefinitions.expressionWithCodes;
         delete stateVariableDefinitions.mathChildrenFunctionSymbols;

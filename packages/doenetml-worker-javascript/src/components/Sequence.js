@@ -5,9 +5,9 @@ import {
     returnStandardSequenceAttributes,
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
-import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import {
     createOneReplacement,
+    returnPassThroughAttributeDeclarations,
     returnPassThroughAttributes,
 } from "../utils/valueListReplacements";
 
@@ -29,19 +29,9 @@ export default class Sequence extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.fixed = {
-            leaveRaw: true,
-            description:
-                "Whether this component's value is fixed and cannot be modified.",
-        };
-
-        const numberDisplayAttrs = returnNumberDisplayAttributes();
-        for (let attrName in numberDisplayAttrs) {
-            attributes[attrName] = {
-                leaveRaw: true,
-                description: numberDisplayAttrs[attrName].description,
-            };
-        }
+        // Passed through to each replacement rather than used by the sequence
+        // itself; see `returnPassThroughAttributes`.
+        Object.assign(attributes, returnPassThroughAttributeDeclarations());
 
         let sequenceAttributes = returnStandardSequenceAttributes();
         Object.assign(attributes, sequenceAttributes);
