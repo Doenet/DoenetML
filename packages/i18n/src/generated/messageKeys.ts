@@ -526,17 +526,11 @@ export type MessageKey =
     | "sample-poisson-mean-invalid"
     | "sample-poisson-mean-too-large"
     | "sample-distribution-slow"
-<<<<<<< HEAD
     | "index-operator-missing-target"
     | "index-operator-no-values"
-=======
     | "sample-multivariate-parameters-invalid"
     | "sample-multivariate-draws-too-many"
-<<<<<<< HEAD
->>>>>>> 722b980f4 (fix(sampling): bound the multivariate draw and report to the author)
-=======
     | "sample-multivariate-type-not-specified"
->>>>>>> bfd4488c7 (feat(sampling): require a type on the multivariate sampler)
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1129,17 +1123,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sample-poisson-mean-invalid",
     "sample-poisson-mean-too-large",
     "sample-distribution-slow",
-<<<<<<< HEAD
     "index-operator-missing-target",
     "index-operator-no-values",
-=======
     "sample-multivariate-parameters-invalid",
     "sample-multivariate-draws-too-many",
-<<<<<<< HEAD
->>>>>>> 722b980f4 (fix(sampling): bound the multivariate draw and report to the author)
-=======
     "sample-multivariate-type-not-specified",
->>>>>>> bfd4488c7 (feat(sampling): require a type on the multivariate sampler)
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

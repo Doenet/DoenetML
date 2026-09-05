@@ -417,7 +417,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
             // no distribution named
             [
                 { type: null, numInCategories: [5, 3, 2], numDraws: 4 },
-                "doenet-w0136",
+                "doenet-w0137",
             ],
             // more draws than the population holds
             [
@@ -426,7 +426,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
                     numInCategories: [5, 3, 2],
                     numDraws: 11,
                 },
-                "doenet-w0134",
+                "doenet-w0135",
             ],
             // Too slow to draw: one category on its own costs 6e6 draws, which
             // is under the ten-million limit, and only the two such draws the
@@ -438,7 +438,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
                     numInCategories: [6000000, 6000000, 6000000],
                     numDraws: 6000000,
                 },
-                "doenet-w0135",
+                "doenet-w0136",
             ],
             // slow enough to be worth saying so, but still sampled
             [
@@ -494,7 +494,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const componentIdx = await resolvePathToNodeIdx("s");
 
         const warnings = getDiagnosticsByType(core).warnings.filter(
-            (w) => w.code === "doenet-w0134",
+            (w) => w.code === "doenet-w0135",
         );
         expect(warnings.length).eq(1);
 
@@ -524,7 +524,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
                 numInCategories,
                 numDraws: 10,
             }).map((d) => d.code),
-        ).eqls(["doenet-w0134"]);
+        ).eqls(["doenet-w0135"]);
 
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="${numInCategories.join(" ")}" numDraws="10" />`,
@@ -534,7 +534,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
 
         expect(
             getDiagnosticsByType(core).warnings.filter(
-                (w) => w.code === "doenet-w0134",
+                (w) => w.code === "doenet-w0135",
             ).length,
         ).eq(1);
 
@@ -560,7 +560,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const componentIdx = await resolvePathToNodeIdx("s");
 
         const warnings = getDiagnosticsByType(core).warnings.filter(
-            (w) => w.code === "doenet-w0137",
+            (w) => w.code === "doenet-w0136",
         );
         expect(warnings.length).eq(1);
         expect(warnings[0].args).eqls({
@@ -668,7 +668,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const diagnostics = getDiagnosticsByType(core);
         expect(diagnostics.errors.length).eq(0);
         expect(diagnostics.warnings.length).eq(1);
-        expect(diagnostics.warnings[0].code).eq("doenet-w0136");
+        expect(diagnostics.warnings[0].code).eq("doenet-w0137");
         expect(diagnostics.infos.length).eq(1);
         expect(diagnostics.infos[0].message).toContain("gaussian");
 
@@ -688,7 +688,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     `;
         function numExplanations(core: any) {
             return getDiagnosticsByType(core).warnings.filter(
-                (w) => w.code === "doenet-w0134",
+                (w) => w.code === "doenet-w0135",
             ).length;
         }
 

@@ -35131,6 +35131,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -35557,6 +35560,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -35987,6 +35993,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -36415,6 +36424,9 @@
                     "ref": "sampleRandomNumbers"
                 },
                 {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
                     "ref": "selectPrimeNumbers"
                 },
                 {
@@ -36841,6 +36853,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -37734,6 +37749,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -39050,6 +39068,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -40372,6 +40393,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -41701,6 +41725,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
@@ -151054,6 +151081,9 @@
                 },
                 {
                     "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
                 },
                 {
                     "ref": "selectPrimeNumbers"
