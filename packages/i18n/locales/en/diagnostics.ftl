@@ -946,13 +946,19 @@ math-embedded-input-shape-unsuitable =
     }
 
 ## `<sampleRandomNumbers>` and `<selectRandomNumbers>`
+##
+## Translators: `mean`, `standardDeviation`, `variance`, `numTotal`,
+## `numSuccesses`, `numDraws`, `numTrials`, `probability` and `numSamples` are
+## DoenetML attribute names. They are written into these messages as they stand
+## and must be left in English exactly as written. Each of these names the
+## attribute the author has to change, so a message that translated one would
+## point at an attribute that does not exist.
 
-# Translators: `mean`, `standardDeviation`, `numTotal`, `numSuccesses`, `numDraws`,
-# `numTrials`, `probability` and `numSamples` are DoenetML attribute names. Leave
-# them in English exactly as written.
-
+# The spread reaches the sampler as a standard deviation however it was written,
+# so a negative `variance` arrives here as a `standardDeviation` of NaN and the
+# message has to name both for the author to know what to edit.
 sample-gaussian-parameters-invalid =
-    Invalid mean ({ $mean }) or standard deviation ({ $standardDeviation }) for a gaussian random variable. No numbers can be sampled.
+    Invalid mean ({ $mean }) or standardDeviation ({ $standardDeviation }) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be non-negative. No numbers can be sampled.
 
 sample-hypergeometric-parameters-invalid =
     Invalid numTotal ({ $numTotal }), numSuccesses ({ $numSuccesses }), or numDraws ({ $numDraws }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal.
@@ -969,7 +975,7 @@ sample-binomial-trials-too-many =
     Running { $numTrials } trials would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numTrials.
 
 sample-poisson-mean-invalid =
-    Invalid mean for a poisson random variable. It must be a finite, non-negative number.
+    Invalid mean ({ $mean }) for a poisson random variable. The mean must be a finite, non-negative number.
 
 # $maxDraws is the largest number of random draws allowed for a single sample.
 sample-poisson-mean-too-large =

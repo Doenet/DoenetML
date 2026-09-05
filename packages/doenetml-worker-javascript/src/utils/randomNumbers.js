@@ -197,9 +197,13 @@ export function validBinomialParameters(parameters) {
  */
 function poissonMeanProblem(mean) {
     if (!Number.isFinite(mean) || mean < 0) {
-        // the mean arrives already reduced to NaN when the author's value is out of
-        // range, so there is nothing informative to echo back here
-        return codedDiagnostic({ type: "warning", code: "doenet-w0131" });
+        // the rate as the author wrote it, which is what reaches here — the reported
+        // `mean` is already NaN for anything unusable and could not be echoed back
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0131",
+            args: { mean },
+        });
     }
 
     if (mean > MAX_WORK_PER_VARIATE) {

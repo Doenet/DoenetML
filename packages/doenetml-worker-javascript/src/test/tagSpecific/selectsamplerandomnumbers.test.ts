@@ -737,10 +737,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
     it("unusable parameters are reported to the author, not just the console", async () => {
         // A console warning is invisible to someone authoring a document, so each of
-        // these has to arrive as a diagnostic that the surrounding tooling can show.
-        // `codedDiagnostic` omits `args` entirely when a message takes none, so the
-        // Poisson case below expects `undefined` rather than an empty object.
-        const cases: [string, string, Record<string, unknown> | undefined][] = [
+        // these has to arrive as a diagnostic that the surrounding tooling can show,
+        // carrying the offending values so the message can name them.
+        const cases: [string, string, Record<string, unknown>][] = [
             [
                 `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="11" numDraws="4" />`,
                 "doenet-w0127",
@@ -754,7 +753,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             [
                 `<sampleRandomNumbers name="s" type="poisson" mean="-1" />`,
                 "doenet-w0131",
-                undefined,
+                // the rate as written, not the reported `mean`, which is NaN here
+                { mean: -1 },
             ],
             [
                 `<sampleRandomNumbers name="s" type="binomial" numTrials="1000000000" probability="0.5" />`,
@@ -824,6 +824,36 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             const diagnostics = getDiagnosticsByType(core);
             expect(diagnostics.warnings.length, doenetML).eq(0);
             expect(diagnostics.errors.length, doenetML).eq(0);
+        }
+    });
+
+    it("parameters below the limit but slow to draw are still sampled, with a notice", async () => {
+        // Between the point where a document turns sluggish and the point where it
+        // is refused, the samples are drawn as asked and the author is told why the
+        // page feels slow — something no other part of the document can tell them.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="binomial" numTrials="2000000" probability="0.5" numSamples="2" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0133");
+        expect(warnings[0].args).eqls({
+            distribution: "binomial",
+            draws: 2000000,
+        });
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            1000000,
+            1e-10,
+        );
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            const value =
+                stateVariables[replacement.componentIdx].stateValues.value;
+            expect(Number.isInteger(value)).eq(true);
+            expect(value).closeTo(1000000, 20000);
         }
     });
 

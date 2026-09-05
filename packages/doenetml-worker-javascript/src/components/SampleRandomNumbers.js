@@ -484,7 +484,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues, usedDefault }) {
+            definition({ dependencyValues }) {
                 let mean;
                 if (dependencyValues.type === "gaussian") {
                     mean = dependencyValues.specifiedMean;
