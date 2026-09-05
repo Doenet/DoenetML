@@ -6,10 +6,10 @@ import { addCommasForCompositeRanges } from "./composites";
 /**
  * `addCommasForCompositeRanges` is the renderer half of automatic list commas:
  * every container renderer (`p`, `section`, `cell`, `hint`, `alert`, `list`,
- * `pre`, `solution`, `feedback`, `containerInline`, `markupRenderer`) hands it
- * the children it is about to render together with the core's
- * `_compositeReplacementActiveRange`, and it inserts `", "` between the
- * replacements of a composite that asked to be shown as a list.
+ * `pre`, `solution`, `feedback`, `containerInline`, `containerBlock`,
+ * `markupRenderer`) hands it the children it is about to render together with
+ * the core's `_compositeReplacementActiveRange`, and it inserts `", "` between
+ * the replacements of a composite that asked to be shown as a list.
  *
  * The core builds that range array in `CompositeExpander.replaceCompositeChildren`.
  * `textFromChildren` (`doenetml-worker-javascript/src/utils/text.ts`),

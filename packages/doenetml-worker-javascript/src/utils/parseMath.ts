@@ -43,8 +43,8 @@ export function createInputStringFromChildren({
     /**
      * Returns the marker to stand in for `child` instead of its content, or
      * `null` to render the child as usual. Keyed on the child object rather
-     * than its index so that it survives the composite regrouping below, which
-     * reorders and regroups children but never changes their identity.
+     * than its index, so that it does not depend on how the children are
+     * grouped by composite below.
      */
     displayedMathSlotForChild?: (child: any) => string | null;
 }) {
