@@ -30696,6 +30696,7 @@
                 {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -30706,6 +30707,7 @@
                 {
                     "name": "forceNumeric",
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -30736,6 +30738,7 @@
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -30771,14 +30774,16 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "forceNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "doenetML",
@@ -30963,6 +30968,7 @@
                 {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -30973,6 +30979,7 @@
                 {
                     "name": "forceNumeric",
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -31003,6 +31010,7 @@
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -31038,14 +31046,16 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "forceNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "doenetML",
@@ -31230,6 +31240,7 @@
                 {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -31240,6 +31251,7 @@
                 {
                     "name": "forceNumeric",
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -31270,6 +31282,7 @@
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -31305,14 +31318,16 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "forceNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "doenetML",
@@ -31497,6 +31512,7 @@
                 {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -31507,6 +31523,7 @@
                 {
                     "name": "forceNumeric",
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -31537,6 +31554,7 @@
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -31572,14 +31590,16 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "forceNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "doenetML",
@@ -31764,6 +31784,7 @@
                 {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -31774,6 +31795,7 @@
                 {
                     "name": "forceNumeric",
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
+                    "highlighted": true,
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -31804,6 +31826,7 @@
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -31839,14 +31862,16 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "forceNumeric",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "doenetML",
@@ -32185,7 +32210,6 @@
                 {
                     "name": "format",
                     "description": "Input format.",
-                    "highlighted": true,
                     "defaultValue": "text",
                     "values": [
                         "text",
@@ -32206,7 +32230,6 @@
                 {
                     "name": "simplify",
                     "description": "Level of simplification applied to the expression.",
-                    "highlighted": true,
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -32255,7 +32278,6 @@
                     "name": "displayDigits",
                     "description": "Number of significant digits to display when rendering this number.",
                     "groupName": "number-display",
-                    "highlighted": true,
                     "defaultValue": 3,
                     "type": "integer"
                 },
@@ -32483,6 +32505,7 @@
                 {
                     "name": "type",
                     "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "highlighted": true,
                     "type": "text"
                 }
             ],
@@ -32513,16 +32536,14 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Input format.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "simplify",
                     "type": "text",
                     "isArray": false,
                     "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "expand",
@@ -32698,7 +32719,8 @@
                     "name": "value",
                     "type": "argMin",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none.",
+                    "highlighted": true
                 },
                 {
                     "name": "number",
@@ -33187,7 +33209,6 @@
                 {
                     "name": "format",
                     "description": "Input format.",
-                    "highlighted": true,
                     "defaultValue": "text",
                     "values": [
                         "text",
@@ -33208,7 +33229,6 @@
                 {
                     "name": "simplify",
                     "description": "Level of simplification applied to the expression.",
-                    "highlighted": true,
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -33257,7 +33277,6 @@
                     "name": "displayDigits",
                     "description": "Number of significant digits to display when rendering this number.",
                     "groupName": "number-display",
-                    "highlighted": true,
                     "defaultValue": 3,
                     "type": "integer"
                 },
@@ -33485,6 +33504,7 @@
                 {
                     "name": "type",
                     "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "highlighted": true,
                     "type": "text"
                 }
             ],
@@ -33515,16 +33535,14 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Input format.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "simplify",
                     "type": "text",
                     "isArray": false,
                     "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "expand",
@@ -33700,7 +33718,8 @@
                     "name": "value",
                     "type": "argMax",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none.",
+                    "highlighted": true
                 },
                 {
                     "name": "number",
@@ -34189,7 +34208,6 @@
                 {
                     "name": "format",
                     "description": "Input format.",
-                    "highlighted": true,
                     "defaultValue": "text",
                     "values": [
                         "text",
@@ -34210,7 +34228,6 @@
                 {
                     "name": "simplify",
                     "description": "Level of simplification applied to the expression.",
-                    "highlighted": true,
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -34259,7 +34276,6 @@
                     "name": "displayDigits",
                     "description": "Number of significant digits to display when rendering this number.",
                     "groupName": "number-display",
-                    "highlighted": true,
                     "defaultValue": 3,
                     "type": "integer"
                 },
@@ -34487,11 +34503,13 @@
                 {
                     "name": "type",
                     "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "highlighted": true,
                     "type": "text"
                 },
                 {
                     "name": "target",
                     "description": "The value to look for.",
+                    "highlighted": true,
                     "defaultValue": null,
                     "type": "_componentWithSelectableType"
                 }
@@ -34523,16 +34541,14 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Input format.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "simplify",
                     "type": "text",
                     "isArray": false,
                     "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "expand",
@@ -34708,7 +34724,8 @@
                     "name": "value",
                     "type": "indexOf",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none.",
+                    "highlighted": true
                 },
                 {
                     "name": "number",
@@ -35197,7 +35214,6 @@
                 {
                     "name": "format",
                     "description": "Input format.",
-                    "highlighted": true,
                     "defaultValue": "text",
                     "values": [
                         "text",
@@ -35218,7 +35234,6 @@
                 {
                     "name": "simplify",
                     "description": "Level of simplification applied to the expression.",
-                    "highlighted": true,
                     "defaultValue": "none",
                     "values": [
                         "none",
@@ -35267,7 +35282,6 @@
                     "name": "displayDigits",
                     "description": "Number of significant digits to display when rendering this number.",
                     "groupName": "number-display",
-                    "highlighted": true,
                     "defaultValue": 3,
                     "type": "integer"
                 },
@@ -35495,17 +35509,20 @@
                 {
                     "name": "type",
                     "description": "Component type to interpret bare string children as (math, number, text, or boolean).",
+                    "highlighted": true,
                     "type": "text"
                 },
                 {
                     "name": "target",
                     "description": "The value to locate within the sorted list.",
+                    "highlighted": true,
                     "defaultValue": null,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "side",
                     "description": "Which end of a run of equal values the target is placed at.",
+                    "highlighted": true,
                     "defaultValue": "left",
                     "values": [
                         "left",
@@ -35551,16 +35568,14 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Input format.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "simplify",
                     "type": "text",
                     "isArray": false,
                     "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true,
-                    "highlighted": true
+                    "fromAttribute": true
                 },
                 {
                     "name": "expand",
@@ -35652,7 +35667,8 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Which end of a run of equal values the target is placed at.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "hidden",
@@ -35743,7 +35759,8 @@
                     "name": "value",
                     "type": "searchSorted",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none.",
+                    "highlighted": true
                 },
                 {
                     "name": "number",
@@ -119612,16 +119629,19 @@
                 {
                     "name": "sortByProp",
                     "description": "Name of a property to sort by (e.g. \"x\" for sorting points by x-coordinate).",
+                    "highlighted": true,
                     "type": "text"
                 },
                 {
                     "name": "type",
                     "description": "Component type to sort children as.",
+                    "highlighted": true,
                     "type": "text"
                 },
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",

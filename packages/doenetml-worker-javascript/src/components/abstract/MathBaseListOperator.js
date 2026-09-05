@@ -55,6 +55,7 @@ export default class MathBaseListOperator extends CompositeComponent {
             createStateVariable: "forceSymbolic",
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Whether to force the operator to evaluate symbolically rather than numerically.",
         };
@@ -63,6 +64,7 @@ export default class MathBaseListOperator extends CompositeComponent {
             createStateVariable: "forceNumeric",
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Whether to force the operator to evaluate numerically rather than symbolically.",
         };
@@ -76,6 +78,7 @@ export default class MathBaseListOperator extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            highlighted: true,
             description:
                 "Whether to render the items separated by commas (true) or with no separator (false).",
         };

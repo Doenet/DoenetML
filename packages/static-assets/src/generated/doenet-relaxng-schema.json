@@ -37971,7 +37971,7 @@
                     "name": "value",
                     "type": "argMin",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none."
                 },
                 {
                     "name": "number",
@@ -39284,7 +39284,7 @@
                     "name": "value",
                     "type": "argMax",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none."
                 },
                 {
                     "name": "number",
@@ -40603,7 +40603,7 @@
                     "name": "value",
                     "type": "indexOf",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none."
                 },
                 {
                     "name": "number",
@@ -41936,7 +41936,7 @@
                     "name": "value",
                     "type": "searchSorted",
                     "isArray": false,
-                    "description": "The math expression value."
+                    "description": "The 1-based index the operator found, or 0 if there is none."
                 },
                 {
                     "name": "number",

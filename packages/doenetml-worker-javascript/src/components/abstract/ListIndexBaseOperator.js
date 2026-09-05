@@ -41,7 +41,20 @@ export default class ListIndexBaseOperator extends MathComponent {
             createPrimitiveOfType: "string",
             description:
                 "Component type to interpret bare string children as (math, number, text, or boolean).",
+            highlighted: true,
         };
+
+        // `<math>` highlights these because they shape the expression it parses
+        // and renders. The value here is an integer index, so how the input is
+        // parsed as latex, whether the result is simplified, and how many digits
+        // it shows are all beside the point; leave them to the other sections.
+        for (const attrName of ["format", "simplify", "displayDigits"]) {
+            if (attributes[attrName]) {
+                const { highlighted: _highlighted, ...rest } =
+                    attributes[attrName];
+                attributes[attrName] = rest;
+            }
+        }
 
         return attributes;
     }
@@ -112,6 +125,15 @@ export default class ListIndexBaseOperator extends MathComponent {
             definition: () => ({ setValue: { indexOperator: () => 0 } }),
         };
 
+        // `<math>` describes `value` generically; for these components it is the
+        // index the operator found, which is the one output worth surfacing.
+        stateVariableDefinitions.value = {
+            ...stateVariableDefinitions.value,
+            description:
+                "The 1-based index the operator found, or 0 if there is none.",
+            highlighted: true,
+        };
+
         stateVariableDefinitions.unnormalizedValue = {
             returnDependencies: () => ({
                 listValues: {
@@ -156,6 +178,7 @@ export function returnTargetAttribute(description) {
         createStateVariable: "target",
         defaultValue: null,
         description,
+        highlighted: true,
     };
 }
 

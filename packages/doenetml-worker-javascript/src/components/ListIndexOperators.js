@@ -176,6 +176,7 @@ export class SearchSorted extends ListIndexBaseOperator {
             createStateVariable: "side",
             defaultValue: "left",
             public: true,
+            highlighted: true,
             toLowerCase: true,
             description:
                 "Which end of a run of equal values the target is placed at.",
