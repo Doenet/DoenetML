@@ -2,9 +2,9 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { returnBreakStringsIntoTypeSugarInstruction } from "../utils/listValues";
 
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
@@ -43,83 +43,9 @@ export default class Shuffle extends CompositeComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        function breakStringsMacrosIntoTypeBySpaces({
-            matchedChildren,
-            componentAttributes,
-            componentInfoObjects,
-            nComponents,
-        }) {
-            const diagnostics = [];
-            // only if all children are strings or macros
-            if (
-                !matchedChildren.every(
-                    (child) =>
-                        typeof child === "string" ||
-                        (child.extending && "Ref" in child.extending),
-                )
-            ) {
-                return { success: false };
-            }
-
-            let type;
-            if (componentAttributes.type?.value) {
-                type = componentAttributes.type.value;
-            } else {
-                if (
-                    matchedChildren.some((child) => typeof child === "string")
-                ) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0013",
-                            args: { component: "shuffle" },
-                        }),
-                    );
-                }
-                return { success: false, diagnostics };
-            }
-
-            if (!["math", "text", "number", "boolean"].includes(type)) {
-                console.warn(`Invalid type ${type}`);
-                diagnostics.push(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0014",
-                        args: { type, component: "shuffle" },
-                    }),
-                );
-                type = "math";
-            }
-
-            // break any string by white space and wrap pieces with type
-            let groupIntoComponentTypesSeparatedBySpaces =
-                returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                    componentType: type,
-                    forceComponentType: true,
-                });
-            let result = groupIntoComponentTypesSeparatedBySpaces({
-                matchedChildren,
-                componentInfoObjects,
-                nComponents,
-            });
-
-            if (result.success) {
-                let newChildren = result.newChildren;
-
-                return {
-                    success: true,
-                    newChildren,
-                    nComponents: result.nComponents,
-                    diagnostics,
-                };
-            } else {
-                return { success: false };
-            }
-        }
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsMacrosIntoTypeBySpaces,
-        });
+        sugarInstructions.push(
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+        );
 
         return sugarInstructions;
     }

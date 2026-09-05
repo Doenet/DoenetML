@@ -1,5 +1,6 @@
 import ListIndexBaseOperator, {
     returnTargetAttribute,
+    returnTargetSearchingIndexOperator,
     returnTargetStateVariableDefinition,
 } from "./abstract/ListIndexBaseOperator";
 import { compareExtractedValues } from "../utils/listValues";
@@ -9,6 +10,50 @@ import { compareExtractedValues } from "../utils/listValues";
  *
  * All indices are 1-based, matching `$list[1]`; `0` means "no such element".
  */
+
+/**
+ * The `indexOperator` state variable of an operator that needs nothing beyond
+ * the list itself — `<argMin>` and `<argMax>`.
+ */
+function returnConstantIndexOperatorDefinition(indexOperator) {
+    return {
+        returnDependencies: () => ({}),
+        definition: () => ({ setValue: { indexOperator } }),
+    };
+}
+
+/**
+ * The `indexOperator` state variable of an operator that searches the list for
+ * the value of its `target` attribute — `<indexOf>` and `<searchSorted>`.
+ *
+ * `locate` is called with `{ values, target, numeric, dependencyValues }`;
+ * `extraDependencies` names any further state variables it reads from the last
+ * of those.
+ */
+function returnTargetSearchingIndexOperatorDefinition(
+    locate,
+    extraDependencies = {},
+) {
+    return {
+        returnDependencies: () => ({
+            comparableTarget: {
+                dependencyType: "stateVariable",
+                variableName: "comparableTarget",
+            },
+            ...extraDependencies,
+        }),
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    indexOperator: returnTargetSearchingIndexOperator(
+                        dependencyValues.comparableTarget,
+                        (args) => locate({ ...args, dependencyValues }),
+                    ),
+                },
+            };
+        },
+    };
+}
 
 /**
  * The 1-based index of the smallest value when `wantSmaller`, and of the
@@ -43,19 +88,12 @@ export class ArgMin extends ListIndexBaseOperator {
     };
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.indexOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    indexOperator: ({ values, numeric }) =>
-                        indexOfExtreme({ values, numeric, wantSmaller: true }),
-                },
-            }),
-        };
-
-        return stateVariableDefinitions;
+        return Object.assign(super.returnStateVariableDefinitions(), {
+            indexOperator: returnConstantIndexOperatorDefinition(
+                ({ values, numeric }) =>
+                    indexOfExtreme({ values, numeric, wantSmaller: true }),
+            ),
+        });
     }
 }
 
@@ -67,19 +105,12 @@ export class ArgMax extends ListIndexBaseOperator {
     };
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        stateVariableDefinitions.indexOperator = {
-            returnDependencies: () => ({}),
-            definition: () => ({
-                setValue: {
-                    indexOperator: ({ values, numeric }) =>
-                        indexOfExtreme({ values, numeric, wantSmaller: false }),
-                },
-            }),
-        };
-
-        return stateVariableDefinitions;
+        return Object.assign(super.returnStateVariableDefinitions(), {
+            indexOperator: returnConstantIndexOperatorDefinition(
+                ({ values, numeric }) =>
+                    indexOfExtreme({ values, numeric, wantSmaller: false }),
+            ),
+        });
     }
 }
 
@@ -100,55 +131,28 @@ export class IndexOf extends ListIndexBaseOperator {
     }
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        Object.assign(
-            stateVariableDefinitions,
+        return Object.assign(
+            super.returnStateVariableDefinitions(),
             returnTargetStateVariableDefinition(),
-        );
-
-        stateVariableDefinitions.indexOperator = {
-            returnDependencies: () => ({
-                comparableTarget: {
-                    dependencyType: "stateVariable",
-                    variableName: "comparableTarget",
-                },
-            }),
-            definition({ dependencyValues }) {
-                const target = dependencyValues.comparableTarget;
-
-                return {
-                    setValue: {
-                        indexOperator: ({ values, numeric }) => {
-                            if (target === null) {
-                                return 0;
+            {
+                indexOperator: returnTargetSearchingIndexOperatorDefinition(
+                    ({ values, target, numeric }) => {
+                        for (let [ind, value] of values.entries()) {
+                            if (
+                                compareExtractedValues(
+                                    value,
+                                    target,
+                                    numeric,
+                                ) === 0
+                            ) {
+                                return ind + 1;
                             }
-
-                            // Compare numerically only if both sides are
-                            // numeric; otherwise fall back to text, so that
-                            // <indexOf target="b">a b c</indexOf> works.
-                            const compareNumerically =
-                                numeric && target.isNumeric;
-
-                            for (let [ind, value] of values.entries()) {
-                                if (
-                                    compareExtractedValues(
-                                        value,
-                                        target,
-                                        compareNumerically,
-                                    ) === 0
-                                ) {
-                                    return ind + 1;
-                                }
-                            }
-                            return 0;
-                        },
+                        }
+                        return 0;
                     },
-                };
+                ),
             },
-        };
-
-        return stateVariableDefinitions;
+        );
     }
 }
 
@@ -193,65 +197,43 @@ export class SearchSorted extends ListIndexBaseOperator {
     }
 
     static returnStateVariableDefinitions() {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        Object.assign(
-            stateVariableDefinitions,
+        return Object.assign(
+            super.returnStateVariableDefinitions(),
             returnTargetStateVariableDefinition(),
-        );
-
-        stateVariableDefinitions.indexOperator = {
-            returnDependencies: () => ({
-                comparableTarget: {
-                    dependencyType: "stateVariable",
-                    variableName: "comparableTarget",
-                },
-                side: {
-                    dependencyType: "stateVariable",
-                    variableName: "side",
-                },
-            }),
-            definition({ dependencyValues }) {
-                const target = dependencyValues.comparableTarget;
-                const side = dependencyValues.side;
-
-                return {
-                    setValue: {
-                        indexOperator: ({ values, numeric }) => {
-                            if (target === null) {
-                                return 0;
+            {
+                indexOperator: returnTargetSearchingIndexOperatorDefinition(
+                    ({ values, target, numeric, dependencyValues }) => {
+                        // The number of entries that sort before the target,
+                        // plus one, is the 1-based position the target would
+                        // occupy. Counting rather than bisecting keeps the
+                        // result well defined even when the input is not
+                        // actually sorted.
+                        let count = 0;
+                        for (let value of values) {
+                            let comparison = compareExtractedValues(
+                                value,
+                                target,
+                                numeric,
+                            );
+                            if (
+                                comparison < 0 ||
+                                (dependencyValues.side === "right" &&
+                                    comparison === 0)
+                            ) {
+                                count++;
                             }
+                        }
 
-                            const compareNumerically =
-                                numeric && target.isNumeric;
-
-                            // The number of entries that sort before the
-                            // target, plus one, is the 1-based position the
-                            // target would occupy. Counting rather than
-                            // bisecting keeps the result well defined even
-                            // when the input is not actually sorted.
-                            let count = 0;
-                            for (let value of values) {
-                                let comparison = compareExtractedValues(
-                                    value,
-                                    target,
-                                    compareNumerically,
-                                );
-                                if (
-                                    comparison < 0 ||
-                                    (side === "right" && comparison === 0)
-                                ) {
-                                    count++;
-                                }
-                            }
-
-                            return count + 1;
+                        return count + 1;
+                    },
+                    {
+                        side: {
+                            dependencyType: "stateVariable",
+                            variableName: "side",
                         },
                     },
-                };
+                ),
             },
-        };
-
-        return stateVariableDefinitions;
+        );
     }
 }

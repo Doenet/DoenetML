@@ -126,6 +126,39 @@ describe("List operator tag tests @group4", async () => {
             });
         });
 
+        it("cumulativeMin, cumulativeMax and differences are symbolic when their inputs are", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathList name="ml">x y z</mathList>
+    <p name="pMin"><cumulativeMin>$ml</cumulativeMin></p>
+    <p name="pMax"><cumulativeMax>$ml</cumulativeMax></p>
+    <p name="pDiff"><differences>$ml</differences></p>
+    `,
+            });
+
+            // Each running extreme is a single min/max of the whole prefix
+            // rather than a nest of two-argument calls, and the first is the
+            // value itself rather than min(x).
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMin",
+                text: "x, min( x, y ), min( x, y, z )",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMax",
+                text: "x, max( x, y ), max( x, y, z )",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pDiff",
+                text: "y - x, z - y",
+            });
+        });
+
         it("differences is one shorter than its input", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -583,6 +616,29 @@ describe("List operator tag tests @group4", async () => {
             });
         });
 
+        it("indexOf and searchSorted with no target give 0", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">10 20 30</numberList>
+    <p name="pIndexOf"><indexOf>$nl</indexOf></p>
+    <p name="pSearchSorted"><searchSorted>$nl</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pIndexOf",
+                text: "0",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSearchSorted",
+                text: "0",
+            });
+        });
+
         it("sortIndices of numbers", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -728,6 +784,50 @@ describe("List operator tag tests @group4", async () => {
                 resolvePathToNodeIdx,
                 name: "pSize",
                 text: "60",
+            });
+        });
+
+        it("sortIndices tracks a changing list length", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n" prefill="4" />
+    <p name="p"><sortIndices><sequence from="$n" to="1" step="-1" /></sortIndices></p>
+    `,
+            });
+
+            // A descending sequence sorts into reverse order, so the indices
+            // are a genuine permutation and not just the identity.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "4, 3, 2, 1",
+            });
+
+            await updateMathInputValue({
+                latex: "6",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "6, 5, 4, 3, 2, 1",
+            });
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 1",
             });
         });
 

@@ -15,6 +15,10 @@ import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../c
  * Each value is described by both a `numericalValue` and a `textValue`. The
  * caller compares numerically when every value in the list is numeric, and
  * lexicographically otherwise.
+ *
+ * The `type`-attribute sugar at the bottom of this file is shared a little more
+ * widely: `<shuffle>` rearranges its children without ever comparing them, but
+ * it reads them as a list of typed values in exactly the same way.
  */
 
 /**
@@ -364,13 +368,15 @@ export function comparableValueFromRaw(value) {
 }
 
 /**
- * Sugar shared by the components that read their children as a list of
- * comparable values: bare strings are split on whitespace and wrapped in the
- * component type named by the `type` attribute.
+ * Sugar shared by the components that read their children as a list of typed
+ * values — `<sort>`, `<sortIndices>`, `<shuffle>` and the index-returning
+ * operators: bare strings are split on whitespace and wrapped in the component
+ * type named by the `type` attribute.
  *
  * Unlike the math-only operators, these components accept text as readily as
  * numbers, so there is no sensible default: without an explicit `type` the
- * strings are left alone and a warning is issued.
+ * strings are left alone and a warning is issued, naming `componentName` so the
+ * author sees the tag they actually wrote.
  */
 export function returnBreakStringsIntoTypeSugarInstruction(
     componentName,

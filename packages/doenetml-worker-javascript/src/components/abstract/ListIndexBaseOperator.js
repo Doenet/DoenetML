@@ -182,3 +182,23 @@ export function returnTargetStateVariableDefinition() {
         },
     };
 }
+
+/**
+ * Turn `locate`, which searches `values` for `target`, into an `indexOperator`,
+ * supplying the two things both target-taking operators need: no target means
+ * no answer, so the result is 0; and the comparison is numeric only when the
+ * target is numeric as well as the list, so that
+ * `<indexOf target="b">a b c</indexOf>` compares as text.
+ */
+export function returnTargetSearchingIndexOperator(target, locate) {
+    return ({ values, numeric }) => {
+        if (target === null) {
+            return 0;
+        }
+        return locate({
+            values,
+            target,
+            numeric: numeric && target.isNumeric,
+        });
+    };
+}
