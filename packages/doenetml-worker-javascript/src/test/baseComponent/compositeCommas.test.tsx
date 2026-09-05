@@ -11,25 +11,25 @@ vi.mock("hyperformula");
 
 /**
  * The replacements of a composite that asks to be shown as a list are separated
- * by commas automatically, and that happens twice over, from the same core data,
- * in two independent implementations:
+ * by commas automatically, and that happens four times over from the same core
+ * data:
  *
  * - the renderers insert `", "` between React children
  *   (`addCommasForCompositeRanges`, `doenetml/src/Viewer/renderers/utils/composites.tsx`);
  * - the `text` state variable joins the children's text with `", "`
- *   (`textFromChildren`, `doenetml-worker-javascript/src/utils/text.ts`).
+ *   (`textFromChildren`, `doenetml-worker-javascript/src/utils/text.ts`);
+ * - the string a `<math>` parses gets its commas
+ *   (`createInputStringFromChildren`, `doenetml-worker-javascript/src/utils/parseMath.ts`);
+ * - the FlatDast the prototype renderers read gets `<asList>` wrappers
+ *   (`applyCompositeListWrapping`, `doenetml-worker/src/compositeListWrapping.ts`).
  *
- * A third, `applyCompositeListWrapping`
- * (`doenetml-worker/src/compositeListWrapping.ts`), reproduces the renderers'
- * grouping for the prototype renderers, and a fourth, `parseMath.ts`, does it
- * for the children of a `<math>`.
- *
- * All of them read one array the core builds in
- * `CompositeExpander.replaceCompositeChildren`: for each composite that
+ * All four read one array the core builds in
+ * `CompositeExpander.replaceCompositeChildren` — for each composite that
  * contributed children, the index range those children occupy, whether the
  * composite has `asList` set, and whether each replacement is eligible to be a
- * list item. Every case below therefore checks *both* pathways, since the way
- * they go wrong is by disagreeing.
+ * list item — and group it with `groupCompositeRanges` (`@doenet/utils`). What
+ * each does with a group is its own, so every case below checks the `text`
+ * value and the text the renderers would show against the same expectation.
  *
  * `renderedText` runs the shipped renderer code over the shipped renderer state
  * and stands in only for the individual child renderers; see
@@ -248,6 +248,55 @@ describe("Automatic commas between composite replacements @group3", () => {
         });
     });
 
+    it("takes an item's trailing whitespace off in front of a comma", async () => {
+        await checkParagraphs({
+            blankInsideItem: {
+                body: `<group asList><group><number>1</number> </group><group><number>2</number> </group></group>`,
+                expected: "1, 2 ",
+            },
+            blankBetweenItems: {
+                body: `<repeatForSequence from="1" to="3" valueName="v" asList><number>$v</number> </repeatForSequence>`,
+                expected: "1, 2, 3",
+            },
+        });
+    });
+
+    it("puts the comma where the whitespace between two items was", async () => {
+        // Issue #499: the spaces an author puts between the items of a list
+        // group are where the commas go. An empty composite among them is
+        // nothing at all, and one that has items is a single item of the
+        // list, with commas of its own.
+        await checkParagraphs(
+            {
+                spaced: {
+                    body: `<group asList><number>1</number> <number>2</number> <number>3</number></group>`,
+                    expected: "1, 2, 3",
+                },
+                withEmpty: {
+                    body: `<group asList><number>1</number> <number>2</number> $s <number>3</number></group>`,
+                    expected: "1, 2, 3",
+                },
+                withTwoEmpty: {
+                    body: `<group asList><number>1</number> <number>2</number> $s $s2 <number>3</number></group>`,
+                    expected: "1, 2, 3",
+                },
+                blankGroupBetween: {
+                    body: `<group asList><number>1</number><group> </group><number>2</number></group>`,
+                    expected: "1, 2",
+                },
+                withItems: {
+                    body: `<group asList><number>1</number> <number>2</number> $s3 <number>3</number></group>`,
+                    expected: "1, 2, 7, 8, 3",
+                },
+                onOwnLines: {
+                    body: `\n<group asList>\n<number>1</number> <number>2</number> $s <number>3</number>\n</group>\n`,
+                    expected: "\n\n1, 2, 3\n\n",
+                },
+            },
+            `<setup><sequence name="s" length="0" /><sequence name="s2" length="0" /><sequence name="s3" from="7" to="8" /></setup>\n`,
+        );
+    });
+
     it("keeps the commas through a reference to the list", async () => {
         await checkParagraphs(
             {
@@ -265,10 +314,11 @@ describe("Automatic commas between composite replacements @group3", () => {
         );
     });
 
-    it("keeps the commas through a reference to the whole repeat", async () => {
+    it("keeps the commas through a reference into a repeat", async () => {
         await checkParagraphs(
             {
                 whole: { body: `$r`, expected: "1, 2, 3, 4, 1, 2, 3, 4" },
+                item: { body: `$r[1]`, expected: "1, 2, 3, 4" },
             },
             `<setup>
                 <numberList name="nl">1 2 3 4</numberList>
@@ -276,15 +326,79 @@ describe("Automatic commas between composite replacements @group3", () => {
             </setup>\n`,
         );
     });
+
+    it("keeps the commas through a reference into a nested repeat", async () => {
+        // Issue #596.
+        await checkParagraphs(
+            {
+                item: {
+                    body: `This should have commas: $a[1]`,
+                    expected: "This should have commas: 6, 8",
+                },
+            },
+            `<setup>
+                <repeatForSequence from="1" to="2" name="a" valueName="x">
+                    <repeatForSequence from="5" to="7" step="2" name="b" valueName="y">
+                        <number>$x+$y</number>
+                    </repeatForSequence>
+                </repeatForSequence>
+            </setup>\n`,
+        );
+    });
+
+    it("keeps the commas of a list operator, directly and through a reference", async () => {
+        // The list operators (`<cumulativeSum>`, `<differences>`, and so on)
+        // are composites with `asList` of their own, so a reference to one
+        // copies the operator and keeps its list.
+        await checkParagraphs(
+            {
+                direct: {
+                    body: `<cumulativeSum>1 2 3</cumulativeSum>`,
+                    expected: "1, 3, 6",
+                },
+                off: {
+                    body: `<cumulativeSum asList="false">1 2 3</cumulativeSum>`,
+                    expected: "136",
+                },
+                reference: { body: `$cs`, expected: "3, 4, 6" },
+                item: { body: `$cs[2]`, expected: "4" },
+                extended: {
+                    body: `<numberList extend="$cs" />`,
+                    expected: "3, 4, 6",
+                },
+                inGroup: {
+                    body: `<group asList><differences>1 4 9</differences> <text>x</text></group>`,
+                    expected: "3, 5, x",
+                },
+            },
+            `<setup>
+                <numberList name="nl">3 1 2</numberList>
+                <cumulativeSum name="cs">$nl</cumulativeSum>
+            </setup>\n`,
+        );
+    });
+
+    it("keeps the commas through a reference to a group", async () => {
+        await checkParagraphs(
+            {
+                group: { body: `$g`, expected: "1, 2, 3" },
+                extended: {
+                    body: `<group extend="$g" />`,
+                    expected: "1, 2, 3",
+                },
+            },
+            `<setup><group name="g"><numberList>1 2 3</numberList></group></setup>\n`,
+        );
+    });
 });
 
 describe("Automatic commas inside a <math> @group3", () => {
-    // `createInputStringFromChildrenSub` (`utils/parseMath.ts`) is the same
-    // algorithm again, joining the children into the string that gets parsed
-    // into a math expression. It wraps the list in parentheses when what sits
-    // next to it is not a delimiter, and to find that out it walks outward past
-    // whitespace-only strings — a walk that used to never move its index, so a
-    // component child (or a blank string) on either side hung the core.
+    // `createInputStringFromChildren` (`utils/parseMath.ts`) joins the children
+    // into the string that gets parsed into a math expression. It wraps a list
+    // in parentheses when what sits next to it is not a delimiter, and to find
+    // that out it walks outward past whitespace-only strings — a walk that used
+    // to never move its index, so a component child (or a blank string) on
+    // either side hung the core.
     it("wraps the list when a neighbor is not a delimiter", async () => {
         const cases: Record<string, string> = {
             alone: `<numberList>1 2</numberList>`,
@@ -323,38 +437,13 @@ describe("Automatic commas inside a <math> @group3", () => {
  * and the case can be moved into the suite above.
  */
 describe("Automatic commas: known defects @group3", () => {
-    // A reference that lands on a composite copies that composite's *final*
-    // replacements — the components, with every composite between them and the
-    // reference flattened away — while `compositeReplacementActiveRange` still
-    // records only the outermost composite. The `asList` of everything in
-    // between is lost, so the list stops being a list.
-    it.fails("keeps the commas through a reference into a repeat", async () => {
-        await checkParagraphs(
-            {
-                item: { body: `$r[1]`, expected: "1, 2, 3, 4" },
-            },
-            `<setup>
-                <numberList name="nl">1 2 3 4</numberList>
-                <repeatForSequence name="r" from="1" to="2">$nl</repeatForSequence>
-            </setup>\n`,
-        );
-    });
-
-    it.fails("keeps the commas through a reference to a group", async () => {
-        await checkParagraphs(
-            {
-                group: { body: `$g`, expected: "1, 2, 3" },
-            },
-            `<setup><group name="g"><numberList>1 2 3</numberList></group></setup>\n`,
-        );
-    });
-
-    // The `text` pathway trims the end of every item but the last, so
-    // whitespace an item ends with never lands in front of a comma. The
-    // renderers' equivalent, `removeEndingBlankString`, only looks inside a
-    // child whose `props.children` is an array, which a rendered component
-    // child never has — so it never reaches the trailing space, and the
-    // rendered list shows "a , b" where the text says "a, b".
+    // Issue #1811. A blank string between two replacements belongs to the
+    // list, and both pathways take it off in front of a comma. Whitespace
+    // inside a child component's own text is another matter: `text` reads that
+    // component's text and can trim it, while the renderers only hand React the
+    // child and never see, let alone reach into, what it draws. Closing this
+    // means either giving up the trim on the `text` side, which reads worse, or
+    // telling the child renderer it leads a comma.
     it.fails("trims an item's trailing space in both pathways", async () => {
         await checkParagraphs({
             trailing: {

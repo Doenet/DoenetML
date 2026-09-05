@@ -6,15 +6,17 @@ import { addCommasForCompositeRanges } from "./composites";
 /**
  * `addCommasForCompositeRanges` is the renderer half of automatic list commas:
  * every container renderer (`p`, `section`, `cell`, `hint`, `alert`, `list`,
- * `pre`, `solution`, `feedback`, `containerInline`, `markupRenderer`) hands it
- * the children it is about to render together with the core's
- * `_compositeReplacementActiveRange`, and it inserts `", "` between the
- * replacements of a composite that asked to be shown as a list.
+ * `pre`, `solution`, `feedback`, `containerInline`, `containerBlock`,
+ * `markupRenderer`) hands it the children it is about to render together with
+ * the core's `_compositeReplacementActiveRange`, and it inserts `", "` between
+ * the replacements of a composite that asked to be shown as a list.
  *
- * The core builds that range array in `CompositeExpander.replaceCompositeChildren`;
- * `textFromChildren` (`doenetml-worker-javascript/src/utils/text.ts`) and
- * `applyCompositeListWrapping` (`doenetml-worker/src/compositeListWrapping.ts`)
- * consume the same array and must agree with what is checked here.
+ * The core builds that range array in `CompositeExpander.replaceCompositeChildren`.
+ * `textFromChildren` (`doenetml-worker-javascript/src/utils/text.ts`),
+ * `createInputStringFromChildren` (`doenetml-worker-javascript/src/utils/parseMath.ts`),
+ * and `applyCompositeListWrapping` (`doenetml-worker/src/compositeListWrapping.ts`)
+ * read the same array through the same grouping, `groupCompositeRanges` in
+ * `@doenet/utils`, and must agree with what is checked here.
  *
  * Ranges are half-nested rather than a tree: a composite whose replacements are
  * themselves composites comes *first* in the array, and the ranges that follow
@@ -26,11 +28,9 @@ type Range = Parameters<
 >[0]["compositeReplacementActiveRange"][number];
 
 /**
- * A stand-in for a rendered component child. What matters to the code under
- * test is that it is an element whose `props.children` is not an array — the
- * one shape `removeEndingBlankString` declines to look inside — which is what a
- * real `<DoenetRenderer>` child (its props carry `componentInstructions`, never
- * `children`) also is.
+ * A stand-in for a rendered component child. The code under test never looks
+ * inside a child element — it trims and drops only string children — so an
+ * element holding the child's text is as faithful as a real `<DoenetRenderer>`.
  */
 function child(text: string, key: number) {
     return <span key={key}>{text}</span>;
@@ -196,11 +196,9 @@ describe("addCommasForCompositeRanges", () => {
     });
 
     it("keeps the blank strings around replacements out of the list", () => {
-        // Authored whitespace surrounding a composite's replacements is a
-        // separator, not an item: no comma is placed next to one, and the comma
-        // goes in front of the whitespace rather than after it, so nothing puts
-        // a space before a comma. The doubled space that leaves between items
-        // collapses to one in the browser.
+        // Authored whitespace around a composite's replacements is a separator,
+        // not an item: the whitespace between two items is where the comma
+        // goes, and the whitespace before the first and after the last stays.
         const children = ["\n  ", child("1", 1), " ", child("2", 3), "\n  "];
         const result = addCommas(children, [
             range({
@@ -209,7 +207,7 @@ describe("addCommasForCompositeRanges", () => {
                 potentialListComponents: [true, true, true, true, true],
             }),
         ]);
-        expect(shown(result)).eq("\n  1,  2\n  ");
+        expect(shown(result)).eq("\n  1, 2\n  ");
     });
 
     it("skips a composite that produced no replacements", () => {
@@ -316,5 +314,30 @@ describe("addCommasForCompositeRanges", () => {
             }),
         ]);
         expect(shown(result)).eq("1, 2 and 3, 4");
+    });
+
+    it("keeps the anchor of a composite that produced only whitespace", () => {
+        // The composite's span stays where it was, so a link to its name still
+        // scrolls there, but the whitespace it produced goes: the comma takes
+        // its place.
+        const children = [child("1", 0), " ", child("2", 2)];
+        const result = addCommas(children, [
+            range({
+                compositeName: "outer",
+                firstInd: 0,
+                lastInd: 2,
+                potentialListComponents: [true, true, true],
+            }),
+            range({
+                compositeName: "g",
+                firstInd: 1,
+                lastInd: 1,
+                asList: false,
+                potentialListComponents: [true],
+            }),
+        ]);
+        expect(renderToStaticMarkup(<>{result}</>)).eq(
+            '<span id="outer"><span>1</span>, <span id="g"></span><span>2</span></span>',
+        );
     });
 });

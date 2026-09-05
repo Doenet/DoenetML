@@ -4,30 +4,29 @@ import { addCommasForCompositeRanges } from "../../../../doenetml/src/Viewer/ren
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
 /**
- * Automatic commas between the replacements of a composite are produced twice,
- * from the same core data, by two independent implementations:
+ * Of the four places that produce the automatic commas between the
+ * replacements of a composite (listed in `compositeCommas.test.tsx`), two are
+ * compared here:
  *
  * - the renderers, via `addCommasForCompositeRanges`
- *   (`doenetml/src/Viewer/renderers/utils/composites.tsx`), which insert `", "`
+ *   (`doenetml/src/Viewer/renderers/utils/composites.tsx`), insert `", "`
  *   between React children; and
  * - the `text` state variable, via `textFromChildren`
- *   (`doenetml-worker-javascript/src/utils/text.ts`), which joins strings.
+ *   (`doenetml-worker-javascript/src/utils/text.ts`), joins strings.
  *
  * Both read the same input: the parent's `compositeReplacementActiveRange`,
  * built in `CompositeExpander.replaceCompositeChildren` and handed to the
  * renderers as the `_compositeReplacementActiveRange` renderer state value.
+ * Both group it with `groupCompositeRanges` (`@doenet/utils`); what each does
+ * with a group once it has one is its own, and is what a test compares.
  *
  * `renderedText` below runs the *real* renderer implementation over the *real*
  * renderer state of a live core, so a test can compare the two pathways without
  * a browser. It stands in for the individual child renderers — each rendered
  * component child becomes a `<span>` holding that component's own text — but
- * everything above that, the comma insertion itself, is the shipped code.
- *
- * The `<span>` stand-in is faithful to the one thing the comma code inspects
- * about a child element: `removeEndingBlankString` only reaches inside a child
- * whose `props.children` is an array, and a real child (a `<DoenetRenderer>`
- * element carrying `componentInstructions`) never has one, exactly as a
- * `<span>` holding a single string never has one.
+ * everything above that, the comma insertion itself, is the shipped code. The
+ * comma code never looks inside a child element (it trims and drops only string
+ * children), so the `<span>` is as faithful as a real `<DoenetRenderer>`.
  */
 
 /** A renderer-state entry, as `RendererInstructionBuilder` records it. */

@@ -332,6 +332,13 @@ export default class Copy extends CompositeComponent {
                             recursive: true,
                             recurseNonStandardComposites:
                                 stateValues.unresolvedPath != null,
+                            // While a path is still to be resolved, the
+                            // recursion has to reach every replacement. Once
+                            // the reference has resolved to the composite
+                            // itself, a list composite among its replacements
+                            // is kept whole, so the copy shows its commas.
+                            stopAtListComposites:
+                                stateValues.unresolvedPath == null,
                             includeWithheldReplacements: true,
                             stopIfHaveProp: firstPropNameFromPath,
                         };
