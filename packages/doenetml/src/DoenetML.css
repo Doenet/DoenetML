@@ -91,6 +91,8 @@ html {
     --indicatorHoverBlue: var(--lightBlue);
     --buttonHoverBlue: var(--lightBlue);
     --doenetTagColor: #3e844a;
+    --graphGrid: #939393;
+    --graphAxes: #767676;
 }
 
 [data-theme="dark"] {
@@ -124,6 +126,8 @@ html {
     --indicatorHoverBlue: #5b8cb5;
     --buttonHoverBlue: hsl(209, 54%, 82%);
     --doenetTagColor: #5cb870;
+    --graphGrid: #636363;
+    --graphAxes: #7d7d7d;
 }
 .doenet-viewer {
     font-family: "Open Sans" !important;

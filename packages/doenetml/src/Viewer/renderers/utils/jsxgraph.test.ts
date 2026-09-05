@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setMinorTicks, type AxisJXG } from "./jsxgraph";
+import { applyAxisTickHeights, setMinorTicks, type AxisJXG } from "./jsxgraph";
 
 /** JSXGraph's `minTicksDistance` default for axis ticks (`src/options.js`). */
 const MIN_TICKS_DISTANCE = 5;
@@ -167,5 +167,29 @@ describe("setMinorTicks", () => {
             expect(tickState(axis), `height ${height}`).toEqual(settled);
             expect(settled.minorTicks, `height ${height}`).toBe(4);
         }
+    });
+});
+
+describe("applyAxisTickHeights", () => {
+    it("shows minor ticks on visible axes for a dense grid", () => {
+        const xAxis = fakeAxis({ unit: 20, range: 12 });
+        const yAxis = fakeAxis({ unit: 20, range: 12 });
+        const xAttributes: Record<string, unknown>[] = [];
+        const yAttributes: Record<string, unknown>[] = [];
+        xAxis.defaultTicks.setAttribute = (attributes) =>
+            xAttributes.push(attributes);
+        yAxis.defaultTicks.setAttribute = (attributes) =>
+            yAttributes.push(attributes);
+
+        applyAxisTickHeights({
+            grid: "dense",
+            xaxisRef: { current: xAxis },
+            yaxisRef: { current: yAxis },
+            displayXAxisTicks: true,
+            displayYAxisTicks: false,
+        });
+
+        expect(xAttributes).toEqual([{ majorHeight: 0 }, { minorHeight: 10 }]);
+        expect(yAttributes).toEqual([{ majorHeight: 0 }, { minorHeight: 0 }]);
     });
 });

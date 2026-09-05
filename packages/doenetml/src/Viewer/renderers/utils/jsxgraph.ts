@@ -162,25 +162,30 @@ export function applyAxisTickHeights({
     displayXAxisTicks?: boolean;
     displayYAxisTicks?: boolean;
 }): void {
-    // Only control real ticks (height != -1), not grid lines (height = -1)
+    // Grid lines are rendered by a separate grid object so tick marks can use
+    // the axis color independently.
     if (grid === "dense") {
         if (xaxisRef.current) {
-            xaxisRef.current.defaultTicks.setAttribute({ majorHeight: -1 });
-            xaxisRef.current.defaultTicks.setAttribute({ minorHeight: -1 });
-        }
-        if (yaxisRef.current) {
-            yaxisRef.current.defaultTicks.setAttribute({ majorHeight: -1 });
-            yaxisRef.current.defaultTicks.setAttribute({ minorHeight: -1 });
-        }
-    } else if (grid === "medium") {
-        if (xaxisRef.current) {
-            xaxisRef.current.defaultTicks.setAttribute({ majorHeight: -1 });
+            xaxisRef.current.defaultTicks.setAttribute({ majorHeight: 0 });
             xaxisRef.current.defaultTicks.setAttribute({
                 minorHeight: displayXAxisTicks ? 10 : 0,
             });
         }
         if (yaxisRef.current) {
-            yaxisRef.current.defaultTicks.setAttribute({ majorHeight: -1 });
+            yaxisRef.current.defaultTicks.setAttribute({ majorHeight: 0 });
+            yaxisRef.current.defaultTicks.setAttribute({
+                minorHeight: displayYAxisTicks ? 10 : 0,
+            });
+        }
+    } else if (grid === "medium") {
+        if (xaxisRef.current) {
+            xaxisRef.current.defaultTicks.setAttribute({ majorHeight: 0 });
+            xaxisRef.current.defaultTicks.setAttribute({
+                minorHeight: displayXAxisTicks ? 10 : 0,
+            });
+        }
+        if (yaxisRef.current) {
+            yaxisRef.current.defaultTicks.setAttribute({ majorHeight: 0 });
             yaxisRef.current.defaultTicks.setAttribute({
                 minorHeight: displayYAxisTicks ? 10 : 0,
             });
@@ -235,7 +240,7 @@ export function createYAxis({
             position,
             offset,
             anchorx,
-            strokeColor: "var(--canvasText)",
+            strokeColor: "var(--graphAxes)",
             highlight: false,
         };
         if (SVs.yLabelHasLatex) {
@@ -244,7 +249,7 @@ export function createYAxis({
     }
     previousYaxisWithLabelRef.current = Boolean(SVs.yLabel);
 
-    yaxisOptions.strokeColor = "var(--canvasText)";
+    yaxisOptions.strokeColor = "var(--graphAxes)";
     yaxisOptions.highlight = false;
 
     yaxisOptions.ticks = {
@@ -252,12 +257,10 @@ export function createYAxis({
         label: {
             offset: [12, -2],
             layer: 2,
-            strokeColor: "var(--canvasText)",
-            highlightStrokeColor: "var(--canvasText)",
-            highlightStrokeOpacity: 1,
+            strokeColor: "var(--graphAxes)",
+            highlightStrokeColor: "var(--graphAxes)",
         },
-        strokeColor: "var(--canvasText)",
-        strokeOpacity: 0.5,
+        strokeColor: "var(--graphAxes)",
         digits: 4,
         drawLabels: SVs.displayYAxisTickLabels,
     };
@@ -270,12 +273,12 @@ export function createYAxis({
             yaxisOptions.ticks.scaleSymbol = scaleSymbol;
         }
     }
-    // Only control real ticks (height != -1), not grid lines (height = -1)
+    // Grid lines are rendered separately; these values control axis ticks.
     if (SVs.grid === "dense") {
-        yaxisOptions.ticks.majorHeight = -1;
-        yaxisOptions.ticks.minorHeight = -1;
+        yaxisOptions.ticks.majorHeight = 0;
+        yaxisOptions.ticks.minorHeight = 0;
     } else if (SVs.grid === "medium") {
-        yaxisOptions.ticks.majorHeight = -1;
+        yaxisOptions.ticks.majorHeight = 0;
         yaxisOptions.ticks.minorHeight = SVs.displayYAxisTicks ? 10 : 0;
     } else {
         yaxisOptions.ticks.majorHeight = SVs.displayYAxisTicks ? 12 : 0;
@@ -329,7 +332,7 @@ export function createXAxis({
             position,
             offset,
             anchorx,
-            strokeColor: "var(--canvasText)",
+            strokeColor: "var(--graphAxes)",
             highlight: false,
         };
         if (SVs.xLabelHasLatex) {
@@ -343,12 +346,10 @@ export function createXAxis({
         label: {
             offset: [-5, -15],
             layer: 2,
-            strokeColor: "var(--canvasText)",
-            highlightStrokeColor: "var(--canvasText)",
-            highlightStrokeOpacity: 1,
+            strokeColor: "var(--graphAxes)",
+            highlightStrokeColor: "var(--graphAxes)",
         },
-        strokeColor: "var(--canvasText)",
-        strokeOpacity: 0.5,
+        strokeColor: "var(--graphAxes)",
         digits: 4,
         drawLabels: SVs.displayXAxisTickLabels,
     };
@@ -361,15 +362,15 @@ export function createXAxis({
             xaxisOptions.ticks.scaleSymbol = scaleSymbol;
         }
     }
-    xaxisOptions.strokeColor = "var(--canvasText)";
+    xaxisOptions.strokeColor = "var(--graphAxes)";
     xaxisOptions.highlight = false;
 
-    // Only control real ticks (height != -1), not grid lines (height = -1)
+    // Grid lines are rendered separately; these values control axis ticks.
     if (SVs.grid === "dense") {
-        xaxisOptions.ticks.majorHeight = -1;
-        xaxisOptions.ticks.minorHeight = -1;
+        xaxisOptions.ticks.majorHeight = 0;
+        xaxisOptions.ticks.minorHeight = 0;
     } else if (SVs.grid === "medium") {
-        xaxisOptions.ticks.majorHeight = -1;
+        xaxisOptions.ticks.majorHeight = 0;
         xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
     } else {
         xaxisOptions.ticks.majorHeight = SVs.displayXAxisTicks ? 12 : 0;
@@ -917,10 +918,8 @@ export function syncLayer(
 /**
  * Sync stroke color/width/opacity/dash on a line-family object.
  *
- * Highlight values mirror the base values, with `strokeOpacity` halved on
- * highlight (matching the convention used across renderers prior to this
- * helper). `dash` is taken as a precomputed numeric value because some
- * renderers (e.g. line.tsx) pass an extra `dashed` SV into `styleToDash`.
+ * `dash` is taken as a precomputed numeric value because some renderers
+ * (e.g. line.tsx) pass an extra `dashed` SV into `styleToDash`.
  */
 export function syncLineStrokeStyle(
     obj: SyncableJXG,
@@ -947,7 +946,6 @@ export function syncLineStrokeStyle(
     }
     if (vp.strokeopacity !== lineOpacity) {
         vp.strokeopacity = lineOpacity;
-        vp.highlightstrokeopacity = lineOpacity * 0.5;
     }
     if (vp.dash !== dash) {
         vp.dash = dash;
