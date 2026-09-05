@@ -1,7 +1,7 @@
 import {
     groupCompositeRanges,
     isBlankGroup,
-    listCommaPositions,
+    joinListText,
     type CompositeGroup,
     type CompositeRange,
 } from "@doenet/utils";
@@ -63,18 +63,13 @@ function textFromGroup(
     }
     // A part that came out empty — a hidden child, say — is no more an item of
     // the list than whitespace is.
-    const commaBefore = listCommaPositions(
+    return joinListText(
+        parts,
         group.items.map(
             (item, ind) =>
                 parts[ind] === "" || isBlankGroup(item, isBlankString),
         ),
     );
-    // Whitespace an item's own text ends with is left off in front of the comma
-    // that follows it.
-    return parts
-        .map((part, ind) => (commaBefore[ind + 1] ? part.trimEnd() : part))
-        .map((part, ind) => (commaBefore[ind] ? ", " + part : part))
-        .join("");
 }
 
 export function returnTextPieceStateVariableDefinitions() {

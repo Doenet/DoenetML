@@ -1,5 +1,6 @@
 import {
     groupCompositeRanges,
+    joinListText,
     type CompositeGroup,
     type CompositeRange,
 } from "@doenet/utils";
@@ -118,15 +119,12 @@ function stringFromGroups(
             continue;
         }
 
-        // Add commas between the children from a single composite, trimming any
-        // white space to the right of all but the last so that nothing puts a
-        // space in front of a comma.
-        let listString = parts
-            .filter((part) => part.trim() !== "")
-            .map((part, ind, all) =>
-                ind === all.length - 1 ? part : part.trimEnd(),
-            )
-            .join(", ");
+        // The commas go where `text` puts them. Every part is a string here,
+        // so a whitespace-only one is blank whatever produced it.
+        const listString = joinListText(
+            parts,
+            parts.map((part) => part.trim() === ""),
+        );
 
         strings.push(wrapListIfNeeded(listString, group.range, context));
     }

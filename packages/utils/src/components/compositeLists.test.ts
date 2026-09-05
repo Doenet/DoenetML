@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     groupCompositeRanges,
+    joinListText,
     listCommaPositions,
     type CompositeGroup,
     type CompositeRange,
@@ -429,5 +430,25 @@ describe("listCommaPositions", () => {
             true,
             false,
         ]);
+    });
+});
+
+describe("joinListText", () => {
+    it("puts a comma and a space between the items", () => {
+        expect(joinListText(["1", "2", "3"], [false, false, false])).eq(
+            "1, 2, 3",
+        );
+    });
+
+    it("takes the whitespace off the end of an item a comma will follow", () => {
+        // The last item keeps its own, and the whitespace at either end of the
+        // list stays where it is.
+        expect(
+            joinListText(["\n", "1 ", "2 ", "\n"], [true, false, false, true]),
+        ).eq("\n1, 2 \n");
+    });
+
+    it("puts one comma, not two, around an item that came out empty", () => {
+        expect(joinListText(["1", "", "2"], [false, true, false])).eq("1, 2");
     });
 });

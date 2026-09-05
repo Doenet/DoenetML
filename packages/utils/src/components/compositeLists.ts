@@ -11,7 +11,8 @@
  * in what they do with a group once they have one. {@link groupCompositeRanges}
  * is the part they share: it turns the flat array of ranges into a tree, and
  * decides which nodes of that tree are lists. {@link listCommaPositions} then
- * says where the commas go among a list's items.
+ * says where the commas go among a list's items, and {@link joinListText}
+ * joins the text of those items for the pathways that produce a string.
  */
 
 /**
@@ -292,6 +293,20 @@ export function listCommaPositions(blank: boolean[]): boolean[] {
             !blank[ind - 1] &&
             blank.slice(ind).some((isBlank) => !isBlank),
     );
+}
+
+/**
+ * The text of a list, from the text of its items and which of those items are
+ * blank. The commas go where {@link listCommaPositions} puts them, and an item
+ * a comma will follow loses the whitespace its text ends with, so that nothing
+ * puts a space in front of a comma.
+ */
+export function joinListText(parts: string[], blank: boolean[]): string {
+    const commaBefore = listCommaPositions(blank);
+    return parts
+        .map((part, ind) => (commaBefore[ind + 1] ? part.trimEnd() : part))
+        .map((part, ind) => (commaBefore[ind] ? ", " + part : part))
+        .join("");
 }
 
 /**
