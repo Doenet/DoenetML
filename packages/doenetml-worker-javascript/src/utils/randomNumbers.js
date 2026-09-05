@@ -8,10 +8,10 @@ const WORK_PER_VARIATE_WARNING_THRESHOLD = 1e4;
  * `numDraws` items without replacement from a population of `numTotal` items, of which
  * `numSuccesses` are successes.
  *
- * Draws the items one at a time, shrinking the urn as it goes, which is O(numDraws).
- * The two symmetries of the distribution are applied first so that the loop is never
- * longer than it has to be: we can draw the items left behind instead of the items
- * taken, and we can count failures instead of successes.
+ * Draws the items one at a time, shrinking the urn as it goes. The two symmetries of
+ * the distribution are applied first so that the loop is never longer than it has to
+ * be: we can draw the items left behind instead of the items taken, and we can count
+ * failures instead of successes. That makes it O(min(numDraws, numTotal - numDraws)).
  */
 export function sampleHypergeometric({
     numTotal,
@@ -127,7 +127,7 @@ export function validBinomialParameters({ numTrials, probability }) {
 
 /**
  * Whether `mean` describes a Poisson distribution: a finite, non-negative rate.
- * (An infinite mean would make the sampler below loop forever.)
+ * (An infinite mean would make `samplePoisson` loop forever.)
  */
 export function validPoissonMean(mean) {
     return Number.isFinite(mean) && mean >= 0;

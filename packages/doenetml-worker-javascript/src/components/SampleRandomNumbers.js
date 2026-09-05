@@ -465,8 +465,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     const poissonMean = usedDefault.specifiedMean
                         ? 1
                         : dependencyValues.specifiedMean;
-                    // out-of-range parameters describe no distribution, so the
-                    // three cases below report NaN, just as their samples do
+                    // out-of-range parameters describe no distribution, so this
+                    // case and the two below report NaN, just as their samples do
                     mean = validPoissonMean(poissonMean) ? poissonMean : NaN;
                 } else if (dependencyValues.type === "hypergeometric") {
                     mean = validHypergeometricParameters(dependencyValues)

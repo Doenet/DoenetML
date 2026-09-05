@@ -363,6 +363,11 @@ population, this is the without-replacement counterpart of the `binomial` type.
 Each sample lies between $\max(0, n - (N - K))$ and $\min(n, K)$, where 
 $N$ is `numTotal`, $K$ is `numSuccesses`, and $n$ is `numDraws`.
 
+Unlike the other distributions, `hypergeometric` has no defaults to fall back on. 
+If any of the three attributes is omitted, or they do not describe a population 
+(for example, more successes or more draws than there are items), every sample is 
+`NaN`, as are the reported `mean`, `variance`, and `standardDeviation`.
+
 
 
 ---

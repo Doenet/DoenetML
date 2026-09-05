@@ -831,9 +831,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ).greaterThan(1 - 1e-4);
     }
 
-    // The four cases below cover every combination of the two symmetries the
+    // The first four cases cover every combination of the two symmetries the
     // sampler uses to keep its loop short: drawing the items left behind instead
-    // of the items taken, and counting failures instead of successes.
+    // of the items taken, and counting failures instead of successes. The last
+    // two pin down degenerate populations.
     const hypergeometricCases: [number, number, number][] = [
         [20, 7, 5], // few draws, few successes: no substitution
         [20, 7, 16], // many draws: the left-behind items are drawn instead
