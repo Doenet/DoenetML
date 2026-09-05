@@ -20,6 +20,11 @@ const TWO_TO_THE_53 = 0x20000000000000;
 // worth saying but not worth refusing.
 const WORK_PER_VARIATE_WARNING_THRESHOLD = 1e6;
 
+/** Total of a list of numbers, e.g. the population size a partition adds up to. */
+function sumOf(nums) {
+    return nums.reduce((a, c) => a + c, 0);
+}
+
 /**
  * Sample a single hypergeometric variate: the number of successes obtained when drawing
  * `numDraws` items without replacement from a population of `numTotal` items, of which
@@ -85,7 +90,7 @@ export function sampleMultivariateHypergeometric({
 }) {
     const counts = [];
 
-    let remainingInPopulation = numInCategories.reduce((a, c) => a + c, 0);
+    let remainingInPopulation = sumOf(numInCategories);
     let remainingDraws = numDraws;
 
     for (let i = 0; i < numInCategories.length - 1; i++) {
@@ -433,7 +438,7 @@ export function validMultivariateHypergeometricParameters({
         numInCategories.every((num) => Number.isInteger(num) && num >= 0) &&
         Number.isInteger(numDraws) &&
         numDraws >= 0 &&
-        numDraws <= numInCategories.reduce((a, c) => a + c, 0)
+        numDraws <= sumOf(numInCategories)
     );
 }
 
@@ -628,8 +633,6 @@ export function sampleFromMultivariateDistribution({
     numDraws,
     rng,
 }) {
-    // "hypergeometric" is the only type currently offered, and the `type` attribute's
-    // validValues keep any other from reaching here
     if (
         !validMultivariateHypergeometricParameters({
             numInCategories,
@@ -643,16 +646,19 @@ export function sampleFromMultivariateDistribution({
         return Array(numInCategories.length).fill(NaN);
     }
 
-    const numTotal = numInCategories.reduce((a, c) => a + c, 0);
+    const numTotal = sumOf(numInCategories);
 
     // Upper bound on the work: every category but the last costs a univariate
-    // hypergeometric draw against the part of the population not yet accounted for,
-    // and none of those is more work than a draw against the whole population.
+    // hypergeometric draw against the part of the population not yet accounted for.
+    // Neither the draws remaining nor the items left behind ever grows as that part
+    // shrinks, so no such draw is more work than one against the whole population.
     warnSlowSampling(
         "multivariate hypergeometric",
         (numInCategories.length - 1) * Math.min(numDraws, numTotal - numDraws),
     );
 
+    // "hypergeometric" is the only type currently offered, and the `type` attribute's
+    // validValues keep any other from reaching here
     return sampleMultivariateHypergeometric({ numInCategories, numDraws, rng });
 }
 

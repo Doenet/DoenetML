@@ -181,6 +181,9 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 let means = {};
 
+                const N = globalDependencyValues.numTotal;
+                const n = globalDependencyValues.numDraws;
+
                 // parameters that describe no distribution have no moments either,
                 // so report the NaN that their samples report
                 const valid = validMultivariateHypergeometricParameters(
@@ -188,13 +191,21 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                 );
 
                 for (let arrayKey of arrayKeys) {
-                    means[arrayKey] = valid
-                        ? (globalDependencyValues.numDraws *
-                              globalDependencyValues.numInCategories[
-                                  arrayKey
-                              ]) /
-                          globalDependencyValues.numTotal
-                        : NaN;
+                    if (!valid) {
+                        means[arrayKey] = NaN;
+                    } else if (N > 0) {
+                        means[arrayKey] =
+                            (n *
+                                globalDependencyValues.numInCategories[
+                                    arrayKey
+                                ]) /
+                            N;
+                    } else {
+                        // every category of an empty population is empty, and the
+                        // only valid draw from it is the empty one, so `n K_i / N`
+                        // is 0/0 for a count that is determined to be zero
+                        means[arrayKey] = 0;
+                    }
                 }
 
                 return { setValue: { means } };
@@ -254,8 +265,9 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                     }
 
                     // each category's marginal count is univariate hypergeometric,
-                    // so it carries the same finite population correction;
-                    // a population of one item leaves nothing to vary
+                    // so it carries the same finite population correction, whose
+                    // (N - n) / (N - 1) is 0/0 for a population of at most one
+                    // item — which is determined, and so has variance 0
                     if (N > 1) {
                         const p =
                             globalDependencyValues.numInCategories[arrayKey] /

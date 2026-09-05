@@ -22,7 +22,7 @@ among the categories.
 
 ## Examples
 
-### Example: Default `<sampleMultivariateRandomNumber/>{:dn}`
+### Example: Basic use
 
 
 ```doenet-editor-horiz
@@ -42,6 +42,11 @@ among the categories.
 The three numbers are the counts of each category among the drawn items, so they always 
 sum to `numDraws`. The number of categories &mdash; and therefore how many numbers are 
 produced &mdash; comes from the length of `numInCategories`.
+
+Both attributes are required, and they must describe a population that can actually be 
+drawn from: `numInCategories` a list of non-negative whole numbers and `numDraws` a 
+non-negative whole number no larger than their sum. Anything else samples `NaN` for 
+every category, as do the `means` and `variances` properties below.
 
 
 

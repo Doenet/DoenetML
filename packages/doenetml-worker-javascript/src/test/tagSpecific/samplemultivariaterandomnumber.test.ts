@@ -256,6 +256,25 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         ).eqls([3]);
     });
 
+    it("an empty population is sampled, not rejected", async () => {
+        // categories that are all empty are a valid (if degenerate) population,
+        // so the counts and their moments are zero rather than the NaN that the
+        // 0/0 in `n * numInCategories[i] / numTotal` would otherwise give
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="0 0" numDraws="0" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(
+            stateVariables[componentIdx].replacements!.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
+            ),
+        ).eqls([0, 0]);
+        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 0]);
+        expect(stateVariables[componentIdx].stateValues.variances).eqls([0, 0]);
+    });
+
     it("invalid parameters give NaN", async () => {
         const doenetMLs = [
             // numDraws unspecified
