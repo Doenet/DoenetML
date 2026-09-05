@@ -465,6 +465,20 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
                 numDraws: 4,
             }),
         ).eqls([]);
+
+        // Drawing nearly the whole population is as cheap as drawing almost
+        // none of it, since each category draws whichever of the taken and
+        // left-behind groups is smaller — which is why the message for a
+        // refused draw offers raising numDraws as a fix alongside lowering it.
+        // Half this population would need three billion draws and is refused;
+        // all but ten of it needs twenty and is not.
+        expect(
+            multivariateSamplingDiagnostics({
+                type: "hypergeometric",
+                numInCategories: [1000000000, 1000000000, 1000000000],
+                numDraws: 3000000000 - 10,
+            }),
+        ).eqls([]);
     });
 
     it("a population too large to count exactly is refused", async () => {
@@ -499,10 +513,10 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     it("a population whose total is too large to count exactly is refused", async () => {
         // Each category here is exact on its own, and few enough items are drawn
         // to be well under the work limit, but the population they add up to is
-        // past 2^53 — and that total is the bound every category's draw is taken
-        // against, so the sampler would reject every draw it made and never
-        // return. Asked of the shared entry point first, because a document that
-        // reached the sampler would hang rather than fail.
+        // past 2^53 — and that total is the population the first category's draw
+        // is taken against, so the sampler would reject every draw it made and
+        // never return. Asked of the shared entry point first, because a document
+        // that reached the sampler would hang rather than fail.
         const numInCategories = [2 ** 53 - 1, 2 ** 53 - 1];
         expect(
             multivariateSamplingDiagnostics({

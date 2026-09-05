@@ -453,10 +453,11 @@ function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
         !numInCategories.every(
             (num) => Number.isSafeInteger(num) && num >= 0,
         ) ||
-        // and the total as well as each category, since that total is the
-        // population every per-category draw is made against: past 2^53 it has
-        // no whole multiple of itself left below 2^53, so `uniformBelow` rejects
-        // every draw it makes and never returns
+        // and the total as well as each category, since that total — not any
+        // one category — is the largest population a draw is ever made against:
+        // the first category's is made against it, and each later one against a
+        // part of it. Past 2^53 it has no whole multiple of itself left below
+        // 2^53, so `uniformBelow` rejects every draw it makes and never returns
         !Number.isSafeInteger(numTotal) ||
         !Number.isSafeInteger(numDraws) ||
         numDraws < 0 ||
