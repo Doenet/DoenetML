@@ -683,17 +683,22 @@ export function sampleFromRandomNumbers({
  * As with `sampleFromRandomNumbers`, the diagnostics come back rather than being
  * logged, so the state variable that calls this can pass them on to the reader.
  */
-export function sampleFromMultivariateDistribution({
+/**
+ * What these parameters have to say for themselves, drawing nothing: the reason
+ * they cannot be sampled from, or a notice that sampling them will be slow, or
+ * neither.
+ *
+ * Separate from the draw so that a component reusing values it already has — from
+ * saved state, or from a resample — can still tell the author why they are NaN,
+ * without consuming any randomness and so without disturbing a variant.
+ */
+export function multivariateSamplingDiagnostics({
     type,
     numInCategories,
     numDraws,
-    rng,
 }) {
     if (type == null) {
-        return unsampleable(
-            numInCategories.length,
-            codedDiagnostic({ type: "warning", code: "doenet-w0137" }),
-        );
+        return [codedDiagnostic({ type: "warning", code: "doenet-w0137" })];
     }
 
     const problem = multivariateHypergeometricProblem({
@@ -701,7 +706,37 @@ export function sampleFromMultivariateDistribution({
         numDraws,
     });
     if (problem) {
-        return unsampleable(numInCategories.length, problem);
+        return [problem];
+    }
+
+    return slowSamplingDiagnostics(
+        `multivariate ${type}`,
+        multivariateHypergeometricWork({ numInCategories, numDraws }),
+    );
+}
+
+export function sampleFromMultivariateDistribution({
+    type,
+    numInCategories,
+    numDraws,
+    rng,
+}) {
+    const diagnostics = multivariateSamplingDiagnostics({
+        type,
+        numInCategories,
+        numDraws,
+    });
+
+    // anything that stopped it being sampled leaves one NaN per category, so a
+    // caller never has to special-case the failure
+    if (
+        type == null ||
+        multivariateHypergeometricProblem({ numInCategories, numDraws })
+    ) {
+        return {
+            sampledValues: Array(numInCategories.length).fill(NaN),
+            diagnostics,
+        };
     }
 
     return {
@@ -712,10 +747,7 @@ export function sampleFromMultivariateDistribution({
             numDraws,
             rng,
         }),
-        diagnostics: slowSamplingDiagnostics(
-            `multivariate ${type}`,
-            multivariateHypergeometricWork({ numInCategories, numDraws }),
-        ),
+        diagnostics,
     };
 }
 

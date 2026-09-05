@@ -1,4 +1,5 @@
 import {
+    multivariateSamplingDiagnostics,
     sampleFromMultivariateDistribution,
     validMultivariateHypergeometricParameters,
 } from "../utils/randomNumbers";
@@ -340,8 +341,15 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                     Object.keys(changes).length === 0 ||
                     justUpdatedForNewComponent
                 ) {
+                    // Keep the counts, but re-check the parameters: they have not
+                    // changed, so whatever was wrong with them still is, and an
+                    // author who reloads a document should not lose the explanation
+                    // for why its counts are NaN. This draws nothing, so a variant
+                    // stays reproducible.
                     return {
                         useEssentialOrDefaultValue: { sampledValues: true },
+                        sendDiagnostics:
+                            multivariateSamplingDiagnostics(dependencyValues),
                     };
                 }
 

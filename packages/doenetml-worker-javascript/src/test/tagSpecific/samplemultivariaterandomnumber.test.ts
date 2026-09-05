@@ -530,6 +530,46 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         }
     });
 
+    it("resampling keeps reporting why the parameters are unusable", async () => {
+        // Reusing counts rather than drawing them — after a resample, or when saved
+        // values are loaded back — takes a branch that never reached the sampler, so
+        // the explanation used to disappear while the NaN it explained remained.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="11" /></p>
+    <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
+    `,
+        });
+        await core.returnAllStateVariables(false, true);
+        expect(
+            getDiagnosticsByType(core).warnings.filter(
+                (w) => w.code === "doenet-w0134",
+            ).length,
+        ).eq(1);
+
+        await callAction({
+            core,
+            componentIdx: await resolvePathToNodeIdx("again"),
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // still explained, and still not doubled up
+        expect(
+            getDiagnosticsByType(core).warnings.filter(
+                (w) => w.code === "doenet-w0134",
+            ).length,
+        ).eq(1);
+        for (const replacement of stateVariables[
+            await resolvePathToNodeIdx("s")
+        ].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+    });
+
     it("valid parameters raise no diagnostics", async () => {
         const { core } = await createTestCore({
             doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="4" />`,
