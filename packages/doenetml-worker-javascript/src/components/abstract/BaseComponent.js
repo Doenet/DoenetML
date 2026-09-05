@@ -296,9 +296,10 @@ export default class BaseComponent {
      * yet) part of the component graph — a repeat's template, a `<case>` of a
      * conditional — call this from `addOwnPotentialRendererTypes`, since
      * walking the graph would not reach them. Only classes with a static
-     * `keepChildrenSerialized` have anything here; `ComponentBuilder` gives
-     * every other component an empty array, and the field is optional on a
-     * component instance, hence the guard.
+     * `keepChildrenSerialized` have anything here: `ComponentBuilder` gives
+     * every other component an empty array. The guard below therefore does
+     * not fire for a component Core built; it is there because
+     * `ComponentInstance` declares the field optional.
      */
     addPotentialRendererTypesFromSerializedChildren(rendererTypes) {
         if (!this.serializedChildren) {
