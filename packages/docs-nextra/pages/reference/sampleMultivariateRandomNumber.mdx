@@ -173,7 +173,12 @@ random draws for a single sample &mdash; counting each category at the most its 
 could cost &mdash; are therefore treated as unusable, giving `NaN` counts and 
 statistics along with a warning explaining what to change. The limit is far above the 
 populations that arise in practice; it is there so that mistyping an extra digit 
-reports a problem instead of freezing the activity.
+reports a problem instead of freezing the activity. An order of magnitude below that, 
+from a million draws for a single sample, the sample is still drawn as asked, but a 
+warning notes that sampling may be slow. The two figures are the same ones 
+`<sampleRandomNumbers/>{:dn}` applies to its discrete distributions, and the estimate 
+they are compared against counts each category at the most its draw could cost, so a 
+sample that turns out cheaper than feared can still be the one warned about.
 
 Counts must also stay exact. Each category, the population they add up to, and 
 `numDraws` must all be below about nine quadrillion, past which neighboring whole 
