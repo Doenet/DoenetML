@@ -160,6 +160,28 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         ).eq(values[0].toString());
     });
 
+    it("number display attributes and asList reach the numbers produced", async () => {
+        // The component makes its own `<number>` replacements, so anything the
+        // author writes about how a number is shown has to be copied onto them;
+        // nothing downstream would do it. Drawing the whole population makes the
+        // counts deterministic, so the rendered text can be compared exactly.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="10" displayDecimals="2" padZeros /></p>
+    <p name="pRun"><sampleMultivariateRandomNumber name="s2" type="hypergeometric" numInCategories="5 3 2" numDraws="10" displayDecimals="2" padZeros asList="false" /></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                .text,
+        ).eq("5.00, 3.00, 2.00");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pRun")].stateValues.text,
+        ).eq("5.003.002.00");
+    });
+
     it("reports numCategories, numTotal, means, and variances", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

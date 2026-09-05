@@ -1021,10 +1021,13 @@ index-operator-no-values =
 ## written. Each names the attribute the author has to change, so a message that
 ## translated one would point at an attribute that does not exist.
 
-# Neither attribute has a default, so leaving one out is the commonest way to reach
-# this message. Each arrives either as the value the author wrote or as `not-set`
-# for an attribute they left off entirely; translate the "not set" wording, but
-# leave the `not-set` key that selects it untouched.
+# Neither attribute has a default that names a population — numDraws has none at
+# all, and numInCategories falls back to a list with no categories in it — so
+# leaving one out is the commonest way to reach this message. Each arrives either
+# as the value the author wrote or as `not-set`: for numDraws when it is missing,
+# and for numInCategories when it names no categories, whether it was left off or
+# written empty. Translate the "not set" wording, but leave the `not-set` key that
+# selects it untouched.
 sample-multivariate-parameters-invalid =
     Invalid numInCategories ({ $numInCategories ->
         [not-set] not set

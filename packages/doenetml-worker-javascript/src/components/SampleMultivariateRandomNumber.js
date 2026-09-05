@@ -41,9 +41,10 @@ function returnMomentDependencies() {
  * Whether the closed forms the `means` and `variances` arrays use apply to what
  * the author asked for. Those formulas are the multivariate hypergeometric's, so
  * they describe a distribution only when that is the one named and its parameters
- * are ones it can be sampled from. Anything else — no `type` at all, or parameters
- * that describe no population — has no moments to report and gets the NaN its
- * samples get; another distribution will bring its own branch.
+ * are ones it can be sampled from. Anything else — no `type` at all, parameters
+ * that describe no population, or a population refused as too slow to draw from —
+ * has no moments to report and gets the NaN its samples get; another distribution
+ * will bring its own branch.
  */
 function hasHypergeometricMoments(globalDependencyValues) {
     return (
