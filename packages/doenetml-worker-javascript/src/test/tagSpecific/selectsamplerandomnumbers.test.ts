@@ -646,17 +646,26 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    // The numbers a sampling component currently holds, read off its replacements.
+    async function current_values(
+        core: PublicDoenetMLCore,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        name: string,
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx(name);
+        return stateVariables[componentIdx].replacements!.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+    }
+
     // A helper for the discrete distributions whose edge cases have a single
     // determined answer, where drawing statistics would be beside the point.
     async function get_sampled_values(doenetML: string, name: string) {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx(name);
-        return stateVariables[componentIdx].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        return await current_values(core, resolvePathToNodeIdx, name);
     }
 
     it("hypergeometric, 5 draws from 20 items with 7 successes", async () => {
@@ -767,11 +776,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             stateVariables[componentIdx].stateValues.standardDeviation,
         ).closeTo(0, 1e-10);
 
-        expect(
-            stateVariables[componentIdx].replacements!.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
-            ),
-        ).eqls([1, 1, 1]);
+        expect(await current_values(core, resolvePathToNodeIdx, "s")).eqls([
+            1, 1, 1,
+        ]);
     });
 
     it("invalid hypergeometric parameters give NaN", async () => {
@@ -797,6 +804,20 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 expect(Number.isNaN(value)).eq(true);
             }
         }
+
+        // a population that was never specified has no mean or variance to report
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: doenetMLs[0],
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(Number.isNaN(stateVariables[componentIdx].stateValues.mean)).eq(
+            true,
+        );
+        expect(
+            Number.isNaN(stateVariables[componentIdx].stateValues.variance),
+        ).eq(true);
     });
 
     it("binomial, 10 trials with probability 0.3", async () => {
@@ -924,6 +945,21 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ).closeTo(1, 1e-10);
     });
 
+    it("poisson stays centered on a mean too large for e^(-mean)", async () => {
+        // e^(-1000) underflows to 0, so a sampler that multiplies uniforms until
+        // the product drops below it would stall around 745 no matter the mean
+        const values = await get_sampled_values(
+            `<sampleRandomNumbers name="s" type="poisson" mean="1000" numSamples="20" />`,
+            "s",
+        );
+
+        // the standard deviation is about 32, so 200 is over six of them away
+        for (let value of values) {
+            expect(Number.isInteger(value)).eq(true);
+            expect(Math.abs(value - 1000)).lessThan(200);
+        }
+    });
+
     it("degenerate and invalid poisson parameters", async () => {
         // a Poisson distribution with mean 0 is deterministic
         expect(
@@ -954,23 +990,16 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     `,
         });
 
-        async function values_of(name: string) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx(name);
-            return stateVariables[componentIdx].replacements!.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
-            );
-        }
-
         for (let [name, button] of [
             ["hyper", "resampleHyper"],
             ["binom", "resampleBinom"],
             ["pois", "resamplePois"],
         ]) {
-            const before = await values_of(name);
+            const before = await current_values(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
             expect(before.length).eq(20);
 
             await callAction({
@@ -978,7 +1007,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 componentIdx: await resolvePathToNodeIdx(button),
             });
 
-            const after = await values_of(name);
+            const after = await current_values(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
             expect(after.length).eq(20);
             // 20 samples from these distributions repeating exactly is
             // vanishingly unlikely, so the values must have changed
@@ -1001,15 +1034,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 doenetML,
                 requestedVariantIndex,
             });
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
             const result: Record<string, number[]> = {};
             for (let name of ["hyper", "binom", "pois"]) {
-                const componentIdx = await resolvePathToNodeIdx(name);
-                result[name] = stateVariables[componentIdx].replacements!.map(
-                    (x) => stateVariables[x.componentIdx].stateValues.value,
+                result[name] = await current_values(
+                    core,
+                    resolvePathToNodeIdx,
+                    name,
                 );
             }
             return result;

@@ -591,12 +591,15 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     const N = dependencyValues.numTotal;
                     const K = dependencyValues.numSuccesses;
                     const n = dependencyValues.numDraws;
-                    // includes the finite population correction (N - n) / (N - 1);
-                    // a population of one item leaves nothing to vary
+                    // includes the finite population correction (N - n) / (N - 1),
+                    // which is 0/0 for a population of one item; that population
+                    // leaves nothing to vary, so its variance is 0. Any other
+                    // invalid population falls through to the formula, which
+                    // reports NaN just as the samples themselves do.
                     variance =
-                        N > 1
-                            ? (n * (K / N) * ((N - K) / N) * (N - n)) / (N - 1)
-                            : 0;
+                        N === 1
+                            ? 0
+                            : (n * (K / N) * ((N - K) / N) * (N - n)) / (N - 1);
                 } else if (dependencyValues.type === "binomial") {
                     variance =
                         dependencyValues.numTrials *

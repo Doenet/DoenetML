@@ -12,4 +12,4 @@ Until now the only distributions available were `uniform`, `discreteUniform`, an
 
 `type="hypergeometric"` counts the successes obtained when drawing `numDraws` items *without replacement* from a population of `numTotal` items containing `numSuccesses` successes. `type="binomial"` counts the successes in `numTrials` independent trials that each succeed with the given `probability`, defaulting to a single fair trial. `type="poisson"` is determined entirely by its `mean`, which defaults to 1 rather than the 0 that `gaussian` uses, since a Poisson distribution with mean 0 always returns 0.
 
-The `mean`, `variance`, and `standardDeviation` properties report the exact values for each new distribution, and invalid parameters produce `NaN` samples along with a warning describing what is wrong.
+The `mean`, `variance`, and `standardDeviation` properties report the exact values for each new distribution. Invalid parameters produce `NaN` for both the samples and those properties, along with a warning describing what is wrong.

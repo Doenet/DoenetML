@@ -66,21 +66,20 @@ export function sampleBinomial({ numTrials, probability, rng }) {
 }
 
 /**
- * Sample a single Poisson variate with the given mean, using Knuth's method: multiply
- * uniforms until the product drops below e^(-mean). Takes O(mean) draws on average.
+ * Sample a single Poisson variate with the given mean, by counting how many
+ * exponential interarrival times fit within `mean`. This is Knuth's method written
+ * with logarithms: accumulating `-log(rng())` until the total reaches `mean` is
+ * equivalent to multiplying uniforms until the product drops below e^(-mean), but
+ * the sum does not underflow the way the product does once `mean` exceeds about 745.
+ * Takes O(mean) draws on average.
  */
 export function samplePoisson({ mean, rng }) {
-    if (mean === 0) {
-        return 0;
-    }
-
-    const limit = Math.exp(-mean);
     let count = 0;
-    let product = rng();
+    let total = -Math.log(rng());
 
-    while (product > limit) {
+    while (total < mean) {
         count++;
-        product *= rng();
+        total -= Math.log(rng());
     }
 
     return count;
@@ -168,37 +167,21 @@ export function sampleFromRandomNumbers({
             numDraws > numTotal
         ) {
             console.warn(
-                "Invalid numTotal (" +
-                    numTotal +
-                    "), numSuccesses (" +
-                    numSuccesses +
-                    "), or numDraws (" +
-                    numDraws +
-                    ") for a hypergeometric random variable. numTotal must be a positive integer, and numSuccesses and numDraws must be non-negative integers no larger than numTotal.",
+                `Invalid numTotal (${numTotal}), numSuccesses (${numSuccesses}), or numDraws (${numDraws}) for a hypergeometric random variable. numTotal must be a positive integer, and numSuccesses and numDraws must be non-negative integers no larger than numTotal.`,
             );
 
             return Array(numSamples).fill(NaN);
         }
 
+        // the sampler draws whichever of the taken and left-behind groups is smaller
         warnSlowSampling(
             "hypergeometric",
             Math.min(numDraws, numTotal - numDraws),
         );
 
-        let sampledValues = [];
-
-        for (let i = 0; i < numSamples; i++) {
-            sampledValues.push(
-                sampleHypergeometric({
-                    numTotal,
-                    numSuccesses,
-                    numDraws,
-                    rng,
-                }),
-            );
-        }
-
-        return sampledValues;
+        return Array.from({ length: numSamples }, () =>
+            sampleHypergeometric({ numTotal, numSuccesses, numDraws, rng }),
+        );
     } else if (type === "binomial") {
         if (
             !Number.isInteger(numTrials) ||
@@ -207,11 +190,7 @@ export function sampleFromRandomNumbers({
             !(probability <= 1)
         ) {
             console.warn(
-                "Invalid numTrials (" +
-                    numTrials +
-                    ") or probability (" +
-                    probability +
-                    ") for a binomial random variable. numTrials must be a non-negative integer and probability must be between 0 and 1.",
+                `Invalid numTrials (${numTrials}) or probability (${probability}) for a binomial random variable. numTrials must be a non-negative integer and probability must be between 0 and 1.`,
             );
 
             return Array(numSamples).fill(NaN);
@@ -219,19 +198,13 @@ export function sampleFromRandomNumbers({
 
         warnSlowSampling("binomial", numTrials);
 
-        let sampledValues = [];
-
-        for (let i = 0; i < numSamples; i++) {
-            sampledValues.push(sampleBinomial({ numTrials, probability, rng }));
-        }
-
-        return sampledValues;
+        return Array.from({ length: numSamples }, () =>
+            sampleBinomial({ numTrials, probability, rng }),
+        );
     } else if (type === "poisson") {
         if (!(mean >= 0) || !Number.isFinite(mean)) {
             console.warn(
-                "Invalid mean (" +
-                    mean +
-                    ") for a Poisson random variable. It must be a non-negative number.",
+                `Invalid mean (${mean}) for a Poisson random variable. It must be a non-negative number.`,
             );
 
             return Array(numSamples).fill(NaN);
@@ -239,13 +212,9 @@ export function sampleFromRandomNumbers({
 
         warnSlowSampling("Poisson", mean);
 
-        let sampledValues = [];
-
-        for (let i = 0; i < numSamples; i++) {
-            sampledValues.push(samplePoisson({ mean, rng }));
-        }
-
-        return sampledValues;
+        return Array.from({ length: numSamples }, () =>
+            samplePoisson({ mean, rng }),
+        );
     } else {
         // discreteuniform
         let sampledValues = [];

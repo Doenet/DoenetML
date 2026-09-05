@@ -10,8 +10,9 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='sampleRandomNumbers'/>
 
 `<sampleRandomNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types) 
-component that generates random numbers from a specified range of values or within a normal distribution 
-around a specified mean. It differs from the `<selectRandomNumbers/>{:dn}` component in that the 
+component that generates random numbers from a specified range of values, from a normal distribution 
+around a specified mean, or from one of the discrete count distributions (hypergeometric, binomial, 
+and Poisson). It differs from the `<selectRandomNumbers/>{:dn}` component in that the 
 values can be altered within the document by resampling or changing one or more of the 
 component's attributes. The primary application of the `<sampleRandomNumbers/>{:dn}` component 
 is for use in simulations involving random numbers.
@@ -349,7 +350,7 @@ this example, the `mean` and the `standardDeviation` are defined with attributes
   <label>Get New Numbers</label>
 </callAction>
 
-<p>Expected number of red marbles per draw: $x.mean</p>
+<p>Expected number of red marbles in each set of 5 draws: $x.mean</p>
 ```
 
 
