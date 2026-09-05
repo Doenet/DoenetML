@@ -1,6 +1,7 @@
 import CompositeComponent from "./CompositeComponent";
 import me from "math-expressions";
 import {
+    addReplacementRendererType,
     calculateValueListReplacementChanges,
     createValueListReplacements,
     returnPassThroughAttributeDeclarations,
@@ -273,6 +274,17 @@ export default class MathBaseListOperator extends CompositeComponent {
             componentInfoObjects,
             workspace,
             nComponents,
+        });
+    }
+
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
+
+        // The replacements are `<math>` components whatever the children are.
+        addReplacementRendererType({
+            component: this,
+            componentType: "math",
+            rendererTypes,
         });
     }
 }

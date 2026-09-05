@@ -976,4 +976,32 @@ describe("List operator tag tests @group4", async () => {
             });
         });
     });
+
+    describe("renderers for values created later", async () => {
+        // The viewer settles on the renderers to load when the document loads,
+        // so an operator whose list is empty at that moment has to say what its
+        // results will be rendered as before it has any.
+
+        it("cumulativeSum declares the math renderer with no children", async () => {
+            let { core } = await createTestCore({
+                doenetML: `
+    <numberList name="nl" />
+    <cumulativeSum>$nl</cumulativeSum>
+    `,
+            });
+
+            expect(core.core!.rendererTypesInDocument).toContain("math");
+        });
+
+        it("sortIndices declares the number renderer with no children", async () => {
+            let { core } = await createTestCore({
+                doenetML: `
+    <textList name="tl" />
+    <sortIndices>$tl</sortIndices>
+    `,
+            });
+
+            expect(core.core!.rendererTypesInDocument).toContain("number");
+        });
+    });
 });

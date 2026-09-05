@@ -117,9 +117,13 @@ using the `<sort>{:dn}` component.
 
 When the children are written as plain text rather than as components, `type` says how
 to read each whitespace-separated piece: as a `number`, a `math`, a `text`, or a
-`boolean`. Numbers and maths are ordered by value, text alphabetically, and booleans
-with `false` before `true`. Without `type`, there is nothing to say how the pieces
-should be compared, so they are left as written and a warning is issued.
+`boolean`. Numbers and maths are ordered by value when every value is numeric;
+otherwise everything is ordered alphabetically, which puts `false` before `true`.
+
+Without `type`, there is nothing to say what each piece should become, so the text is
+left out of the result entirely: `<sort>d a b</sort>{:dn}` renders nothing at all, and
+two warnings report it — one that a `type` is needed, one naming the string that was
+ignored.
 
 `type` applies only to those bare strings. A referenced component already has a type of
 its own and is left as it is, so a referenced list keeps its individual items:

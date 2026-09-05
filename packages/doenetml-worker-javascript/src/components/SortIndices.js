@@ -1,5 +1,6 @@
 import Sort from "./Sort";
 import {
+    addReplacementRendererType,
     calculateValueListReplacementChanges,
     createValueListReplacements,
 } from "../utils/valueListReplacements";
@@ -115,6 +116,18 @@ export default class SortIndices extends Sort {
             componentInfoObjects,
             workspace,
             nComponents,
+        });
+    }
+
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
+
+        // The replacements are indices — `<number>` components — however the
+        // children being ordered are typed.
+        addReplacementRendererType({
+            component: this,
+            componentType: "number",
+            rendererTypes,
         });
     }
 }

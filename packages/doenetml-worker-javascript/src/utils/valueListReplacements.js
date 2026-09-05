@@ -67,6 +67,32 @@ export function returnPassThroughAttributes(component) {
 }
 
 /**
+ * Declare the renderer that `component`'s replacements will need, without
+ * waiting for it to create them.
+ *
+ * The viewer decides which renderers to load once, when the document loads. A
+ * composite whose list is empty at that moment — a `<sortIndices>` over a
+ * `<sequence>` whose length an author has yet to raise above zero — has no
+ * replacements to reveal the type, so nothing would load the renderer for the
+ * values it gains later. `<sequence>` declares its replacement type up front
+ * for exactly this reason, and these composites can do the same: each always
+ * creates one fixed component type, so the declaration is exact. (`<sort>`
+ * cannot: it copies its children, so its replacement type is whatever they
+ * happen to be, and a child that reveals nothing at load reveals nothing to
+ * declare either.)
+ */
+export function addReplacementRendererType({
+    component,
+    componentType,
+    rendererTypes,
+}) {
+    rendererTypes.add(
+        component.componentInfoObjects.allComponentClasses[componentType]
+            .rendererType,
+    );
+}
+
+/**
  * Serialize one replacement carrying `value`, forwarding `attributesToConvert`
  * from the composite onto it.
  */
