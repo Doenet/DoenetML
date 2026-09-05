@@ -944,3 +944,38 @@ math-embedded-input-shape-unsuitable =
         [on-graph] This `<{ $component }>` is not shown because it is inside math drawn on a graph, which has no room for an input.
        *[relative-width] This `<{ $component }>` is not shown because it is inside math and has a relative width. Give the width in absolute units, such as `px`, instead.
     }
+
+## `<sampleRandomNumbers>` and `<selectRandomNumbers>`
+
+# Translators: `mean`, `standardDeviation`, `numTotal`, `numSuccesses`, `numDraws`,
+# `numTrials`, `probability` and `numSamples` are DoenetML attribute names. Leave
+# them in English exactly as written.
+
+sample-gaussian-parameters-invalid =
+    Invalid mean ({ $mean }) or standard deviation ({ $standardDeviation }) for a gaussian random variable. No numbers can be sampled.
+
+sample-hypergeometric-parameters-invalid =
+    Invalid numTotal ({ $numTotal }), numSuccesses ({ $numSuccesses }), or numDraws ({ $numDraws }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-hypergeometric-draws-too-many =
+    Drawing { $numDraws } items from a population of { $numTotal } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, or bring it closer to numTotal.
+
+sample-binomial-parameters-invalid =
+    Invalid numTrials ({ $numTrials }) or probability ({ $probability }) for a binomial random variable. numTrials must be a non-negative whole number, and probability must be between 0 and 1.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-binomial-trials-too-many =
+    Running { $numTrials } trials would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numTrials.
+
+sample-poisson-mean-invalid =
+    Invalid mean for a poisson random variable. It must be a finite, non-negative number.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-poisson-mean-too-large =
+    A poisson mean of { $mean } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce the mean.
+
+# $distribution is the value of the `type` attribute, e.g. "binomial"; $draws is
+# roughly how many random draws each sample needs.
+sample-distribution-slow =
+    Each sample from this { $distribution } distribution needs about { $draws } random draws, so sampling may be slow. Reduce the distribution's parameters, or numSamples, if the page feels sluggish.

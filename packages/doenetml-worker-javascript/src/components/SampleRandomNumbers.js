@@ -387,6 +387,30 @@ export default class SampleRandomNumbers extends CompositeComponent {
             },
         };
 
+        // The Poisson rate as the author gave it, before `mean` reduces an unusable
+        // one to NaN. The sampler needs the original: told only that the rate is NaN,
+        // it could not tell a malformed value from one too large to draw promptly,
+        // and would report the wrong reason to the author.
+        stateVariableDefinitions.poissonMean = {
+            returnDependencies: () => ({
+                specifiedMean: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedMean",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                return {
+                    setValue: {
+                        // a Poisson distribution with mean zero is degenerate, so
+                        // use 1 rather than the shared default of 0
+                        poissonMean: usedDefault.specifiedMean
+                            ? 1
+                            : dependencyValues.specifiedMean,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.mean = {
             description: "Mean of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
@@ -401,10 +425,15 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         variableName: "type",
                     },
                 };
-                if (["gaussian", "poisson"].includes(stateValues.type)) {
+                if (stateValues.type === "gaussian") {
                     dependencies.specifiedMean = {
                         dependencyType: "stateVariable",
                         variableName: "specifiedMean",
+                    };
+                } else if (stateValues.type === "poisson") {
+                    dependencies.poissonMean = {
+                        dependencyType: "stateVariable",
+                        variableName: "poissonMean",
                     };
                 } else if (stateValues.type === "hypergeometric") {
                     dependencies.numTotal = {
@@ -460,14 +489,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                 if (dependencyValues.type === "gaussian") {
                     mean = dependencyValues.specifiedMean;
                 } else if (dependencyValues.type === "poisson") {
-                    // a Poisson distribution with mean zero is degenerate,
-                    // so use 1 rather than the shared default of 0
-                    const poissonMean = usedDefault.specifiedMean
-                        ? 1
-                        : dependencyValues.specifiedMean;
                     // out-of-range parameters describe no distribution, so this
                     // case and the two below report NaN, just as their samples do
-                    mean = validPoissonMean(poissonMean) ? poissonMean : NaN;
+                    mean = validPoissonMean(dependencyValues.poissonMean)
+                        ? dependencyValues.poissonMean
+                        : NaN;
                 } else if (dependencyValues.type === "hypergeometric") {
                     mean = validHypergeometricParameters(dependencyValues)
                         ? (dependencyValues.numDraws *
@@ -739,6 +765,10 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "probability",
                     },
+                    poissonMean: {
+                        dependencyType: "stateVariable",
+                        variableName: "poissonMean",
+                    },
                 };
                 if (stateValues.variantDeterminesSeed) {
                     dependencies.rng = {
@@ -779,11 +809,13 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     };
                 }
 
-                let sampledValues = sampleFromRandomNumbers(dependencyValues);
+                const { sampledValues, diagnostics } =
+                    sampleFromRandomNumbers(dependencyValues);
 
                 return {
                     setEssentialValue: { sampledValues },
                     setValue: { sampledValues },
+                    sendDiagnostics: diagnostics,
                 };
             },
             inverseDefinition({ desiredStateVariableValues }) {
@@ -1027,7 +1059,10 @@ export default class SampleRandomNumbers extends CompositeComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        let sampledValues = sampleFromRandomNumbers({
+        // Any diagnostic these parameters raise was already sent when `sampledValues`
+        // was first computed, and resampling cannot change them, so there is nothing
+        // new to report here — and an action has no `sendDiagnostics` in any case.
+        const { sampledValues } = sampleFromRandomNumbers({
             type: await this.stateValues.type,
             numSamples: await this.stateValues.numSamples,
             standardDeviation: await this.stateValues.standardDeviation,
@@ -1042,6 +1077,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             numDraws: await this.stateValues.numDraws,
             numTrials: await this.stateValues.numTrials,
             probability: await this.stateValues.probability,
+            poissonMean: await this.stateValues.poissonMean,
             rng: (await this.stateValues.variantDeterminesSeed)
                 ? this.sharedParameters.variantRng
                 : this.sharedParameters.rngWithDateSeed,

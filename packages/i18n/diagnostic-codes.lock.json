@@ -218,5 +218,13 @@
     "doenet-w0122": "field-function-wrong-num-outputs",
     "doenet-w0123": "field-function-attribute-ignored-with-child",
     "doenet-w0124": "field-variables-ignored",
-    "doenet-w0125": "math-embedded-input-shape-unsuitable"
+    "doenet-w0125": "math-embedded-input-shape-unsuitable",
+    "doenet-w0126": "sample-gaussian-parameters-invalid",
+    "doenet-w0127": "sample-hypergeometric-parameters-invalid",
+    "doenet-w0128": "sample-hypergeometric-draws-too-many",
+    "doenet-w0129": "sample-binomial-parameters-invalid",
+    "doenet-w0130": "sample-binomial-trials-too-many",
+    "doenet-w0131": "sample-poisson-mean-invalid",
+    "doenet-w0132": "sample-poisson-mean-too-large",
+    "doenet-w0133": "sample-distribution-slow"
 }

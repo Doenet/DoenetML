@@ -1,7 +1,20 @@
-// Beyond this many expected `rng()` calls per variate, the linear-time samplers below
-// get noticeably slow. We still return exact samples; the warning just tells an author
-// why their document is sluggish.
-const WORK_PER_VARIATE_WARNING_THRESHOLD = 1e4;
+import { codedDiagnostic } from "./diagnostics";
+
+// The samplers below are exact, but each takes time linear in its parameters and runs
+// synchronously on the worker thread. A warning cannot call back a loop that is already
+// running, so parameters whose inner loop would exceed this many draws are refused
+// outright, exactly as impossible parameters are: mistyping an extra zero or two then
+// yields NaN and an explanation instead of a frozen activity. The limit sits far above
+// any classroom-scale population and holds one variate to roughly a tenth of a second.
+//
+// This bounds the work for a single variate, not for the component as a whole:
+// `numSamples` multiplies it, and is left unbounded here just as it is for the
+// distributions that predate these.
+const MAX_WORK_PER_VARIATE = 1e7;
+
+// Well below the hard limit a document is merely sluggish rather than stuck, which is
+// worth saying but not worth refusing.
+const WORK_PER_VARIATE_WARNING_THRESHOLD = 1e6;
 
 /**
  * Sample a single hypergeometric variate: the number of successes obtained when drawing
@@ -87,62 +100,153 @@ export function samplePoisson({ mean, rng }) {
     return count;
 }
 
+/** How many draws `sampleHypergeometric` makes for one variate. */
+function hypergeometricWork({ numTotal, numDraws }) {
+    // it draws whichever of the taken and left-behind groups is smaller
+    return Math.min(numDraws, numTotal - numDraws);
+}
+
+/**
+ * Why `numTotal`, `numSuccesses`, and `numDraws` cannot be sampled from, or `null` if
+ * they can. A usable set describes a population of at least one item, split into a
+ * non-negative number of successes and failures, from which a non-negative number of
+ * items is drawn few enough times to finish promptly.
+ */
+function hypergeometricProblem({ numTotal, numSuccesses, numDraws }) {
+    if (
+        !Number.isInteger(numTotal) ||
+        !Number.isInteger(numSuccesses) ||
+        !Number.isInteger(numDraws) ||
+        numTotal < 1 ||
+        numSuccesses < 0 ||
+        numDraws < 0 ||
+        numSuccesses > numTotal ||
+        numDraws > numTotal
+    ) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0127",
+            args: { numTotal, numSuccesses, numDraws },
+        });
+    }
+
+    if (hypergeometricWork({ numTotal, numDraws }) > MAX_WORK_PER_VARIATE) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0128",
+            args: { numTotal, numDraws, maxDraws: MAX_WORK_PER_VARIATE },
+        });
+    }
+
+    return null;
+}
+
 /**
  * Whether `numTotal`, `numSuccesses`, and `numDraws` describe a hypergeometric
- * distribution: a population of at least one item, split into a non-negative number
- * of successes and failures, from which a non-negative number of items is drawn.
+ * distribution this can actually sample from.
  *
  * Shared with the components so that the reported mean and variance are NaN for
  * exactly the parameters whose samples are NaN.
  */
-export function validHypergeometricParameters({
-    numTotal,
-    numSuccesses,
-    numDraws,
-}) {
-    return (
-        Number.isInteger(numTotal) &&
-        Number.isInteger(numSuccesses) &&
-        Number.isInteger(numDraws) &&
-        numTotal >= 1 &&
-        numSuccesses >= 0 &&
-        numDraws >= 0 &&
-        numSuccesses <= numTotal &&
-        numDraws <= numTotal
-    );
+export function validHypergeometricParameters(parameters) {
+    return hypergeometricProblem(parameters) === null;
 }
 
 /**
- * Whether `numTrials` and `probability` describe a binomial distribution: a
- * non-negative whole number of trials, each succeeding with a probability in [0, 1].
+ * Why `numTrials` and `probability` cannot be sampled from, or `null` if they can. A
+ * usable set is a non-negative whole number of trials, each succeeding with a
+ * probability in [0, 1], few enough to finish promptly.
  */
-export function validBinomialParameters({ numTrials, probability }) {
-    return (
-        Number.isInteger(numTrials) &&
-        numTrials >= 0 &&
-        probability >= 0 &&
-        probability <= 1
-    );
+function binomialProblem({ numTrials, probability }) {
+    if (
+        !Number.isInteger(numTrials) ||
+        numTrials < 0 ||
+        !(probability >= 0) ||
+        !(probability <= 1)
+    ) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0129",
+            args: { numTrials, probability },
+        });
+    }
+
+    if (numTrials > MAX_WORK_PER_VARIATE) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0130",
+            args: { numTrials, maxDraws: MAX_WORK_PER_VARIATE },
+        });
+    }
+
+    return null;
 }
 
 /**
- * Whether `mean` describes a Poisson distribution: a finite, non-negative rate.
- * (An infinite mean would make `samplePoisson` loop forever.)
+ * Whether `numTrials` and `probability` describe a binomial distribution this can
+ * actually sample from. Shared with the components, as above.
+ */
+export function validBinomialParameters(parameters) {
+    return binomialProblem(parameters) === null;
+}
+
+/**
+ * Why `mean` cannot be sampled from as a Poisson rate, or `null` if it can. A usable
+ * rate is finite, non-negative, and small enough to finish promptly — `samplePoisson`
+ * makes about `mean` draws, and an infinite mean would never terminate at all.
+ */
+function poissonMeanProblem(mean) {
+    if (!Number.isFinite(mean) || mean < 0) {
+        // the mean arrives already reduced to NaN when the author's value is out of
+        // range, so there is nothing informative to echo back here
+        return codedDiagnostic({ type: "warning", code: "doenet-w0131" });
+    }
+
+    if (mean > MAX_WORK_PER_VARIATE) {
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0132",
+            args: { mean, maxDraws: MAX_WORK_PER_VARIATE },
+        });
+    }
+
+    return null;
+}
+
+/**
+ * Whether `mean` describes a Poisson distribution this can actually sample from.
+ * Shared with the components, as above.
  */
 export function validPoissonMean(mean) {
-    return Number.isFinite(mean) && mean >= 0;
+    return poissonMeanProblem(mean) === null;
 }
 
-function warnSlowSampling(type, workPerVariate) {
-    if (workPerVariate > WORK_PER_VARIATE_WARNING_THRESHOLD) {
-        console.warn(
-            `Sampling from a ${type} distribution with these parameters requires about ${Math.round(
-                workPerVariate,
-            )} random draws per sample, which may be slow.`,
-        );
+/**
+ * A notice that a document will be sluggish, or `null` when it will not. Below the
+ * hard limit the samples are still drawn; this only tells the author why the page
+ * feels slow, which they cannot learn from anywhere else.
+ */
+function slowSamplingDiagnostic(distribution, workPerVariate) {
+    if (workPerVariate <= WORK_PER_VARIATE_WARNING_THRESHOLD) {
+        return null;
     }
+
+    return codedDiagnostic({
+        type: "warning",
+        code: "doenet-w0133",
+        args: { distribution, draws: Math.round(workPerVariate) },
+    });
 }
 
+/**
+ * Draw `numSamples` independent values from the distribution named by `type`.
+ *
+ * Returns the samples alongside any diagnostics they raised, rather than logging
+ * them: a browser console is not somewhere an author looks, so a caller in a state
+ * variable definition passes these on as `sendDiagnostics` and they reach whoever
+ * is reading the document. Unusable parameters give a full-length run of NaN, so a
+ * caller never has to special-case the failure.
+ */
 export function sampleFromRandomNumbers({
     type,
     numSamples,
@@ -158,19 +262,21 @@ export function sampleFromRandomNumbers({
     numDraws,
     numTrials,
     probability,
+    poissonMean,
     rng,
 }) {
     if (type === "gaussian") {
         if (!(standardDeviation >= 0) || !Number.isFinite(mean)) {
-            let message =
-                "Invalid mean (" +
-                mean +
-                ") or standard deviation (" +
-                standardDeviation +
-                ") for a gaussian random variable.";
-            console.warn(message);
-
-            return Array(numSamples).fill(NaN);
+            return {
+                sampledValues: Array(numSamples).fill(NaN),
+                diagnostics: [
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0126",
+                        args: { mean, standardDeviation },
+                    }),
+                ],
+            };
         }
 
         let sampledValues = [];
@@ -192,7 +298,7 @@ export function sampleFromRandomNumbers({
             sampledValues.push(mean + standardDeviation * standardNormal);
         }
 
-        return sampledValues;
+        return { sampledValues, diagnostics: [] };
     } else if (type === "uniform") {
         let sampledValues = [];
 
@@ -202,61 +308,67 @@ export function sampleFromRandomNumbers({
             sampledValues.push(from + rng() * diff);
         }
 
-        return sampledValues;
+        return { sampledValues, diagnostics: [] };
     } else if (type === "hypergeometric") {
-        if (
-            !validHypergeometricParameters({
-                numTotal,
-                numSuccesses,
-                numDraws,
-            })
-        ) {
-            console.warn(
-                `Invalid numTotal (${numTotal}), numSuccesses (${numSuccesses}), or numDraws (${numDraws}) for a hypergeometric random variable. numTotal must be a positive integer, and numSuccesses and numDraws must be non-negative integers no larger than numTotal.`,
-            );
-
-            return Array(numSamples).fill(NaN);
+        const problem = hypergeometricProblem({
+            numTotal,
+            numSuccesses,
+            numDraws,
+        });
+        if (problem) {
+            return {
+                sampledValues: Array(numSamples).fill(NaN),
+                diagnostics: [problem],
+            };
         }
 
-        // the sampler draws whichever of the taken and left-behind groups is smaller
-        warnSlowSampling(
+        const slow = slowSamplingDiagnostic(
             "hypergeometric",
-            Math.min(numDraws, numTotal - numDraws),
+            hypergeometricWork({ numTotal, numDraws }),
         );
 
-        return Array.from({ length: numSamples }, () =>
-            sampleHypergeometric({ numTotal, numSuccesses, numDraws, rng }),
-        );
+        return {
+            sampledValues: Array.from({ length: numSamples }, () =>
+                sampleHypergeometric({ numTotal, numSuccesses, numDraws, rng }),
+            ),
+            diagnostics: slow ? [slow] : [],
+        };
     } else if (type === "binomial") {
-        if (!validBinomialParameters({ numTrials, probability })) {
-            console.warn(
-                `Invalid numTrials (${numTrials}) or probability (${probability}) for a binomial random variable. numTrials must be a non-negative integer and probability must be between 0 and 1.`,
-            );
-
-            return Array(numSamples).fill(NaN);
+        const problem = binomialProblem({ numTrials, probability });
+        if (problem) {
+            return {
+                sampledValues: Array(numSamples).fill(NaN),
+                diagnostics: [problem],
+            };
         }
 
-        warnSlowSampling("binomial", numTrials);
+        const slow = slowSamplingDiagnostic("binomial", numTrials);
 
-        return Array.from({ length: numSamples }, () =>
-            sampleBinomial({ numTrials, probability, rng }),
-        );
+        return {
+            sampledValues: Array.from({ length: numSamples }, () =>
+                sampleBinomial({ numTrials, probability, rng }),
+            ),
+            diagnostics: slow ? [slow] : [],
+        };
     } else if (type === "poisson") {
-        if (!validPoissonMean(mean)) {
-            // the mean arrives already reduced to NaN when the author's value is
-            // out of range, so there is nothing informative to echo back here
-            console.warn(
-                `Invalid mean for a Poisson random variable. It must be a finite, non-negative number.`,
-            );
-
-            return Array(numSamples).fill(NaN);
+        // the rate as the author gave it, not the reported `mean`, which is already
+        // NaN for anything unusable and so cannot say what was wrong with it
+        const problem = poissonMeanProblem(poissonMean);
+        if (problem) {
+            return {
+                sampledValues: Array(numSamples).fill(NaN),
+                diagnostics: [problem],
+            };
         }
 
-        warnSlowSampling("Poisson", mean);
+        const slow = slowSamplingDiagnostic("poisson", poissonMean);
 
-        return Array.from({ length: numSamples }, () =>
-            samplePoisson({ mean, rng }),
-        );
+        return {
+            sampledValues: Array.from({ length: numSamples }, () =>
+                samplePoisson({ mean: poissonMean, rng }),
+            ),
+            diagnostics: slow ? [slow] : [],
+        };
     } else {
         // discreteuniform
         let sampledValues = [];
@@ -286,7 +398,7 @@ export function sampleFromRandomNumbers({
             }
         }
 
-        return sampledValues;
+        return { sampledValues, diagnostics: [] };
     }
 }
 

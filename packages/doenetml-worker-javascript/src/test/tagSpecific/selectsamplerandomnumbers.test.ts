@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     callAction,
     updateMathInputValue,
@@ -700,6 +701,131 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             expect(Number.isNaN(value), `sample ${value}`).eq(true);
         }
     }
+
+    it("parameters too large to sample promptly are refused, not attempted", async () => {
+        // These samplers are exact but linear in their parameters and run
+        // synchronously on the worker, so a warning alone cannot keep a mistyped
+        // extra zero or two from freezing the activity. Anything whose inner loop
+        // would exceed 1e7 draws per sample is refused the same way an impossible
+        // population is. Each case below would otherwise run for minutes or hours.
+        for (const doenetML of [
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1000000000" numSuccesses="1" numDraws="500000000" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="1000000000" probability="0.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="poisson" mean="1000000000" numSamples="3" />`,
+        ]) {
+            await expect_nan_distribution(doenetML, 3);
+        }
+
+        // The bound is on the draws actually made, not on the population size: the
+        // hypergeometric sampler draws whichever of the taken and left-behind groups
+        // is smaller, so a huge population is fine as long as few items are drawn.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1000000000" numSuccesses="400000000" numDraws="10" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(4, 1e-10);
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            const value =
+                stateVariables[replacement.componentIdx].stateValues.value;
+            expect(Number.isInteger(value)).eq(true);
+            expect(value).gte(0);
+            expect(value).lte(10);
+        }
+    });
+
+    it("unusable parameters are reported to the author, not just the console", async () => {
+        // A console warning is invisible to someone authoring a document, so each of
+        // these has to arrive as a diagnostic that the surrounding tooling can show.
+        // `codedDiagnostic` omits `args` entirely when a message takes none, so the
+        // Poisson case below expects `undefined` rather than an empty object.
+        const cases: [string, string, Record<string, unknown> | undefined][] = [
+            [
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="11" numDraws="4" />`,
+                "doenet-w0127",
+                { numTotal: 10, numSuccesses: 11, numDraws: 4 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="1.5" />`,
+                "doenet-w0129",
+                { numTrials: 6, probability: 1.5 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="poisson" mean="-1" />`,
+                "doenet-w0131",
+                undefined,
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="1000000000" probability="0.5" />`,
+                "doenet-w0130",
+                { numTrials: 1000000000, maxDraws: 1e7 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="poisson" mean="1000000000" />`,
+                "doenet-w0132",
+                { mean: 1000000000, maxDraws: 1e7 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1000000000" numSuccesses="1" numDraws="500000000" />`,
+                "doenet-w0128",
+                { numTotal: 1000000000, numDraws: 500000000, maxDraws: 1e7 },
+            ],
+        ];
+
+        for (const [doenetML, code, args] of cases) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+
+            const warnings = getDiagnosticsByType(core).warnings;
+            const matching = warnings.filter((w) => w.code === code);
+            expect(matching.length, `${code} for ${doenetML}`).eq(1);
+            expect(matching[0].args).eqls(args);
+            // the message an author reads should name the problem, not be empty
+            expect(matching[0].message.length).greaterThan(20);
+        }
+    });
+
+    it("a gaussian with an impossible spread reports it", async () => {
+        // A negative `standardDeviation` would come back positive, since the spread
+        // is round-tripped through the variance; a negative `variance` is what
+        // actually reaches the sampler as an impossible spread.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="gaussian" variance="-1" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0126",
+        );
+        expect(warnings.length).eq(1);
+        expect(warnings[0].args).eqls({ mean: 0, standardDeviation: NaN });
+
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+    });
+
+    it("valid parameters raise no diagnostics", async () => {
+        for (const doenetML of [
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="7" numDraws="5" numSamples="4" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="10" probability="0.3" numSamples="4" />`,
+            `<sampleRandomNumbers name="s" type="poisson" mean="4" numSamples="4" />`,
+            `<selectRandomNumbers name="s" type="poisson" mean="4" numToSelect="4" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+
+            const diagnostics = getDiagnosticsByType(core);
+            expect(diagnostics.warnings.length, doenetML).eq(0);
+            expect(diagnostics.errors.length, doenetML).eq(0);
+        }
+    });
 
     /** log of "n choose k" */
     function logBinomial(n: number, k: number) {

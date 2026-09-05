@@ -118,6 +118,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     dependencyType: "stateVariable",
                     variableName: "probability",
                 },
+                poissonMean: {
+                    dependencyType: "stateVariable",
+                    variableName: "poissonMean",
+                },
                 variants: {
                     dependencyType: "stateVariable",
                     variableName: "variants",
@@ -161,11 +165,13 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     }
                 }
 
-                let selectedValues = sampleFromRandomNumbers(dependencyValues);
+                const { sampledValues: selectedValues, diagnostics } =
+                    sampleFromRandomNumbers(dependencyValues);
 
                 return {
                     setEssentialValue: { selectedValues },
                     setValue: { selectedValues },
+                    sendDiagnostics: diagnostics,
                 };
             },
         };

@@ -518,6 +518,14 @@ export type MessageKey =
     | "select-random-combination-fluke"
     | "select-random-value-fluke"
     | "math-embedded-input-shape-unsuitable"
+    | "sample-gaussian-parameters-invalid"
+    | "sample-hypergeometric-parameters-invalid"
+    | "sample-hypergeometric-draws-too-many"
+    | "sample-binomial-parameters-invalid"
+    | "sample-binomial-trials-too-many"
+    | "sample-poisson-mean-invalid"
+    | "sample-poisson-mean-too-large"
+    | "sample-distribution-slow"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1102,6 +1110,14 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "select-random-combination-fluke",
     "select-random-value-fluke",
     "math-embedded-input-shape-unsuitable",
+    "sample-gaussian-parameters-invalid",
+    "sample-hypergeometric-parameters-invalid",
+    "sample-hypergeometric-draws-too-many",
+    "sample-binomial-parameters-invalid",
+    "sample-binomial-trials-too-many",
+    "sample-poisson-mean-invalid",
+    "sample-poisson-mean-too-large",
+    "sample-distribution-slow",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",
