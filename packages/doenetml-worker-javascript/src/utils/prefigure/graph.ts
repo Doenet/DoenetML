@@ -1,5 +1,6 @@
 import {
     asFiniteNumber,
+    darkModeAxisStrokeAttr,
     escapeXml,
     formatNumber,
     pushWarning,
@@ -64,13 +65,6 @@ function pushUnsupportedAxisPositionWarnings({
     }
 }
 
-// Dark-mode axis/tick stroke. PreFigure defaults axes/ticks to black (tuned for
-// a white canvas); on the dark canvas they vanish. We bake a light stroke that
-// matches the JSXGraph renderer's axes (`--canvasText`, which is white in dark
-// mode). Tick *labels* are MathJax `currentColor` and already inherit the
-// canvas text color via CSS, so only the lines need recoloring.
-const PREFIGURE_DARK_AXIS_COLOR = "#ffffff";
-
 function axesElementFromLabels({
     dependencyValues,
     axesMode,
@@ -102,7 +96,7 @@ function axesElementFromLabels({
         );
     }
 
-    const strokeAttr = darkMode ? ` stroke="${PREFIGURE_DARK_AXIS_COLOR}"` : "";
+    const strokeAttr = darkModeAxisStrokeAttr(darkMode);
 
     if (axisLabelElements.length > 0) {
         return `<axes axes="${axesMode}"${strokeAttr}>${axisLabelElements.join("")}</axes>`;

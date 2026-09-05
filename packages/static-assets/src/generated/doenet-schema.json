@@ -2184,6 +2184,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -2369,7 +2370,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -2743,6 +2744,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -2928,7 +2930,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -3302,6 +3304,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -3487,7 +3490,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4625,6 +4628,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -4810,7 +4814,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -32079,6 +32083,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -32264,7 +32269,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -33105,6 +33110,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -33290,7 +33296,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -34131,6 +34137,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -34316,7 +34323,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
                 "_composite",
@@ -34554,6 +34561,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -34739,7 +34747,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
                 "_composite",
@@ -35006,6 +35014,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -35191,7 +35200,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_countingListOperator",
                 "_composite",
@@ -35441,6 +35450,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -35626,7 +35636,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_countingListOperator",
                 "_composite",
@@ -35846,6 +35856,548 @@
             "docsSlug": "binCounts",
             "summary": "How many values fall in each interval between cut points",
             "layoutCategory": "other"
+        },
+        {
+            "name": "barChart",
+            "children": [
+                "xLabel",
+                "conditionalContent",
+                "yLabel",
+                "shortDescription",
+                "rightHandSide",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "cumulativeSum",
+                "cumulativeProduct",
+                "cumulativeMin",
+                "cumulativeMax",
+                "differences",
+                "argMin",
+                "argMax",
+                "indexOf",
+                "searchSorted",
+                "tally",
+                "binCounts",
+                "extractMathOperator",
+                "electronConfiguration",
+                "text",
+                "textList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "coords",
+                "number",
+                "integer",
+                "interval",
+                "sequence",
+                "cell",
+                "selectFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "sortIndices",
+                "subsetOfReals",
+                "matrix",
+                "latex",
+                "intervalList",
+                "m",
+                "me",
+                "men",
+                "mrow",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "matrixInput",
+                "fractionInput",
+                "point",
+                "line",
+                "vector",
+                "angle",
+                "mathInput",
+                "choice",
+                "function",
+                "piecewiseFunction",
+                "endpoint",
+                "bestFitLine",
+                "pointList",
+                "vectorList"
+            ],
+            "childBuckets": "02001111111111111111111111122222112222212202221011222122222212222112222222222222222222222222222",
+            "abstractAncestors": [
+                "_block",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "width",
+                    "description": "Explicit width of the bar chart (overrides size).",
+                    "type": "componentSize"
+                },
+                {
+                    "name": "size",
+                    "description": "Named size preset for the bar chart.",
+                    "defaultValue": "medium",
+                    "values": [
+                        "tiny",
+                        "small",
+                        "medium",
+                        "large",
+                        "full"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "tiny",
+                            "description": "About 1/12 the full width."
+                        },
+                        {
+                            "value": "small",
+                            "description": "About 30% of the full width."
+                        },
+                        {
+                            "value": "medium",
+                            "description": "About half the full width."
+                        },
+                        {
+                            "value": "large",
+                            "description": "About 70% of the full width."
+                        },
+                        {
+                            "value": "full",
+                            "description": "The full available width."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "aspectRatio",
+                    "description": "Aspect ratio (width / height) for the bar chart.",
+                    "defaultValue": 1.5,
+                    "type": "number"
+                },
+                {
+                    "name": "categories",
+                    "description": "The label under each bar. Defaults to the bar's position, 1, 2, 3 and so on.",
+                    "highlighted": true,
+                    "type": "_componentListWithSelectableType"
+                },
+                {
+                    "name": "type",
+                    "description": "How to read the `categories`: as numbers, math expressions, text or booleans.",
+                    "highlighted": true,
+                    "defaultValue": null,
+                    "values": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "number",
+                            "description": "Read categories as numbers."
+                        },
+                        {
+                            "value": "math",
+                            "description": "Read categories as math expressions."
+                        },
+                        {
+                            "value": "text",
+                            "description": "Read categories as text."
+                        },
+                        {
+                            "value": "boolean",
+                            "description": "Read categories as booleans."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "barWidth",
+                    "description": "How much of each bar's slot the bar fills, between 0 and 1. The rest is the gap to the next bar.",
+                    "defaultValue": 0.8,
+                    "type": "number"
+                },
+                {
+                    "name": "yMin",
+                    "description": "Lowest value shown on the vertical axis. Defaults to 0, or to the smallest value when some are negative. Ignored, along with `yMax`, unless it is a finite number below it.",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "yMax",
+                    "description": "Highest value shown on the vertical axis. Defaults to the next tick above the tallest bar. Ignored, along with `yMin`, unless it is a finite number above it.",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "displayValues",
+                    "description": "Whether to print each bar's value above it.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "showBorder",
+                    "description": "Whether to render a border around the bar chart.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "displayMode",
+                    "description": "How to size the bar chart.",
+                    "defaultValue": "block",
+                    "values": [
+                        "block",
+                        "inline"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "block",
+                            "description": "Display as a block element on its own line."
+                        },
+                        {
+                            "value": "inline",
+                            "description": "Render inline with surrounding text."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "horizontalAlign",
+                    "description": "Horizontal alignment of the bar chart within its container.",
+                    "defaultValue": "center",
+                    "values": [
+                        "center",
+                        "left",
+                        "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "center",
+                            "description": "Center the chart horizontally."
+                        },
+                        {
+                            "value": "left",
+                            "description": "Align the chart to the left edge."
+                        },
+                        {
+                            "value": "right",
+                            "description": "Align the chart to the right edge."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "decorative",
+                    "description": "Whether the chart is purely decorative (excluded from a11y tree).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayValues",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to print each bar's value above it.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "showBorder",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render a border around the bar chart.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayMode",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "How to size the bar chart.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "horizontalAlign",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Horizontal alignment of the bar chart within its container.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "decorative",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the chart is purely decorative (excluded from a11y tree).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "size",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The size of the bar chart."
+                },
+                {
+                    "name": "width",
+                    "type": "componentSize",
+                    "isArray": false,
+                    "description": "The width of the bar chart."
+                },
+                {
+                    "name": "xLabel",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The x-axis label text."
+                },
+                {
+                    "name": "yLabel",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The y-axis label text."
+                },
+                {
+                    "name": "aspectRatio",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The aspect ratio (width / height) of the bar chart."
+                },
+                {
+                    "name": "barWidth",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "How much of its slot each bar fills, between 0 and 1."
+                },
+                {
+                    "name": "hasAuthorAnnotations",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the bar chart carries annotations to navigate. Always true: they are generated from the bars."
+                },
+                {
+                    "name": "shortDescription",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A short accessibility description of the bar chart."
+                },
+                {
+                    "name": "barValues",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "The value of each bar, in order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "categories",
+                    "type": "text",
+                    "isArray": true,
+                    "description": "The label under each bar, in order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "yMin",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The lowest value shown on the vertical axis."
+                },
+                {
+                    "name": "yMax",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The highest value shown on the vertical axis."
+                },
+                {
+                    "name": "prefigureXML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The PreFigure-formatted XML rendered for this bar chart."
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false,
+            "takesIndex": false,
+            "docsSlug": "barChart",
+            "summary": "A bar chart of a list of values, one bar per value.",
+            "layoutCategory": "block"
         },
         {
             "name": "clampFunction",
@@ -43464,6 +44016,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -43646,7 +44199,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -44266,6 +44819,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -44448,7 +45002,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45068,6 +45622,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -45250,7 +45805,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45870,6 +46425,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -46052,7 +46608,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46672,6 +47228,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -46854,7 +47411,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -47483,6 +48040,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -47665,7 +48223,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -48285,6 +48843,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -48467,7 +49026,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49096,6 +49655,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -49278,7 +49838,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49907,6 +50467,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -50089,7 +50650,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -50718,6 +51279,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -50900,7 +51462,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -51529,6 +52091,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -51711,7 +52274,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -52331,6 +52894,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -52513,7 +53077,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -53133,6 +53697,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -53315,7 +53880,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -53935,6 +54500,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -54117,7 +54683,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54737,6 +55303,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -54919,7 +55486,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -55539,6 +56106,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -55721,7 +56289,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -56341,6 +56909,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -56523,7 +57092,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_unnumberedSectioningComponent",
                 "_sectioningComponent",
@@ -57140,6 +57709,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -57322,7 +57892,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -57929,6 +58499,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -58111,7 +58682,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -59415,6 +59986,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -59600,7 +60172,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -66397,6 +66969,7 @@
                 "introduction",
                 "conclusion",
                 "hr",
+                "barChart",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -66458,7 +67031,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111211111222222111122122121111",
+            "childBuckets": "11111111111111111111111111111111111111211111222222111122122121111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67036,6 +67609,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -67221,7 +67795,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67419,6 +67993,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -67604,7 +68179,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67978,6 +68553,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -68163,7 +68739,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -68537,6 +69113,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -68722,7 +69299,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -68920,6 +69497,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -69105,7 +69683,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -69327,6 +69905,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -69512,7 +70091,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -71126,6 +71705,7 @@
                 "introduction",
                 "conclusion",
                 "hr",
+                "barChart",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -71175,7 +71755,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122211111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -71481,6 +72061,7 @@
                 "introduction",
                 "conclusion",
                 "hr",
+                "barChart",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -71530,7 +72111,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122211111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -71739,6 +72320,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -71921,7 +72503,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "10000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -77340,6 +77922,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -77525,7 +78108,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -93729,6 +94312,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -93914,7 +94498,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -99149,6 +99733,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -99334,7 +99919,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -100786,6 +101371,7 @@
                 "isInteger",
                 "isNumber",
                 "isBetween",
+                "barChart",
                 "em",
                 "alert",
                 "q",
@@ -100917,7 +101503,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -102489,6 +103075,7 @@
                 "introduction",
                 "conclusion",
                 "hr",
+                "barChart",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -102538,7 +103125,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "0211111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "02111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222122212222221112111121222211221111122211111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -102878,6 +103465,7 @@
                 "introduction",
                 "conclusion",
                 "hr",
+                "barChart",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -102926,7 +103514,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "2011111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222221222122222211121111212222112211111222111111111111111111111111111111111111111111111111111",
+            "childBuckets": "20111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -103162,6 +103750,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -103347,7 +103936,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -103540,6 +104129,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -103725,7 +104315,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -106028,6 +106618,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -106213,7 +106804,7 @@
                 "vectorList",
                 "else"
             ],
-            "childBuckets": "101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
+            "childBuckets": "1011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -107327,6 +107918,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -107512,7 +108104,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -110217,6 +110809,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -110402,7 +110995,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -112622,6 +113215,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -112806,7 +113400,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "01111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -114000,6 +114594,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -114185,7 +114780,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -114380,6 +114975,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -114565,7 +115161,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -114762,6 +115358,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -114947,7 +115544,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -115730,6 +116327,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -115913,7 +116511,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -116906,6 +117504,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -117091,7 +117690,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -117276,6 +117875,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -117461,7 +118061,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -117639,6 +118239,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -117823,7 +118424,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0100111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "01001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -118410,6 +119011,7 @@
                 "introduction",
                 "conclusion",
                 "hr",
+                "barChart",
                 "section",
                 "subsection",
                 "subsubsection",
@@ -118459,7 +119061,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122211111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -119429,6 +120031,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -119614,7 +120217,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -119880,6 +120483,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -120065,7 +120669,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -120331,6 +120935,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -120516,7 +121121,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -122248,6 +122853,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -122433,7 +123039,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -124867,6 +125473,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -125052,7 +125659,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -129015,6 +129622,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -129200,7 +129808,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -129398,6 +130006,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -129583,7 +130192,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -130576,6 +131185,7 @@
                 "searchSorted",
                 "tally",
                 "binCounts",
+                "barChart",
                 "clampFunction",
                 "wrapFunctionPeriodic",
                 "derivative",
@@ -130758,7 +131368,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "10000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "100000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",

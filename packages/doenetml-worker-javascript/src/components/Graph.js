@@ -1,11 +1,13 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
-    orderedPercentWidthMidpoints,
-    orderedWidthMidpoints,
-    widthsBySize,
-    sizePossibilities,
-} from "@doenet/utils";
+    returnSizeAttributes,
+    returnSizeStateVariableDefinitions,
+} from "../utils/componentSize";
+import {
+    returnAxisLabelChildGroup,
+    returnAxisLabelStateVariableDefinitions,
+} from "../utils/axisLabel";
 import {
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayAttributes,
@@ -158,24 +160,10 @@ export default class Graph extends BlockComponent {
             defaultValue: 10,
             description: "Maximum value displayed on the y axis.",
         };
-        attributes.width = {
-            createComponentOfType: "componentSize",
-            description: "Explicit width of the graph (overrides size).",
-        };
-        attributes.size = {
-            createComponentOfType: "text",
-            createStateVariable: "specifiedSize",
-            defaultValue: "medium",
-            toLowerCase: true,
-            validValues: [
-                { value: "tiny", description: "About 1/12 the full width." },
-                { value: "small", description: "About 30% of the full width." },
-                { value: "medium", description: "About half the full width." },
-                { value: "large", description: "About 70% of the full width." },
-                { value: "full", description: "The full available width." },
-            ],
-            description: "Named size preset for the graph.",
-        };
+        Object.assign(
+            attributes,
+            returnSizeAttributes({ componentName: "graph" }),
+        );
         attributes.aspectRatio = {
             createComponentOfType: "number",
             description: "Aspect ratio (width / height) for the graph.",
@@ -523,14 +511,8 @@ export default class Graph extends BlockComponent {
 
     static returnChildGroups() {
         return [
-            {
-                group: "xLabels",
-                componentTypes: ["xLabel"],
-            },
-            {
-                group: "yLabels",
-                componentTypes: ["yLabel"],
-            },
+            returnAxisLabelChildGroup({ axis: "x" }),
+            returnAxisLabelChildGroup({ axis: "y" }),
             {
                 group: "shortDescriptions",
                 componentTypes: ["shortDescription"],
@@ -681,167 +663,11 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.xLabel = {
-            description: "The x-axis label text.",
-            forRenderer: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "label",
-                addStateVariablesShadowingStateVariables: {
-                    hasLatex: {
-                        stateVariableToShadow: "xLabelHasLatex",
-                    },
-                },
-            },
-            hasEssential: true,
-            defaultValue: "",
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "xLabelHasLatex",
-                    forRenderer: true,
-                },
-            ],
-            returnDependencies: () => ({
-                xLabelChild: {
-                    dependencyType: "child",
-                    childGroups: ["xLabels"],
-                    variableNames: ["value", "hasLatex"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.xLabelChild.length > 0) {
-                    let xLabelChild =
-                        dependencyValues.xLabelChild[
-                            dependencyValues.xLabelChild.length - 1
-                        ];
-                    return {
-                        setValue: {
-                            xLabel: xLabelChild.stateValues.value,
-                            xLabelHasLatex: xLabelChild.stateValues.hasLatex,
-                        },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: { xLabel: true },
-                        setValue: { xLabelHasLatex: false },
-                    };
-                }
-            },
-            inverseDefinition({
-                desiredStateVariableValues,
-                dependencyValues,
-            }) {
-                if (typeof desiredStateVariableValues.xLabel !== "string") {
-                    return { success: false };
-                }
-
-                if (dependencyValues.xLabelChild.length > 0) {
-                    let lastLabelInd = dependencyValues.xLabelChild.length - 1;
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "xLabelChild",
-                                desiredValue: desiredStateVariableValues.xLabel,
-                                childIndex: lastLabelInd,
-                                variableIndex: 0,
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "xLabel",
-                                value: desiredStateVariableValues.xLabel,
-                            },
-                        ],
-                    };
-                }
-            },
-        };
-
-        stateVariableDefinitions.yLabel = {
-            description: "The y-axis label text.",
-            forRenderer: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "label",
-                addStateVariablesShadowingStateVariables: {
-                    hasLatex: {
-                        stateVariableToShadow: "yLabelHasLatex",
-                    },
-                },
-            },
-            hasEssential: true,
-            defaultValue: "",
-            additionalStateVariablesDefined: [
-                {
-                    variableName: "yLabelHasLatex",
-                    forRenderer: true,
-                },
-            ],
-            returnDependencies: () => ({
-                yLabelChild: {
-                    dependencyType: "child",
-                    childGroups: ["yLabels"],
-                    variableNames: ["value", "hasLatex"],
-                },
-            }),
-            definition({ dependencyValues }) {
-                if (dependencyValues.yLabelChild.length > 0) {
-                    let yLabelChild =
-                        dependencyValues.yLabelChild[
-                            dependencyValues.yLabelChild.length - 1
-                        ];
-                    return {
-                        setValue: {
-                            yLabel: yLabelChild.stateValues.value,
-                            yLabelHasLatex: yLabelChild.stateValues.hasLatex,
-                        },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: { yLabel: true },
-                        setValue: { yLabelHasLatex: false },
-                    };
-                }
-            },
-            inverseDefinition({
-                desiredStateVariableValues,
-                dependencyValues,
-            }) {
-                if (typeof desiredStateVariableValues.yLabel !== "string") {
-                    return { success: false };
-                }
-
-                if (dependencyValues.yLabelChild.length > 0) {
-                    let lastLabelInd = dependencyValues.yLabelChild.length - 1;
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "yLabelChild",
-                                desiredValue: desiredStateVariableValues.yLabel,
-                                childIndex: lastLabelInd,
-                                variableIndex: 0,
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "yLabel",
-                                value: desiredStateVariableValues.yLabel,
-                            },
-                        ],
-                    };
-                }
-            },
-        };
+        Object.assign(
+            stateVariableDefinitions,
+            returnAxisLabelStateVariableDefinitions({ axis: "x" }),
+            returnAxisLabelStateVariableDefinitions({ axis: "y" }),
+        );
 
         stateVariableDefinitions.graphicalDescendants = {
             forRenderer: true,
@@ -1008,105 +834,10 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.size = {
-            description: "The size of the graph.",
-            public: true,
-            defaultValue: "medium",
-            hasEssential: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                specifiedSize: {
-                    dependencyType: "stateVariable",
-                    variableName: "specifiedSize",
-                },
-                widthAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "width",
-                    variableNames: ["componentSize"],
-                },
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                const defaultSize = "medium";
-
-                if (!usedDefault.specifiedSize) {
-                    return {
-                        setValue: { size: dependencyValues.specifiedSize },
-                    };
-                } else if (dependencyValues.widthAttr) {
-                    let componentSize =
-                        dependencyValues.widthAttr.stateValues.componentSize;
-                    if (componentSize === null) {
-                        return {
-                            setValue: { size: defaultSize },
-                        };
-                    }
-                    let { isAbsolute, size: widthSize } = componentSize;
-                    let size;
-
-                    if (isAbsolute) {
-                        for (let [
-                            ind,
-                            pixels,
-                        ] of orderedWidthMidpoints.entries()) {
-                            if (widthSize <= pixels) {
-                                size = sizePossibilities[ind];
-                                break;
-                            }
-                        }
-                        if (!size) {
-                            size = defaultSize;
-                        }
-                    } else {
-                        for (let [
-                            ind,
-                            percent,
-                        ] of orderedPercentWidthMidpoints.entries()) {
-                            if (widthSize <= percent) {
-                                size = sizePossibilities[ind];
-                                break;
-                            }
-                        }
-                        if (!size) {
-                            size = defaultSize;
-                        }
-                    }
-                    return {
-                        setValue: { size },
-                    };
-                } else {
-                    return {
-                        useEssentialOrDefaultValue: { size: true },
-                    };
-                }
-            },
-        };
-
-        stateVariableDefinitions.width = {
-            description: "The width of the graph.",
-            public: true,
-            forRenderer: true,
-            shadowingInstructions: {
-                createComponentOfType: "componentSize",
-            },
-            returnDependencies: () => ({
-                size: {
-                    dependencyType: "stateVariable",
-                    variableName: "size",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let width = {
-                    isAbsolute: true,
-                    size: widthsBySize[dependencyValues.size],
-                };
-
-                return {
-                    setValue: { width },
-                };
-            },
-        };
+        Object.assign(
+            stateVariableDefinitions,
+            returnSizeStateVariableDefinitions({ componentName: "graph" }),
+        );
 
         stateVariableDefinitions.aspectRatioFromAxisScales = {
             returnDependencies: () => ({

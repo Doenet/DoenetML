@@ -65,7 +65,7 @@ function normalizeKey(value: unknown): string {
  * MathJax's SVG output fills with `currentColor` anyway. (That is also why
  * math labels never had this bug.)
  *
- * Contrast `PREFIGURE_DARK_AXIS_COLOR` in `graph.ts`, which must stay
+ * Contrast `darkModeAxisStrokeAttr` in `common.ts`, which must stay
  * dark-mode-conditional: it recolors axis strokes that are already visible in
  * light mode, rather than filling in a missing value.
  */
