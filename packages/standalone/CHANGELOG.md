@@ -1,5 +1,161 @@
 # @doenet/doenetml
 
+## 0.7.27
+
+### Patch Changes
+
+- 9415cc1: A reference to a list keeps the list's commas, and the whitespace an author writes around the items of a list no longer lands in front of a comma.
+
+    `$r[1]` and `$g` showed `1234` where the composite they name showed `1, 2, 3, 4`, in the rendered list and in `text` alike. A reference that lands on a composite copies its replacements, and did so recursively down to plain components — which is what makes `$mp[1]` reach the point inside a repeat item rather than the `<setup>` beside it — but recursing that far also flattened away every composite in between, and with it the `asList` that made the replacements a list. The recursion now stops at a composite that can be a list of its own, so the reference copies that composite and the list survives; composites that cannot be a list are still recursed through, so what a reference resolves to is unchanged.
+
+    Whitespace at the end of a list item no longer lands in front of the comma that follows it. `<group asList><group><number>1</number> </group><group><number>2</number> </group></group>` read `1 , 2` and now reads `1, 2`.
+
+    The whitespace an author puts between the items of a list group is where the commas go, in `text` as in the rendered list. `<group asList><number>1</number> <number>2</number></group>` had a `text` of `1, , 2`; it now reads `1, 2`, and an empty composite among the items, such as a sequence of length zero, changes nothing.
+
+    Underneath, the commas were being worked out four times over from the same data — once for the renderers, once for `text`, once for the string a `<math>` parses, and once for the FlatDast the prototype renderers read. Those four now share one implementation of the grouping, so where the commas go is decided once for all of them.
+
+- a9828c1: Add hypergeometric, binomial, and Poisson distributions to `<sampleRandomNumbers>` and `<selectRandomNumbers>`.
+
+    Until now the only distributions available were `uniform`, `discreteUniform`, and `gaussian`, so there was no way to sample count data without building it by hand.
+
+    `type="hypergeometric"` counts the successes obtained when drawing `numDraws` items _without replacement_ from a population of `numTotal` items containing `numSuccesses` successes. `type="binomial"` counts the successes in `numTrials` independent trials that each succeed with the given `probability`, defaulting to a single fair trial. `type="poisson"` is determined entirely by its `mean`, which defaults to 1 rather than the 0 that `gaussian` uses, since a Poisson distribution with mean 0 always returns 0.
+
+    The `mean`, `variance`, and `standardDeviation` properties report the exact values for each new distribution. Invalid parameters produce `NaN` for both the samples and those properties, along with a warning describing what is wrong. Those warnings are shown wherever the document's other warnings are, rather than only in the browser console; the long-standing warning about an invalid `gaussian` mean or standard deviation is now shown there too.
+
+    Because these distributions are drawn one item, trial, or event at a time, parameters that would need more than ten million draws for a single sample are refused the same way impossible ones are, rather than leaving the page unresponsive while they ran. The limit is far above any population, trial count, or rate that arises in practice; it is there so that mistyping an extra digit reports a problem instead of freezing the activity. Parameters an order of magnitude below it are still sampled as asked, with a warning that sampling may be slow.
+
+    A fractional `numSamples` now draws the same count from every distribution, rounding up as `uniform` always has. Alongside unusable parameters — a `gaussian` with a negative `variance`, say — a fractional count used to break the document instead of reporting `NaN`.
+
+    Counts must also be whole numbers small enough to stay exact — up to about nine quadrillion. Past that, neighboring whole numbers stop being distinguishable, so drawing from such a population would not do what it says; it is refused rather than sampled.
+
+    The new distributions draw with the generator's full precision rather than its default 32 bits, so a success rarer than about one in four billion — a large population with few successes, or a very small `probability` — happens as often as asked rather than being rounded up to that floor. The hypergeometric is exact for every population it accepts; a `binomial` `probability` below about one in nine quadrillion is smaller than any value a draw can take, so it occurs at that floor instead, which would take on the order of nine quadrillion samples to notice.
+
+    A `gaussian` whose spread or center describes no distribution now reports `NaN` for `mean`, `variance` and `standardDeviation`, as the other distributions already did, instead of reporting a plausible-looking spread beside `NaN` samples; an infinite spread is recognized as unusable rather than sampled. The explanation also survives a reload, and `<selectRandomNumbers>` holds its distribution parameters fixed alongside the selection they produced.
+
+- bb9c5a2: Fix two defects in the automatic commas placed between the replacements of a list composite.
+
+    A `<math>` containing a list next to a component froze the document. To decide whether the comma-separated list needs parentheses around it, the core looks at what sits on either side of it, walking past whitespace to find it — but that walk never advanced its index, so it never ended when the neighbor was a component rather than a string. `<math><number>3</number> <numberList>1 2</numberList></math>`, and the same with the list first, both hung.
+
+    Commas also appeared around a replacement that cannot be a list item, whenever the composite was not the first thing in its container. A composite holding something that can't be part of a list — a `<me>`, say — is shown without commas, but the record of which replacements are eligible was kept in step with the parent's children rather than with the composite's own, so the answer slid by however far the composite sat from the start. `<p><group asList><numberList>1 2</numberList><me>x</me></group></p>` was correct while `<p>lead <group asList><numberList>1 2</numberList><me>x</me></group></p>` was not.
+
+- d7b0338: Add list operators: cumulative scans and index-returning operators.
+
+    Every math operator in DoenetML reduced a list to a single value — `<sum>`, `<min>`, `<mean>` and the rest. Nothing turned a list into another list, and nothing reported a _position_ within a list. That left ordinary tasks with no reasonable expression: a running total had to be hand-rolled with `<repeat>`, and "which entry is this?" could not be asked at all.
+
+    Ten new components, in two families.
+
+    **Cumulative scans** map a list to another list of the same length: `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`, `<cumulativeMax>`, and `<differences>` (which is one shorter, and undoes `<cumulativeSum>` apart from its first value). They accumulate numerically when every input is a number and symbolically otherwise, so `<cumulativeSum>x y z</cumulativeSum>` gives `x, x+y, x+y+z`. The result is an ordinary list: `$cum[3]`, `<sum>$cum</sum>` and `<numberList>$cum</numberList>` all work on it, and rounding attributes pass through to each value.
+
+    **Index-returning operators** report a position rather than a value: `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>` and `<sortIndices>`. Indices are 1-based to match `$list[1]`, and `0` means "no such element". These are not math-only — they order values exactly as `<sort>` does, comparing numerically when every value is numeric and alphabetically otherwise, so `<indexOf type="text" target="Cal">$names</indexOf>` searches a `<textList>` as readily as `<argMin>` scans a `<numberList>`.
+
+    The `target` of `<indexOf>` and `<searchSorted>` is a _list_, and the result has one position per target, in the manner of `np.searchsorted(a, v)` with an array `v` and R's `match()`. A single target still reads as a single index — it renders inline and indexes another list, so `$pop[$which]` works as before — but a thousand targets are searched by one operator rather than a thousand. Each result is still its own `<math>`, so the results scale with the targets; what does not scale is the searching. That is what makes these usable on the output of `<sampleRandomNumbers>`: searching a large sample by wrapping it in a `<repeat>` builds a whole operator, with its own dependencies and its own result, for every draw, and stops being practical long before the sample is big enough to be interesting.
+
+    The index family is worth more than its parts because DoenetML already indexes by reference, so a returned index composes with every list in the document:
+
+    ```xml
+    <numberList name="scores">72 91 65 88</numberList>
+    <textList name="names">Ann Bob Cal Dee</textList>
+    <argMax name="best">$scores</argMax>
+    <p>Top scorer: $names[$best]</p>
+    ```
+
+    `<sortIndices>` extends `<sort>` and accepts everything it accepts, including `sortByProp`, so `$names[$perm[1]]` sorts one list by another list's ordering — which `<sort>` alone cannot express, since it returns the values it sorted and discards where they came from.
+
+    Together, the two families make sampling from a weighted population a matter of three lines: accumulate the weights, draw uniformly from the total, and look up which bucket each draw landed in. Raising `numSamples` here changes nothing but the number of results.
+
+    ```xml
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <number name="total"><sum>$pop</sum></number>
+    <sampleRandomNumbers name="draws" type="discreteUniform" from="1" to="$total" numSamples="500" />
+    <searchSorted name="which" target="$draws">$cum</searchSorted>
+    ```
+
+    The value extraction that decides how `<sort>` compares its children now lives in one shared place, so `<sortIndices>` and the index operators agree with `<sort>` by construction rather than by coincidence.
+
+    Sharing it also fixes a second bug, in `<sort>` and `<shuffle>`: an explicit `type` used to be forced onto reference children as well as bare strings, which fused a referenced list into the single string it renders as. `<sort type="text">$names Zoe</sort>` sorted the two values `"Ann, Cal, Bob"` and `"Zoe"` rather than the four names, and `<shuffle type="text">$names Zoe</shuffle>` had only two things to shuffle. A reference already carries a type of its own, so it is now passed through untouched and `type` applies only to the bare strings it was meant for. The one behavior this removes is coercion of a reference to a different type — `<sort type="number">$aTextComponent</sort>` no longer reads that component as a number.
+
+    Sharing it also fixes a bug in `<sort>` itself, so `<sort type="boolean">` now renders differently than before: `type="boolean"` has always been an accepted type, but a boolean child had no comparable value and was silently skipped, so `<sort type="boolean">true false</sort>` rendered nothing at all. Boolean children are now ordered as text, which puts `false` before `true` — the same order `<indexOf>` uses when its `target` is a boolean. `<shuffle type="boolean">` was never affected, since it rearranges its children without comparing them.
+
+    Two ways of getting a 0 out of an index operator say so, since neither is a position and the result alone does not distinguish them. Omitting `target` on `<indexOf>` or `<searchSorted>` is a warning — no document written that way can ever produce an answer. Having no values at all to look through is an info message, since a list driven by an input can legitimately be empty for a while. A target that is simply absent from the list is _not_ reported: that 0 is what `<indexOf>` is for, and a `target` bound to an input would otherwise raise one message for every value typed on the way to the right one. Nor is an empty _list_ of targets reported — it produces no positions, which is the honest answer to a question about nothing.
+
+    The `type` attribute of `<sort>`, `<shuffle>` and the five index operators now declares the values it accepts — `number`, `math`, `text` and `boolean` — so the editor offers them, the reference pages list them with descriptions, and writing anything else is flagged rather than only warned about once the document runs. The set is unchanged; it was simply never declared.
+
+    Finally, the reference pages for `<sort>`, `<shuffle>` and the sequence components (`<sequence>`, `<selectFromSequence>`, `<repeatForSequence>`, `<animateFromSequence>`) now open on the handful of attributes that actually define what the component does, rather than on an undifferentiated list. `<sort>`'s three ways of choosing what to compare are gathered under a "Sort order" heading of their own.
+
+    Closes #1816. Closes #1817. Closes #1823. Closes #1831.
+
+- 0281713: Add `<sampleMultivariateRandomNumber>`, which draws a vector-valued random number.
+
+    Every existing sampling component produces numbers that are independent of one another. This one draws a single sample whose numbers are drawn _together_: `numInCategories` describes a population split into categories, `numDraws` items are drawn from it without replacement, and the component expands to one number per category giving how many of the drawn items came from each. The counts always sum to `numDraws`.
+
+    ```doenet
+    <p>An urn holds 5 red, 3 blue, and 2 green marbles. Draw 4 without replacement:</p>
+    <p><sampleMultivariateRandomNumber name="draw" type="hypergeometric" numInCategories="5 3 2" numDraws="4" /></p>
+    <p>Red: $draw[1], blue: $draw[2], green: $draw[3]</p>
+    ```
+
+    The `numCategories`, `numTotal`, `means`, and `variances` properties describe the distribution, and the `resample` action draws a fresh set.
+
+    `type` accepts only `hypergeometric` so far, and is required rather than defaulting to it. It is unlikely to remain the most natural default — a joint normal distribution is the more usual multivariate one — so naming the distribution in every document means adding others later cannot change what an existing document does.
+
+    Invalid parameters produce `NaN` for the samples and for `means` and `variances`, along with a warning describing what to change; `numCategories` and `numTotal` go on reporting the population the component read. Because each category is drawn in turn, parameters that could need more than ten million random draws for a single sample are refused the same way, instead of leaving the page unresponsive while they ran.
+
+    Counts must be whole numbers small enough to stay exact — each category, the population they add up to, and `numDraws` all up to about nine quadrillion. Past that, neighboring whole numbers stop being distinguishable, so drawing from such a population would not do what it says; it is refused rather than sampled.
+
+    Each category's count is drawn as a hypergeometric against the part of the population not yet accounted for, so the whole vector is drawn exactly, with no smallest probability it rounds away, for every population accepted.
+
+- 279b2b6: Stop two core traversals from taking exponential time when composites nest inside one another.
+
+    A repeat whose iterations refer to the previous iteration, as in
+
+    ```xml
+    <numberList name="vals"><sequence from="1" to="16" /></numberList>
+
+    <repeatForSequence from="1" to="16" valueName="i" name="cumSums">
+      <number><conditionalContent>
+        <case condition="$i=1">$vals[1]</case>
+        <else>$cumSums[$i-1] + $vals[$i]</else>
+      </conditionalContent></number>
+    </repeatForSequence>
+    ```
+
+    hung the document rather than loading it. At 8 iterations it took 4 seconds and at 10 it took 3 minutes, with each further iteration multiplying the cost by about four, so the 16 iterations above would have needed several days.
+
+    The cost was not in evaluating the recurrence. Components form a directed acyclic graph rather than a tree: a composite's replacements are spliced in as children of the composite's parent while the composite goes on pointing at them as replacements, so the same component is reachable along several paths. Each iteration of the repeat above adds a `<conditionalContent>` → `<group>` → copy chain, which makes the previous iteration reachable four ways, and two traversals walked every path separately:
+
+    - `allPotentialRendererTypes`, which collects the renderers a document may need to load, recursed into children and into replacements. It now walks each component once, which loses nothing because every path contributed to the same set of renderer types.
+    - `ancestorsIncludingComposites`, used when propagating dependency blockers, walked up both the parent chain and the chain of the composite a replacement came from — chains that converge on the same ancestors. It now remembers the ancestors it has already worked out for a component.
+
+    The renderer types collected are unchanged. The example above loads in a few seconds, and cost now grows with the number of components rather than exponentially.
+
+    Documents that nest composites only a few deep — the overwhelming majority — were never affected and are unchanged.
+
+- c7803ee: Finish resolving a reference that indexes into a repeat nested inside another repeat.
+
+    With the repeats inside a `<p>` or any other element, a reference to an inner item written directly in the document dropped its last index. `$a[2][1][3]` and `$a[2].b[3]` returned the whole inner repeat — all three of its items rather than the third — and `<number extend="$a[2][1][3]" />` written that way came out as `NaN`, since it was extending three items rather than one. The same references written inside a `<p>` of their own, or as the content of a `<number>`, were already correct: those are resolved after the repeats have expanded, and so never passed through the intermediate state that got stuck.
+
+    A reference resolved before the repeat it indexes into exists gets a provisional answer, to be resolved again once that repeat expands. The second resolution did run and did find the right component, but the reference kept the component it had been paired with the first time: the flag marking it as mid-resolution was left set when an attempt gave up early, and while that flag is set the reference is never told to rebuild what it points at. The flag is now cleared however the attempt ends.
+
+- ae0b2c9: Stop warning that a repeat's `valueName` has no referent when a reference lifts it out of the repeat.
+
+    Referencing one iteration of a repeat, as in
+
+    ```xml
+    <repeatForSequence from="1" to="5" valueName="i" name="xiValues">
+      <number>$i</number>
+    </repeatForSequence>
+    <m>x_3 = $xiValues[3]</m>
+    ```
+
+    copies the iteration's `<number>` — and the `$i` inside it — to where the reference appears. The copy was then re-resolved from where it landed, and `i` lives inside the repeat, invisible from the `<m>`, so the document reported "No referent found for reference: `$i`" even though the reference had resolved and the value showed correctly. The warning went away if the reference or the `<number>` wrapper was removed, which is what made it look spurious.
+
+    Re-resolving from where a copy lands is what lets each iteration of a repeat bind `$i` to its own value, so that stays. A copy that lands somewhere the name is out of scope now falls back on resolving the reference where the component it shadows sits — which is where the reference came from and still points — and keeps falling back however many times the reference has been copied, so referencing the `<m>` above stays quiet too.
+
+    A reference that resolves nowhere still reports the same warning it always did, at the same place.
+
+    Closes #1424.
+
 ## 0.7.26
 
 ### Patch Changes
