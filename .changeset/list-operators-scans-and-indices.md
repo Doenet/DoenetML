@@ -37,6 +37,6 @@ Together, the two families make sampling from a weighted population a matter of 
 <searchSorted name="which" target="$u">$cum</searchSorted>
 ```
 
-The value extraction that decides how `<sort>` compares its children now lives in one shared place, so `<sortIndices>` and the index operators agree with `<sort>` by construction rather than by coincidence.
+The value extraction that decides how `<sort>` compares its children now lives in one shared place, so `<sortIndices>` and the index operators agree with `<sort>` by construction rather than by coincidence. Sharing it also closed a hole in it: `type="boolean"` was an accepted type, but a boolean child had no comparable value and was dropped, so `<sort type="boolean">true false</sort>` rendered nothing at all. Booleans are now compared as text, which orders `false` before `true`.
 
 Closes #1816. Closes #1817.

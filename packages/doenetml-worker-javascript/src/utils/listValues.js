@@ -80,6 +80,27 @@ export function extractComparableValue({
         };
     }
 
+    // `type="boolean"` is one of the types the sugar below will wrap strings
+    // in, so a boolean child has to be comparable or `<sort type="boolean">`
+    // and `<indexOf type="boolean">` would silently drop every child. Compared
+    // as text, which orders `false` before `true` and matches how
+    // `comparableValueFromRaw` reads a boolean `target`.
+    if (
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: component.componentType,
+            baseComponentType: "boolean",
+        })
+    ) {
+        return {
+            value: {
+                componentIdx: component.componentIdx,
+                numericalValue: NaN,
+                textValue: String(component.stateValues.value),
+            },
+            stillNumeric: false,
+        };
+    }
+
     if (
         componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: component.componentType,
@@ -161,15 +182,16 @@ export function compareExtractedValues(a, b, numeric) {
  *
  * Defines:
  * - `componentIndicesForValues` — the component index of each value, in
- *   document order, flattening list children via `componentIndicesInList`.
- * - `listValues` — the extracted values in that same order.
+ *   document order. One per child, so the indices are distinct.
+ * - `listValues` — the extracted values in that same order, skipping any child
+ *   whose type has no comparable value.
  * - `allAreNumeric` — whether the list should be compared numerically.
  *
- * `supportProps` controls whether the `sortByProp` attribute and the
- * point/vector component selectors are consulted, and so whether a `propName`
- * state variable is defined at all. Components that only accept math, number
- * and text children (the scalar index operators) pass `false` and get simpler
- * dependencies.
+ * `supportProps` controls whether the `sortByProp`, `sortByComponent` and
+ * `sortVectorsBy` attributes are consulted, and so whether a `propName` state
+ * variable is defined at all. `<sort>` and `<sortIndices>` pass `true`; the
+ * index-returning operators, which declare none of those attributes, pass
+ * `false` and read points and vectors by their first displacement coordinate.
  */
 export function returnListValueStateVariableDefinitions({
     componentName,

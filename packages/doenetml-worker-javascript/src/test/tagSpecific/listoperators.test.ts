@@ -736,6 +736,31 @@ describe("List operator tag tests @group4", async () => {
             });
         });
 
+        it("boolean children are ordered false before true", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="pArgMin"><argMin type="boolean">true false true</argMin></p>
+    <p name="pArgMax"><argMax type="boolean">false true false</argMax></p>
+    <p name="pIndexOf"><indexOf type="boolean" target="true">false true false</indexOf></p>
+    <p name="pIdx"><sortIndices type="boolean">true false true</sortIndices></p>
+    <p name="pSort"><sort type="boolean">true false true</sort></p>
+    `,
+            });
+
+            // `type="boolean"` is one of the types the shared string-splitting
+            // accepts, so booleans must be comparable rather than silently
+            // dropped from the list.
+            for (let [name, text] of [
+                ["pArgMin", "2"],
+                ["pArgMax", "2"],
+                ["pIndexOf", "2"],
+                ["pIdx", "2, 1, 3"],
+                ["pSort", "false, true, true"],
+            ] as [string, string][]) {
+                await expectText({ core, resolvePathToNodeIdx, name, text });
+            }
+        });
+
         it("warnings name the component the author wrote", async () => {
             let { core } = await createTestCore({
                 doenetML: `

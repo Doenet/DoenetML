@@ -43,10 +43,11 @@ export default class SortIndices extends Sort {
                 },
             }),
             definition({ dependencyValues }) {
-                // Map each sorted value back to where it started. Component
-                // indices are unique — list children contribute one index per
-                // item via `componentIndicesInList` — so position lookup is
-                // unambiguous.
+                // Map each sorted value back to where it started. Each child
+                // contributes exactly one entry to `componentIndicesForValues`,
+                // so the indices are distinct and the lookup is unambiguous;
+                // the guard below merely keeps the earlier position should that
+                // ever cease to hold.
                 let originalPosition = new Map();
                 for (let [
                     ind,
