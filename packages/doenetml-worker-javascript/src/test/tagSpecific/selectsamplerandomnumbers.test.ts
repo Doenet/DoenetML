@@ -1451,6 +1451,49 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("an unspecified mean takes the default of its own distribution", async () => {
+        // The `mean` attribute declares no default, because the two distributions
+        // that use it do not share one — declaring either would publish a wrong
+        // default to the editor and the reference docs for the other.
+        async function reported_mean(doenetML: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                .mean;
+        }
+
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="gaussian" numSamples="3" />`,
+            ),
+        ).closeTo(0, 1e-10);
+
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="poisson" numSamples="3" />`,
+            ),
+        ).closeTo(1, 1e-10);
+
+        // an explicit zero is still an explicit zero, not "unspecified" — a poisson
+        // written that way is degenerate, which is the author's business
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="poisson" mean="0" numSamples="3" />`,
+            ),
+        ).closeTo(0, 1e-10);
+
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="gaussian" mean="0" numSamples="3" />`,
+            ),
+        ).closeTo(0, 1e-10);
+    });
+
     it("poisson mean defaults to 1, not to the shared default of 0", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<sampleRandomNumbers name="s" type="poisson" numSamples="20" />`,

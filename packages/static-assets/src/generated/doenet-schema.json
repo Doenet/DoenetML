@@ -101966,7 +101966,7 @@
                 {
                     "name": "mean",
                     "description": "Mean of the sampling distribution (Gaussian or Poisson). Defaults to 0 for Gaussian and 1 for Poisson.",
-                    "defaultValue": 0,
+                    "defaultValue": null,
                     "type": "number"
                 },
                 {
@@ -102322,7 +102322,7 @@
                 {
                     "name": "mean",
                     "description": "Mean of the sampling distribution (Gaussian or Poisson). Defaults to 0 for Gaussian and 1 for Poisson.",
-                    "defaultValue": 0,
+                    "defaultValue": null,
                     "type": "number"
                 },
                 {

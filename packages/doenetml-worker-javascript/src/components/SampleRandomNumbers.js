@@ -92,10 +92,15 @@ export default class SampleRandomNumbers extends CompositeComponent {
             ],
         };
 
+        // No default here, because there is no single one to give: an unspecified
+        // mean is 0 for a gaussian and 1 for a poisson, and the schema this
+        // attribute generates is read by the editor and the reference docs, where
+        // one of those numbers presented as the default would be wrong half the
+        // time. Each distribution supplies its own below, where the type is known.
         attributes.mean = {
             createComponentOfType: "number",
             createStateVariable: "specifiedMean",
-            defaultValue: 0,
+            defaultValue: null,
             description:
                 "Mean of the sampling distribution (Gaussian or Poisson). Defaults to 0 for Gaussian and 1 for Poisson.",
         };
@@ -398,14 +403,12 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     variableName: "specifiedMean",
                 },
             }),
-            definition({ dependencyValues, usedDefault }) {
+            definition({ dependencyValues }) {
                 return {
                     setValue: {
                         // a Poisson distribution with mean zero is degenerate, so
-                        // use 1 rather than the shared default of 0
-                        poissonMean: usedDefault.specifiedMean
-                            ? 1
-                            : dependencyValues.specifiedMean,
+                        // an unspecified rate is 1 rather than the 0 a gaussian takes
+                        poissonMean: dependencyValues.specifiedMean ?? 1,
                     },
                 };
             },
@@ -487,7 +490,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             definition({ dependencyValues }) {
                 let mean;
                 if (dependencyValues.type === "gaussian") {
-                    mean = dependencyValues.specifiedMean;
+                    mean = dependencyValues.specifiedMean ?? 0;
                 } else if (dependencyValues.type === "poisson") {
                     // out-of-range parameters describe no distribution, so this
                     // case and the two below report NaN, just as their samples do
