@@ -906,6 +906,7 @@ describe("List operator tag tests @group4", async () => {
     <p name="pLast"><indexOf type="text" target="Z">$names Z</indexOf></p>
     <p name="pArg"><argMax type="text">$names Z</argMax></p>
     <p name="pNum"><argMin type="number">$nums 5</argMin></p>
+    <p name="pPerm"><sortIndices type="number">$nums 5</sortIndices></p>
     `,
             });
 
@@ -935,6 +936,14 @@ describe("List operator tag tests @group4", async () => {
                 resolvePathToNodeIdx,
                 name: "pNum",
                 text: "3",
+            });
+            // <sortIndices> inherits this from <sort>, so it sees three values
+            // too: 5 is smallest, then 10, then 30.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pPerm",
+                text: "3, 2, 1",
             });
         });
 

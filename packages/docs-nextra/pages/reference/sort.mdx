@@ -121,6 +121,19 @@ to read each whitespace-separated piece: as a `number`, a `math`, a `text`, or a
 with `false` before `true`. Without `type`, there is nothing to say how the pieces
 should be compared, so they are left as written and a warning is issued.
 
+`type` applies only to those bare strings. A referenced component already has a type of
+its own and is left as it is, so a referenced list keeps its individual items:
+
+```doenet-editor-horiz
+<setup>
+  <textList name="names">Ann Cal Bob</textList>
+</setup>
+
+<p>Sorted: <sort type="text">$names Zoe</sort></p>
+```
+
+This sorts four names, not the two values `Ann, Cal, Bob` and `Zoe`.
+
 
 
 ---

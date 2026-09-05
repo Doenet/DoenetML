@@ -412,10 +412,7 @@ export function comparableValueFromRaw(value) {
  * strings are left alone and a warning is issued, naming `componentName` so the
  * author sees the tag they actually wrote.
  */
-export function returnBreakStringsIntoTypeSugarInstruction(
-    componentName,
-    { preserveReferences = false } = {},
-) {
+export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
     function breakStringsMacrosIntoTypeBySpaces({
         matchedChildren,
         componentAttributes,
@@ -464,18 +461,17 @@ export function returnBreakStringsIntoTypeSugarInstruction(
 
         // Break any string by white space and wrap the pieces with `type`.
         //
-        // `preserveReferences` passes a reference child through untouched
-        // instead of wrapping it. Wrapping one collapses a referenced list:
-        // `<indexOf type="text" target="Bob">$names Z</indexOf>` would compare
-        // against the single string "Ann, Bob" rather than against each name,
-        // so `Bob` would not be found at all. A referenced component already
-        // has a type of its own, so there is nothing to gain by forcing it.
-        // `<sort>` and `<shuffle>` keep the forcing behavior they shipped with;
-        // that they share this collapse is tracked separately in #1823.
+        // Reference children are passed through untouched rather than wrapped.
+        // Wrapping one collapses a referenced list into the single string it
+        // renders as: `<sort type="text">$names Z</sort>` would sort the two
+        // values "Ann, Bob" and "Z" instead of the three names, and
+        // `<indexOf type="text" target="Bob">$names Z</indexOf>` could not find
+        // Bob at all. `type` exists to say what bare strings should become; a
+        // referenced component already carries a type of its own.
         let groupIntoComponentTypesSeparatedBySpaces =
             returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
                 componentType: type,
-                forceComponentType: !preserveReferences,
+                forceComponentType: false,
             });
         let result = groupIntoComponentTypesSeparatedBySpaces({
             matchedChildren,
