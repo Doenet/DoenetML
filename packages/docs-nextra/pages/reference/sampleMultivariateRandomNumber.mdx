@@ -162,11 +162,17 @@ available as `means[1]`, `variances[1]`, and so on.
 ## Limits on the sample
 
 Each category is drawn in turn, so a very large draw would take a long time and leave 
-the page unresponsive while it ran. Parameters that would need more than ten million 
-random draws for a single sample are therefore treated as unusable, giving `NaN` 
-counts and statistics along with a warning explaining what to change. The limit is far 
-above the populations that arise in practice; it is there so that mistyping an extra 
-digit reports a problem instead of freezing the activity.
+the page unresponsive while it ran. Parameters that could need more than ten million 
+random draws for a single sample &mdash; counting each category at the most its draw 
+could cost &mdash; are therefore treated as unusable, giving `NaN` counts and 
+statistics along with a warning explaining what to change. The limit is far above the 
+populations that arise in practice; it is there so that mistyping an extra digit 
+reports a problem instead of freezing the activity.
+
+Counts must also stay exact. Each category, the population they add up to, and 
+`numDraws` must all be below about nine quadrillion, past which neighboring whole 
+numbers can no longer be told apart; a larger population is treated as unusable in 
+the same way.
 
 `type`, `numInCategories`, and `numDraws` have no defaults to fall back on. If any is 
 omitted, if `type` names a distribution that does not exist, or if the other two do not 

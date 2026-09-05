@@ -474,6 +474,46 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         }
     });
 
+    it("a population whose total is too large to count exactly is refused", async () => {
+        // Each category here is exact on its own, and few enough items are drawn
+        // to be well under the work limit, but the population they add up to is
+        // past 2^53 — and that total is the bound every category's draw is taken
+        // against, so the sampler would reject every draw it made and never
+        // return. Asked of the shared entry point first, because a document that
+        // reached the sampler would hang rather than fail.
+        const numInCategories = [2 ** 53 - 1, 2 ** 53 - 1];
+        expect(
+            multivariateSamplingDiagnostics({
+                type: "hypergeometric",
+                numInCategories,
+                numDraws: 10,
+            }).map((d) => d.code),
+        ).eqls(["doenet-w0134"]);
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="${numInCategories.join(" ")}" numDraws="10" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(
+            getDiagnosticsByType(core).warnings.filter(
+                (w) => w.code === "doenet-w0134",
+            ).length,
+        ).eq(1);
+
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+        for (const value of stateVariables[componentIdx].stateValues.means) {
+            expect(Number.isNaN(value)).eq(true);
+        }
+    });
+
     it("a draw too large to sample promptly is refused, not attempted", async () => {
         // Drawing each category costs a univariate hypergeometric draw, so this would
         // otherwise run for minutes rather than returning.

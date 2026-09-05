@@ -277,9 +277,10 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                     }
 
                     // each category's marginal count is univariate hypergeometric,
-                    // so it carries the same finite population correction, whose
-                    // (N - n) / (N - 1) is 0/0 for a population of at most one
-                    // item — which is determined, and so has variance 0
+                    // so it carries the same closed form — which divides by N - 1
+                    // in its finite population correction, and by N in p, so it is
+                    // undefined for a population of at most one item. Such a draw
+                    // is determined, and so has variance 0.
                     if (N > 1) {
                         const p =
                             globalDependencyValues.numInCategories[arrayKey] /

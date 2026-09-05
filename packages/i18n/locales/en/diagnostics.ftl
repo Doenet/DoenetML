@@ -1032,13 +1032,15 @@ sample-multivariate-parameters-invalid =
     }) or numDraws ({ $numDraws ->
         [not-set] not set
        *[other] { $numDraws }
-    }) for a multivariate hypergeometric random variable. numInCategories must list at least one category, each a non-negative whole number, and numDraws must be a non-negative whole number no larger than their total.
+    }) for a multivariate hypergeometric random variable. numInCategories must list at least one category, each a non-negative whole number, and numDraws must be a non-negative whole number no larger than their total. Each category, that total, and numDraws must also stay below about nine quadrillion, past which whole numbers can no longer be counted exactly.
 
 # $maxDraws is the largest number of random draws allowed for a single sample.
 # Drawing nearly the whole population is as cheap as drawing almost none of it, so
-# raising numDraws is a fix as well as lowering it.
+# raising numDraws is a fix as well as lowering it. "could need" rather than "would
+# need": each category is counted at the most its draw could cost, so the count
+# these parameters are refused on is an upper bound on the work they really take.
 sample-multivariate-draws-too-many =
-    Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, bring it closer to numTotal, or use fewer categories.
+    Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories could need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, bring it closer to numTotal, or use fewer categories.
 
 # `type` has no default, so this is what leaving it off gets. A type the attribute
 # does not recognize falls back to no type at all and reaches this message too,

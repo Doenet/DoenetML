@@ -434,14 +434,17 @@ function multivariateHypergeometricWork({ numInCategories, numDraws }) {
 /**
  * Why `numInCategories` and `numDraws` cannot be sampled from, or `null` if they can.
  * A usable set is a population split into at least one category of a non-negative
- * whole number of items, from which a non-negative whole number of items no larger
- * than the whole population is drawn few enough times to finish promptly.
+ * whole number of items, counting exactly both category by category and in total,
+ * from which a non-negative whole number of items no larger than the whole population
+ * is drawn few enough times to finish promptly.
  *
  * Insisting on at least one category also keeps `sampleMultivariateHypergeometric`
  * from being handed an empty partition, which has no final category to absorb the
  * remaining draws.
  */
 function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
+    const numTotal = sumOf(numInCategories);
+
     if (
         numInCategories.length === 0 ||
         // safe integers, for the reason given on the univariate hypergeometric
@@ -450,9 +453,14 @@ function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
         !numInCategories.every(
             (num) => Number.isSafeInteger(num) && num >= 0,
         ) ||
+        // and the total as well as each category, since that total is the
+        // population every per-category draw is made against: past 2^53 it has
+        // no whole multiple of itself left below 2^53, so `uniformBelow` rejects
+        // every draw it makes and never returns
+        !Number.isSafeInteger(numTotal) ||
         !Number.isSafeInteger(numDraws) ||
         numDraws < 0 ||
-        numDraws > sumOf(numInCategories)
+        numDraws > numTotal
     ) {
         return codedDiagnostic({
             type: "warning",
@@ -477,7 +485,7 @@ function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
             code: "doenet-w0136",
             args: {
                 numDraws,
-                numTotal: sumOf(numInCategories),
+                numTotal,
                 numCategories: numInCategories.length,
                 maxDraws: MAX_WORK_PER_VARIATE,
             },
