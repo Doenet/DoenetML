@@ -343,6 +343,48 @@ describe("groupCompositeRanges", () => {
         ).eq(`list10(group11("1") group12("2" " "))`);
     });
 
+    it("keeps a whitespace-only composite at the end of an item, emptied", () => {
+        // Its anchor stays with the item it ended; its whitespace goes with
+        // the rest of the item's trailing whitespace.
+        expect(
+            sketch(
+                groupCompositeRanges<string>({
+                    children: ["1", " ", "2"],
+                    ranges: [
+                        range({
+                            compositeIdx: 10,
+                            firstInd: 0,
+                            lastInd: 2,
+                            potentialListComponents: [true, true, true],
+                        }),
+                        range({
+                            compositeIdx: 11,
+                            firstInd: 0,
+                            lastInd: 1,
+                            asList: false,
+                            potentialListComponents: [true, true],
+                        }),
+                        range({
+                            compositeIdx: 13,
+                            firstInd: 1,
+                            lastInd: 1,
+                            asList: false,
+                            potentialListComponents: [true],
+                        }),
+                        range({
+                            compositeIdx: 12,
+                            firstInd: 2,
+                            lastInd: 2,
+                            asList: false,
+                            potentialListComponents: [true],
+                        }),
+                    ],
+                    isBlank,
+                }),
+            ),
+        ).eq(`list10(group11("1" group13()) group12("2"))`);
+    });
+
     it("takes the trailing whitespace off a child that ends an item", () => {
         expect(
             sketch(

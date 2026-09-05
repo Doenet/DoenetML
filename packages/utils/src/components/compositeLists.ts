@@ -365,10 +365,11 @@ function withoutBlankChildren<T>(
 }
 
 /**
- * Drop the blank groups an item ends with — whitespace-only children, and
- * composites that produced only those — and take the trailing whitespace off
- * the child that is left at its end. `item` is not itself blank, so a
- * composite always has such a child.
+ * Take the whitespace off the end of an item a comma will follow: the
+ * whitespace-only children it ends with go, the composites among them stay
+ * for their anchors but emptied of their whitespace, and the child left at its
+ * end loses its trailing whitespace. `item` is not itself blank, so a composite
+ * always has such a child.
  */
 function trimItemEnd<T>(
     item: CompositeGroup<T>,
@@ -384,12 +385,18 @@ function trimItemEnd<T>(
     while (isBlankGroup(item.items[end - 1], isBlank)) {
         end--;
     }
+    const emptiedComposites = item.items
+        .slice(end)
+        .flatMap((sub) =>
+            sub.kind === "composite" ? [withoutBlankChildren(sub)] : [],
+        );
 
     return {
         ...item,
         items: [
             ...item.items.slice(0, end - 1),
             trimItemEnd(item.items[end - 1], isBlank, trimEnd),
+            ...emptiedComposites,
         ],
     };
 }
