@@ -113,7 +113,6 @@ orbital-row-label = رج { $row } ءِ نام
 pretzel-answer = جواب
 # «ستون» names what `$column` is, so the phrase does not have to attach
 # anything to the placeable.
-summary-statistics-caption = ستون { $column } ءِ شماریاتی خلاصہ
 
 ## Math input
 

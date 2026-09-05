@@ -7,8 +7,8 @@
 # and `answer-show-responses` is written flat; `attempts-remaining` keeps two
 # branches because its `[0]` is matched by number rather than by category. See
 # `content.ftl`'s header for the case particles the composition messages
-# restrict themselves to — and for why `orbital-row-label` and
-# `summary-statistics-caption` here cannot, and write the default གི་.
+# restrict themselves to — and for why `orbital-row-label` here cannot, and
+# writes the default གི་.
 
 
 ## Answer submission
@@ -68,7 +68,6 @@ orbital-add-down-arrow = མར་མདའ་ཁ་སྐོང
 orbital-remove-arrow = མདའ་རྩ་བསྐྲད
 orbital-row-label = གྲལ་ཐིག་ { $row } གི་ཁ་ཡིག
 pretzel-answer = ལན
-summary-statistics-caption = { $column } གི་གྲངས་ཐོའི་བསྡུས་དོན
 
 ## Math input
 

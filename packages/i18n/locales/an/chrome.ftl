@@ -117,7 +117,6 @@ orbital-add-down-arrow = Adhibir una flecha enta baixo
 orbital-remove-arrow = Sacar a flecha
 orbital-row-label = Etiqueta d'a ringlera { $row }
 pretzel-answer = Respuesta
-summary-statistics-caption = Estadisticas resumidas de { $column }
 
 ## Math input
 

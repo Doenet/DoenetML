@@ -80,7 +80,6 @@ orbital-add-down-arrow = નીચેનું તીર ઉમેરો
 orbital-remove-arrow = તીર દૂર કરો
 orbital-row-label = હરોળ { $row } નું લેબલ
 pretzel-answer = જવાબ
-summary-statistics-caption = { $column } નાં સારાંશ આંકડા
 
 ## Math input
 

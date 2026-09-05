@@ -73,7 +73,6 @@ orbital-add-down-arrow = Tilføj pil nedad
 orbital-remove-arrow = Fjern pil
 orbital-row-label = Mærkat til række { $row }
 pretzel-answer = Svar
-summary-statistics-caption = Opsummerende statistik for { $column }
 
 ## Math input
 

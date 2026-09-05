@@ -71,7 +71,6 @@ orbital-add-down-arrow = Ad Aro We Fes Dɔŋ
 orbital-remove-arrow = Pul Aro
 orbital-row-label = Nem fɔ ro { $row }
 pretzel-answer = Ansa
-summary-statistics-caption = Sɔmari statistiks fɔ { $column }
 
 ## Math input
 

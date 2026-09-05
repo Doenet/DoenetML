@@ -139,7 +139,6 @@ orbital-row-label = Etiketa tiʼ le renglón { $row }
 
 pretzel-answer = Núuk
 
-summary-statistics-caption = U resumen estadístika tiʼ { $column }
 
 
 ## Math input

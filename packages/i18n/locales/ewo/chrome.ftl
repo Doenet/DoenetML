@@ -70,7 +70,6 @@ orbital-add-down-arrow = Tob Nsom wa Si
 orbital-remove-arrow = Kɔt Nsom
 orbital-row-label = Dzina ya elɔŋ { $row }
 pretzel-answer = Ajapkɔb
-summary-statistics-caption = Statistik ya kolɔn { $column }
 
 ## Math input
 

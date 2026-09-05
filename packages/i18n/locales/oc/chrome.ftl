@@ -76,7 +76,6 @@ orbital-add-down-arrow = Apondre una sageta cap aval
 orbital-remove-arrow = Levar una sageta
 orbital-row-label = Etiqueta de la linha { $row }
 pretzel-answer = Responsa
-summary-statistics-caption = Estatisticas resumidas de { $column }
 
 ## Math input
 

@@ -148,7 +148,6 @@ orbital-row-label = Label ba baris { $row }
 
 pretzel-answer = Fanema li
 
-summary-statistics-caption = Statistik ringkas moroi ba { $column }
 
 
 ## Math input

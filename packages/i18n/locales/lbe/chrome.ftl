@@ -97,7 +97,6 @@ orbital-add-down-arrow = Лагьуннайсса стрелка бишин
 orbital-remove-arrow = Стрелка дуккан дан
 orbital-row-label = { $row } строкалул цӀа
 pretzel-answer = Жаваб
-summary-statistics-caption = { $column } тӀисса столбецрал жамигьсса статистика
 
 ## Math input
 

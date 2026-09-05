@@ -77,7 +77,6 @@ orbital-add-down-arrow = Lisa nool alla
 orbital-remove-arrow = Eemalda nool
 orbital-row-label = Rea { $row } silt
 pretzel-answer = Vastus
-summary-statistics-caption = Veeru { $column } koondstatistika
 
 ## Math input
 

@@ -74,7 +74,6 @@ orbital-add-down-arrow = Voeg Afpyl By
 orbital-remove-arrow = Verwyder Pyl
 orbital-row-label = Etiket vir ry { $row }
 pretzel-answer = Antwoord
-summary-statistics-caption = Opsommende statistiek van { $column }
 
 ## Math input
 

@@ -111,7 +111,6 @@ orbital-add-down-arrow = Añidil una hlecha p'abahu
 orbital-remove-arrow = Quital la hlecha
 orbital-row-label = Etiqueta de la hila { $row }
 pretzel-answer = Respuesta
-summary-statistics-caption = Estadísticas resumías de { $column }
 
 ## Math input
 

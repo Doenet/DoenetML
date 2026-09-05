@@ -116,7 +116,6 @@ orbital-row-label = Row { $row } ke naam
 pretzel-answer = Jawaab
 # «column» names what `$column` is, so the postposition falls behind a word
 # this catalog writes rather than behind the value.
-summary-statistics-caption = Column { $column } ke statistics ke saaraansh
 
 ## Math input
 

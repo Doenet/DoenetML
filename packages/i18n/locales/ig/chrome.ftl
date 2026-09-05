@@ -74,7 +74,6 @@ orbital-add-down-arrow = Tinye Àkụ Ala
 orbital-remove-arrow = Wepụ Àkụ
 orbital-row-label = Akara ahịrị { $row }
 pretzel-answer = Azịza
-summary-statistics-caption = Nchịkọta ọnụọgụgụ nke { $column }
 
 ## Math input
 

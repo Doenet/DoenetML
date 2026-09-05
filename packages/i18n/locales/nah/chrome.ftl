@@ -95,7 +95,6 @@ orbital-add-down-arrow = Xicaxilti cē mītl tlanipa
 orbital-remove-arrow = Xicquīxti cē mītl
 orbital-row-label = Ītōcā in tlamelāuhcāyōtl { $row }
 pretzel-answer = Tlanānquilīlli
-summary-statistics-caption = Ītlapōhualtzin in { $column }
 
 ## Math input
 

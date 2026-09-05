@@ -144,7 +144,6 @@ orbital-row-label = Etiketa lun fila { $row }
 
 pretzel-answer = Respuesta
 
-summary-statistics-caption = Estadístika lun { $column }
 
 
 ## Math input

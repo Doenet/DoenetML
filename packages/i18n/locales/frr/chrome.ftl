@@ -115,7 +115,6 @@ orbital-add-down-arrow = Pil deel tuufäie
 orbital-remove-arrow = Pil wächnääme
 orbital-row-label = Beeteekning för jü riege { $row }
 pretzel-answer = Aantwurd
-summary-statistics-caption = Käänetaale foon { $column }
 
 ## Math input
 

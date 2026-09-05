@@ -115,7 +115,6 @@ orbital-row-label = Row { $row } hming
 
 pretzel-answer = Chhânna
 
-summary-statistics-caption = { $column } statistics tlângpui
 
 
 ## Math input

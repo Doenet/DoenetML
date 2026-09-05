@@ -1,0 +1,101 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<summaryStatistics>{:dn}`
+
+<ComponentDisplay name='summaryStatistics'/>
+
+`<summaryStatistics>{:dn}` renders a table of statistics — mean, standard deviation,
+median, quartiles and the rest — for the numbers it is given.
+
+Use `statisticsToDisplay` to choose which appear, or leave it out for a standard
+selection. Every statistic is also a readable property, so a sentence can quote the same
+number the table shows.
+
+Values that are not numbers count as missing and are left out, which is why `count`
+reports how many values were usable rather than how many were given.
+
+<AttrPropDisplay name='summaryStatistics'/>
+
+## Examples
+
+### Example: statistics of a list
+
+
+```doenet-editor-horiz
+<numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+<p>Scores: $scores</p>
+
+<summaryStatistics name="stats">$scores</summaryStatistics>
+
+<p>The mean is $stats.mean and the median is $stats.median.</p>
+```
+
+
+
+The table and the sentence read from the same component, so they cannot disagree.
+
+
+
+---
+
+### Example: choosing which statistics to show
+
+
+```doenet-editor-horiz
+<numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+<summaryStatistics statisticsToDisplay="count mean stdev" displayDigits="3">
+  $scores
+</summaryStatistics>
+
+<summaryStatistics statisticsToDisplay="all" displayDigits="3">
+  $scores
+</summaryStatistics>
+```
+
+
+
+Statistics appear in a fixed order whatever order they are asked for in, so two documents
+showing the same set read the same way. `displayDigits` rounds what the table shows —
+never the `count`, which is an exact tally — and never the properties, which keep full
+precision.
+
+
+
+---
+
+### Example: summarizing a simulation
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<sampleRandomNumbers name="draws" type="discreteUniform"
+  from="1" to="$total" numSamples="80" hide />
+<searchSorted name="which" target="$draws" hide>$cum</searchSorted>
+<tally name="counts" categories="1 2 3 4" hide>$which</tally>
+
+<p>Counts by subpopulation: $counts</p>
+
+<summaryStatistics statisticsToDisplay="count sum minimum maximum mean">
+  $counts
+</summaryStatistics>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+The statistics are of the four counts, not of the 80 draws — so `sum` is the sample size
+and `mean` is how many draws an average subpopulation received. Drawing again updates
+both the counts and the table.

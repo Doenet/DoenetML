@@ -109,7 +109,6 @@ orbital-add-down-arrow = Придати стрілку долов
 orbital-remove-arrow = Одобрати стрілку
 orbital-row-label = Назва про рядок { $row }
 pretzel-answer = Одповідь
-summary-statistics-caption = Сумарна штатістіка про { $column }
 
 ## Math input
 

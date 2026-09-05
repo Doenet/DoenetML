@@ -214,7 +214,6 @@ orbital-add-down-arrow = Putum wan ara i go daon
 orbital-remove-arrow = Tekemaot ara
 orbital-row-label = Nem blong laen { $row }
 pretzel-answer = Ansa
-summary-statistics-caption = Sotfala ripot blong ol namba blong { $column }
 
 ## Math input
 

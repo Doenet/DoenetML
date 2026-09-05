@@ -134,7 +134,6 @@ orbital-add-down-arrow = Tambah Anak Panah Ke Bawah
 orbital-remove-arrow = Buang Anak Panah
 orbital-row-label = Label montok baris { $row }
 pretzel-answer = Simbar
-summary-statistics-caption = Ringkasan statistik { $column }
 
 
 ## Math input

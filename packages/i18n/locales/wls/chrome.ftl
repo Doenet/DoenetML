@@ -165,7 +165,6 @@ orbital-add-down-arrow = Tānaki he gahau ki lalo
 orbital-remove-arrow = Toʻo te gahau
 orbital-row-label = Fakaʻiloga ki te laina { $row }
 pretzel-answer = Tali
-summary-statistics-caption = Fakanounou fika ʻo te { $column }
 
 ## Math input
 

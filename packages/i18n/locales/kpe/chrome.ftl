@@ -100,7 +100,6 @@ orbital-add-down-arrow = Dugumafɛ-bin fa
 orbital-remove-arrow = Bin bɔ
 orbital-row-label = Laa { $row } tɔgɔ
 pretzel-answer = Jaabi
-summary-statistics-caption = { $column } jate-ŋa kunkurunni
 
 ## Math input
 

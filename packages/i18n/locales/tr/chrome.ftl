@@ -74,7 +74,6 @@ orbital-add-down-arrow = Aşağı ok ekle
 orbital-remove-arrow = Ok sil
 orbital-row-label = { $row }. satırın etiketi
 pretzel-answer = Yanıt
-summary-statistics-caption = { $column } için betimsel istatistikler
 
 ## Math input
 

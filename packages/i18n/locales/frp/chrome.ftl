@@ -130,7 +130,6 @@ orbital-add-down-arrow = Apondre una fllèche vers lo bâs
 orbital-remove-arrow = Enlevar una fllèche
 orbital-row-label = Ètiquèta de la legne { $row }
 pretzel-answer = Rèponsa
-summary-statistics-caption = Rèsumâ de les statistiques de { $column }
 
 ## Math input
 

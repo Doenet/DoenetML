@@ -94,7 +94,6 @@ orbital-add-down-arrow = Chakoj jun chʼabʼ upa qajibʼal
 orbital-remove-arrow = Chesaj jun chʼabʼ
 orbital-row-label = Ubʼiʼ ri wokaj { $row }
 pretzel-answer = Tzalijisabʼal
-summary-statistics-caption = Ri ajilanik rech { $column }
 
 ## Math input
 

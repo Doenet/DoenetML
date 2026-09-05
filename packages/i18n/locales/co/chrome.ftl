@@ -73,7 +73,6 @@ orbital-add-down-arrow = Aghjunghje una freccia in ghjù
 orbital-remove-arrow = Toglie una freccia
 orbital-row-label = Etichetta di a fila { $row }
 pretzel-answer = Risposta
-summary-statistics-caption = Statistiche riassuntive di { $column }
 
 ## Math input
 

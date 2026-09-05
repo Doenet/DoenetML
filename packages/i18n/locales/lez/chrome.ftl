@@ -35,9 +35,8 @@
 #
 # Where an English preposition would land on a placeable, the Lezgian case
 # suffix is put on a word this catalog writes instead — see
-# `answer-show-responses` and `summary-statistics-caption` below, both of which
-# name what the value is («… тӀвар алай суал», «… тӀвар алай столбец») rather
-# than welding -диз or -дин onto it.
+# `answer-show-responses` below, which names what the value is
+# («… тӀвар алай суал») rather than welding -диз or -дин onto it.
 
 
 ## Answer submission
@@ -108,7 +107,6 @@ orbital-row-label = { $row } лагьай цӀарцӀин тӀвар
 pretzel-answer = Жаваб
 # The genitive «-дин» would have to sit on `{ $column }`, so the column is
 # named instead and the case falls on «столбец».
-summary-statistics-caption = { $column } тӀвар алай столбецдин уьмуми статистика
 
 ## Math input
 

@@ -182,7 +182,6 @@ orbital-add-down-arrow = Apacha Fótúk Feitiw
 orbital-remove-arrow = Amwúchú Fótúk
 orbital-row-label = Iten rooch { $row }
 pretzel-answer = Pwóón
-summary-statistics-caption = Aweween tototten { $column }
 
 ## Math input
 

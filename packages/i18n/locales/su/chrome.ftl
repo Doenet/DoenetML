@@ -79,7 +79,6 @@ orbital-add-down-arrow = Tambah Panah Ka Handap
 orbital-remove-arrow = Piceun Panah
 orbital-row-label = Labél pikeun baris { $row }
 pretzel-answer = Jawaban
-summary-statistics-caption = Statistik ringkesan tina { $column }
 
 ## Math input
 

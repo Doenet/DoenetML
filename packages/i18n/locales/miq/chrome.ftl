@@ -117,7 +117,6 @@ orbital-add-down-arrow = Arru munhta mangkaia
 orbital-remove-arrow = Arru sakaia
 orbital-row-label = Raw { $row } nina
 pretzel-answer = Ansa
-summary-statistics-caption = { $column } estadistika tanka
 
 
 ## Math input

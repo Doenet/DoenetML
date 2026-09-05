@@ -81,7 +81,6 @@ orbital-add-down-arrow = ናብ ታሕቲ ዘመልክት ኮፍታ ወስኽ
 orbital-remove-arrow = ኮፍታ ኣወግድ
 orbital-row-label = ስም መስርዕ { $row }
 pretzel-answer = መልሲ
-summary-statistics-caption = ጽማቝ ስታቲስቲክስ { $column }
 
 ## Math input
 

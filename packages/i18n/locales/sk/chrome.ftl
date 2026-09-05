@@ -82,7 +82,6 @@ orbital-add-down-arrow = Pridať šípku nadol
 orbital-remove-arrow = Odobrať šípku
 orbital-row-label = Označenie riadka { $row }
 pretzel-answer = Odpoveď
-summary-statistics-caption = Súhrnné štatistiky pre { $column }
 
 ## Math input
 

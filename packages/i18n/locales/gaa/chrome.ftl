@@ -69,7 +69,6 @@ orbital-add-down-arrow = Fata Gãŋ ni Shi He
 orbital-remove-arrow = Jie Gãŋ
 orbital-row-label = Laiŋi { $row } gbɛi
 pretzel-answer = Hetoo
-summary-statistics-caption = { $column } yibɔi amuu
 
 ## Math input
 

@@ -133,7 +133,6 @@ orbital-add-down-arrow = Radjouter ene sayete viè l' bas
 orbital-remove-arrow = Oister ene sayete
 orbital-row-label = Etikete del roye { $row }
 pretzel-answer = Response
-summary-statistics-caption = Rascourti des statistikes di { $column }
 
 ## Math input
 

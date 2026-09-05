@@ -135,7 +135,6 @@ orbital-row-label = Etiketa pa fila { $row }
 
 pretzel-answer = Kontesta
 
-summary-statistics-caption = Statístika resumí di { $column }
 
 
 ## Math input

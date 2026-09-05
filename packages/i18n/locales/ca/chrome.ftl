@@ -74,7 +74,6 @@ orbital-add-down-arrow = Afegeix una fletxa avall
 orbital-remove-arrow = Elimina una fletxa
 orbital-row-label = Etiqueta de la fila { $row }
 pretzel-answer = Resposta
-summary-statistics-caption = Estadístiques resum de { $column }
 
 ## Math input
 

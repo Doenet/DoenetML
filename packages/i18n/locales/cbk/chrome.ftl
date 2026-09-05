@@ -131,7 +131,6 @@ orbital-row-label = Letrero para na fila { $row }
 
 pretzel-answer = Respuesta
 
-summary-statistics-caption = Resumen de estadistica de { $column }
 
 math-input-preview-region = vista previa del matematico expresion
 math-input-preview = Vista previa

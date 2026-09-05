@@ -100,7 +100,6 @@ orbital-add-down-arrow = Удиси стрелка кабихьа
 orbital-remove-arrow = Стрелка ардука
 orbital-row-label = { $row } жергела лишан
 pretzel-answer = Жаваб
-summary-statistics-caption = { $column } столбецла статистика
 
 ## Math input
 

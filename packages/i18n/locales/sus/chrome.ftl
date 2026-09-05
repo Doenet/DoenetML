@@ -80,7 +80,6 @@ orbital-add-down-arrow = Bun kalabɛnyi lafan
 orbital-remove-arrow = Kalabɛnyi bo
 orbital-row-label = Sira { $row } xili
 pretzel-answer = Yabi
-summary-statistics-caption = { $column } konti xurasoxi
 
 ## Math input
 

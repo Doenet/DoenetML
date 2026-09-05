@@ -94,7 +94,6 @@ orbital-add-down-arrow = КӀанди стрелка элаве апӀуб
 orbital-remove-arrow = Стрелка адагъуб
 orbital-row-label = { $row } жергейин лишан
 pretzel-answer = Жаваб
-summary-statistics-caption = { $column } сутундин умуми статистика
 
 ## Math input
 

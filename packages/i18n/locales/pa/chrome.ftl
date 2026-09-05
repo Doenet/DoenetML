@@ -83,7 +83,6 @@ orbital-add-down-arrow = ਹੇਠਲਾ ਤੀਰ ਜੋੜੋ
 orbital-remove-arrow = ਤੀਰ ਹਟਾਓ
 orbital-row-label = ਕਤਾਰ { $row } ਦਾ ਲੇਬਲ
 pretzel-answer = ਜਵਾਬ
-summary-statistics-caption = { $column } ਦੇ ਸਾਰ ਅੰਕੜੇ
 
 ## Math input
 

@@ -93,7 +93,6 @@ orbital-add-down-arrow = Aggiunge na freccia sotto
 orbital-remove-arrow = Leva 'a freccia
 orbital-row-label = Etichetta p''a riga { $row }
 pretzel-answer = Risposta
-summary-statistics-caption = Statistiche 'e sintese 'e { $column }
 
 ## Math input
 

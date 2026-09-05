@@ -161,7 +161,6 @@ orbital-row-label = row { $row } အဂီၢ် အမံၤ
 
 pretzel-answer = တၢ်စံးဆၢ
 
-summary-statistics-caption = { $column } အဂီၢ် summary statistics
 
 
 ## Math input

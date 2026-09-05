@@ -80,7 +80,6 @@ orbital-add-down-arrow = Tamah panah u yup
 orbital-remove-arrow = Peugadôh panah
 orbital-row-label = Label keu barih { $row }
 pretzel-answer = Jaweueb
-summary-statistics-caption = Ringkasan statistik { $column }
 
 ## Math input
 

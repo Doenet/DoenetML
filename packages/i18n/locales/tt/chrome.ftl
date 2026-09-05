@@ -75,7 +75,6 @@ orbital-add-down-arrow = Аска ук өстәү
 orbital-remove-arrow = Укны бетерү
 orbital-row-label = { $row } юлының тамгасы
 pretzel-answer = Җавап
-summary-statistics-caption = { $column } баганының йомгаклау статистикасы
 
 ## Math input
 

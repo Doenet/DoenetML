@@ -84,7 +84,6 @@ orbital-add-down-arrow = පහළට ඊතලයක් එක් කරන්�
 orbital-remove-arrow = ඊතලය ඉවත් කරන්න
 orbital-row-label = { $row } වන පේළියේ ලේබලය
 pretzel-answer = පිළිතුර
-summary-statistics-caption = { $column } හි සාරාංශ සංඛ්‍යාන
 
 ## Math input
 

@@ -70,7 +70,6 @@ orbital-add-down-arrow = Ongyeraho Akambi Karikuza Ahansi
 orbital-remove-arrow = Ihaho Akambi
 orbital-row-label = Eiziina ry'omurongo { $row }
 pretzel-answer = Eky'okugarukamu
-summary-statistics-caption = Ekifundikirwe ky'ebibaro bya { $column }
 
 ## Math input
 

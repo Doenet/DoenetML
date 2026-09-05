@@ -76,7 +76,6 @@ orbital-add-down-arrow = Ongeza Mshale wa Chini
 orbital-remove-arrow = Ondoa Mshale
 orbital-row-label = Lebo ya safu { $row }
 pretzel-answer = Jibu
-summary-statistics-caption = Takwimu za muhtasari za { $column }
 
 ## Math input
 

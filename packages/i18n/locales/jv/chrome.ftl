@@ -84,7 +84,6 @@ orbital-add-down-arrow = Tambah Panah Mudhun
 orbital-remove-arrow = Busak Panah
 orbital-row-label = Label kanggo larik { $row }
 pretzel-answer = Wangsulan
-summary-statistics-caption = Statistik ringkesan saka { $column }
 
 ## Math input
 

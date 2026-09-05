@@ -148,7 +148,6 @@ orbital-add-down-arrow = Dugang Pana' Pababa'
 orbital-remove-arrow = Tanggal Pana'
 orbital-row-label = Label sin baris { $row }
 pretzel-answer = Sambag
-summary-statistics-caption = Kabuuran sin statistik sin { $column }
 
 
 ## Math input

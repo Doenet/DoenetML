@@ -82,7 +82,6 @@ orbital-add-down-arrow = 下向き矢印を追加
 orbital-remove-arrow = 矢印を削除
 orbital-row-label = { $row } 行目のラベル
 pretzel-answer = 解答
-summary-statistics-caption = { $column } の要約統計量
 
 ## Math input
 

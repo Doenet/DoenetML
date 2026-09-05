@@ -133,7 +133,6 @@ orbital-row-label = Nen gi rei { $row }
 
 pretzel-answer = Piki
 
-summary-statistics-caption = Kortu statistik fu { $column }
 
 
 ## Math input

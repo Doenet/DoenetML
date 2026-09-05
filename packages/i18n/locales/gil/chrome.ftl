@@ -171,7 +171,6 @@ orbital-row-label = Te ara ibukin row { $row }
 
 pretzel-answer = Kaeka
 
-summary-statistics-caption = Kabwarabwaraan te statistics ibukin { $column }
 
 
 ## Math input

@@ -155,7 +155,6 @@ orbital-row-label = Ди { $row } хаң ди бёчян
 
 pretzel-answer = Даан
 
-summary-statistics-caption = { $column } ди статистика
 
 
 ## Math input

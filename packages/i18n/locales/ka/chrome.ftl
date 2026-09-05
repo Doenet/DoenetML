@@ -85,7 +85,6 @@ orbital-add-down-arrow = ქვემოთ ისრის დამატე�
 orbital-remove-arrow = ისრის წაშლა
 orbital-row-label = { $row } სტრიქონის წარწერა
 pretzel-answer = პასუხი
-summary-statistics-caption = { $column } სვეტის შემაჯამებელი სტატისტიკა
 
 ## Math input
 

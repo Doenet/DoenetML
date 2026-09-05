@@ -75,7 +75,6 @@ orbital-add-down-arrow = Улӥе ньӧл ватсаны
 orbital-remove-arrow = Ньӧлэз палэнтыны
 orbital-row-label = { $row } чурлэн пусэз
 pretzel-answer = Ответ
-summary-statistics-caption = { $column } юболэн йылпумъян статистикаез
 
 ## Math input
 

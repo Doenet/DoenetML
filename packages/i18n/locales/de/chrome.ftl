@@ -78,7 +78,6 @@ orbital-add-down-arrow = Pfeil nach unten hinzufügen
 orbital-remove-arrow = Pfeil entfernen
 orbital-row-label = Beschriftung für Zeile { $row }
 pretzel-answer = Antwort
-summary-statistics-caption = Kennzahlen von { $column }
 
 ## Math input
 

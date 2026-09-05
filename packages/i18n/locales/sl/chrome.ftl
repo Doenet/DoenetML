@@ -87,7 +87,6 @@ orbital-add-down-arrow = Dodaj puščico navzdol
 orbital-remove-arrow = Odstrani puščico
 orbital-row-label = Oznaka za vrstico { $row }
 pretzel-answer = Odgovor
-summary-statistics-caption = Povzetek statistik za { $column }
 
 ## Math input
 

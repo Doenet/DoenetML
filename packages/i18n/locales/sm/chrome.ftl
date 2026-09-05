@@ -75,7 +75,6 @@ orbital-add-down-arrow = Faʻaopoopo se aū i lalo
 orbital-remove-arrow = Aveʻese le aū
 orbital-row-label = Igoa mo le laina { $row }
 pretzel-answer = Tali
-summary-statistics-caption = Faʻamaumauga aotelega o { $column }
 
 ## Math input
 

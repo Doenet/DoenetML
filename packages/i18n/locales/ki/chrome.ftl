@@ -69,7 +69,6 @@ orbital-add-down-arrow = Ongerera Mũguĩ wa Thĩ
 orbital-remove-arrow = Eheria Mũguĩ
 orbital-row-label = Rĩĩtwa rĩa mũhari { $row }
 pretzel-answer = Macookio
-summary-statistics-caption = Ũhũthio wa mĩigana ya { $column }
 
 ## Math input
 

@@ -90,7 +90,6 @@ orbital-add-down-arrow = नीचे कु तीर जोड़ा
 orbital-remove-arrow = तीर हटावा
 orbital-row-label = पंक्ति { $row } कु लेबल
 pretzel-answer = उत्तर
-summary-statistics-caption = { $column } का वर्णनात्मक सांख्यिकी
 
 ## Math input
 

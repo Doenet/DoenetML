@@ -253,6 +253,7 @@ export default {
     subsetOfReals: { title: "subsetOfReals" },
     subsetOfRealsInput: { title: "subsetOfRealsInput" },
     substitute: { title: "substitute" },
+    summaryStatistics: { title: "summaryStatistics" },
     subsubsection: { title: "subsubsection" },
     sum: { title: "sum" },
     table: { title: "table" },

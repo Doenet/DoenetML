@@ -2,18 +2,13 @@ import React, { useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { useChromeLangDir, useT } from "../../utils/i18n";
 
 interface SummaryStatisticsSVs {
     [key: string]: any;
     hidden: boolean;
-    /** `null` when the author named no column, or named one that isn't there. */
-    columnName: string | null;
-    height?: any;
     summaryStatistics?: any;
-    width?: any;
 }
 
 export default React.memo(function SummaryStatistics(
@@ -38,9 +33,10 @@ export default React.memo(function SummaryStatistics(
         return null;
     }
 
+    // Sized by its contents. There used to be `width`/`height` here, read from
+    // state variables the component does not define, so they were always
+    // `undefined`.
     const tableStyle: React.CSSProperties = {
-        width: sizeToCSS(SVs.width),
-        height: sizeToCSS(SVs.height),
         borderCollapse: "collapse",
         borderColor: "var(--canvasText)",
         borderRadius: "var(--mainBorderRadius)",
@@ -81,14 +77,7 @@ export default React.memo(function SummaryStatistics(
     return (
         <div style={{ margin: "12px 0" }} ref={ref}>
             <p {...chromeLangDir}>
-                {t(
-                    "summary-statistics-caption",
-                    // Fluent renders `{ $column }` literally if handed a
-                    // `null`, so an unnamed column becomes an empty string —
-                    // which is what interpolating it into JSX used to do.
-                    { column: SVs.columnName ?? "" },
-                    `Summary statistics of ${SVs.columnName ?? ""}`,
-                )}
+                {t("summary-statistics-caption", {}, "Summary statistics")}
             </p>
             <table id={id} style={tableStyle}>
                 <tbody>

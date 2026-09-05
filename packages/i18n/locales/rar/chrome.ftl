@@ -159,7 +159,6 @@ orbital-add-down-arrow = Tāpiri i tētai pere ki raro
 orbital-remove-arrow = ʻIriti i te pere
 orbital-row-label = Tāpaʻo nō te rārangi { $row }
 pretzel-answer = Pauʻanga
-summary-statistics-caption = Tatauʻanga ʻakapoto o { $column }
 
 ## Math input
 

@@ -81,7 +81,6 @@ orbital-add-down-arrow = താഴേക്കുള്ള അമ്പ് ച�
 orbital-remove-arrow = അമ്പ് നീക്കുക
 orbital-row-label = വരി { $row } ന്റെ ലേബൽ
 pretzel-answer = ഉത്തരം
-summary-statistics-caption = { $column } ന്റെ സംഗ്രഹ സ്ഥിതിവിവരക്കണക്കുകൾ
 
 ## Math input
 

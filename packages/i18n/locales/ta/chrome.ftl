@@ -82,7 +82,6 @@ orbital-add-down-arrow = கீழ் அம்புக்குறியைச
 orbital-remove-arrow = அம்புக்குறியை நீக்கு
 orbital-row-label = வரிசை { $row } க்கான லேபிள்
 pretzel-answer = விடை
-summary-statistics-caption = { $column } இன் சுருக்கப் புள்ளியியல்
 
 ## Math input
 

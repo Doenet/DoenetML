@@ -78,7 +78,6 @@ orbital-add-down-arrow = Лахарчу тӀам тӀетоха
 orbital-remove-arrow = ТӀам дӀабаккха
 orbital-row-label = { $row } могӀанан хьаьрк
 pretzel-answer = Жоп
-summary-statistics-caption = { $column } баганин жамӀан статистика
 
 ## Math input
 

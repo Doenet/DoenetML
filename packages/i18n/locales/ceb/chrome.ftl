@@ -79,7 +79,6 @@ orbital-add-down-arrow = Pagdugang ug Pana Paubos
 orbital-remove-arrow = Kuhaa ang Pana
 orbital-row-label = Label sa laray { $row }
 pretzel-answer = Tubag
-summary-statistics-caption = Lagom nga estadistika sa { $column }
 
 ## Math input
 

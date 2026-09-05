@@ -104,7 +104,6 @@ orbital-add-down-arrow = Přidaj šipk dele
 orbital-remove-arrow = Wotstroń šipk
 orbital-row-label = Pomjenowanje za linku { $row }
 pretzel-answer = Wotmołwa
-summary-statistics-caption = Zjimanska statistika za { $column }
 
 ## Math input
 

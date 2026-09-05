@@ -75,7 +75,6 @@ orbital-add-down-arrow = Аҫҡа уҡ өҫтәү
 orbital-remove-arrow = Уҡты алып ташлау
 orbital-row-label = { $row } юлының билдәһе
 pretzel-answer = Яуап
-summary-statistics-caption = { $column } бағанаһының йомғаҡлау статистикаһы
 
 ## Math input
 

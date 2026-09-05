@@ -78,7 +78,6 @@ orbital-add-down-arrow = Oketsa Sekai se se Lebileng Tlase
 orbital-remove-arrow = Ntsha Sekai
 orbital-row-label = Leina la mola { $row }
 pretzel-answer = Karabo
-summary-statistics-caption = Tshobokanyo ya dipalopalo tsa { $column }
 
 ## Math input
 

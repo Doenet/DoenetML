@@ -80,7 +80,6 @@ orbital-add-down-arrow = ಕೆಳಬಾಣ ಸೇರಿಸು
 orbital-remove-arrow = ಬಾಣ ತೆಗೆ
 orbital-row-label = ಸಾಲು { $row } ಗೆ ಲೇಬಲ್
 pretzel-answer = ಉತ್ತರ
-summary-statistics-caption = { $column } ನ ಸಾರಾಂಶ ಅಂಕಿಅಂಶಗಳು
 
 ## Math input
 

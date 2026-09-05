@@ -126,7 +126,6 @@ orbital-row-label = Label gasan baris { $row }
 
 pretzel-answer = Jawaban
 
-summary-statistics-caption = Ringkasan statistik matan { $column }
 
 
 ## Math input

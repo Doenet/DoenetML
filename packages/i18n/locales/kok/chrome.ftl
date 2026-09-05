@@ -70,7 +70,6 @@ orbital-add-down-arrow = सकयलो बाण जोडात
 orbital-remove-arrow = बाण काडून उडयात
 orbital-row-label = ओळ { $row } खातीर नामपट्टी
 pretzel-answer = जाप
-summary-statistics-caption = { $column } हाचो सांख्यिकी सार
 
 ## Math input
 

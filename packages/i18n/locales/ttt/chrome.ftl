@@ -100,7 +100,6 @@ orbital-add-down-arrow = Tiri zir ziyod sax
 orbital-remove-arrow = Tir-rə pok sax
 orbital-row-label = Etiketi sətiri { $row }
 pretzel-answer = Cavob
-summary-statistics-caption = Statistikayi xülosəyi { $column }
 
 
 ## Math input

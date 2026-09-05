@@ -69,7 +69,6 @@ orbital-add-down-arrow = Ngeta Umcibisholo Wenzansi
 orbital-remove-arrow = Susa Umcibisholo
 orbital-row-label = Libito lomudvwa { $row }
 pretzel-answer = Imphendvulo
-summary-statistics-caption = Sifinyeto setibalo te-{ $column }
 
 ## Math input
 

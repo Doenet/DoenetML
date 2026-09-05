@@ -86,7 +86,6 @@ orbital-add-down-arrow = Dian Ọfịọn̄ Ke Idem
 orbital-remove-arrow = Sio Ọfịọn̄
 orbital-row-label = Enyịn̄ ubọk { $row }
 pretzel-answer = Ibọrọ
-summary-statistics-caption = Ibat ekikere ntamban̄a { $column }
 
 ## Math input
 

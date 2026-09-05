@@ -107,7 +107,6 @@ orbital-add-down-arrow = Lisäq nuul alla
 orbital-remove-arrow = Võtaq nuul ärq
 orbital-row-label = Rea { $row } silt
 pretzel-answer = Vastus
-summary-statistics-caption = Veerü { $column } kokkovõtligu statistiga
 
 ## Math input
 

@@ -86,7 +86,6 @@ orbital-add-down-arrow = Аялалла йӗппи хушас
 orbital-remove-arrow = Йӗппе кӑларас
 orbital-row-label = { $row } йӗркин палли
 pretzel-answer = Хурав
-summary-statistics-caption = { $column } юпин пӗтӗмлетӳ статистики
 
 ## Math input
 

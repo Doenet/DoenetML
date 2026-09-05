@@ -76,7 +76,6 @@ orbital-add-down-arrow = Pfeil no ënne derbäisetzen
 orbital-remove-arrow = Pfeil ewechhuelen
 orbital-row-label = Bezeechnung fir Zeil { $row }
 pretzel-answer = Äntwert
-summary-statistics-caption = Zesummefaassend Statistike vu { $column }
 
 ## Math input
 

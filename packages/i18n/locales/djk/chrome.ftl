@@ -140,7 +140,6 @@ orbital-row-label = Neen gi lei { $row }
 
 pretzel-answer = Piki
 
-summary-statistics-caption = Sotu statistiki fu { $column }
 
 
 math-input-preview-region = luku fosi fu a matematika-ekispresi

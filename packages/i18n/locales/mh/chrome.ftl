@@ -140,7 +140,6 @@ orbital-add-down-arrow = Kobaik M̧ade Laļļo̧k
 orbital-remove-arrow = Joļo̧k M̧ade
 orbital-row-label = Etan laajrak { $row }
 pretzel-answer = Uwaak
-summary-statistics-caption = Meļeļe in bōnbōn ko an { $column }
 
 ## Math input
 

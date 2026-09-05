@@ -115,7 +115,6 @@ orbital-row-label = قطار { $row } دا عنوان
 pretzel-answer = جواب
 # «کالم» names what `$column` is, so the genitive falls on a word this catalog
 # writes rather than on the value.
-summary-statistics-caption = کالم { $column } دا شماریاتی خلاصہ
 
 ## Math input
 

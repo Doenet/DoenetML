@@ -81,7 +81,6 @@ orbital-add-down-arrow = هيٺ وارو تير شامل ڪريو
 orbital-remove-arrow = تير هٽايو
 orbital-row-label = قطار { $row } جو نالو
 pretzel-answer = جواب
-summary-statistics-caption = ڪالم { $column } جو شمارياتي خلاصو
 
 ## Math input
 

@@ -77,7 +77,6 @@ orbital-add-down-arrow = Tsɔ Aŋutrɔ Anyiyimetɔ Kpe Ɖe Eŋu
 orbital-remove-arrow = Ɖe Aŋutrɔ Ɖa
 orbital-row-label = Fli { $row } ƒe ŋkɔ
 pretzel-answer = Ŋuɖoɖo
-summary-statistics-caption = { $column } ƒe akɔntabubu kpuiwo
 
 ## Math input
 

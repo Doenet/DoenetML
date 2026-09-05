@@ -69,7 +69,6 @@ orbital-add-down-arrow = Yika Nsonga ya Nsi
 orbital-remove-arrow = Katula Nsonga
 orbital-row-label = Zina ya linya { $row }
 pretzel-answer = Mvutu
-summary-statistics-caption = Nsukulu ya batalu ya { $column }
 
 ## Math input
 

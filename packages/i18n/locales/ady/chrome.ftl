@@ -95,7 +95,6 @@ orbital-add-down-arrow = Къехырэ стрелкэ хэгъэхьан
 orbital-remove-arrow = Стрелкэ хэгъэкӀын
 orbital-row-label = Сатыр { $row } ыцӀэ
 pretzel-answer = Джэуап
-summary-statistics-caption = { $column } изэфэхьысыжь статистикэ
 
 
 ## Math input
