@@ -23,3 +23,5 @@ The `numCategories`, `numTotal`, `means`, and `variances` properties describe th
 Invalid parameters produce `NaN` for both the samples and those properties, along with a warning describing what to change. Because each category is drawn in turn, parameters that would need more than ten million random draws for a single sample are refused the same way, instead of leaving the page unresponsive while they ran.
 
 Counts must be whole numbers small enough to stay exact — up to about nine quadrillion. Past that the arithmetic behind the reported means overflows to infinity, so such a population is refused rather than sampled.
+
+Each category's count is drawn as a hypergeometric against the part of the population not yet accounted for, so the whole vector is drawn exactly, with no smallest probability it rounds away, for every population accepted.

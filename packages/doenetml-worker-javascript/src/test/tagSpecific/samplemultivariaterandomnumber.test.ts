@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { callAction } from "../utils/actions";
-import { sampleMultivariateHypergeometric } from "../../utils/randomNumbers";
+import {
+    multivariateSamplingDiagnostics,
+    sampleMultivariateHypergeometric,
+} from "../../utils/randomNumbers";
 import seedrandom from "seedrandom";
 
 const Mock = vi.fn();
@@ -376,10 +379,78 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         }
     });
 
+    it("every situation raises exactly one diagnostic, and a usable one raises none", () => {
+        // Asked of the shared entry point rather than through a document, because
+        // a core deduplicates diagnostics by message: the same explanation sent
+        // twice is indistinguishable there from the same explanation sent once, so
+        // no component-level count can pin down how many were raised.
+        const cases: [
+            {
+                type: string | null;
+                numInCategories: number[];
+                numDraws: number;
+            },
+            string,
+        ][] = [
+            // no distribution named
+            [
+                { type: null, numInCategories: [5, 3, 2], numDraws: 4 },
+                "doenet-w0136",
+            ],
+            // more draws than the population holds
+            [
+                {
+                    type: "hypergeometric",
+                    numInCategories: [5, 3, 2],
+                    numDraws: 11,
+                },
+                "doenet-w0134",
+            ],
+            // Too slow to draw: one category on its own costs 6e6 draws, which
+            // is under the ten-million limit, and only the two such draws the
+            // three categories need between them exceed it — so this is refused
+            // solely because the cost is counted per category.
+            [
+                {
+                    type: "hypergeometric",
+                    numInCategories: [6000000, 6000000, 6000000],
+                    numDraws: 6000000,
+                },
+                "doenet-w0135",
+            ],
+            // slow enough to be worth saying so, but still sampled
+            [
+                {
+                    type: "hypergeometric",
+                    numInCategories: [3000000, 3000000],
+                    numDraws: 3000000,
+                },
+                "doenet-w0133",
+            ],
+        ];
+
+        for (const [parameters, code] of cases) {
+            const diagnostics = multivariateSamplingDiagnostics(parameters);
+            expect(diagnostics.length, code).eq(1);
+            expect(diagnostics[0].code).eq(code);
+        }
+
+        // and parameters with nothing wrong with them say nothing at all
+        expect(
+            multivariateSamplingDiagnostics({
+                type: "hypergeometric",
+                numInCategories: [5, 3, 2],
+                numDraws: 4,
+            }),
+        ).eqls([]);
+    });
+
     it("a population too large to count exactly is refused", async () => {
         // `Number.isInteger(1e308)` is true, so such a population would otherwise
         // be accepted whenever the draws are few — and then the arithmetic behind
-        // `means` overflows to Infinity while the sampler's urn never shrinks.
+        // `means` overflows to Infinity, while the sampler asks for a whole number
+        // below a bound that has no representable multiple on the 2^53 grid and
+        // rejects every draw it makes, so it never returns at all.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="1e308 5e307" numDraws="10" />`,
         });
@@ -473,9 +544,10 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
 
-        // exactly one warning, raised once: the missing type is reported on its
-        // own rather than also as unusable parameters, and neither the moments
-        // nor the samples repeat it
+        // one warning and no other: the missing type is reported on its own
+        // rather than also as unusable parameters. That it is raised only once is
+        // not something a count here can see — a core deduplicates identical
+        // messages — and is checked against the diagnostics themselves above.
         const diagnostics = getDiagnosticsByType(core);
         expect(diagnostics.errors.length).eq(0);
         expect(diagnostics.warnings.length).eq(1);
@@ -556,7 +628,11 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        // still explained, and still not doubled up
+        // The explanation from the first computation is still in this core's
+        // accumulated list, and one sent again would be deduplicated away, so this
+        // says only that resampling did not add a *different* explanation — not
+        // that the reuse branch said anything. The reload below is what fails when
+        // it says nothing.
         expect(numExplanations(core)).eq(1);
         for (const replacement of stateVariables[
             await resolvePathToNodeIdx("s")
