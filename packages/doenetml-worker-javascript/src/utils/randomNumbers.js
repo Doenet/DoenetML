@@ -169,11 +169,16 @@ function preciseUniform(rng) {
  * Comparing a [0, 1) draw against `successes / total` would not be exact: that
  * quotient rarely lands on the 2^53 grid, so the number of grid points below it is
  * rounded up, and one extra point out of 2^53 is a factor of two when the quotient
- * is itself near 2^-53. Drawing the integer instead removes the quotient. The
- * values at or above the largest whole multiple of `bound` are rejected and redrawn
+ * is itself near 2^-53. Drawing the integer instead removes the quotient.
+ *
+ * Values at or above the largest whole multiple of `bound` are rejected and redrawn
  * rather than folded back in, since folding is what would leave the low remainders
- * more likely than the high ones; the discarded band is under one part in 2^53 of
- * the range, so a redraw is essentially never needed.
+ * likelier than the high ones. How often that costs a redraw depends on the bound:
+ * the discarded band is narrower than `bound` out of 2^53, so nothing of ordinary
+ * size ever reaches it, but once `bound` passes 2^52 the largest whole multiple is
+ * the bound itself and close to half of all draws are discarded. That is the worst
+ * it gets — the accepted range is always more than half of 2^53, so this takes
+ * fewer than two draws on average whatever the bound.
  */
 function uniformBelow(rng, bound) {
     // the largest multiple of `bound` that fits, so every remainder is equally likely

@@ -836,6 +836,30 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("a population in the worst band for redraws is still drawn correctly", async () => {
+        // Drawing a whole number rejects the values above the largest whole multiple
+        // of the bound. Just past 2^52 that multiple is the bound itself, so about
+        // half of all draws are discarded — far more than for a population of any
+        // ordinary size, and the point at which the loop is worked hardest.
+        const rng = seedrandom.alea("worst-band");
+        const numTotal = 2 ** 52 + 1;
+        const trials = 100000;
+
+        let successes = 0;
+        for (let i = 0; i < trials; i++) {
+            successes += sampleHypergeometric({
+                numTotal,
+                numSuccesses: (numTotal - 1) / 2,
+                numDraws: 1,
+                rng,
+            });
+        }
+
+        // half the population are successes, so rejecting the wrong band — or
+        // folding it back in instead of redrawing — would show up as a biased coin
+        expect(successes / trials).closeTo(0.5, 0.01);
+    });
+
     it("each refusal message states a condition the value actually fails", async () => {
         // A message that lists only conditions the author already satisfies leaves
         // them no way to find the real one. Every value below is refused, so each
