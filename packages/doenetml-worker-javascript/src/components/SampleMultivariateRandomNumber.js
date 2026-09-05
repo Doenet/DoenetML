@@ -1,4 +1,7 @@
-import { sampleMultivariateHypergeometric } from "../utils/randomNumbers";
+import {
+    sampleFromMultivariateDistribution,
+    validMultivariateHypergeometricParameters,
+} from "../utils/randomNumbers";
 import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
@@ -139,42 +142,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             },
         };
 
-        // Whether the parameters describe a distribution we can actually sample
-        // from. Computed once here so that the sampler, the statistics, and the
-        // replacements all agree on what counts as valid.
-        stateVariableDefinitions.validParameters = {
-            returnDependencies: () => ({
-                type: {
-                    dependencyType: "stateVariable",
-                    variableName: "type",
-                },
-                numInCategories: {
-                    dependencyType: "stateVariable",
-                    variableName: "numInCategories",
-                },
-                numDraws: {
-                    dependencyType: "stateVariable",
-                    variableName: "numDraws",
-                },
-                numTotal: {
-                    dependencyType: "stateVariable",
-                    variableName: "numTotal",
-                },
-            }),
-            definition({ dependencyValues }) {
-                const validParameters =
-                    dependencyValues.numInCategories.length > 0 &&
-                    dependencyValues.numInCategories.every(
-                        (x) => Number.isInteger(x) && x >= 0,
-                    ) &&
-                    Number.isInteger(dependencyValues.numDraws) &&
-                    dependencyValues.numDraws >= 0 &&
-                    dependencyValues.numDraws <= dependencyValues.numTotal;
-
-                return { setValue: { validParameters } };
-            },
-        };
-
         stateVariableDefinitions.means = {
             description:
                 "Expected number of items sampled from each category, i.e. `numDraws * numInCategories[i] / numTotal`.",
@@ -208,25 +175,26 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                             dependencyType: "stateVariable",
                             variableName: "numTotal",
                         },
-                        validParameters: {
-                            dependencyType: "stateVariable",
-                            variableName: "validParameters",
-                        },
                     },
                 };
             },
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 let means = {};
 
+                // parameters that describe no distribution have no moments either,
+                // so report the NaN that their samples report
+                const valid = validMultivariateHypergeometricParameters(
+                    globalDependencyValues,
+                );
+
                 for (let arrayKey of arrayKeys) {
-                    if (!globalDependencyValues.validParameters) {
-                        means[arrayKey] = NaN;
-                        continue;
-                    }
-                    means[arrayKey] =
-                        (globalDependencyValues.numDraws *
-                            globalDependencyValues.numInCategories[arrayKey]) /
-                        globalDependencyValues.numTotal;
+                    means[arrayKey] = valid
+                        ? (globalDependencyValues.numDraws *
+                              globalDependencyValues.numInCategories[
+                                  arrayKey
+                              ]) /
+                          globalDependencyValues.numTotal
+                        : NaN;
                 }
 
                 return { setValue: { means } };
@@ -266,10 +234,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                             dependencyType: "stateVariable",
                             variableName: "numTotal",
                         },
-                        validParameters: {
-                            dependencyType: "stateVariable",
-                            variableName: "validParameters",
-                        },
                     },
                 };
             },
@@ -279,8 +243,12 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                 const N = globalDependencyValues.numTotal;
                 const n = globalDependencyValues.numDraws;
 
+                const valid = validMultivariateHypergeometricParameters(
+                    globalDependencyValues,
+                );
+
                 for (let arrayKey of arrayKeys) {
-                    if (!globalDependencyValues.validParameters) {
+                    if (!valid) {
                         variances[arrayKey] = NaN;
                         continue;
                     }
@@ -320,14 +288,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                     numDraws: {
                         dependencyType: "stateVariable",
                         variableName: "numDraws",
-                    },
-                    numCategories: {
-                        dependencyType: "stateVariable",
-                        variableName: "numCategories",
-                    },
-                    validParameters: {
-                        dependencyType: "stateVariable",
-                        variableName: "validParameters",
                     },
                 };
                 if (stateValues.variantDeterminesSeed) {
@@ -615,8 +575,6 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             type: await this.stateValues.type,
             numInCategories: await this.stateValues.numInCategories,
             numDraws: await this.stateValues.numDraws,
-            numCategories: await this.stateValues.numCategories,
-            validParameters: await this.stateValues.validParameters,
             rng: (await this.stateValues.variantDeterminesSeed)
                 ? this.sharedParameters.variantRng
                 : this.sharedParameters.rngWithDateSeed,
@@ -636,40 +594,4 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             skipRendererUpdate,
         });
     }
-}
-
-/**
- * Dispatch on `type` to draw one vector-valued sample, returning one number per
- * category. Kept beside the component rather than in `utils/randomNumbers.js` because
- * it deals in resolved state-variable values; the distributions themselves live there.
- */
-function sampleFromMultivariateDistribution({
-    type,
-    numInCategories,
-    numDraws,
-    numCategories,
-    validParameters,
-    rng,
-}) {
-    if (!validParameters) {
-        console.warn(
-            "Invalid numInCategories (" +
-                numInCategories +
-                ") or numDraws (" +
-                numDraws +
-                ") for a multivariate " +
-                type +
-                " random variable. numInCategories must be a non-empty list of non-negative integers, and numDraws must be a non-negative integer no larger than their sum.",
-        );
-
-        return Array(numCategories).fill(NaN);
-    }
-
-    // only "hypergeometric" is currently offered, and the attribute's validValues
-    // keep any other type from reaching here
-    return sampleMultivariateHypergeometric({
-        numInCategories,
-        numDraws,
-        rng,
-    });
 }

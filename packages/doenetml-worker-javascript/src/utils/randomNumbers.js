@@ -414,6 +414,30 @@ export function validPoissonMean(mean) {
 }
 
 /**
+ * Whether `numInCategories` and `numDraws` describe a multivariate hypergeometric
+ * distribution: a population split into at least one category of a non-negative whole
+ * number of items, from which a non-negative whole number of items no larger than the
+ * whole population is drawn.
+ *
+ * Shared with the component so that the reported means and variances are NaN for
+ * exactly the parameters whose samples are NaN. Insisting on at least one category
+ * also keeps `sampleMultivariateHypergeometric` from being handed an empty partition,
+ * which has no final category to absorb the remaining draws.
+ */
+export function validMultivariateHypergeometricParameters({
+    numInCategories,
+    numDraws,
+}) {
+    return (
+        numInCategories.length > 0 &&
+        numInCategories.every((num) => Number.isInteger(num) && num >= 0) &&
+        Number.isInteger(numDraws) &&
+        numDraws >= 0 &&
+        numDraws <= numInCategories.reduce((a, c) => a + c, 0)
+    );
+}
+
+/**
  * A notice that a document will be sluggish, or nothing when it will not. Below the
  * hard limit the samples are still drawn; this only tells the author why the page
  * feels slow, which they cannot learn from anywhere else.
@@ -591,6 +615,45 @@ export function sampleFromRandomNumbers({
 
         return { sampledValues, diagnostics: [] };
     }
+}
+
+/**
+ * Draw one vector-valued sample from the multivariate distribution named by `type`,
+ * returning one number per category — or one NaN per category, with a warning, when
+ * the parameters describe no such distribution.
+ */
+export function sampleFromMultivariateDistribution({
+    type,
+    numInCategories,
+    numDraws,
+    rng,
+}) {
+    // "hypergeometric" is the only type currently offered, and the `type` attribute's
+    // validValues keep any other from reaching here
+    if (
+        !validMultivariateHypergeometricParameters({
+            numInCategories,
+            numDraws,
+        })
+    ) {
+        console.warn(
+            `Invalid numInCategories (${numInCategories}) or numDraws (${numDraws}) for a multivariate ${type} random variable. numInCategories must be a non-empty list of non-negative integers, and numDraws must be a non-negative integer no larger than their sum.`,
+        );
+
+        return Array(numInCategories.length).fill(NaN);
+    }
+
+    const numTotal = numInCategories.reduce((a, c) => a + c, 0);
+
+    // Upper bound on the work: every category but the last costs a univariate
+    // hypergeometric draw against the part of the population not yet accounted for,
+    // and none of those is more work than a draw against the whole population.
+    warnSlowSampling(
+        "multivariate hypergeometric",
+        (numInCategories.length - 1) * Math.min(numDraws, numTotal - numDraws),
+    );
+
+    return sampleMultivariateHypergeometric({ numInCategories, numDraws, rng });
 }
 
 export function sampleFromNumberList({

@@ -158,7 +158,10 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
 
     it("reports numCategories, numTotal, means, and variances", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />`,
+            doenetML: `
+    <sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />
+    <p name="pSecondMean">$s.means[2]</p>
+    `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
@@ -180,11 +183,24 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         for (const [i, p] of [0.5, 0.3, 0.2].entries()) {
             expect(variances[i]).closeTo((4 * p * (1 - p) * 6) / 9, 1e-10);
         }
+
+        // a single entry of the array is reachable by indexing
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pSecondMean")]
+                .stateValues.text,
+        ).eq("1.2");
     });
 
     it("marginal means match the reported means", async () => {
-        // 200 draws is enough to catch a sampler whose marginals are wrong,
-        // without the cost of creating many cores.
+        // Cross-checks the closed-form `means` against the sampler, which the
+        // joint-pmf cases above cannot do: they only test the sampler.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const reportedMeans =
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.means;
+
         const rng = seedrandom.alea("marginal-means");
         const numInCategories = [5, 3, 2];
         const sums = [0, 0, 0];
@@ -201,8 +217,8 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
             }
         }
 
-        for (const [j, expected] of [2, 1.2, 0.8].entries()) {
-            expect(sums[j] / trials).closeTo(expected, 0.02);
+        for (let j = 0; j < 3; j++) {
+            expect(sums[j] / trials).closeTo(reportedMeans[j], 0.02);
         }
     });
 
@@ -263,6 +279,14 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
                 expect(Number.isNaN(value)).eq(true);
             }
         }
+
+        // with no categories at all there is nothing to sample, so no replacements
+        expect(
+            await get_sampled_values(
+                `<sampleMultivariateRandomNumber name="s" numDraws="0" />`,
+                "s",
+            ),
+        ).eqls([]);
     });
 
     it("invalid parameters give NaN statistics too", async () => {

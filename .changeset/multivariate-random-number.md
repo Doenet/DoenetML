@@ -17,3 +17,5 @@ Every existing sampling component produces numbers that are independent of one a
 ```
 
 The `numCategories`, `numTotal`, `means`, and `variances` properties describe the distribution, and the `resample` action draws a fresh set. `type` currently accepts only `hypergeometric`, leaving room for other multivariate distributions later.
+
+Invalid parameters produce `NaN` for both the samples and those properties, along with a warning describing what is wrong.
