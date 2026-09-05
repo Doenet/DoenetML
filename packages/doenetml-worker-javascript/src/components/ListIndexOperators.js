@@ -1,12 +1,15 @@
-import ListIndexBaseOperator, {
-    returnTargetAttribute,
-    returnTargetSearchingIndexOperator,
-    returnTargetStateVariableDefinition,
-} from "./abstract/ListIndexBaseOperator";
+import ListIndexBaseOperator from "./abstract/ListIndexBaseOperator";
+import ListIndexBaseListOperator from "./abstract/ListIndexBaseListOperator";
 import { compareExtractedValues } from "../utils/listValues";
 
 /**
- * Operators that report a position within a list. See `ListIndexBaseOperator`.
+ * Operators that report a position within a list.
+ *
+ * `<argMin>` and `<argMax>` need nothing but the list and report one index, so
+ * they are `<math>` components (`ListIndexBaseOperator`). `<indexOf>` and
+ * `<searchSorted>` search for a target, and since a target may be a list they
+ * report one index per target, so they are composites
+ * (`ListIndexBaseListOperator`).
  *
  * All indices are 1-based, matching `$list[1]`; `0` means "no such element".
  */
@@ -23,32 +26,20 @@ function returnConstantIndexOperatorDefinition(indexOperator) {
 }
 
 /**
- * The `indexOperator` state variable of an operator that searches the list for
- * the value of its `target` attribute — `<indexOf>` and `<searchSorted>`.
+ * The `locate` state variable of an operator that searches the list for one of
+ * the values of its `target` attribute — `<indexOf>` and `<searchSorted>`.
  *
- * `locate` is called with `{ values, target, numeric, dependencyValues }`;
- * `extraDependencies` names any further state variables it reads from the last
- * of those.
+ * `locate` is called with `{ values, target, numeric, dependencyValues }` once
+ * per target; `extraDependencies` names any further state variables it reads
+ * from the last of those.
  */
-function returnTargetSearchingIndexOperatorDefinition(
-    locate,
-    extraDependencies = {},
-) {
+function returnLocateDefinition(locate, extraDependencies = {}) {
     return {
-        returnDependencies: () => ({
-            comparableTarget: {
-                dependencyType: "stateVariable",
-                variableName: "comparableTarget",
-            },
-            ...extraDependencies,
-        }),
+        returnDependencies: () => ({ ...extraDependencies }),
         definition({ dependencyValues }) {
             return {
                 setValue: {
-                    indexOperator: returnTargetSearchingIndexOperator(
-                        dependencyValues.comparableTarget,
-                        (args) => locate({ ...args, dependencyValues }),
-                    ),
+                    locate: (args) => locate({ ...args, dependencyValues }),
                 },
             };
         },
@@ -114,65 +105,44 @@ export class ArgMax extends ListIndexBaseOperator {
     }
 }
 
-export class IndexOf extends ListIndexBaseOperator {
+export class IndexOf extends ListIndexBaseListOperator {
     static componentType = "indexOf";
 
     static componentDocs = {
         summary:
-            "The index of the first value in a list equal to a target, or 0 if there is none",
+            "The index of the first value in a list equal to each target, or 0 where there is none",
     };
 
-    static createAttributesObject() {
-        let attributes = super.createAttributesObject();
-
-        attributes.target = returnTargetAttribute("The value to look for.");
-
-        return attributes;
-    }
-
     static returnStateVariableDefinitions() {
-        return Object.assign(
-            super.returnStateVariableDefinitions(),
-            returnTargetStateVariableDefinition(),
-            {
-                indexOperator: returnTargetSearchingIndexOperatorDefinition(
-                    ({ values, target, numeric }) => {
-                        for (let [ind, value] of values.entries()) {
-                            if (
-                                compareExtractedValues(
-                                    value,
-                                    target,
-                                    numeric,
-                                ) === 0
-                            ) {
-                                return { index: ind + 1 };
-                            }
-                        }
-                        // A target that is not in the list is the documented
-                        // answer of `<indexOf>`, not a problem, so no reason
-                        // is attached and nothing is reported.
-                        return { index: 0 };
-                    },
-                ),
-            },
-        );
+        return Object.assign(super.returnStateVariableDefinitions(), {
+            locate: returnLocateDefinition(({ values, target, numeric }) => {
+                for (let [ind, value] of values.entries()) {
+                    if (compareExtractedValues(value, target, numeric) === 0) {
+                        return { index: ind + 1 };
+                    }
+                }
+                // A target that is not in the list is the documented answer of
+                // `<indexOf>`, not a problem, so no reason is attached and
+                // nothing is reported.
+                return { index: 0 };
+            }),
+        });
     }
 }
 
-export class SearchSorted extends ListIndexBaseOperator {
+export class SearchSorted extends ListIndexBaseListOperator {
     static componentType = "searchSorted";
 
     static componentDocs = {
         summary:
-            "The position at which a target would be inserted to keep a sorted list sorted",
+            "The position at which each target would be inserted to keep a sorted list sorted",
     };
+
+    static targetDescription =
+        "The value, or list of values, to locate within the sorted list.";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        attributes.target = returnTargetAttribute(
-            "The value to locate within the sorted list.",
-        );
 
         attributes.side = {
             createComponentOfType: "text",
@@ -201,43 +171,38 @@ export class SearchSorted extends ListIndexBaseOperator {
     }
 
     static returnStateVariableDefinitions() {
-        return Object.assign(
-            super.returnStateVariableDefinitions(),
-            returnTargetStateVariableDefinition(),
-            {
-                indexOperator: returnTargetSearchingIndexOperatorDefinition(
-                    ({ values, target, numeric, dependencyValues }) => {
-                        // The number of entries that sort before the target,
-                        // plus one, is the 1-based position the target would
-                        // occupy. Counting rather than bisecting keeps the
-                        // result well defined even when the input is not
-                        // actually sorted.
-                        let count = 0;
-                        for (let value of values) {
-                            let comparison = compareExtractedValues(
-                                value,
-                                target,
-                                numeric,
-                            );
-                            if (
-                                comparison < 0 ||
-                                (dependencyValues.side === "right" &&
-                                    comparison === 0)
-                            ) {
-                                count++;
-                            }
+        return Object.assign(super.returnStateVariableDefinitions(), {
+            locate: returnLocateDefinition(
+                ({ values, target, numeric, dependencyValues }) => {
+                    // The number of entries that sort before the target, plus
+                    // one, is the 1-based position the target would occupy.
+                    // Counting rather than bisecting keeps the result well
+                    // defined even when the input is not actually sorted.
+                    let count = 0;
+                    for (let value of values) {
+                        let comparison = compareExtractedValues(
+                            value,
+                            target,
+                            numeric,
+                        );
+                        if (
+                            comparison < 0 ||
+                            (dependencyValues.side === "right" &&
+                                comparison === 0)
+                        ) {
+                            count++;
                         }
+                    }
 
-                        return { index: count + 1 };
+                    return { index: count + 1 };
+                },
+                {
+                    side: {
+                        dependencyType: "stateVariable",
+                        variableName: "side",
                     },
-                    {
-                        side: {
-                            dependencyType: "stateVariable",
-                            variableName: "side",
-                        },
-                    },
-                ),
-            },
-        );
+                },
+            ),
+        });
     }
 }

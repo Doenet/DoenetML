@@ -158,7 +158,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -403,7 +403,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1322,7 +1322,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1798,7 +1798,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -4229,7 +4229,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
+            "childBuckets": "111111111111111111111111111111111111111111222221122111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -5102,7 +5102,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5545,7 +5545,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5988,7 +5988,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -7007,7 +7007,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -7419,7 +7419,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "122221111111111111111111111222221111222122222122020222212222201221222212222221112221211222221111111110212120",
+            "childBuckets": "122221111111111111111111111222221122222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_booleanOperatorOneInput",
                 "_inline",
@@ -9828,7 +9828,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -10292,7 +10292,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -10756,7 +10756,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -11250,7 +11250,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -12140,7 +12140,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -13030,7 +13030,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -13912,7 +13912,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -14794,7 +14794,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -15676,7 +15676,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -16545,7 +16545,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -17385,7 +17385,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -18241,7 +18241,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -19097,7 +19097,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -19953,7 +19953,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -20809,7 +20809,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -21699,7 +21699,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -22589,7 +22589,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -23496,7 +23496,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -24403,7 +24403,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -25293,7 +25293,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -26183,7 +26183,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -27073,7 +27073,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -27963,7 +27963,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -28853,7 +28853,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -29743,7 +29743,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -30660,7 +30660,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -30933,7 +30933,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31206,7 +31206,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31479,7 +31479,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -31752,7 +31752,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222201221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222201221222212222221222221212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_composite",
@@ -32549,7 +32549,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
+                    "description": "Component type to interpret bare string children as.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -33573,7 +33573,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
+                    "description": "Component type to interpret bare string children as.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -34224,8 +34224,8 @@
             ],
             "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
-                "_listIndexOperator",
-                "_inline",
+                "_listIndexListOperator",
+                "_composite",
                 "_base"
             ],
             "attributes": [
@@ -34257,12 +34257,7 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
+                    "defaultValue": false
                 },
                 {
                     "name": "fixLocation",
@@ -34301,304 +34296,10 @@
                     "type": "reference"
                 },
                 {
-                    "name": "format",
-                    "description": "Input format.",
-                    "defaultValue": "text",
-                    "values": [
-                        "text",
-                        "latex"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "text",
-                            "description": "Plain-text math notation (e.g., `x^2 + 1`)."
-                        },
-                        {
-                            "value": "latex",
-                            "description": "LaTeX-formatted math (e.g., `x^{2} + 1`)."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
-                    "name": "simplify",
-                    "description": "Level of simplification applied to the expression.",
-                    "defaultValue": "none",
-                    "values": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder",
-                        "true",
-                        "false"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "none",
-                            "description": "No simplification is applied."
-                        },
-                        {
-                            "value": "full",
-                            "description": "Fully simplify the expression."
-                        },
-                        {
-                            "value": "numbers",
-                            "description": "Simplify numeric subexpressions only, leaving symbolic structure intact."
-                        },
-                        {
-                            "value": "numbersPreserveOrder",
-                            "description": "Like `numbers`, but does not reorder commutative operands."
-                        },
-                        {
-                            "value": "normalizeOrder",
-                            "description": "Reorder commutative operands into a canonical form without simplifying values."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
-                    "name": "expand",
-                    "description": "Whether to expand the expression.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number.",
-                    "groupName": "number-display",
-                    "defaultValue": 3,
-                    "type": "integer"
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number.",
-                    "groupName": "number-display",
-                    "defaultValue": 2,
-                    "type": "integer"
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero.",
-                    "groupName": "number-display",
-                    "defaultValue": 1e-14,
-                    "type": "number"
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
-                    "groupName": "number-display",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
-                    "groupName": "number-display",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "renderMode",
-                    "description": "How the math is rendered.",
-                    "defaultValue": "inline",
-                    "values": [
-                        "inline",
-                        "display"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "inline",
-                            "description": "Render inline with the surrounding text."
-                        },
-                        {
-                            "value": "display",
-                            "description": "Render as a centered equation on its own line."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
-                    "name": "unordered",
-                    "description": "Whether tuple- or list-like math expressions should be treated as unordered for comparison.",
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "createVectors",
-                    "description": "Whether tuple-like expressions are interpreted as vectors.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "createIntervals",
-                    "description": "Whether range expressions are interpreted as intervals.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "functionSymbols",
-                    "description": "Symbols treated as function names when parsing.",
-                    "defaultValue": [
-                        "f",
-                        "g"
-                    ],
-                    "type": "textList"
-                },
-                {
-                    "name": "referencesAreFunctionSymbols",
-                    "description": "References whose names should be treated as function symbols when parsing.",
-                    "defaultValue": [],
-                    "type": "reference"
-                },
-                {
-                    "name": "splitSymbols",
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayBlanks",
-                    "description": "Whether blanks (placeholders) are visibly rendered.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "assumptions",
-                    "description": "Assumptions applied when simplifying or comparing.",
-                    "defaultValue": {
-                        "type": "math",
-                        "latex": "＿"
-                    },
-                    "type": "math"
-                },
-                {
-                    "name": "draggable",
-                    "description": "Whether the math component can be dragged on a graph.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "layer",
-                    "description": "Z-order layer index when shown on a graph.",
-                    "defaultValue": 0,
-                    "type": "number"
-                },
-                {
-                    "name": "anchor",
-                    "description": "Coordinates of the anchor point used to position this component on a graph.",
-                    "groupName": "positioning",
-                    "defaultValue": {
-                        "type": "math",
-                        "latex": "\\left( 0, 0 \\right)"
-                    },
-                    "type": "point"
-                },
-                {
-                    "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point.",
-                    "groupName": "positioning",
-                    "defaultValue": "center",
-                    "values": [
-                        "upperRight",
-                        "upperLeft",
-                        "lowerRight",
-                        "lowerLeft",
-                        "top",
-                        "bottom",
-                        "left",
-                        "right",
-                        "center"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "upperRight",
-                            "description": "Place the component above and to the right of the anchor point."
-                        },
-                        {
-                            "value": "upperLeft",
-                            "description": "Place the component above and to the left of the anchor point."
-                        },
-                        {
-                            "value": "lowerRight",
-                            "description": "Place the component below and to the right of the anchor point."
-                        },
-                        {
-                            "value": "lowerLeft",
-                            "description": "Place the component below and to the left of the anchor point."
-                        },
-                        {
-                            "value": "top",
-                            "description": "Place the component directly above the anchor point."
-                        },
-                        {
-                            "value": "bottom",
-                            "description": "Place the component directly below the anchor point."
-                        },
-                        {
-                            "value": "left",
-                            "description": "Place the component directly to the left of the anchor point."
-                        },
-                        {
-                            "value": "right",
-                            "description": "Place the component directly to the right of the anchor point."
-                        },
-                        {
-                            "value": "center",
-                            "description": "Center the component on the anchor point."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
                     "name": "type",
                     "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
                     "highlighted": true,
+                    "defaultValue": null,
                     "values": [
                         "number",
                         "math",
@@ -34627,10 +34328,40 @@
                 },
                 {
                     "name": "target",
-                    "description": "The value to look for.",
+                    "description": "The value, or list of values, to look for.",
                     "highlighted": true,
-                    "defaultValue": null,
-                    "type": "_componentWithSelectableType"
+                    "type": "_componentListWithSelectableType"
+                },
+                {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 }
             ],
             "properties": [
@@ -34656,359 +34387,18 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "format",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Input format.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "simplify",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "expand",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to expand the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "renderMode",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "How the math is rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createVectors",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether tuple-like expressions are interpreted as vectors.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createIntervals",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether range expressions are interpreted as intervals.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "displayBlanks",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether blanks (placeholders) are visibly rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "assumptions",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "Assumptions applied when simplifying or comparing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "draggable",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the math component can be dragged on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "layer",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Z-order layer index when shown on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "positionFromAnchor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Where this component sits relative to its anchor point.",
-                    "fromAttribute": true,
-                    "groupName": "positioning"
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is hidden from the rendered output."
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is disabled and cannot be interacted with."
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's value is fixed and cannot be modified."
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "textColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
-                },
-                {
-                    "name": "backgroundColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
-                },
-                {
-                    "name": "textStyleDescription",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
-                },
-                {
-                    "name": "anchor",
-                    "type": "point",
-                    "isArray": false,
-                    "description": "The coordinates where this component is anchored on the graph.",
-                    "groupName": "positioning"
-                },
-                {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "value",
-                    "type": "indexOf",
-                    "isArray": false,
-                    "description": "The 1-based index the operator found, or 0 if there is none.",
-                    "highlighted": true
-                },
-                {
-                    "name": "number",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The numeric value of the expression (NaN if not a number)."
-                },
-                {
-                    "name": "isNumber",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to a finite number."
-                },
-                {
-                    "name": "isNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to any number (including infinities)."
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false,
-                    "description": "The expression rendered as a LaTeX string."
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The expression rendered as a plain text string."
-                },
-                {
-                    "name": "numDimensions",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
-                },
-                {
-                    "name": "vector",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a vector (its components).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "vector"
-                        }
-                    ]
-                },
-                {
-                    "name": "list",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a list (its elements).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "matrixSize",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "The size of the math expression as a matrix, as a [numRows, numColumns] list."
-                },
-                {
-                    "name": "numRows",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of rows when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "numColumns",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of columns when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "matrix",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "rows",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by row.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "columns",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by column.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "x",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The first component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "y",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The second component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "z",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The third component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "numListItems",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
             "acceptsStringChildren": true,
-            "takesIndex": false,
+            "takesIndex": true,
             "docsSlug": "indexOf",
-            "summary": "The index of the first value in a list equal to a target, or 0 if there is none",
-            "layoutCategory": "inline"
+            "summary": "The index of the first value in a list equal to each target, or 0 where there is none",
+            "layoutCategory": "other"
         },
         {
             "name": "searchSorted",
@@ -35255,8 +34645,8 @@
             ],
             "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
-                "_listIndexOperator",
-                "_inline",
+                "_listIndexListOperator",
+                "_composite",
                 "_base"
             ],
             "attributes": [
@@ -35288,12 +34678,7 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
+                    "defaultValue": false
                 },
                 {
                     "name": "fixLocation",
@@ -35332,304 +34717,10 @@
                     "type": "reference"
                 },
                 {
-                    "name": "format",
-                    "description": "Input format.",
-                    "defaultValue": "text",
-                    "values": [
-                        "text",
-                        "latex"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "text",
-                            "description": "Plain-text math notation (e.g., `x^2 + 1`)."
-                        },
-                        {
-                            "value": "latex",
-                            "description": "LaTeX-formatted math (e.g., `x^{2} + 1`)."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
-                    "name": "simplify",
-                    "description": "Level of simplification applied to the expression.",
-                    "defaultValue": "none",
-                    "values": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder",
-                        "true",
-                        "false"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "none",
-                            "description": "No simplification is applied."
-                        },
-                        {
-                            "value": "full",
-                            "description": "Fully simplify the expression."
-                        },
-                        {
-                            "value": "numbers",
-                            "description": "Simplify numeric subexpressions only, leaving symbolic structure intact."
-                        },
-                        {
-                            "value": "numbersPreserveOrder",
-                            "description": "Like `numbers`, but does not reorder commutative operands."
-                        },
-                        {
-                            "value": "normalizeOrder",
-                            "description": "Reorder commutative operands into a canonical form without simplifying values."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
-                    "name": "expand",
-                    "description": "Whether to expand the expression.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number.",
-                    "groupName": "number-display",
-                    "defaultValue": 3,
-                    "type": "integer"
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number.",
-                    "groupName": "number-display",
-                    "defaultValue": 2,
-                    "type": "integer"
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero.",
-                    "groupName": "number-display",
-                    "defaultValue": 1e-14,
-                    "type": "number"
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
-                    "groupName": "number-display",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
-                    "groupName": "number-display",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "renderMode",
-                    "description": "How the math is rendered.",
-                    "defaultValue": "inline",
-                    "values": [
-                        "inline",
-                        "display"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "inline",
-                            "description": "Render inline with the surrounding text."
-                        },
-                        {
-                            "value": "display",
-                            "description": "Render as a centered equation on its own line."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
-                    "name": "unordered",
-                    "description": "Whether tuple- or list-like math expressions should be treated as unordered for comparison.",
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "createVectors",
-                    "description": "Whether tuple-like expressions are interpreted as vectors.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "createIntervals",
-                    "description": "Whether range expressions are interpreted as intervals.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "functionSymbols",
-                    "description": "Symbols treated as function names when parsing.",
-                    "defaultValue": [
-                        "f",
-                        "g"
-                    ],
-                    "type": "textList"
-                },
-                {
-                    "name": "referencesAreFunctionSymbols",
-                    "description": "References whose names should be treated as function symbols when parsing.",
-                    "defaultValue": [],
-                    "type": "reference"
-                },
-                {
-                    "name": "splitSymbols",
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayBlanks",
-                    "description": "Whether blanks (placeholders) are visibly rendered.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "assumptions",
-                    "description": "Assumptions applied when simplifying or comparing.",
-                    "defaultValue": {
-                        "type": "math",
-                        "latex": "＿"
-                    },
-                    "type": "math"
-                },
-                {
-                    "name": "draggable",
-                    "description": "Whether the math component can be dragged on a graph.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "layer",
-                    "description": "Z-order layer index when shown on a graph.",
-                    "defaultValue": 0,
-                    "type": "number"
-                },
-                {
-                    "name": "anchor",
-                    "description": "Coordinates of the anchor point used to position this component on a graph.",
-                    "groupName": "positioning",
-                    "defaultValue": {
-                        "type": "math",
-                        "latex": "\\left( 0, 0 \\right)"
-                    },
-                    "type": "point"
-                },
-                {
-                    "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point.",
-                    "groupName": "positioning",
-                    "defaultValue": "center",
-                    "values": [
-                        "upperRight",
-                        "upperLeft",
-                        "lowerRight",
-                        "lowerLeft",
-                        "top",
-                        "bottom",
-                        "left",
-                        "right",
-                        "center"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "upperRight",
-                            "description": "Place the component above and to the right of the anchor point."
-                        },
-                        {
-                            "value": "upperLeft",
-                            "description": "Place the component above and to the left of the anchor point."
-                        },
-                        {
-                            "value": "lowerRight",
-                            "description": "Place the component below and to the right of the anchor point."
-                        },
-                        {
-                            "value": "lowerLeft",
-                            "description": "Place the component below and to the left of the anchor point."
-                        },
-                        {
-                            "value": "top",
-                            "description": "Place the component directly above the anchor point."
-                        },
-                        {
-                            "value": "bottom",
-                            "description": "Place the component directly below the anchor point."
-                        },
-                        {
-                            "value": "left",
-                            "description": "Place the component directly to the left of the anchor point."
-                        },
-                        {
-                            "value": "right",
-                            "description": "Place the component directly to the right of the anchor point."
-                        },
-                        {
-                            "value": "center",
-                            "description": "Center the component on the anchor point."
-                        }
-                    ],
-                    "type": "keyword"
-                },
-                {
                     "name": "type",
                     "description": "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
                     "highlighted": true,
+                    "defaultValue": null,
                     "values": [
                         "number",
                         "math",
@@ -35658,10 +34749,40 @@
                 },
                 {
                     "name": "target",
-                    "description": "The value to locate within the sorted list.",
+                    "description": "The value, or list of values, to locate within the sorted list.",
                     "highlighted": true,
-                    "defaultValue": null,
-                    "type": "_componentWithSelectableType"
+                    "type": "_componentListWithSelectableType"
+                },
+                {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "side",
@@ -35708,105 +34829,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "format",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Input format.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "simplify",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "expand",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to expand the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "renderMode",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "How the math is rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createVectors",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether tuple-like expressions are interpreted as vectors.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createIntervals",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether range expressions are interpreted as intervals.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "displayBlanks",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether blanks (placeholders) are visibly rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "assumptions",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "Assumptions applied when simplifying or comparing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "draggable",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the math component can be dragged on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "layer",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Z-order layer index when shown on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "positionFromAnchor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Where this component sits relative to its anchor point.",
-                    "fromAttribute": true,
-                    "groupName": "positioning"
-                },
-                {
                     "name": "side",
                     "type": "text",
                     "isArray": false,
@@ -35815,260 +34837,18 @@
                     "highlighted": true
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is hidden from the rendered output."
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is disabled and cannot be interacted with."
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's value is fixed and cannot be modified."
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "textColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
-                },
-                {
-                    "name": "backgroundColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
-                },
-                {
-                    "name": "textStyleDescription",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
-                },
-                {
-                    "name": "anchor",
-                    "type": "point",
-                    "isArray": false,
-                    "description": "The coordinates where this component is anchored on the graph.",
-                    "groupName": "positioning"
-                },
-                {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "value",
-                    "type": "searchSorted",
-                    "isArray": false,
-                    "description": "The 1-based index the operator found, or 0 if there is none.",
-                    "highlighted": true
-                },
-                {
-                    "name": "number",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The numeric value of the expression (NaN if not a number)."
-                },
-                {
-                    "name": "isNumber",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to a finite number."
-                },
-                {
-                    "name": "isNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to any number (including infinities)."
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false,
-                    "description": "The expression rendered as a LaTeX string."
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The expression rendered as a plain text string."
-                },
-                {
-                    "name": "numDimensions",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
-                },
-                {
-                    "name": "vector",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a vector (its components).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "vector"
-                        }
-                    ]
-                },
-                {
-                    "name": "list",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a list (its elements).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "matrixSize",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "The size of the math expression as a matrix, as a [numRows, numColumns] list."
-                },
-                {
-                    "name": "numRows",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of rows when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "numColumns",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of columns when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "matrix",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "rows",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by row.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "columns",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by column.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "x",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The first component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "y",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The second component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "z",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The third component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "numListItems",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
             "acceptsStringChildren": true,
-            "takesIndex": false,
+            "takesIndex": true,
             "docsSlug": "searchSorted",
-            "summary": "The position at which a target would be inserted to keep a sorted list sorted",
-            "layoutCategory": "inline"
+            "summary": "The position at which each target would be inserted to keep a sorted list sorted",
+            "layoutCategory": "other"
         },
         {
             "name": "clampFunction",
@@ -36167,7 +34947,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -37114,7 +35894,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -38061,7 +36841,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -39009,7 +37789,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_textOperatorOfMath",
                 "_inline",
@@ -39536,7 +38316,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -39839,7 +38619,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40142,7 +38922,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40445,7 +39225,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -40748,7 +39528,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41051,7 +39831,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41354,7 +40134,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41657,7 +40437,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41960,7 +40740,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42263,7 +41043,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -61387,7 +60167,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "11201111111111111111111111122222111111022010122121111222111111112222012222222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222112211022010122121111222111111112222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -62143,7 +60923,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -62803,7 +61583,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120111010122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
+            "childBuckets": "1120111010122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -64562,7 +63342,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -65418,7 +64198,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0201222211111111111111111111112222211112222222221222202221222220122122212222221222221212222",
+            "childBuckets": "0201222211111111111111111111112222211222222222221222202221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -70633,7 +69413,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11200012222111111111111111111111122222111122222222212222022221222222222122212222221222221212222",
+            "childBuckets": "11200012222111111111111111111111122222112222222222212222022221222222222122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -71304,7 +70084,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222112211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -71657,7 +70437,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222112211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -74558,7 +73338,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
+            "childBuckets": "111111111111111111111111111111111111111111222221122111111111111111111111112211111111121212222121212211111111111222222122212222221112111121222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -74990,7 +73770,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "122221111111111111111111111222221111222122222122020222212222201221222212222221112221211222221111111110212120",
+            "childBuckets": "122221111111111111111111111222221122222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -75620,7 +74400,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -76475,7 +75255,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -76807,7 +75587,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -77139,7 +75919,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111112222211112122022210112222122222212222112222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211222122022210112222122222212222112222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -77921,7 +76701,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "11201111111111111111111111122222111111022010122121111222111111112222012222222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222112211022010122121111222111111112222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -78659,7 +77439,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -79506,7 +78286,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -84858,7 +83638,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -85749,7 +84529,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112012222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
+            "childBuckets": "112012222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -86472,7 +85252,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120111010122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
+            "childBuckets": "1120111010122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -87415,7 +86195,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "0212222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
+            "childBuckets": "0212222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -87664,7 +86444,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "111111111111111111111112222211111022101222121112222222222222222222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211221022101222121112222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -87983,7 +86763,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112011111111111111111111111222221111110220101221211112222222012222222222222222222222222222222",
+            "childBuckets": "112011111111111111111111111222221122110220101221211112222222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -88754,7 +87534,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "112011111111111111111111111222221111212202221011222122222212222112222222222222222222222222222",
+            "childBuckets": "112011111111111111111111111222221122212202221011222122222212222112222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -89335,7 +88115,7 @@
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "02111111011000122221111111111111111111111222221111222122222100001021222001221222122222211122212112221111111110011",
+            "childBuckets": "02111111011000122221111111111111111111111222221122222122222100001021222001221222122222211122212112221111111110011",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -90384,7 +89164,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "0212222111111111111111111111122222111122212222212202022221222220122122212222221112221211222221111111110212120",
+            "childBuckets": "0212222111111111111111111111122222112222212222212202022221222220122122212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_base"
             ],
@@ -91003,7 +89783,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "122221111111111111111111111222221111222122222122020222212222201221222212222221112221211222221111111110212120",
+            "childBuckets": "122221111111111111111111111222221122222122222122020222212222201221222212222221112221211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -91500,7 +90280,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11200012222111111111111111111111122222111122222222212222022221222222222122212222221222221212222",
+            "childBuckets": "11200012222111111111111111111111122222112222222222212222022221222222222122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -92932,7 +91712,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1120001111111110221112222111111111111111111111122222111122222222212222022221222220122122212222221222221212222",
+            "childBuckets": "1120001111111110221112222111111111111111111111122222112222222222212222022221222220122122212222221222221212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -94315,7 +93095,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "11111111111111111111111222221111110202221011222212222221112211122222222222222222222222222222111111111021212",
+            "childBuckets": "11111111111111111111111222221122110202221011222212222221112211122222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -94823,7 +93603,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "11111111111111111111111222221111110202221011222212222221112211122222222222222222222222222222111111111021212",
+            "childBuckets": "11111111111111111111111222221122110202221011222212222221112211122222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -95372,7 +94152,7 @@
                 "graph",
                 "annotations"
             ],
-            "childBuckets": "0200011111111111111111111111222221111222111110222111111111111111221222122221212122121111111112220011122222222212202222201222222112220212220010000000",
+            "childBuckets": "0200011111111111111111111111222221122222111110222111111111111111221222122221212122121111111112220011122222222212202222201222222112220212220010000000",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -96694,7 +95474,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "122221111111111111111111111222221111111222222122220222212222222011222212222221222221212222110",
+            "childBuckets": "122221111111111111111111111222221122111222222122220222212222222011222212222221222221212222110",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -98402,7 +97182,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -102593,7 +101373,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "02111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "02111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -102979,7 +101759,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "20111111111111111111111111111111111111111111222221111111111111111111111111112211111111121212222121212211111111111222221222122222211121111212222112211111222111111111111111111111111111111111111111111111111111",
+            "childBuckets": "20111111111111111111111111111111111111111111222221122111111111111111111111112211111111121212222121212211111111111222221222122222211121111212222112211111222111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -106541,7 +105321,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -118116,7 +116896,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -118476,7 +117256,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222111111111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11111111111111111111111111111111111111111122222112211111111111111111111111221111111112121222212121221111111111122222212221222222111211112122221122111112221111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -118725,7 +117505,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "11201111111111111111111111122222111111022010122121111222111111112222012222222222222222222222222222222",
+            "childBuckets": "11201111111111111111111111122222112211022010122121111222111111112222012222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -120774,7 +119554,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -121340,7 +120120,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -123879,7 +122659,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111012122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
+            "childBuckets": "111012122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -124248,7 +123028,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111012122221111111111111111111111222221111222222122220222212222201122212222221222221212222",
+            "childBuckets": "111012122221111111111111111111111222221122222222122220222212222201122212222221222221212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -125516,7 +124296,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -126372,7 +125152,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -126784,7 +125564,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -128182,7 +126962,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -128568,7 +127348,7 @@
                 "md",
                 "mdn"
             ],
-            "childBuckets": "122011122222222211111111111111111111112222211111221022202221222122221222222111221222112111111111111111111222222222222222222201",
+            "childBuckets": "122011122222222211111111111111111111112222211221221022202221222122221222222111221222112111111111111111111222222222222222222201",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -131479,7 +130259,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211111111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
+            "childBuckets": "1111111111111111111111111111111111111111112222211221111111111111111111111122111111111212122221212122111111111112222221222122222211121111212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -131724,7 +130504,7 @@
                 "bestFitLine",
                 "latex"
             ],
-            "childBuckets": "111111111111111111111112222211111102201212221211112222222222222222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211221102201212221211112222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -131985,7 +130765,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "022122221111111111111111111111222221111222222222122220222212222222222221222222122222121222",
+            "childBuckets": "022122221111111111111111111111222221122222222222122220222212222222222221222222122222121222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -132246,7 +131026,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "111111111111111111111112222211111022101222121112222222222222222222222222222222222222222222",
+            "childBuckets": "111111111111111111111112222211221022101222121112222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -132737,7 +131517,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -133068,7 +131848,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "122221111111111111111111111222221111222222222122220222212222222221222212222221222221212222",
+            "childBuckets": "122221111111111111111111111222221122222222222122220222212222222221222212222221222221212222",
             "abstractAncestors": [
                 "_composite",
                 "_base"

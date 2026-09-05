@@ -365,9 +365,10 @@ export function returnListValueStateVariableDefinitions({
 
 /**
  * The comparable form of a value that did not come from a child component —
- * in practice, the `target` attribute of `<indexOf>` / `<searchSorted>`, which
- * is a `_componentWithSelectableType` and so can arrive as a number, a string,
- * a math-expression or a boolean.
+ * in practice, one value of the `target` attribute of `<indexOf>` /
+ * `<searchSorted>`, which is a `_componentListWithSelectableType` and so
+ * yields a list whose entries can each be a number, a string, a
+ * math-expression or a boolean.
  */
 export function comparableValueFromRaw(value) {
     if (value === null || value === undefined) {
