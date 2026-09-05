@@ -688,9 +688,17 @@ export function sampleFromRandomNumbers({
  * The multivariate distributions that can be sampled from, each mapped to the function
  * that draws one vector-valued variate from it.
  *
- * Adding a distribution here and to the `type` attribute's `validValues` is all it
- * takes; a name in one list but not the other refuses to sample rather than quietly
- * drawing from whichever distribution happened to be first.
+ * A name in this map but not in the `type` attribute's `validValues`, or the reverse,
+ * refuses to sample rather than quietly drawing from whichever distribution happened to
+ * be first. That refusal is all this map buys, and registering a second distribution
+ * takes considerably more than adding it to the two lists: everything below is still
+ * written for the hypergeometric alone. The parameters describe an urn rather than any
+ * multivariate distribution — a joint gaussian would be given means and covariances,
+ * not `numInCategories` and `numDraws` — and the validity check, the cost estimate, and
+ * the two diagnostics reporting on them are all specific to that urn, down to the
+ * message text, which names the multivariate hypergeometric outright. A second
+ * distribution needs its own parameters, validation, cost estimate, and messages; what
+ * it inherits from here is only that forgetting them cannot pass for a working draw.
  */
 const MULTIVARIATE_SAMPLERS = {
     hypergeometric: sampleMultivariateHypergeometric,
@@ -718,6 +726,8 @@ function inspectMultivariateParameters({ type, numInCategories, numDraws }) {
         };
     }
 
+    // Hypergeometric-specific, as is the cost estimate below — see the note on
+    // MULTIVARIATE_SAMPLERS for what a second distribution would have to bring.
     const problem = multivariateHypergeometricProblem({
         numInCategories,
         numDraws,
