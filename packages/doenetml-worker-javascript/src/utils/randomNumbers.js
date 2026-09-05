@@ -684,6 +684,13 @@ export function sampleFromMultivariateDistribution({
     numDraws,
     rng,
 }) {
+    if (type == null) {
+        return unsampleable(
+            numInCategories.length,
+            codedDiagnostic({ type: "warning", code: "doenet-w0137" }),
+        );
+    }
+
     const problem = multivariateHypergeometricProblem({
         numInCategories,
         numDraws,
@@ -694,7 +701,7 @@ export function sampleFromMultivariateDistribution({
 
     return {
         // "hypergeometric" is the only type currently offered, and the `type`
-        // attribute's validValues keep any other from reaching here
+        // attribute's validValues keep any other named one from reaching here
         sampledValues: sampleMultivariateHypergeometric({
             numInCategories,
             numDraws,

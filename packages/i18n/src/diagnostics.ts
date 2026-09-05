@@ -222,6 +222,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0134": "index-operator-missing-target",
     "doenet-w0135": "sample-multivariate-parameters-invalid",
     "doenet-w0136": "sample-multivariate-draws-too-many",
+    "doenet-w0137": "sample-multivariate-type-not-specified",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

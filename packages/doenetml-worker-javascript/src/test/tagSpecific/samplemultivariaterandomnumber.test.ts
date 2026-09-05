@@ -131,7 +131,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     it("expands to one number per category, summing to numDraws", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p><sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" /></p>
+    <p><sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="4" /></p>
     <p name="pFirst">$s[1]</p>
     `,
         });
@@ -160,7 +160,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     it("reports numCategories, numTotal, means, and variances", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />
+    <sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="4" />
     <p name="pSecondMean">$s.means[2]</p>
     `,
         });
@@ -196,7 +196,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // Cross-checks the closed-form `means` against the sampler, which the
         // joint-pmf cases above cannot do: they only test the sampler.
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />`,
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="4" />`,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const reportedMeans =
@@ -227,7 +227,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // drawing the whole population takes every item of every category
         expect(
             await get_sampled_values(
-                `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="10" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="10" />`,
                 "s",
             ),
         ).eqls([5, 3, 2]);
@@ -235,14 +235,14 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // drawing nothing takes nothing from any category
         expect(
             await get_sampled_values(
-                `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="0" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="0" />`,
                 "s",
             ),
         ).eqls([0, 0, 0]);
 
         // an empty category can never be drawn from
         const withEmpty = await get_sampled_values(
-            `<sampleMultivariateRandomNumber name="s" numInCategories="6 0 4" numDraws="3" />`,
+            `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="6 0 4" numDraws="3" />`,
             "s",
         );
         expect(withEmpty[1]).eq(0);
@@ -251,7 +251,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // a single category takes all the draws
         expect(
             await get_sampled_values(
-                `<sampleMultivariateRandomNumber name="s" numInCategories="7" numDraws="3" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="7" numDraws="3" />`,
                 "s",
             ),
         ).eqls([3]);
@@ -262,7 +262,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // so the counts and their moments are zero rather than the NaN that the
         // 0/0 in `n * numInCategories[i] / numTotal` would otherwise give
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="0 0" numDraws="0" />`,
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="0 0" numDraws="0" />`,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
@@ -279,17 +279,17 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     it("invalid parameters give NaN", async () => {
         const doenetMLs = [
             // numDraws unspecified
-            `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" />`,
+            `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" />`,
             // more draws than the population holds
-            `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="11" />`,
+            `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="11" />`,
             // negative draws
-            `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="-1" />`,
+            `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="-1" />`,
             // non-integer draws
-            `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="2.5" />`,
+            `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="2.5" />`,
             // non-integer category size
-            `<sampleMultivariateRandomNumber name="s" numInCategories="5.5 3 2" numDraws="4" />`,
+            `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5.5 3 2" numDraws="4" />`,
             // negative category size
-            `<sampleMultivariateRandomNumber name="s" numInCategories="5 -3 2" numDraws="4" />`,
+            `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 -3 2" numDraws="4" />`,
         ];
 
         for (let doenetML of doenetMLs) {
@@ -303,7 +303,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // with no categories at all there is nothing to sample, so no replacements
         expect(
             await get_sampled_values(
-                `<sampleMultivariateRandomNumber name="s" numDraws="0" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numDraws="0" />`,
                 "s",
             ),
         ).eqls([]);
@@ -311,7 +311,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
 
     it("invalid parameters give NaN statistics too", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="11" />`,
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="11" />`,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
@@ -327,7 +327,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     it("a one-item population has zero variance", async () => {
         // the finite population correction divides by numTotal - 1
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="1 0" numDraws="1" />`,
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="1 0" numDraws="1" />`,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
@@ -342,21 +342,21 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // reason has to arrive as a diagnostic the surrounding tooling can show.
         const cases: [string, Record<string, unknown>][] = [
             [
-                `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="11" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="11" />`,
                 { numInCategories: "5, 3, 2", numDraws: 11 },
             ],
             [
                 // numDraws left off entirely, which has no default to fall back on
-                `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" />`,
                 { numInCategories: "5, 3, 2", numDraws: "not-set" },
             ],
             [
                 // and with no categories either
-                `<sampleMultivariateRandomNumber name="s" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" />`,
                 { numInCategories: "not-set", numDraws: "not-set" },
             ],
             [
-                `<sampleMultivariateRandomNumber name="s" numInCategories="5.5 3" numDraws="2" />`,
+                `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5.5 3" numDraws="2" />`,
                 { numInCategories: "5.5, 3", numDraws: 2 },
             ],
         ];
@@ -380,13 +380,13 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // Drawing each category costs a univariate hypergeometric draw, so this would
         // otherwise run for minutes rather than returning.
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="1000000000 1000000000 1000000000" numDraws="1500000000" />`,
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="1000000000 1000000000 1000000000" numDraws="1500000000" />`,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
 
         const warnings = getDiagnosticsByType(core).warnings.filter(
-            (w) => w.code === "doenet-w0136",
+            (w) => w.code === "doenet-w0137",
         );
         expect(warnings.length).eq(1);
         expect(warnings[0].args).eqls({
@@ -413,7 +413,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         // draw is refused, the sample is taken as asked and the author is told why
         // the page feels slow — something no other part of the document can tell them.
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="3000000 3000000" numDraws="3000000" />`,
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="3000000 3000000" numDraws="3000000" />`,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
@@ -435,9 +435,49 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
         }
     });
 
+    it("an unspecified type samples nothing and says so", async () => {
+        // `type` deliberately has no default: `hypergeometric` is unlikely to stay
+        // the most natural one, and defaulting to it now would let documents come to
+        // rely on it, so that changing the default later would silently reinterpret
+        // them. Requiring the attribute keeps that door open.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0137",
+        );
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).toContain(`type="hypergeometric"`);
+
+        // nothing is guessed: the counts and both sets of moments are NaN, even
+        // though the remaining parameters would describe a usable population
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+        for (const value of stateVariables[componentIdx].stateValues.means) {
+            expect(Number.isNaN(value)).eq(true);
+        }
+        for (const value of stateVariables[componentIdx].stateValues
+            .variances) {
+            expect(Number.isNaN(value)).eq(true);
+        }
+
+        // the parameters themselves are still reported, so an author can see what
+        // the component did read
+        expect(stateVariables[componentIdx].stateValues.numCategories).eq(3);
+        expect(stateVariables[componentIdx].stateValues.numTotal).eq(10);
+    });
+
     it("valid parameters raise no diagnostics", async () => {
         const { core } = await createTestCore({
-            doenetML: `<sampleMultivariateRandomNumber name="s" numInCategories="5 3 2" numDraws="4" />`,
+            doenetML: `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="4" />`,
         });
         await core.returnAllStateVariables(false, true);
 
@@ -449,7 +489,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     it("resample draws a new vector", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p><sampleMultivariateRandomNumber name="s" numInCategories="40 30 30" numDraws="30" /></p>
+    <p><sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="40 30 30" numDraws="30" /></p>
     <callAction name="resample" target="$s" actionName="resample"><label>Resample</label></callAction>
     `,
         });
@@ -489,7 +529,7 @@ describe("SampleMultivariateRandomNumber tag tests @group4", async () => {
     });
 
     it("same values for given variant if variantDeterminesSeed", async () => {
-        const doenetML = `<sampleMultivariateRandomNumber name="s" numInCategories="40 30 30" numDraws="30" variantDeterminesSeed />`;
+        const doenetML = `<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="40 30 30" numDraws="30" variantDeterminesSeed />`;
 
         async function values_for_variant(requestedVariantIndex: number) {
             const { core, resolvePathToNodeIdx } = await createTestCore({

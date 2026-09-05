@@ -1038,3 +1038,9 @@ sample-multivariate-parameters-invalid =
 # raising numDraws is a fix as well as lowering it.
 sample-multivariate-draws-too-many =
     Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, bring it closer to numTotal, or use fewer categories.
+
+# Deliberately has no default: which multivariate distribution is meant is not
+# something to guess on the author's behalf, and defaulting to one would make any
+# later change of default silently reinterpret documents that relied on it.
+sample-multivariate-type-not-specified =
+    No type was given for this multivariate random variable, so nothing was sampled. Add a type attribute naming the distribution, such as `type="hypergeometric"`.

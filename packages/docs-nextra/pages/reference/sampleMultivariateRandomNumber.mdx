@@ -30,6 +30,7 @@ among the categories.
   Draw 4 of them without replacement:</p>
 
 <p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
   numInCategories="5 3 2" 
   numDraws="4" 
 /></p>
@@ -43,8 +44,8 @@ The three numbers are the counts of each category among the drawn items, so they
 sum to `numDraws`. The number of categories &mdash; and therefore how many numbers are 
 produced &mdash; comes from the length of `numInCategories`.
 
-Both attributes are required, and they must describe a population that can actually be 
-drawn from: `numInCategories` a list of non-negative whole numbers and `numDraws` a 
+All three attributes are required, and the latter two must describe a population that 
+can actually be drawn from: `numInCategories` a list of non-negative whole numbers and `numDraws` a 
 non-negative whole number no larger than their sum. Anything else samples `NaN` for 
 every category, as do the `means` and `variances` properties below.
 
@@ -57,6 +58,7 @@ every category, as do the `means` and `variances` properties below.
 
 ```doenet-editor-horiz
 <p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
   numInCategories="5 3 2" 
   numDraws="4" 
 /></p>
@@ -82,6 +84,7 @@ The `<callAction>{:dn}` button draws a fresh set of items from the same populati
   6 sophomores, and 2 first-years:</p>
 
 <p><sampleMultivariateRandomNumber name="committee" 
+  type="hypergeometric"
   numInCategories="4 5 6 2" 
   numDraws="3" 
 /></p>
@@ -108,6 +111,7 @@ produces four numbers.
 <p>Draw 8 of the 10 marbles:</p>
 
 <p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
   numInCategories="5 3 2" 
   numDraws="8" 
 /></p>
@@ -131,6 +135,7 @@ whole population. Drawing all of them would always return `numInCategories` itse
 
 ```doenet-example
 <p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
   numInCategories="5 3 2" 
   numDraws="4" 
 /></p>
@@ -162,7 +167,13 @@ counts and statistics along with a warning explaining what to change. The limit 
 above the populations that arise in practice; it is there so that mistyping an extra 
 digit reports a problem instead of freezing the activity.
 
-`numInCategories` and `numDraws` have no defaults to fall back on. If either is 
-omitted, or they do not describe a population &mdash; a category that is not a whole 
-number, or more draws than there are items &mdash; every count is `NaN`, as are the 
-reported `means` and `variances`.
+`type`, `numInCategories`, and `numDraws` have no defaults to fall back on. If any is 
+omitted, or the latter two do not describe a population &mdash; a category that is not 
+a whole number, or more draws than there are items &mdash; every count is `NaN`, as are 
+the reported `means` and `variances`.
+
+`type` is required rather than defaulting to `hypergeometric` on purpose. It is the 
+only multivariate distribution available so far, but it is unlikely to remain the most 
+natural default &mdash; a joint normal distribution is the more usual multivariate one. 
+Naming the distribution in every document means adding others later cannot change what 
+an existing document does.

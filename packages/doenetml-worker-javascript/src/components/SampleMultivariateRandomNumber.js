@@ -40,11 +40,18 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
         // possible types
         // hypergeometric: determined by numInCategories and numDraws
 
+        // Deliberately has no default. `hypergeometric` is the only distribution
+        // implemented so far, but it is unlikely to stay the most natural default —
+        // a joint gaussian is the more usual multivariate distribution. Defaulting
+        // to one now would let documents come to rely on it, and any later change
+        // would silently reinterpret them. Requiring the attribute keeps that door
+        // open at the cost of one word in every document.
         attributes.type = {
-            description: "Multivariate distribution from which to sample.",
+            description:
+                "Multivariate distribution from which to sample. Required; there is no default.",
             createComponentOfType: "text",
             createStateVariable: "type",
-            defaultValue: "hypergeometric",
+            defaultValue: null,
             public: true,
             toLowerCase: true,
             validValues: [
@@ -163,6 +170,10 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             returnArrayDependenciesByKey() {
                 return {
                     globalDependencies: {
+                        type: {
+                            dependencyType: "stateVariable",
+                            variableName: "type",
+                        },
                         numInCategories: {
                             dependencyType: "stateVariable",
                             variableName: "numInCategories",
@@ -185,10 +196,14 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                 const n = globalDependencyValues.numDraws;
 
                 // parameters that describe no distribution have no moments either,
-                // so report the NaN that their samples report
-                const valid = validMultivariateHypergeometricParameters(
-                    globalDependencyValues,
-                );
+                // so report the NaN that their samples report. These formulas are
+                // the hypergeometric's; with no distribution named there is nothing
+                // to compute, and another distribution will bring its own branch.
+                const valid =
+                    globalDependencyValues.type === "hypergeometric" &&
+                    validMultivariateHypergeometricParameters(
+                        globalDependencyValues,
+                    );
 
                 for (let arrayKey of arrayKeys) {
                     if (!valid) {
@@ -233,6 +248,10 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
             returnArrayDependenciesByKey() {
                 return {
                     globalDependencies: {
+                        type: {
+                            dependencyType: "stateVariable",
+                            variableName: "type",
+                        },
                         numInCategories: {
                             dependencyType: "stateVariable",
                             variableName: "numInCategories",
@@ -254,9 +273,11 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
                 const N = globalDependencyValues.numTotal;
                 const n = globalDependencyValues.numDraws;
 
-                const valid = validMultivariateHypergeometricParameters(
-                    globalDependencyValues,
-                );
+                const valid =
+                    globalDependencyValues.type === "hypergeometric" &&
+                    validMultivariateHypergeometricParameters(
+                        globalDependencyValues,
+                    );
 
                 for (let arrayKey of arrayKeys) {
                     if (!valid) {

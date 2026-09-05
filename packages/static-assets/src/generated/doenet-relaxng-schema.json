@@ -135586,7 +135586,7 @@
                     "name": "type",
                     "type": "text",
                     "isArray": false,
-                    "description": "Multivariate distribution from which to sample.",
+                    "description": "Multivariate distribution from which to sample. Required; there is no default.",
                     "fromAttribute": true
                 },
                 {
