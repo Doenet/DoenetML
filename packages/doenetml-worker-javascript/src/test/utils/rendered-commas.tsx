@@ -4,8 +4,9 @@ import { addCommasForCompositeRanges } from "../../../../doenetml/src/Viewer/ren
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
 /**
- * Automatic commas between the replacements of a composite are produced twice,
- * from the same core data:
+ * Of the four places that produce the automatic commas between the
+ * replacements of a composite (listed in `compositeCommas.test.tsx`), two are
+ * compared here:
  *
  * - the renderers, via `addCommasForCompositeRanges`
  *   (`doenetml/src/Viewer/renderers/utils/composites.tsx`), insert `", "`

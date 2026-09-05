@@ -21,8 +21,9 @@
  * `firstInd`/`lastInd` are inclusive indices into the parent's children. A
  * composite that produced nothing is recorded as `lastInd === firstInd - 1`.
  * `potentialListComponents[i]` says whether the child at `firstInd + i` is
- * eligible to be an item of a list — inline components are, and so is anything
- * whose class sets `canBeInList`.
+ * eligible to be an item of a list: a string is, an inline component is unless
+ * its class sets `canBeInList` to `false`, and any other component is only if
+ * its class sets `canBeInList` to `true`.
  */
 export type CompositeRange = {
     compositeIdx: number;
@@ -37,7 +38,10 @@ export type CompositeRange = {
 /**
  * A child of the parent, or the children one composite produced. `asList` says
  * whether this composite's items are to be separated by commas — the question
- * every caller is really asking.
+ * every caller is really asking. The items of a list are already as the commas
+ * will separate them (see `isBlank` and `trimEnd` in
+ * {@link GroupCompositeRangesOptions}); {@link listCommaPositions} says where
+ * among them the commas go.
  */
 export type CompositeGroup<T> =
     | { kind: "child"; value: T; index: number }
@@ -156,20 +160,19 @@ function groupRange<T>({
     const items: CompositeGroup<T>[] = [];
     const eligible: boolean[] = [];
 
-    // The child after the last one already accounted for. A composite that
-    // produced nothing still moves this past itself, so its (absent) children
-    // are not picked up as plain ones.
+    // The first child not yet placed in the tree.
     let nextInd = startInd;
 
+    /** Place the children before `upTo` that no composite produced. */
     function addPlainChildren(upTo: number) {
-        for (let ind = nextInd; ind < upTo; ind++) {
-            const value = children[ind];
+        for (; nextInd < upTo; nextInd++) {
+            const value = children[nextInd];
             if (isAbsent(value)) {
                 continue;
             }
-            items.push({ kind: "child", value, index: ind });
+            items.push({ kind: "child", value, index: nextInd });
             if (eligibility) {
-                eligible.push(eligibility[ind - startInd] ?? false);
+                eligible.push(eligibility[nextInd - startInd] ?? false);
             }
         }
     }
@@ -189,7 +192,9 @@ function groupRange<T>({
         }
 
         addPlainChildren(firstInd);
-        nextInd = Math.max(firstInd, lastInd + 1);
+        // Past the composite's children — of which a composite that produced
+        // nothing, recorded with `lastInd === firstInd - 1`, has none.
+        nextInd = lastInd + 1;
 
         if (skipRange(range)) {
             continue;
@@ -349,7 +354,8 @@ function prepareListItems<T>(
 
 /**
  * Drop the whitespace-only children an item ends with, and take the trailing
- * whitespace off the child that is left at its end.
+ * whitespace off the child that is left at its end. `item` is not itself
+ * blank, so a composite always has such a child.
  */
 function trimItemEnd<T>(
     item: CompositeGroup<T>,
@@ -362,11 +368,8 @@ function trimItemEnd<T>(
     }
 
     let end = item.items.length;
-    while (end > 0 && isBlankGroup(item.items[end - 1], isBlank)) {
+    while (isBlankGroup(item.items[end - 1], isBlank)) {
         end--;
-    }
-    if (end === 0) {
-        return { ...item, items: [] };
     }
 
     return {

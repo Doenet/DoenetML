@@ -396,9 +396,9 @@ describe("Automatic commas inside a <math> @group3", () => {
  * and the case can be moved into the suite above.
  */
 describe("Automatic commas: known defects @group3", () => {
-    // Whitespace that belongs to the list — a blank string between two
-    // replacements — is now taken off in front of a comma in both pathways.
-    // Whitespace inside a child component's own text is not: `text` reads that
+    // Issue #1811. A blank string between two replacements belongs to the
+    // list, and both pathways take it off in front of a comma. Whitespace
+    // inside a child component's own text is another matter: `text` reads that
     // component's text and can trim it, while the renderers only hand React the
     // child and never see, let alone reach into, what it draws. Closing this
     // means either giving up the trim on the `text` side, which reads worse, or
