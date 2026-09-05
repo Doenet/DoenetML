@@ -958,7 +958,7 @@ math-embedded-input-shape-unsuitable =
 # so a negative `variance` arrives here as a `standardDeviation` of NaN and the
 # message has to name both for the author to know what to edit.
 sample-gaussian-parameters-invalid =
-    Invalid mean ({ $mean }) or standardDeviation ({ $standardDeviation }) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be non-negative. No numbers can be sampled.
+    Invalid mean ({ $mean }) or standardDeviation ({ $standardDeviation }) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be finite and non-negative. No numbers can be sampled.
 
 # These three attributes are the only ones with no default, so leaving one out is
 # the commonest way to reach this message. Each arrives either as the number the
@@ -974,14 +974,14 @@ sample-hypergeometric-parameters-invalid =
     }), or numDraws ({ $numDraws ->
         [not-set] not set
        *[other] { $numDraws }
-    }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal.
+    }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal. All three must also stay below about nine quadrillion, past which whole numbers can no longer be counted exactly.
 
 # $maxDraws is the largest number of random draws allowed for a single sample.
 sample-hypergeometric-draws-too-many =
     Drawing { $numDraws } items from a population of { $numTotal } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, or bring it closer to numTotal.
 
 sample-binomial-parameters-invalid =
-    Invalid numTrials ({ $numTrials }) or probability ({ $probability }) for a binomial random variable. numTrials must be a non-negative whole number, and probability must be between 0 and 1.
+    Invalid numTrials ({ $numTrials }) or probability ({ $probability }) for a binomial random variable. numTrials must be a non-negative whole number below about nine quadrillion, past which whole numbers can no longer be counted exactly, and probability must be between 0 and 1.
 
 # $maxDraws is the largest number of random draws allowed for a single sample.
 sample-binomial-trials-too-many =

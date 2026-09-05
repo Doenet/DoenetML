@@ -18,7 +18,7 @@ Because these distributions are drawn one item, trial, or event at a time, param
 
 A fractional `numSamples` now draws the same count from every distribution, rounding up as `uniform` always has. Alongside unusable parameters — a `gaussian` with a negative `variance`, say — a fractional count used to break the document instead of reporting `NaN`.
 
-Counts must also be whole numbers small enough to stay exact — up to about nine quadrillion. Past that the arithmetic behind the reported mean overflows to infinity, so such a population is refused rather than sampled.
+Counts must also be whole numbers small enough to stay exact — up to about nine quadrillion. Past that, neighboring whole numbers stop being distinguishable, so drawing from such a population would not do what it says; it is refused rather than sampled.
 
 The new distributions draw with the generator's full precision rather than its default 32 bits, so a success rarer than about one in four billion — a large population with few successes, or a very small `probability` — happens as often as asked rather than being rounded up to that floor.
 

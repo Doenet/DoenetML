@@ -203,10 +203,15 @@ function unsampleable(numSamples, problem) {
 function hypergeometricProblem({ numTotal, numSuccesses, numDraws }) {
     if (
         // Safe integers, not merely whole ones: `Number.isInteger(1e308)` is true,
-        // but at that magnitude the sampler's `totalLeft--` no longer changes
-        // anything and `numDraws * numSuccesses` overflows to Infinity, so the
-        // reported mean would be Infinity rather than a number. Capping counts at
-        // 2^53 keeps every product exactly representable, and is no real limit on a
+        // but nothing about a count that large works. Adjacent whole numbers stop
+        // being distinguishable, so the sampler's `totalLeft--` changes nothing, and
+        // far enough out `numDraws * numSuccesses` overflows and the reported mean
+        // becomes Infinity.
+        //
+        // Capping at 2^53 is what makes the counts themselves exact, which is what
+        // the sampler needs. It does not make their products exact — multiplying two
+        // values near the cap already rounds — but it does keep them finite, which
+        // is all the moment formulas need. Nine quadrillion is no real limit on a
         // population.
         !Number.isSafeInteger(numTotal) ||
         !Number.isSafeInteger(numSuccesses) ||

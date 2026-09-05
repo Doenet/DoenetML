@@ -800,6 +800,43 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("each refusal message states a condition the value actually fails", async () => {
+        // A message that lists only conditions the author already satisfies leaves
+        // them no way to find the real one. Every value below is refused, so each
+        // message has to name the requirement it breaks.
+        const cases: [string, string][] = [
+            [
+                // Infinity is non-negative, so saying only "non-negative" explains nothing
+                `<sampleRandomNumbers name="s" type="gaussian" standardDeviation="Infinity" numSamples="2" />`,
+                "finite",
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="gaussian" variance="Infinity" numSamples="2" />`,
+                "finite",
+            ],
+            [
+                // a positive whole number, and still past the exactly-countable range
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1e16" numSuccesses="10" numDraws="5" numSamples="2" />`,
+                "quadrillion",
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="1e16" probability="0.5" numSamples="2" />`,
+                "quadrillion",
+            ],
+        ];
+
+        for (const [doenetML, mustExplain] of cases) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+
+            const warnings = getDiagnosticsByType(core).warnings;
+            expect(warnings.length, doenetML).eq(1);
+            expect(warnings[0].message.toLowerCase(), doenetML).toContain(
+                mustExplain,
+            );
+        }
+    });
+
     it("a population too large to count exactly is refused", async () => {
         // `Number.isInteger(1e308)` is true, and a small `numDraws` keeps the work
         // bound satisfied, so such a population would otherwise be accepted — and
