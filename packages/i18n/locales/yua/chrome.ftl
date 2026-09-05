@@ -47,12 +47,12 @@
 # file carries are «teklaado» (keyboard), «renglón» (row), «kolumna» (column),
 # «kaja» (box), «flecha» (arrow), «punto» (point), «intervalo» (interval),
 # «matrís» (matrix), «kréedito» (credit), «ekspresión matemátika» (math
-# expression), «estadístika» (statistics), «dokumento», «páajina» (page),
-# «renderisador» (renderer), «nota» (footnote), «informasión», «aksesibilidad»,
-# «etiketa» (label). Nothing here is a coinage; where the loan is what a
-# speaker would actually say, the loan is written.
+# expression), «dokumento», «páajina» (page), «renderisador» (renderer), «nota»
+# (footnote), «informasión», «aksesibilidad», «etiketa» (label). Nothing here
+# is a coinage; where the loan is what a speaker would actually say, the loan
+# is written.
 #
-# **Confidence.** All sixty-seven keys in this file are translated. The
+# **Confidence.** All sixty-six keys in this file are translated. The
 # weakest of them are «Komentario» for *feedback*, which is a loan chosen for
 # want of a settled word rather than an established usage, and the four
 # diagnostic headings, where «Síiʼpil» (fault, mistake) is doing the work of
@@ -138,8 +138,6 @@ orbital-remove-arrow = Luʼs le flechaoʼ
 orbital-row-label = Etiketa tiʼ le renglón { $row }
 
 pretzel-answer = Núuk
-
-summary-statistics-caption = U resumen estadístika tiʼ { $column }
 
 
 ## Math input

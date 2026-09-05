@@ -79,7 +79,6 @@ orbital-add-down-arrow = Yongerako Akasaale Akatunuulidde Wansi
 orbital-remove-arrow = Ggyawo Akasaale
 orbital-row-label = Erinnya ly'olunyiriri { $row }
 pretzel-answer = Eky'okuddamu
-summary-statistics-caption = Enkomerero y'ebibalo bya { $column }
 
 ## Math input
 

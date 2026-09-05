@@ -78,7 +78,6 @@ orbital-add-down-arrow = ئاستىغا قارىغان يا ئوق قوشۇش
 orbital-remove-arrow = يا ئوق ئۆچۈرۈش
 orbital-row-label = { $row } - قۇرنىڭ ئىسمى
 pretzel-answer = جاۋاب
-summary-statistics-caption = { $column } ئىستوننىڭ ستاتىستىكا خۇلاسىسى
 
 ## Math input
 

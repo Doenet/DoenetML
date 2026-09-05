@@ -116,7 +116,6 @@ orbital-add-down-arrow = क्वय् ल्हाःगु तीर तय�
 orbital-remove-arrow = तीर पिकायेगु
 orbital-row-label = पंक्ति { $row } या नां
 pretzel-answer = लिसः
-summary-statistics-caption = { $column } या सारांश तथ्याङ्क
 
 
 ## Math input

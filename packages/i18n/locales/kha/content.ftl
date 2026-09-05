@@ -70,14 +70,14 @@
 # rather than disguised.** Meghalaya teaches mathematics and secondary science
 # in English, so the geometry and computing words a Khasi classroom uses are
 # the English ones, written here in their English spelling: `line`, `vector`,
-# `function`, `polygon`, `circle`, `interval`, `matrix`, `statistik`,
-# `paragraf`, `seksan`, `tebul`, `peij`. What is genuinely Khasi is the
-# ordinary vocabulary around them — the colour terms «lieh», «iong», «saw»,
-# «thiang», the size words «khraw» and «rit», «dur» *picture*, «bynta» *part*,
-# «nuksa» *example*, «jingkylli» *question*, «jingjubab» *answer*,
-# «jingpyrshang» *exercise*, «jingbatai» *explanation*, «kyrteng» *name*,
-# «shaphang» *about*, «hok» *true*, «bakhlem hok» *false*, «ym don» *none*,
-# «kam» *work/task*, «lada» *if*, «ne» *or*, «lymne» *otherwise*.
+# `function`, `polygon`, `circle`, `interval`, `matrix`, `paragraf`, `seksan`,
+# `tebul`, `peij`. What is genuinely Khasi is the ordinary vocabulary around
+# them — the colour terms «lieh», «iong», «saw», «thiang», the size words
+# «khraw» and «rit», «dur» *picture*, «bynta» *part*, «nuksa» *example*,
+# «jingkylli» *question*, «jingjubab» *answer*, «jingpyrshang» *exercise*,
+# «jingbatai» *explanation*, «kyrteng» *name*, «shaphang» *about*, «hok»
+# *true*, «bakhlem hok» *false*, «ym don» *none*, «kam» *work/task*, «lada»
+# *if*, «ne» *or*, «lymne» *otherwise*.
 #
 # **Words to check first:** «bathiang» for *green* (the seed also considered
 # «bastem», which some speakers use for the same band of colour, and a reviewer

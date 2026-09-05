@@ -80,7 +80,6 @@ orbital-add-down-arrow = Adaugă o săgeată în jos
 orbital-remove-arrow = Elimină săgeata
 orbital-row-label = Etichetă pentru rândul { $row }
 pretzel-answer = Răspuns
-summary-statistics-caption = Statistici sumare pentru { $column }
 
 ## Math input
 

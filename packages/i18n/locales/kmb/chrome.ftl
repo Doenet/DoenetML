@@ -70,7 +70,6 @@ orbital-add-down-arrow = Bhakela Seta ya Boxi
 orbital-remove-arrow = Katula Seta
 orbital-row-label = Dijina dya nlonji { $row }
 pretzel-answer = Kitambwijilu
-summary-statistics-caption = Kijilu kya jinumeru ja { $column }
 
 ## Math input
 

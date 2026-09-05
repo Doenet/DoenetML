@@ -82,7 +82,6 @@ orbital-add-down-arrow = Tānaki ha ngahau ki lalo
 orbital-remove-arrow = Toʻo ʻa e ngahau
 orbital-row-label = Fakaʻilonga ki he laine { $row }
 pretzel-answer = Tali
-summary-statistics-caption = Fakanounou fakafuainoa ʻo e { $column }
 
 ## Math input
 

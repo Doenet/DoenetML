@@ -34,11 +34,10 @@
 # «amagar», «ubrir», «zarrar», «adhibir», «sacar», «ninviar», «comprebar» are
 # Aragonese and are what should make this recognisable. The colour words
 # «royo», «amariello», «morau» are Aragonese too. The technical nouns —
-# «component», «atributo», «documento», «matriz», «estadisticas» — are the
-# learned Romance layer, which in practice reaches an Aragonese speaker
-# through **Spanish**, the language secondary school in Aragón is taught in;
-# they are not disguised as anything else. `WCAG AA` and `DoenetML` are names
-# and stay in English.
+# «component», «atributo», «documento», «matriz» — are the learned Romance
+# layer, which in practice reaches an Aragonese speaker through **Spanish**,
+# the language secondary school in Aragón is taught in; they are not disguised
+# as anything else. `WCAG AA` and `DoenetML` are names and stay in English.
 #
 # **Counts.** CLDR *does* have plural rules for `an`, with the two categories
 # `one` and `other`, so an `[one]` / `*[other]` select here is genuinely
@@ -117,7 +116,6 @@ orbital-add-down-arrow = Adhibir una flecha enta baixo
 orbital-remove-arrow = Sacar a flecha
 orbital-row-label = Etiqueta d'a ringlera { $row }
 pretzel-answer = Respuesta
-summary-statistics-caption = Estadisticas resumidas de { $column }
 
 ## Math input
 

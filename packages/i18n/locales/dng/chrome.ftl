@@ -51,17 +51,17 @@
 #
 # **Russian loans used in this file:** ошибка (error), предупреждение
 # (warning), страница (page), клавиатура (keyboard), сноска (footnote),
-# интервал, статистика, математика, выражение (expression), формула,
-# рендерер (renderer), документ, прибор (device), доступность
-# (accessibility), Отзыв (feedback), интернет. `WCAG AA` is the standard's own
-# name and stays as it is.
+# интервал, математика, выражение (expression), формула, рендерер (renderer),
+# документ, прибор (device), доступность (accessibility), Отзыв (feedback),
+# интернет. `WCAG AA` is the standard's own name and stays as it is.
 #
 # ## Grammar as written here
 #
 # **The modifier precedes the noun**, joined by the attributive particle
-# **«ди»**: «до ди щёщи» *more information*, «{ $column } ди статистика»
-# *statistics of { $column }*. Nothing is welded to a placeable — «ди» is a
-# separate word, so a substituted value keeps its own boundaries.
+# **«ди»**: «до ди щёщи» *more information*, «{ $answerId } ди { $count } гә
+# хуэйда» *{ $count } responses for { $answerId }*. Nothing is welded to a
+# placeable — «ди» is a separate word, so a substituted value keeps its own
+# boundaries.
 #
 # **No grammatical gender**, and no agreement of any kind.
 #
@@ -154,8 +154,6 @@ orbital-remove-arrow = Начў җянтў
 orbital-row-label = Ди { $row } хаң ди бёчян
 
 pretzel-answer = Даан
-
-summary-statistics-caption = { $column } ди статистика
 
 
 ## Math input

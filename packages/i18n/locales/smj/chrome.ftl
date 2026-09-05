@@ -103,7 +103,6 @@ orbital-add-down-arrow = Lasedi njuolav vuolus
 orbital-remove-arrow = Válde erit njuolav
 orbital-row-label = Linnjá { $row } namádus
 pretzel-answer = Vásstádus
-summary-statistics-caption = { $column } tjoahkkájgæssám
 
 ## Math input
 

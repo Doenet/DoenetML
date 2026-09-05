@@ -96,7 +96,6 @@ orbital-add-down-arrow = Embojoapy peteĩ hu'y yvy gotyo
 orbital-remove-arrow = Emboguete peteĩ hu'y
 orbital-row-label = Tysỹi { $row } réra
 pretzel-answer = Mbohovái
-summary-statistics-caption = { $column } papapy mombykypyre
 
 ## Math input
 

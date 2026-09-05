@@ -126,7 +126,6 @@ orbital-add-down-arrow = Put Wan Aro We Point Dong
 orbital-remove-arrow = Tek We Wan Aro
 orbital-row-label = Liebl fi ruo { $row }
 pretzel-answer = Ansa
-summary-statistics-caption = Somri statistiks fi { $column }
 
 
 ## Math input

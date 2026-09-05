@@ -76,7 +76,6 @@ orbital-add-down-arrow = Agiuntar ina frizza giu
 orbital-remove-arrow = Allontanar ina frizza
 orbital-row-label = Etichetta da la lingia { $row }
 pretzel-answer = Resposta
-summary-statistics-caption = Statisticas resumadas da { $column }
 
 ## Math input
 

@@ -44,10 +44,10 @@
 # **Loans, named.** Papiamentu freely takes Dutch- and Spanish-mediated
 # technical nouns, and this seed keeps them rather than coining: «funshon»,
 # «matriz», «komponente», «atributo», «diagnóstiko», «seksion», «solushon»,
-# «ehèmpel», «pregunta», «kòrekto», «statístika», «klavier». The grammar
-# around them is Papiamentu throughout: the preverbal markers «ta / a / lo /
-# tabata», «no» for negation, «di» for possession, «pa» for purpose. No
-# sentence in these four files is Dutch or Spanish.
+# «ehèmpel», «pregunta», «kòrekto», «klavier». The grammar around them is
+# Papiamentu throughout: the preverbal markers «ta / a / lo / tabata», «no»
+# for negation, «di» for possession, «pa» for purpose. No sentence in these
+# four files is Dutch or Spanish.
 #
 # **The technical vocabulary here is a lexifier loan set.** Every technical
 # noun in this file is a Dutch- or Spanish-mediated loan — those are the words
@@ -134,8 +134,6 @@ orbital-remove-arrow = Kita Flecha
 orbital-row-label = Etiketa pa fila { $row }
 
 pretzel-answer = Kontesta
-
-summary-statistics-caption = Statístika resumí di { $column }
 
 
 ## Math input

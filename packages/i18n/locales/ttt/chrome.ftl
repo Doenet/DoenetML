@@ -26,13 +26,13 @@
 # the most to correct. Nothing here should be taken as settled usage.
 #
 # **Loans, named.** «Əvvəlki», «növbəti», «sətir», «sütun», «etiket»,
-# «klaviatura», «statistika», «interval», «xəbərdorluğ», «əlçatanlığ»,
-# «pozuntu», «bal» and the whole software vocabulary are Azerbaijani, kept
-# because that is the word a Tat speaker in Azerbaijan uses; several arrived
-# in Azerbaijani from Russian first. Where Tat's own Iranian word serves it is
-# used: «rost» true, «nodürüs» invalid, «xəto» error, «nüqtə» point, «pok
-# sax» erase, «nişun de» show, «vokard» open, «bast» close, «mundən» remain,
-# «yoftən» find, «ziyod» more.
+# «klaviatura», «interval», «xəbərdorluğ», «əlçatanlığ», «pozuntu», «bal» and
+# the whole software vocabulary are Azerbaijani, kept because that is the word
+# a Tat speaker in Azerbaijan uses; several arrived in Azerbaijani from
+# Russian first. Where Tat's own Iranian word serves it is used: «rost» true,
+# «nodürüs» invalid, «xəto» error, «nüqtə» point, «pok sax» erase, «nişun de»
+# show, «vokard» open, «bast» close, «mundən» remain, «yoftən» find, «ziyod»
+# more.
 #
 # **Number.** A noun after a numeral is unmarked in Tat, so English's `one`
 # and `other` branches would be identical and each count message is written
@@ -100,7 +100,6 @@ orbital-add-down-arrow = Tiri zir ziyod sax
 orbital-remove-arrow = Tir-rə pok sax
 orbital-row-label = Etiketi sətiri { $row }
 pretzel-answer = Cavob
-summary-statistics-caption = Statistikayi xülosəyi { $column }
 
 
 ## Math input

@@ -70,7 +70,6 @@ orbital-add-down-arrow = Sɔ́ Gǎ Yidó Tɔ̀n Dó
 orbital-remove-arrow = Ðè Gǎ Sín Mɛ
 orbital-row-label = Nyikɔ́ línu { $row } tɔ̀n
 pretzel-answer = Xósin
-summary-statistics-caption = Kplékplé xayi { $column } tɔ̀n
 
 ## Math input
 

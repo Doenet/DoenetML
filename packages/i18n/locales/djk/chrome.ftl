@@ -54,12 +54,12 @@
 #
 # **Loans.** The computing register is Dutch and English, reshaped to Ndyuka
 # phonology and carried in Ndyuka grammar: «kiibodu» (*keyboard*), «kediti»
-# (*credit*), «statistiki», «matematika», «ekispresi», «dokumenti»,
-# «infoomasi», «pagina», «masiin», «futunota», «vekitoo», «funsi», «renderer»
-# (left as the code's own name), «WCAG» and «aksesibiliteiti». Everyday words
-# are Ndyuka: «piki» (*answer*), «leti» / «fowtu» (*right* / *wrong*),
-# «pooberi» (*try*), «tan» (*remain*), «sori» (*show*), «opo» / «tapu»
-# (*open* / *close*), «puu» / «poti» (*remove* / *add*), «kiin» (*clear*).
+# (*credit*), «matematika», «ekispresi», «dokumenti», «infoomasi», «pagina»,
+# «masiin», «futunota», «vekitoo», «funsi», «renderer» (left as the code's own
+# name), «WCAG» and «aksesibiliteiti». Everyday words are Ndyuka: «piki»
+# (*answer*), «leti» / «fowtu» (*right* / *wrong*), «pooberi» (*try*), «tan»
+# (*remain*), «sori» (*show*), «opo» / «tapu» (*open* / *close*), «puu» /
+# «poti» (*remove* / *add*), «kiin» (*clear*).
 #
 # **Confidence.** Ndyuka has a dictionary, a scripture translation and very
 # little written technical prose, so the loans above are shapes this seed
@@ -139,8 +139,6 @@ orbital-remove-arrow = Puu a peili
 orbital-row-label = Neen gi lei { $row }
 
 pretzel-answer = Piki
-
-summary-statistics-caption = Sotu statistiki fu { $column }
 
 
 math-input-preview-region = luku fosi fu a matematika-ekispresi

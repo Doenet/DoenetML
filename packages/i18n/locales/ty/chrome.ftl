@@ -82,7 +82,6 @@ orbital-add-down-arrow = Tuʻu i te tahi ʻōfaʻi i raro
 orbital-remove-arrow = Iriti ê i te ʻōfaʻi
 orbital-row-label = Tāpaʻo nō te ʻāfata roa { $row }
 pretzel-answer = Pāhonoraʻa
-summary-statistics-caption = Haʻapotoraʻa numera o te { $column }
 
 ## Math input
 

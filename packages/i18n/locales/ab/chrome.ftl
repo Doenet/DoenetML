@@ -91,7 +91,6 @@ orbital-add-down-arrow = Ҵаҟаҟатәи ахыц ацҵара
 orbital-remove-arrow = Ахыц аныхра
 orbital-row-label = { $row }-тәи ацәаҳәа ахьӡ
 pretzel-answer = Аҭак
-summary-statistics-caption = { $column } азы астатистикатә ҳасабырба
 
 ## Math input
 

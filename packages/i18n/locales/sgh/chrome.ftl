@@ -149,9 +149,6 @@ orbital-row-label = Нишонаи сатри { $row }
 
 pretzel-answer = Ҷавоб
 
-# `$column` is the authored name of the data column and stays as written.
-summary-statistics-caption = Омори ҷамъбастии сутуни { $column }
-
 
 ## Math input
 

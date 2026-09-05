@@ -64,13 +64,13 @@
 # words in these files — *feedback* here, *hint* as «kisin kaweid», and
 # *recommendation* in `editor.ftl` — because this seed could not find three
 # separate Pohnpeian words for them. That is the first thing to fix.
-# «kredit» (credit), «kihpohd» (keyboard), «kolum» (column), «arro» (arrow),
-# «pohs» (box) and «statistik» are English loans respelled, not attested
-# Pohnpeian technical terms. «kak en pedolong» — literally "the ability to
-# enter" — is this seed's coinage for *accessibility*, built from ordinary
-# words by the language's own means; a speaker should confirm or replace it.
-# «mehn kasale» is the *renderer* and «mehn kilang» the *viewer*; the two are
-# deliberately different words, since the reader meets both.
+# «kredit» (credit), «kihpohd» (keyboard), «kolum» (column), «arro» (arrow) and
+# «pohs» (box) are English loans respelled, not attested Pohnpeian technical
+# terms. «kak en pedolong» — literally "the ability to enter" — is this seed's
+# coinage for *accessibility*, built from ordinary words by the language's own
+# means; a speaker should confirm or replace it. «mehn kasale» is the
+# *renderer* and «mehn kilang» the *viewer*; the two are deliberately different
+# words, since the reader meets both.
 
 
 ## Answer submission
@@ -135,7 +135,6 @@ orbital-add-down-arrow = Kapataiong arro kohdi
 orbital-remove-arrow = Kihsang arro
 orbital-row-label = Kilel ong irek { $row }
 pretzel-answer = Pasapeng
-summary-statistics-caption = Kamwotomwot en statistik en { $column }
 
 ## Math input
 

@@ -94,7 +94,6 @@ orbital-add-down-arrow = Тӧмӧн согоно кожор
 orbital-remove-arrow = Согононы јоголтор
 orbital-row-label = { $row } строканыҥ темдеги
 pretzel-answer = Каруу
-summary-statistics-caption = { $column } столбец аайынча эдилген статистика
 
 
 ## Math input

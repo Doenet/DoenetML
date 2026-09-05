@@ -108,7 +108,6 @@ orbital-add-down-arrow = Lââʹzzet njuõll vueʹlnn
 orbital-remove-arrow = Vääʹldd meädda njuõll
 orbital-row-label = Linjj { $row } nõmmtõs
 pretzel-answer = Vaʹsttõs
-summary-statistics-caption = { $column } čoggâmtieʹtt
 
 ## Math input
 

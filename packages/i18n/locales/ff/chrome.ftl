@@ -69,7 +69,6 @@ orbital-add-down-arrow = Ɓeydu Kure Ley
 orbital-remove-arrow = Ittu Kure
 orbital-row-label = Innde diidol { $row }
 pretzel-answer = Jaabawol
-summary-statistics-caption = Dental limooje { $column }
 
 ## Math input
 

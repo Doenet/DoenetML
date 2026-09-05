@@ -52,8 +52,8 @@
 # imperative), and a sentence addressed to the reader takes the polite plural,
 # which is the only choice that is safe not knowing who is being addressed.
 #
-# **Loans kept:** `کیبورد`, `ماتریس`, `احصائیه`, `اوربیتال`, `فیصد`, `WCAG` —
-# the words Dari schooling and Afghan computing actually use.
+# **Loans kept:** `کیبورد`, `ماتریس`, `اوربیتال`, `فیصد`, `WCAG` — the words
+# Dari schooling and Afghan computing actually use.
 
 
 ## Answer submission
@@ -116,9 +116,6 @@ orbital-add-down-arrow = علاوه کدونِ تیرِ پایین
 orbital-remove-arrow = دور کدونِ تیر
 orbital-row-label = نامِ سطر { $row }
 pretzel-answer = جواب
-# «ستون» names what `$column` is, so that the ezafe does not have to be
-# written onto a placeable.
-summary-statistics-caption = خلاصهٔ احصائیهٔ ستون { $column }
 
 ## Math input
 

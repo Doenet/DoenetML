@@ -80,7 +80,6 @@ orbital-add-down-arrow = Улӧ ньӧв содтыны
 orbital-remove-arrow = Ньӧв бӧрйыны
 orbital-row-label = { $row } визьлӧн пасыс
 pretzel-answer = Вочакыв
-summary-statistics-caption = { $column } юрбитанлӧн йитӧд статистикаыс
 
 ## Math input
 

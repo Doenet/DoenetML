@@ -99,7 +99,6 @@ orbital-add-down-arrow = Tîra Jêrê Zêde Bike
 orbital-remove-arrow = Tîrê Jê Bibe
 orbital-row-label = Etîketa rêza { $row }
 pretzel-answer = Bersiv
-summary-statistics-caption = Statîstîkên kurt ên { $column }
 
 
 ## Math input

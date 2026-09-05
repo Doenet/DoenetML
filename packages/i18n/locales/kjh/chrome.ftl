@@ -93,7 +93,6 @@ orbital-add-down-arrow = Алтынзар ух хозарға
 orbital-remove-arrow = Ухты сығарарға
 orbital-row-label = { $row } строканың белгізі
 pretzel-answer = Харии
-summary-statistics-caption = { $column } столбец хоостыра итілген статистика
 
 
 ## Math input

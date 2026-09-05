@@ -83,7 +83,6 @@ orbital-add-down-arrow = Ouzhpennañ ur bir war-zu an traoñ
 orbital-remove-arrow = Lemel ur bir
 orbital-row-label = Tikedenn evit al linenn { $row }
 pretzel-answer = Respont
-summary-statistics-caption = Stadegoù berr eus { $column }
 
 ## Math input
 

@@ -38,11 +38,11 @@
 # **Loans.** Qʼeqchiʼ has no native software register, and the register it does
 # use for this material in school and in daily speech is Spanish. The technical
 # nouns here are therefore Spanish loans written to ALMG spelling — «teklado»,
-# «matris», «kolumna», «estadistika», «punto», «interbalo», «nota», «bersion» —
-# carried inside an ordinary Qʼeqchiʼ sentence frame: native verbs («isi»,
-# «kʼe», «te», «tzʼap», «kʼutbʼesi»), the negator «inkʼaʼ», the existential
-# negation «maakʼaʼ», and Qʼeqchiʼ word order. No novel native compound is
-# coined for a thing the language has no word for.
+# «matris», «kolumna», «punto», «interbalo», «nota», «bersion» — carried
+# inside an ordinary Qʼeqchiʼ sentence frame: native verbs («isi», «kʼe»,
+# «te», «tzʼap», «kʼutbʼesi»), the negator «inkʼaʼ», the existential negation
+# «maakʼaʼ», and Qʼeqchiʼ word order. No novel native compound is coined for a
+# thing the language has no word for.
 #
 # **Confidence.** Every key in the English catalog is answered here. The
 # weakest wordings are the error sentences, which are longer than anything
@@ -128,8 +128,6 @@ orbital-remove-arrow = Isi li tzimaj
 orbital-row-label = Xkʼabaʼ li tasal { $row }
 
 pretzel-answer = Sumenk
-
-summary-statistics-caption = Estadistika chirix { $column }
 
 
 ## Math input

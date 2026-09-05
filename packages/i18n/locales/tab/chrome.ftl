@@ -23,8 +23,8 @@
 # out why that means no message in this catalog forks.
 #
 # Where a value is followed by a word that would take a case ending, the ending
-# is put on a noun this file writes — «бадали» after `{ $answerId }`,
-# «сутундин» after `{ $column }` — rather than welded onto the placeable.
+# is put on a noun this file writes — «бадали» after `{ $answerId }` — rather
+# than welded onto the placeable.
 #
 # Least certain here: «хъуркьувал» for accessibility is a coinage off
 # «хъуркьуб» (to reach) rather than a term this seed could attest, and the
@@ -94,7 +94,6 @@ orbital-add-down-arrow = КӀанди стрелка элаве апӀуб
 orbital-remove-arrow = Стрелка адагъуб
 orbital-row-label = { $row } жергейин лишан
 pretzel-answer = Жаваб
-summary-statistics-caption = { $column } сутундин умуми статистика
 
 ## Math input
 

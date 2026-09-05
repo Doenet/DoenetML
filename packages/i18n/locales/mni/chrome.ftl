@@ -69,7 +69,6 @@ orbital-add-down-arrow = মখাদা চংবা তেন হাপচি�
 orbital-remove-arrow = তেন লৌথোকউ
 orbital-row-label = পরিং { $row }গী মমিং
 pretzel-answer = পাউখুম
-summary-statistics-caption = { $column }গী সাংখ্যিক পুন্সিল
 
 ## Math input
 

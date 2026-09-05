@@ -75,7 +75,6 @@ orbital-add-down-arrow = Ылдый караган жебе кошуу
 orbital-remove-arrow = Жебени өчүрүү
 orbital-row-label = { $row } сабынын белгиси
 pretzel-answer = Жооп
-summary-statistics-caption = { $column } мамычасынын жыйынтык статистикасы
 
 ## Math input
 

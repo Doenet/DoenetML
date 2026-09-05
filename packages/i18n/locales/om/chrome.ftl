@@ -76,7 +76,6 @@ orbital-add-down-arrow = Xiyya Gad Aanu Dabali
 orbital-remove-arrow = Xiyya Haqi
 orbital-row-label = Mallattoo tarree { $row }
 pretzel-answer = Deebii
-summary-statistics-caption = Cuunfaa istaatistiksii { $column }
 
 ## Math input
 

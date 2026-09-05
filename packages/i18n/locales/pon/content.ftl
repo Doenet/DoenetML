@@ -61,14 +61,13 @@
 # «lepin lain» (line segment, from «lep», a piece); «silikeimw» (triangle) and
 # «pahkeimw» (quadrilateral), from «keimw», a corner, with «pahkeimw pahrek»
 # for a square and «pahkeimw reirei» for a rectangle; «kapil» (circle, from
-# «kapil», to encircle); «wasa» (region, an ordinary word for an area);
-# «mwoat» (a garden plot) for a mathematical *field*, which is the same move
-# `locales/sma` makes with its word for a meadow; «kamwotomwot» (summary, from
-# «mwotomwot», short); «kapwung» (solution, from «kapwungala», to put right);
-# «audaud» (filled) and «sohte audaud» (unfilled). Respelled loans: «rei»
-# (ray), «pekter» (vector), «kurp» (curve), «pwuhnksin» (function), «parapola»,
-# «polilain», «poliken» (polygon), «taimen» (diamond), «pluhs», «sloap»
-# (slope), «interwal», «teorem», «parakrap», «tehpel» (table), «statistik»,
+# «kapil», to encircle); «wasa» (region, an ordinary word for an area); «mwoat»
+# (a garden plot) for a mathematical *field*, which is the same move
+# `locales/sma` makes with its word for a meadow; «kapwung» (solution, from
+# «kapwungala», to put right); «audaud» (filled) and «sohte audaud» (unfilled).
+# Respelled loans: «rei» (ray), «pekter» (vector), «kurp» (curve), «pwuhnksin»
+# (function), «parapola», «polilain», «poliken» (polygon), «taimen» (diamond),
+# «pluhs», «sloap» (slope), «interwal», «teorem», «parakrap», «tehpel» (table),
 # «mahd» (mathematics), «koordineit». «lohpwu» (cross) is a real Pohnpeian word
 # and is used here for the marker shape.
 #

@@ -26,11 +26,11 @@
 # Pangasinan speakers are schooled in Filipino and English, and Pangasinan
 # mathematics teaching carries a Spanish-derived vocabulary that predates
 # both — «linya», «punto», «sirkulo», «poligono», «kolor», «hilera»,
-# «kolumna», «estadistika», «ekspresyon». Those are used here as the words
-# the community uses, not as English respelled. Where the seed had no such
-# established loan and no Pangasinan word it could vouch for, it kept the
-# English term outright — `Feedback`, `WCAG`, `keyboard`, `renderer`,
-# `reload`, `load` — rather than coining one.
+# «kolumna», «ekspresyon». Those are used here as the words the community
+# uses, not as English respelled. Where the seed had no such established loan
+# and no Pangasinan word it could vouch for, it kept the English term outright
+# — `Feedback`, `WCAG`, `keyboard`, `renderer`, `reload`, `load` — rather than
+# coining one.
 #
 # **What is Pangasinan here** is the frame: the markers «so», «na», «ed»,
 # «say»; the linker «a»/«ya»; the negator «ag»; «walay» ('there is') and
@@ -120,7 +120,6 @@ orbital-row-label = Label parad hilera { $row }
 
 pretzel-answer = Ebat
 
-summary-statistics-caption = Sumaryo na estadistika na { $column }
 
 math-input-preview-region = pakanengnengan na ekspresyon a matematika
 math-input-preview = Pakanengnengan

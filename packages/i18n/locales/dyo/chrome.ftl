@@ -70,7 +70,6 @@ orbital-add-down-arrow = Lomb Kaaro ka Katep
 orbital-remove-arrow = Cim Kaaro
 orbital-row-label = Funoor ka karoo { $row }
 pretzel-answer = Kalipi
-summary-statistics-caption = Kabat si sinoome si { $column }
 
 ## Math input
 

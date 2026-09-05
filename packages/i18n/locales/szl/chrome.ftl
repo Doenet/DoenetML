@@ -99,7 +99,6 @@ orbital-add-down-arrow = Przidej strzałka na dōł
 orbital-remove-arrow = Wyciep strzałka
 orbital-row-label = Etyketa do wiersza { $row }
 pretzel-answer = Ôdpowiydź
-summary-statistics-caption = Skrōcōnŏ statystyka do { $column }
 
 ## Math input
 

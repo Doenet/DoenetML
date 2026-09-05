@@ -28,12 +28,11 @@
 # exactly like the ones without. A noun after a numeral is unmarked.
 #
 # THE TECHNICAL REGISTER IS MALAY, AND IS DECLARED AS SUCH. An Iban pupil is
-# schooled in Malay and meets «poligon», «fungsi», «vektor», «parabola»,
-# «rombus» and «statistik» in a Malay textbook. Those are written here as they
-# stand rather than replaced with coinages — including the shape names «segi
-# tiga», «segi empat tepat», «segi empat sama» and the field terms «medan
-# kecherunan», «medan vektor». What is Iban in this file is everything around
-# them.
+# schooled in Malay and meets «poligon», «fungsi», «vektor», «parabola» and
+# «rombus» in a Malay textbook. Those are written here as they stand rather
+# than replaced with coinages — including the shape names «segi tiga», «segi
+# empat tepat», «segi empat sama» and the field terms «medan kecherunan»,
+# «medan vektor». What is Iban in this file is everything around them.
 #
 # WHERE IBAN HAS ITS OWN WORD IT IS USED: «mirah» rather than Malay «merah»,
 # «itam» rather than «hitam», «burak» rather than «putih», «gadung» for green,

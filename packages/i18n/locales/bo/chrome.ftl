@@ -9,9 +9,9 @@
 # written flat; `attempts-remaining` keeps two branches because its `[0]` is
 # matched by number rather than by category, which Fluent resolves first.
 #
-# `orbital-row-label` and `summary-statistics-caption` are two of the messages
-# `content.ftl`'s header names as unable to avoid a genitive after a placeable.
-# Both write the default shape, གི་.
+# `orbital-row-label` is one of the messages `content.ftl`'s header names as
+# unable to avoid a genitive after a placeable. It writes the default shape,
+# གི་.
 
 
 ## Answer submission
@@ -71,7 +71,6 @@ orbital-add-down-arrow = མར་མདའ་སྣོན
 orbital-remove-arrow = མདའ་ཕྱིར་འདོན
 orbital-row-label = ཕྲེང་ { $row } གི་མིང་བྱང
 pretzel-answer = ལན
-summary-statistics-caption = { $column } གི་གྲངས་ཐོའི་བསྡུས་དོན
 
 ## Math input
 

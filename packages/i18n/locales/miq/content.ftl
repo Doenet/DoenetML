@@ -39,10 +39,10 @@
 # «diakonal», «raya», «kris», «naranha», «siyan», «murada», «blanku», and the
 # sectional words «aktibidad», «kaskada», «tanka marikanka», «ehemplu»,
 # «ehersisiu», «ubhetibu», «parapu», «parti», «problema», «prueba»,
-# «seksion», «solusion», «teorema», «tabla», «estadistika». From English come
-# «blu», «pink», «brawn», «bakrawn», «sait», «nut», «wark» and «ansa». The
-# frame is Mískito throughout: native verbs, the negator «apia» after what it
-# negates, the partitive «wina», and the copula `sa`.
+# «seksion», «solusion», «teorema», «tabla». From English come «blu», «pink»,
+# «brawn», «bakrawn», «sait», «nut», «wark» and «ansa». The frame is Mískito
+# throughout: native verbs, the negator «apia» after what it negates, the
+# partitive «wina», and the copula `sa`.
 #
 # **What is kept native.** The five colour words a Mískito speaker already has
 # — «siksa» black, «pihni» white, «pauni» red, «lalahni» yellow, «sangni»

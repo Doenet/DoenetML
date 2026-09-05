@@ -98,7 +98,6 @@ orbital-add-down-arrow = Gie Ọfa Ye Otọ
 orbital-remove-arrow = Fian Ọfa
 orbital-row-label = Uni ne ẹfẹ { $row }
 pretzel-answer = Ọre
-summary-statistics-caption = Igbe ekhọe ti { $column }
 
 ## Math input
 

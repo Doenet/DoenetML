@@ -74,7 +74,6 @@ orbital-add-down-arrow = Yokk Fetal bu Suuf
 orbital-remove-arrow = Dindi Fetal
 orbital-row-label = Turu rëdd { $row }
 pretzel-answer = Tontu
-summary-statistics-caption = Statistik yu gàttu yu { $column }
 
 ## Math input
 

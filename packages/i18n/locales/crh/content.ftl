@@ -51,15 +51,15 @@
 # covered: they are frames and punctuation rather than vocabulary.
 #
 # **Loans kept, rather than coined.** «funktsiya», «parabola», «poligon»,
-# «vektor», «kvadrat», «romb», «variant», «statistika», «teorema»,
-# «paragraf», «kaskad», «diagramma» — Russian-mediated international
-# vocabulary, spelled as Crimean Tatar spells it. From Turkish: «turuncı»
-# (orange), «pembe» (pink), «ışın» (ray), «eşkenar» in the shape names, and
-# «kenarlı». **«siyan»** for *cyan* is a bare loan and the weakest word in the
-# file: Crimean Tatar has «mavi» for blue and «kök» for the blue-green of the
-# sky, and a speaker may well prefer «açıq mavi» or «kök» here. «qoñur»
-# (brown) and «boz» (grey) are native and should be checked first, since both
-# also name animal colours and a reviewer may want a more neutral word.
+# «vektor», «kvadrat», «romb», «variant», «teorema», «paragraf», «kaskad»,
+# «diagramma» — Russian-mediated international vocabulary, spelled as Crimean
+# Tatar spells it. From Turkish: «turuncı» (orange), «pembe» (pink), «ışın»
+# (ray), «eşkenar» in the shape names, and «kenarlı». **«siyan»** for *cyan*
+# is a bare loan and the weakest word in the file: Crimean Tatar has «mavi»
+# for blue and «kök» for the blue-green of the sky, and a speaker may well
+# prefer «açıq mavi» or «kök» here. «qoñur» (brown) and «boz» (grey) are
+# native and should be checked first, since both also name animal colours and
+# a reviewer may want a more neutral word.
 
 
 ## Style vocabulary

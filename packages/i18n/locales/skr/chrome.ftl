@@ -50,8 +50,8 @@
 # **Loans kept rather than coined.** Saraiki-medium schooling stops well short
 # of mathematics and computing, so the technical vocabulary here is the Urdu
 # one a Saraiki-speaking pupil actually meets — `کی بورڈ`, `میٹرکس`, `کالم`,
-# `شماریاتی`, `فیصد`, `آربیٹل`, `WCAG` — written in Saraiki spelling rather
-# than replaced with new words.
+# `فیصد`, `آربیٹل`, `WCAG` — written in Saraiki spelling rather than replaced
+# with new words.
 
 
 ## Answer submission
@@ -113,9 +113,6 @@ orbital-add-down-arrow = ہیٹھلا تیر شامل کرو
 orbital-remove-arrow = تیر ہٹاؤ
 orbital-row-label = قطار { $row } دا عنوان
 pretzel-answer = جواب
-# «کالم» names what `$column` is, so the genitive falls on a word this catalog
-# writes rather than on the value.
-summary-statistics-caption = کالم { $column } دا شماریاتی خلاصہ
 
 ## Math input
 

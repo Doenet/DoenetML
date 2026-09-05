@@ -255,6 +255,7 @@ export default {
     substitute: { title: "substitute" },
     subsubsection: { title: "subsubsection" },
     sum: { title: "sum" },
+    summaryStatistics: { title: "summaryStatistics" },
     table: { title: "table" },
     tabular: { title: "tabular" },
     tally: { title: "tally" },

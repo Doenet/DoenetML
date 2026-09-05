@@ -30,11 +30,11 @@
 # that is a reviewer's quickest check.
 #
 # **What is borrowed.** The technical nouns — «atributu», «componenti»,
-# «documentu», «matriz», «estadísticas», «accessibiliá» — come from the
-# learned Romance register an Extremaduran speaker meets through **Spanish**,
-# which is the language of schooling in Extremadura. There is no Extremaduran
-# computing vocabulary to take them from, and they are borrowed openly rather
-# than disguised. `WCAG AA` and `DoenetML` are names and stay in English.
+# «documentu», «matriz», «accessibiliá» — come from the learned Romance
+# register an Extremaduran speaker meets through **Spanish**, which is the
+# language of schooling in Extremadura. There is no Extremaduran computing
+# vocabulary to take them from, and they are borrowed openly rather than
+# disguised. `WCAG AA` and `DoenetML` are names and stay in English.
 #
 # **Counts.** CLDR has **no plural data for `ext`**, so `Intl.PluralRules`
 # falls back to the root locale, where the only category is `other` and an
@@ -111,7 +111,6 @@ orbital-add-down-arrow = Añidil una hlecha p'abahu
 orbital-remove-arrow = Quital la hlecha
 orbital-row-label = Etiqueta de la hila { $row }
 pretzel-answer = Respuesta
-summary-statistics-caption = Estadísticas resumías de { $column }
 
 ## Math input
 

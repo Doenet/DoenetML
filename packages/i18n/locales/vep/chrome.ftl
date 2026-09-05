@@ -107,7 +107,6 @@ orbital-add-down-arrow = Ližadä alahaks ozutai nol'
 orbital-remove-arrow = Heitä nol'
 orbital-row-label = Ridan { $row } nimikaz
 pretzel-answer = Vastuz
-summary-statistics-caption = Kogomusen statistik: { $column }
 
 
 ## Math input

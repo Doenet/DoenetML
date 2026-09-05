@@ -94,7 +94,6 @@ orbital-add-down-arrow = Ёлы нёл пинуӈкве
 orbital-remove-arrow = Нёл кон вуӈкве
 orbital-row-label = { $row } строка нам
 pretzel-answer = Ювле лāтыӈ
-summary-statistics-caption = { $column } столбец акван-атым статистика
 
 ## Math input
 

@@ -93,7 +93,6 @@ orbital-add-down-arrow = Иԓ нёԓ пунты
 orbital-remove-arrow = Нёԓ ким ўты
 orbital-row-label = { $row } строка нєм
 pretzel-answer = Вошты ясӑӈ
-summary-statistics-caption = { $column } столбец акӑтман статистика
 
 ## Math input
 

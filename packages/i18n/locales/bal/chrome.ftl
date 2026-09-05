@@ -48,8 +48,8 @@
 # **Loans kept rather than replaced by coinages.** Balochi shares its
 # mathematical, chemical and computing vocabulary with Urdu and Persian, and
 # that is the vocabulary a Balochi-speaking pupil actually meets: `کی بورڈ`,
-# `میٹرکس`, `شماریات`, `فیصد`, `آربیٹل`, `WCAG` and the geometry words in
-# `content.ftl` are kept in that shape rather than replaced with new words.
+# `میٹرکس`, `فیصد`, `آربیٹل`, `WCAG` and the geometry words in `content.ftl`
+# are kept in that shape rather than replaced with new words.
 
 
 ## Answer submission
@@ -111,9 +111,6 @@ orbital-add-down-arrow = چیری تیر ءَ ھور کن
 orbital-remove-arrow = تیر ءَ در کن
 orbital-row-label = رج { $row } ءِ نام
 pretzel-answer = جواب
-# «ستون» names what `$column` is, so the phrase does not have to attach
-# anything to the placeable.
-summary-statistics-caption = ستون { $column } ءِ شماریاتی خلاصہ
 
 ## Math input
 

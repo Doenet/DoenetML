@@ -111,7 +111,6 @@ orbital-add-down-arrow = Lafi taha hana ki lalo
 orbital-remove-arrow = Tuku kehe e hana
 orbital-row-label = Fakamailoga ke he laini { $row }
 pretzel-answer = Tali
-summary-statistics-caption = Fakakatoaaga fika he { $column }
 
 
 ## Math input

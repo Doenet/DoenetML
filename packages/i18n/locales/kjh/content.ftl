@@ -46,10 +46,10 @@
 #
 # LOANS KEPT. `вектор`, `функция`, `парабола`, `квадрат`, `ромб`, `крест`,
 # `плюс`, `точка`, `область`, `фон`, `абзац`, `теорема`, `каскад`, `вариант`,
-# `статистика`, `горизонтальнай`, `вертикальнай`, `диагональнай` are the
-# Russian words in the spelling Khakas writes them in — the `-най` adjective
-# ending is how Khakas naturalizes a Russian adjective. They stand because they
-# are what the language uses, not for want of trying to translate them.
+# `горизонтальнай`, `вертикальнай`, `диагональнай` are the Russian words in the
+# spelling Khakas writes them in — the `-най` adjective ending is how Khakas
+# naturalizes a Russian adjective. They stand because they are what the
+# language uses, not for want of trying to translate them.
 #
 # CONFIDENCE. The least certain items are `пора` (gray), `хоор` (brown) and the
 # `пулуң`-based figure names — `кӧп пулуңныг` for polygon, `ӱс пулуңныг` for

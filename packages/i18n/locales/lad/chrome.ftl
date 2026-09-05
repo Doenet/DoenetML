@@ -40,13 +40,13 @@
 # «yerro» for *error*, «ma» for *but*, «i» for *and*, «agora», «ansina» — these
 # are the language's own and are what should make the file recognisable as
 # Ladino rather than as Spanish respelt. The technical nouns — «komponente»,
-# «atributo», «dokumento», «matris», «estatistikas», «aksesibilidad» — have no
-# Ladino attestation in a software register, so they are taken from the
-# **Spanish** learned Romance layer and respelt into Aki Yerushalayim. That
-# borrowing is not disguised: a Ladino speaker in Israel meets this vocabulary
-# in **Hebrew**, and one in Turkey in **Turkish**, and neither of those could
-# be spliced into a Romance sentence. `WCAG AA` and `DoenetML` are names and
-# stay in English.
+# «atributo», «dokumento», «matris», «aksesibilidad» — have no Ladino
+# attestation in a software register, so they are taken from the **Spanish**
+# learned Romance layer and respelt into Aki Yerushalayim. That borrowing is
+# not disguised: a Ladino speaker in Israel meets this vocabulary in
+# **Hebrew**, and one in Turkey in **Turkish**, and neither of those could be
+# spliced into a Romance sentence. `WCAG AA` and `DoenetML` are names and stay
+# in English.
 #
 # **Counts.** CLDR has **no plural data for `lad`**, so `Intl.PluralRules`
 # falls back to the root locale, where the only category is `other` and an
@@ -123,7 +123,6 @@ orbital-add-down-arrow = Adjustar una flecha para abasho
 orbital-remove-arrow = Kitar la flecha
 orbital-row-label = Etiketa de la fila { $row }
 pretzel-answer = Repuesta
-summary-statistics-caption = Estatistikas rezumidas de { $column }
 
 ## Math input
 

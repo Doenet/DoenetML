@@ -69,7 +69,6 @@ orbital-add-down-arrow = Bueja Kasonga ka Kuinshi
 orbital-remove-arrow = Umbusha Kasonga
 orbital-row-label = Dina dia mulongo { $row }
 pretzel-answer = Diandamuna
-summary-statistics-caption = Dijingulula dia mbalu ya { $column }
 
 ## Math input
 

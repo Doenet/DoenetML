@@ -75,7 +75,6 @@ orbital-add-down-arrow = Pastga strelka qoʻshish
 orbital-remove-arrow = Strelkani oʻchirish
 orbital-row-label = { $row } qatorining yorligʻi
 pretzel-answer = Javob
-summary-statistics-caption = { $column } ustunining jamlovchi statistikasi
 
 ## Math input
 

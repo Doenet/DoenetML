@@ -32,13 +32,13 @@
 # Akademi Kernewek's dictionary is the terminology authority; where it has a
 # term this catalog uses it. Where it does not, the fallback is English, which
 # is the language every Cornish speaker is actually schooled in, adapted to SWF
-# spelling: «statistegow», «matematek», «vektor», «parabola», «diagonal»,
-# «renderer», «WCAG». Three words in this catalog are transparent compounds
-# built from attested roots rather than dictionary entries, and a reviewer
-# should attack them first: **«dasliv»** for *feedback* (das- *re-* + liv
-# *flow*), **«hyntyans»** for *hint* (on hyntya), and **«hedhadewder»** for
-# *accessibility* (on hedhadow *reachable*). «terrys» for *dashed* and
-# «poyntys» for *dotted* in `content.ftl` are the same kind of formation.
+# spelling: «matematek», «vektor», «parabola», «diagonal», «renderer», «WCAG».
+# Three words in this catalog are transparent compounds built from attested
+# roots rather than dictionary entries, and a reviewer should attack them
+# first: **«dasliv»** for *feedback* (das- *re-* + liv *flow*), **«hyntyans»**
+# for *hint* (on hyntya), and **«hedhadewder»** for *accessibility* (on
+# hedhadow *reachable*). «terrys» for *dashed* and «poyntys» for *dotted* in
+# `content.ftl` are the same kind of formation.
 #
 # **Counts.** CLDR gives Cornish **rules of its own with all six categories**,
 # and Cornish integer counts really do reach every one of them:
@@ -153,7 +153,6 @@ orbital-add-down-arrow = Keworra seth war-nans
 orbital-remove-arrow = Dilea seth
 orbital-row-label = Label rag res { $row }
 pretzel-answer = Gorthyp
-summary-statistics-caption = Statistegow berr a { $column }
 
 
 ## Math input

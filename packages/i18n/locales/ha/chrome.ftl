@@ -73,7 +73,6 @@ orbital-add-down-arrow = Ƙara Kibiya Ƙasa
 orbital-remove-arrow = Cire Kibiya
 orbital-row-label = Lakabin jeri { $row }
 pretzel-answer = Amsa
-summary-statistics-caption = Taƙaitaccen ƙididdigar { $column }
 
 ## Math input
 

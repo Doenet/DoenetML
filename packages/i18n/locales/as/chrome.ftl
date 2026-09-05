@@ -77,7 +77,6 @@ orbital-add-down-arrow = তলমুৱা কাঁড় যোগ কৰক
 orbital-remove-arrow = কাঁড় আঁতৰাওক
 orbital-row-label = { $row } নং শাৰীৰ লেবেল
 pretzel-answer = উত্তৰ
-summary-statistics-caption = { $column }-ৰ সাৰাংশ পৰিসংখ্যা
 
 ## Math input
 

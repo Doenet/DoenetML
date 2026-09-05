@@ -76,7 +76,6 @@ orbital-add-down-arrow = ତଳ ତୀର ଯୋଡ଼ନ୍ତୁ
 orbital-remove-arrow = ତୀର ହଟାନ୍ତୁ
 orbital-row-label = ଧାଡ଼ି { $row } ର ଲେବଲ
 pretzel-answer = ଉତ୍ତର
-summary-statistics-caption = { $column } ର ସାରାଂଶ ପରିସଂଖ୍ୟାନ
 
 ## Math input
 

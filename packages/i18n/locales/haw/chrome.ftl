@@ -79,7 +79,6 @@ orbital-add-down-arrow = E hoʻohui i pua i lalo
 orbital-remove-arrow = E wehe i ka pua
 orbital-row-label = Inoa no ka lālani { $row }
 pretzel-answer = Pane
-summary-statistics-caption = Helu hōʻuluʻulu o { $column }
 
 ## Math input
 

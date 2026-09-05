@@ -70,7 +70,6 @@ orbital-add-down-arrow = Seer Ityôgh i Inya
 orbital-remove-arrow = Dugh Ityôgh
 orbital-row-label = Iti i layin { $row }
 pretzel-answer = Mlumun
-summary-statistics-caption = Mkuran u aeren a { $column }
 
 ## Math input
 

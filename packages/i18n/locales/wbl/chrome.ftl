@@ -191,8 +191,6 @@ orbital-row-label = Label baroi row { $row }
 
 pretzel-answer = Jawab
 
-summary-statistics-caption = Summary statistics baroi { $column }
-
 
 ## Math input
 

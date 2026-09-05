@@ -100,7 +100,6 @@ orbital-add-down-arrow = Pśidaj šypku dołoj
 orbital-remove-arrow = Wótpóraj šypku
 orbital-row-label = Pomjenjenje za smužku { $row }
 pretzel-answer = Wótegrono
-summary-statistics-caption = Zespominajuca statistika za { $column }
 
 ## Math input
 

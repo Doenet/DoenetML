@@ -78,7 +78,6 @@ orbital-add-down-arrow = Fa Bɛmma A Ɛkyerɛ Fam Ka Ho
 orbital-remove-arrow = Yi Bɛmma Firi Mu
 orbital-row-label = Santene { $row } din
 pretzel-answer = Mmuaeɛ
-summary-statistics-caption = { $column } ho akontabuo tiawa
 
 ## Math input
 

@@ -92,7 +92,6 @@ orbital-add-down-arrow = Zonta na frecia in zo
 orbital-remove-arrow = Cava la frecia
 orbital-row-label = Eticheta par la riga { $row }
 pretzel-answer = Rispota
-summary-statistics-caption = Statistiche de sintexi de { $column }
 
 ## Math input
 

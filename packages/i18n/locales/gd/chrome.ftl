@@ -80,7 +80,6 @@ orbital-add-down-arrow = Cuir saighead-sìos ris
 orbital-remove-arrow = Thoir saighead air falbh
 orbital-row-label = Leubail airson sreath { $row }
 pretzel-answer = Freagairt
-summary-statistics-caption = Geàrr-shuimean staitistigeach airson { $column }
 
 ## Math input
 

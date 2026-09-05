@@ -80,7 +80,6 @@ orbital-add-down-arrow = Engeza Umcibisholo Obhekise Phansi
 orbital-remove-arrow = Susa Umcibisholo
 orbital-row-label = Ilebula lomugqa { $row }
 pretzel-answer = Impendulo
-summary-statistics-caption = Izibalo ezifingqiwe ze-{ $column }
 
 ## Math input
 

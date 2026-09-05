@@ -81,7 +81,6 @@ orbital-add-down-arrow = បន្ថែមព្រួញចុះក្រោ�
 orbital-remove-arrow = លុបព្រួញ
 orbital-row-label = ស្លាកសម្រាប់ជួរដេកទី { $row }
 pretzel-answer = ចម្លើយ
-summary-statistics-caption = ស្ថិតិសង្ខេបនៃ { $column }
 
 ## Math input
 
