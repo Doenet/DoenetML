@@ -458,6 +458,36 @@ describe("List operator tag tests @group4", async () => {
             ).eq(true);
         });
 
+        it("many targets with nothing to look through report once", async () => {
+            // The reason is a property of the document, not of each target, so
+            // five targets say it once rather than five times.
+            const { infos } = await messagesFor(
+                `
+    <numberList name="targets">1 2 3 4 5</numberList>
+    <p><searchSorted target="$targets"></searchSorted></p>
+    `,
+            );
+            expect(
+                infos.filter((m) => m.includes("has no values to look through"))
+                    .length,
+            ).eq(1);
+        });
+
+        it("an empty list of targets is not reported", async () => {
+            // Unlike omitting `target`, which can never produce an answer, an
+            // empty list is a list: it asks about nothing and gets nothing, and
+            // a list driven by an input can legitimately be empty for a while.
+            const { warnings, infos } = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <numberList name="none" />
+    <p><indexOf target="$none">$nl</indexOf></p>
+    `);
+            const mine = (m: string) =>
+                m.includes("look for") || m.includes("look through");
+            expect(warnings.filter(mine)).eqls([]);
+            expect(infos.filter(mine)).eqls([]);
+        });
+
         it("an operator that finds an index reports nothing", async () => {
             const { warnings, infos } = await messagesFor(`
     <numberList name="nl">10 20 30</numberList>
@@ -731,6 +761,197 @@ describe("List operator tag tests @group4", async () => {
                 resolvePathToNodeIdx,
                 name: "p147",
                 text: "4",
+            });
+        });
+
+        it("a list of targets gives one index per target", async () => {
+            // The whole point of vectorizing `target`: mapping M draws onto
+            // their subpopulations takes one search operator, not M. The M
+            // results are still M `<math>` replacements.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <numberList name="draws">1 30 31 88 147</numberList>
+    <searchSorted name="which" side="left" target="$draws">$cum</searchSorted>
+    <p name="pAll">$which</p>
+    <p name="pThird">$which[3]</p>
+    <p name="pSum"><sum>$which</sum></p>
+    <numberList name="asNumbers">$which</numberList>
+    `,
+            });
+
+            // individuals 1-30 are in subpopulation 1, 31-75 in 2,
+            // 76-87 in 3, 88-147 in 4
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pAll",
+                text: "1, 1, 2, 4, 4",
+            });
+
+            // The result is a composite, so it indexes and aggregates like any
+            // other list.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pThird",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSum",
+                text: "12",
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("asNumbers")]
+                    .stateValues.numbers,
+            ).eqls([1, 1, 2, 4, 4]);
+        });
+
+        it("a single target still reads as one index", async () => {
+            // Returning a list made these composites, so the scalar reading —
+            // rendering inline, and indexing another list with the result —
+            // has to keep working.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <searchSorted name="i" side="left" target="31">$cum</searchSorted>
+    <p name="pIndex">$i</p>
+    <p name="pIndexed">$pop[$i]</p>
+    <p name="pInline">Individual 31 is in subpopulation $i.</p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pIndex",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pIndexed",
+                text: "45",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pInline",
+                text: "Individual 31 is in subpopulation 2.",
+            });
+        });
+
+        it("indexOf over a list of text targets", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="names">Ann Bob Cal Dee</textList>
+    <textList name="wanted">Cal Ann Eve</textList>
+    <p name="pFound"><indexOf type="text" target="$wanted">$names</indexOf></p>
+    `,
+            });
+
+            // Eve is not in the list, so her slot is 0 while the others keep
+            // their positions — one index per target, absences included.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pFound",
+                text: "3, 1, 0",
+            });
+        });
+
+        it("an empty list of targets gives no indices", async () => {
+            // Distinct from omitting `target` altogether, which gives a single
+            // 0 and a warning: an empty list is a list, and produces nothing.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">10 20 30</numberList>
+    <numberList name="none" />
+    <p name="pEmpty"><indexOf target="$none">$nl</indexOf></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pEmpty",
+                text: "",
+            });
+        });
+
+        it("changing the number of targets adds and removes indices", async () => {
+            // The replacements have to be recalculated, not just revalued,
+            // when the number of targets changes — and a list that empties has
+            // to give nothing back rather than a stale index or a 0.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="cutoffs">10 20 30</numberList>
+    <mathInput name="n" prefill="2" />
+    <numberList name="targets">
+      <repeatForSequence from="1" to="$n" valueName="v"><number>$v * 12</number></repeatForSequence>
+    </numberList>
+    <p name="pWhich"><searchSorted target="$targets">$cutoffs</searchSorted></p>
+    `,
+            });
+
+            // 12 sorts after 10, 24 after 20
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "2, 3",
+            });
+
+            await updateMathInputValue({
+                latex: "4",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            // 36 is past every cutoff, so it would be inserted at position 4
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "2, 3, 4, 4",
+            });
+
+            // Emptying the list withholds every replacement: no targets, no
+            // positions — not a 0, which would claim to be an answer.
+            await updateMathInputValue({
+                latex: "0",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "",
+            });
+
+            // and the withheld replacements come back when it refills
+            await updateMathInputValue({
+                latex: "3",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "2, 3, 4",
             });
         });
 
@@ -1120,6 +1341,22 @@ describe("List operator tag tests @group4", async () => {
             });
 
             expect(core.core!.rendererTypesInDocument).toContain("number");
+        });
+
+        it("searchSorted declares the math renderer with no targets", async () => {
+            // An operator that searches for a list of targets starts with no
+            // replacements whenever that list is empty, so it too has to
+            // declare what its results will be rendered as. Nothing else here
+            // is a math, so the renderer can only have come from the operator.
+            let { core } = await createTestCore({
+                doenetML: `
+    <numberList name="cutoffs">10 20 30</numberList>
+    <numberList name="none" />
+    <searchSorted target="$none">$cutoffs</searchSorted>
+    `,
+            });
+
+            expect(core.core!.rendererTypesInDocument).toContain("math");
         });
     });
 });

@@ -8,14 +8,19 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='indexOf'/>
 
 `<indexOf>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
-component that renders the position of the first of its arguments equal to the value
-given by the `target` attribute. Indices start at 1, and a target that does not occur
-in the list gives 0.
+component that renders, for each value given by the `target` attribute, the position of
+the first of its arguments equal to that value. Indices start at 1, and a target that
+does not occur in the list gives 0.
+
+`target` may be a single value or a whole list of them, and the result has one position
+per target — so looking up twenty names against a roster takes one `<indexOf>{:dn}`
+rather than twenty. Each of the twenty positions is still a component of its own; what
+one operator replaces is the twenty operators.
 
 A 0 for a target that is not in the list is the answer, not a problem, so nothing is
 reported for it. Omitting `target` altogether is a warning, since nothing about that
 document could ever produce an answer, and a list with no values at all is an info
-message.
+message. (An empty *list of targets* is neither: it simply produces no positions.)
 
 Values are compared numerically when they are all numeric, and as text otherwise, so
 `<indexOf>{:dn}` searches a `<textList>{:dn}` as readily as a `<numberList>{:dn}`.
@@ -60,6 +65,27 @@ gives 0, which is a position no list entry has.
 
 `type="text"` tells `<indexOf>{:dn}` to read the target as text rather than as a
 number.
+
+
+
+---
+
+### Example: looking up several targets at once
+
+
+```doenet-editor-horiz
+<textList name="names">Ann Bob Cal Dee</textList>
+<textList name="wanted">Cal Ann Eve</textList>
+
+<p>Roster: $names</p>
+<p>Looking for: $wanted</p>
+<p>Positions: <indexOf type="text" target="$wanted">$names</indexOf></p>
+```
+
+
+
+There is one result per target, in the order the targets were given. Eve is not on the
+roster, so her slot is 0 while the others keep their positions.
 
 
 

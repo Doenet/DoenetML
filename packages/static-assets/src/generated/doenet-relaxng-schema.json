@@ -39616,8 +39616,7 @@
                 "fixed": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
+                        "string"
                     ]
                 },
                 "fixLocation": {
@@ -39652,30 +39651,19 @@
                         "string"
                     ]
                 },
-                "format": {
+                "type": {
                     "optional": true,
                     "type": [
+                        "number",
+                        "math",
                         "text",
-                        "latex"
+                        "boolean"
                     ]
                 },
-                "simplify": {
+                "target": {
                     "optional": true,
                     "type": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder",
-                        "true",
-                        "false"
-                    ]
-                },
-                "expand": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
+                        "string"
                     ]
                 },
                 "displayDigits": {
@@ -39699,130 +39687,20 @@
                 "padZeros": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
+                        "string"
                     ]
                 },
                 "avoidScientificNotation": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "renderMode": {
-                    "optional": true,
-                    "type": [
-                        "inline",
-                        "display"
-                    ]
-                },
-                "unordered": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "createVectors": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "createIntervals": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "functionSymbols": {
-                    "optional": true,
-                    "type": [
                         "string"
                     ]
                 },
-                "referencesAreFunctionSymbols": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "splitSymbols": {
+                "asList": {
                     "optional": true,
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "parseScientificNotation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "displayBlanks": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "assumptions": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "draggable": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "layer": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "anchor": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "positionFromAnchor": {
-                    "optional": true,
-                    "type": [
-                        "upperRight",
-                        "upperLeft",
-                        "lowerRight",
-                        "lowerLeft",
-                        "top",
-                        "bottom",
-                        "left",
-                        "right",
-                        "center"
-                    ]
-                },
-                "type": {
-                    "optional": true,
-                    "type": [
-                        "number",
-                        "math",
-                        "text",
-                        "boolean"
-                    ]
-                },
-                "target": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 }
             },
@@ -40569,348 +40447,10 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "format",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Input format.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "simplify",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "expand",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to expand the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "renderMode",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "How the math is rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createVectors",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether tuple-like expressions are interpreted as vectors.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createIntervals",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether range expressions are interpreted as intervals.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "displayBlanks",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether blanks (placeholders) are visibly rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "assumptions",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "Assumptions applied when simplifying or comparing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "draggable",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the math component can be dragged on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "layer",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Z-order layer index when shown on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "positionFromAnchor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Where this component sits relative to its anchor point.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is hidden from the rendered output."
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is disabled and cannot be interacted with."
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's value is fixed and cannot be modified."
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "textColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
-                },
-                {
-                    "name": "backgroundColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
-                },
-                {
-                    "name": "textStyleDescription",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
-                },
-                {
-                    "name": "anchor",
-                    "type": "point",
-                    "isArray": false,
-                    "description": "The coordinates where this component is anchored on the graph."
-                },
-                {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "value",
-                    "type": "indexOf",
-                    "isArray": false,
-                    "description": "The 1-based index the operator found, or 0 if there is none."
-                },
-                {
-                    "name": "number",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The numeric value of the expression (NaN if not a number)."
-                },
-                {
-                    "name": "isNumber",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to a finite number."
-                },
-                {
-                    "name": "isNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to any number (including infinities)."
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false,
-                    "description": "The expression rendered as a LaTeX string."
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The expression rendered as a plain text string."
-                },
-                {
-                    "name": "numDimensions",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
-                },
-                {
-                    "name": "vector",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a vector (its components).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "vector"
-                        }
-                    ]
-                },
-                {
-                    "name": "list",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a list (its elements).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "matrixSize",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "The size of the math expression as a matrix, as a [numRows, numColumns] list."
-                },
-                {
-                    "name": "numRows",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of rows when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "numColumns",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of columns when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "matrix",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "rows",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by row.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "columns",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by column.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "x",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The first component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "y",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The second component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "z",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The third component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "numListItems",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ]
         },
@@ -40941,8 +40481,7 @@
                 "fixed": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
+                        "string"
                     ]
                 },
                 "fixLocation": {
@@ -40977,30 +40516,19 @@
                         "string"
                     ]
                 },
-                "format": {
+                "type": {
                     "optional": true,
                     "type": [
+                        "number",
+                        "math",
                         "text",
-                        "latex"
+                        "boolean"
                     ]
                 },
-                "simplify": {
+                "target": {
                     "optional": true,
                     "type": [
-                        "none",
-                        "full",
-                        "numbers",
-                        "numbersPreserveOrder",
-                        "normalizeOrder",
-                        "true",
-                        "false"
-                    ]
-                },
-                "expand": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
+                        "string"
                     ]
                 },
                 "displayDigits": {
@@ -41024,130 +40552,20 @@
                 "padZeros": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
+                        "string"
                     ]
                 },
                 "avoidScientificNotation": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "renderMode": {
-                    "optional": true,
-                    "type": [
-                        "inline",
-                        "display"
-                    ]
-                },
-                "unordered": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "createVectors": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "createIntervals": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "functionSymbols": {
-                    "optional": true,
-                    "type": [
                         "string"
                     ]
                 },
-                "referencesAreFunctionSymbols": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "splitSymbols": {
+                "asList": {
                     "optional": true,
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "parseScientificNotation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "displayBlanks": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "assumptions": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "draggable": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "layer": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "anchor": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "positionFromAnchor": {
-                    "optional": true,
-                    "type": [
-                        "upperRight",
-                        "upperLeft",
-                        "lowerRight",
-                        "lowerLeft",
-                        "top",
-                        "bottom",
-                        "left",
-                        "right",
-                        "center"
-                    ]
-                },
-                "type": {
-                    "optional": true,
-                    "type": [
-                        "number",
-                        "math",
-                        "text",
-                        "boolean"
-                    ]
-                },
-                "target": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "side": {
@@ -41901,104 +41319,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "format",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Input format.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "simplify",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Level of simplification applied to the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "expand",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to expand the expression.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "renderMode",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "How the math is rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createVectors",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether tuple-like expressions are interpreted as vectors.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "createIntervals",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether range expressions are interpreted as intervals.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "displayBlanks",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether blanks (placeholders) are visibly rendered.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "assumptions",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "Assumptions applied when simplifying or comparing.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "draggable",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the math component can be dragged on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "layer",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Z-order layer index when shown on a graph.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "positionFromAnchor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Where this component sits relative to its anchor point.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "side",
                     "type": "text",
                     "isArray": false,
@@ -42006,250 +41326,10 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is hidden from the rendered output."
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component is disabled and cannot be interacted with."
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's value is fixed and cannot be modified."
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
-                },
-                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "textColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
-                },
-                {
-                    "name": "backgroundColor",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
-                },
-                {
-                    "name": "textStyleDescription",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
-                },
-                {
-                    "name": "anchor",
-                    "type": "point",
-                    "isArray": false,
-                    "description": "The coordinates where this component is anchored on the graph."
-                },
-                {
-                    "name": "displayDigits",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "value",
-                    "type": "searchSorted",
-                    "isArray": false,
-                    "description": "The 1-based index the operator found, or 0 if there is none."
-                },
-                {
-                    "name": "number",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The numeric value of the expression (NaN if not a number)."
-                },
-                {
-                    "name": "isNumber",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to a finite number."
-                },
-                {
-                    "name": "isNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the expression evaluates to any number (including infinities)."
-                },
-                {
-                    "name": "latex",
-                    "type": "latex",
-                    "isArray": false,
-                    "description": "The expression rendered as a LaTeX string."
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The expression rendered as a plain text string."
-                },
-                {
-                    "name": "numDimensions",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
-                },
-                {
-                    "name": "vector",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a vector (its components).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "vector"
-                        }
-                    ]
-                },
-                {
-                    "name": "list",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a list (its elements).",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "matrixSize",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "The size of the math expression as a matrix, as a [numRows, numColumns] list."
-                },
-                {
-                    "name": "numRows",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of rows when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "numColumns",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of columns when the math expression is interpreted as a matrix."
-                },
-                {
-                    "name": "matrix",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "rows",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by row.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "columns",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The matrix's entries grouped by column.",
-                    "numDimensions": 2,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        },
-                        {
-                            "isArray": false,
-                            "type": "matrix"
-                        }
-                    ]
-                },
-                {
-                    "name": "x",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The first component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "y",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The second component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "z",
-                    "type": "math",
-                    "isArray": false,
-                    "description": "The third component of the math expression when interpreted as a vector."
-                },
-                {
-                    "name": "numListItems",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ]
         },

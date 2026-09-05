@@ -1,64 +1,29 @@
 import MathComponent from "../Math";
 import me from "math-expressions";
-import { codedDiagnostic } from "../../utils/diagnostics";
 import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import {
-    comparableValueFromRaw,
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
 } from "../../utils/listValues";
+import {
+    diagnosticsForNoIndex,
+    returnListTypeAttribute,
+} from "../../utils/listIndexOperators";
 
 /**
- * The reasons an index operator can come back with 0 — no position at all —
- * that are worth telling the author about, and the diagnostic each one gets.
+ * Base class for operators that report a single *position* within a list
+ * rather than a value from it: `<argMin>` and `<argMax>`.
  *
- * Not every 0 belongs here. `<indexOf>` answering 0 for a target that is not in
- * the list is its documented result, not a problem, and reporting it would fire
- * on ordinary correct documents — once per distinct value a student or author
- * types into an input bound to `target`. The diagnostics queue is append-only
- * and deduplicates by message, so anything that varies with a transient value
- * accumulates permanently; only reasons that stay true of a settled document
- * are reported.
+ * The result is one index, so — like `<count>` — these are math components
+ * whose value is computed from their children. The operators that search for a
+ * *target* report one index per target and so are composites; they live in
+ * `ListIndexBaseListOperator`. What the two bases share is in
+ * `utils/listIndexOperators`.
  *
- * Omitting `target` is one such: nothing about that document can ever produce
- * an answer, so it is a warning. Having no values at all is the other, and is
- * only info, since a list driven by an input can legitimately be empty for a
- * while.
- */
-function diagnosticsForNoIndex(result, componentType) {
-    switch (result.reason) {
-        case "noTarget":
-            return [
-                codedDiagnostic({
-                    type: "warning",
-                    code: "doenet-w0134",
-                    args: { component: componentType },
-                }),
-            ];
-        case "noValues":
-            return [
-                codedDiagnostic({
-                    type: "info",
-                    code: "doenet-i0049",
-                    args: { component: componentType },
-                }),
-            ];
-        default:
-            return [];
-    }
-}
-
-/**
- * Base class for operators that report a *position* within a list rather than
- * a value from it: `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>`.
- *
- * The result is an index, so — like `<count>` — these are math components whose
- * value is computed from their children. But unlike `MathBaseOperator`, which
- * only accepts math and number children, these accept anything `<sort>` accepts.
- * Finding the position of a name in a `<textList>` is at least as common as
- * finding a value in a `<numberList>`, and ordering comparisons on text are
- * perfectly well defined; the shared extraction in `utils/listValues` is what
- * keeps those comparisons identical to `<sort>`'s.
+ * Unlike `MathBaseOperator`, which only accepts math and number children, these
+ * accept anything `<sort>` accepts. Ordering comparisons on text are perfectly
+ * well defined, and the shared extraction in `utils/listValues` is what keeps
+ * those comparisons identical to `<sort>`'s.
  *
  * Indices are 1-based, matching `$list[1]`, and `0` means "no such element" —
  * consistent with `$list[0]` being empty.
@@ -78,34 +43,7 @@ export default class ListIndexBaseOperator extends MathComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.type = {
-            createPrimitiveOfType: "string",
-            description:
-                "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own.",
-            highlighted: true,
-            validValues: [
-                {
-                    value: "number",
-                    description:
-                        "Read bare strings as numbers, ordered by value.",
-                },
-                {
-                    value: "math",
-                    description:
-                        "Read bare strings as math expressions, ordered by value.",
-                },
-                {
-                    value: "text",
-                    description:
-                        "Read bare strings as text, ordered alphabetically.",
-                },
-                {
-                    value: "boolean",
-                    description:
-                        "Read bare strings as booleans, ordered with false before true.",
-                },
-            ],
-        };
+        attributes.type = returnListTypeAttribute();
 
         // `<math>` highlights these because they shape the expression it parses
         // and renders. The value here is an integer index, so how the input is
@@ -225,12 +163,10 @@ export default class ListIndexBaseOperator extends MathComponent {
                     numeric: dependencyValues.allAreNumeric,
                 });
 
-                const index = result.index;
-
                 return {
-                    setValue: { unnormalizedValue: me.fromAst(index) },
+                    setValue: { unnormalizedValue: me.fromAst(result.index) },
                     sendDiagnostics: diagnosticsForNoIndex(
-                        result,
+                        result.reason,
                         componentType,
                     ),
                 };
@@ -239,66 +175,4 @@ export default class ListIndexBaseOperator extends MathComponent {
 
         return stateVariableDefinitions;
     }
-}
-
-/**
- * Shared pieces for the two operators that compare the list against a value
- * supplied by the author: `<indexOf>` and `<searchSorted>`.
- *
- * The target is a `_componentWithSelectableType`, so it follows the component's
- * own `type` attribute: `<indexOf type="text" target="Carol">` compares text.
- */
-export function returnTargetAttribute(description) {
-    return {
-        createComponentOfType: "_componentWithSelectableType",
-        createStateVariable: "target",
-        defaultValue: null,
-        description,
-        highlighted: true,
-    };
-}
-
-export function returnTargetStateVariableDefinition() {
-    return {
-        comparableTarget: {
-            returnDependencies: () => ({
-                target: {
-                    dependencyType: "stateVariable",
-                    variableName: "target",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        comparableTarget: comparableValueFromRaw(
-                            dependencyValues.target,
-                        ),
-                    },
-                };
-            },
-        },
-    };
-}
-
-/**
- * Turn `locate`, which searches `values` for `target`, into an `indexOperator`,
- * supplying the two things both target-taking operators need: no target means
- * no answer, so the result is 0; and the comparison is numeric only when the
- * target is numeric as well as the list, so that
- * `<indexOf target="b">a b c</indexOf>` compares as text.
- */
-export function returnTargetSearchingIndexOperator(target, locate) {
-    return ({ values, numeric }) => {
-        if (target === null) {
-            return { index: 0, reason: "noTarget" };
-        }
-        if (values.length === 0) {
-            return { index: 0, reason: "noValues" };
-        }
-        return locate({
-            values,
-            target,
-            numeric: numeric && target.isNumeric,
-        });
-    };
 }
