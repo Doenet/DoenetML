@@ -1,0 +1,195 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<barChart>{:dn}`
+
+<ComponentDisplay name='barChart'/>
+
+`<barChart>{:dn}` draws one bar per number it is given. Pair it with
+[`<tally>{:dn}`](tally) or [`<binCounts>{:dn}`](binCounts) and a sampling simulation is
+a handful of components, however large the sample.
+
+Name the bars with `categories`; leave it out and they are numbered 1, 2, 3. The
+vertical axis scales itself to the data, unless you set `yMin` and `yMax` yourself — see
+[The vertical scale](#the-vertical-scale) below.
+
+## What it is drawn with
+
+`<barChart>{:dn}` renders through **PreFigure**, not the graph renderer, which buys
+three things:
+
+- **Category names on the axis.** `<graph>{:dn}` has no custom tick support, so the axis
+  of a chart built from `<repeat>{:dn}` and `<rectangle>{:dn}` inside a graph can only
+  number its bars; naming them means placing every name yourself as a second row of
+  anchored labels.
+- **One drawing however many bars.** The whole chart compiles to a single image, rather
+  than one component per bar.
+- **A chart a screen reader can walk.** Every bar carries its category and value as an
+  annotation, so the chart is navigable rather than merely present. Give it a
+  `<shortDescription>{:dn}` and that becomes the description of the figure as a whole.
+
+The cost is that the PreFigure runtime is fetched the first time a page uses it, so the
+first chart on a page takes a moment to appear. Pages with no chart on them fetch
+nothing.
+
+## The vertical scale
+
+Left alone, the axis runs from zero up to the first tick past the tallest bar, so the
+tallest bar never touches the top of the frame. The ticks are evenly spaced by a round
+number — 1, 2 or 5 times a power of ten — and they are counted from zero, the baseline
+the bars are measured against, rather than from the bottom of the box.
+
+A chart of whole numbers is never labeled in fractions, and a chart of fractions is: a
+chart of counts is labeled 1, 2, 3 and not 0.5, 1, 1.5, while a chart of proportions
+gets ticks inside the unit interval rather than only at its two ends.
+
+A negative value hangs its bar below the axis, and the axis drops to the first tick past
+the smallest value. With `displayValues`, that bar's number is printed *below* it, at
+the end of the bar rather than up on the axis.
+
+`yMin` and `yMax` replace the automatic bounds, but only as a pair describing a box
+there is something to draw in: if either is not a finite number, or `yMin` is not below
+`yMax`, both are ignored and the chart scales itself as if neither had been given.
+Setting `yMin` above zero cuts the bars off at the bottom of the frame, so their drawn
+heights no longer compare the way their values do.
+
+An empty chart still draws a box one tick tall rather than collapsing, and a value of
+zero keeps its slot and its category label rather than being skipped.
+
+## Size and spacing
+
+`size` — or an explicit `width` — sets how wide the chart is, and `aspectRatio` sets its
+width divided by its height, 1.5 by default. An `aspectRatio` that is not a positive
+number is ignored and 1.5 is used.
+
+`barWidth` is how much of its one-unit slot each bar fills, from just above 0 up to 1;
+the rest is the gap to the next bar. A value outside that range is reported as a warning
+and 0.8 is used instead.
+
+<AttrPropDisplay name='barChart'/>
+
+## Examples
+
+### Example: a chart of counts
+
+
+```doenet-editor-horiz
+<barChart categories="North South East West" type="text" displayValues size="small">
+  <shortDescription>Population by region</shortDescription>
+  <yLabel>people</yLabel>
+  <number>41</number>
+  <number>63</number>
+  <number>18</number>
+  <number>78</number>
+</barChart>
+```
+
+
+
+`type="text"` is needed whenever the categories are words: without it they are read as
+numbers, and a word that is not a number reads as `NaN` under its bar. `displayValues`
+prints each bar's value above it.
+
+
+
+---
+
+### Example: charting a simulation
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <textList name="labels">North South East West</textList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<sampleRandomNumbers name="draws" type="discreteUniform"
+  from="1" to="$total" numSamples="60" hide />
+<searchSorted name="which" target="$draws" hide>$cum</searchSorted>
+<tally name="counts" categories="1 2 3 4" hide>$which</tally>
+
+<barChart categories="$labels" type="text" size="small">
+  <shortDescription>Where 60 sampled individuals came from</shortDescription>
+  <yLabel>count</yLabel>
+  $counts
+</barChart>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+Four components hold the whole simulation, however large `numSamples`
+is: [`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
+[`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
+in, [`<tally>{:dn}`](tally) counts them, and `<barChart>{:dn}` draws the counts.
+
+Drawing again redraws the chart. Because `<tally>{:dn}` is given its categories rather
+than left to discover them, a subpopulation that happens to get no draws still counts
+zero, and the chart keeps that bar — at height zero — instead of dropping it and
+shifting the others along.
+
+
+
+---
+
+### Example: a histogram of a continuous quantity
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <textList name="bins">-3to-2 -2to-1 -1to0 0to1 1to2 2to3</textList>
+</setup>
+
+<sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+  numSamples="200" hide />
+<binCounts name="h" bins="$edges" hide>$z</binCounts>
+
+<barChart categories="$bins" type="text" size="small">
+  <shortDescription>200 draws from a standard normal distribution</shortDescription>
+  <yLabel>count</yLabel>
+  $h
+</barChart>
+
+<callAction actionName="resample" target="$z">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+[`<binCounts>{:dn}`](binCounts) turns the sample into counts per interval and
+`<barChart>{:dn}` draws them. Drawing again a few times shows the shape settling toward
+the bell it is drawn from — and how much a sample of 200 still wobbles.
+
+
+
+---
+
+### Example: reading the chart's own numbers back
+
+
+```doenet-editor-horiz
+<barChart name="chart" categories="A B C" type="text" size="small">
+  <shortDescription>Three values</shortDescription>
+  <number>4</number>
+  <number>9</number>
+  <number>2</number>
+</barChart>
+
+<p>Values: $chart.barValues</p>
+<p>Categories: $chart.categories</p>
+<p>Total: <sum>$chart.barValues</sum></p>
+```
+
+
+
+The chart's values and category names are readable properties, so a sentence can quote
+the same numbers the picture shows without repeating them in the source.

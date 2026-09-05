@@ -319,3 +319,22 @@ export function clipLineLikeToBounds({
         [x0 + clippedTMax * dx, y0 + clippedTMax * dy],
     ];
 }
+
+// Dark-mode axis/tick stroke. PreFigure defaults axes/ticks to black (tuned for
+// a white canvas); on the dark canvas they vanish. We bake a light stroke that
+// matches the JSXGraph renderer's axes (`--canvasText`, which is white in dark
+// mode). Tick *labels* are MathJax `currentColor` and already inherit the
+// canvas text color via CSS, so only the lines need recoloring.
+const PREFIGURE_DARK_AXIS_COLOR = "#ffffff";
+
+/**
+ * The `stroke` attribute an `<axes>` or `<tick-mark>` needs in dark mode, and
+ * nothing at all in light mode, ready to be concatenated into a tag.
+ *
+ * Contrast `THEME_AWARE_LABEL_COLOR_ATTR` in `label.ts`, which is emitted in
+ * both themes: that one fills in a color PreFigure leaves unset, where this one
+ * overrides a color that is already correct on a white canvas.
+ */
+export function darkModeAxisStrokeAttr(darkMode: boolean): string {
+    return darkMode ? ` stroke="${PREFIGURE_DARK_AXIS_COLOR}"` : "";
+}
