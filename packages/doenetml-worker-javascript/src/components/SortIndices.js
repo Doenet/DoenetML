@@ -29,26 +29,6 @@ export default class SortIndices extends Sort {
 
     static allowInSchemaAsComponent = ["number"];
 
-    /**
-     * The attributes worth opening the docs with: what the values are read as,
-     * and what determines their order. These are declared by `Sort`, which
-     * `<sortIndices>` shares them with, so they are flagged here on the copy
-     * rather than in `Sort.js` — highlighting them there would change `<sort>`'s
-     * own reference page as a side effect.
-     */
-    static createAttributesObject() {
-        const attributes = super.createAttributesObject();
-
-        for (const attrName of ["type", "sortByProp", "asList"]) {
-            attributes[attrName] = {
-                ...attributes[attrName],
-                highlighted: true,
-            };
-        }
-
-        return attributes;
-    }
-
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 

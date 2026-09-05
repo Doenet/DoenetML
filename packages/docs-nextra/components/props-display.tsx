@@ -83,6 +83,7 @@ export type PropInfo = {
  * the worker never requires a change here to render (it just lands at the end).
  */
 const GROUP_ORDER = [
+    "sorting",
     "number-display",
     "labels",
     "positioning",
@@ -94,6 +95,7 @@ const GROUP_ORDER = [
 
 /** Human-readable section titles for the known functional groups. */
 const GROUP_LABELS: Record<string, string> = {
+    sorting: "Sort order",
     "number-display": "Number display",
     labels: "Labels",
     positioning: "Positioning",

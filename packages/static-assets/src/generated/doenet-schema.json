@@ -99431,6 +99431,7 @@
                 {
                     "name": "type",
                     "description": "The kind of values in the sequence.",
+                    "highlighted": true,
                     "values": [
                         "number",
                         "math",
@@ -99455,21 +99456,25 @@
                 {
                     "name": "from",
                     "description": "The first value in the sequence.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "to",
                     "description": "The last value in the sequence. Used together with from to determine length when length is not specified.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "step",
                     "description": "The increment between successive values in the sequence.",
+                    "highlighted": true,
                     "type": "math"
                 },
                 {
                     "name": "length",
                     "description": "The number of values in the sequence.",
+                    "highlighted": true,
                     "type": "integer"
                 },
                 {
@@ -103612,6 +103617,7 @@
                 {
                     "name": "type",
                     "description": "The kind of values in the sequence.",
+                    "highlighted": true,
                     "values": [
                         "number",
                         "math",
@@ -103636,21 +103642,25 @@
                 {
                     "name": "from",
                     "description": "The first value in the sequence.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "to",
                     "description": "The last value in the sequence. Used together with from to determine length when length is not specified.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "step",
                     "description": "The increment between successive values in the sequence.",
+                    "highlighted": true,
                     "type": "math"
                 },
                 {
                     "name": "length",
                     "description": "The number of values in the sequence.",
+                    "highlighted": true,
                     "type": "integer"
                 },
                 {
@@ -106720,6 +106730,7 @@
                 {
                     "name": "type",
                     "description": "The kind of values in the sequence.",
+                    "highlighted": true,
                     "values": [
                         "number",
                         "math",
@@ -106744,21 +106755,25 @@
                 {
                     "name": "from",
                     "description": "The first value in the sequence.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "to",
                     "description": "The last value in the sequence. Used together with from to determine length when length is not specified.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "step",
                     "description": "The increment between successive values in the sequence.",
+                    "highlighted": true,
                     "type": "math"
                 },
                 {
                     "name": "length",
                     "description": "The number of values in the sequence.",
+                    "highlighted": true,
                     "type": "integer"
                 },
                 {
@@ -107526,6 +107541,7 @@
                 {
                     "name": "type",
                     "description": "The kind of values in the sequence.",
+                    "highlighted": true,
                     "values": [
                         "number",
                         "math",
@@ -107550,21 +107566,25 @@
                 {
                     "name": "from",
                     "description": "The first value in the sequence.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "to",
                     "description": "The last value in the sequence. Used together with from to determine length when length is not specified.",
+                    "highlighted": true,
                     "type": "_componentWithSelectableType"
                 },
                 {
                     "name": "step",
                     "description": "The increment between successive values in the sequence.",
+                    "highlighted": true,
                     "type": "math"
                 },
                 {
                     "name": "length",
                     "description": "The number of values in the sequence.",
+                    "highlighted": true,
                     "type": "integer"
                 },
                 {
@@ -119187,6 +119207,7 @@
                 {
                     "name": "sortVectorsBy",
                     "description": "Whether to sort vectors by component or by magnitude.",
+                    "groupName": "sorting",
                     "defaultValue": "displacement",
                     "values": [
                         "displacement",
@@ -119207,22 +119228,27 @@
                 {
                     "name": "sortByComponent",
                     "description": "Index of the component to sort by (when sorting vectors).",
+                    "groupName": "sorting",
                     "defaultValue": "1",
                     "type": "integer"
                 },
                 {
                     "name": "sortByProp",
                     "description": "Name of a property to sort by (e.g. \"x\" for sorting points by x-coordinate).",
+                    "groupName": "sorting",
+                    "highlighted": true,
                     "type": "text"
                 },
                 {
                     "name": "type",
                     "description": "Component type to sort children as.",
+                    "highlighted": true,
                     "type": "text"
                 },
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -119258,14 +119284,16 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Whether to sort vectors by component or by magnitude.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "groupName": "sorting"
                 },
                 {
                     "name": "sortByComponent",
                     "type": "integer",
                     "isArray": false,
                     "description": "Index of the component to sort by (when sorting vectors).",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "groupName": "sorting"
                 },
                 {
                     "name": "doenetML",
@@ -119603,6 +119631,7 @@
                 {
                     "name": "sortVectorsBy",
                     "description": "Whether to sort vectors by component or by magnitude.",
+                    "groupName": "sorting",
                     "defaultValue": "displacement",
                     "values": [
                         "displacement",
@@ -119623,12 +119652,14 @@
                 {
                     "name": "sortByComponent",
                     "description": "Index of the component to sort by (when sorting vectors).",
+                    "groupName": "sorting",
                     "defaultValue": "1",
                     "type": "integer"
                 },
                 {
                     "name": "sortByProp",
                     "description": "Name of a property to sort by (e.g. \"x\" for sorting points by x-coordinate).",
+                    "groupName": "sorting",
                     "highlighted": true,
                     "type": "text"
                 },
@@ -119677,14 +119708,16 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Whether to sort vectors by component or by magnitude.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "groupName": "sorting"
                 },
                 {
                     "name": "sortByComponent",
                     "type": "integer",
                     "isArray": false,
                     "description": "Index of the component to sort by (when sorting vectors).",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "groupName": "sorting"
                 },
                 {
                     "name": "doenetML",
@@ -120022,11 +120055,13 @@
                 {
                     "name": "type",
                     "description": "Component type to shuffle children as.",
+                    "highlighted": true,
                     "type": "text"
                 },
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",

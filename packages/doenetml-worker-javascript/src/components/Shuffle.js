@@ -25,11 +25,13 @@ export default class Shuffle extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.type = {
+            highlighted: true,
             createPrimitiveOfType: "string",
             description: "Component type to shuffle children as.",
         };
 
         attributes.asList = {
+            highlighted: true,
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,

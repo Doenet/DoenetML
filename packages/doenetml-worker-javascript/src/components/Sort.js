@@ -24,6 +24,7 @@ export default class Sort extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.sortVectorsBy = {
+            groupName: "sorting",
             description:
                 "Whether to sort vectors by component or by magnitude.",
             createComponentOfType: "text",
@@ -46,6 +47,7 @@ export default class Sort extends CompositeComponent {
         };
 
         attributes.sortByComponent = {
+            groupName: "sorting",
             description:
                 "Index of the component to sort by (when sorting vectors).",
             createComponentOfType: "integer",
@@ -56,12 +58,15 @@ export default class Sort extends CompositeComponent {
 
         attributes.sortByProp = {
             createPrimitiveOfType: "string",
+            highlighted: true,
+            groupName: "sorting",
             description:
                 'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
         };
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            highlighted: true,
             description: "Component type to sort children as.",
         };
 
@@ -69,6 +74,7 @@ export default class Sort extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            highlighted: true,
             description:
                 "Whether to render the items separated by commas (true) or with no separator (false).",
         };
