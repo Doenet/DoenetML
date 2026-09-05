@@ -1,31 +1,135 @@
-Perform a thorough review of this PR. Look for ways in which the code can be made more concise, redundancy can be eliminated, and the codebase can be made easier to maintain. Look for simplifications of the code that could perform the same functions. Abstract repeated code to helper functions if that will increase readability. Prefer conventions established in AGENTS.md.
+# PR Review Guidelines
 
-Review all the documentation and comments for consistency, clarity of intent, and accuracy. Add additional doc strings to functions or code blocks if they would help clarify the intent and make the code easier to maintain.
+Review this PR. The first question is whether the code is **correct** — whether it does
+what the PR, its documentation, and its own comments say it does. Everything else in this
+document is secondary to that.
+
+## Correctness
+
+Trace the main path of the change by hand and satisfy yourself that it produces the
+claimed result. Do not accept a comment, a test name, or a variable name as evidence of
+what the code does.
+
+Work the edge cases deliberately. The ones that have actually shipped bugs in this
+codebase are:
+
+- **Empty input** — an empty list, or one whose only children were references that
+  produced nothing.
+- **`NaN` and non-numeric values**, including a `<number>` whose content does not parse
+  and so is numeric by type but `NaN` by value. Remember that *every* comparison against
+  `NaN` is false, so a guard phrased as "no element is out of order" passes a `NaN` that a
+  guard phrased as "every element is in order" would catch. A `NaN` also equals nothing —
+  not even another `NaN` — so anything that groups by equality will give each one a group
+  of its own.
+- **Boundary values** — the first and last element, a value lying exactly on a cut point,
+  equal or duplicate values, and collections of one and of zero elements.
+- **Values that change over time**, especially anything driven by an input while a student
+  is still typing.
+
+Then ask what the change breaks that **is not in the diff**. Swapping a base class,
+changing an attribute's `createComponentOfType`, or editing a shared utility can change
+behavior entirely inside files the PR never touches. Name the behavior before and after,
+and establish the "before" by reading the code that used to run, not by assuming.
+
+## Run the code
+
+Reading is not verification. Where a finding can be settled by executing a document — which
+is most of them — write the smallest one that decides it, and report what it actually
+rendered. Delete any scratch file before you finish.
+
+Say how you established each claim: **ran it**, **read the code**, or **assumed**. A review
+that does not distinguish these is hard to act on, because the reader cannot tell which
+parts to re-check.
+
+## Check prose against code, not against other prose
+
+Every factual or quantitative claim — in the changeset, the PR description, the reference
+documentation, the code comments, and the commit message — must be traceable to the code
+that makes it true. Cite the file and line, or delete the claim.
+
+This matters most when a claim appears on several surfaces. A sentence written once and
+then paraphrased into each new place tends to get checked against the earlier wording
+rather than against the code, so one error propagates and every later reader finds it
+reassuringly consistent with everything around it. Go back to the code each time,
+including for the copy you have already read somewhere else.
+
+Claims about cost deserve particular suspicion. "One component rather than a thousand" is
+easy to write and rarely true: a composite creates one replacement per result, so a change
+that removes a thousand *operators* usually still creates a thousand *components*. State
+what is saved and what is not.
+
+## Scope
+
+Prefer changes that live inside the PR's own diff. If you find a worthwhile refactor that
+would mean editing files this PR does not touch — extracting shared machinery, folding
+duplicated helpers together — **report it rather than performing it**. It probably belongs
+in a PR of its own, and if this PR is part of a stack, editing a lower layer forces every
+branch above it to be replayed.
+
+## Simplification and maintainability
+
+Once correctness is settled: look for code that can be made more concise, redundancy that
+can be eliminated, and simplifications that would perform the same function. Abstract
+repeated code into helper functions where that increases readability and where it stays in
+scope as described above. Prefer conventions established in `AGENTS.md`.
+
+Review the documentation and comments for consistency, clarity of intent, and accuracy.
+Add doc strings to functions or code blocks where they would clarify intent and make the
+code easier to maintain — and correct or remove any comment that no longer describes what
+the code does.
 
 ## Schema freshness
 
-If the PR adds or modifies any component class (files under `packages/doenetml-worker-javascript/src/components/`) — including new state variables, attributes, or component types — regenerate the schema and commit the result:
+If the PR adds or modifies any component class (files under
+`packages/doenetml-worker-javascript/src/components/`) — including new state variables,
+attributes, or component types — regenerate the schema and commit the result:
 
 ```bash
 npm run build:schema -w packages/static-assets
 git add packages/static-assets/src/generated/
 ```
 
-The CI job `schema-freshness` will fail if the committed schema files are out of date with the component source. Running `build:schema` locally and staging any changed files in `packages/static-assets/src/generated/` prevents that failure.
+The CI job `schema-freshness` will fail if the committed schema files are out of date with
+the component source. Running `build:schema` locally and staging any changed files in
+`packages/static-assets/src/generated/` prevents that failure.
 
 ## Test coverage
 
 Review whether the PR includes adequate tests:
 
-- New behavior or bug fixes should have at least one Vitest unit test (in `*.test.ts`), a Cypress e2e test (in `cypress/e2e/**/*.cy.js`), or a Cypress component test (in `test/cypress/component/**/*.cy.tsx` — present in `@doenet/codemirror`, `@doenet/doenetml`, and `@doenet/doenetml-iframe`), as appropriate for the change.
-- If the PR modifies existing behavior, confirm that any existing tests covering that behavior have been updated to reflect the new expected behavior.
-- Check that the tests actually exercise the scenario described in the PR — not just adjacent or unrelated scenarios.
+- New behavior or bug fixes should have at least one Vitest unit test (in `*.test.ts`), a
+  Cypress e2e test (in `cypress/e2e/**/*.cy.js`), or a Cypress component test (in
+  `test/cypress/component/**/*.cy.tsx` — present in `@doenet/codemirror`,
+  `@doenet/doenetml`, and `@doenet/doenetml-iframe`), as appropriate for the change.
+- If the PR modifies existing behavior, confirm that any existing tests covering that
+  behavior have been updated to reflect the new expected behavior.
+- Check that the tests actually exercise the scenario described in the PR — not just
+  adjacent or unrelated scenarios.
+- A test written for a bug fix should **fail without the fix**. Where it is cheap to do so,
+  confirm that by reverting the fix and watching the test fail; a test that passes either
+  way documents nothing.
 
 ## Documentation
 
 Review whether the PR updates or adds documentation as needed:
 
-- If the PR changes user-visible behavior (new features, changed defaults, renamed attributes, etc.), check whether the corresponding page(s) in `packages/docs-nextra/` need updating.
-- If the PR adds a new component, ensure a reference page exists or is created under `packages/docs-nextra/pages/reference/`.
-- If the PR changes how an existing component behaves (e.g. new attribute, changed default, fixed edge case), update the relevant reference or guide page.
-- Documentation changes are not required for purely internal refactors or fixes with no user-visible effect.
+- If the PR changes user-visible behavior (new features, changed defaults, renamed
+  attributes, etc.), check whether the corresponding page(s) in `packages/docs-nextra/`
+  need updating.
+- If the PR adds a new component, ensure a reference page exists or is created under
+  `packages/docs-nextra/pages/reference/`.
+- If the PR changes how an existing component behaves (e.g. new attribute, changed
+  default, fixed edge case), update the relevant reference or guide page.
+- Every DoenetML example on a page is a claim about what that markup renders. Run the ones
+  the PR adds or changes, and confirm the surrounding prose describes what actually
+  happens.
+- Documentation changes are not required for purely internal refactors or fixes with no
+  user-visible effect.
+
+## Changeset and PR description
+
+- The changeset must describe the user-visible behavior in the diff, and only behavior that
+  is actually in it. Consult the `changesets` skill rather than copying a sibling changeset.
+- The PR description must still describe everything in the diff. A stale PR description is
+  the single most common oversight in this procedure, so check it explicitly rather than
+  assuming an earlier pass left it accurate.
