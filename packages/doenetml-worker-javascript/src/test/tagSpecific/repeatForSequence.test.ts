@@ -2787,9 +2787,14 @@ describe("RepeatForSequence tag tests @group3", async () => {
         // reachable along many paths at once. Traversals that followed every path
         // separately took time exponential in the number of iterations, which turned
         // a recurrence like this cumulative sum into a hung document; twelve
-        // iterations took roughly an hour. The test's timeout is what guards against
-        // that; it is deliberately far above the time this now takes, since we are
-        // catching exponential growth, not a modest slowdown.
+        // iterations took roughly an hour, and reverting either half of the fix on
+        // its own still leaves this test running for many minutes.
+        //
+        // The blowup happens inside synchronous recursion, so vitest cannot preempt
+        // it: a regression shows up as this test never finishing rather than as a
+        // clean timeout failure. The timeout below is a backstop for a regression
+        // that does yield, and a record of the intended scale — this takes a couple
+        // of seconds today, so CI jitter comes nowhere near it.
         const numIterations = 12;
 
         let { core, resolvePathToNodeIdx } = await createTestCore({

@@ -263,7 +263,7 @@ function ancestorsIncludingCompositesMemoized(comp, components, memo) {
     }
 
     const memoized = memo.get(comp.componentIdx);
-    if (memoized) {
+    if (memoized !== undefined) {
         return memoized;
     }
 

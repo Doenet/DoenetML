@@ -197,10 +197,12 @@ export default class BaseComponent {
     /**
      * The body of `addPotentialRendererTypes`, called once per component.
      *
-     * Subclasses override this to contribute renderer types that the component
-     * graph alone does not reveal; an override must call `super` and must
-     * recurse through `addPotentialRendererTypes` (passing `visited` along)
-     * rather than calling this method directly, so the guard is not bypassed.
+     * Subclasses override this to reach what the walk below does not: further
+     * links out of the component (a composite's replacements) or renderer
+     * types that no component reveals (a repeat's serialized template). An
+     * override must call `super`, and must step to another component through
+     * `addPotentialRendererTypes` (passing `visited` along) rather than
+     * calling this method directly, so the guard is not bypassed.
      */
     addOwnPotentialRendererTypes(rendererTypes, visited) {
         rendererTypes.add("_error");
@@ -266,12 +268,20 @@ export default class BaseComponent {
             return;
         }
 
-        // recurse to all children
+        this.addPotentialRendererTypesFromChildren(rendererTypes, visited);
+    }
+
+    /**
+     * Recurse into every child of this component.
+     *
+     * Split out because `CompositeComponent` has to run this walk itself: a
+     * composite has no `rendererType`, so `addOwnPotentialRendererTypes`
+     * returns above without reaching the children.
+     */
+    addPotentialRendererTypesFromChildren(rendererTypes, visited) {
         for (const childIdxStr in this.allChildren) {
-            let child = this.allChildren[childIdxStr].component;
-            if (typeof child !== "object") {
-                continue;
-            } else {
+            const child = this.allChildren[childIdxStr].component;
+            if (typeof child === "object") {
                 child.addPotentialRendererTypes(rendererTypes, visited);
             }
         }
