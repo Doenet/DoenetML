@@ -236,6 +236,9 @@ export function returnListValueStateVariableDefinitions({
                     );
                     continue;
                 }
+                // A child that publishes `componentIndicesInList` contributes
+                // one index per item it holds. No component defines that
+                // variable today, so in practice this is one index per child.
                 if (child.stateValues.componentIndicesInList) {
                     componentIndicesForValues.push(
                         ...child.stateValues.componentIndicesInList,

@@ -104,6 +104,27 @@ using the `<sort>{:dn}` component.
 
 ## Attribute Examples
 
+### Attribute Example: type
+
+
+```doenet-editor-horiz
+<p>Numbers: <sort type="number">101 542 51 234</sort></p>
+<p>Text: <sort type="text">orange apple banana</sort></p>
+<p>Booleans: <sort type="boolean">true false true</sort></p>
+```
+
+
+
+When the children are written as plain text rather than as components, `type` says how
+to read each whitespace-separated piece: as a `number`, a `math`, a `text`, or a
+`boolean`. Numbers and maths are ordered by value, text alphabetically, and booleans
+with `false` before `true`. Without `type`, there is nothing to say how the pieces
+should be compared, so they are left as written and a warning is issued.
+
+
+
+---
+
 ### Attribute Example: sortByComponent
 
 
