@@ -84,8 +84,10 @@ export function sampleBinomial({ numTrials, probability, rng }) {
  * One draw from the exponential distribution with rate 1.
  *
  * The generator's range is [0, 1), so it can return exactly zero, and `-log(0)` is
- * infinite — which would end a Poisson sample early and bias it low. Redrawing is
- * how the Box-Muller transform above handles the same hazard.
+ * infinite — which would end a Poisson sample early and bias it low. Redrawing on a
+ * zero is how the Box-Muller transform in `sampleFromRandomNumbers` below handles the
+ * same hazard, and it leaves the distribution exact: it rejects a single point, which
+ * the exponential distribution gives no weight to.
  */
 function sampleExponential(rng) {
     let uniform = 0;
@@ -318,10 +320,14 @@ export function sampleFromRandomNumbers({
     // `numSamples` is declared as a number, not an integer, so it can arrive
     // fractional or NaN. The long-standing loops here take the ceiling of a
     // fractional count, and `Array(1.5)` throws outright rather than rounding, so
-    // settle on one whole count up front and use it in every branch.
-    const numToSample = Number.isFinite(numSamples)
-        ? Math.max(0, Math.ceil(numSamples))
-        : 0;
+    // settle on one whole count up front and use it in every branch. Anything below
+    // one draws nothing, which is what the callers' `numSamples < 1` short-circuit
+    // already does for the values that reach them; a count that is not a finite
+    // number draws nothing too, rather than throwing or looping forever.
+    const numToSample =
+        Number.isFinite(numSamples) && numSamples >= 1
+            ? Math.ceil(numSamples)
+            : 0;
 
     if (type === "gaussian") {
         if (!(standardDeviation >= 0) || !Number.isFinite(mean)) {

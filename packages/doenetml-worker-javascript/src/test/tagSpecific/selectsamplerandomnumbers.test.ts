@@ -853,18 +853,53 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
 
         // the same holds on the refusal path, which builds the run of NaN a
-        // different way
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="1.5" />`,
-        });
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        const values = stateVariables[componentIdx].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        expect(values.length).eq(2);
-        for (const value of values) {
-            expect(Number.isNaN(value)).eq(true);
+        // different way; the `gaussian` case is the one that predates this feature
+        for (const parameters of [
+            `type="binomial" numTrials="-1" probability="0.5"`,
+            `type="gaussian" variance="-1"`,
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<sampleRandomNumbers name="s" ${parameters} numSamples="1.5" />`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+            const values = stateVariables[componentIdx].replacements!.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
+            );
+            expect(values.length, parameters).eq(2);
+            for (const value of values) {
+                expect(Number.isNaN(value)).eq(true);
+            }
+        }
+
+        // a count under one samples nothing, before and after a `resample`, which
+        // reaches the sampler without the `numSamples < 1` short-circuit that
+        // `sampledValues` applies
+        {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <sampleRandomNumbers name="s" type="binomial" numTrials="4" probability="0.5" numSamples="0.5" />
+    <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
+    `,
+            });
+            const componentIdx = await resolvePathToNodeIdx("s");
+            expect(
+                (await core.returnAllStateVariables(false, true))[componentIdx]
+                    .replacements!.length,
+            ).eq(0);
+
+            await callAction({
+                core,
+                componentIdx: await resolvePathToNodeIdx("again"),
+            });
+
+            expect(
+                (await core.returnAllStateVariables(false, true))[componentIdx]
+                    .replacements!.length,
+            ).eq(0);
         }
     });
 

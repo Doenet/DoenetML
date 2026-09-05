@@ -16,4 +16,4 @@ The `mean`, `variance`, and `standardDeviation` properties report the exact valu
 
 Because these distributions are drawn one item, trial, or event at a time, parameters that would need more than ten million draws for a single sample are refused the same way impossible ones are, rather than leaving the page unresponsive while they ran. The limit is far above any population, trial count, or rate that arises in practice; it is there so that mistyping an extra digit reports a problem instead of freezing the activity. Parameters an order of magnitude below it are still sampled as asked, with a warning that sampling may be slow.
 
-A fractional `numSamples` now yields the same count on every distribution, and no longer breaks the document when parameters are also unusable.
+A fractional `numSamples` now draws the same count from every distribution, rounding up as `uniform` always has. Alongside unusable parameters — a `gaussian` with a negative `variance`, say — a fractional count used to break the document instead of reporting `NaN`.
