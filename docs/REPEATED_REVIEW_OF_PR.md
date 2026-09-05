@@ -35,7 +35,7 @@ Give the subagent these instructions:
    inherited by every later cycle as a decision already taken.
 4. Verify the changeset still describes the user-visible behavior in the diff; update if not.
 5. Verify the PR description still describes everything in the diff; update if not. Don't
-   skip this — a stale PR description is the most common review-cycle oversight.
+   skip this — nothing else in the pipeline checks it.
 6. Commit and push the results.
 7. Append to the ledger, and report back a short summary of what was changed (or "no
    changes" if nothing needed updating).

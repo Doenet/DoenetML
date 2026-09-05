@@ -16,15 +16,17 @@ Trace the main path of the change by hand and satisfy yourself that it produces 
 claimed result. Do not accept a comment, a test name, or a variable name as evidence of
 what the code does.
 
-Work the edge cases deliberately. The ones that have actually shipped bugs in this
-codebase are:
+Work the edge cases deliberately. These four recur in this codebase and are worth
+checking every time:
 
 - **Empty input** — not just an empty literal, but input that looks non-empty in the
   source and produces nothing: a reference that resolves to no components, a composite
   with no replacements, a filter that removes everything.
 - **`NaN` and non-numeric values** — a value can satisfy a type check and still be
   meaningless, as a `<number>` whose content does not parse is numeric by type and `NaN` by
-  value. Two properties of `NaN` break guards that look sound: every comparison against it
+  value. Do not assume the converse either: `<number>` takes a `valueOnNaN` attribute
+  (`Number.js`), so unparseable content yields whatever the author set, `NaN` only by
+  default. Two properties of `NaN` break guards that look sound: every comparison against it
   is false, so a condition written as a negation ("nothing is out of order") admits a `NaN`
   that the positive form ("everything is in order") would reject; and it is equal to
   nothing, not even to itself, so anything that groups, deduplicates or caches by equality
@@ -142,6 +144,6 @@ Review whether the PR updates or adds documentation as needed:
 
 - The changeset must describe the user-visible behavior in the diff, and only behavior that
   is actually in it. Consult the `changesets` skill rather than copying a sibling changeset.
-- The PR description must still describe everything in the diff. A stale PR description is
-  the single most common oversight in this procedure, so check it explicitly rather than
-  assuming an earlier pass left it accurate.
+- The PR description must still describe everything in the diff. Check it explicitly
+  rather than assuming an earlier pass left it accurate: it is the one surface that no
+  test, no CI job and no reader of the code will catch when it goes stale.
