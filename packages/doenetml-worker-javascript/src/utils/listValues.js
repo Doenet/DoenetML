@@ -171,6 +171,15 @@ export function extractComparableValue({
  */
 export function compareExtractedValues(a, b, numeric) {
     if (numeric) {
+        // Test equality before subtracting. Subtracting equal infinities gives
+        // NaN rather than 0, and callers that ask "are these equal?" read that
+        // NaN as "not equal": without this, `<indexOf target="Infinity">` never
+        // matches an infinite entry, and `<searchSorted side="right">` fails to
+        // advance past one. `<sort>` never noticed because a NaN from a sort
+        // comparator is treated as 0.
+        if (a.numericalValue === b.numericalValue) {
+            return 0;
+        }
         return a.numericalValue - b.numericalValue;
     }
     return a.textValue > b.textValue ? 1 : a.textValue < b.textValue ? -1 : 0;
@@ -405,7 +414,7 @@ export function comparableValueFromRaw(value) {
  */
 export function returnBreakStringsIntoTypeSugarInstruction(
     componentName,
-    { requireStringChild = false } = {},
+    { preserveReferences = false } = {},
 ) {
     function breakStringsMacrosIntoTypeBySpaces({
         matchedChildren,
@@ -421,19 +430,6 @@ export function returnBreakStringsIntoTypeSugarInstruction(
                     typeof child === "string" ||
                     (child.extending && "Ref" in child.extending),
             )
-        ) {
-            return { success: false };
-        }
-
-        // With `requireStringChild`, leave the children alone when there are no
-        // bare strings to convert. Wrapping a reference in the named type would
-        // collapse a referenced list — `<indexOf type="text">$names</indexOf>`
-        // would compare against the single string "Ann, Bob, Cal" rather than
-        // against each name — and there is nothing to gain by it, since a
-        // referenced component already has a type of its own.
-        if (
-            requireStringChild &&
-            !matchedChildren.some((child) => typeof child === "string")
         ) {
             return { success: false };
         }
@@ -466,11 +462,20 @@ export function returnBreakStringsIntoTypeSugarInstruction(
             type = "math";
         }
 
-        // break any string by white space and wrap pieces with type
+        // Break any string by white space and wrap the pieces with `type`.
+        //
+        // `preserveReferences` passes a reference child through untouched
+        // instead of wrapping it. Wrapping one collapses a referenced list:
+        // `<indexOf type="text" target="Bob">$names Z</indexOf>` would compare
+        // against the single string "Ann, Bob" rather than against each name,
+        // so `Bob` would not be found at all. A referenced component already
+        // has a type of its own, so there is nothing to gain by forcing it.
+        // `<sort>` and `<shuffle>` keep the forcing behavior they shipped with;
+        // that they share this collapse is tracked separately in #1823.
         let groupIntoComponentTypesSeparatedBySpaces =
             returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
                 componentType: type,
-                forceComponentType: true,
+                forceComponentType: !preserveReferences,
             });
         let result = groupIntoComponentTypesSeparatedBySpaces({
             matchedChildren,

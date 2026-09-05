@@ -54,7 +54,7 @@ export default class ListIndexBaseOperator extends MathComponent {
 
         sugarInstructions.push(
             returnBreakStringsIntoTypeSugarInstruction(this.componentType, {
-                requireStringChild: true,
+                preserveReferences: true,
             }),
         );
 

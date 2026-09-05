@@ -856,6 +856,88 @@ describe("List operator tag tests @group4", async () => {
             });
         });
 
+        it("infinite values compare equal to themselves", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathList name="ml">1 Infinity 5</mathList>
+    <mathList name="dup">1 Infinity Infinity 9</mathList>
+    <mathList name="neg">-Infinity -Infinity 3</mathList>
+    <p name="pFind"><indexOf target="Infinity">$ml</indexOf></p>
+    <p name="pNeg"><indexOf target="-Infinity">$neg</indexOf></p>
+    <p name="pLeft"><searchSorted target="Infinity" side="left">$dup</searchSorted></p>
+    <p name="pRight"><searchSorted target="Infinity" side="right">$dup</searchSorted></p>
+    `,
+            });
+
+            // Subtracting equal infinities gives NaN rather than 0, so without
+            // an equality test first none of these would find their target.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pFind",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pNeg",
+                text: "1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pLeft",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pRight",
+                text: "5",
+            });
+        });
+
+        it("a referenced list mixed with bare strings keeps its items", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="names">Ann Bob</textList>
+    <numberList name="nums">30 10</numberList>
+    <p name="pMid"><indexOf type="text" target="Bob">$names Z</indexOf></p>
+    <p name="pLast"><indexOf type="text" target="Z">$names Z</indexOf></p>
+    <p name="pArg"><argMax type="text">$names Z</argMax></p>
+    <p name="pNum"><argMin type="number">$nums 5</argMin></p>
+    `,
+            });
+
+            // The `type` attribute converts bare strings; a reference already
+            // has a type, and wrapping it would fuse the whole list into one
+            // value, hiding every item but the joined string.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMid",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pLast",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pArg",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pNum",
+                text: "3",
+            });
+        });
+
         it("sortIndices updates when a value changes", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
