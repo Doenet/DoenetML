@@ -746,6 +746,18 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 { numTotal: 10, numSuccesses: 11, numDraws: 4 },
             ],
             [
+                // the three hypergeometric attributes have no default, so leaving
+                // them off is the commonest way to reach that message; each one is
+                // reported as not set rather than as the implementation's `null`
+                `<sampleRandomNumbers name="s" type="hypergeometric" />`,
+                "doenet-w0127",
+                {
+                    numTotal: "not-set",
+                    numSuccesses: "not-set",
+                    numDraws: "not-set",
+                },
+            ],
+            [
                 `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="1.5" />`,
                 "doenet-w0129",
                 { numTrials: 6, probability: 1.5 },
@@ -781,8 +793,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             const matching = warnings.filter((w) => w.code === code);
             expect(matching.length, `${code} for ${doenetML}`).eq(1);
             expect(matching[0].args).eqls(args);
-            // the message an author reads should name the problem, not be empty
+            // the message an author reads should name the problem, not be empty,
+            // and should never show them a value they did not write
             expect(matching[0].message.length).greaterThan(20);
+            expect(matching[0].message).not.toContain("null");
         }
     });
 

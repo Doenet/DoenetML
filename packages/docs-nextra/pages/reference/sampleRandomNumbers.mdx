@@ -375,7 +375,9 @@ Parameters that would need more than ten million draws for a single sample are
 therefore treated as unusable, giving `NaN` samples and statistics along with a 
 warning explaining what to change. The limit is far above the populations, trial 
 counts, and rates that arise in practice; it is there so that mistyping an extra 
-digit reports a problem instead of freezing the activity. Note that it applies to 
+digit reports a problem instead of freezing the activity. An order of magnitude 
+below that, from a million draws per sample, the samples are still drawn as asked, 
+but a warning notes that sampling may be slow. Note that both figures apply to 
 each sample individually &mdash; a large `numSamples` still takes proportionally 
 longer.
 

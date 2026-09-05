@@ -107,6 +107,31 @@ function hypergeometricWork({ numTotal, numDraws }) {
 }
 
 /**
+ * How a parameter is written into a diagnostic: the number the author gave, or the
+ * sentinel `"not-set"` for one they left off.
+ *
+ * The hypergeometric parameters are the only ones with no default, so an omitted
+ * one reaches a message as `null` — a word out of the implementation rather than
+ * anything the author typed, and omitting one is the first way most authors reach
+ * that message. The catalog selects on the sentinel and says "not set" in the
+ * reader's language instead.
+ */
+function reportedValue(value) {
+    return value == null ? "not-set" : value;
+}
+
+/**
+ * The result for parameters nothing can be sampled from: a full-length run of NaN,
+ * so that a caller never has to special-case the failure, alongside the reason.
+ */
+function unsampleable(numSamples, problem) {
+    return {
+        sampledValues: Array(numSamples).fill(NaN),
+        diagnostics: [problem],
+    };
+}
+
+/**
  * Why `numTotal`, `numSuccesses`, and `numDraws` cannot be sampled from, or `null` if
  * they can. A usable set describes a population of at least one item, split into a
  * non-negative number of successes and failures, from which a non-negative number of
@@ -126,7 +151,11 @@ function hypergeometricProblem({ numTotal, numSuccesses, numDraws }) {
         return codedDiagnostic({
             type: "warning",
             code: "doenet-w0127",
-            args: { numTotal, numSuccesses, numDraws },
+            args: {
+                numTotal: reportedValue(numTotal),
+                numSuccesses: reportedValue(numSuccesses),
+                numDraws: reportedValue(numDraws),
+            },
         });
     }
 
@@ -226,20 +255,22 @@ export function validPoissonMean(mean) {
 }
 
 /**
- * A notice that a document will be sluggish, or `null` when it will not. Below the
+ * A notice that a document will be sluggish, or nothing when it will not. Below the
  * hard limit the samples are still drawn; this only tells the author why the page
  * feels slow, which they cannot learn from anywhere else.
  */
-function slowSamplingDiagnostic(distribution, workPerVariate) {
+function slowSamplingDiagnostics(distribution, workPerVariate) {
     if (workPerVariate <= WORK_PER_VARIATE_WARNING_THRESHOLD) {
-        return null;
+        return [];
     }
 
-    return codedDiagnostic({
-        type: "warning",
-        code: "doenet-w0133",
-        args: { distribution, draws: Math.round(workPerVariate) },
-    });
+    return [
+        codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0133",
+            args: { distribution, draws: Math.round(workPerVariate) },
+        }),
+    ];
 }
 
 /**
@@ -271,16 +302,14 @@ export function sampleFromRandomNumbers({
 }) {
     if (type === "gaussian") {
         if (!(standardDeviation >= 0) || !Number.isFinite(mean)) {
-            return {
-                sampledValues: Array(numSamples).fill(NaN),
-                diagnostics: [
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0126",
-                        args: { mean, standardDeviation },
-                    }),
-                ],
-            };
+            return unsampleable(
+                numSamples,
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0126",
+                    args: { mean, standardDeviation },
+                }),
+            );
         }
 
         let sampledValues = [];
@@ -320,58 +349,43 @@ export function sampleFromRandomNumbers({
             numDraws,
         });
         if (problem) {
-            return {
-                sampledValues: Array(numSamples).fill(NaN),
-                diagnostics: [problem],
-            };
+            return unsampleable(numSamples, problem);
         }
-
-        const slow = slowSamplingDiagnostic(
-            "hypergeometric",
-            hypergeometricWork({ numTotal, numDraws }),
-        );
 
         return {
             sampledValues: Array.from({ length: numSamples }, () =>
                 sampleHypergeometric({ numTotal, numSuccesses, numDraws, rng }),
             ),
-            diagnostics: slow ? [slow] : [],
+            diagnostics: slowSamplingDiagnostics(
+                "hypergeometric",
+                hypergeometricWork({ numTotal, numDraws }),
+            ),
         };
     } else if (type === "binomial") {
         const problem = binomialProblem({ numTrials, probability });
         if (problem) {
-            return {
-                sampledValues: Array(numSamples).fill(NaN),
-                diagnostics: [problem],
-            };
+            return unsampleable(numSamples, problem);
         }
-
-        const slow = slowSamplingDiagnostic("binomial", numTrials);
 
         return {
             sampledValues: Array.from({ length: numSamples }, () =>
                 sampleBinomial({ numTrials, probability, rng }),
             ),
-            diagnostics: slow ? [slow] : [],
+            diagnostics: slowSamplingDiagnostics("binomial", numTrials),
         };
     } else if (type === "poisson") {
         // the rate as the author gave it, not the reported `mean`, which is already
         // NaN for anything unusable and so cannot say what was wrong with it
         const problem = poissonMeanProblem(poissonMean);
         if (problem) {
-            return {
-                sampledValues: Array(numSamples).fill(NaN),
-                diagnostics: [problem],
-            };
+            return unsampleable(numSamples, problem);
         }
-
-        const slow = slowSamplingDiagnostic("poisson", poissonMean);
 
         return {
             sampledValues: Array.from({ length: numSamples }, () =>
                 samplePoisson({ mean: poissonMean, rng }),
             ),
-            diagnostics: slow ? [slow] : [],
+            diagnostics: slowSamplingDiagnostics("poisson", poissonMean),
         };
     } else {
         // discreteuniform

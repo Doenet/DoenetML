@@ -960,8 +960,21 @@ math-embedded-input-shape-unsuitable =
 sample-gaussian-parameters-invalid =
     Invalid mean ({ $mean }) or standardDeviation ({ $standardDeviation }) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be non-negative. No numbers can be sampled.
 
+# These three attributes are the only ones with no default, so leaving one out is
+# the commonest way to reach this message. Each arrives either as the number the
+# author wrote or as `not-set` for an attribute they left off entirely; translate
+# the "not set" wording, but leave the `not-set` key that selects it untouched.
 sample-hypergeometric-parameters-invalid =
-    Invalid numTotal ({ $numTotal }), numSuccesses ({ $numSuccesses }), or numDraws ({ $numDraws }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal.
+    Invalid numTotal ({ $numTotal ->
+        [not-set] not set
+       *[other] { $numTotal }
+    }), numSuccesses ({ $numSuccesses ->
+        [not-set] not set
+       *[other] { $numSuccesses }
+    }), or numDraws ({ $numDraws ->
+        [not-set] not set
+       *[other] { $numDraws }
+    }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal.
 
 # $maxDraws is the largest number of random draws allowed for a single sample.
 sample-hypergeometric-draws-too-many =
