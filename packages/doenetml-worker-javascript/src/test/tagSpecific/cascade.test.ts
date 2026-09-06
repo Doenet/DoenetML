@@ -265,6 +265,54 @@ describe("Cascade tag tests @group4", async () => {
         }
     });
 
+    it("a step whose answers all have weight 0 does not block the next step", async () => {
+        // A step worth no points has nothing to withhold, so it stops blocking
+        // as soon as it is reached — the rule that lets a step holding no
+        // answers at all get out of the way. `creditAchievedForCheckWork`
+        // deliberately does not reach this: it changes what a section-wide
+        // check-work button reports, not when a cascade advances.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="c">
+  <problem name="p1">
+    <answer name="a1" weight="0">1</answer>
+  </problem>
+  <problem name="p2">
+    <answer name="a2">2</answer>
+  </problem>
+</cascade>
+  `,
+        });
+
+        let stateVariables = await getStateVariables(core);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .numCompleted,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                .creditAchievedForProgress,
+        ).eq(1);
+
+        // Answering it wrong leaves the second step reachable all the same.
+        await submitMathAnswer({
+            core,
+            latex: "999",
+            mathInputIdx: getMathInputIdx(
+                stateVariables,
+                await resolvePathToNodeIdx("a1"),
+            ),
+            answerIdx: await resolvePathToNodeIdx("a1"),
+        });
+
+        stateVariables = await getStateVariables(core);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .numCompleted,
+        ).eq(1);
+    });
+
     it("hideFutureSections", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
