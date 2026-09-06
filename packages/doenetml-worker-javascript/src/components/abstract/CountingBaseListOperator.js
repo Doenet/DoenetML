@@ -1,9 +1,5 @@
 import CompositeComponent from "./CompositeComponent";
-import {
-    returnBreakStringsIntoTypeSugarInstruction,
-    returnListValueStateVariableDefinitions,
-} from "../../utils/listValues";
-import { returnListTypeAttribute } from "../../utils/listIndexOperators";
+import { returnListValueStateVariableDefinitions } from "../../utils/listValues";
 import {
     addReplacementRendererType,
     calculateValueListReplacementChanges,
@@ -61,26 +57,8 @@ export default class CountingBaseListOperator extends CompositeComponent {
     // composites with no replacement should be ignored.
     static descendantCompositesMustHaveAReplacement = false;
 
-    // Named by a subclass whose own attribute is a
-    // `_componentListWithSelectableType` and so is read by `type` as well —
-    // `<tally>`'s `categories`. The reference pages show the `type`
-    // description, and an author who cannot see that it governs their
-    // categories writes `categories="apple fig"` without `type="text"` and
-    // gets a numeric reading that matches nothing, silently.
-    static typeAlsoReads = null;
-
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        // A `type` *state variable*, not just the attribute: subclasses declare
-        // attributes typed `_componentListWithSelectableType`, whose own `type`
-        // resolves through a `parentStateVariable` of this name. Without it
-        // those attributes silently fall back to a numeric reading. See #1825.
-        attributes.type = {
-            ...returnListTypeAttribute({ alsoReads: this.typeAlsoReads }),
-            createStateVariable: "type",
-            defaultValue: null,
-        };
 
         // Not used by the composite itself; forwarded to each `<number>` it
         // creates.
@@ -98,18 +76,11 @@ export default class CountingBaseListOperator extends CompositeComponent {
         return attributes;
     }
 
-    // Include children that can be added due to sugar
+    // Include children that can be added due to sugar. What bare strings are
+    // read *as* is left to the subclass: `<binCounts>` can only ever count
+    // numbers, so it reads them the way `<sum>` does, while `<tally>` counts
+    // values of any comparable type and so has to be told which.
     static additionalSchemaChildren = ["string"];
-
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        sugarInstructions.push(
-            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
-        );
-
-        return sugarInstructions;
-    }
 
     static returnChildGroups() {
         return [

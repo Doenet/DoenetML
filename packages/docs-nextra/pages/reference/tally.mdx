@@ -21,8 +21,13 @@ to arrive. Either way, the categories are readable back as `.categories`, so a t
 a chart can be driven off the same component that did the counting.
 
 Values are compared the way [`<sort>{:dn}`](sort) compares them, so `<tally>{:dn}` counts
-a `<textList>{:dn}` as readily as a `<numberList>{:dn}`. When counting text, set
-`type="text"` so that any bare strings and declared categories are read as text too.
+a `<textList>{:dn}` as readily as a `<numberList>{:dn}`. A category is read to match the
+values, so `categories="apple fig"` counts words and `categories="1/2 1"` counts halves,
+with nothing to declare either way.
+
+`type` says how bare *string children* are read, and only they need it: a `<tally>{:dn}`
+whose values arrive as components — a list, a reference, a `<searchSorted>{:dn}` — reads
+them as what they already are.
 
 Naming the same category twice is reported as a warning. Each count reports the values
 equal to its own category, so repeated categories all report the same number — which
@@ -40,7 +45,7 @@ usually by a reference to a list that repeats.
 ```doenet-editor-horiz
 <setup>
   <textList name="fruit">apple fig apple pear fig apple</textList>
-  <tally name="t" type="text">$fruit</tally>
+  <tally name="t">$fruit</tally>
 </setup>
 
 <p>Fruit: $fruit</p>

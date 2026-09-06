@@ -16,6 +16,10 @@ histogram of a continuous quantity needs.
 
 `n + 1` cut points define `n` intervals, so `bins="0 1 2"` gives two counts.
 
+Bare numbers work as well as `<number>{:dn}` children, so
+`<binCounts bins="0 1 2">0 0.5 1 1.5 2</binCounts>` counts five values. They are read the
+way [`<sum>{:dn}`](sum) reads them, so `1/2` is half rather than nothing.
+
 ## Which end of a bin includes its cut point
 
 A value landing exactly on a cut point has to be counted on one side or the other, and

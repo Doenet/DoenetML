@@ -247,6 +247,117 @@ describe("Counting operator tag tests @group4", async () => {
             expect(infos.length).eq(0);
         });
 
+        it("categories are read to match the values, with no type to declare", async () => {
+            // Read as numbers instead — which is what a list of values with a
+            // type to choose otherwise falls back to — every category here
+            // would be `NaN`, match nothing, and be reported as a category
+            // named twice, since one `NaN` reads like another.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="fruit">apple fig apple</textList>
+    <tally name="t" categories="apple fig">$fruit</tally>
+    <p name="pCounts">$t</p>
+    <p name="pCategories">$t.categories</p>
+
+    <booleanList name="b">true false true</booleanList>
+    <p name="pBoolean"><tally categories="true false">$b</tally></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pCounts",
+                text: "2, 1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pCategories",
+                text: "apple, fig",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pBoolean",
+                text: "2, 1",
+            });
+
+            const { warnings, infos } = await messagesFor(`
+    <textList name="fruit">apple fig apple</textList>
+    <p><tally categories="apple fig">$fruit</tally></p>
+    `);
+            expect(warnings.length).eq(0);
+            expect(infos.length).eq(0);
+        });
+
+        it("bare string children still ask which type was meant", async () => {
+            // The default that `categories` follows is not extended to the
+            // children. Read as text, `<tally>1 2 10</tally>` would order its
+            // categories `1, 10, 2` and count `2/2` apart from `1`, so a
+            // `<tally>` whose values are written as bare strings still has to
+            // be told what they are.
+            const { warnings } = await messagesFor(`
+    <p><tally>apple fig apple</tally></p>
+    `);
+
+            expect(
+                warnings.some((m) =>
+                    m.includes("a `type` attribute must be specified"),
+                ),
+            ).eq(true);
+        });
+
+        it("a category written as an expression names the number it evaluates to", async () => {
+            // Categories are held as text, which is what keeps a word a word.
+            // Against numeric values that text is read again the way `<number>`
+            // reads its own content, so a half written `1/2` counts halves
+            // rather than matching nothing. It still *labels* its count as the
+            // author wrote it.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="v">0.5 1 0.5</numberList>
+    <tally name="t" categories="1/2 1">$v</tally>
+    <p name="pCounts">$t</p>
+    <p name="pCategories">$t.categories</p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pCounts",
+                text: "2, 1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pCategories",
+                text: "1/2, 1",
+            });
+        });
+
+        it("categories given as components keep every digit they have", async () => {
+            // The reread above is of text only. A category that arrived as a
+            // component already *is* the value it names, and rereading the
+            // rounded form it displays would match nothing: a third displays as
+            // `0.333`, which no third is equal to.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="cats"><number>1/3</number><number>2/3</number></numberList>
+    <numberList name="v"><number>1/3</number><number>1/3</number><number>2/3</number></numberList>
+    <p name="p"><tally categories="$cats">$v</tally></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 1",
+            });
+        });
+
         it("declared categories read back as the type they were written as", async () => {
             // Not as the numbers a numeric reading would turn them into: the
             // point of `.categories` is to label the counts, and `1, 0` is not
@@ -458,6 +569,29 @@ describe("Counting operator tag tests @group4", async () => {
                 name: "p",
                 text: "2, 3",
             });
+        });
+
+        it("reads bare numbers as values, with no type to declare", async () => {
+            // Every value `<binCounts>` can count is a number, so there is
+            // nothing for a type to choose: bare children are read the way
+            // `<sum>` reads them, and a bare `1/2` is half rather than nothing.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><binCounts bins="0 1 2">0 1/2 1 3/2 2</binCounts></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 3",
+            });
+
+            const { warnings } = await messagesFor(`
+    <p><binCounts bins="0 1 2">0 1/2 1 3/2 2</binCounts></p>
+    `);
+            expect(warnings.length).eq(0);
         });
 
         it("counts into right-closed bins, with the first bin closed", async () => {
@@ -704,7 +838,7 @@ describe("Counting operator tag tests @group4", async () => {
             const { warnings } = await messagesFor(`
     <textList name="w">apple fig</textList>
     <numberList name="edges">0 1 2</numberList>
-    <p><binCounts type="text" bins="$edges">$w</binCounts></p>
+    <p><binCounts bins="$edges">$w</binCounts></p>
     `);
 
             expect(

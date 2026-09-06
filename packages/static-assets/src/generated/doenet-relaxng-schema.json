@@ -41710,15 +41710,6 @@
                         "string"
                     ]
                 },
-                "type": {
-                    "optional": true,
-                    "type": [
-                        "number",
-                        "math",
-                        "text",
-                        "boolean"
-                    ]
-                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -41754,6 +41745,15 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
                     ]
                 },
                 "categories": {
@@ -42594,15 +42594,6 @@
                     "optional": true,
                     "type": [
                         "string"
-                    ]
-                },
-                "type": {
-                    "optional": true,
-                    "type": [
-                        "number",
-                        "math",
-                        "text",
-                        "boolean"
                     ]
                 },
                 "displayDigits": {
