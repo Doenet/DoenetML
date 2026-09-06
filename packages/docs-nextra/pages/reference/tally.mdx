@@ -15,8 +15,9 @@ are in total, `<tally>{:dn}` reports how many there are of each kind.
 Name the categories with `categories` to fix which ones are counted and in what order;
 omit it and they are the distinct values present, in sorted order.
 
-Bare string children are read as what they look like: all numbers makes the list numeric,
-anything else makes it text. `type` overrides that when the look is misleading — numerals
+Bare string children are read as what they look like: every one of them naming a number
+makes the list numeric, and anything else makes it text. `type` overrides that when the
+look is misleading — numerals
 that are labels rather than quantities, or expressions that should be compared as maths
 rather than as the characters they were typed with. Values arriving as a list or a
 reference are read as what they already are.

@@ -21,10 +21,15 @@ They are now read by their content: every whitespace-separated piece naming a nu
 
 This is the rule the values already followed when they arrived as components: `allAreNumeric` is true only when every value is numeric, and a single text among numbers sends the whole list to a text comparison. Applying it to bare strings means an author who writes `1 10 3` and an author who references a `<numberList>` get the same answer.
 
+A piece names a number whenever a `<number>` around it would be one, so `1/2`, `2^3`, `1e5`, `0x10`, `pi` and `min(1,2)` all count, and `x`, `2x`, `true` and `NaN` do not.
+
 `type` is now an override rather than a requirement, for when the look is misleading — `007 008` counts the numbers 7 and 8, and `type="text"` keeps the leading zeros. It still governs only bare strings; a referenced component keeps the type it already has.
 
 A `type` naming something that is not one of the four is now reported and then **dropped**, so it behaves exactly as if it had not been written. It used to be replaced with `math`, which is how `<tally type="txt" categories="apple fig">` came to make every category `NaN` and then report that a category had been named twice.
 
 Two diagnostics are retired in place and one is added: `doenet-w0013` asked for a type nothing needs any more, and `doenet-w0014` named a `math` fallback that no longer happens. `doenet-w0145` replaces the second and says what now occurs.
 
-Affects `<sort>`, `<shuffle>`, `<sortIndices>`, `<tally>`, `<argMin>`, `<argMax>`, `<indexOf>` and `<searchSorted>`. Of those, only `<sort>` and `<shuffle>` have shipped, and for them the change reaches only markup that produced nothing before.
+Affects `<sort>`, `<shuffle>`, `<sortIndices>`, `<tally>`, `<argMin>`, `<argMax>`, `<indexOf>` and `<searchSorted>`. Only `<sort>` and `<shuffle>` have shipped, and two existing documents change:
+
+- One that mixes a reference with a bare string. `<sort>$mi 3</sort>` used to sort the reference alone and drop the `3`; it now sorts both.
+- One with a `type` that is not one of the four. Those strings used to be read as maths, so `<sort type="txt">1/2 2 1</sort>` rendered `1/2, 1, 2` and now renders `0.5, 1, 2`, and `<sort type="letters">d a b</sort>` produces text rather than maths, so `.latex` on an item no longer resolves. Both already reported the type as invalid.
