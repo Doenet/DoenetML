@@ -11,7 +11,7 @@ Add `<barChart>`, a chart of a list of values with named categories.
 DoenetML has had no chart component since `<chart>` was removed. A histogram could be approximated with `<repeat>` and `<rectangle>` inside a `<graph>` — the reference pages still show that pattern — but it costs one reactive component and one SVG node per bar, and its axis can only *number* the bars: `<graph>` has no support for custom axis ticks, so naming them means placing every name yourself as a second row of anchored labels.
 
 ```xml
-<barChart categories="North South East West" type="text" displayValues>
+<barChart categories="North South East West" displayValues>
   <shortDescription>Population by region</shortDescription>
   <yLabel>people</yLabel>
   <number>41</number><number>63</number><number>18</number><number>78</number>
@@ -24,7 +24,7 @@ Together with the counting operators, a whole sampling simulation is four tags o
 <sampleRandomNumbers name="draws" type="discreteUniform" from="1" to="$total" numSamples="500" />
 <searchSorted name="which" target="$draws">$cum</searchSorted>
 <tally name="counts" categories="1 2 3 4">$which</tally>
-<barChart categories="$labels" type="text">$counts</barChart>
+<barChart categories="$labels">$counts</barChart>
 ```
 
 Bare numbers are read as bar heights, so `<barChart>41 63 18</barChart>` draws three bars without wrapping each in a `<number>`. They are read as `<sum>` reads them, so a bare `1/2` is half rather than nothing, and `type` is not consulted — it says how the `categories` are read, and a height is a number either way.
@@ -49,3 +49,5 @@ Closes #1833.
 A value that is not a finite number — a symbolic `<math>`, or a `<number>` whose content does not parse — gets no bar, and that is reported as a warning. Its place on the axis is kept so the remaining bars stay under their own categories, but it is left empty rather than drawn as a zero, which is a value the chart does not have.
 
 `yMin` and `yMax` may each be set on their own; it is the resulting pair that must describe a finite, increasing range, and both are discarded together when it does not.
+
+Categories are labels rather than values: the bars are evenly spaced whatever a category says, so `categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars. They are read as text, and there is no `type` attribute to get wrong — a number, a word, or a `<tally>`'s own `.categories` all name bars the same way.

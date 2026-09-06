@@ -82,36 +82,20 @@ export default class BarChart extends BlockComponent {
             defaultValue: DEFAULT_ASPECT_RATIO,
         };
 
+        // A `textList` rather than a `_componentListWithSelectableType`. The
+        // categorical axis places its bars at 1, 2, 3 whatever the categories
+        // say, so a category is a label and nothing else: `categories="1 5 6"`
+        // spaces its bars evenly and writes 1, 5, 6 under them, exactly as
+        // three words would be. Reading them as numbers therefore decided
+        // nothing, while getting the reading wrong was fatal — the selectable
+        // type defaults to `number`, so `categories="North South East"` without
+        // a `type` wrote `NaN` under every bar. Numbers referenced in from a
+        // `<tally>` are converted to their text, which is what a label is.
         attributes.categories = {
-            createComponentOfType: "_componentListWithSelectableType",
+            createComponentOfType: "textList",
             description:
                 "The label under each bar. Defaults to the bar's position, 1, 2, 3 and so on.",
             highlighted: true,
-        };
-
-        // The `categories` attribute is a `_componentListWithSelectableType`,
-        // whose own `type` resolves through a `parentStateVariable` of this
-        // name; without the state variable, text labels would be read as
-        // numbers. See #1825.
-        attributes.type = {
-            createPrimitiveOfType: "string",
-            createStateVariable: "type",
-            defaultValue: null,
-            highlighted: true,
-            description:
-                "How to read the `categories`: as numbers, math expressions, text or booleans.",
-            validValues: [
-                { value: "number", description: "Read categories as numbers." },
-                {
-                    value: "math",
-                    description: "Read categories as math expressions.",
-                },
-                { value: "text", description: "Read categories as text." },
-                {
-                    value: "boolean",
-                    description: "Read categories as booleans.",
-                },
-            ],
         };
 
         attributes.barWidth = {
@@ -484,13 +468,13 @@ export default class BarChart extends BlockComponent {
                     categoriesAttr: {
                         dependencyType: "attributeComponent",
                         attributeName: "categories",
-                        variableNames: ["values"],
+                        variableNames: ["texts"],
                     },
                 },
             }),
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 const declared =
-                    globalDependencyValues.categoriesAttr?.stateValues.values;
+                    globalDependencyValues.categoriesAttr?.stateValues.texts;
                 const categories = {};
                 for (const arrayKey of arrayKeys) {
                     const ind = Number(arrayKey);

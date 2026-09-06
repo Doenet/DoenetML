@@ -43527,15 +43527,6 @@
                         "string"
                     ]
                 },
-                "type": {
-                    "optional": true,
-                    "type": [
-                        "number",
-                        "math",
-                        "text",
-                        "boolean"
-                    ]
-                },
                 "barWidth": {
                     "optional": true,
                     "type": [

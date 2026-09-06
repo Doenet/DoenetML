@@ -13,12 +13,16 @@ a handful of components, however large the sample.
 
 Bare numbers work as well as `<number>{:dn}` children, so `<barChart>41 63 18</barChart>`
 draws three bars. They are read the way [`<sum>{:dn}`](sum) reads them, so `1/2` is half
-rather than nothing. The `type` attribute does not affect this: it says how the
-`categories` are read, and a bar's height is a number whichever way that is set.
+rather than nothing.
 
-Name the bars with `categories`; leave it out and they are numbered 1, 2, 3. The
-vertical axis scales itself to the data, unless you set `yMin` or `yMax` yourself — see
-[The vertical scale](#the-vertical-scale) below.
+Name the bars with `categories`; leave it out and they are numbered 1, 2, 3. A category
+is a label and nothing else — the bars are evenly spaced whatever it says, so
+`categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars rather than placing
+them at those positions. Numbers name bars as readily as words do, including a
+[`<tally>{:dn}`](tally)'s own `.categories`.
+
+The vertical axis scales itself to the data, unless you set `yMin` or `yMax` yourself —
+see [The vertical scale](#the-vertical-scale) below.
 
 ## What it is drawn with
 
@@ -114,7 +118,7 @@ ones.
 
 
 ```doenet-editor-horiz
-<barChart categories="North South East West" type="text" displayValues>
+<barChart categories="North South East West" displayValues>
   <shortDescription>Population by region</shortDescription>
   <yLabel>people</yLabel>
   <number>41</number>
@@ -126,9 +130,7 @@ ones.
 
 
 
-`type="text"` is needed whenever the categories are words: without it they are read as
-numbers, and a word that is not a number reads as `NaN` under its bar. `displayValues`
-prints each bar's value above it.
+`displayValues` prints each bar's value above it.
 
 
 
@@ -150,7 +152,7 @@ prints each bar's value above it.
 <searchSorted name="which" target="$draws" hide>$cum</searchSorted>
 <tally name="counts" categories="1 2 3 4" hide>$which</tally>
 
-<barChart categories="$labels" type="text">
+<barChart categories="$labels">
   <shortDescription>Where 60 sampled individuals came from</shortDescription>
   <yLabel>count</yLabel>
   $counts
@@ -194,7 +196,7 @@ shifting the others along.
   numSamples="200" hide />
 <binCounts name="h" bins="$edges" hide>$z</binCounts>
 
-<barChart categories="$bins" type="text">
+<barChart categories="$bins">
   <shortDescription>200 draws from a standard normal distribution</shortDescription>
   <yLabel>count</yLabel>
   $h
@@ -223,7 +225,7 @@ and the axis becomes unreadable. See [Size and spacing](#size-and-spacing).
 
 
 ```doenet-editor-horiz
-<barChart name="chart" categories="A B C" type="text" size="small">
+<barChart name="chart" categories="A B C" size="small">
   <shortDescription>Three values</shortDescription>
   <number>4</number>
   <number>9</number>

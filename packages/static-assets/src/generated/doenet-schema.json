@@ -36083,38 +36083,7 @@
                     "name": "categories",
                     "description": "The label under each bar. Defaults to the bar's position, 1, 2, 3 and so on.",
                     "highlighted": true,
-                    "type": "_componentListWithSelectableType"
-                },
-                {
-                    "name": "type",
-                    "description": "How to read the `categories`: as numbers, math expressions, text or booleans.",
-                    "highlighted": true,
-                    "defaultValue": null,
-                    "values": [
-                        "number",
-                        "math",
-                        "text",
-                        "boolean"
-                    ],
-                    "autocompleteValues": [
-                        {
-                            "value": "number",
-                            "description": "Read categories as numbers."
-                        },
-                        {
-                            "value": "math",
-                            "description": "Read categories as math expressions."
-                        },
-                        {
-                            "value": "text",
-                            "description": "Read categories as text."
-                        },
-                        {
-                            "value": "boolean",
-                            "description": "Read categories as booleans."
-                        }
-                    ],
-                    "type": "keyword"
+                    "type": "textList"
                 },
                 {
                     "name": "barWidth",

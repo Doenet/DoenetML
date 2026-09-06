@@ -16,7 +16,7 @@ async function chartXML(
 }
 
 const FOUR_BARS = `
-    <barChart name="c" categories="North South East West" type="text">
+    <barChart name="c" categories="North South East West">
       <shortDescription>Counts by region</shortDescription>
       <number>41</number><number>63</number><number>18</number><number>78</number>
     </barChart>
@@ -165,7 +165,7 @@ describe("barChart prefigure tests @group4", async () => {
 
         it("escapes author text on its way into the XML", async () => {
             const xml = await chartXML(`
-    <barChart name="c" categories="'a&amp;b' '&lt;c&gt;'" type="text">
+    <barChart name="c" categories="'a&amp;b' '&lt;c&gt;'">
       <shortDescription>Q &amp; A &lt;here&gt;</shortDescription>
       <number>1</number><number>2</number>
     </barChart>
@@ -321,7 +321,7 @@ describe("barChart prefigure tests @group4", async () => {
             // name nothing and are dropped, missing ones leave the bar
             // numbered rather than unlabeled.
             const tooFew = await chartXML(`
-    <barChart name="c" categories="A" type="text">
+    <barChart name="c" categories="A">
       <number>1</number><number>2</number>
     </barChart>
     `);
@@ -330,7 +330,7 @@ describe("barChart prefigure tests @group4", async () => {
             expect(tooFew).toContain(">2</tick-mark>");
 
             const tooMany = await chartXML(`
-    <barChart name="c" categories="A B C D" type="text">
+    <barChart name="c" categories="A B C D">
       <number>1</number><number>2</number>
     </barChart>
     `);
@@ -508,7 +508,7 @@ describe("barChart prefigure tests @group4", async () => {
     <numberList name="draws">5 40 80 100 20 90 76 3</numberList>
     <searchSorted name="which" target="$draws" hide>$cum</searchSorted>
     <tally name="counts" categories="1 2 3 4" hide>$which</tally>
-    <barChart name="c" categories="$labels" type="text">
+    <barChart name="c" categories="$labels">
       <shortDescription>Sampled counts</shortDescription>
       $counts
     </barChart>
@@ -576,7 +576,7 @@ describe("barChart prefigure tests @group4", async () => {
         it("keeps a category on the axis for a slot with no bar", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c" categories="North South East" type="text"><number>4</number><math>x</math><number>2</number></barChart>
+    <barChart name="c" categories="North South East"><number>4</number><math>x</math><number>2</number></barChart>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -629,7 +629,7 @@ describe("barChart prefigure tests @group4", async () => {
         it("reads bare numbers as bar heights", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c" categories="A B C" type="text">41 63 18</barChart>
+    <barChart name="c" categories="A B C">41 63 18</barChart>
     <p name="p">$c.barValues</p>
     `,
             });
