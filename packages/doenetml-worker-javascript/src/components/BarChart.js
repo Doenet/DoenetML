@@ -266,7 +266,9 @@ export default class BarChart extends BlockComponent {
         // Silently, unlike `barWidth` below: `<graph>` warns about its own bad
         // `aspectRatio` with a message naming `<graph>` and its default of 1,
         // so there is nothing here to reuse and a chart-specific one is out of
-        // scope. The fallback is documented on `barChart.mdx` instead.
+        // scope. What an author has instead is this state variable, which is
+        // public: `$chart.aspectRatio` reports the ratio the chart was drawn
+        // at, so the substitution can at least be read back.
         stateVariableDefinitions.aspectRatio = {
             description: "The aspect ratio (width / height) of the bar chart.",
             public: true,
