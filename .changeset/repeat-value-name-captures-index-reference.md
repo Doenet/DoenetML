@@ -25,3 +25,5 @@ took the whole document down with "Something went wrong as path index is not an 
 A reference copied inside a path index now shadows the one it was copied from, the way a copied child does, and a reference that resolves onto a component containing it now prefers a candidate origin that resolves elsewhere. Together those keep the copied `$i` pointing at the iteration value it named in the original.
 
 A reference that means its own container and has nowhere else to resolve from, such as the `$P` in `P`'s own label, still resolves the way it did.
+
+An index written inside an attribute rather than inside the content — the `$i` of `<updateValue target="$m[$i]" />` — is not covered. Copying content that holds one still loses the index, as it did before.
