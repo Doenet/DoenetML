@@ -428,14 +428,20 @@ function comparableCategory(raw, numeric) {
         return value;
     }
 
-    // `NaN` is the only result that is not a number here, which is the test
-    // `comparableValueFromRaw` applies to a math value. An infinity is a
-    // number the comparison handles — it compares equal to itself before any
-    // subtraction — so `categories="1/0"` counts what `categories="Infinity"`
-    // counts, rather than the two disagreeing over the same value.
-    return Number.isNaN(numericalValue)
-        ? value
-        : { numericalValue, textValue: raw, isNumeric: true };
+    // An infinity is kept: it is a number `compareExtractedValues` handles —
+    // it tests equality before subtracting — so `categories="1/0"` counts what
+    // `categories="Infinity"` counts, rather than the two disagreeing over the
+    // same value.
+    //
+    // `NaN` is not the only thing this can come back with, though: a category
+    // that evaluates complex — `categories="i"` — yields a complex object, on
+    // which every comparison is `NaN` and so never equal, not even to itself.
+    // Such a category would match nothing and would not even be reported as
+    // repeated. Only a real number is worth comparing numerically; anything
+    // else keeps the text it was written as, which at least compares.
+    return typeof numericalValue === "number" && !Number.isNaN(numericalValue)
+        ? { numericalValue, textValue: raw, isNumeric: true }
+        : value;
 }
 
 /**

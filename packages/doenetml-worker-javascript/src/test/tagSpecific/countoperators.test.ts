@@ -360,6 +360,44 @@ describe("Counting operator tag tests @group4", async () => {
             }
         });
 
+        it("a complex category counts the complex values equal to it", async () => {
+            // Rereading a textual category keeps only a *real* number. A
+            // category that evaluates complex is not one the numeric
+            // comparison can use — subtracting two complex values gives `NaN`,
+            // so such a category is not even equal to itself — so it stays the
+            // text it was written as, which compares.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathList name="v">i i 2i</mathList>
+    <p name="pCount"><tally categories="i">$v</tally></p>
+    <p name="pRepeat"><tally categories="i i">$v</tally></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pCount",
+                text: "2",
+            });
+            // And a category written twice is still seen to be written twice.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pRepeat",
+                text: "2, 2",
+            });
+
+            const warnings = getDiagnosticsByType(core).warnings.map(
+                (w) => w.message,
+            );
+            expect(
+                warnings.some((message) =>
+                    message.includes("names the same category more than once"),
+                ),
+            ).eq(true);
+        });
+
         it("categories given as components keep every digit they have", async () => {
             // The reread above is of text only. A category that arrived as a
             // component already *is* the value it names, and rereading the
