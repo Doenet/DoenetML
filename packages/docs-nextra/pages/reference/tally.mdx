@@ -86,30 +86,6 @@ subpopulation, the counts always sum to the number of samples.
 
 ---
 
-### Example: the result is an ordinary list
-
-
-```doenet-editor-horiz
-<setup>
-  <numberList name="rolls">3 1 6 3 3 5 1</numberList>
-  <tally name="t" categories="1 2 3 4 5 6">$rolls</tally>
-</setup>
-
-<p>Rolls: $rolls</p>
-<p>Counts: $t</p>
-<p>Threes: $t[3]</p>
-<p>Most common face appeared <max>$t</max> times.</p>
-<p>Total rolls: <sum>$t</sum></p>
-```
-
-
-
-The counts index, aggregate and extend like any other list.
-
-
-
----
-
 ### Example: values outside the declared categories
 
 
