@@ -435,7 +435,6 @@ export default class Collect extends CompositeComponent {
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentIdx: component.componentIdx,
-            identifierPrefix: collectedNum + "|",
         });
 
         for (let repl of serializedReplacements) {

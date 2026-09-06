@@ -2261,4 +2261,71 @@ describe("Repeat tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("22, 33");
     });
+
+    it("an index inside an attribute of the items survives being copied", async () => {
+        // Each button's target names the entry of `m` that its iteration's `i` picks out.
+        // The copies the repeat makes carry that `$i` along with the button, so each copy
+        // must still change the same entry the button it copied changes.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="m">11 22 33 44</numberList>
+    <repeatForSequence from="2" to="3" valueName="i" name="items">
+      <updateValue target="$m[$i]" newValue="99" type="number" name="uv" />
+    </repeatForSequence>
+
+    <p name="p">$m</p>
+    <repeat for="$items" valueName="v" name="r">$v</repeat>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("11, 22, 33, 44");
+
+        // press only the copies, not the buttons they were copied from
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("r[1].v"),
+            core,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("r[2].v"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("11, 99, 99, 44");
+    });
+
+    it("valueName matching a name inside an index of an attribute of the items does not capture it", async () => {
+        // As above, but the repeat names each item `i` as well, so a copied `$i` that were
+        // read as the item it sits inside would be circular.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="m">11 22 33 44</numberList>
+    <repeatForSequence from="2" to="3" valueName="i" name="items">
+      <updateValue target="$m[$i]" newValue="99" type="number" name="uv" />
+    </repeatForSequence>
+
+    <p name="p">$m</p>
+    <repeat for="$items" valueName="i" name="r">$i</repeat>
+    `,
+        });
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("r[1].i"),
+            core,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("r[2].i"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("11, 99, 99, 44");
+    });
 });
