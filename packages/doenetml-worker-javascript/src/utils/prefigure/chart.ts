@@ -77,6 +77,13 @@ const MAX_TICKS_MEASURED = 64;
  * Every tick is measured, not just the two ends, because label length is not
  * monotonic in magnitude once the step is fractional: an axis running from -1
  * to 1 in halves draws `-0.5`, which is wider than either end.
+ *
+ * Each is snapped before it is measured, for the same reason every other tick
+ * value here is: accumulating a step lands on binary noise, and asking for
+ * twenty fraction digits then measures all of it. Three steps of `0.00005`
+ * reach `0.00015000000000000001`, whose twenty-two characters ask for a margin
+ * wider than the whole chart — leaving a plot narrower than its own axis
+ * labels, which then run over each other.
  */
 function widestTickLabelLength(
     firstTick: number,
@@ -85,8 +92,9 @@ function widestTickLabelLength(
 ): number {
     const asDrawn = (value: number) =>
         Number.isFinite(value)
-            ? value.toLocaleString("en-US", { maximumFractionDigits: 20 })
-                  .length
+            ? snapNumber(value).toLocaleString("en-US", {
+                  maximumFractionDigits: 20,
+              }).length
             : 1;
 
     let widest = Math.max(asDrawn(firstTick), asDrawn(lastTick), 1);

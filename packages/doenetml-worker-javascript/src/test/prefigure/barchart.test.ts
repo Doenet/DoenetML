@@ -103,17 +103,28 @@ describe("barChart prefigure tests @group4", async () => {
             expect(large).toContain('margins="[59,30,12,16]"');
         });
 
-        it("measures a fractional label as it is drawn, not rounded to three places", async () => {
+        it("measures a fractional label as it is drawn, neither rounded nor noisy", async () => {
+            // Two ways to measure the wrong string, and this axis has both.
             // `toLocaleString` rounds to three fraction digits by default, so
-            // every tick of this axis measured as the one character `0` while
-            // `0.00005` — seven characters — was drawn.
+            // every tick here measured as the one character `0` while `0.00005`
+            // — seven characters — was drawn. Asking for twenty digits instead
+            // measures the binary noise that accumulating the step lands on:
+            // three steps of `0.00005` reach `0.00015000000000000001`, whose
+            // twenty-two characters ask for a margin wider than the chart.
+            //
+            // So the width is asserted exactly rather than as a lower bound: it
+            // is `0.00025`, the widest label actually drawn, and nothing else.
             const xml = await chartXML(`
     <barChart name="c"><number>0.0001</number><number>0.0002</number></barChart>
     `);
 
             expect(xml).toContain('vlabels="(0,0.00005,0.00025)"');
             const margin = Number(xml.match(/margins="\[(\d+),/)?.[1]);
-            expect(margin).toBeGreaterThanOrEqual(14 + 9 * 7);
+            expect(margin).eq(14 + 9 * 7);
+
+            // And the drawing is the larger part of the chart, not the gutter.
+            const width = Number(xml.match(/dimensions="\(([\d.]+),/)?.[1]);
+            expect(width).toBeGreaterThan(margin);
         });
 
         it("measures every tick, since the widest is not always an end one", async () => {
