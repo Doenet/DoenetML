@@ -82,6 +82,14 @@ reads back the number the chart was drawn with rather than the one that was aske
 
 <AttrPropDisplay name='barChart'/>
 
+
+The room reserved to the left of the chart is sized for the widest number the vertical
+axis carries, so a chart counting in the thousands is not clipped where one counting in
+tens would have been. That width is estimated rather than measured — the text is laid
+out when the chart is compiled, after the space for it has been chosen — so a chart with
+unusually wide axis numbers may still sit closer to its left edge than one with narrow
+ones.
+
 ## Examples
 
 ### Example: a chart of counts

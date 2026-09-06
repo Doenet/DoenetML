@@ -37,12 +37,39 @@ import type { DiagnosticRecord } from "@doenet/utils";
  * bottom for the category names, the top and right for the half of the
  * outermost label that falls past the corner it is drawn at.
  *
- * Fixed rather than measured, because the text is laid out by PreFigure in the
- * worker and nothing here can ask how wide it came out. The left margin is
- * therefore sized for axis numbers of a handful of digits; a chart labeled in
- * millions, or one whose categories are long words, will crowd its margin.
+ * Only the left margin depends on the data, and it has to: it was fixed at 46px
+ * on the assumption that axis numbers run to a handful of digits, and a chart
+ * of counts in the thousands clipped the leading digit off `1,500` — an
+ * entirely ordinary sample size, not an exotic one. PreFigure lays the text out
+ * in the worker and nothing here can ask how wide it came out, so the width is
+ * estimated from the longest label the axis will carry.
  */
-const CHART_MARGINS = [46, 30, 12, 16] as const;
+const CHART_MARGINS_BOTTOM_RIGHT_TOP = [30, 12, 16] as const;
+
+/** Left margin for an axis whose longest label is one character. */
+const AXIS_LABEL_MARGIN_BASE = 14;
+
+/**
+ * Added per character of the longest axis label. PreFigure draws these at its
+ * default size, where a digit is about nine pixels wide; a comma or a minus
+ * sign is narrower, so counting every character the same errs toward reserving
+ * slightly too much, which is the harmless direction.
+ */
+const AXIS_LABEL_MARGIN_PER_CHARACTER = 9;
+
+/**
+ * How wide the vertical axis' numbers will be drawn, in characters.
+ *
+ * PreFigure formats a tick with thousands separators — 1500 is drawn as
+ * `1,500` — so the separators are counted here too. Only the two ends of the
+ * run are measured: a label between them cannot be longer than both, since the
+ * run is monotonic and a negative end is the longest of its side.
+ */
+function widestTickLabelLength(firstTick: number, lastTick: number): number {
+    const asDrawn = (value: number) =>
+        Number.isFinite(value) ? value.toLocaleString("en-US").length : 1;
+    return Math.max(asDrawn(firstTick), asDrawn(lastTick), 1);
+}
 
 /** The bar geometry a chart renders, in data coordinates. */
 export type BarGeometry = {
@@ -359,18 +386,6 @@ export function createBarChartPrefigureXML({
     const [xMin, yMin, xMax, yMax] = geometry.bounds;
     const bbox = `(${formatNumber(xMin)},${formatNumber(yMin)},${formatNumber(xMax)},${formatNumber(yMax)})`;
 
-    const [marginLeft, marginBottom, marginRight, marginTop] = CHART_MARGINS;
-    // The margins are added around `dimensions`, so shrink it by them to keep
-    // the chart the size the frame reserved for it. A chart small enough for
-    // the margins to swallow it keeps a positive inner size rather than
-    // collapsing.
-    const innerWidth = Math.max(widthPx - marginLeft - marginRight, 1);
-    const innerHeight = Math.max(heightPx - marginBottom - marginTop, 1);
-    const dimensions = `(${formatNumber(innerWidth)},${formatNumber(innerHeight)})`;
-    const margins = `[${CHART_MARGINS.join(",")}]`;
-
-    const strokeAttr = darkModeAxisStrokeAttr(darkMode);
-
     // `decorations="no"` suppresses the automatic labels on both axes; the
     // explicit `vlabels` brings them back on the vertical one only.
     //
@@ -384,6 +399,26 @@ export function createBarChartPrefigureXML({
     const firstTick = tickAtOrBeyond(yMin, step, 1);
     const lastTick = tickAtOrBeyond(yMax, step, -1);
     const vlabels = `(${formatNumber(firstTick)},${formatNumber(step)},${formatNumber(lastTick)})`;
+
+    const [marginBottom, marginRight, marginTop] =
+        CHART_MARGINS_BOTTOM_RIGHT_TOP;
+
+    // The left margin has to know the labels before the box is sized, since it
+    // is what stops the widest of them being clipped.
+    const marginLeft =
+        AXIS_LABEL_MARGIN_BASE +
+        AXIS_LABEL_MARGIN_PER_CHARACTER *
+            widestTickLabelLength(firstTick, lastTick);
+    // The margins are added around `dimensions`, so shrink it by them to keep
+    // the chart the size the frame reserved for it. A chart small enough for
+    // the margins to swallow it keeps a positive inner size rather than
+    // collapsing.
+    const innerWidth = Math.max(widthPx - marginLeft - marginRight, 1);
+    const innerHeight = Math.max(heightPx - marginBottom - marginTop, 1);
+    const dimensions = `(${formatNumber(innerWidth)},${formatNumber(innerHeight)})`;
+    const margins = `[${marginLeft},${marginBottom},${marginRight},${marginTop}]`;
+
+    const strokeAttr = darkModeAxisStrokeAttr(darkMode);
 
     const axisLabelElements = [];
     const xLabelText = labelMarkup({

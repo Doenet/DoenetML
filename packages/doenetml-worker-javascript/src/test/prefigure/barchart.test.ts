@@ -65,26 +65,55 @@ describe("barChart prefigure tests @group4", async () => {
             const xml = await chartXML(FOUR_BARS);
 
             // Both axes sit on the edge of the bounding box, so without
-            // margins their labels would fall outside the drawing area.
-            expect(xml).toContain('margins="[46,30,12,16]"');
+            // margins their labels would fall outside the drawing area. The
+            // left one is sized for the widest number the axis carries: this
+            // chart is labeled 0 to 80, so two characters.
+            expect(xml).toContain('margins="[32,30,12,16]"');
 
             // The margins are added around `dimensions`, so the inner size is
             // shrunk by them to keep the chart the size that was asked for.
-            expect(xml).toContain('dimensions="(367,237.33333333333331)"');
+            expect(xml).toContain('dimensions="(381,237.33333333333331)"');
+        });
+
+        it("widens the left margin for wider axis numbers", async () => {
+            // The bug this exists for: at 46px fixed, a chart of counts in the
+            // thousands lost the leading digit of `1,500`, because PreFigure
+            // draws the separator too. Ordinary sample sizes, not exotic ones.
+            const small = await chartXML(`
+    <barChart name="c"><number>41</number><number>78</number></barChart>
+    `);
+            const large = await chartXML(`
+    <barChart name="c"><number>503</number><number>1064</number></barChart>
+    `);
+
+            expect(small).toContain('margins="[32,30,12,16]"');
+            // Labeled to 1,500 — five characters including the comma.
+            expect(large).toContain('margins="[59,30,12,16]"');
+        });
+
+        it("reserves room for a minus sign on a chart that goes below zero", async () => {
+            const xml = await chartXML(`
+    <barChart name="c"><number>-1200</number><number>400</number></barChart>
+    `);
+
+            // The negative end is the longest label, so it sets the width.
+            const margin = Number(xml.match(/margins="\[(\d+),/)?.[1]);
+            expect(margin).toBeGreaterThanOrEqual(59);
         });
 
         it("draws at the aspect ratio the frame is sized by", async () => {
             // The renderer writes `aspectRatio` straight into CSS on the
             // chart's box while the XML divides the width by it, so the two
             // have to be handed the same number: 425 wide at a ratio of 2 is
-            // 212.5 tall, less the 30 + 16 of vertical margin.
+            // 212.5 tall, less the 30 + 16 of vertical margin, and 425 less the
+            // 23 + 12 of horizontal margin across.
             const { graphState } = await getGraphRendererState(
                 `<barChart name="c" aspectRatio="2"><number>4</number></barChart>`,
                 "c",
             );
             expect(graphState.aspectRatio).eq(2);
             expect(graphState.prefigureXML).toContain(
-                'dimensions="(367,166.5)"',
+                'dimensions="(390,166.5)"',
             );
 
             // A ratio CSS would reject — zero, negative, or not a number —
@@ -98,7 +127,7 @@ describe("barChart prefigure tests @group4", async () => {
                 );
                 expect(fallback.aspectRatio).eq(1.5);
                 expect(fallback.prefigureXML).toContain(
-                    'dimensions="(367,237.33333333333331)"',
+                    'dimensions="(390,237.33333333333331)"',
                 );
             }
         });
