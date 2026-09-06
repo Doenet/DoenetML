@@ -70,26 +70,6 @@ subpopulations: individuals 1–30, 31–75, 76–87 and 88–147. This reaches 
 as [`<searchSorted>{:dn}`](searchSorted) followed by [`<tally>{:dn}`](tally), without
 the intermediate list of subpopulation indices — use whichever you also want to show.
 
-
-
----
-
-### Example: an empty sample
-
-
-```doenet-editor-horiz
-<numberList name="edges">0 1 2</numberList>
-<numberList name="none" />
-
-<p>Counts: <binCounts bins="$edges">$none</binCounts></p>
-```
-
-
-
-Every bin reports 0 rather than the result being empty. The bins exist whether or not
-anything landed in them, which is what keeps a chart's axis from moving when the data
-changes.
-
 ## Attribute Examples
 
 ### Attribute Example: bins
