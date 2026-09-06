@@ -247,7 +247,7 @@ export class RefResolutionDependency extends Dependency {
     }
 
     /**
-     * Whether `resolution` landed on a component that contains the reference itself.
+     * Whether `resolution` landed on the reference itself or on a component containing it.
      *
      * A reference can legitimately point at its own container — `$P` inside `P`'s label
      * is how a label says "my own value" — so such a resolution is used when it is the
@@ -417,8 +417,9 @@ export class RefResolutionDependency extends Dependency {
         // `undefined` if every candidate failed (or if there was no candidate to try).
         let refResolution;
 
-        // A resolution that landed on a component containing the reference, kept aside
-        // in case no candidate origin does better. See `resolvesIntoOwnAncestry`.
+        // A resolution that landed on the reference itself or on a component containing
+        // it, kept aside in case no candidate origin does better.
+        // See `resolvesIntoOwnAncestry`.
         let selfReferentialResolution;
 
         // The failure reported if no candidate origin resolves. It is the failure of the
