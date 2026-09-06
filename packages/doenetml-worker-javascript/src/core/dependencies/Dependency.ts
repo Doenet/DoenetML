@@ -511,9 +511,13 @@ export class Dependency {
                     reference: referenceText
                         ? {
                               text: `$${referenceText}`,
-                              // Marked where the index was written.
-                              position: referringComponent.position,
-                              sourceDoc: referringComponent.sourceDoc,
+                              // Marked where the index was written. Read
+                              // with `?.` because a path carried on the
+                              // dependency gives text even when the
+                              // referring component itself is gone, which
+                              // reading its own resolution never could.
+                              position: referringComponent?.position,
+                              sourceDoc: referringComponent?.sourceDoc,
                           }
                         : undefined,
                 });

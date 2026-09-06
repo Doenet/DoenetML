@@ -308,6 +308,32 @@ describe("coded diagnostics reach the record @group4", () => {
         });
     });
 
+    // A copy of an `<updateValue>` is a replacement, so it has no resolution
+    // of its own to read a reference off either — the copy was silent for the
+    // same reason the original was. Carrying the path on the dependency
+    // reaches both, and names what the author wrote where they wrote it
+    // rather than the `$uv` that produced the copy.
+    it("names the reference in the target of a copied updateValue", async () => {
+        const doenetML = `<point name="p" />
+<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />
+<updateValue extend="$uv" name="uv2" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv2"),
+            core,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
+    });
+
     it("names the target a missing action was asked of", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<point name="p" />
