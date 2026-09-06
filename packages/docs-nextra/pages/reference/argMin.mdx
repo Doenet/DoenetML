@@ -8,18 +8,10 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='argMin'/>
 
 `<argMin>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
-component that renders the **index** of the smallest of its arguments, rather than the
-value itself. Indices start at 1, ties resolve to the first occurrence, and an empty
-list gives 0. Since 0 is not the index of any item, an empty list also reports an
-info message saying there was nothing to look through.
-
-Because DoenetML lists can be indexed by a reference, the index that `<argMin>{:dn}`
-produces can be used to look up the matching entry of a *different* list — which is
-what makes it more useful than [`<min>{:dn}`](min) alone.
-
-Values are compared numerically when they are all numeric, and alphabetically
-otherwise, exactly as in [`<sort>{:dn}`](sort). So `<argMin>{:dn}` works on a
-`<textList>{:dn}` as readily as on a `<numberList>{:dn}`.
+component that renders the **index** of the smallest of its arguments rather than the value
+itself, so the position can be used to look up the matching entry of a *different* list —
+which is what makes it more useful than [`<min>{:dn}`](min) alone. Indices start at 1, ties
+resolve to the first occurrence, and an empty list gives 0.
 
 <AttrPropDisplay name='argMin'/>
 

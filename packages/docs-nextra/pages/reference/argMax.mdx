@@ -8,17 +8,10 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='argMax'/>
 
 `<argMax>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
-component that renders the **index** of the largest of its arguments, rather than the
-value itself. Indices start at 1, ties resolve to the first occurrence, and an empty
-list gives 0. Since 0 is not the index of any item, an empty list also reports an
-info message saying there was nothing to look through.
-
-Because DoenetML lists can be indexed by a reference, the index that `<argMax>{:dn}`
-produces can be used to look up the matching entry of a *different* list — which is
-what makes it more useful than [`<max>{:dn}`](max) alone.
-
-Values are compared numerically when they are all numeric, and alphabetically
-otherwise, exactly as in [`<sort>{:dn}`](sort).
+component that renders the **index** of the largest of its arguments rather than the value
+itself, so the position can be used to look up the matching entry of a *different* list —
+which is what makes it more useful than [`<max>{:dn}`](max) alone. Indices start at 1, ties
+resolve to the first occurrence, and an empty list gives 0.
 
 <AttrPropDisplay name='argMax'/>
 
@@ -78,3 +71,23 @@ The index from `<argMax>{:dn}` indexes into the parallel list of names.
 
 
 The index updates as the values change.
+
+
+
+---
+
+### Example: alphabetically last
+
+
+```doenet-editor-horiz
+<textList name="fruit">pear apple fig banana</textList>
+
+<argMax name="last">$fruit</argMax>
+
+<p>Fruit: $fruit</p>
+<p>The alphabetically last is $fruit[$last].</p>
+```
+
+
+
+On text, "largest" means alphabetically last.
