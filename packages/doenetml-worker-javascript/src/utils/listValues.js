@@ -447,9 +447,6 @@ export function comparableValueFromRaw(value) {
  * called numeric and then never equal anything, not even itself.
  */
 function tokenIsRealNumber(token) {
-    if (!Number.isNaN(Number(token))) {
-        return true;
-    }
     let value;
     try {
         value = me.fromAst(textToAst.convert(token)).evaluate_to_constant();

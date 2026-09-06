@@ -846,12 +846,16 @@ describe("Sort tag tests @group4", async () => {
             ["10 2 1", "1, 2, 10"],
             // Read as numbers, so the half sorts by value and renders as one.
             ["1/2 2 1", "0.5, 1, 2"],
-            // A `<number>` converts its content with `Number` before it tries
-            // the math parser, so scientific and hexadecimal notation name
-            // numbers too. Read only by the math parser, these would be three
-            // words, and `1e3` would sort before `5e2`.
-            ["1e3 5e2 2e4", "500, 1000, 20000"],
-            ["0x10 9", "9, 16"],
+            // Read the way DoenetML reads a number, which is not the way
+            // JavaScript reads one. `parseScientificNotation` is declared on 42
+            // components and defaults to false, and it recognizes an uppercase
+            // exponent only, so `1e3` is never scientific notation and these
+            // are words. `0x10` and `0b101` are not a DoenetML notation at all;
+            // `<number>` accepts them only because it asks `Number()` first,
+            // which is #1849. An author who wants an exponent read can say so
+            // with `<math parseScientificNotation="true">`.
+            ["1e3 5e2 2e4", "1e3, 2e4, 5e2"],
+            ["0x10 9", "0x10, 9"],
             // The math pass has to be Doenet's own reading of a function name,
             // not just any math parser's. `nCr` is a function to both; `min`
             // and `mean` are functions only to Doenet, so read by the other
