@@ -22,6 +22,8 @@ The data-source story has a much smaller answer than a data-frame platform: **th
 
 Every statistic is a readable property as well as a table cell, so a sentence and the table cannot disagree. Values that are not numbers count as missing and are left out, which is why `count` reports how many values were usable rather than how many were given.
 
+Bare numbers work as children, so `<summaryStatistics>4 9 2</summaryStatistics>` summarizes three values without wrapping each in a `<number>`. They are read as `<sum>` reads them, so a bare `1/2` is half rather than nothing.
+
 `statisticsToDisplay` chooses the columns. `default` and `all` name a set of statistics rather than excluding the ones written beside them, so `statisticsToDisplay="default sum"` shows the standard selection *and* the sum; whatever order they are asked for in, the columns appear in a fixed order.
 
 **The `source`/`column` data-frame path is removed rather than kept.** It could not have worked: `sourceName` depended on a `dependencyType` of `attributeTargetComponentNames`, declared through an attribute option `createTargetComponentNames`, and neither name exists anywhere else in the codebase — no dependency type is registered under it. Because `sourceName` was defined unconditionally, *every* use of `<summaryStatistics>` threw while its dependencies were built, whether or not a `source` was given. The component has never run. Summarizing a data frame can come back with the data-frame story, written against dependency types that exist; `<dataFrame>` itself is untouched and still excluded.
@@ -40,5 +42,3 @@ Also removed: `byCategoryColumn`, an attribute that was declared but never imple
 The `statisticsToDisplay` values — `default`, `all`, and the twelve statistics — now reach autocomplete and the reference page, which the component's own comment noted they did not.
 
 Closes #1834.
-
-Bare numbers work as children, so `<summaryStatistics>4 9 2</summaryStatistics>` summarizes three values without wrapping each in a `<number>`. They are read as `<sum>` reads them, so a bare `1/2` is half rather than nothing.
