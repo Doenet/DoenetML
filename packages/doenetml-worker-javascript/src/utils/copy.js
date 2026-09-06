@@ -97,6 +97,28 @@ export function postProcessCopy({
         });
     }
 
+    /**
+     * The components inside a reference's path indices, such as the `$i` of
+     * `$m[$i]`, were copied along with the reference, so they shadow their
+     * originals just as a copied child does.
+     *
+     * A reference appears either as the component itself (a reference in
+     * content) or in an attribute's `references` (a reference in `target`,
+     * `bindValueTo`, and the like); either way only its indices are recursed
+     * into, as the reference itself is resolved from its new location.
+     */
+    function recurseIntoPathIndices(component) {
+        if (!component.extending) {
+            return;
+        }
+        for (const pathPart of unwrapSource(component.extending).originalPath ??
+            []) {
+            for (const index of pathPart.index) {
+                recurse(index.value);
+            }
+        }
+    }
+
     for (let ind in serializedComponents) {
         let component = serializedComponents[ind];
         if (typeof component !== "object") {
@@ -109,6 +131,10 @@ export function postProcessCopy({
             let attribute = component.attributes[attrName];
             if (attribute.component) {
                 attribute.component = recurse([attribute.component])[0];
+            } else if (attribute.references) {
+                for (const reference of attribute.references) {
+                    recurseIntoPathIndices(reference);
+                }
             }
         }
 
@@ -116,17 +142,7 @@ export function postProcessCopy({
             recurse(component.replacements);
         }
 
-        // The components inside a reference's path indices, such as the `$i` of
-        // `$m[$i]`, were copied along with the reference, so they shadow their
-        // originals just as a copied child does.
-        if (component.extending) {
-            for (const pathPart of unwrapSource(component.extending)
-                .originalPath ?? []) {
-                for (const index of pathPart.index) {
-                    recurse(index.value);
-                }
-            }
-        }
+        recurseIntoPathIndices(component);
     }
 
     if (init && unlinkExternalCopies) {
