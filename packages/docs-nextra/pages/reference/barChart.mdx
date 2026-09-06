@@ -24,8 +24,11 @@ three things:
   of a chart built from `<repeat>{:dn}` and `<rectangle>{:dn}` inside a graph can only
   number its bars; naming them means placing every name yourself as a second row of
   anchored labels.
-- **One drawing however many bars.** The whole chart compiles to a single image, rather
-  than one component per bar.
+- **One drawing however many bars.** The whole chart compiles to a single image, so no
+  bar needs a graphical component and a renderer of its own — which is what drawing a
+  chart with [`<repeat>{:dn}`](repeat) and [`<rectangle>{:dn}`](rectangle) costs. The
+  values themselves are still components, one per bar; what the single drawing saves is
+  everything downstream of them.
 - **A chart a screen reader can walk.** Every bar carries its category and value as an
   annotation, so the chart is navigable rather than merely present. Give it a
   `<shortDescription>{:dn}` and that becomes the description of the figure as a whole.
@@ -43,7 +46,9 @@ the bars are measured against, rather than from the bottom of the box.
 
 A chart of whole numbers is never labeled in fractions, and a chart of fractions is: a
 chart of counts is labeled 1, 2, 3 and not 0.5, 1, 1.5, while a chart of proportions
-gets ticks inside the unit interval rather than only at its two ends.
+gets ticks inside the unit interval rather than only at its two ends. This holds while
+the axis' own ends are whole numbers too — set `yMin` or `yMax` to a fraction and the
+labels may be fractions, since a whole step could not reach the bounds you asked for.
 
 A negative value hangs its bar below the axis, and the axis drops to the first tick past
 the smallest value. With `displayValues`, that bar's number is printed *below* it, at
@@ -73,7 +78,8 @@ zero keeps its slot and its category label rather than being skipped.
 
 `size` — or an explicit `width` — sets how wide the chart is, and `aspectRatio` sets its
 width divided by its height, 1.5 by default. An `aspectRatio` that is not a positive
-number is ignored and 1.5 is used.
+number is ignored and 1.5 is used, as is one so small that the height it asks for is
+larger than a number can represent.
 
 `barWidth` is how much of its one-unit slot each bar fills, from just above 0 up to 1;
 the rest is the gap to the next bar. A value outside that range is reported as a warning

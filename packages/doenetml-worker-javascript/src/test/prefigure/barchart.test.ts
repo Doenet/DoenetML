@@ -75,6 +75,18 @@ describe("barChart prefigure tests @group4", async () => {
             expect(xml).toContain('dimensions="(381,237.33333333333331)"');
         });
 
+        it("labels in fractions when the bounds are fractions, whole values or not", async () => {
+            // The whole-step floor needs whole bounds as well as whole values:
+            // a whole step could not reach 0.1 or 0.9, so the axis is labeled
+            // in fractions even though every bar is an integer.
+            const xml = await chartXML(`
+    <barChart name="c" yMin="0.1" yMax="0.9"><number>1</number></barChart>
+    `);
+
+            const step = Number(xml.match(/vlabels="\([^,]*,([^,]*),/)?.[1]);
+            expect(Number.isInteger(step)).eq(false);
+        });
+
         it("widens the left margin for wider axis numbers", async () => {
             // The bug this exists for: at 46px fixed, a chart of counts in the
             // thousands lost the leading digit of `1,500`, because PreFigure
