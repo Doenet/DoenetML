@@ -2242,8 +2242,8 @@ describe("Repeat tag tests @group1", async () => {
         // The repeat names each item after its `valueName`, and the items here are copies
         // of iterations that carry a `$i` of their own inside the index of `$m[$i]`. That
         // copied `$i` still means the iteration's `i`, not the item the repeat just named
-        // `i` — which is the item the index sits inside, so reading it that way would be
-        // circular and would leave the reference with no index at all.
+        // `i` — which is the item the index sits inside, so reading it that way is circular
+        // and puts an `_error` where the index belongs, taking the whole document down.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathList name="m">11 22 33 44</mathList>
