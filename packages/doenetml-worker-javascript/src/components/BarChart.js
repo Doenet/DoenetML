@@ -477,11 +477,14 @@ export default class BarChart extends BlockComponent {
                 const categories = {};
                 for (const arrayKey of arrayKeys) {
                     const ind = Number(arrayKey);
+                    // A category with no bar under it never reaches this loop,
+                    // whose keys are sized by `barValues`; a bar with no
+                    // category of its own falls back to its position.
                     const declaredLabel = declared?.[ind];
                     categories[arrayKey] =
                         declaredLabel === undefined
                             ? String(ind + 1)
-                            : String(declaredLabel);
+                            : declaredLabel;
                 }
                 return { setValue: { categories } };
             },

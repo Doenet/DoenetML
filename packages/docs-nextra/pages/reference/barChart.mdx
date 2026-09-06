@@ -21,6 +21,12 @@ is a label and nothing else — the bars are evenly spaced whatever it says, so
 them at those positions. Numbers name bars as readily as words do, including a
 [`<tally>{:dn}`](tally)'s own `.categories`.
 
+The categories are matched to the bars in order, and there is one category per bar: a
+category with no bar under it is dropped, and a bar with no category of its own keeps its
+number. So `categories` given a list that is not the same length as the values — a
+[`<binCounts>{:dn}`](binCounts)'s `.binEdges`, which holds one more cut point than there
+are bins — labels what it can and leaves the rest as they were.
+
 The vertical axis scales itself to the data, unless you set `yMin` or `yMax` yourself —
 see [The vertical scale](#the-vertical-scale) below.
 
@@ -72,9 +78,11 @@ is left empty rather than drawn as a zero, which is a value the chart does not h
 only `yMax` and the bottom of the axis is still chosen from the data. What they are
 checked as is the resulting pair: if either bound is not a finite number, or `yMin` is
 not below `yMax`, *both* are discarded and the chart scales itself as if neither had been
-given, since a box of zero or negative height has nothing to draw in. Setting `yMin`
-above zero cuts the bars off at the bottom of the frame, so their drawn heights no longer
-compare the way their values do.
+given, since a box of zero or negative height has nothing to draw in. Bars are always
+measured from zero, so setting `yMin` above zero cuts them off at the bottom of the frame
+and their drawn heights no longer compare the way their values do — and a range that
+leaves out zero entirely, such as `yMin="100" yMax="200"` over a bar of height 4, draws
+an empty frame.
 
 The `yMin` and `yMax` *properties* report the scale the chart was drawn at, whether it
 came from the attributes or from the data, so `$chart.yMax` is the top of the axis you
@@ -88,7 +96,8 @@ zero keeps its slot and its category label rather than being skipped.
 `size` — or an explicit `width` — sets how wide the chart is, and `aspectRatio` sets its
 width divided by its height, 1.5 by default. An `aspectRatio` that is not a positive
 number is ignored and 1.5 is used, as is one so small that the height it asks for is
-larger than a number can represent.
+larger than a number can represent. A very large one is honored as written, so
+`aspectRatio="1000"` really does draw a chart a thousand times wider than it is tall.
 
 `barWidth` is how much of its one-unit slot each bar fills, from just above 0 up to 1;
 the rest is the gap to the next bar. A value outside that range is reported as a warning

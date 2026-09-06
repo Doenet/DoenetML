@@ -103,6 +103,46 @@ describe("barChart prefigure tests @group4", async () => {
             expect(large).toContain('margins="[59,30,12,16]"');
         });
 
+        it("measures a fractional label as it is drawn, not rounded to three places", async () => {
+            // `toLocaleString` rounds to three fraction digits by default, so
+            // every tick of this axis measured as the one character `0` while
+            // `0.00005` — seven characters — was drawn.
+            const xml = await chartXML(`
+    <barChart name="c"><number>0.0001</number><number>0.0002</number></barChart>
+    `);
+
+            expect(xml).toContain('vlabels="(0,0.00005,0.00025)"');
+            const margin = Number(xml.match(/margins="\[(\d+),/)?.[1]);
+            expect(margin).toBeGreaterThanOrEqual(14 + 9 * 7);
+        });
+
+        it("measures every tick, since the widest is not always an end one", async () => {
+            // Label length is not monotonic in magnitude once the step is
+            // fractional: this axis runs from -1 to 1 in halves, so the widest
+            // label drawn is `-0.5`, wider than either end.
+            const xml = await chartXML(`
+    <barChart name="c"><number>-0.9</number><number>0.9</number></barChart>
+    `);
+
+            expect(xml).toContain('vlabels="(-1,0.5,1)"');
+            const margin = Number(xml.match(/margins="\[(\d+),/)?.[1]);
+            expect(margin).toBeGreaterThanOrEqual(14 + 9 * 4);
+        });
+
+        it("keeps a gutter from swallowing the chart it labels", async () => {
+            // The labels of an axis at the top of the double range run to
+            // hundreds of characters. Left uncapped, the margin they ask for
+            // leaves a drawing one pixel wide inside a chart of gutter.
+            const xml = await chartXML(`
+    <barChart name="c"><number>1e308</number></barChart>
+    `);
+
+            const margin = Number(xml.match(/margins="\[([^,]*),/)?.[1]);
+            const innerWidth = Number(xml.match(/dimensions="\(([^,]*),/)?.[1]);
+            expect(margin).toBeLessThanOrEqual(425 / 2);
+            expect(innerWidth).toBeGreaterThan(425 / 4);
+        });
+
         it("reserves room for a minus sign on a chart that goes below zero", async () => {
             const xml = await chartXML(`
     <barChart name="c"><number>-1200</number><number>400</number></barChart>
@@ -185,7 +225,7 @@ describe("barChart prefigure tests @group4", async () => {
     describe("vertical scale", async () => {
         it("rounds the top up to the next tick above the tallest bar", async () => {
             // 78 rounds to 80 rather than touching the top of the box.
-            expect(await chartXML(FOUR_BARS)).toContain('bbox="(0,0,4.5,80)"');
+            expect(await chartXML(FOUR_BARS)).toContain('bbox="(0,0,5,80)"');
         });
 
         it("never lets the tallest bar reach the top", async () => {
@@ -194,21 +234,21 @@ describe("barChart prefigure tests @group4", async () => {
             const xml = await chartXML(`
     <barChart name="c"><number>80</number></barChart>
     `);
-            expect(xml).toContain('bbox="(0,0,1.5,100)"');
+            expect(xml).toContain('bbox="(0,0,2,100)"');
         });
 
         it("honors an explicit yMax", async () => {
             const xml = await chartXML(`
     <barChart name="c" yMax="100"><number>41</number><number>63</number></barChart>
     `);
-            expect(xml).toContain('bbox="(0,0,2.5,100)"');
+            expect(xml).toContain('bbox="(0,0,3,100)"');
         });
 
         it("gives an empty chart a box one tick tall", async () => {
             // Zeros rather than nothing: an empty chart should read as empty,
             // not as broken.
             const xml = await chartXML(`<barChart name="c" />`);
-            expect(xml).toContain('bbox="(0,0,0.5,1)"');
+            expect(xml).toContain('bbox="(0,0,1,1)"');
             expect(xml).not.toContain("<rectangle ");
         });
 
@@ -217,7 +257,7 @@ describe("barChart prefigure tests @group4", async () => {
     <barChart name="c"><number>5</number><number>-3</number></barChart>
     `);
             // One tick of room past the extremes on both sides.
-            expect(xml).toContain('bbox="(0,-4,2.5,6)"');
+            expect(xml).toContain('bbox="(0,-4,3,6)"');
             // A negative bar hangs from the axis rather than growing from it.
             expect(xml).toContain(
                 '<rectangle at="bar-2" lower-left="(1.6,-3)" dimensions="(0.8,3)"',
@@ -240,7 +280,7 @@ describe("barChart prefigure tests @group4", async () => {
     `);
             // The box is a whole number of ticks in both directions, so the
             // run of labels reaches the top of it and passes through zero.
-            expect(xml).toContain('bbox="(0,-6,2.5,2)"');
+            expect(xml).toContain('bbox="(0,-6,3,2)"');
             expect(xml).toContain('vlabels="(-6,2,2)"');
         });
 
@@ -250,7 +290,7 @@ describe("barChart prefigure tests @group4", async () => {
             const xml = await chartXML(`
     <barChart name="c" yMin="0" yMax="1000"><number>1</number></barChart>
     `);
-            expect(xml).toContain('bbox="(0,0,1.5,1000)"');
+            expect(xml).toContain('bbox="(0,0,2,1000)"');
             expect(xml).toContain('vlabels="(0,200,1000)"');
         });
 
@@ -269,7 +309,7 @@ describe("barChart prefigure tests @group4", async () => {
                 const xml = await chartXML(`
     <barChart name="c" ${bounds}><number>4</number></barChart>
     `);
-                expect(xml).toContain('bbox="(0,0,1.5,5)"');
+                expect(xml).toContain('bbox="(0,0,2,5)"');
                 expect(xml).not.toContain("null");
             }
         });
@@ -283,7 +323,7 @@ describe("barChart prefigure tests @group4", async () => {
             const xml = await chartXML(`
     <barChart name="c" yMin="10" yMax="95"><number>50</number></barChart>
     `);
-            expect(xml).toContain('bbox="(0,10,1.5,95)"');
+            expect(xml).toContain('bbox="(0,10,2,95)"');
             expect(xml).toContain('vlabels="(20,20,80)"');
         });
 
@@ -294,7 +334,7 @@ describe("barChart prefigure tests @group4", async () => {
             const xml = await chartXML(`
     <barChart name="c"><number>0.35</number><number>0.42</number><number>0.28</number></barChart>
     `);
-            expect(xml).toContain('bbox="(0,0,3.5,0.5)"');
+            expect(xml).toContain('bbox="(0,0,4,0.5)"');
             expect(xml).toContain('vlabels="(0,0.1,0.5)"');
         });
     });
@@ -392,6 +432,28 @@ describe("barChart prefigure tests @group4", async () => {
             expect(xml).toContain(
                 '<rectangle at="bar-1" lower-left="(0.75,0)" dimensions="(0.5,4)"',
             );
+        });
+
+        it("leaves the same gap at both ends, at any width", async () => {
+            // The box used to end half a unit past the last bar's *center*,
+            // which is the one place the gap comes out unequal: six times
+            // narrower than the leading one at the default width, and zero at
+            // `barWidth="1"`, where the last bar sat flush against the frame.
+            for (const barWidth of [0.8, 1]) {
+                const xml = await chartXML(`
+    <barChart name="c" barWidth="${barWidth}"><number>4</number><number>6</number></barChart>
+    `);
+
+                const xMax = Number(xml.match(/bbox="\(0,[^,]*,([^,]*),/)?.[1]);
+                const lastLeft = Number(
+                    xml.match(/at="bar-2" lower-left="\(([^,]*),/)?.[1],
+                );
+                const firstLeft = Number(
+                    xml.match(/at="bar-1" lower-left="\(([^,]*),/)?.[1],
+                );
+
+                expect(xMax - (lastLeft + barWidth)).closeTo(firstLeft, 1e-12);
+            }
         });
 
         it("warns and falls back when the width is not a fraction of a slot", async () => {
@@ -539,7 +601,7 @@ describe("barChart prefigure tests @group4", async () => {
             expect(xml).toContain('lower-left="(2.6,0)"');
             expect(xml).not.toContain('lower-left="(1.6,0)"');
             // The slot is still counted, so the box is as wide as three bars.
-            expect(xml).toContain('bbox="(0,0,3.5,5)"');
+            expect(xml).toContain('bbox="(0,0,4,5)"');
             expect(xml).not.toContain("null");
 
             const d = getDiagnosticsByType(core);
@@ -638,8 +700,8 @@ describe("barChart prefigure tests @group4", async () => {
                 "41, 63, 18",
             );
 
-            // `type` says how the categories are read, not the values, so a
-            // text `type` still charts the numbers.
+            // The categories are labels, so naming the bars `A B C` leaves
+            // `41 63 18` read as the numbers they are.
             const xml =
                 sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
             expect((xml.match(/<rectangle /g) ?? []).length).eq(3);

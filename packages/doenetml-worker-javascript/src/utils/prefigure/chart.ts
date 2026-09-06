@@ -58,17 +58,50 @@ const AXIS_LABEL_MARGIN_BASE = 14;
 const AXIS_LABEL_MARGIN_PER_CHARACTER = 9;
 
 /**
+ * How many ticks of a run are measured before the estimate gives up and takes
+ * the widest it has seen. The runs this measures hold a handful of ticks by
+ * construction; the cap only stops a step that somehow came back too small to
+ * close the run from spinning here.
+ */
+const MAX_TICKS_MEASURED = 64;
+
+/**
  * How wide the vertical axis' numbers will be drawn, in characters.
  *
  * PreFigure formats a tick with thousands separators — 1500 is drawn as
- * `1,500` — so the separators are counted here too. Only the two ends of the
- * run are measured: a label between them cannot be longer than both, since the
- * run is monotonic and a negative end is the longest of its side.
+ * `1,500` — so the separators are counted here too, and enough fraction digits
+ * are asked for to measure the label as it is drawn: `toLocaleString` rounds to
+ * three fraction digits by default, which measures a tick of `0.00005` as the
+ * single character `0` and reserves a seventh of the room its label needs.
+ *
+ * Every tick is measured, not just the two ends, because label length is not
+ * monotonic in magnitude once the step is fractional: an axis running from -1
+ * to 1 in halves draws `-0.5`, which is wider than either end.
  */
-function widestTickLabelLength(firstTick: number, lastTick: number): number {
+function widestTickLabelLength(
+    firstTick: number,
+    lastTick: number,
+    step: number,
+): number {
     const asDrawn = (value: number) =>
-        Number.isFinite(value) ? value.toLocaleString("en-US").length : 1;
-    return Math.max(asDrawn(firstTick), asDrawn(lastTick), 1);
+        Number.isFinite(value)
+            ? value.toLocaleString("en-US", { maximumFractionDigits: 20 })
+                  .length
+            : 1;
+
+    let widest = Math.max(asDrawn(firstTick), asDrawn(lastTick), 1);
+
+    if (Number.isFinite(step) && step > 0) {
+        const numTicks = Math.min(
+            Math.floor((lastTick - firstTick) / step),
+            MAX_TICKS_MEASURED,
+        );
+        for (let ind = 1; ind < numTicks; ind++) {
+            widest = Math.max(widest, asDrawn(firstTick + ind * step));
+        }
+    }
+
+    return widest;
 }
 
 /** The bar geometry a chart renders, in data coordinates. */
@@ -314,36 +347,40 @@ export function computeBarChartGeometry({
 
     const halfWidth = barWidth / 2;
 
-    const bars = values.flatMap((value, ind) => {
-        if (!drawable[ind]) {
-            return [];
-        }
-        const center = ind + 1;
-        return [
-            {
-                center,
-                label: labels[ind] ?? String(center),
-                value,
-                lowerLeft: [center - halfWidth, Math.min(0, value)] as [
-                    number,
-                    number,
-                ],
-                dimensions: [barWidth, Math.abs(value)] as [number, number],
-            },
-        ];
-    });
+    // One pass, so that a bar and the slot it sits in can never be given
+    // different labels: every value gets a slot, and the drawable ones also get
+    // a rectangle.
+    const bars: BarGeometry[] = [];
+    const slots: BarChartGeometry["slots"] = [];
 
-    const slots = values.map((_value, ind) => ({
-        center: ind + 1,
-        label: labels[ind] ?? String(ind + 1),
-    }));
+    values.forEach((value, ind) => {
+        const center = ind + 1;
+        const label = labels[ind] ?? String(center);
+        slots.push({ center, label });
+
+        if (drawable[ind]) {
+            bars.push({
+                center,
+                label,
+                value,
+                lowerLeft: [center - halfWidth, Math.min(0, value)],
+                dimensions: [barWidth, Math.abs(value)],
+            });
+        }
+    });
 
     return {
         bars,
         slots,
         // Every slot still counts toward the width, drawn or not, so a chart
         // with a gap in it keeps its remaining bars under their categories.
-        bounds: [0, yMin, values.length + 0.5, yMax],
+        //
+        // The box ends one unit past the last bar's *center*, which is where
+        // the gap beyond the last bar comes out the same size as the gap before
+        // the first one: both are `1 - barWidth/2`. Ending half a unit past the
+        // center instead leaves the last bar six times closer to the frame than
+        // the first at the default width, and flush against it at `barWidth="1"`.
+        bounds: [0, yMin, values.length + 1, yMax],
         tickStep,
         undrawnValues: drawable.filter((canDraw) => !canDraw).length,
     };
@@ -404,11 +441,17 @@ export function createBarChartPrefigureXML({
         CHART_MARGINS_BOTTOM_RIGHT_TOP;
 
     // The left margin has to know the labels before the box is sized, since it
-    // is what stops the widest of them being clipped.
-    const marginLeft =
+    // is what stops the widest of them being clipped. Capped at half the
+    // chart, because a gutter wide enough to swallow the drawing is worse than
+    // a clipped number: the labels of `<barChart>1e308</barChart>` run to 411
+    // characters, which would reserve 3713 pixels around a drawing one pixel
+    // wide.
+    const marginLeft = Math.min(
         AXIS_LABEL_MARGIN_BASE +
-        AXIS_LABEL_MARGIN_PER_CHARACTER *
-            widestTickLabelLength(firstTick, lastTick);
+            AXIS_LABEL_MARGIN_PER_CHARACTER *
+                widestTickLabelLength(firstTick, lastTick, step),
+        Math.max(Math.floor(widthPx / 2), AXIS_LABEL_MARGIN_BASE),
+    );
     // The margins are added around `dimensions`, so shrink it by them to keep
     // the chart the size the frame reserved for it. A chart small enough for
     // the margins to swallow it keeps a positive inner size rather than
