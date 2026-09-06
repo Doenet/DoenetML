@@ -321,6 +321,7 @@ export type MessageKey =
     | "pretzel-circuit-first-index"
     | "string-children-need-type"
     | "invalid-type-defaulting-to-math"
+    | "invalid-type-ignored"
     | "string-not-valid-component-to-arrange"
     | "invalid-type-defaulting-to-number"
     | "invalid-variable-value"
@@ -926,6 +927,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "pretzel-circuit-first-index",
     "string-children-need-type",
     "invalid-type-defaulting-to-math",
+    "invalid-type-ignored",
     "string-not-valid-component-to-arrange",
     "invalid-type-defaulting-to-number",
     "invalid-variable-value",

@@ -15,10 +15,10 @@ are in total, `<tally>{:dn}` reports how many there are of each kind.
 Name the categories with `categories` to fix which ones are counted and in what order;
 omit it and they are the distinct values present, in sorted order.
 
-`type` says how bare *string children* are read, and they are the only children that need
-it: values arriving as a list, a reference or a [`<searchSorted>{:dn}`](searchSorted) are
-read as what they already are. Written out, it also decides how `categories` is read,
-which is otherwise text.
+Bare string children are read as what they look like: all numbers makes the list numeric,
+anything else makes it text. `type` overrides that when the look is misleading — numerals
+that are labels rather than quantities. Values arriving as a list or a reference are read
+as what they already are.
 
 <AttrPropDisplay name='tally'/>
 
@@ -129,18 +129,20 @@ categories, `<tally>{:dn}` would report only the four values that actually appea
 
 
 ```doenet-editor-horiz
-<p>Without: <tally>apple fig apple</tally></p>
-<p>With: <tally type="text">apple fig apple</tally></p>
+<tally name="inferred">007 008 007</tally>
+<p>Inferred: $inferred.categories</p>
 
-<textList name="fruit">apple fig apple</textList>
-<p>Children of their own type: <tally>$fruit</tally></p>
+<tally name="asText" type="text">007 008 007</tally>
+<p>With `type="text"`: $asText.categories</p>
 ```
 
 
 
-Bare strings have no type of their own, so `<tally>{:dn}` asks for one before it will
-read them. Children that arrive as components already have one, and need no `type` at
-all.
+Bare strings are read as what they look like, so these count as the numbers 7 and 8 and
+the leading zeros go with them. `type` is for when the look is misleading — a jersey
+number, a ZIP code or a room number is a label rather than a quantity, and reading it as
+text keeps it whole. The counts are the same either way; it is the categories that
+change.
 
 
 

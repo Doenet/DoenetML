@@ -1,3 +1,4 @@
+import me from "math-expressions";
 import { codedDiagnostic } from "./diagnostics";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../components/commonsugar/lists";
 
@@ -417,6 +418,59 @@ export function comparableValueFromRaw(value) {
 }
 
 /**
+ * Whether a bare token names a real number, read the way `<number>` reads its
+ * own content — so `1/2` and `2^3` are numbers and `x` and `apple` are not.
+ *
+ * The test is `typeof` together with `NaN`, and neither half is redundant.
+ * `Number.isFinite` alone would rule out an infinity, which *is* a number the
+ * comparison handles — it tests equality before subtracting. A bare
+ * `!Number.isNaN` alone would let through the complex object that `i`
+ * evaluates to, on which every comparison is `NaN`, so such a value would be
+ * called numeric and then never equal anything, not even itself.
+ */
+function tokenIsRealNumber(token) {
+    let value;
+    try {
+        value = me.fromText(token).evaluate_to_constant();
+    } catch (e) {
+        return false;
+    }
+    return typeof value === "number" && !Number.isNaN(value);
+}
+
+/**
+ * The type to read bare strings as when the author did not say.
+ *
+ * Every token being a number makes the list numeric; anything else makes it
+ * text. That is the rule the values already follow when they arrive as
+ * components — `allAreNumeric` is true only if every one of them is numeric,
+ * and a single text among numbers sends the whole list to a text comparison —
+ * so inferring it here means an author writing `1 10 3` and an author
+ * referencing a `<numberList>` get the same answer, and `1 10 x` reads as text
+ * either way.
+ *
+ * Tokens are split on whitespace alone, while the wrapping below splits on
+ * whitespace *outside parens*. The two can only disagree about a token
+ * containing a paren, which does not evaluate to a number under either
+ * splitting, so both readings call it text.
+ *
+ * Returns `null` when there is nothing to read — no bare strings at all — so
+ * the caller can leave a list of references alone.
+ */
+function inferTypeFromStrings(matchedChildren) {
+    const tokens = matchedChildren
+        .filter((child) => typeof child === "string")
+        .flatMap((child) => child.split(/\s+/))
+        .filter((token) => token !== "");
+
+    if (tokens.length === 0) {
+        return null;
+    }
+
+    return tokens.every(tokenIsRealNumber) ? "number" : "text";
+}
+
+/**
  * Sugar shared by the components that read their children as a list of typed
  * values — `<sort>`, `<sortIndices>`, `<shuffle>` and the index-returning and
  * counting operators: bare strings are split on whitespace and wrapped in the
@@ -446,32 +500,30 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
             return { success: false };
         }
 
-        let type;
-        if (componentAttributes.type?.value) {
-            type = componentAttributes.type.value;
-        } else {
-            if (matchedChildren.some((child) => typeof child === "string")) {
-                diagnostics.push(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0013",
-                        args: { component: componentName },
-                    }),
-                );
-            }
-            return { success: false, diagnostics };
-        }
+        let type = componentAttributes.type?.value;
 
-        if (!["math", "text", "number", "boolean"].includes(type)) {
-            console.warn(`Invalid type ${type}`);
+        // A type that is not one of the four is reported and then dropped, so
+        // that it behaves exactly as if it had not been written. Reading it as
+        // something arbitrary instead is how `<tally type="txt">` came to make
+        // every category `NaN`.
+        if (type && !["math", "text", "number", "boolean"].includes(type)) {
             diagnostics.push(
                 codedDiagnostic({
                     type: "warning",
-                    code: "doenet-w0014",
+                    code: "doenet-w0145",
                     args: { type, component: componentName },
                 }),
             );
-            type = "math";
+            type = undefined;
+        }
+
+        if (!type) {
+            type = inferTypeFromStrings(matchedChildren);
+
+            // Nothing but references, so there is nothing for a type to say.
+            if (type === null) {
+                return { success: false, diagnostics };
+            }
         }
 
         // Break any string by white space and wrap the pieces with `type`.

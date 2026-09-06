@@ -838,35 +838,48 @@ describe("Sort tag tests @group4", async () => {
         expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
     });
 
-    it("string children without type emit warning", async () => {
+    it("string children with no type are read as what they look like", async () => {
+        // Words are text and numbers are numbers, so neither needs saying.
+        // These used to warn and sort nothing at all.
+        for (const [children, sorted] of [
+            ["d a b", "a, b, d"],
+            ["10 2 1", "1, 2, 10"],
+            // Read as numbers, so the half sorts by value and renders as one.
+            ["1/2 2 1", "0.5, 1, 2"],
+        ] as [string, string][]) {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p name="pList"><sort>${children}</sort></p>`,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                    .text,
+            ).eq(sorted);
+            expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        }
+    });
+
+    it("one non-numeric string sends the whole list to text", async () => {
+        // The same rule the values follow when they arrive as components: a
+        // list is numeric only if every one of them is, so `10` sorts before
+        // `2` here exactly as it would in a `<textList>`.
         let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <p name="pList"><sort>d a b</sort></p>
-  `,
+            doenetML: `<p name="pList"><sort>10 2 x</sort></p>`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).gte(1);
-        expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes("a `type` attribute must be specified"),
-            ),
-        ).eq(true);
-        expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes(
-                    'String "d a b" is not a valid component to sort.',
-                ),
-            ),
-        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
-        ).eq("");
+        ).eq("10, 2, x");
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
-    it("sugar with invalid type specified defaults to math type with warning", async () => {
+    it("sugar with invalid type reports it and reads the children anyway", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort type="bad">d a b</sort></p>
@@ -875,11 +888,14 @@ describe("Sort tag tests @group4", async () => {
 
         const sorted_result = ["a", "b", "d"];
 
+        // Read as text, which is what three words are — the invalid value is
+        // dropped rather than replaced by a guess, so the children are read as
+        // though no type had been written.
         await test_sort({
             core,
             resolvePathToNodeIdx,
             sorted_result,
-            replacements_all_of_type: "math",
+            replacements_all_of_type: "text",
         });
 
         let diagnosticsByType = getDiagnosticsByType(core);
@@ -888,7 +904,7 @@ describe("Sort tag tests @group4", async () => {
             "Invalid type bad for sort component",
         );
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Defaulting to math",
+            "reading the values as though no type had been given",
         );
     });
 
