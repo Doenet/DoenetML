@@ -100,10 +100,12 @@ export function postProcessCopy({
      * `$m[$i]`, were copied along with the reference, so they shadow their
      * originals just as a copied child does.
      *
-     * A reference appears either as the component itself (a reference in
-     * content) or in an attribute's `references` (a reference in `target`,
-     * `from`, and the like); either way only its indices are recursed
-     * into, as the reference itself is resolved from its new location.
+     * Called for a reference in content — the component itself — and for each
+     * entry of an attribute's `references` (a reference in `target`, `from`,
+     * and the like). Only the indices are recursed into here: an attribute's
+     * reference resolves from its new location, and giving it a
+     * `referenceShadow` of its own would change index-free references that
+     * work today.
      */
     function recurseIntoPathIndices(component) {
         if (!component.extending) {
