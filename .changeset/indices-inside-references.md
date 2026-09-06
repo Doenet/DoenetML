@@ -8,7 +8,7 @@
 
 Recognize an index written inside a reference in two places that were quietly dropping it.
 
-`referencesAreResponses` now records the input an index names when that index is itself a reference:
+`referencesAreResponses` now records the input an index names when that index is itself a reference, or an expression written around one such as `$inputs[$i - 1]`:
 
 ```xml
 <answer>
