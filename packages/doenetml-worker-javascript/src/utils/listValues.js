@@ -418,17 +418,28 @@ export function comparableValueFromRaw(value) {
 }
 
 /**
- * Whether a bare token names a real number, read the way `<number>` reads its
- * own content — so `1/2` and `2^3` are numbers and `x` and `apple` are not.
+ * Whether a bare token names a real number, read in the two passes `<number>`
+ * reads its own content in — so `1e5` and `0x10` are numbers just as `1/2` and
+ * `2^3` are, while `x` and `apple` are not.
  *
- * The test is `typeof` together with `NaN`, and neither half is redundant.
- * `Number.isFinite` alone would rule out an infinity, which *is* a number the
- * comparison handles — it tests equality before subtracting. A bare
+ * The order of the two passes is what `<number>` does, not a shortcut:
+ * `Number.js` converts its string child with `Number` and reaches for the math
+ * parser only when that yields `NaN`. The math parser has no scientific
+ * notation and no hexadecimal, so reading a token by it alone would call
+ * `<sort>1e5 2</sort>` text while the `<number>` the inference goes on to
+ * create reads `1e5` as 100000.
+ *
+ * The math pass tests `typeof` together with `NaN`, and neither half is
+ * redundant. `Number.isFinite` alone would rule out an infinity, which *is* a
+ * number the comparison handles — it tests equality before subtracting. A bare
  * `!Number.isNaN` alone would let through the complex object that `i`
  * evaluates to, on which every comparison is `NaN`, so such a value would be
  * called numeric and then never equal anything, not even itself.
  */
 function tokenIsRealNumber(token) {
+    if (!Number.isNaN(Number(token))) {
+        return true;
+    }
     let value;
     try {
         value = me.fromText(token).evaluate_to_constant();
@@ -450,9 +461,13 @@ function tokenIsRealNumber(token) {
  * either way.
  *
  * Tokens are split on whitespace alone, while the wrapping below splits on
- * whitespace *outside parens*. The two can only disagree about a token
- * containing a paren, which does not evaluate to a number under either
- * splitting, so both readings call it text.
+ * whitespace *outside parens*. They part company only where whitespace falls
+ * inside parens, and then only in the safe direction: the piece holding the
+ * unmatched `(` is not a number under any reading, so the list is called text
+ * where the wrapping would have accepted a number. `<sort>(1+2) 4</sort>`
+ * orders by value; `<sort>(1 + 2) 4</sort>` orders the same two pieces as
+ * text. Inference never calls a list numeric that the wrapping would then fill
+ * with something unreadable.
  *
  * Returns `null` when there is nothing to read — no bare strings at all — so
  * the caller can leave a list of references alone.
@@ -477,9 +492,12 @@ function inferTypeFromStrings(matchedChildren) {
  * component type named by the `type` attribute.
  *
  * Unlike the math-only operators, these components accept text as readily as
- * numbers, so there is no sensible default: without an explicit `type` the
- * strings are left alone and a warning is issued, naming `componentName` so the
- * author sees the tag they actually wrote.
+ * numbers, so there is no one type to fall back on. Without a `type` the
+ * strings are read as what they look like, by `inferTypeFromStrings` above. A
+ * `type` naming something that is not one of the four readings is reported —
+ * naming `componentName`, so the author sees the tag they actually wrote — and
+ * then dropped, leaving the children to be read as though it had not been
+ * written.
  */
 export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
     function breakStringsMacrosIntoTypeBySpaces({
