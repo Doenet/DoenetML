@@ -8,118 +8,39 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='barChart'/>
 
 `<barChart>{:dn}` draws one bar per number it is given. Pair it with
-[`<tally>{:dn}`](tally) or [`<binCounts>{:dn}`](binCounts) and a sampling simulation is
-a handful of components, however large the sample.
+[`<tally>{:dn}`](tally) or [`<binCounts>{:dn}`](binCounts) and a whole sampling
+simulation is a handful of components, however large the sample.
 
 Bare numbers work as well as `<number>{:dn}` children, so `<barChart>41 63 18</barChart>`
-draws three bars. They are read the way [`<sum>{:dn}`](sum) reads them, so an expression
-such as `1/2` or `2^3` gives a height too.
+draws three bars.
 
 Name the bars with `categories`; leave it out and they are numbered 1, 2, 3. A category
 is a label and nothing else — the bars are evenly spaced whatever it says, so
 `categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars rather than placing
-them at those positions. Numbers name bars as readily as words do, including a
-[`<tally>{:dn}`](tally)'s own `.categories`.
+them at those positions. Categories are matched to bars in order, and a list longer or
+shorter than the values labels what it can.
 
-The categories are matched to the bars in order, and there is one category per bar: a
-category with no bar under it is dropped, and a bar with no category of its own keeps its
-number. So `categories` given a list that is not the same length as the values — a
-[`<binCounts>{:dn}`](binCounts)'s `.binEdges`, which holds one more cut point than there
-are bins — labels what it can and leaves the rest as they were.
+The vertical axis scales itself to the data; `yMin` and `yMax` replace it, and either may
+be set on its own. Bars are measured from zero whatever the axis shows, so a `yMin` above
+zero cuts them off at the bottom of the frame. A value that is not a finite number gets no
+bar, and says so in a warning.
 
-The vertical axis scales itself to the data, unless you set `yMin` or `yMax` yourself —
-see [The vertical scale](#the-vertical-scale) below.
+`size` — or an explicit `width` — sets how wide the chart is, `aspectRatio` its width over
+its height, and `barWidth` how much of its slot each bar fills. Read back, `yMin`, `yMax`,
+`barWidth` and `aspectRatio` report **what the chart was drawn with**, so `$chart.yMax` is
+the top of the axis you can see rather than the one you asked for.
 
-## What it is drawn with
-
-`<barChart>{:dn}` renders through **PreFigure**, not the graph renderer, which buys
-three things:
-
-- **Category names on the axis.** `<graph>{:dn}` has no custom tick support, so the axis
-  of a chart built from `<repeat>{:dn}` and `<rectangle>{:dn}` inside a graph can only
-  number its bars; naming them means placing every name yourself as a second row of
-  anchored labels.
-- **One drawing however many bars.** The whole chart compiles to a single image, so no
-  bar needs a graphical component and a renderer of its own — which is what drawing a
-  chart with [`<repeat>{:dn}`](repeat) and [`<rectangle>{:dn}`](rectangle) costs. The
-  values themselves are still components, one per bar; what the single drawing saves is
-  everything downstream of them.
-- **A chart a screen reader can walk.** Every bar carries its category and value as an
-  annotation, so the chart is navigable rather than merely present. Give it a
-  `<shortDescription>{:dn}` and that becomes the description of the figure as a whole.
-
-The cost is that the PreFigure runtime is fetched the first time a page uses it, so the
-first chart on a page takes a moment to appear. Pages with no chart on them fetch
-nothing.
-
-## The vertical scale
-
-Left alone, the axis runs from zero up to the first tick past the tallest bar, so the
-tallest bar never touches the top of the frame. The ticks are evenly spaced by a round
-number — 1, 2 or 5 times a power of ten — and they are counted from zero, the baseline
-the bars are measured against, rather than from the bottom of the box.
-
-A chart of whole numbers is never labeled in fractions, and a chart of fractions is: a
-chart of counts is labeled 1, 2, 3 and not 0.5, 1, 1.5, while a chart of proportions
-gets ticks inside the unit interval rather than only at its two ends. This holds while
-the axis' own ends are whole numbers too — set `yMin` or `yMax` to a fraction and the
-labels may be fractions, since a whole step could not reach the bounds you asked for.
-
-A negative value hangs its bar below the axis, and the axis drops to the first tick past
-the smallest value. With `displayValues`, that bar's number is printed *below* it, at
-the end of the bar rather than up on the axis.
-
-A value that is not a finite number — a symbolic `<math>{:dn}`, or a `<number>{:dn}`
-whose content does not parse — gets no bar at all, and is reported as a warning. Its
-place on the axis is kept, so the remaining bars stay under their own categories, but it
-is left empty rather than drawn as a zero, which is a value the chart does not have.
-
-`yMin` and `yMax` replace the automatic bounds, and either may be set on its own — give
-only `yMax` and the bottom of the axis is still chosen from the data. What they are
-checked as is the resulting pair: if either bound is not a finite number, or `yMin` is
-not below `yMax`, *both* are discarded and the chart scales itself as if neither had been
-given, since a box of zero or negative height has nothing to draw in. Bars are always
-measured from zero, so setting `yMin` above zero cuts them off at the bottom of the frame
-and their drawn heights no longer compare the way their values do — and a range that
-leaves out zero entirely, such as `yMin="100" yMax="200"` over a bar of height 4, draws
-an empty frame.
-
-The `yMin` and `yMax` *properties* report the scale the chart was drawn at, whether it
-came from the attributes or from the data, so `$chart.yMax` is the top of the axis you
-can see.
-
-An empty chart still draws a box one tick tall rather than collapsing, and a value of
-zero keeps its slot and its category label rather than being skipped.
-
-## Size and spacing
-
-`size` — or an explicit `width` — sets how wide the chart is, and `aspectRatio` sets its
-width divided by its height, 1.5 by default. An `aspectRatio` that is not a positive
-number is ignored and 1.5 is used, as is one so small that the height it asks for is
-larger than a number can represent. A very large one is honored as written, so
-`aspectRatio="1000"` really does draw a chart a thousand times wider than it is tall.
-
-`barWidth` is how much of its one-unit slot each bar fills, from just above 0 up to 1;
-the rest is the gap to the next bar. A value outside that range is reported as a warning
-and 0.8 is used instead. Like `aspectRatio`, `yMin` and `yMax`, the `barWidth` property
-reads back the number the chart was drawn with rather than the one that was asked for.
+Every bar carries its category and value as an annotation, so a screen reader can walk the
+chart rather than merely announce it, and a `<shortDescription>{:dn}` becomes the
+description of the figure as a whole. `<barChart>{:dn}` draws through PreFigure, whose
+runtime is fetched the first time a page uses one; pages with no chart fetch nothing.
 
 <AttrPropDisplay name='barChart'/>
 
-
-Category names are drawn side by side under the bars and nothing moves them out of each
-other's way, so they have to fit in the room a bar gets: the chart's width divided by
-roughly the number of bars. Six six-character names under a `size="small"` chart do not
-fit, and run together into an unreadable line. Widen the chart, shorten the names, or use
-fewer bars — a histogram's bins, for instance, read as well labeled by their midpoints as
-by their ranges, in half the width.
-
-The room reserved to the left of the chart is sized for the widest number the vertical
-axis carries, so a chart counting in the thousands is not clipped where one counting in
-tens would have been. That width is estimated rather than measured — the text is laid
-out when the chart is compiled, after the space for it has been chosen — so a chart with
-unusually wide axis numbers may still sit closer to its left edge than one with narrow
-ones.
+Category names sit side by side under the bars and nothing moves them out of each other's
+way, so they have to fit the room a bar gets. Six six-character names under a
+`size="small"` chart run together into an unreadable line: widen the chart, shorten the
+names, or use fewer bars.
 
 ## Examples
 
@@ -178,15 +99,11 @@ Five tags hold the whole simulation, however large `numSamples` is:
 [`<sampleRandomNumbers>{:dn}`](sampleRandomNumbers) draws the sample,
 [`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
 [`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
-in, [`<tally>{:dn}`](tally) counts them, and `<barChart>{:dn}` draws the counts. The
-*markup* is what stays fixed: raising `numSamples` still adds a component per draw and
-another per subpopulation index, since each of those is a value of its own. What does
-not grow is what you write, or the number of bars.
+in, [`<tally>{:dn}`](tally) counts them, and `<barChart>{:dn}` draws the counts.
 
-Drawing again redraws the chart. Because `<tally>{:dn}` is given its categories rather
-than left to discover them, a subpopulation that happens to get no draws still counts
-zero, and the chart keeps that bar — at height zero — instead of dropping it and
-shifting the others along.
+Because `<tally>{:dn}` is given its categories rather than left to discover them, a
+subpopulation that draws nothing still counts zero and keeps its bar, instead of dropping
+out and shifting the others along.
 
 
 
@@ -222,9 +139,8 @@ shifting the others along.
 `<barChart>{:dn}` draws them. Drawing again a few times shows the shape settling toward
 the bell it is drawn from — and how much a sample of 200 still wobbles.
 
-Each bin is named by its midpoint rather than by its range. `-3 to -2` says more, but six
-labels of that length do not fit side by side under six bars: they run into one another
-and the axis becomes unreadable. See [Size and spacing](#size-and-spacing).
+Each bin is named by its midpoint rather than its range: `-3 to -2` says more, but six
+labels that long run into one another under six bars.
 
 
 
@@ -249,7 +165,6 @@ and the axis becomes unreadable. See [Size and spacing](#size-and-spacing).
 
 
 
-The chart's values, category names and axis bounds are readable properties, so a
-sentence can quote the same numbers the picture shows without repeating them in the
+A sentence can quote the same numbers the picture shows without repeating them in the
 source. Nothing above sets `yMax`, so the chart chose it — and reading it back gives the
-value the axis was actually drawn to.
+value the axis was drawn to.
