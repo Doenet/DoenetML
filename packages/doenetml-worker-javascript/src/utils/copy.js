@@ -102,7 +102,7 @@ export function postProcessCopy({
      *
      * A reference appears either as the component itself (a reference in
      * content) or in an attribute's `references` (a reference in `target`,
-     * `bindValueTo`, and the like); either way only its indices are recursed
+     * `from`, and the like); either way only its indices are recursed
      * into, as the reference itself is resolved from its new location.
      */
     function recurseIntoPathIndices(component) {
