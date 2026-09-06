@@ -27,6 +27,7 @@ import {
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
 
 /**
  * Evaluates one whitespace-separated group of the `grid` attribute to the
@@ -566,53 +567,13 @@ export default class Graph extends BlockComponent {
             returnNumberDisplayStateVariableDefinitions(),
         );
 
-        stateVariableDefinitions.shortDescription = {
-            description: "A short accessibility description of the graph.",
-            forRenderer: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                shortDescriptionChild: {
-                    dependencyType: "child",
-                    childGroups: ["shortDescriptions"],
-                    variableNames: ["text"],
-                },
-                decorative: {
-                    dependencyType: "stateVariable",
-                    variableName: "decorative",
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnShortDescriptionStateVariableDefinition({
+                componentType: "graph",
+                componentName: "graph",
             }),
-            definition({ dependencyValues }) {
-                let shortDescription = "";
-                const diagnostics = [];
-                if (dependencyValues.shortDescriptionChild.length > 0) {
-                    const shortDescriptionChild =
-                        dependencyValues.shortDescriptionChild[
-                            dependencyValues.shortDescriptionChild.length - 1
-                        ];
-
-                    shortDescription =
-                        shortDescriptionChild.stateValues.text.trim();
-                }
-                if (shortDescription === "" && !dependencyValues.decorative) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "accessibility",
-                            level: 1,
-                            code: "doenet-a0001",
-                            args: { component: "graph" },
-                        }),
-                    );
-                }
-
-                return {
-                    setValue: { shortDescription },
-                    sendDiagnostics: diagnostics,
-                };
-            },
-        };
+        );
 
         stateVariableDefinitions.descriptionChildInd = {
             forRenderer: true,

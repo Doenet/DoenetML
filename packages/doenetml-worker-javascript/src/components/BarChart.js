@@ -18,6 +18,7 @@ import {
 } from "../utils/prefigure/chart";
 import { resolveSelectedStyleForTheme } from "../utils/prefigure/style";
 import { returnBreakStringsIntoMathsBySpacesSugarInstruction } from "../utils/mathOperatorChildren";
+import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
 
 /** The width-to-height ratio a chart is drawn at when none is asked for. */
 const DEFAULT_ASPECT_RATIO = 1.5;
@@ -355,51 +356,13 @@ export default class BarChart extends BlockComponent {
             definition: () => ({ setValue: { hasAuthorAnnotations: true } }),
         };
 
-        stateVariableDefinitions.shortDescription = {
-            description: "A short accessibility description of the bar chart.",
-            forRenderer: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            returnDependencies: () => ({
-                shortDescriptionChild: {
-                    dependencyType: "child",
-                    childGroups: ["shortDescriptions"],
-                    variableNames: ["text"],
-                },
-                decorative: {
-                    dependencyType: "stateVariable",
-                    variableName: "decorative",
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnShortDescriptionStateVariableDefinition({
+                componentType: "barChart",
+                componentName: "bar chart",
             }),
-            definition({ dependencyValues }) {
-                let shortDescription = "";
-                const diagnostics = [];
-                if (dependencyValues.shortDescriptionChild.length > 0) {
-                    const child =
-                        dependencyValues.shortDescriptionChild[
-                            dependencyValues.shortDescriptionChild.length - 1
-                        ];
-                    shortDescription = child.stateValues.text.trim();
-                }
-                if (shortDescription === "" && !dependencyValues.decorative) {
-                    diagnostics.push(
-                        codedDiagnostic({
-                            type: "accessibility",
-                            level: 1,
-                            code: "doenet-a0001",
-                            args: { component: "barChart" },
-                        }),
-                    );
-                }
-
-                return {
-                    setValue: { shortDescription },
-                    sendDiagnostics: diagnostics,
-                };
-            },
-        };
+        );
 
         stateVariableDefinitions.barValues = {
             description: "The value of each bar, in order.",
