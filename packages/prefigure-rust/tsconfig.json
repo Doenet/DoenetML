@@ -1,0 +1,20 @@
+{
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "rootDir": "./src",
+        "types": ["vite/client"]
+    },
+    "include": ["src/**/*.ts", "pkg/**/*.ts"],
+    "exclude": [
+        "./**/*.test.ts",
+        "test/**/*.ts",
+        "vitest.config.ts",
+        "node_modules",
+        "**/test/",
+        "**/dist/**/*",
+        "./vite.config.ts",
+        "upstream/**/*"
+    ],
+    "references": []
+}

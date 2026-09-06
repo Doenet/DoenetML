@@ -1,0 +1,3 @@
+[submodule "packages/prefigure-rust/upstream"]
+	path = packages/prefigure-rust/upstream
+	url = https://github.com/davidaustinm/prefigure.git

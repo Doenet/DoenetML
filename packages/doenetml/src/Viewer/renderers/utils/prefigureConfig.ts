@@ -35,3 +35,20 @@ export const PREFIGURE_INDEX_URL =
     (globalThis as any).__DOENET_PREFIGURE_INDEX_URL__ ??
     env?.VITE_PREFIGURE_INDEX_URL ??
     "";
+
+// Opt-in feature flag for the experimental Rust/WASM `@doenet/prefigure-rust`
+// backend (see packages/prefigure-rust). Unproven in production, so it
+// defaults to disabled: it only participates in the build race in
+// `prefigureRuntime.ts` when explicitly turned on via one of:
+// - VITE_PREFIGURE_RUST_ENABLED (build/runtime env var; any value other than
+//   "false" is treated as enabled)
+// - globalThis.__DOENET_PREFIGURE_RUST_ENABLED__ (runtime override, takes
+//   precedence over the env var)
+const rustEnabledOverride = (globalThis as any)
+    .__DOENET_PREFIGURE_RUST_ENABLED__;
+const rustEnabledEnv = env?.VITE_PREFIGURE_RUST_ENABLED;
+
+export const PREFIGURE_RUST_ENABLED =
+    rustEnabledOverride !== undefined
+        ? Boolean(rustEnabledOverride) && rustEnabledOverride !== "false"
+        : Boolean(rustEnabledEnv) && rustEnabledEnv !== "false";

@@ -5,6 +5,7 @@ import {
     isPrefigureRuntimeReady,
     isAbortError,
     warmupPrefigureInBackground,
+    warmupPrefigureRustInBackground,
 } from "./utils/prefigureRuntime";
 import {
     hasAnnotationsXml,
@@ -88,6 +89,8 @@ export default React.memo(function Prefigure({
     useEffect(() => {
         // If warmup fails (e.g. CDN unreachable), keep server fallback active.
         warmupPrefigureInBackground();
+        // No-op unless the Rust backend feature flag is enabled.
+        warmupPrefigureRustInBackground();
     }, []);
 
     useEffect(() => {

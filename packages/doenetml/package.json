@@ -81,6 +81,7 @@
                 "../virtual-keyboard:build",
                 "../parser:build",
                 "../prefigure:build",
+                "../prefigure-rust:build",
                 "../lsp-tools:build"
             ]
         }
@@ -91,6 +92,7 @@
     },
     "dependencies": {
         "@doenet/lsp-tools": "*",
+        "@doenet/prefigure-rust": "*",
         "@doenet/static-assets": "*",
         "dompurify": "^3.4.11"
     },

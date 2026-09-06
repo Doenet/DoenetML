@@ -1,0 +1,73 @@
+{
+    "name": "@doenet/prefigure-rust",
+    "type": "module",
+    "description": "Rust/WASM PreFigure compiler (evaluation build, not yet wired into the live renderer)",
+    "version": "0.0.1",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Doenet/DoenetML.git"
+    },
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        },
+        "./*": {
+            "import": "./dist/*"
+        }
+    },
+    "scripts": {
+        "build": "wireit",
+        "build:rust": "wireit",
+        "build:js": "wireit",
+        "test": "vitest run"
+    },
+    "wireit": {
+        "build": {
+            "command": "echo \"Building rust and js\"",
+            "files": [],
+            "output": [],
+            "dependencies": [
+                "build:rust",
+                "build:js"
+            ]
+        },
+        "build:rust": {
+            "command": "npx wasm-pack build upstream/packages/prefig-wasm --target web --out-dir ../../../pkg --out-name prefig_wasm -- --features ratex",
+            "files": [
+                "upstream/packages/prefig-wasm/src/**/*.rs",
+                "upstream/packages/prefig-rust/**/*.rs",
+                "upstream/packages/prefig-wasm/Cargo.toml"
+            ],
+            "output": [
+                "pkg/*.js",
+                "pkg/*.d.ts",
+                "pkg/*.wasm",
+                "pkg/package.json"
+            ]
+        },
+        "build:js": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json",
+                "vite.config.ts"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.map",
+                "dist/**/*.d.ts",
+                "dist/**/*.wasm*"
+            ],
+            "dependencies": [
+                "build:rust"
+            ]
+        }
+    },
+    "devDependencies": {}
+}

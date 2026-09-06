@@ -2,7 +2,15 @@ import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_INDEX_URL,
     PREFIGURE_MODULE_URL,
+    PREFIGURE_RUST_ENABLED,
 } from "./prefigureConfig";
+// Static workspace import: unlike `@doenet/prefigure` (loaded dynamically
+// from a CDN URL at runtime, see `importPrefigureFromUrl` below), this is a
+// normal in-repo package, and the whole point of this module is that it is
+// small and fast to instantiate, so eagerly bundling it costs little. It is
+// still only *initialized* (WASM fetch+instantiate) lazily, behind the
+// `PREFIGURE_RUST_ENABLED` flag, via `startPrefigureRustWarmup()`.
+import * as PrefigureRustModule from "@doenet/prefigure-rust";
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
@@ -16,11 +24,16 @@ export type PrefigureBuildResult = {
 
 type PrefigureBuildWinner =
     | { backend: "service"; data: PrefigureBuildResult }
-    | { backend: "local"; module: PrefigureModule };
+    | { backend: "local"; module: PrefigureModule }
+    | { backend: "rust"; module: typeof PrefigureRustModule };
 
 let prefigureModulePromise: Promise<PrefigureModule> | null = null;
 let prefigureWarmupPromise: Promise<PrefigureModule> | null = null;
 let prefigureReadyModule: PrefigureModule | null = null;
+
+let prefigureRustWarmupPromise: Promise<typeof PrefigureRustModule> | null =
+    null;
+let prefigureRustReadyModule: typeof PrefigureRustModule | null = null;
 
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
     return import(/* @vite-ignore */ url);
@@ -53,16 +66,50 @@ async function startPrefigureWarmup() {
     return prefigureWarmupPromise;
 }
 
+async function startPrefigureRustWarmup() {
+    if (!prefigureRustWarmupPromise) {
+        prefigureRustWarmupPromise = (async () => {
+            await PrefigureRustModule.initPrefigure();
+            prefigureRustReadyModule = PrefigureRustModule;
+            console.log("[prefigure-rust] WASM runtime ready");
+            return PrefigureRustModule;
+        })().catch((error) => {
+            // Allow future retries.
+            prefigureRustWarmupPromise = null;
+            throw error;
+        });
+    }
+
+    return prefigureRustWarmupPromise;
+}
+
 function logWarmupFailure(error: unknown) {
     console.error("[prefigure] warmup failed", error);
+}
+
+function logRustWarmupFailure(error: unknown) {
+    console.error("[prefigure-rust] warmup failed", error);
 }
 
 export function warmupPrefigureInBackground() {
     startPrefigureWarmup().catch(logWarmupFailure);
 }
 
+/**
+ * No-op unless `PREFIGURE_RUST_ENABLED` is set: the Rust backend is opt-in
+ * and unproven in production, so disabled-by-default behavior must have
+ * zero cost (no warmup call, no bundle-visible side effect beyond the
+ * static import above).
+ */
+export function warmupPrefigureRustInBackground() {
+    if (!PREFIGURE_RUST_ENABLED) {
+        return;
+    }
+    startPrefigureRustWarmup().catch(logRustWarmupFailure);
+}
+
 export function currentPrefigureDebounceMs() {
-    return prefigureReadyModule
+    return prefigureReadyModule || prefigureRustReadyModule
         ? PREFIGURE_BUILD_DEBOUNCE_WARM_MS
         : PREFIGURE_BUILD_DEBOUNCE_COLD_MS;
 }
@@ -185,6 +232,12 @@ export async function buildPrefigureDiagram(
         });
     }
 
+    if (PREFIGURE_RUST_ENABLED && prefigureRustReadyModule) {
+        return prefigureRustReadyModule.compilePrefigure(diagramXML, {
+            mode: "svg",
+        });
+    }
+
     if (signal.aborted) {
         throw createAbortError();
     }
@@ -242,13 +295,44 @@ export async function buildPrefigureDiagram(
             }
         }
 
+        async function buildRustPromise(): Promise<PrefigureBuildWinner> {
+            try {
+                const module = await startPrefigureRustWarmup();
+                return { backend: "rust" as const, module };
+            } catch (error) {
+                logRustWarmupFailure(error);
+                throw error;
+            }
+        }
+
         const serviceBuildPromise = buildServicePromise();
         const localReadyPromise = buildLocalPromise();
+        const raceCandidates: Array<Promise<PrefigureBuildWinner>> = [
+            serviceBuildPromise,
+            localReadyPromise,
+        ];
+        if (PREFIGURE_RUST_ENABLED) {
+            raceCandidates.push(buildRustPromise());
+        }
+
+        const raceStart =
+            typeof performance !== "undefined" ? performance.now() : Date.now();
 
         const winner = await Promise.race([
-            firstSuccessful([serviceBuildPromise, localReadyPromise]),
+            firstSuccessful(raceCandidates),
             outerAbortPromise,
         ]);
+
+        const elapsedMs = Math.round(
+            (typeof performance !== "undefined"
+                ? performance.now()
+                : Date.now()) - raceStart,
+        );
+        console.log(
+            "[prefigure] backend=%s elapsedMs=%d",
+            winner.backend,
+            elapsedMs,
+        );
 
         if (winner.backend === "service") {
             return winner.data;
@@ -257,6 +341,15 @@ export async function buildPrefigureDiagram(
         // WASM became ready before the service response, so stop waiting on the
         // slower network fallback and compile locally.
         serviceAbortController.abort();
+
+        if (winner.backend === "rust") {
+            return await Promise.race([
+                winner.module.compilePrefigure(diagramXML, {
+                    mode: "svg",
+                }),
+                outerAbortPromise,
+            ]);
+        }
 
         return await Promise.race([
             winner.module.compilePrefigure(diagramXML, {
