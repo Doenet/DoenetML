@@ -8,27 +8,10 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='searchSorted'/>
 
 `<searchSorted>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
-component that locates values within an **already sorted** list. It renders the
-position at which each `target` would have to be inserted for the list to stay sorted.
-
-With the default `side="left"`, that position is the index of the first entry greater
-than or equal to the target. A target larger than every entry gives one past the end of
-the list.
-
-`target` may be a single value or a whole list of them, and the result has one position
-per target. One component maps a thousand samples onto their positions, which is what
-makes it usable on the output of `<sampleRandomNumbers>{:dn}` — see the sampling example
-below.
-
-Unlike [`<indexOf>{:dn}`](indexOf), the target need not appear in the list; this
-answers "where does it belong?", not "is it there?". Ordering is numeric when the list
-is all numeric and alphabetical otherwise, so a sorted `<textList>{:dn}` works too.
-
-Every position in a list is at least 1, so the result is 1 or more whenever there is a
-target to place and something to place it among. The two cases that give 0 instead are
-both reported: omitting `target` is a warning, since nothing about that document could
-ever produce an answer, and an empty list is an info message. (An empty *list of
-targets* is neither: it simply produces no positions.)
+component that locates values within an **already sorted** list: it renders the position at
+which each `target` would have to be inserted for the list to stay sorted. Unlike
+[`<indexOf>{:dn}`](indexOf), the target need not appear in the list — this answers "where
+does it belong?", not "is it there?".
 
 <AttrPropDisplay name='searchSorted'/>
 
