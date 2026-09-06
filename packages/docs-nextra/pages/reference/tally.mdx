@@ -38,9 +38,10 @@ usually by a reference to a list that repeats.
 
 
 ```doenet-editor-horiz
-<textList name="fruit">apple fig apple pear fig apple</textList>
-
-<tally name="t" type="text">$fruit</tally>
+<setup>
+  <textList name="fruit">apple fig apple pear fig apple</textList>
+  <tally name="t" type="text">$fruit</tally>
+</setup>
 
 <p>Fruit: $fruit</p>
 <p>Categories: $t.categories</p>
@@ -87,11 +88,12 @@ categories, `<tally>{:dn}` would report only the four values that actually appea
   <number name="total"><sum>$pop</sum></number>
 </setup>
 
-<sampleRandomNumbers name="draws" type="discreteUniform"
-  from="1" to="$total" numSamples="60" />
-
-<searchSorted name="which" target="$draws">$cum</searchSorted>
-<tally name="counts" categories="1 2 3 4">$which</tally>
+<setup>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="60" />
+  <searchSorted name="which" target="$draws">$cum</searchSorted>
+  <tally name="counts" categories="1 2 3 4">$which</tally>
+</setup>
 
 <p>Subpopulation sizes: $pop (total $total)</p>
 <p>Regions: $labels</p>
@@ -121,10 +123,12 @@ subpopulation, the counts always sum to the number of samples.
 
 
 ```doenet-editor-horiz
-<numberList name="rolls">3 1 6 3 3 5 1</numberList>
+<setup>
+  <numberList name="rolls">3 1 6 3 3 5 1</numberList>
+  <tally name="t" categories="1 2 3 4 5 6">$rolls</tally>
+</setup>
 
-<tally name="t" categories="1 2 3 4 5 6">$rolls</tally>
-
+<p>Rolls: $rolls</p>
 <p>Counts: $t</p>
 <p>Threes: $t[3]</p>
 <p>Most common face appeared <max>$t</max> times.</p>

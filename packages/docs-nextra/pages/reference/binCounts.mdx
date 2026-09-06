@@ -86,10 +86,9 @@ Right-closed they are `[0, 1]` and `(1, 2]`, so 1 is counted in the first. Both 
 ```doenet-editor-horiz
 <setup>
   <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <sampleRandomNumbers name="z" type="gaussian"
+    mean="0" variance="4" numSamples="200" />
 </setup>
-
-<sampleRandomNumbers name="z" type="gaussian"
-  mean="0" variance="4" numSamples="200" />
 
 <p>Counts per unit interval: <binCounts name="h" bins="$edges">$z</binCounts></p>
 <p>Counted: <sum>$h</sum> of 200 — the rest fell outside ±3, where there is no bin.</p>
@@ -119,10 +118,9 @@ of that.
   <numberList name="pop">30 45 12 60</numberList>
   <cumulativeSum name="cum">$pop</cumulativeSum>
   <number name="total"><sum>$pop</sum></number>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="60" />
 </setup>
-
-<sampleRandomNumbers name="draws" type="discreteUniform"
-  from="1" to="$total" numSamples="60" />
 
 <p>Subpopulation sizes: $pop (total $total)</p>
 <p>Sampled counts: <binCounts bins="0 $cum" closed="right">$draws</binCounts></p>
