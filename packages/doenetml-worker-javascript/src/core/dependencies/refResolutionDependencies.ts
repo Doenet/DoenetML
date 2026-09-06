@@ -246,6 +246,29 @@ export class RefResolutionDependency extends Dependency {
         }
     }
 
+    /**
+     * Whether `resolution` landed on a component that contains the reference itself.
+     *
+     * A reference can legitimately point at its own container — `$P` inside `P`'s label
+     * is how a label says "my own value" — so such a resolution is used when it is the
+     * only one on offer. It is not what a *copy* wants, though. A composite that names
+     * the item it creates, as `<repeat valueName="i">` does, hands that name to the copy
+     * itself, so a `$i` that the copied content already carried now finds the copy rather
+     * than what it named in the original. Preferring a candidate origin that resolves
+     * outside the reference keeps the copied `$i` pointing where the original one did.
+     */
+    resolvesIntoOwnAncestry(composite: any, resolution: any) {
+        const nodeIdx = resolution.nodeIdx;
+
+        return (
+            nodeIdx === composite.componentIdx ||
+            (composite.ancestors?.some(
+                (ancestor: any) => ancestor.componentIdx === nodeIdx,
+            ) ??
+                false)
+        );
+    }
+
     async determineDownstreamComponents({ force = false } = {}) {
         this.compositeReplacementDependencies = [];
 
@@ -394,6 +417,10 @@ export class RefResolutionDependency extends Dependency {
         // `undefined` if every candidate failed (or if there was no candidate to try).
         let refResolution;
 
+        // A resolution that landed on a component containing the reference, kept aside
+        // in case no candidate origin does better. See `resolvesIntoOwnAncestry`.
+        let selfReferentialResolution;
+
         // The failure reported if no candidate origin resolves. It is the failure of the
         // first candidate — the reference's own position — since that is the one that
         // describes the document the author wrote; later candidates are only fallbacks.
@@ -402,11 +429,21 @@ export class RefResolutionDependency extends Dependency {
 
         for (const origin of this.originsToResolveFrom(composite)) {
             try {
-                refResolution = this.dependencyHandler.core.resolvePath!(
+                const candidateResolution = this.dependencyHandler.core
+                    .resolvePath!(
                     { path: resolveComponentResult.path },
                     origin,
                     skip_parent_search,
                 );
+
+                if (
+                    this.resolvesIntoOwnAncestry(composite, candidateResolution)
+                ) {
+                    selfReferentialResolution ??= candidateResolution;
+                    continue;
+                }
+
+                refResolution = candidateResolution;
                 break;
             } catch (e) {
                 // console.log("resolve error", e);
@@ -417,6 +454,8 @@ export class RefResolutionDependency extends Dependency {
                 }
             }
         }
+
+        refResolution ??= selfReferentialResolution;
 
         if (refResolution === undefined) {
             const referenceText = getDoenetMLStringForReference();

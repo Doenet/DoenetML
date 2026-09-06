@@ -130,6 +130,28 @@ export function postProcessCopy({
                 init: false,
             });
         }
+
+        // The components inside a reference's path indices, such as the `$i` of
+        // `$m[$i]`, were copied along with the reference, so they shadow their
+        // originals just as a copied child does.
+        if (component.extending) {
+            for (const pathPart of unwrapSource(component.extending)
+                .originalPath ?? []) {
+                for (const index of pathPart.index) {
+                    postProcessCopy({
+                        serializedComponents: index.value,
+                        componentIdx,
+                        addShadowDependencies,
+                        markAsPrimaryShadow,
+                        identifierPrefix,
+                        unlinkExternalCopies,
+                        copiesByRefIdx,
+                        componentIndicesFound,
+                        init: false,
+                    });
+                }
+            }
+        }
     }
 
     if (init && unlinkExternalCopies) {
