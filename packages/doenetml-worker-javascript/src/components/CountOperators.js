@@ -160,7 +160,7 @@ export class Tally extends CountingBaseListOperator {
         attributes.type = {
             ...returnListTypeAttribute(),
             description:
-                "Component type to interpret bare string children as. Omit it and they are read as what they look like: all numbers makes the list numeric, anything else makes it text. Also overrides how `categories` is read, which is otherwise text.",
+                "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text. Also overrides how `categories` is read, which is otherwise text.",
         };
 
         attributes.categories = {
@@ -200,13 +200,14 @@ export class Tally extends CountingBaseListOperator {
         // of them may be advertised. `categories` resolves this variable
         // through `parentStateVariable`, and falls back to text — the reading
         // that survives comparison against values of any type. Bare string
-        // children resolve the *attribute*, in sugar, and have no fallback at
-        // all: read as text by default, `<tally>1 2 10</tally>` would order its
-        // categories `1, 10, 2`, so the author is asked which type they meant.
+        // children resolve the *attribute*, in sugar, and fall back to what
+        // their content looks like, so `<tally>1 2 10</tally>` counts three
+        // numbers while `<tally>a b</tally>` counts two words, neither of them
+        // needing a `type`.
         //
-        // Declaring the default on the attribute would publish it to the
-        // schema, and the generated reference would then promise a default that
-        // bare children reject.
+        // Declaring text as the attribute's default would publish it to the
+        // schema, and the generated reference would then promise bare children
+        // a default they do not take.
         stateVariableDefinitions.type = {
             returnDependencies: () => ({
                 typeAttr: {

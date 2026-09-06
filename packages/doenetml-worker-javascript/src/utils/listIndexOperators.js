@@ -24,7 +24,7 @@ import { comparableValueFromRaw } from "./listValues";
  */
 export function returnListTypeAttribute({ readsTarget = false } = {}) {
     const base =
-        "Component type to interpret bare string children as. Omit it and they are read as what they look like: all numbers makes the list numeric, anything else makes it text.";
+        "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text.";
     return {
         createPrimitiveOfType: "string",
         description: readsTarget
