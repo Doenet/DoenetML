@@ -36055,7 +36055,7 @@
                 },
                 {
                     "name": "barWidth",
-                    "description": "How much of each bar's slot the bar fills, between 0 and 1. The rest is the gap to the next bar.",
+                    "description": "How much of each bar's slot the bar fills: greater than 0 and at most 1, so a bar may fill its slot but must have some width. The rest is the gap to the next bar.",
                     "defaultValue": 0.8,
                     "type": "number"
                 },
@@ -36268,7 +36268,7 @@
                     "name": "barWidth",
                     "type": "number",
                     "isArray": false,
-                    "description": "How much of its slot each bar fills, between 0 and 1."
+                    "description": "How much of its slot each bar fills: greater than 0 and at most 1."
                 },
                 {
                     "name": "hasAuthorAnnotations",

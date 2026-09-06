@@ -548,14 +548,29 @@ describe("barChart prefigure tests @group4", async () => {
         });
 
         it("warns and falls back when the width is not a fraction of a slot", async () => {
+            // The range is open at the bottom and closed at the top: a bar may
+            // fill its slot, but a bar of no width is not a bar. Both ends are
+            // pinned here because the two are easy to describe as one "between
+            // 0 and 1" and they do not behave alike.
+            for (const barWidth of ["3", "0", "-0.5"]) {
+                const { warnings } = await getWarnings(`
+    <barChart name="c" barWidth="${barWidth}"><number>4</number></barChart>
+    `);
+                expect(
+                    warnings.some((w) =>
+                        w.message.includes("`barWidth` must be greater than 0"),
+                    ),
+                ).eq(true);
+            }
+
             const { warnings } = await getWarnings(`
-    <barChart name="c" barWidth="3"><number>4</number></barChart>
+    <barChart name="c" barWidth="1"><number>4</number></barChart>
     `);
             expect(
                 warnings.some((w) =>
                     w.message.includes("`barWidth` must be greater than 0"),
                 ),
-            ).eq(true);
+            ).eq(false);
         });
     });
 

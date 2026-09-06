@@ -43982,7 +43982,7 @@
                     "name": "barWidth",
                     "type": "number",
                     "isArray": false,
-                    "description": "How much of its slot each bar fills, between 0 and 1."
+                    "description": "How much of its slot each bar fills: greater than 0 and at most 1."
                 },
                 {
                     "name": "hasAuthorAnnotations",

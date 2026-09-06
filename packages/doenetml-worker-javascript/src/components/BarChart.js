@@ -101,7 +101,7 @@ export default class BarChart extends BlockComponent {
 
         attributes.barWidth = {
             description:
-                "How much of each bar's slot the bar fills, between 0 and 1. The rest is the gap to the next bar.",
+                "How much of each bar's slot the bar fills: greater than 0 and at most 1, so a bar may fill its slot but must have some width. The rest is the gap to the next bar.",
             createComponentOfType: "number",
             createStateVariable: "barWidthAttr",
             defaultValue: DEFAULT_BAR_WIDTH,
@@ -307,7 +307,7 @@ export default class BarChart extends BlockComponent {
         // read back from the chart is the one it was drawn with.
         stateVariableDefinitions.barWidth = {
             description:
-                "How much of its slot each bar fills, between 0 and 1.",
+                "How much of its slot each bar fills: greater than 0 and at most 1.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
