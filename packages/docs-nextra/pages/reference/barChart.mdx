@@ -137,12 +137,38 @@ out and shifting the others along.
 
 
 
+## Attribute Examples
+
+### Attribute Example: categories
+
+
+```doenet-example
+<barChart categories="North South East West" size="small">
+  <shortDescription>Population by region, its bars named</shortDescription>
+  <number>41</number><number>63</number><number>18</number><number>78</number>
+</barChart>
+
+<barChart size="small">
+  <shortDescription>The same four values with no categories</shortDescription>
+  <number>41</number><number>63</number><number>18</number><number>78</number>
+</barChart>
+```
+
+
+
+Each bar takes the category in the matching position. Without `categories`, the bars are
+numbered 1, 2, 3, 4.
+
+
+
 ---
 
-### Example: reading the chart's own numbers back
+## Property Examples
+
+### Property Example: barValues, categories, yMin, yMax
 
 
-```doenet-editor-horiz
+```doenet-example
 <barChart name="chart" categories="A B C" size="small">
   <shortDescription>Three values</shortDescription>
   <number>4</number>
@@ -155,9 +181,3 @@ out and shifting the others along.
 <p>Total: <sum>$chart.barValues</sum></p>
 <p>The axis runs from $chart.yMin to $chart.yMax.</p>
 ```
-
-
-
-A sentence can quote the same numbers the picture shows without repeating them in the
-source. Nothing above sets `yMax`, so the chart chose it — and reading it back gives the
-value the axis was drawn to.
