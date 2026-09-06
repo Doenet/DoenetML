@@ -137,10 +137,14 @@ prints each bar's value above it.
 
 
 
-Four components hold the whole simulation, however large `numSamples`
-is: [`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
+Five tags hold the whole simulation, however large `numSamples` is:
+[`<sampleRandomNumbers>{:dn}`](sampleRandomNumbers) draws the sample,
+[`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
 [`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
-in, [`<tally>{:dn}`](tally) counts them, and `<barChart>{:dn}` draws the counts.
+in, [`<tally>{:dn}`](tally) counts them, and `<barChart>{:dn}` draws the counts. The
+*markup* is what stays fixed: raising `numSamples` still adds a component per draw and
+another per subpopulation index, since each of those is a value of its own. What does
+not grow is what you write, or the number of bars.
 
 Drawing again redraws the chart. Because `<tally>{:dn}` is given its categories rather
 than left to discover them, a subpopulation that happens to get no draws still counts

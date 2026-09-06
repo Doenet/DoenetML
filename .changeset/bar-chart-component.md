@@ -18,7 +18,7 @@ DoenetML has had no chart component since `<chart>` was removed. A histogram cou
 </barChart>
 ```
 
-Together with the counting operators, a whole sampling simulation is four components, however large the sample:
+Together with the counting operators, a whole sampling simulation is four tags of markup, however large the sample — the markup is what stays fixed, since every draw and every subpopulation index is still a component of its own:
 
 ```xml
 <sampleRandomNumbers name="draws" type="discreteUniform" from="1" to="$total" numSamples="500" />

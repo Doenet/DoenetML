@@ -1,5 +1,8 @@
 import BlockComponent from "./abstract/BlockComponent";
-import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
+import {
+    returnSelectedStyleStateVariableDefinition,
+    widthsBySize,
+} from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
     returnSizeAttributes,
@@ -273,8 +276,17 @@ export default class BarChart extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 const requested = dependencyValues.aspectRatioAttr;
+                // Finite and positive is not enough: the drawing's height is
+                // the width divided by this, and dividing by a subnormal
+                // overflows to `Infinity`, which `formatNumber` writes as
+                // `null` — so PreFigure would be handed a diagram it cannot
+                // compile. What has to be finite is the height it produces, at
+                // the widest the chart can be.
+                const heightAtWidest = widthsBySize.full / requested;
                 const aspectRatio =
-                    Number.isFinite(requested) && requested > 0
+                    Number.isFinite(requested) &&
+                    requested > 0 &&
+                    Number.isFinite(heightAtWidest)
                         ? requested
                         : DEFAULT_ASPECT_RATIO;
 

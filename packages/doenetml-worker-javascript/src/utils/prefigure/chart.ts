@@ -56,6 +56,12 @@ export type BarGeometry = {
 
 export type BarChartGeometry = {
     bars: BarGeometry[];
+    /**
+     * Every position on the categorical axis, drawn or not, with the category
+     * it is labeled by. A value that is not a finite number has a slot but no
+     * bar, and the slot is what keeps its category on the axis.
+     */
+    slots: { center: number; label: string }[];
     /** `[xMin, yMin, xMax, yMax]` in data coordinates. */
     bounds: [number, number, number, number];
     /** The spacing between labeled values on the vertical axis. */
@@ -106,6 +112,12 @@ function niceTickStep(span: number, minStep: number): number {
 
     const rough = span / TARGET_TICK_INTERVALS;
     const magnitude = 10 ** Math.floor(Math.log10(rough));
+    // A subnormal span underflows the power of ten to 0, which would make the
+    // step 0 and every tick `NaN`. There is no representable round step below
+    // the smallest positive double, so use the value itself.
+    if (!(magnitude > 0)) {
+        return Math.max(minStep, rough) || Number.MIN_VALUE;
+    }
     const normalized = rough / magnitude;
 
     let step;
@@ -144,8 +156,14 @@ function tickAtOrBeyond(value: number, step: number, direction: 1 | -1) {
  */
 function nextTickBeyond(value: number, step: number, direction: 1 | -1) {
     const rounded = tickAtOrBeyond(value, step, direction);
+    // Against the *snapped* value: `tickAtOrBeyond` snaps what it returns, so
+    // comparing it with the raw datum makes `0.1 + 0.2` look like it is not on
+    // the 0.3 tick it was rounded onto. The bound would then be 0.3 — below the
+    // value — and the bar would poke out of the top of the box.
     const beyond =
-        rounded === value ? snapNumber(rounded + direction * step) : rounded;
+        rounded === snapNumber(value)
+            ? snapNumber(rounded + direction * step)
+            : rounded;
     // Adding a step to a value near the top of the double range overflows to
     // `Infinity`, which `formatNumber` writes as `null` — so a bar of
     // `Number.MAX_VALUE` would put a literal `null` in the bounding box. Stay
@@ -288,8 +306,14 @@ export function computeBarChartGeometry({
         ];
     });
 
+    const slots = values.map((_value, ind) => ({
+        center: ind + 1,
+        label: labels[ind] ?? String(ind + 1),
+    }));
+
     return {
         bars,
+        slots,
         // Every slot still counts toward the width, drawn or not, so a chart
         // with a gap in it keeps its remaining bars under their categories.
         bounds: [0, yMin, values.length + 0.5, yMax],
@@ -396,19 +420,24 @@ export function createBarChartPrefigureXML({
     const elements: string[] = [];
     const annotationElements: string[] = [];
 
-    for (const [ind, bar] of geometry.bars.entries()) {
-        const handle = `bar-${ind + 1}`;
+    // The categorical axis: arbitrary text at an arbitrary position, which is
+    // the one thing `hlabels` cannot express. Driven by the slots rather than
+    // the bars, so a value with no bar still has its category on the axis —
+    // otherwise the gap would read as a missing category rather than as a
+    // missing value.
+    for (const slot of geometry.slots) {
+        elements.push(
+            `<tick-mark axis="horizontal" location="${formatNumber(slot.center)}"${strokeAttr} ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(slot.label)}</tick-mark>`,
+        );
+    }
+
+    for (const bar of geometry.bars) {
+        const handle = `bar-${bar.center}`;
         const lowerLeft = `(${formatNumber(bar.lowerLeft[0])},${formatNumber(bar.lowerLeft[1])})`;
         const barDimensions = `(${formatNumber(bar.dimensions[0])},${formatNumber(bar.dimensions[1])})`;
 
         elements.push(
             `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}"${barAttrs ? ` ${barAttrs}` : ""} />`,
-        );
-
-        // The categorical axis: arbitrary text at an arbitrary position, which
-        // is the one thing `hlabels` cannot express.
-        elements.push(
-            `<tick-mark axis="horizontal" location="${formatNumber(bar.center)}"${strokeAttr} ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(bar.label)}</tick-mark>`,
         );
 
         if (displayValues) {

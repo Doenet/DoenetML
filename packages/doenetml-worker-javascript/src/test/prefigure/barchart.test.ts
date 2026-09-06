@@ -530,4 +530,57 @@ describe("barChart prefigure tests @group4", async () => {
             expect(xml).not.toContain("Infinity");
         });
     });
+
+    describe("extreme numbers stay drawable", async () => {
+        it("keeps a category on the axis for a slot with no bar", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="c" categories="North South East" type="text"><number>4</number><math>x</math><number>2</number></barChart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // Three ticks for three slots, even though only two have bars:
+            // the gap has to read as a missing value, not a missing category.
+            expect((xml.match(/<tick-mark /g) ?? []).length).eq(3);
+            expect(xml).toContain(">South</tick-mark>");
+            expect((xml.match(/<rectangle /g) ?? []).length).eq(2);
+        });
+
+        it("does not clip a bar whose value carries floating-point dust", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="c"><number>0.1 + 0.2</number></barChart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // 0.1 + 0.2 is 0.30000000000000004, which sits just past the 0.3
+            // tick; the box has to clear it rather than stop on it.
+            const bbox = xml.match(/bbox="\(([^)]*)\)"/)?.[1].split(",");
+            expect(Number(bbox?.[3])).toBeGreaterThan(0.30000000000000004);
+        });
+
+        it("survives a subnormal aspectRatio and a subnormal value", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="a" aspectRatio="5e-324"><number>4</number></barChart>
+    <barChart name="b"><number>5e-324</number></barChart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            for (const name of ["a", "b"]) {
+                const xml =
+                    sv[await resolvePathToNodeIdx(name)].stateValues
+                        .prefigureXML;
+                expect(xml).not.toContain("null");
+                expect(xml).not.toContain("NaN");
+                expect(xml).not.toContain("Infinity");
+            }
+        });
+    });
 });
