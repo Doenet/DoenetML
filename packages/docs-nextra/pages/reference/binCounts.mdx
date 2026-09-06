@@ -104,12 +104,6 @@ Right-closed they are `[0, 1]` and `(1, 2]`, so 1 is counted in the first. Both 
 
 
 
-Raising `numSamples` does not add counts: one `<binCounts>{:dn}` bins the whole sample
-and reports one count per bin, so the six counts here stay six however many values were
-drawn. The draws themselves are still a component each — but binning them a
-[`<repeat>{:dn}`](repeat) at a time would build a whole operator for every draw on top
-of that.
-
 
 
 ---

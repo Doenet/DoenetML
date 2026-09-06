@@ -76,12 +76,10 @@ in sorted order.
 
 
 
-Three tags do the whole simulation, whatever `numSamples` is:
+Three tags do the whole simulation:
 [`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
 [`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
-in, and `<tally>{:dn}` counts them. Raising `numSamples` adds a draw and a subpopulation
-index apiece, but no markup and no counts — `<tally>{:dn}` reports one count per
-category however large the sample. Because every draw lands in exactly one
+in, and `<tally>{:dn}` counts them. Because every draw lands in exactly one
 subpopulation, the counts always sum to the number of samples.
 
 
