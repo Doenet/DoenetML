@@ -107,40 +107,55 @@ using the `<sort>{:dn}` component.
 ### Attribute Example: type
 
 
+Bare string children are read as what they look like: if every whitespace-separated piece
+names a number the list is numeric, and otherwise it is text. So `<sort>10 2 1</sort>{:dn}`
+sorts by value and `<sort>d a b</sort>{:dn}` sorts alphabetically with nothing declared
+either way, and most documents never need `type` at all. Write it for the cases where the
+look is misleading.
+
+
+**Numerals that are labels rather than quantities.** Zip codes, course numbers and
+rankings are written with digits but are not amounts.
+
+
 ```doenet-editor-horiz
-<p>Numbers: <sort type="number">101 542 51 234</sort></p>
-<p>Text: <sort type="text">orange apple banana</sort></p>
-<p>Booleans: <sort type="boolean">true false true</sort></p>
+<p>Read as numbers: <sort>02134 55455 07094</sort></p>
+<p>Read as text: <sort type="text">02134 55455 07094</sort></p>
 ```
 
 
+The first line drops the leading zeros that make a zip code a zip code. `type="text"` is
+also what puts `10` before `9`, which is the order a list of labels usually wants.
 
-When the children are written as plain text rather than as components, `type` says how
-to read each whitespace-separated piece: as a `number`, a `math`, a `text`, or a
-`boolean`. Numbers and maths are ordered by value when every value is numeric;
-otherwise everything is ordered alphabetically, which puts `false` before `true`.
 
-Without `type`, each piece is read as what it looks like: every piece naming a number
-makes the list numeric, and anything else makes it text. So `<sort>10 2 1</sort>{:dn}`
-sorts by value and `<sort>d a b</sort>{:dn}` sorts alphabetically, with nothing to
-declare either way — the same rule the values follow when they arrive as components,
-where one text among numbers sends the whole list to an alphabetical ordering.
+**Expressions that should be compared as maths.** Two spellings of one expression are two
+different values as text and a single value as maths.
 
-A piece names a number when it works out to one, so `<sort>1/2 2^3 pi sqrt(4)</sort>{:dn}`
-orders four numbers, not four words.
-
-`type` applies only to those bare strings. A referenced component already has a type of
-its own and is left as it is, so a referenced list keeps its individual items:
 
 ```doenet-editor-horiz
-<setup>
-  <textList name="names">Ann Cal Bob</textList>
-</setup>
-
-<p>Sorted: <sort type="text">$names Zoe</sort></p>
+<p>Read as text: <sort>2x 2*x x</sort></p>
+<p>Read as maths: <sort type="math">2x 2*x x</sort></p>
 ```
 
-This sorts four names, not the two values `Ann, Cal, Bob` and `Zoe`.
+
+`type="math"` also keeps an expression in the form it was written while still ordering it
+by value: `<sort type="math">1/2 2^3 pi sqrt(4)</sort>{:dn}` puts the four expressions in
+order as they were typed, where without `type` the same four arrive as `0.5, 2, 3.14, 8`.
+
+
+**Booleans.** Without `type` these are just words, and alphabetical order happens to put
+`false` first — so it looks right until the capitalization varies.
+
+
+```doenet-editor-horiz
+<p>Read as text: <sort>True false TRUE</sort></p>
+<p>Read as booleans: <sort type="boolean">True false TRUE</sort></p>
+```
+
+
+There is no case for writing `type="number"`: a piece that names a number is already read
+as one, and one that does not becomes `NaN`. `type` applies only to bare strings — a
+referenced component carries a type of its own and keeps it.
 
 
 
