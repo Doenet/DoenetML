@@ -462,6 +462,38 @@ describe("summaryStatistics tag tests @group4", async () => {
             ).eq("4");
         });
 
+        it("carry the display setting the table carries", async () => {
+            // The reference page says `$rounded.mean` prints 81.4 rather than
+            // the mean in full, which is the whole reason the page can tell an
+            // author that the display attributes shape the table and a
+            // reference to a statistic alike. The state variable keeps its
+            // precision either way, so only rendering the reference checks it.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="scores">72 91 65 88 79 91 84</numberList>
+    <summaryStatistics name="rounded" displayDigits="3">$scores</summaryStatistics>
+    <p name="pMean">$rounded.mean</p>
+    <p name="pCount">$rounded.count</p>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pMean")].stateValues
+                    .text,
+            ).eq("81.4");
+            // The count is the exception in a reference as well as in the
+            // table: three significant digits would make seven of it anyway,
+            // but it never goes through the rounding at all.
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pCount")].stateValues
+                    .text,
+            ).eq("7");
+        });
+
         it("read as NaN where there is no value", async () => {
             // A blank cell in the table is a `null` statistic, but a reference
             // is a number component, and a number with no value reads as NaN.
