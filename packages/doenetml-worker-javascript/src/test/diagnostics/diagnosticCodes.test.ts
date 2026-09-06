@@ -159,12 +159,19 @@ describe("coded diagnostics reach the record @group4", () => {
     });
 
     it("gives every warning either a registered code or an English message", async () => {
+        // The warning has to come from something that will keep warning. This
+        // used to be `<sort name="s">a b c</sort>`, which warned only because
+        // bare strings needed a `type`; once they were read by their content
+        // the document became correct and the test had no warning left to
+        // check. An index that cannot be applied is a mistake in the markup
+        // itself, so it stays one — and the code it emits is pinned
+        // independently, by the `doenet-w0100` test below.
         const { core } = await createTestCore({
             doenetML: `
 <graph>
   <point name="p" />
 </graph>
-<sort name="s">a b c</sort>
+<text extend="$p.styleDescription[1]" />
 `,
         });
 
