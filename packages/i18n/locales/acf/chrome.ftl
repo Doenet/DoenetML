@@ -133,7 +133,6 @@ orbital-add-down-arrow = Ajouté on flèch anba
 orbital-remove-arrow = Òté on flèch
 orbital-row-label = Etikèt pou wanjé { $row }
 pretzel-answer = Wéponn
-summary-statistics-caption = Estatistik wezimé pou { $column }
 
 ## Math input
 

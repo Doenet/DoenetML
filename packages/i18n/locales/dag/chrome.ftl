@@ -70,7 +70,6 @@ orbital-add-down-arrow = Pahi Pima Din Chaŋ Tiŋgbani
 orbital-remove-arrow = Yihi Pima
 orbital-row-label = Layin { $row } yuli
 pretzel-answer = Lahabali
-summary-statistics-caption = { $column } kalinli ŋmaabu
 
 ## Math input
 

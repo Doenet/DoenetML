@@ -70,7 +70,6 @@ orbital-add-down-arrow = Sʋsɩ Yʋsaɣ Ŋga Kɩwɛɛ Tɛɛ Yɔ
 orbital-remove-arrow = Lɩzɩ Yʋsaɣ
 orbital-row-label = Ñɔʋ { $row } hɩɖɛ
 pretzel-answer = Cosuu
-summary-statistics-caption = { $column } ñʋʋ taa kɩɖaŋ
 
 ## Math input
 

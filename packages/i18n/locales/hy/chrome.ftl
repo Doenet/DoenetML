@@ -85,7 +85,6 @@ orbital-add-down-arrow = Ավելացնել ներքև սլաք
 orbital-remove-arrow = Հեռացնել սլաքը
 orbital-row-label = { $row } տողի պիտակը
 pretzel-answer = Պատասխան
-summary-statistics-caption = { $column } սյան ամփոփ վիճակագրությունը
 
 ## Math input
 

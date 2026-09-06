@@ -151,7 +151,6 @@ orbital-row-label = ယၟု သွက် row { $row }
 
 pretzel-answer = သွဟ်
 
-summary-statistics-caption = summary statistics နူ { $column }
 
 
 ## Math input

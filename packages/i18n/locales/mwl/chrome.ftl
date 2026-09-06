@@ -123,7 +123,6 @@ orbital-add-down-arrow = Acrecentar seta para baixo
 orbital-remove-arrow = Tirar seta
 orbital-row-label = Rótulo de la filera { $row }
 pretzel-answer = Repuosta
-summary-statistics-caption = Statísticas resumidas de { $column }
 
 
 ## Math input

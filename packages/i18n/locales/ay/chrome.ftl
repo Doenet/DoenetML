@@ -92,7 +92,6 @@ orbital-add-down-arrow = Aynacha wach'i yapxataña
 orbital-remove-arrow = Wach'i apsuña
 orbital-row-label = { $row } siqitaki suti
 pretzel-answer = Jaysäwi
-summary-statistics-caption = { $column } jakhuwinaka pisichata
 
 ## Math input
 

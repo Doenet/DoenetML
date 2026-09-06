@@ -69,7 +69,6 @@ orbital-add-down-arrow = गाहायथिं थिर दाजाब
 orbital-remove-arrow = थिर बोखार
 orbital-row-label = सारि { $row }नि लेबेल
 pretzel-answer = फिन
-summary-statistics-caption = { $column }नि साङ्ख्यिक सारसा
 
 ## Math input
 

@@ -75,7 +75,6 @@ orbital-add-down-arrow = Fi Ọfà Ìsàlẹ̀ Kún
 orbital-remove-arrow = Yọ Ọfà Kúrò
 orbital-row-label = Àmì ìdámọ̀ fún ilà { $row }
 pretzel-answer = Ìdáhùn
-summary-statistics-caption = Àkópọ̀ ìṣirò ti { $column }
 
 ## Math input
 

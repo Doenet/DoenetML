@@ -112,7 +112,6 @@ orbital-row-label = Rêze { $row } rê etîket
 pretzel-answer = Cewab
 # «sıtûn» names what `$column` is, so that the phrase does not have to attach
 # anything to the placeable itself.
-summary-statistics-caption = Sıtûn { $column } rê xulasa îstatîstîkî
 
 
 ## Math input

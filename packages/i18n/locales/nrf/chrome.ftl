@@ -141,7 +141,6 @@ orbital-add-down-arrow = Ajouter eune flèche en bas
 orbital-remove-arrow = Ôter eune flèche
 orbital-row-label = Êtitchette d'la rangie { $row }
 pretzel-answer = Rêponse
-summary-statistics-caption = Rêsumé des statistiques dé { $column }
 
 ## Math input
 

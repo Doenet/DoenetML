@@ -79,7 +79,6 @@ orbital-add-down-arrow = Eketsa Motsu o Lebileng Tlase
 orbital-remove-arrow = Tlosa Motsu
 orbital-row-label = Lebitso la mola { $row }
 pretzel-answer = Karabo
-summary-statistics-caption = Kakaretso ya dipalopalo tsa { $column }
 
 ## Math input
 

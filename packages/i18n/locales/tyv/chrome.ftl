@@ -77,7 +77,6 @@ orbital-add-down-arrow = Куду согун немээр
 orbital-remove-arrow = Согунну ужулдурар
 orbital-row-label = { $row } одуругнуң демдээ
 pretzel-answer = Харыы
-summary-statistics-caption = { $column } баганның түңнел статистиказы
 
 ## Math input
 

@@ -123,7 +123,6 @@ orbital-add-down-arrow = Adjustar una flecha para abasho
 orbital-remove-arrow = Kitar la flecha
 orbital-row-label = Etiketa de la fila { $row }
 pretzel-answer = Repuesta
-summary-statistics-caption = Estatistikas rezumidas de { $column }
 
 ## Math input
 

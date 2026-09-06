@@ -70,7 +70,6 @@ orbital-add-down-arrow = Duuma Kalabeñoo Lafaa
 orbital-remove-arrow = Kalabeñoo Bondi
 orbital-row-label = Laayinoo { $row } too
 pretzel-answer = Jaabiroo
-summary-statistics-caption = { $column } konteroolu kuntoo
 
 ## Math input
 

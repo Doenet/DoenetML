@@ -81,7 +81,6 @@ orbital-add-down-arrow = Tau tan fleixa ba kraik
 orbital-remove-arrow = Hasai fleixa
 orbital-row-label = Etiketa ba liña { $row }
 pretzel-answer = Resposta
-summary-statistics-caption = Rezumu estatístika husi { $column }
 
 ## Math input
 

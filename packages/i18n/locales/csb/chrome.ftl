@@ -104,7 +104,6 @@ orbital-add-down-arrow = Dodôj strzélkã w dół
 orbital-remove-arrow = Rëmôj strzélkã
 orbital-row-label = Etikéta do réżczi { $row }
 pretzel-answer = Òdpòwiésc
-summary-statistics-caption = Skróconô statistika do { $column }
 
 ## Math input
 

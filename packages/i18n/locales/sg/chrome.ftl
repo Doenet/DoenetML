@@ -66,7 +66,6 @@ orbital-add-down-arrow = Zîa Flêshe tî Gbe
 orbital-remove-arrow = Zî Flêshe
 orbital-row-label = Îri tî lignë { $row }
 pretzel-answer = Kîri-tënë
-summary-statistics-caption = Bûngbïngö tî awüngö tî { $column }
 
 ## Math input
 

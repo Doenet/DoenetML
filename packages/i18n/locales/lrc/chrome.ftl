@@ -125,7 +125,6 @@ orbital-row-label = برچسب سطر { $row }
 pretzel-answer = پاسخ
 # «ستون» names what `$column` is, so the ezafe joining the phrase to it falls
 # on a word this message spells out rather than onto the placeable.
-summary-statistics-caption = خلاصهٔ آماری ستون { $column }
 
 
 ## Math input

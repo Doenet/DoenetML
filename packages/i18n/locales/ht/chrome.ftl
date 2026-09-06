@@ -85,7 +85,6 @@ orbital-add-down-arrow = Ajoute yon flèch anba
 orbital-remove-arrow = Retire yon flèch
 orbital-row-label = Etikèt pou ranje { $row }
 pretzel-answer = Repons
-summary-statistics-caption = Estatistik rezime pou { $column }
 
 ## Math input
 

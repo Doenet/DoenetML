@@ -76,7 +76,6 @@ orbital-add-down-arrow = Ku dar fallaadh hoos u socota
 orbital-remove-arrow = Ka saar fallaadh
 orbital-row-label = Summad safka { $row }
 pretzel-answer = Jawaab
-summary-statistics-caption = Tirakoobka kooban ee { $column }
 
 ## Math input
 

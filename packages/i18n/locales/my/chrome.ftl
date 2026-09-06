@@ -80,7 +80,6 @@ orbital-add-down-arrow = အောက်မြှား ထည့်ရန်
 orbital-remove-arrow = မြှား ဖယ်ရန်
 orbital-row-label = အတန်း { $row } ၏ အညွှန်း
 pretzel-answer = အဖြေ
-summary-statistics-caption = { $column } ၏ အကျဉ်းချုပ် စာရင်းအင်း
 
 ## Math input
 

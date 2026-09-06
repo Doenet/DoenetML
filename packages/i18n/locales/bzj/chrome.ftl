@@ -133,7 +133,6 @@ orbital-row-label = Laybl fi roa { $row }
 
 pretzel-answer = Ansa
 
-summary-statistics-caption = Somari statistiks a { $column }
 
 
 math-input-preview-region = priviu a di mat expreshan

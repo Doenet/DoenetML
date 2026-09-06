@@ -119,7 +119,6 @@ pretzel-answer = پاسخ
 # Gilaki puts the possessor first, so `$column` leads and the word naming it
 # follows: nothing is welded onto the placeable and a reviewer can lift it out
 # whole.
-summary-statistics-caption = { $column } ستون آماری خلاصه
 
 ## Math input
 

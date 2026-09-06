@@ -85,7 +85,6 @@ orbital-add-down-arrow = Pievienot bultu uz leju
 orbital-remove-arrow = Noņemt bultu
 orbital-row-label = { $row }. rindas apzīmējums
 pretzel-answer = Atbilde
-summary-statistics-caption = { $column } kopsavilkuma statistika
 
 ## Math input
 

@@ -71,7 +71,6 @@ orbital-add-down-arrow = Tôbô Flèsh Ya Ke Asi
 orbital-remove-arrow = Lôs Flèsh
 orbital-row-label = Jôé a ndamba { $row }
 pretzel-answer = Nkobo
-summary-statistics-caption = Ntôtôlô statistik w'a { $column }
 
 ## Math input
 

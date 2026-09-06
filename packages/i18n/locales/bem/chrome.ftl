@@ -69,7 +69,6 @@ orbital-add-down-arrow = Lundapo Umufwi wa Panshi
 orbital-remove-arrow = Fumya Umufwi
 orbital-row-label = Ishina lya mutalale { $row }
 pretzel-answer = Icasuko
-summary-statistics-caption = Ukwipifya kwa mibalo ya { $column }
 
 ## Math input
 

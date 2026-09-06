@@ -86,7 +86,6 @@ orbital-add-down-arrow = Tambâ panah ka bâbâ
 orbital-remove-arrow = Buwang panahha
 orbital-row-label = Label kaangguy baris { $row }
 pretzel-answer = Jhâwâban
-summary-statistics-caption = Ringkesan statistik { $column }
 
 ## Math input
 

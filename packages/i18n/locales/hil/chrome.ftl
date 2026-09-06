@@ -83,7 +83,6 @@ orbital-add-down-arrow = Dugangi sing pana nga padulhog
 orbital-remove-arrow = Kuhaa ang pana
 orbital-row-label = Etiketa para sa lakan { $row }
 pretzel-answer = Sabat
-summary-statistics-caption = Sumaryo nga estadistika sang { $column }
 
 ## Math input
 

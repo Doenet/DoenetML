@@ -117,7 +117,6 @@ orbital-add-down-arrow = ತಿರ್ತ್‌ದ ಬಾಣ ಸೇರಾಲೆ
 orbital-remove-arrow = ಬಾಣ ದೆತ್ತ್ ಪಾಡ್ಲೆ
 orbital-row-label = { $row }ನೇ ಸಾಲುದ ಪುದರ್
 pretzel-answer = ಉತ್ತರ
-summary-statistics-caption = { $column }ದ ಸಾರಾಂಶ ಅಂಕಿಅಂಶ
 
 
 ## Math input

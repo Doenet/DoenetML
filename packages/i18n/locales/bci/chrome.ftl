@@ -73,7 +73,6 @@ orbital-add-down-arrow = Fa fanngo mɔ ɔ tɔ fam'n gua su
 orbital-remove-arrow = Yi fanngo'n i nun
 orbital-row-label = Layin { $row } i dunman
 pretzel-answer = Tɛlɛ
-summary-statistics-caption = { $column } i jatelɛ kunkun
 
 ## Math input
 

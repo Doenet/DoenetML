@@ -80,7 +80,6 @@ orbital-add-down-arrow = Bakisá Likula ya Nse
 orbital-remove-arrow = Longolá Likula
 orbital-row-label = Nkombo ya molɔngɔ { $row }
 pretzel-answer = Eyano
-summary-statistics-caption = Motango mokuse ya { $column }
 
 ## Math input
 

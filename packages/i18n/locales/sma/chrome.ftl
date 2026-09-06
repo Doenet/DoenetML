@@ -99,7 +99,6 @@ orbital-add-down-arrow = Lissieh njualam vuelese
 orbital-remove-arrow = Vaeltieh njualam
 orbital-row-label = Raajesen { $row } nomme
 pretzel-answer = Vaestiedasse
-summary-statistics-caption = { $column } iktedimmie
 
 ## Math input
 

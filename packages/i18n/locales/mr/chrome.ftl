@@ -77,7 +77,6 @@ orbital-add-down-arrow = खालचा बाण जोडा
 orbital-remove-arrow = बाण काढा
 orbital-row-label = ओळ { $row } चे लेबल
 pretzel-answer = उत्तर
-summary-statistics-caption = { $column } ची सारांश सांख्यिकी
 
 ## Math input
 

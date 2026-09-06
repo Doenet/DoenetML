@@ -80,7 +80,6 @@ orbital-add-down-arrow = Προσθήκη βέλους προς τα κάτω
 orbital-remove-arrow = Αφαίρεση βέλους
 orbital-row-label = Ετικέτα για τη γραμμή { $row }
 pretzel-answer = Απάντηση
-summary-statistics-caption = Συνοπτικά στατιστικά του { $column }
 
 ## Math input
 

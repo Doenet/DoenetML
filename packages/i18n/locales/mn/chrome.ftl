@@ -80,7 +80,6 @@ orbital-add-down-arrow = Доош сум нэмэх
 orbital-remove-arrow = Сум хасах
 orbital-row-label = { $row } мөрийн шошго
 pretzel-answer = Хариулт
-summary-statistics-caption = { $column } баганын нэгтгэсэн статистик
 
 ## Math input
 

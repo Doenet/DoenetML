@@ -75,7 +75,6 @@ orbital-add-down-arrow = Төмен бағытталған көрсеткі қо
 orbital-remove-arrow = Көрсеткіні жою
 orbital-row-label = { $row } жолының белгісі
 pretzel-answer = Жауап
-summary-statistics-caption = { $column } бағанының жиынтық статистикасы
 
 ## Math input
 

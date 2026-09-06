@@ -149,7 +149,6 @@ orbital-row-label = Nen da lo { $row }
 
 pretzel-answer = Piki
 
-summary-statistics-caption = Sooto statistika u { $column }
 
 
 math-input-preview-region = luku fosu u di matematika-ekispesi

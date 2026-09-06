@@ -78,7 +78,6 @@ orbital-add-down-arrow = Wedzera Museve Wepasi
 orbital-remove-arrow = Bvisa Museve
 orbital-row-label = Zita remutsara { $row }
 pretzel-answer = Mhinduro
-summary-statistics-caption = Pfupiso yehuwandu hwe{ $column }
 
 ## Math input
 

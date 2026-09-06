@@ -90,7 +90,6 @@ orbital-add-down-arrow = Agonan bezhig bikwak niisaayi'ii
 orbital-remove-arrow = Webinan bezhig bikwak
 orbital-row-label = Izhinikaazowin shingishing { $row }
 pretzel-answer = Nakwetamowin
-summary-statistics-caption = Agindaasowinan { $column } onji
 
 ## Math input
 

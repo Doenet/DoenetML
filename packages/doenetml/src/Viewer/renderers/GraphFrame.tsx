@@ -1,11 +1,28 @@
 import React from "react";
 import { sizeToCSS } from "./utils/css";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
-import { GraphSVs } from "./graph";
+
+/**
+ * The state variables a component must supply to be framed by `GraphFrame`.
+ *
+ * `<graph>` and `<barChart>` both declare these; the chart declares nothing
+ * else of a graph's, which is why the frame asks for this rather than for
+ * `GraphSVs`.
+ */
+export interface GraphFrameSVs {
+    hidden: boolean;
+    width: { size: string; isAbsolute: boolean };
+    aspectRatio: string | number;
+    displayMode: string;
+    horizontalAlign?: string;
+    showBorder: boolean;
+    shortDescription?: string;
+    decorative: boolean;
+}
 
 interface GraphFrameProps {
     id: string;
-    SVs: GraphSVs;
+    SVs: GraphFrameSVs;
     isPrefigureRenderer: boolean;
     containerRef: React.RefObject<HTMLDivElement | null>;
     descriptionChild: React.ReactNode | false;

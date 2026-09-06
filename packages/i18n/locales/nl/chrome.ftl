@@ -78,7 +78,6 @@ orbital-add-down-arrow = Pijl omlaag toevoegen
 orbital-remove-arrow = Pijl verwijderen
 orbital-row-label = Label voor rij { $row }
 pretzel-answer = Antwoord
-summary-statistics-caption = Samenvattende statistieken van { $column }
 
 ## Math input
 

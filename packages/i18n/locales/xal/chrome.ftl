@@ -77,7 +77,6 @@ orbital-add-down-arrow = Дор сумн немх
 orbital-remove-arrow = Сумн уга кех
 orbital-row-label = { $row } мөрин темдг
 pretzel-answer = Хәрү
-summary-statistics-caption = { $column } баганан дүңцүлгч статистик
 
 ## Math input
 

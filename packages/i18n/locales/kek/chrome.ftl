@@ -129,7 +129,6 @@ orbital-row-label = Xkʼabaʼ li tasal { $row }
 
 pretzel-answer = Sumenk
 
-summary-statistics-caption = Estadistika chirix { $column }
 
 
 ## Math input

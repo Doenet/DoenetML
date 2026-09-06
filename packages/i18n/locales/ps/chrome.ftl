@@ -82,7 +82,6 @@ orbital-add-down-arrow = ښکته غشی زیات کړئ
 orbital-remove-arrow = غشی لرې کړئ
 orbital-row-label = د کتار { $row } نوم
 pretzel-answer = ځواب
-summary-statistics-caption = د ستون { $column } احصایوي لنډیز
 
 ## Math input
 

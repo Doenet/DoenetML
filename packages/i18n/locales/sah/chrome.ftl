@@ -78,7 +78,6 @@ orbital-add-down-arrow = Аллара ох эп
 orbital-remove-arrow = Оҕу сот
 orbital-row-label = { $row } строка бэлиэтэ
 pretzel-answer = Хоруй
-summary-statistics-caption = { $column } колонка түмүк статистиката
 
 ## Math input
 

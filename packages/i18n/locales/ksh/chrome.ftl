@@ -135,7 +135,6 @@ orbital-row-label = Beschreftung för Reih { $row }
 
 pretzel-answer = Antwood
 
-summary-statistics-caption = Övversich vun de Zahle för { $column }
 
 
 ## Math input

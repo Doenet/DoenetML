@@ -1320,8 +1320,13 @@ describe("catalogs of one lexifier that are not each other's copy", () => {
 
     it("keeps jam and bzj apart in most of what both define", () => {
         const all = differing("jam", "bzj", CATALOG_NAMESPACES);
-        expect(all.shared).toBe(389);
-        expect(all.differ).toBeGreaterThanOrEqual(342);
+        // One lower than they were on each count since
+        // `summary-statistics-caption` was dropped from every catalog but
+        // `en`: its translations all named the data column that
+        // `<summaryStatistics>` no longer has, and the two rendered it
+        // differently, so it counted toward both numbers.
+        expect(all.shared).toBe(388);
+        expect(all.differ).toBeGreaterThanOrEqual(341);
     });
 
     /**

@@ -98,7 +98,6 @@ orbital-add-down-arrow = Eik on a Doun Arrae
 orbital-remove-arrow = Tak awa an Arrae
 orbital-row-label = Label for raw { $row }
 pretzel-answer = Answer
-summary-statistics-caption = Owerview statistics o { $column }
 
 ## Math input
 

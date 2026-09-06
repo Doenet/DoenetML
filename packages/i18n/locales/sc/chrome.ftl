@@ -75,7 +75,6 @@ orbital-add-down-arrow = Annanghe una fritza a bassu
 orbital-remove-arrow = Boga una fritza
 orbital-row-label = Etichetta de sa riga { $row }
 pretzel-answer = Risposta
-summary-statistics-caption = Istatìsticas resumidas de { $column }
 
 ## Math input
 

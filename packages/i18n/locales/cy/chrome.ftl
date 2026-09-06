@@ -83,7 +83,6 @@ orbital-remove-arrow = Tynnu saeth
 orbital-row-label = Label ar gyfer rhes { $row }
 pretzel-answer = Ateb
 # «ar gyfer» again, for the same reason: «o» would soften the column's name.
-summary-statistics-caption = Ystadegau crynodeb ar gyfer { $column }
 
 ## Math input
 

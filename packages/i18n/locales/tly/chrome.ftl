@@ -107,7 +107,6 @@ orbital-add-down-arrow = Bə ji tir əlovə kardey
 orbital-remove-arrow = Tir bekardey
 orbital-row-label = Sıra { $row } nışonə
 pretzel-answer = Cəvob
-summary-statistics-caption = { $column } sutuni icmalə statistikə
 
 
 ## Math input

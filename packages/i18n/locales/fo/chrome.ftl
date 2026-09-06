@@ -73,7 +73,6 @@ orbital-add-down-arrow = Legg píl niður afturat
 orbital-remove-arrow = Tak píl burtur
 orbital-row-label = Merki fyri rað { $row }
 pretzel-answer = Svar
-summary-statistics-caption = Samandráttarhagtøl fyri { $column }
 
 ## Math input
 

@@ -77,7 +77,6 @@ orbital-add-down-arrow = 아래쪽 화살표 추가
 orbital-remove-arrow = 화살표 삭제
 orbital-row-label = { $row }행의 레이블
 pretzel-answer = 답
-summary-statistics-caption = { $column }의 요약 통계량
 
 ## Math input
 

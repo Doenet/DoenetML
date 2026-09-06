@@ -147,7 +147,6 @@ orbital-add-down-arrow = Fakaopoopo se kausiu ki lalo
 orbital-remove-arrow = Ave kese te kausiu
 orbital-row-label = Igoa mo te laina { $row }
 pretzel-answer = Tali
-summary-statistics-caption = Fakamaumauga aotelega o te { $column }
 
 ## Math input
 

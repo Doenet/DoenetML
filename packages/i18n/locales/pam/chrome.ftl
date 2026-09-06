@@ -86,7 +86,6 @@ orbital-add-down-arrow = Dagdagan pang panang palalam
 orbital-remove-arrow = Alilan ing pana
 orbital-row-label = Etiketa para king gulis { $row }
 pretzel-answer = Pakibat
-summary-statistics-caption = Buung estadistika ning { $column }
 
 ## Math input
 

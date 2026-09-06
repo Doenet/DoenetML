@@ -78,7 +78,6 @@ orbital-add-down-arrow = Добавяне на стрелка надолу
 orbital-remove-arrow = Премахване на стрелка
 orbital-row-label = Надпис за ред { $row }
 pretzel-answer = Отговор
-summary-statistics-caption = Обобщени статистики за { $column }
 
 ## Math input
 

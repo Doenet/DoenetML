@@ -129,7 +129,6 @@ orbital-row-label = رج { $row } نا نام
 pretzel-answer = جواب
 # «کالم» names what `$column` is, so the genitive clitic falls behind a word
 # this catalog writes rather than behind the value.
-summary-statistics-caption = کالم { $column } نا شماریاتی خلاصہ
 
 ## Math input
 

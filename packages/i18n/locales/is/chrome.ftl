@@ -76,7 +76,6 @@ orbital-add-down-arrow = Bæta við ör niður
 orbital-remove-arrow = Fjarlægja ör
 orbital-row-label = Merki fyrir röð { $row }
 pretzel-answer = Svar
-summary-statistics-caption = Tölfræðileg samantekt fyrir { $column }
 
 ## Math input
 

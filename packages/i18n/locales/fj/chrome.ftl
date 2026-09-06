@@ -80,7 +80,6 @@ orbital-add-down-arrow = Kuria e dua na iviri sobu
 orbital-remove-arrow = Kau tani na iviri
 orbital-row-label = Iyacana ni rowa { $row }
 pretzel-answer = Isau
-summary-statistics-caption = Ilairai vakaiwiliwili ni { $column }
 
 ## Math input
 

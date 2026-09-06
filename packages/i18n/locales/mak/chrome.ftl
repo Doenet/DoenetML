@@ -138,7 +138,6 @@ orbital-row-label = Label untu' baris { $row }
 
 pretzel-answer = Jawaban
 
-summary-statistics-caption = Ringkasan statistik battu ri { $column }
 
 
 ## Math input

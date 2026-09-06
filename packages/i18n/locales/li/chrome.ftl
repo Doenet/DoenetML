@@ -96,7 +96,6 @@ orbital-add-down-arrow = Doog e pieltje nao ongder derbie
 orbital-remove-arrow = Haol 't pieltje weg
 orbital-row-label = Naam veur riej { $row }
 pretzel-answer = Antwoord
-summary-statistics-caption = Samevattende statistiek van { $column }
 
 ## Math input
 

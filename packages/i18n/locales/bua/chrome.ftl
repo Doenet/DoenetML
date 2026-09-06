@@ -74,7 +74,6 @@ orbital-add-down-arrow = Доошоо һомо нэмэхэ
 orbital-remove-arrow = Һомо усадхаха
 orbital-row-label = { $row } мүрэй тэмдэг
 pretzel-answer = Харюу
-summary-statistics-caption = { $column } баганын дүнгэй статистика
 
 ## Math input
 

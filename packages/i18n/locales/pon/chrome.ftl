@@ -135,7 +135,6 @@ orbital-add-down-arrow = Kapataiong arro kohdi
 orbital-remove-arrow = Kihsang arro
 orbital-row-label = Kilel ong irek { $row }
 pretzel-answer = Pasapeng
-summary-statistics-caption = Kamwotomwot en statistik en { $column }
 
 ## Math input
 

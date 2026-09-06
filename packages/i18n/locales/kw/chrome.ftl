@@ -153,7 +153,6 @@ orbital-add-down-arrow = Keworra seth war-nans
 orbital-remove-arrow = Dilea seth
 orbital-row-label = Label rag res { $row }
 pretzel-answer = Gorthyp
-summary-statistics-caption = Statistegow berr a { $column }
 
 
 ## Math input

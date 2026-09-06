@@ -99,7 +99,6 @@ orbital-add-down-arrow = Așaa ok kat
 orbital-remove-arrow = Oku sil
 orbital-row-label = { $row }. sıranın etiketi
 pretzel-answer = Cuvap
-summary-statistics-caption = { $column } için toplu statistika
 
 
 ## Math input

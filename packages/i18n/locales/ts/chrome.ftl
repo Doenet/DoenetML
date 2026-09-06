@@ -69,7 +69,6 @@ orbital-add-down-arrow = Engetela Nseve wa le Hansi
 orbital-remove-arrow = Susa Nseve
 orbital-row-label = Vito ra ntila { $row }
 pretzel-answer = Nhlamulo
-summary-statistics-caption = Nkatsakanyo wa tinhlayo ta { $column }
 
 ## Math input
 

@@ -78,7 +78,6 @@ orbital-add-down-arrow = अधोबाणः योज्यताम्
 orbital-remove-arrow = बाणः अपनीयताम्
 orbital-row-label = { $row } पङ्क्तेः नामाङ्कनम्
 pretzel-answer = उत्तरम्
-summary-statistics-caption = { $column } इत्यस्य साङ्ख्यिकीसारः
 
 ## Math input
 

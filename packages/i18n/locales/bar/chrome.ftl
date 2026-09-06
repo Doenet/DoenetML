@@ -122,7 +122,6 @@ orbital-add-down-arrow = Pfeu owi dazuadoa
 orbital-remove-arrow = Pfeu wegnehma
 orbital-row-label = Beschriftung fia d Zeiln { $row }
 pretzel-answer = Antwuat
-summary-statistics-caption = Kennzoin vo { $column }
 
 ## Math input
 

@@ -69,7 +69,6 @@ orbital-add-down-arrow = Ongerako Akambi Kaja Hasi
 orbital-remove-arrow = Kura Akambi
 orbital-row-label = Izina ry'umurongo { $row }
 pretzel-answer = Inyishu
-summary-statistics-caption = Incamake y'imibare ya { $column }
 
 ## Math input
 

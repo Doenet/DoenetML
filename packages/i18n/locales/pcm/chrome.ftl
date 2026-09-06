@@ -71,7 +71,6 @@ orbital-add-down-arrow = Add Aro Wey Fes Daun
 orbital-remove-arrow = Rimuv Aro
 orbital-row-label = Nem fọ ro { $row }
 pretzel-answer = Ansa
-summary-statistics-caption = Sọmari statistiks fọ { $column }
 
 ## Math input
 

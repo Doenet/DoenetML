@@ -74,7 +74,6 @@ orbital-add-down-arrow = Dugumafɛ-Bina Fara
 orbital-remove-arrow = Bina Bɔ
 orbital-row-label = Layini { $row } tɔgɔ
 pretzel-answer = Jaabi
-summary-statistics-caption = { $column } ka jatebɔ surunman
 
 ## Math input
 

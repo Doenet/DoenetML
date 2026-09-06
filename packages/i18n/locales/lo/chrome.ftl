@@ -76,7 +76,6 @@ orbital-add-down-arrow = ເພີ່ມລູກສອນລົງ
 orbital-remove-arrow = ລຶບລູກສອນ
 orbital-row-label = ປ້າຍສຳລັບແຖວທີ { $row }
 pretzel-answer = ຄຳຕອບ
-summary-statistics-caption = ສະຖິຕິສະຫຼຸບຂອງ { $column }
 
 ## Math input
 

@@ -81,7 +81,6 @@ orbital-add-down-arrow = Lefelé mutató nyíl hozzáadása
 orbital-remove-arrow = Nyíl eltávolítása
 orbital-row-label = A(z) { $row }. sor címkéje
 pretzel-answer = Válasz
-summary-statistics-caption = A(z) { $column } összesítő statisztikái
 
 ## Math input
 

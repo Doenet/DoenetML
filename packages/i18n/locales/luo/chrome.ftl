@@ -69,7 +69,6 @@ orbital-add-down-arrow = Med Asere Modhi Piny
 orbital-remove-arrow = Gol Asere
 orbital-row-label = Nying laini { $row }
 pretzel-answer = Duoko
-summary-statistics-caption = Kwan machiek mar { $column }
 
 ## Math input
 

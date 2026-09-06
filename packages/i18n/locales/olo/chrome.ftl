@@ -102,7 +102,6 @@ orbital-add-down-arrow = Liziä alahpäi ozuttai nuoli
 orbital-remove-arrow = Ota iäres nuoli
 orbital-row-label = Riävyn { $row } nimikeh
 pretzel-answer = Vastavus
-summary-statistics-caption = Yhtehvedon tunnusluvut: { $column }
 
 
 ## Math input

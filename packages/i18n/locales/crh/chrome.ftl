@@ -102,7 +102,6 @@ orbital-add-down-arrow = Aşağı oq ekle
 orbital-remove-arrow = Oqnı çıqar
 orbital-row-label = { $row }. satırnıñ etiketi
 pretzel-answer = Cevap
-summary-statistics-caption = { $column } içün cıyma statistika
 
 
 ## Math input

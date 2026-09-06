@@ -131,11 +131,18 @@ orbital-row-label = Label for row { $row }
 # Labels the answer column of a pretzel exercise's grid.
 pretzel-answer = Answer
 
-# Caption above the table a `<summaryStatistics>` renders. `$column` is the
-# authored name of the data column being summarized and is never translated.
-# The table's own headings (`mean`, `stdev`, `quartile1`, …) are the statistic
-# ids an author references, not prose, and stay in place.
-summary-statistics-caption = Summary statistics of { $column }
+# Caption above the table a `<summaryStatistics>` renders. It used to name the
+# data column being summarized; the statistics now come from values written in
+# the document, so there is no column to name and the message takes no
+# placeable. The table's own headings (`mean`, `stdev`, `quartile1`, …) are the
+# statistic ids an author references, not prose, and stay in place.
+#
+# Every translation of the old message named the column inside the sentence —
+# «Resumen estadístico de { $column }» — so none of them survives the placeable
+# being dropped, and the key was removed from the other catalogs rather than
+# truncated to whatever precedes the connector. Those locales fall back to
+# English here until the caption is translated again.
+summary-statistics-caption = Summary statistics
 
 
 ## Math input

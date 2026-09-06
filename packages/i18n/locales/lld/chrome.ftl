@@ -121,7 +121,6 @@ orbital-add-down-arrow = Njunté na frecia en jù
 orbital-remove-arrow = Tò demez la frecia
 orbital-row-label = Etichëta per la linia { $row }
 pretzel-answer = Resposta
-summary-statistics-caption = Statistiches de resumé de { $column }
 
 ## Math input
 

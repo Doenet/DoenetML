@@ -91,7 +91,6 @@ orbital-add-down-arrow = Tómenge oq qosıw
 orbital-remove-arrow = Oqtı óshiriw
 orbital-row-label = { $row } qatardıń belgisi
 pretzel-answer = Juwap
-summary-statistics-caption = { $column } baǵanasınıń juwmaqlawshı statistikası
 
 
 ## Math input

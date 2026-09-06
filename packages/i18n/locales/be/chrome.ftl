@@ -85,7 +85,6 @@ orbital-add-down-arrow = Дадаць стрэлку ўніз
 orbital-remove-arrow = Выдаліць стрэлку
 orbital-row-label = Подпіс для радка { $row }
 pretzel-answer = Адказ
-summary-statistics-caption = Зводная статыстыка па { $column }
 
 ## Math input
 

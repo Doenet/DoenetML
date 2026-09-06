@@ -69,7 +69,6 @@ orbital-add-down-arrow = بۆنہٕ تیٖر شٲمِل کرِو
 orbital-remove-arrow = تیٖر کڈِو
 orbital-row-label = قطار { $row } ہٕنٛد لیبل
 pretzel-answer = جواب
-summary-statistics-caption = { $column } ہٕنٛد شُمٲریاتی خُلاصہٕ
 
 ## Math input
 

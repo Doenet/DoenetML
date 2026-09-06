@@ -77,7 +77,6 @@ orbital-add-down-arrow = Илова кардани тири поён
 orbital-remove-arrow = Хориҷ кардани тир
 orbital-row-label = Нишонаи сатри { $row }
 pretzel-answer = Ҷавоб
-summary-statistics-caption = Омори ҷамъбастии сутуни { $column }
 
 ## Math input
 

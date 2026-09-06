@@ -92,7 +92,6 @@ orbital-add-down-arrow = Гъоркьан хӀулу жубазе
 orbital-remove-arrow = ХӀулу нахъе босизе
 orbital-row-label = { $row } абураб строкаялъул цӀар
 pretzel-answer = Жаваб
-summary-statistics-caption = { $column } абураб столбецалъул жамгӀияб статистика
 
 ## Math input
 

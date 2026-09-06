@@ -139,7 +139,6 @@ orbital-add-down-arrow = Cur side neose rish
 orbital-remove-arrow = Scughey side
 orbital-row-label = Lipey son rea { $row }
 pretzel-answer = Ansoor
-summary-statistics-caption = Staydraaghyn giare jeh { $column }
 
 
 ## Math input

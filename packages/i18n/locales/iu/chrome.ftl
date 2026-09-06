@@ -125,7 +125,6 @@ orbital-add-down-arrow = ᐊᑦᑑᒃᑐᖅ ᐃᓚᒋᐊᕐᓗᒍ
 orbital-remove-arrow = ᐲᔭᕐᓗᒍ
 orbital-row-label = row { $row }-ᒧᑦ ᐊᑎᖓ
 pretzel-answer = ᑭᐅᔾᔪᑎ
-summary-statistics-caption = { $column } ᒥᒃᓵᓄᑦ ᑭᓯᑦᓯᐅᑏᑦ
 
 
 ## Math input

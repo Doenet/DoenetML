@@ -80,7 +80,6 @@ orbital-add-down-arrow = Ntxiv tus xub taw rau hauv
 orbital-remove-arrow = Tshem tus xub
 orbital-row-label = Lub npe rau kem kab { $row }
 pretzel-answer = Lus teb
-summary-statistics-caption = Cov txheeb xyuas ntawm { $column }
 
 ## Math input
 

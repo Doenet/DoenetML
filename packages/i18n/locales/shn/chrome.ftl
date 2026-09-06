@@ -156,7 +156,6 @@ orbital-row-label = ၸိုဝ်ႈ တႃႇ row { $row }
 
 pretzel-answer = ၶေႃႈတွပ်ႇ
 
-summary-statistics-caption = summary statistics ၶွင် { $column }
 
 
 ## Math input

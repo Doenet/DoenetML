@@ -120,7 +120,6 @@ orbital-row-label = Label parad hilera { $row }
 
 pretzel-answer = Ebat
 
-summary-statistics-caption = Sumaryo na estadistika na { $column }
 
 math-input-preview-region = pakanengnengan na ekspresyon a matematika
 math-input-preview = Pakanengnengan

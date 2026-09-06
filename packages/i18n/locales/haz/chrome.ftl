@@ -118,7 +118,6 @@ orbital-row-label = نامِ سطر { $row }
 pretzel-answer = جواب
 # «ستون» names what `$column` is, so that the ezafe does not have to be
 # written onto a placeable.
-summary-statistics-caption = خلاصهٔ احصائیهٔ ستون { $column }
 
 ## Math input
 

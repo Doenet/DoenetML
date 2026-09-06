@@ -125,7 +125,6 @@ orbital-row-label = Kyrteng ka ro { $row }
 
 pretzel-answer = Jingjubab
 
-summary-statistics-caption = Ka jingbatai statistik jong { $column }
 
 
 ## Math input

@@ -83,7 +83,6 @@ orbital-add-down-arrow = הוספת חץ למטה
 orbital-remove-arrow = הסרת חץ
 orbital-row-label = תווית לשורה { $row }
 pretzel-answer = תשובה
-summary-statistics-caption = סטטיסטיקה מסכמת של העמודה { $column }
 
 ## Math input
 

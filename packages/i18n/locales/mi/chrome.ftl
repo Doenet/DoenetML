@@ -75,7 +75,6 @@ orbital-add-down-arrow = Tāpirihia he pere whakararo
 orbital-remove-arrow = Tangohia te pere
 orbital-row-label = Tapanga mō te rārangi { $row }
 pretzel-answer = Whakautu
-summary-statistics-caption = Tauanga whakarāpopoto o { $column }
 
 ## Math input
 

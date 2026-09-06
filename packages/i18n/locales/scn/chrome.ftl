@@ -78,7 +78,6 @@ orbital-add-down-arrow = Junci na frizza versu sutta
 orbital-remove-arrow = Leva na frizza
 orbital-row-label = Etichetta dâ riga { $row }
 pretzel-answer = Risposta
-summary-statistics-caption = Statìstichi riassuntivi di { $column }
 
 ## Math input
 

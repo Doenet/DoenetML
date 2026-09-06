@@ -72,7 +72,6 @@ orbital-add-down-arrow = Ampio zana-tsipika midina
 orbital-remove-arrow = Esory ny zana-tsipika
 orbital-row-label = Marika ho an'ny andalana { $row }
 pretzel-answer = Valiny
-summary-statistics-caption = Statistika famintinana ny { $column }
 
 ## Math input
 

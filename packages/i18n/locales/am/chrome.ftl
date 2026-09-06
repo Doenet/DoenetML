@@ -77,7 +77,6 @@ orbital-add-down-arrow = ወደ ታች ቀስት ጨምር
 orbital-remove-arrow = ቀስት አስወግድ
 orbital-row-label = የረድፍ { $row } መለያ
 pretzel-answer = መልስ
-summary-statistics-caption = የ{ $column } አጠቃላይ ስታቲስቲክስ
 
 ## Math input
 
