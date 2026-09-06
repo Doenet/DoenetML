@@ -82,14 +82,10 @@ export function postProcessCopy({
     // recurse after processing all components
     // so that first gather all active aliases
 
-    for (let ind in serializedComponents) {
-        let component = serializedComponents[ind];
-        if (typeof component !== "object") {
-            continue;
-        }
-
-        postProcessCopy({
-            serializedComponents: component.children,
+    /** Recurse into components nested one level below this one. */
+    function recurse(nestedComponents) {
+        return postProcessCopy({
+            serializedComponents: nestedComponents,
             componentIdx,
             addShadowDependencies,
             markAsPrimaryShadow,
@@ -99,36 +95,25 @@ export function postProcessCopy({
             componentIndicesFound,
             init: false,
         });
+    }
+
+    for (let ind in serializedComponents) {
+        let component = serializedComponents[ind];
+        if (typeof component !== "object") {
+            continue;
+        }
+
+        recurse(component.children);
 
         for (let attrName in component.attributes) {
             let attribute = component.attributes[attrName];
             if (attribute.component) {
-                attribute.component = postProcessCopy({
-                    serializedComponents: [attribute.component],
-                    componentIdx,
-                    addShadowDependencies,
-                    markAsPrimaryShadow,
-                    identifierPrefix,
-                    unlinkExternalCopies,
-                    copiesByRefIdx,
-                    componentIndicesFound,
-                    init: false,
-                })[0];
+                attribute.component = recurse([attribute.component])[0];
             }
         }
 
         if (component.replacements) {
-            postProcessCopy({
-                serializedComponents: component.replacements,
-                componentIdx,
-                addShadowDependencies,
-                markAsPrimaryShadow,
-                identifierPrefix,
-                unlinkExternalCopies,
-                copiesByRefIdx,
-                componentIndicesFound,
-                init: false,
-            });
+            recurse(component.replacements);
         }
 
         // The components inside a reference's path indices, such as the `$i` of
@@ -138,17 +123,7 @@ export function postProcessCopy({
             for (const pathPart of unwrapSource(component.extending)
                 .originalPath ?? []) {
                 for (const index of pathPart.index) {
-                    postProcessCopy({
-                        serializedComponents: index.value,
-                        componentIdx,
-                        addShadowDependencies,
-                        markAsPrimaryShadow,
-                        identifierPrefix,
-                        unlinkExternalCopies,
-                        copiesByRefIdx,
-                        componentIndicesFound,
-                        init: false,
-                    });
+                    recurse(index.value);
                 }
             }
         }
