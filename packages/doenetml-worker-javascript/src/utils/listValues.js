@@ -419,6 +419,29 @@ export function comparableValueFromRaw(value) {
 }
 
 /**
+ * Whether every bracket in a token is closed by its own kind, in order.
+ *
+ * Only a rejection is meaningful: balanced delimiters say nothing about
+ * whether the token names a number, which the parser still decides.
+ */
+function delimitersBalanced(token) {
+    const closerFor = { ")": "(", "]": "[", "}": "{" };
+    const open = [];
+
+    for (const character of token) {
+        if (character === "(" || character === "[" || character === "{") {
+            open.push(character);
+        } else if (character in closerFor) {
+            if (open.pop() !== closerFor[character]) {
+                return false;
+            }
+        }
+    }
+
+    return open.length === 0;
+}
+
+/**
  * Whether a bare token names a real number, read with Doenet's own math
  * parser — so `1/2`, `2^3`, `sqrt(4)`, `pi` and `min(1,2)` are numbers, while
  * `x`, `2x` and `apple` are not.
@@ -454,6 +477,18 @@ export function comparableValueFromRaw(value) {
  * called numeric and then never equal anything, not even itself.
  */
 function tokenIsRealNumber(token) {
+    // A token whose delimiters do not close cannot name a number, and asking
+    // is expensive: parsing a run of unmatched openers is exponential, so
+    // `((((((((((((((((1+2` takes about nine seconds and two more of them take
+    // a minute. Before this file inferred anything, a bare string with no
+    // `type` never reached the parser at all, so answering here without
+    // calling it keeps a typo from stalling the document. The parser's own
+    // cost is #1852; this is not a fix for it, it is not asking a question
+    // whose answer is already known.
+    if (!delimitersBalanced(token)) {
+        return false;
+    }
+
     let value;
     try {
         value = me.fromAst(textToAst.convert(token)).evaluate_to_constant();

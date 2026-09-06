@@ -155,12 +155,12 @@ export class Tally extends CountingBaseListOperator {
         //
         // Bare string children are a separate question with a separate answer:
         // they are read by the sugar below, from the attribute rather than
-        // from this state variable, and still require the author to say which
-        // type they meant.
+        // from this state variable, and when it is absent they are read as
+        // whatever their content is. Writing `type` overrides that.
         attributes.type = {
             ...returnListTypeAttribute(),
             description:
-                "Component type to interpret bare string children as, which they require. Also overrides how `categories` is read, which is otherwise text.",
+                "Component type to interpret bare string children as. Omit it and they are read as what they look like: all numbers makes the list numeric, anything else makes it text. Also overrides how `categories` is read, which is otherwise text.",
         };
 
         attributes.categories = {

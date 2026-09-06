@@ -67,7 +67,8 @@ export default class Sort extends CompositeComponent {
         attributes.type = {
             createPrimitiveOfType: "string",
             highlighted: true,
-            description: "Component type to sort children as.",
+            description:
+                "Component type to sort bare string children as. Omit it and they are read as what they look like: all numbers sorts by value, anything else sorts alphabetically.",
             validValues: [
                 {
                     value: "number",
