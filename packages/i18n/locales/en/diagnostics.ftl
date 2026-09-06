@@ -1051,3 +1051,48 @@ sample-multivariate-draws-too-many =
 # was named" rather than wording that assumes the attribute is missing.
 sample-multivariate-type-not-specified =
     No multivariate distribution was named for this random variable, so nothing was sampled. Give the type attribute the name of a distribution, such as `type="hypergeometric"`.
+
+## Counting operators
+
+# Raised by `<tally>` when the author named `categories` explicitly and some
+# values matched none of them, so those values were not counted anywhere. Info
+# rather than a warning: a list fed by an input legitimately holds
+# non-categories while a student is typing. It deliberately does not say how
+# many such values there were: the diagnostics queue is append-only and
+# deduplicates by message, so a count would leave one permanent entry behind
+# for every number of stray values the list passed through while being typed.
+tally-values-outside-categories =
+    Some values matched none of the declared categories, so they were not counted.
+
+# Raised by `<binCounts>` when no `bins` attribute was given, so there are no
+# intervals to count into. $component names the tag the author wrote.
+bin-counts-missing-bins =
+    `{ $component }` has no `bins` cut points, so there are no intervals to count into and it gives no counts.
+
+# Raised by `<binCounts>` when `bins` held fewer than the two cut points needed
+# to define a single interval. $count is how many were given, and can be 0 or 1,
+# so the sentence is worded to read for both without forking on the number.
+bin-counts-too-few-cut-points =
+    `bins` needs at least 2 cut points to define an interval, but received { $count }.
+
+# Raised by `<binCounts>` when its values are not all numeric, so they cannot be
+# placed between numeric cut points. $component names the tag the author wrote.
+bin-counts-values-not-numeric =
+    `{ $component }` can only count numeric values into bins, but not every value it was given is numeric. All counts are 0.
+
+# Raised by `<binCounts>` when the `bins` cut points do not climb: one is
+# smaller than the one before it, so a bin would run backwards and its count
+# would come out negative, or one is not a number at all, which has the same
+# effect. Equal adjacent cut points are accepted, so the message says "at least
+# as large as" rather than "increasing": what is rejected is a decrease, not a
+# failure to strictly increase. Between two interior cut points that names an
+# empty bin; at either end the outermost-edge rule can still put a value in it.
+bin-counts-cut-points-decreasing =
+    Each `bins` cut point must be a number at least as large as the one before it, but one is not a number or is smaller than its predecessor, so no counts were produced.
+
+## Charts
+
+# Raised by `<barChart>` when `barWidth` is outside the (0, 1] range a fraction
+# of a bar's slot can take. $barWidth is what the author wrote.
+bar-chart-bar-width-invalid =
+    `barWidth` must be greater than 0 and at most 1, but { $barWidth } was given. Using 0.8 instead.

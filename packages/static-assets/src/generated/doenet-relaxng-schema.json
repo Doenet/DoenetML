@@ -55,6 +55,9 @@
         "argMax",
         "indexOf",
         "searchSorted",
+        "tally",
+        "binCounts",
+        "barChart",
         "clampFunction",
         "wrapFunctionPeriodic",
         "derivative",
@@ -461,6 +464,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -1169,6 +1178,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -1979,6 +1994,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -2688,6 +2709,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -3424,6 +3451,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -4411,6 +4447,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -5394,6 +5439,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -6609,6 +6663,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -7303,6 +7363,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -8170,6 +8239,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -8849,6 +8924,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -9526,6 +9607,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -10654,6 +10741,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -11345,6 +11438,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -13714,6 +13813,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -14285,6 +14390,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -14871,6 +14982,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -15544,6 +15661,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -16443,6 +16566,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -17336,6 +17465,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -18233,6 +18368,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -19128,6 +19269,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -20017,6 +20164,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -20886,6 +21039,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -21747,6 +21906,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -22618,6 +22783,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -23487,6 +23658,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -24354,6 +24531,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -25237,6 +25420,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -26134,6 +26323,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -27038,6 +27233,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -27951,6 +28152,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -28855,6 +29062,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -29750,6 +29963,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -30649,6 +30868,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -31544,6 +31769,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -32443,6 +32674,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -33338,6 +33575,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -34245,6 +34488,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -35020,6 +35269,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -35449,6 +35704,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -35882,6 +36143,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -36313,6 +36580,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -36742,6 +37015,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -37347,6 +37626,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -38668,6 +38956,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -39871,6 +40168,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -40743,6 +41049,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -41333,6 +41648,2406 @@
                 }
             ]
         },
+        "tally": {
+            "type": "element",
+            "name": "tally",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "avoidScientificNotation": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "categories": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
+                },
+                {
+                    "ref": "cascade"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "categories",
+                    "isArray": true,
+                    "description": "The categories the counts are counts of, in the same order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        "binCounts": {
+            "type": "element",
+            "name": "binCounts",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "avoidScientificNotation": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "bins": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "closed": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
+                },
+                {
+                    "ref": "cascade"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "closed",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which end of each bin includes its cut point.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                }
+            ]
+        },
+        "barChart": {
+            "type": "element",
+            "name": "barChart",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "width": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "size": {
+                    "optional": true,
+                    "type": [
+                        "tiny",
+                        "small",
+                        "medium",
+                        "large",
+                        "full"
+                    ]
+                },
+                "aspectRatio": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "categories": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "number",
+                        "math",
+                        "text",
+                        "boolean"
+                    ]
+                },
+                "barWidth": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "yMin": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "yMax": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayValues": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "showBorder": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "displayMode": {
+                    "optional": true,
+                    "type": [
+                        "block",
+                        "inline"
+                    ]
+                },
+                "horizontalAlign": {
+                    "optional": true,
+                    "type": [
+                        "center",
+                        "left",
+                        "right"
+                    ]
+                },
+                "decorative": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "shortDescription"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayValues",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to print each bar's value above it.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "showBorder",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render a border around the bar chart.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayMode",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "How to size the bar chart.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "horizontalAlign",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Horizontal alignment of the bar chart within its container.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "decorative",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the chart is purely decorative (excluded from a11y tree).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "size",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The size of the bar chart."
+                },
+                {
+                    "name": "width",
+                    "type": "componentSize",
+                    "isArray": false,
+                    "description": "The width of the bar chart."
+                },
+                {
+                    "name": "xLabel",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The x-axis label text."
+                },
+                {
+                    "name": "yLabel",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The y-axis label text."
+                },
+                {
+                    "name": "aspectRatio",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The aspect ratio (width / height) of the bar chart."
+                },
+                {
+                    "name": "barWidth",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "How much of its slot each bar fills, between 0 and 1."
+                },
+                {
+                    "name": "hasAuthorAnnotations",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the bar chart carries annotations to navigate. Always true: they are generated from the bars."
+                },
+                {
+                    "name": "shortDescription",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A short accessibility description of the bar chart."
+                },
+                {
+                    "name": "barValues",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "The value of each bar, in order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "categories",
+                    "type": "text",
+                    "isArray": true,
+                    "description": "The label under each bar, in order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "yMin",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The lowest value shown on the vertical axis."
+                },
+                {
+                    "name": "yMax",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The highest value shown on the vertical axis."
+                },
+                {
+                    "name": "prefigureXML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The PreFigure-formatted XML rendered for this bar chart."
+                }
+            ]
+        },
         "clampFunction": {
             "type": "element",
             "name": "clampFunction",
@@ -41701,6 +44416,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -42717,6 +45438,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -43731,6 +46458,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -44595,6 +47328,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -45165,6 +47904,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -45756,6 +48501,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -46343,6 +49094,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -46934,6 +49691,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -47521,6 +50284,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -48112,6 +50881,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -48699,6 +51474,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -49290,6 +52071,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -49879,6 +52666,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -50466,6 +53259,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -52282,6 +55081,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -53482,6 +56290,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -54686,6 +57503,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -55886,6 +58712,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -57097,6 +59932,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -58297,6 +61141,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -59508,6 +62361,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -60715,6 +63577,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -61926,6 +64797,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -63135,6 +66015,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -64335,6 +67224,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -65539,6 +68437,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -66739,6 +69646,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -67943,6 +70859,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -69145,6 +72070,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -70345,6 +73279,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -71555,6 +74498,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -72749,6 +75701,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -73941,6 +76902,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -75570,6 +78540,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -77770,6 +80749,12 @@
                     "ref": "constrainToInterior"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -78479,6 +81464,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -79327,6 +82318,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -80994,6 +83991,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -81718,6 +84721,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -82836,6 +85845,9 @@
                     "ref": "hr"
                 },
                 {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "section"
                 },
                 {
@@ -83569,6 +86581,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -84472,6 +87493,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -85459,6 +88489,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -86379,6 +89418,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -87215,6 +90263,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -88083,6 +91140,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -89649,6 +92715,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -90235,6 +93307,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -90554,6 +93632,9 @@
                 },
                 {
                     "ref": "hr"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "section"
@@ -90979,6 +94060,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -91298,6 +94385,9 @@
                 },
                 {
                     "ref": "hr"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "section"
@@ -91787,6 +94877,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -92694,6 +95793,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -93284,6 +96389,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -93736,6 +96847,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -94454,6 +97571,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -95334,6 +98457,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -96126,6 +99255,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -96619,6 +99754,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -97065,6 +100206,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -97611,6 +100758,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -98671,6 +101827,12 @@
                     "ref": "constrainToInterior"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -99369,6 +102531,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -100221,6 +103389,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -104900,6 +108074,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -105731,6 +108911,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -106566,6 +109752,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -107321,6 +110513,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -107829,6 +111027,12 @@
                 },
                 {
                     "ref": "mrow"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -108419,6 +111623,12 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -109138,6 +112348,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -109977,6 +113193,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -110904,6 +114126,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -111619,6 +114847,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -112372,6 +115606,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -113225,6 +116465,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -113863,6 +117109,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -114823,6 +118075,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -115728,6 +118989,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -116359,6 +119626,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -117384,6 +120657,12 @@
                 },
                 {
                     "ref": "isBetween"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -118501,6 +121780,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -120144,6 +123429,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -120921,6 +124212,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -121992,6 +125292,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -122997,6 +126303,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -123214,6 +126526,9 @@
                 },
                 {
                     "ref": "isBetween"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "em"
@@ -124782,6 +128097,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -125098,6 +128419,9 @@
                 },
                 {
                     "ref": "hr"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "section"
@@ -125556,6 +128880,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -125872,6 +129202,9 @@
                 },
                 {
                     "ref": "hr"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "section"
@@ -126347,6 +129680,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -127210,6 +130552,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -130486,6 +133837,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -131286,6 +134646,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -132452,6 +135818,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -135441,6 +138816,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -137721,6 +141105,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -138584,6 +141977,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -139208,6 +142607,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -139822,6 +143227,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -140653,6 +144067,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -141498,6 +144921,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -142862,6 +146294,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -144259,6 +147700,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -145064,6 +148514,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -145892,6 +149351,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -146691,6 +150159,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -147286,6 +150760,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -147605,6 +151085,9 @@
                 },
                 {
                     "ref": "hr"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "section"
@@ -148241,6 +151724,12 @@
                 },
                 {
                     "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -148896,6 +152385,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -149761,6 +153259,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -150605,6 +154112,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -151384,6 +154900,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -152221,6 +155743,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -153073,6 +156601,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -154902,6 +158439,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "extractMathOperator"
                 },
                 {
@@ -155421,6 +158964,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -156238,6 +159787,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -157220,6 +160778,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -158042,6 +161606,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -158793,6 +162363,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -160002,6 +163578,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -160540,6 +164122,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "extractMathOperator"
@@ -161205,6 +164793,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -162043,6 +165640,15 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
                 },
                 {
                     "ref": "clampFunction"
@@ -163985,6 +167591,15 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "barChart"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -164975,6 +168590,12 @@
                     "ref": "searchSorted"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -165636,6 +169257,12 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -166013,6 +169640,12 @@
                 },
                 {
                     "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
@@ -166488,6 +170121,12 @@
                 },
                 {
                     "ref": "mrow"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
                 },
                 {
                     "ref": "clampFunction"
