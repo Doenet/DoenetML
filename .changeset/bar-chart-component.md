@@ -42,7 +42,7 @@ The chart's numbers are readable back off it: `barValues` and `categories`, and 
 Two pieces of `<graph>` were factored out rather than copied, since `<barChart>` frames itself the same way:
 
 - `utils/componentSize` — the `size`/`width` preset pair. `<image>` and `<video>` have a pair of the same shape but a different definition (theirs consult a `<graph>` ancestor's scale), so they are deliberately left alone.
-- `utils/axisLabel` — the `<xLabel>`/`<yLabel>` child wiring, which `Graph.js` previously spelled out twice, once per axis.
+- `utils/axisLabel` — the `<xLabel>`/`<yLabel>` child wiring, written once with the axis letter passed in rather than once per axis in each component.
 
 The bar geometry lives in its own renderer-neutral state variable and the PreFigure XML is a thin serialization of it, so if PreFigure's compile-per-change ever proves too slow for a chart that resamples, a plain SVG renderer can go behind the same component without changing anything an author writes.
 

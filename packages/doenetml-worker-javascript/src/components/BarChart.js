@@ -86,10 +86,10 @@ export default class BarChart extends BlockComponent {
         // categorical axis places its bars at 1, 2, 3 whatever the categories
         // say, so a category is a label and nothing else: `categories="1 5 6"`
         // spaces its bars evenly and writes 1, 5, 6 under them, exactly as
-        // three words would be. Reading them as numbers therefore decided
-        // nothing, while getting the reading wrong was fatal — the selectable
-        // type defaults to `number`, so `categories="North South East"` without
-        // a `type` wrote `NaN` under every bar. Numbers referenced in from a
+        // three words would be. Reading them as numbers would therefore decide
+        // nothing, and could only go wrong: the selectable type falls back to
+        // `number`, which writes a `NaN` under every bar of
+        // `categories="North South East"`. Numbers referenced in from a
         // `<tally>` are converted to their text, which is what a label is.
         attributes.categories = {
             createComponentOfType: "textList",
@@ -209,11 +209,10 @@ export default class BarChart extends BlockComponent {
 
     /**
      * Bare numbers are read as bar heights: `<barChart>41 63 18</barChart>`.
-     * Unconditional, with no `type` to consult — a bar height is a number
-     * whatever else the chart is doing, and the `type` attribute here decides
-     * how the *categories* are read, not the values. Broken into maths rather
-     * than numbers, as `<sum>` and `<mean>` do, so that `1/2` is half rather
-     * than `NaN`.
+     * Unconditional, with nothing to consult — a bar height is a number
+     * whatever else the chart is doing, and the categories are labels that no
+     * reading of the values touches. Broken into maths rather than numbers, as
+     * `<sum>` and `<mean>` do, so that `1/2` is half rather than `NaN`.
      */
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();

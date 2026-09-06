@@ -27,59 +27,6 @@ function labelForValue(value, numeric) {
 }
 
 /**
- * The distinct values of `values`, in sorted order — the categories `<tally>`
- * uses when the author names none.
- *
- * Sorted rather than first-seen so that the result does not depend on the order
- * the data happens to arrive in: a tally of the same multiset always reads the
- * same way, which is what makes it comparable across a resample.
- *
- * Each is tagged with `isNumeric` so that the counting pass compares against it
- * exactly as this pass did when deciding it was distinct. An extracted value
- * carries no `isNumeric` of its own — the list as a whole decides, which is what
- * `numeric` is — and without the tag the counting pass falls back to comparing
- * text, disagreeing with the pass that chose the categories: in
- * `<tally type="math">2/2 1 1</tally>` the three values are one category, but
- * the two written `1` would then match nothing and go uncounted.
- *
- * A malformed number is no category. It reaches the list because
- * `allAreNumeric` asks each child whether it is a number by *type*, and a
- * `<number>` whose content does not parse still says yes — and since a `NaN`
- * equals nothing, not even another `NaN`, each one would otherwise become a
- * category of its own, labeled `NaN` and counted zero times. So they are left
- * out here and go uncounted, exactly as `<binCounts>` leaves them out of every
- * bin.
- *
- * The test is per value rather than per list. Gating it on the list being
- * compared numerically would let a malformed number through the moment any
- * text was mixed in, where it would survive as the text `NaN`, form a category
- * of that name, and match a declared category spelled `NaN`. And it cannot be
- * done by inspecting the text either: a `<text>NaN</text>` is genuine data an
- * author may have written, and compares identically. `numericByType` is what
- * separates them.
- */
-/**
- * Both passes here are O(n·k) in the number of values and the number of
- * categories: this one scans the distinct values found so far, and `tallyValues`
- * scans the categories once per value. An all-distinct list is therefore
- * quadratic.
- *
- * Left that way deliberately. Equality is `compareExtractedValues`, so that what
- * `<tally>` calls "the same value" is exactly what `<sort>` calls equal — the
- * stated goal of the family, and the reason this shares `utils/listValues`
- * rather than comparing for itself. A `Map` or a hash would need a canonical
- * string per value, which is a *second* definition of equality free to drift
- * from the comparator. Sorting once and grouping adjacent equals would keep the
- * property and is the route to take if this ever matters.
- *
- * It has not mattered so far because k is also the number of replacement
- * components produced: k ≈ n is a `<tally>` emitting one category per value,
- * each counted once, which is a degenerate output whose replacements cost more
- * than the comparisons. The shape this exists for — thousands of samples across
- * a handful of categories — is linear.
- */
-
-/**
  * Whether any declared category appears more than once, compared the same way
  * the counting is. Quadratic in the number of *declared* categories, which the
  * author wrote out, so it is bounded by the size of an attribute.
@@ -112,6 +59,57 @@ function isMalformedNumber(value) {
     return value.numericByType === true && Number.isNaN(value.numericalValue);
 }
 
+/**
+ * The distinct values of `values`, in sorted order — the categories `<tally>`
+ * uses when the author names none.
+ *
+ * Sorted rather than first-seen so that the result does not depend on the order
+ * the data happens to arrive in: a tally of the same multiset always reads the
+ * same way, which is what makes it comparable across a resample.
+ *
+ * Each is tagged with `isNumeric` so that the counting pass compares against it
+ * exactly as this pass did when deciding it was distinct. An extracted value
+ * carries no `isNumeric` of its own — the list as a whole decides, which is what
+ * `numeric` is — and without the tag the counting pass falls back to comparing
+ * text, disagreeing with the pass that chose the categories: in
+ * `<tally type="math">2/2 1 1</tally>` the three values are one category, but
+ * the two written `1` would then match nothing and go uncounted.
+ *
+ * A malformed number is no category. It reaches the list because
+ * `allAreNumeric` asks each child whether it is a number by *type*, and a
+ * `<number>` whose content does not parse still says yes — and since a `NaN`
+ * equals nothing, not even another `NaN`, each one would otherwise become a
+ * category of its own, labeled `NaN` and counted zero times. So they are left
+ * out here and go uncounted, exactly as `<binCounts>` leaves them out of every
+ * bin.
+ *
+ * The test is per value rather than per list. Gating it on the list being
+ * compared numerically would let a malformed number through the moment any
+ * text was mixed in, where it would survive as the text `NaN`, form a category
+ * of that name, and match a declared category spelled `NaN`. And it cannot be
+ * done by inspecting the text either: a `<text>NaN</text>` is genuine data an
+ * author may have written, and compares identically. `numericByType` is what
+ * separates them.
+ *
+ * Both passes over the data are O(n·k) in the number of values and the number
+ * of categories: this one scans the distinct values found so far, and
+ * `tallyValues` scans the categories once per value. An all-distinct list is
+ * therefore quadratic.
+ *
+ * Left that way deliberately. Equality is `compareExtractedValues`, so that what
+ * `<tally>` calls "the same value" is exactly what `<sort>` calls equal — the
+ * stated goal of the family, and the reason this shares `utils/listValues`
+ * rather than comparing for itself. A `Map` or a hash would need a canonical
+ * string per value, which is a *second* definition of equality free to drift
+ * from the comparator. Sorting once and grouping adjacent equals would keep the
+ * property and is the route to take if this ever matters.
+ *
+ * It has not mattered so far because k is also the number of replacement
+ * components produced: k ≈ n is a `<tally>` emitting one category per value,
+ * each counted once, which is a degenerate output whose replacements cost more
+ * than the comparisons. The shape this exists for — thousands of samples across
+ * a handful of categories — is linear.
+ */
 function distinctValues(values, numeric) {
     const distinct = [];
     for (const value of values) {
@@ -150,8 +148,8 @@ export class Tally extends CountingBaseListOperator {
         // they are: a word stays itself, and a number written as a category is
         // recovered by `comparableCategory` when the values are numbers. Read
         // as numbers by default instead, every category of
-        // `categories="apple fig"` became `NaN`, matched nothing, and was then
-        // reported as a *repeated* category, since one `NaN` reads like
+        // `categories="apple fig"` would be a `NaN`: matching nothing, and
+        // then reported as a *repeated* category, since one `NaN` reads like
         // another — all of it silent unless the author knew to write
         // `type="text"`.
         //

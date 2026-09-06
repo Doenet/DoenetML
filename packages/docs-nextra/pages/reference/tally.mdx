@@ -25,9 +25,16 @@ a `<textList>{:dn}` as readily as a `<numberList>{:dn}`. A category is read to m
 values, so `categories="apple fig"` counts words and `categories="1/2 1"` counts halves,
 with nothing to declare either way.
 
-`type` says how bare *string children* are read, and only they need it: a `<tally>{:dn}`
-whose values arrive as components — a list, a reference, a `<searchSorted>{:dn}` — reads
-them as what they already are.
+`type` says how bare *string children* are read — `<tally type="text">apple fig apple</tally>{:dn}` —
+and they are the only children that need it: a `<tally>{:dn}` whose values arrive as
+components — a list, a reference, a `<searchSorted>{:dn}` — reads them as what they
+already are.
+
+Written out, `type` also decides how `categories` is read, which is otherwise text. So
+`<tally type="math" categories="2x">{:dn}` matches a value written `x*2`, where the same
+categories left to the default would not, and the categories read back in that type:
+`<tally type="boolean" categories="true false">{:dn}` labels its counts `true, false`
+rather than the `1, 0` a numeric reading would give.
 
 Naming the same category twice is reported as a warning. Each count reports the values
 equal to its own category, so repeated categories all report the same number — which
