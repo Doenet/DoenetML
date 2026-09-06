@@ -89,6 +89,13 @@ reads back the number the chart was drawn with rather than the one that was aske
 <AttrPropDisplay name='barChart'/>
 
 
+Category names are drawn side by side under the bars and nothing moves them out of each
+other's way, so they have to fit in the room a bar gets: the chart's width divided by
+roughly the number of bars. Six six-character names under a `size="small"` chart do not
+fit, and run together into an unreadable line. Widen the chart, shorten the names, or use
+fewer bars — a histogram's bins, for instance, read as well labeled by their midpoints as
+by their ranges, in half the width.
+
 The room reserved to the left of the chart is sized for the widest number the vertical
 axis carries, so a chart counting in the thousands is not clipped where one counting in
 tens would have been. That width is estimated rather than measured — the text is laid
@@ -102,7 +109,7 @@ ones.
 
 
 ```doenet-editor-horiz
-<barChart categories="North South East West" type="text" displayValues size="small">
+<barChart categories="North South East West" type="text" displayValues>
   <shortDescription>Population by region</shortDescription>
   <yLabel>people</yLabel>
   <number>41</number>
@@ -138,7 +145,7 @@ prints each bar's value above it.
 <searchSorted name="which" target="$draws" hide>$cum</searchSorted>
 <tally name="counts" categories="1 2 3 4" hide>$which</tally>
 
-<barChart categories="$labels" type="text" size="small">
+<barChart categories="$labels" type="text">
   <shortDescription>Where 60 sampled individuals came from</shortDescription>
   <yLabel>count</yLabel>
   $counts
@@ -175,14 +182,14 @@ shifting the others along.
 ```doenet-editor-horiz
 <setup>
   <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
-  <textList name="bins">-3to-2 -2to-1 -1to0 0to1 1to2 2to3</textList>
+  <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
 </setup>
 
 <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
   numSamples="200" hide />
 <binCounts name="h" bins="$edges" hide>$z</binCounts>
 
-<barChart categories="$bins" type="text" size="small">
+<barChart categories="$bins" type="text">
   <shortDescription>200 draws from a standard normal distribution</shortDescription>
   <yLabel>count</yLabel>
   $h
@@ -198,6 +205,10 @@ shifting the others along.
 [`<binCounts>{:dn}`](binCounts) turns the sample into counts per interval and
 `<barChart>{:dn}` draws them. Drawing again a few times shows the shape settling toward
 the bell it is drawn from — and how much a sample of 200 still wobbles.
+
+Each bin is named by its midpoint rather than by its range. `-3 to -2` says more, but six
+labels of that length do not fit side by side under six bars: they run into one another
+and the axis becomes unreadable. See [Size and spacing](#size-and-spacing).
 
 
 
