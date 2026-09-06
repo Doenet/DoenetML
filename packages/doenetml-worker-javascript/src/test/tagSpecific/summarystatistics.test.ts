@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
@@ -115,6 +116,56 @@ describe("summaryStatistics tag tests @group4", async () => {
 
             expect(sv.count).eq(2);
             expect(sv.sum).eq(6);
+        });
+
+        it("counts a text child only when it reads as a number", async () => {
+            // The reference page's non-numeric example puts a `<text>` beside
+            // the numbers, so a text child has to be summarized rather than
+            // reported as a child this component cannot take.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <summaryStatistics name="absent">72 91 65 <text>absent</text></summaryStatistics>
+    <summaryStatistics name="numeric">72 91 65 <text>88</text></summaryStatistics>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("absent")].stateValues
+                    .count,
+            ).eq(3);
+            // Text that does read as a number is data like any other, so it is
+            // the value rather than the tag that decides.
+            expect(
+                stateVariables[await resolvePathToNodeIdx("numeric")]
+                    .stateValues.count,
+            ).eq(4);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("numeric")]
+                    .stateValues.sum,
+            ).eq(316);
+
+            expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        });
+
+        it("uses the sample formulas for variance, stdev and stderr", async () => {
+            const sv = await statisticsOf(`
+    <summaryStatistics name="s">
+      <number>2</number><number>4</number><number>4</number><number>10</number>
+    </summaryStatistics>
+    `);
+
+            // Divided by n - 1 rather than by n: the deviations from the mean
+            // of 5 are -3, -1, -1 and 5, so the squares total 36 and the
+            // sample variance is 12 where the population variance would be 9.
+            expect(sv.variance).eq(12);
+            expect(sv.stdev).closeTo(Math.sqrt(12), 1e-12);
+            // The standard error is that standard deviation over the square
+            // root of the count.
+            expect(sv.stderr).closeTo(Math.sqrt(12) / 2, 1e-12);
         });
 
         it("reports nothing for an empty list rather than failing", async () => {
