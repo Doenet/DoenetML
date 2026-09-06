@@ -99,6 +99,12 @@ string-children-need-type = For `<{ $component }>` to work with string children,
 # values and stay in English.
 invalid-type-defaulting-to-math = Invalid type { $type } for { $component } component. Must be one of math, text, number, or boolean. Defaulting to math.
 
+# Raised when `type` names something that is not one of the four readings. The
+# value is dropped rather than replaced by a guess, so the children are read as
+# though no type had been written. $type is what the author wrote.
+invalid-type-ignored =
+    Invalid type { $type } for { $component } component. Must be one of math, text, number, or boolean. Ignoring it and reading the values as though no type had been given.
+
 # $value is the string child that could not be used.
 string-not-valid-component-to-arrange = String "{ $value }" is not a valid component to { $component }. Ignoring.
 

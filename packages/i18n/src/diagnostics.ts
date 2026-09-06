@@ -231,6 +231,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0142": "tally-repeated-category",
     "doenet-w0143": "bar-chart-bar-width-invalid",
     "doenet-w0144": "bar-chart-values-not-drawable",
+    "doenet-w0145": "invalid-type-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -320,7 +321,15 @@ export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
  * stopped arising.
  */
 export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
-    new Set<DiagnosticCode>(["doenet-w0123"]);
+    new Set<DiagnosticCode>([
+        "doenet-w0123",
+        // Both named a remedy that no longer happens. Bare strings are read as
+        // the type their content implies when none is written, so there is no
+        // longer a reading to demand (`w0013`) nor a `math` to fall back to
+        // (`w0014`, replaced by `w0145`, which says the value was ignored).
+        "doenet-w0013",
+        "doenet-w0014",
+    ]);
 
 /**
  * The shape every code has to match: `doenet-` + severity letter + 4 digits.

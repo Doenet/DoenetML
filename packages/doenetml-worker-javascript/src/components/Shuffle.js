@@ -27,7 +27,8 @@ export default class Shuffle extends CompositeComponent {
         attributes.type = {
             highlighted: true,
             createPrimitiveOfType: "string",
-            description: "Component type to shuffle children as.",
+            description:
+                "Component type to read bare string children as. Omit it and they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
             validValues: [
                 {
                     value: "number",

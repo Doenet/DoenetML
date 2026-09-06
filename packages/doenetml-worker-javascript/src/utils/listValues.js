@@ -1,3 +1,5 @@
+import me from "math-expressions";
+import { textToAst } from "./math";
 import { codedDiagnostic } from "./diagnostics";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../components/commonsugar/lists";
 
@@ -417,15 +419,134 @@ export function comparableValueFromRaw(value) {
 }
 
 /**
+ * Whether every bracket in a token is closed by its own kind, in order.
+ *
+ * Only a rejection is meaningful: balanced delimiters say nothing about
+ * whether the token names a number, which the parser still decides.
+ */
+function delimitersBalanced(token) {
+    const closerFor = { ")": "(", "]": "[", "}": "{" };
+    const open = [];
+
+    for (const character of token) {
+        if (character === "(" || character === "[" || character === "{") {
+            open.push(character);
+        } else if (character in closerFor) {
+            if (open.pop() !== closerFor[character]) {
+                return false;
+            }
+        }
+    }
+
+    return open.length === 0;
+}
+
+/**
+ * Whether a bare token names a real number, read with Doenet's own math
+ * parser — so `1/2`, `2^3`, `sqrt(4)`, `pi` and `min(1,2)` are numbers, while
+ * `x`, `2x` and `apple` are not.
+ *
+ * The parser decides alone; `Number` is deliberately not consulted, even
+ * though `<number>` consults it first. The tokens the two disagree about are
+ * JavaScript numeric literals, and none of them is DoenetML notation.
+ * `Number("1e3")` is 1000, but `parseScientificNotation` is off by default
+ * wherever it is offered and recognizes an *uppercase* exponent only, so `1e3`
+ * is not scientific notation in DoenetML under any setting. `Number("0x10")`
+ * is 16 and `Number("0b101")` is 5, and neither notation exists in DoenetML at
+ * all. `<number>` reads all three only because `Number.js` converts its string
+ * child with `Number` before reaching for the parser — issue #1849, which has
+ * to wait for a breaking release — and inferring "this list is numeric" from a
+ * JavaScript literal would entrench it. An author who wants an exponent read
+ * says so, and references the result:
+ * `<mathList parseScientificNotation="true">1E3 2 5E2</mathList>`.
+ *
+ * The parser does have to be Doenet's own, though, not merely a math parser.
+ * `Number.js` reads its content with `textToAst`, which is configured with
+ * Doenet's own list of applied functions; `me.fromText` uses the parser
+ * library's shorter default list, which has `abs` and `nCr` but not `min`,
+ * `max`, `mean`, `median`, `sum`, `prod`, `count`, `std` or `variance`. Read by
+ * that one, `<sort>min(1,2) 3</sort>` called itself text and rendered
+ * `3, min(1,2)`, while the `<number>` it goes on to create reads `min(1,2)` as
+ * 1 — and `<sort>nCr(4,2) 3</sort>` next to it read as numbers.
+ *
+ * The result is tested with `typeof` together with `NaN`, and neither half is
+ * redundant. `Number.isFinite` alone would rule out an infinity, which *is* a
+ * number the comparison handles — it tests equality before subtracting. A bare
+ * `!Number.isNaN` alone would let through the complex object that `i`
+ * evaluates to, on which every comparison is `NaN`, so such a value would be
+ * called numeric and then never equal anything, not even itself.
+ */
+function tokenIsRealNumber(token) {
+    // A token whose delimiters do not close cannot name a number, and asking
+    // is expensive: parsing a run of unmatched openers is exponential, so
+    // `((((((((((((((((1+2` takes about nine seconds and two more of them take
+    // a minute. Before this file inferred anything, a bare string with no
+    // `type` never reached the parser at all, so answering here without
+    // calling it keeps a typo from stalling the document. The parser's own
+    // cost is #1852; this is not a fix for it, it is not asking a question
+    // whose answer is already known.
+    if (!delimitersBalanced(token)) {
+        return false;
+    }
+
+    let value;
+    try {
+        value = me.fromAst(textToAst.convert(token)).evaluate_to_constant();
+    } catch (e) {
+        return false;
+    }
+    return typeof value === "number" && !Number.isNaN(value);
+}
+
+/**
+ * The type to read bare strings as when the author did not say.
+ *
+ * Every token being a number makes the list numeric; anything else makes it
+ * text. That is the rule the values already follow when they arrive as
+ * components — `allAreNumeric` is true only if every one of them is numeric,
+ * and a single text among numbers sends the whole list to a text comparison —
+ * so inferring it here means an author writing `1 10 3` and an author
+ * referencing a `<numberList>` get the same answer, and `1 10 x` reads as text
+ * either way.
+ *
+ * Tokens are split on whitespace alone, while the wrapping below splits on
+ * whitespace *outside parens*. They part company only where whitespace falls
+ * inside parens, and then only in the safe direction: the piece holding the
+ * unmatched `(` is not a number under any reading, so the list is called text
+ * where the wrapping would have accepted a number. `<sort>(1+2) 4</sort>`
+ * orders by value; `<sort>(1 + 2) 4</sort>` orders the same two pieces as
+ * text. Inference never calls a list numeric that the wrapping would then fill
+ * with something unreadable.
+ *
+ * Returns `null` when there is nothing to read — no bare strings at all — so
+ * the caller can leave a list of references alone.
+ */
+function inferTypeFromStrings(matchedChildren) {
+    const tokens = matchedChildren
+        .filter((child) => typeof child === "string")
+        .flatMap((child) => child.split(/\s+/))
+        .filter((token) => token !== "");
+
+    if (tokens.length === 0) {
+        return null;
+    }
+
+    return tokens.every(tokenIsRealNumber) ? "number" : "text";
+}
+
+/**
  * Sugar shared by the components that read their children as a list of typed
  * values — `<sort>`, `<sortIndices>`, `<shuffle>` and the index-returning and
  * counting operators: bare strings are split on whitespace and wrapped in the
  * component type named by the `type` attribute.
  *
  * Unlike the math-only operators, these components accept text as readily as
- * numbers, so there is no sensible default: without an explicit `type` the
- * strings are left alone and a warning is issued, naming `componentName` so the
- * author sees the tag they actually wrote.
+ * numbers, so there is no one type to fall back on. Without a `type` the
+ * strings are read as what they look like, by `inferTypeFromStrings` above. A
+ * `type` naming something that is not one of the four readings is reported —
+ * naming `componentName`, so the author sees the tag they actually wrote — and
+ * then dropped, leaving the children to be read as though it had not been
+ * written.
  */
 export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
     function breakStringsMacrosIntoTypeBySpaces({
@@ -446,32 +567,37 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
             return { success: false };
         }
 
-        let type;
-        if (componentAttributes.type?.value) {
-            type = componentAttributes.type.value;
-        } else {
-            if (matchedChildren.some((child) => typeof child === "string")) {
-                diagnostics.push(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0013",
-                        args: { component: componentName },
-                    }),
-                );
-            }
-            return { success: false, diagnostics };
-        }
+        let type = componentAttributes.type?.value;
 
-        if (!["math", "text", "number", "boolean"].includes(type)) {
-            console.warn(`Invalid type ${type}`);
+        // A type that is not one of the four is reported and then dropped, so
+        // the children are read exactly as they would be with no `type` at
+        // all. Replacing it with `math` instead read them as maths, which is
+        // how `<tally type="txt">apple fig apple</tally>` came to report its
+        // categories as `a p p l e` and `f i g`.
+        //
+        // Only the children. An invalid `type` still reaches `categories` and
+        // `target`, which resolve it separately and do replace it — the
+        // deferred `_componentWithSelectableType` half of #1825 — so
+        // `<tally type="txt" categories="apple fig">` is unaffected by the
+        // drop and still counts nothing.
+        if (type && !["math", "text", "number", "boolean"].includes(type)) {
             diagnostics.push(
                 codedDiagnostic({
                     type: "warning",
-                    code: "doenet-w0014",
+                    code: "doenet-w0145",
                     args: { type, component: componentName },
                 }),
             );
-            type = "math";
+            type = undefined;
+        }
+
+        if (!type) {
+            type = inferTypeFromStrings(matchedChildren);
+
+            // Nothing but references, so there is nothing for a type to say.
+            if (type === null) {
+                return { success: false, diagnostics };
+            }
         }
 
         // Break any string by white space and wrap the pieces with `type`.

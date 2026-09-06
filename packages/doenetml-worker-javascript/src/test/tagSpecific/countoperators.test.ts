@@ -291,21 +291,37 @@ describe("Counting operator tag tests @group4", async () => {
             expect(infos.length).eq(0);
         });
 
-        it("bare string children still ask which type was meant", async () => {
-            // The default that `categories` follows is not extended to the
-            // children. Read as text, `<tally>1 2 10</tally>` would order its
-            // categories `1, 10, 2` and count `2/2` apart from `1`, so a
-            // `<tally>` whose values are written as bare strings still has to
-            // be told what they are.
+        it("bare string children are read as what they look like", async () => {
+            // Words count as words and numbers as numbers, with nothing to
+            // declare. Both of these used to warn and count nothing.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <tally name="words">apple fig apple</tally>
+    <p name="pWords">$words.categories | $words</p>
+
+    <tally name="nums">10 2 10</tally>
+    <p name="pNums">$nums.categories | $nums</p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWords",
+                text: "apple, fig | 2, 1",
+            });
+            // Sorted as numbers, so 2 comes before 10 rather than after it.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pNums",
+                text: "2, 10 | 1, 2",
+            });
+
             const { warnings } = await messagesFor(`
     <p><tally>apple fig apple</tally></p>
     `);
-
-            expect(
-                warnings.some((m) =>
-                    m.includes("a `type` attribute must be specified"),
-                ),
-            ).eq(true);
+            expect(warnings.length).eq(0);
         });
 
         it("a category written as an expression names the number it evaluates to", async () => {

@@ -696,7 +696,8 @@ describe("Shuffle tag tests @group1", async () => {
         expect(result.sort()).eqls(options.sort());
     });
 
-    it("string children without type emit warning", async () => {
+    it("string children with no type are read as what they look like", async () => {
+        // These used to warn and shuffle nothing at all.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><shuffle name="sh">d a b</shuffle></p>
@@ -704,27 +705,15 @@ describe("Shuffle tag tests @group1", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
         expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes("a `type` attribute must be specified"),
-            ),
-        ).eq(true);
-        expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes(
-                    'String "d a b" is not a valid component to shuffle.',
-                ),
-            ),
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
-                .text,
-        ).eq("");
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues.text
+                .split(", ")
+                .sort(),
+        ).eqls(["a", "b", "d"]);
     });
 
-    it("sugar with invalid type specified defaults to math type with warning", async () => {
+    it("sugar with invalid type reports it and reads the children anyway", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><shuffle name="sh" type="bad">d a b</shuffle></p>
@@ -738,7 +727,7 @@ describe("Shuffle tag tests @group1", async () => {
             resolvePathToNodeIdx,
             options,
             must_be_reordered: [],
-            replacements_all_of_type: "math",
+            replacements_all_of_type: "text",
         });
 
         let diagnosticsByType = getDiagnosticsByType(core);
@@ -747,7 +736,7 @@ describe("Shuffle tag tests @group1", async () => {
             "Invalid type bad for shuffle component",
         );
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Defaulting to math",
+            "reading the values as though no type had been given",
         );
     });
 

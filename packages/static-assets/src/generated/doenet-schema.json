@@ -32644,7 +32644,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as.",
+                    "description": "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -33671,7 +33671,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as.",
+                    "description": "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -34398,7 +34398,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as. Also decides how `target` is read, since it has no type of its own.",
+                    "description": "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text. Also decides how `target` is read, since it has no type of its own.",
                     "highlighted": true,
                     "defaultValue": null,
                     "values": [
@@ -34822,7 +34822,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as. Also decides how `target` is read, since it has no type of its own.",
+                    "description": "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text. Also decides how `target` is read, since it has no type of its own.",
                     "highlighted": true,
                     "defaultValue": null,
                     "values": [
@@ -35306,7 +35306,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as, which they require. Also overrides how `categories` is read, which is otherwise text.",
+                    "description": "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text. Also overrides how `categories` is read, which is otherwise text.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -120268,7 +120268,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to sort children as.",
+                    "description": "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -120720,7 +120720,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to sort children as.",
+                    "description": "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -121137,7 +121137,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to shuffle children as.",
+                    "description": "Component type to read bare string children as. Omit it and they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
                     "highlighted": true,
                     "values": [
                         "number",

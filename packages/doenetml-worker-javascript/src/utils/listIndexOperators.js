@@ -23,7 +23,8 @@ import { comparableValueFromRaw } from "./listValues";
  * would point the author at an attribute the component does not have.
  */
 export function returnListTypeAttribute({ readsTarget = false } = {}) {
-    const base = "Component type to interpret bare string children as.";
+    const base =
+        "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text.";
     return {
         createPrimitiveOfType: "string",
         description: readsTarget
