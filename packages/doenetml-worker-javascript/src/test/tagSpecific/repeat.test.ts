@@ -2237,4 +2237,28 @@ describe("Repeat tag tests @group1", async () => {
 
         await check_items(2, answers);
     });
+
+    it("valueName matching a name inside an index of the items does not capture it", async () => {
+        // The repeat names each item after its `valueName`, and the items here are copies
+        // of iterations that carry a `$i` of their own inside the index of `$m[$i]`. That
+        // copied `$i` still means the iteration's `i`, not the item the repeat just named
+        // `i` — which is the item the index sits inside, so reading it that way is circular
+        // and puts an `_error` where the index belongs, taking the whole document down.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="m">11 22 33 44</mathList>
+    <repeatForSequence from="2" to="3" valueName="i" name="rounded">
+      <round>$m[$i]</round>
+    </repeatForSequence>
+
+    <p name="p"><repeat for="$rounded" valueName="i">$i</repeat></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("22, 33");
+    });
 });
