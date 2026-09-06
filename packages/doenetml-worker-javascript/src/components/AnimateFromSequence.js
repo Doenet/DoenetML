@@ -353,10 +353,10 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.targetComponentIdx = {
-            // `targetOriginalPath` is the resolved path of the `target`
-            // reference, kept so that a failure can quote back the `$…` the
-            // author typed. The component index alone is no use for that:
-            // it never appeared in the document.
+            // `targetOriginalPath` is the `target` reference's path as the
+            // author wrote it — positions and all — kept so that a failure
+            // can quote the `$…` back to them. The component index alone is
+            // no use for that: it never appeared in the document.
             additionalStateVariablesDefined: [
                 "unresolvedPath",
                 "targetOriginalPath",

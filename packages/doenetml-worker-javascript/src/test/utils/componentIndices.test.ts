@@ -33,8 +33,10 @@ describe("createNewComponentIndices @group4", () => {
     // A reference with no referent — "No referent found", "Multiple
     // referents" — is given an empty path, and an empty path is the one that
     // never enters the loop that rebuilds it. The duplicate has to get a ref
-    // resolution of its own regardless: the next thing to fix up a copy's
-    // reference in place would otherwise be editing the original's.
+    // resolution of its own regardless: `remapRefResolutions` edits a
+    // resolution in place later in the same pass, and finds nothing to change
+    // in the placeholder only because its `nodeIdx` is `-1` and its
+    // `nodesInResolvedPath` empty.
     it("gives a duplicate its own ref resolution even when the path is empty", () => {
         const source = referenceWithPath(3, []);
 

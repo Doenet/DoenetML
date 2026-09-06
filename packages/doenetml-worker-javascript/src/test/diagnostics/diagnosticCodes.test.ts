@@ -257,10 +257,10 @@ describe("coded diagnostics reach the record @group4", () => {
     });
 
     // The same index written where a component takes its reference in an
-    // attribute rather than in `extend`. The attribute's reference is a
-    // component of its own that nothing ever evaluates, so the path the
-    // author wrote reaches the check by travelling with the `<updateValue>`'s
-    // own dependency instead.
+    // attribute rather than in `extend`. The `<updateValue>` is not itself a
+    // reference and so has no resolution to read the `$…` off, so the path
+    // the author wrote reaches the check by travelling with the
+    // `<updateValue>`'s own dependency instead.
     it("names the reference an index cannot be applied to in a target attribute", async () => {
         const doenetML = `<point name="p" />
 <updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />`;
@@ -308,11 +308,11 @@ describe("coded diagnostics reach the record @group4", () => {
         });
     });
 
-    // A copy of an `<updateValue>` is a replacement, so it has no resolution
-    // of its own to read a reference off either — the copy was silent for the
-    // same reason the original was. Carrying the path on the dependency
-    // reaches both, and names what the author wrote where they wrote it
-    // rather than the `$uv` that produced the copy.
+    // A copy of an `<updateValue>` is a replacement, and is no more a
+    // reference than the original was — the copy was silent for the same
+    // reason. Carrying the path on the dependency reaches both, so the copy
+    // quotes the `$p.styleDescription[1]` the author wrote rather than the
+    // `$uv` that produced it, and marks the copy's own element.
     it("names the reference in the target of a copied updateValue", async () => {
         const doenetML = `<point name="p" />
 <updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />
@@ -332,6 +332,10 @@ describe("coded diagnostics reach the record @group4", () => {
         expect(warnings[0].args).eqls({
             reference: "$p.styleDescription[1]",
         });
+        const { start, end } = warnings[0].position!;
+        expect(doenetML.substring(start.offset, end.offset)).eq(
+            `<updateValue extend="$uv" name="uv2" />`,
+        );
     });
 
     it("names the target a missing action was asked of", async () => {
