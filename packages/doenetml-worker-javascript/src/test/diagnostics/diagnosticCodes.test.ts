@@ -6,7 +6,7 @@ import {
 } from "@doenet/i18n";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { callAction } from "../utils/actions";
+import { callAction, updateValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -254,6 +254,58 @@ describe("coded diagnostics reach the record @group4", () => {
         expect(warnings[0].message).eq(
             "Cannot reference index `$pg.vertexX1_1[1]`",
         );
+    });
+
+    // The same index written where a component takes its reference in an
+    // attribute rather than in `extend`. The attribute's reference is a
+    // component of its own that nothing ever evaluates, so the path the
+    // author wrote reaches the check by travelling with the `<updateValue>`'s
+    // own dependency instead.
+    it("names the reference an index cannot be applied to in a target attribute", async () => {
+        const doenetML = `<point name="p" />
+<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        // Nothing asks `<updateValue>` for its target until the button is
+        // pressed, which is when the index is applied and when it fails.
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
+        expect(warnings[0].message).eq(
+            "Cannot reference index `$p.styleDescription[1]`",
+        );
+        const { start, end } = warnings[0].position!;
+        expect(doenetML.substring(start.offset, end.offset)).eq(
+            `<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />`,
+        );
+    });
+
+    // `<animateFromSequence>` reads its target as soon as the animation is
+    // on, so there the same warning arrives while the document is built.
+    it("names the reference an index cannot be applied to in an animation target", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<point name="p" />
+<animateFromSequence name="a" target="$p.styleDescription[1]" from="1" to="3" animationOn />`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
     });
 
     it("names the target a missing action was asked of", async () => {

@@ -353,7 +353,14 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.targetComponentIdx = {
-            additionalStateVariablesDefined: ["unresolvedPath"],
+            // `targetOriginalPath` is the resolved path of the `target`
+            // reference, kept so that a failure can quote back the `$…` the
+            // author typed. The component index alone is no use for that:
+            // it never appeared in the document.
+            additionalStateVariablesDefined: [
+                "unresolvedPath",
+                "targetOriginalPath",
+            ],
             returnDependencies: () => ({
                 target: {
                     dependencyType: "attributeRefResolutions",
@@ -368,6 +375,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         setValue: {
                             targetComponentIdx: target.componentIdx,
                             unresolvedPath: target.unresolvedPath,
+                            targetOriginalPath: target.originalPath,
                         },
                     };
                 } else {
@@ -375,6 +383,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         setValue: {
                             targetComponentIdx: null,
                             unresolvedPath: null,
+                            targetOriginalPath: null,
                         },
                     };
                 }
@@ -471,6 +480,7 @@ export default class AnimateFromSequence extends BaseComponent {
             stateVariablesDeterminingDependencies: [
                 "targetIdentities",
                 "unresolvedPath",
+                "targetOriginalPath",
             ],
             returnDependencies: function ({ stateValues }) {
                 let dependencies = {
@@ -505,6 +515,11 @@ export default class AnimateFromSequence extends BaseComponent {
                                     "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
                                 unresolvedPath: stateValues.unresolvedPath,
+                                // So that an index in the path that cannot be
+                                // applied is reported as the reference the
+                                // author wrote in `target`.
+                                referenceOriginalPath:
+                                    stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
                                 caseInsensitiveVariableMatch: true,

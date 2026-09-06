@@ -487,12 +487,20 @@ export class Dependency {
                 // component is the one that carries the reference; its
                 // resolution remembers where in the document it was read
                 // from, which is why the lookup belongs here.
+                //
+                // A component that takes its reference in an attribute —
+                // `<updateValue target="$p.styleDescription[1]" />` — has no
+                // resolution of its own: the attribute's reference is a
+                // separate component, and nothing ever evaluates it. Those
+                // pass the path along with the dependency, which is then the
+                // only record of what the author typed.
                 const referringComponent =
                     this.dependencyHandler.core._components[
                         this.upstreamComponentIdx
                     ];
                 const referenceText = doenetMLStringForReference(
-                    referringComponent?.refResolution?.originalPath,
+                    this.definition.referenceOriginalPath ??
+                        referringComponent?.refResolution?.originalPath,
                     this.dependencyHandler.core.allDoenetMLs,
                 );
                 mappedVarNames = await arrayEntryNamesFromPropIndex({
