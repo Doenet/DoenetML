@@ -852,6 +852,13 @@ describe("Sort tag tests @group4", async () => {
             // words, and `1e3` would sort before `5e2`.
             ["1e3 5e2 2e4", "500, 1000, 20000"],
             ["0x10 9", "9, 16"],
+            // The math pass has to be Doenet's own reading of a function name,
+            // not just any math parser's. `nCr` is a function to both; `min`
+            // and `mean` are functions only to Doenet, so read by the other
+            // one these sorted as the words `min(1,2)` and `mean(1,2,3)`.
+            ["nCr(4,2) 3", "3, 6"],
+            ["min(1,2) 3", "1, 3"],
+            ["mean(1,2,3) 1", "1, 2"],
         ] as [string, string][]) {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `<p name="pList"><sort>${children}</sort></p>`,

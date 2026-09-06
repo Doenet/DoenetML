@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { textToAst } from "./math";
 import { codedDiagnostic } from "./diagnostics";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../components/commonsugar/lists";
 
@@ -429,6 +430,15 @@ export function comparableValueFromRaw(value) {
  * `<sort>1e5 2</sort>` text while the `<number>` the inference goes on to
  * create reads `1e5` as 100000.
  *
+ * The math pass has to be the same parser too, not merely a math parser.
+ * `Number.js` reads its content with `textToAst`, which is configured with
+ * Doenet's own list of applied functions; `me.fromText` uses the parser
+ * library's shorter default list, which has `abs` and `nCr` but not `min`,
+ * `max`, `mean`, `median`, `sum`, `prod`, `count`, `std` or `variance`. Read by
+ * that one, `<sort>min(1,2) 3</sort>` called itself text and rendered
+ * `3, min(1,2)`, while the `<number>` it goes on to create reads `min(1,2)` as
+ * 1 — and `<sort>nCr(4,2) 3</sort>` next to it read as numbers.
+ *
  * The math pass tests `typeof` together with `NaN`, and neither half is
  * redundant. `Number.isFinite` alone would rule out an infinity, which *is* a
  * number the comparison handles — it tests equality before subtracting. A bare
@@ -442,7 +452,7 @@ function tokenIsRealNumber(token) {
     }
     let value;
     try {
-        value = me.fromText(token).evaluate_to_constant();
+        value = me.fromAst(textToAst.convert(token)).evaluate_to_constant();
     } catch (e) {
         return false;
     }
