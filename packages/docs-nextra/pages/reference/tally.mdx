@@ -17,8 +17,9 @@ omit it and they are the distinct values present, in sorted order.
 
 Bare string children are read as what they look like: all numbers makes the list numeric,
 anything else makes it text. `type` overrides that when the look is misleading — numerals
-that are labels rather than quantities. Values arriving as a list or a reference are read
-as what they already are.
+that are labels rather than quantities, or expressions that should be compared as maths
+rather than as the characters they were typed with. Values arriving as a list or a
+reference are read as what they already are.
 
 <AttrPropDisplay name='tally'/>
 
@@ -134,15 +135,24 @@ categories, `<tally>{:dn}` would report only the four values that actually appea
 
 <tally name="asText" type="text">007 008 007</tally>
 <p>With `type="text"`: $asText.categories</p>
+
+<tally name="inferredMath">2x 2*x 2x</tally>
+<p>Inferred: $inferredMath.categories — $inferredMath</p>
+
+<tally name="asMath" type="math">2x 2*x 2x</tally>
+<p>With `type="math"`: $asMath.categories — $asMath</p>
 ```
 
 
 
-Bare strings are read as what they look like, so these count as the numbers 7 and 8 and
-the leading zeros go with them. `type` is for when the look is misleading — a jersey
-number, a ZIP code or a room number is a label rather than a quantity, and reading it as
-text keeps it whole. The counts are the same either way; it is the categories that
-change.
+Bare strings are read as what they look like, so `007` and `008` count as the numbers 7
+and 8 and the leading zeros go with them. `type="text"` keeps a numeral that is a label
+rather than a quantity — a jersey number, a ZIP code, a room number — whole.
+
+`type="math"` is for the other direction. Neither `2x` nor `2*x` is a number, so both are
+read as text and compared letter by letter, which makes them two categories. Read as
+maths they are the same expression, and the three values are one category counted three
+times.
 
 
 
