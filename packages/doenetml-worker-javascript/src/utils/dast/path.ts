@@ -77,6 +77,15 @@ function compareIndexValues(value1: unknown, value2: unknown) {
  * so those are what to look past. What has to agree is what the index names:
  * the same component type, the same referent and path where it is a
  * reference, and the same children where it is built out of them.
+ *
+ * Attributes are not compared, because an index carries none an author wrote.
+ * The only attribute on a component in this position is `createComponentOfType`,
+ * which follows from where the component sits rather than from anything typed,
+ * so it is equal on both sides whenever the rest is. Attribute syntax written
+ * on a reference inside an index — `$m[$i{link="false"}]` — does not reach
+ * here at all; it is dropped earlier, in an index and in ordinary content
+ * alike. Should that change, this is where the new attributes would need a
+ * rule of their own.
  */
 function compareIndexComponents(
     component1: SerializedComponent,
