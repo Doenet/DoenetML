@@ -135,7 +135,8 @@ export default class BarChart extends BlockComponent {
         };
 
         attributes.displayValues = {
-            description: "Whether to print each bar's value above it.",
+            description:
+                "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,
@@ -499,16 +500,31 @@ export default class BarChart extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                const geometry = computeBarChartGeometry({
+                    values: dependencyValues.barValues,
+                    labels: dependencyValues.categories,
+                    barWidth: dependencyValues.barWidth,
+                    yMinAttr: dependencyValues.yMinAttr,
+                    yMaxAttr: dependencyValues.yMaxAttr,
+                });
+
                 return {
-                    setValue: {
-                        chartGeometry: computeBarChartGeometry({
-                            values: dependencyValues.barValues,
-                            labels: dependencyValues.categories,
-                            barWidth: dependencyValues.barWidth,
-                            yMinAttr: dependencyValues.yMinAttr,
-                            yMaxAttr: dependencyValues.yMaxAttr,
-                        }),
-                    },
+                    setValue: { chartGeometry: geometry },
+                    // A value that is not a finite number gets no bar. Saying
+                    // so matters because the alternative reading of a missing
+                    // bar is a value of zero, and the author cannot tell the
+                    // two apart by looking. The message carries no count, so
+                    // the append-only diagnostics queue holds one of it however
+                    // often the values change.
+                    sendDiagnostics:
+                        geometry.undrawnValues > 0
+                            ? [
+                                  codedDiagnostic({
+                                      type: "warning",
+                                      code: "doenet-w0144",
+                                  }),
+                              ]
+                            : [],
                 };
             },
         };

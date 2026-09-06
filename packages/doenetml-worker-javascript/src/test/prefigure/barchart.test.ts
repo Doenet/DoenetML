@@ -275,7 +275,7 @@ describe("barChart prefigure tests @group4", async () => {
             expect(xml).toContain(">41</label>");
         });
 
-        it("falls back to the position for a bar no category names", async () => {
+        it("falls back to the position for a bar with no category name", async () => {
             // There is one bar per value, never per category: extra categories
             // name nothing and are dropped, missing ones leave the bar
             // numbered rather than unlabeled.
@@ -477,6 +477,57 @@ describe("barChart prefigure tests @group4", async () => {
             expect(xml).toContain('dimensions="(0.8,3)"');
             expect(xml).toContain('<annotation ref="bar-1" text="North: 3" />');
             expect(xml).toContain('<annotation ref="bar-4" text="West: 2" />');
+        });
+    });
+
+    describe("values that cannot be drawn", async () => {
+        it("draws no bar for a non-finite value, and warns", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="c"><number>4</number><math>x</math><number>2</number></barChart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // Two rectangles for three slots, and the drawn ones keep their
+            // own positions: the gap is where the symbolic value was.
+            expect((xml.match(/<rectangle /g) ?? []).length).eq(2);
+            expect(xml).toContain('lower-left="(0.6,0)"');
+            expect(xml).toContain('lower-left="(2.6,0)"');
+            expect(xml).not.toContain('lower-left="(1.6,0)"');
+            // The slot is still counted, so the box is as wide as three bars.
+            expect(xml).toContain('bbox="(0,0,3.5,5)"');
+            expect(xml).not.toContain("null");
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.code)).toContain("doenet-w0144");
+        });
+
+        it("says nothing when every value is finite", async () => {
+            const { core } = await createTestCore({
+                doenetML: `
+    <barChart><number>4</number><number>2</number></barChart>
+    `,
+            });
+            await core.returnAllStateVariables(false, true);
+            expect(getDiagnosticsByType(core).warnings.length).eq(0);
+        });
+
+        it("keeps the box finite for values at the top of the double range", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="c"><number>1e308</number></barChart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // A step added past 1e308 overflows; the box must still be a box.
+            expect(xml).not.toContain("null");
+            expect(xml).not.toContain("Infinity");
         });
     });
 });

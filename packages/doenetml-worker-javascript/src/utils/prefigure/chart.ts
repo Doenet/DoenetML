@@ -60,6 +60,8 @@ export type BarChartGeometry = {
     bounds: [number, number, number, number];
     /** The spacing between labeled values on the vertical axis. */
     tickStep: number;
+    /** How many values had no bar because they were not finite numbers. */
+    undrawnValues: number;
 };
 
 /** How many labeled intervals the vertical axis aims to be divided into. */
@@ -87,8 +89,19 @@ function snapNumber(value: number): number {
  * unit interval rather than only at its ends.
  */
 function niceTickStep(span: number, minStep: number): number {
-    if (!Number.isFinite(span) || span <= 0) {
+    if (Number.isNaN(span) || span <= 0) {
         return Math.max(minStep, 1);
+    }
+
+    // A span of `Infinity` is reachable from finite data: values at opposite
+    // ends of the double range overflow when subtracted. Falling through to a
+    // step of 1 would ask for an impossible number of labels, so scale to the
+    // largest magnitude the range can actually hold.
+    if (!Number.isFinite(span)) {
+        return Math.max(
+            minStep,
+            snapNumber(Number.MAX_VALUE / TARGET_TICK_INTERVALS),
+        );
     }
 
     const rough = span / TARGET_TICK_INTERVALS;
@@ -131,7 +144,14 @@ function tickAtOrBeyond(value: number, step: number, direction: 1 | -1) {
  */
 function nextTickBeyond(value: number, step: number, direction: 1 | -1) {
     const rounded = tickAtOrBeyond(value, step, direction);
-    return rounded === value ? snapNumber(rounded + direction * step) : rounded;
+    const beyond =
+        rounded === value ? snapNumber(rounded + direction * step) : rounded;
+    // Adding a step to a value near the top of the double range overflows to
+    // `Infinity`, which `formatNumber` writes as `null` — so a bar of
+    // `Number.MAX_VALUE` would put a literal `null` in the bounding box. Stay
+    // at the value itself rather than leave the box unrepresentable; the bar
+    // then touches the frame, which is a far smaller problem.
+    return Number.isFinite(beyond) ? beyond : value;
 }
 
 /**
@@ -169,12 +189,32 @@ export function computeBarChartGeometry({
     yMinAttr: number | null;
     yMaxAttr: number | null;
 }): BarChartGeometry {
-    const finiteValues = values.map((value) =>
-        Number.isFinite(value) ? value : 0,
-    );
+    // A value that is not a finite number has no bar. Drawing it as zero would
+    // put a real datum on the chart that the data does not contain, and
+    // `barValues` would still report the `NaN` — so the picture and the public
+    // property would disagree. The slot is kept, so the remaining bars stay
+    // under their own categories, and it is simply empty.
+    const drawable = values.map((value) => Number.isFinite(value));
 
-    const largest = finiteValues.length > 0 ? Math.max(...finiteValues) : 0;
-    const smallest = finiteValues.length > 0 ? Math.min(...finiteValues) : 0;
+    // Reduced rather than spread: `Math.max(...values)` throws once the list is
+    // longer than the engine's argument limit, which would fail a large chart
+    // before any of it could be drawn.
+    let largest = 0;
+    let smallest = 0;
+    let anyDrawable = false;
+    for (const [ind, value] of values.entries()) {
+        if (!drawable[ind]) {
+            continue;
+        }
+        if (!anyDrawable) {
+            largest = value;
+            smallest = value;
+            anyDrawable = true;
+        } else {
+            largest = Math.max(largest, value);
+            smallest = Math.min(smallest, value);
+        }
+    }
 
     // The bars are measured from zero, so zero is always in view even when
     // every value is on one side of it.
@@ -183,7 +223,9 @@ export function computeBarChartGeometry({
 
     // Whole-number values get whole-number ticks; anything else — proportions,
     // averages — is free to be labeled in fractions.
-    const wholeValues = finiteValues.every(Number.isInteger);
+    const wholeValues = values.every(
+        (value, ind) => !drawable[ind] || Number.isInteger(value),
+    );
     const minStep = wholeValues ? 1 : 0;
 
     /**
@@ -227,24 +269,32 @@ export function computeBarChartGeometry({
 
     const halfWidth = barWidth / 2;
 
-    const bars = finiteValues.map((value, ind) => {
+    const bars = values.flatMap((value, ind) => {
+        if (!drawable[ind]) {
+            return [];
+        }
         const center = ind + 1;
-        return {
-            center,
-            label: labels[ind] ?? String(center),
-            value,
-            lowerLeft: [center - halfWidth, Math.min(0, value)] as [
-                number,
-                number,
-            ],
-            dimensions: [barWidth, Math.abs(value)] as [number, number],
-        };
+        return [
+            {
+                center,
+                label: labels[ind] ?? String(center),
+                value,
+                lowerLeft: [center - halfWidth, Math.min(0, value)] as [
+                    number,
+                    number,
+                ],
+                dimensions: [barWidth, Math.abs(value)] as [number, number],
+            },
+        ];
     });
 
     return {
         bars,
-        bounds: [0, yMin, finiteValues.length + 0.5, yMax],
+        // Every slot still counts toward the width, drawn or not, so a chart
+        // with a gap in it keeps its remaining bars under their categories.
+        bounds: [0, yMin, values.length + 0.5, yMax],
         tickStep,
+        undrawnValues: drawable.filter((canDraw) => !canDraw).length,
     };
 }
 

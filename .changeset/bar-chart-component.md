@@ -43,3 +43,7 @@ The bar geometry lives in its own renderer-neutral state variable and the PreFig
 Horizontal bars are not implemented; `<barChart>` declares no attribute for them rather than a half-working one.
 
 Closes #1833.
+
+A value that is not a finite number — a symbolic `<math>`, or a `<number>` whose content does not parse — gets no bar, and that is reported as a warning. Its place on the axis is kept so the remaining bars stay under their own categories, but it is left empty rather than drawn as a zero, which is a value the chart does not have.
+
+`yMin` and `yMax` may each be set on their own; it is the resulting pair that must describe a finite, increasing range, and both are discarded together when it does not.

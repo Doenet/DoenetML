@@ -12,7 +12,7 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 a handful of components, however large the sample.
 
 Name the bars with `categories`; leave it out and they are numbered 1, 2, 3. The
-vertical axis scales itself to the data, unless you set `yMin` and `yMax` yourself — see
+vertical axis scales itself to the data, unless you set `yMin` or `yMax` yourself — see
 [The vertical scale](#the-vertical-scale) below.
 
 ## What it is drawn with
@@ -49,11 +49,18 @@ A negative value hangs its bar below the axis, and the axis drops to the first t
 the smallest value. With `displayValues`, that bar's number is printed *below* it, at
 the end of the bar rather than up on the axis.
 
-`yMin` and `yMax` replace the automatic bounds, but only as a pair describing a box
-there is something to draw in: if either is not a finite number, or `yMin` is not below
-`yMax`, both are ignored and the chart scales itself as if neither had been given.
-Setting `yMin` above zero cuts the bars off at the bottom of the frame, so their drawn
-heights no longer compare the way their values do.
+A value that is not a finite number — a symbolic `<math>{:dn}`, or a `<number>{:dn}`
+whose content does not parse — gets no bar at all, and is reported as a warning. Its
+place on the axis is kept, so the remaining bars stay under their own categories, but it
+is left empty rather than drawn as a zero, which is a value the chart does not have.
+
+`yMin` and `yMax` replace the automatic bounds, and either may be set on its own — give
+only `yMax` and the bottom of the axis is still chosen from the data. What they are
+checked as is the resulting pair: if either bound is not a finite number, or `yMin` is
+not below `yMax`, *both* are discarded and the chart scales itself as if neither had been
+given, since a box of zero or negative height has nothing to draw in. Setting `yMin`
+above zero cuts the bars off at the bottom of the frame, so their drawn heights no longer
+compare the way their values do.
 
 The `yMin` and `yMax` *properties* report the scale the chart was drawn at, whether it
 came from the attributes or from the data, so `$chart.yMax` is the top of the axis you
