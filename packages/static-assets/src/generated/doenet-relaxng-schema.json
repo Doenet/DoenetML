@@ -43878,7 +43878,7 @@
                     "ref": "vectorList"
                 }
             ],
-            "textChildrenAllowed": false,
+            "textChildrenAllowed": true,
             "properties": [
                 {
                     "name": "hide",

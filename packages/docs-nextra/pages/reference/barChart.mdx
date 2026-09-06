@@ -11,6 +11,11 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 [`<tally>{:dn}`](tally) or [`<binCounts>{:dn}`](binCounts) and a sampling simulation is
 a handful of components, however large the sample.
 
+Bare numbers work as well as `<number>{:dn}` children, so `<barChart>41 63 18</barChart>`
+draws three bars. They are read the way [`<sum>{:dn}`](sum) reads them, so `1/2` is half
+rather than nothing. The `type` attribute does not affect this: it says how the
+`categories` are read, and a bar's height is a number whichever way that is set.
+
 Name the bars with `categories`; leave it out and they are numbered 1, 2, 3. The
 vertical axis scales itself to the data, unless you set `yMin` or `yMax` yourself — see
 [The vertical scale](#the-vertical-scale) below.

@@ -36393,7 +36393,7 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false,
+            "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "barChart",
             "summary": "A bar chart of a list of values, one bar per value.",

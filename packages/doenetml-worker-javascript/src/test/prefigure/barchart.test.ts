@@ -624,4 +624,52 @@ describe("barChart prefigure tests @group4", async () => {
             }
         });
     });
+
+    describe("bare numbers as children", async () => {
+        it("reads bare numbers as bar heights", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="c" categories="A B C" type="text">41 63 18</barChart>
+    <p name="p">$c.barValues</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("p")].stateValues.text).eq(
+                "41, 63, 18",
+            );
+
+            // `type` says how the categories are read, not the values, so a
+            // text `type` still charts the numbers.
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+            expect((xml.match(/<rectangle /g) ?? []).length).eq(3);
+            expect(xml).toContain(">A</tick-mark>");
+        });
+
+        it("evaluates a bare fraction rather than charting NaN", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="c">1/2 3/4</barChart>
+    <p name="p">$c.barValues</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("p")].stateValues.text).eq(
+                "0.5, 0.75",
+            );
+        });
+
+        it("mixes bare numbers with element children", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <barChart name="c">4 <number>9</number> 2</barChart>
+    <p name="p">$c.barValues</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("p")].stateValues.text).eq(
+                "4, 9, 2",
+            );
+        });
+    });
 });

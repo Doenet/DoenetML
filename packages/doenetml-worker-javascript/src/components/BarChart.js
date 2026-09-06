@@ -17,6 +17,7 @@ import {
     createBarChartPrefigureXML,
 } from "../utils/prefigure/chart";
 import { resolveSelectedStyleForTheme } from "../utils/prefigure/style";
+import { returnBreakStringsIntoMathsBySpacesSugarInstruction } from "../utils/mathOperatorChildren";
 
 /** The width-to-height ratio a chart is drawn at when none is asked for. */
 const DEFAULT_ASPECT_RATIO = 1.5;
@@ -219,6 +220,27 @@ export default class BarChart extends BlockComponent {
      * would have nothing to describe and would be silently dropped. Better that
      * it be reported as a child this is not.
      */
+    // Include children that can be added by the sugar below.
+    static additionalSchemaChildren = ["string"];
+
+    /**
+     * Bare numbers are read as bar heights: `<barChart>41 63 18</barChart>`.
+     * Unconditional, with no `type` to consult — a bar height is a number
+     * whatever else the chart is doing, and the `type` attribute here decides
+     * how the *categories* are read, not the values. Broken into maths rather
+     * than numbers, as `<sum>` and `<mean>` do, so that `1/2` is half rather
+     * than `NaN`.
+     */
+    static returnSugarInstructions() {
+        let sugarInstructions = super.returnSugarInstructions();
+
+        sugarInstructions.push(
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+        );
+
+        return sugarInstructions;
+    }
+
     static returnChildGroups() {
         return [
             returnAxisLabelChildGroup({ axis: "x" }),
