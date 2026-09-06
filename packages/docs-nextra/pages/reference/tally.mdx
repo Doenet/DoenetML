@@ -17,10 +17,10 @@ omit it and they are the distinct values present, in sorted order.
 
 Bare string children are read as what they look like: every one of them naming a number
 makes the list numeric, and anything else makes it text. `type` overrides that when the
-look is misleading — numerals
-that are labels rather than quantities, or expressions that should be compared as maths
-rather than as the characters they were typed with. Values arriving as a list or a
-reference are read as what they already are.
+look is misleading — numerals that are labels rather than quantities, or expressions that
+should be compared as maths rather than as the characters they were typed with. Written
+out, it also decides how `categories` is read, which is otherwise text. Values arriving as
+a list or a reference are read as what they already are.
 
 <AttrPropDisplay name='tally'/>
 
@@ -147,8 +147,9 @@ categories, `<tally>{:dn}` would report only the four values that actually appea
 
 
 Bare strings are read as what they look like, so `007` and `008` count as the numbers 7
-and 8 and the leading zeros go with them. `type="text"` keeps a numeral that is a label
-rather than a quantity — a jersey number, a ZIP code, a room number — whole.
+and 8, and the leading zeros are gone from the categories. `type="text"` keeps a numeral
+that is a label rather than a quantity — a jersey number, a ZIP code, a room number —
+whole.
 
 `type="math"` is for the other direction. Neither `2x` nor `2*x` is a number, so both are
 read as text and compared letter by letter, which makes them two categories. Read as

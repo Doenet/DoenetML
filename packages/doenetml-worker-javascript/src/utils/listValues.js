@@ -419,18 +419,25 @@ export function comparableValueFromRaw(value) {
 }
 
 /**
- * Whether a bare token names a real number, read in the two passes `<number>`
- * reads its own content in — so `1e5` and `0x10` are numbers just as `1/2` and
- * `2^3` are, while `x` and `apple` are not.
+ * Whether a bare token names a real number, read with Doenet's own math
+ * parser — so `1/2`, `2^3`, `sqrt(4)`, `pi` and `min(1,2)` are numbers, while
+ * `x`, `2x` and `apple` are not.
  *
- * The order of the two passes is what `<number>` does, not a shortcut:
- * `Number.js` converts its string child with `Number` and reaches for the math
- * parser only when that yields `NaN`. The math parser has no scientific
- * notation and no hexadecimal, so reading a token by it alone would call
- * `<sort>1e5 2</sort>` text while the `<number>` the inference goes on to
- * create reads `1e5` as 100000.
+ * The parser decides alone; `Number` is deliberately not consulted, even
+ * though `<number>` consults it first. The tokens the two disagree about are
+ * JavaScript numeric literals, and none of them is DoenetML notation.
+ * `Number("1e3")` is 1000, but `parseScientificNotation` is off by default
+ * wherever it is offered and recognizes an *uppercase* exponent only, so `1e3`
+ * is not scientific notation in DoenetML under any setting. `Number("0x10")`
+ * is 16 and `Number("0b101")` is 5, and neither notation exists in DoenetML at
+ * all. `<number>` reads all three only because `Number.js` converts its string
+ * child with `Number` before reaching for the parser — issue #1849, which has
+ * to wait for a breaking release — and inferring "this list is numeric" from a
+ * JavaScript literal would entrench it. An author who wants an exponent read
+ * says so, and references the result:
+ * `<mathList parseScientificNotation="true">1E3 2 5E2</mathList>`.
  *
- * The math pass has to be the same parser too, not merely a math parser.
+ * The parser does have to be Doenet's own, though, not merely a math parser.
  * `Number.js` reads its content with `textToAst`, which is configured with
  * Doenet's own list of applied functions; `me.fromText` uses the parser
  * library's shorter default list, which has `abs` and `nCr` but not `min`,
@@ -439,7 +446,7 @@ export function comparableValueFromRaw(value) {
  * `3, min(1,2)`, while the `<number>` it goes on to create reads `min(1,2)` as
  * 1 — and `<sort>nCr(4,2) 3</sort>` next to it read as numbers.
  *
- * The math pass tests `typeof` together with `NaN`, and neither half is
+ * The result is tested with `typeof` together with `NaN`, and neither half is
  * redundant. `Number.isFinite` alone would rule out an infinity, which *is* a
  * number the comparison handles — it tests equality before subtracting. A bare
  * `!Number.isNaN` alone would let through the complex object that `i`
@@ -528,9 +535,16 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
         let type = componentAttributes.type?.value;
 
         // A type that is not one of the four is reported and then dropped, so
-        // that it behaves exactly as if it had not been written. Reading it as
-        // something arbitrary instead is how `<tally type="txt">` came to make
-        // every category `NaN`.
+        // the children are read exactly as they would be with no `type` at
+        // all. Replacing it with `math` instead read them as maths, which is
+        // how `<tally type="txt">apple fig apple</tally>` came to report its
+        // categories as `a p p l e` and `f i g`.
+        //
+        // Only the children. An invalid `type` still reaches `categories` and
+        // `target`, which resolve it separately and do replace it — the
+        // deferred `_componentWithSelectableType` half of #1825 — so
+        // `<tally type="txt" categories="apple fig">` is unaffected by the
+        // drop and still counts nothing.
         if (type && !["math", "text", "number", "boolean"].includes(type)) {
             diagnostics.push(
                 codedDiagnostic({

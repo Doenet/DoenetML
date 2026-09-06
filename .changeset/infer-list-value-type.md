@@ -21,11 +21,11 @@ They are now read by their content: every whitespace-separated piece naming a nu
 
 This is the rule the values already followed when they arrived as components: `allAreNumeric` is true only when every value is numeric, and a single text among numbers sends the whole list to a text comparison. Applying it to bare strings means an author who writes `1 10 3` and an author who references a `<numberList>` get the same answer.
 
-A piece names a number whenever a `<number>` around it would be one, so `1/2`, `2^3`, `1e5`, `0x10`, `pi` and `min(1,2)` all count, and `x`, `2x`, `true` and `NaN` do not.
+A piece names a number when Doenet's own math parser works one out of it, so `1/2`, `2^3`, `sqrt(4)`, `pi` and `min(1,2)` all count, and `x`, `2x`, `true` and `NaN` do not. JavaScript's numeric literals are not consulted, so `1e5` and `0x10` are words here: scientific notation has to be asked for and is spelled with a capital `E`, and hexadecimal is not DoenetML notation at all. An author who wants an exponent read writes `<mathList parseScientificNotation="true">1E3 2 5E2</mathList>` and references it.
 
 `type` is now an override rather than a requirement, for when the look is misleading — `007 008` counts the numbers 7 and 8, and `type="text"` keeps the leading zeros. It still governs only bare strings; a referenced component keeps the type it already has.
 
-A `type` naming something that is not one of the four is now reported and then **dropped**, so it behaves exactly as if it had not been written. It used to be replaced with `math`, which is how `<tally type="txt" categories="apple fig">` came to make every category `NaN` and then report that a category had been named twice.
+A `type` naming something that is not one of the four is now reported and then **dropped**, so the string children are read exactly as they would be with no `type` at all. It used to be replaced with `math`, so `<tally type="txt">apple fig apple</tally>` read its three words as maths and reported its categories as `a p p l e` and `f i g`. This covers the string children only: `categories` and `target` resolve an invalid `type` separately and still replace it, so `<tally type="txt" categories="apple fig">` counts nothing either way.
 
 Two diagnostics are retired in place and one is added: `doenet-w0013` asked for a type nothing needs any more, and `doenet-w0014` named a `math` fallback that no longer happens. `doenet-w0145` replaces the second and says what now occurs.
 

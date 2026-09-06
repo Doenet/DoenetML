@@ -126,6 +126,9 @@ sorts by value and `<sort>d a b</sort>{:dn}` sorts alphabetically, with nothing 
 declare either way — the same rule the values follow when they arrive as components,
 where one text among numbers sends the whole list to an alphabetical ordering.
 
+A piece names a number when it works out to one, so `<sort>1/2 2^3 pi sqrt(4)</sort>{:dn}`
+orders four numbers, not four words.
+
 `type` applies only to those bare strings. A referenced component already has a type of
 its own and is left as it is, so a referenced list keeps its individual items:
 
