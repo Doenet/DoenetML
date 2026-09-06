@@ -3560,12 +3560,67 @@ Enter any letter:
             current: [],
         });
 
-        // Two indices that refer to the same component and differ only in
-        // what is written around it.
+        // A bare reference against an expression built around the same
+        // reference: `$k` alone and `$k + 1` are not even the same kind of
+        // component.
         expect(await submitAndGetResponses("[$k + 1]", "[$k]")).eqls({
             credit: 1,
             current: [],
         });
+
+        // Two expressions around the *same* reference, so neither the kind of
+        // component nor the referent tells them apart — only the text written
+        // after `$j`, which is where the children have to be compared.
+        expect(await submitAndGetResponses("[$j + 0]", "[$j - 1]")).eqls({
+            credit: 1,
+            current: [],
+        });
+    });
+
+    // The form the fix is for: the index is the `<repeat>`'s iteration value,
+    // which is the only thing an author has to write there. Each iteration
+    // gets its own copy of both references, renumbered as the body is
+    // duplicated, so the match has to hold up per iteration rather than once
+    // for the document.
+    it("referencesAreResponses recognizes a repeat's iteration value as an index", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <setup><group name="inputs"><mathInput name="a" /><mathInput name="b" /></group></setup>
+        <repeat name="r" for="1 2" valueName="i">
+          <answer name="ans">
+            <award referencesAreResponses="$inputs[$i]"><when>$inputs[$i] = 1</when></award>
+          </answer>
+        </repeat>
+        `,
+        });
+
+        for (const input of ["a", "b"]) {
+            await updateMathInputValue({
+                latex: "1",
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+        }
+
+        for (const iteration of [1, 2]) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(`r[${iteration}].ans`),
+                core,
+            });
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const iteration of [1, 2]) {
+            const answer =
+                stateVariables[
+                    await resolvePathToNodeIdx(`r[${iteration}].ans`)
+                ].stateValues;
+            expect({
+                credit: answer.creditAchieved,
+                current: answer.currentResponses.map((r: any) => r.tree),
+                submitted: answer.submittedResponses.map((r: any) => r.tree),
+            }).eqls({ credit: 1, current: [1], submitted: [1] });
+        }
     });
 
     it("isResponse from referencesAreResponses is not recursively copied", async () => {
