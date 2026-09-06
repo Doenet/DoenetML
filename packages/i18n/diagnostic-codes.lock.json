@@ -237,5 +237,7 @@
     "doenet-w0139": "bin-counts-too-few-cut-points",
     "doenet-w0140": "bin-counts-values-not-numeric",
     "doenet-w0141": "bin-counts-cut-points-decreasing",
-    "doenet-w0142": "tally-repeated-category"
+    "doenet-w0142": "tally-repeated-category",
+    "doenet-w0143": "bar-chart-bar-width-invalid",
+    "doenet-w0144": "bar-chart-values-not-drawable"
 }

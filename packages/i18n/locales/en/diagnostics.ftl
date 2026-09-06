@@ -1097,3 +1097,18 @@ bin-counts-values-not-numeric =
 # empty bin; at either end the outermost-edge rule can still put a value in it.
 bin-counts-cut-points-decreasing =
     Each `bins` cut point must be a number at least as large as the one before it, but one is not a number or is smaller than its predecessor, so no counts were produced.
+
+## Charts
+
+# Raised by `<barChart>` when a value is not a finite number, so it gets no bar.
+# The alternative reading of a missing bar is a value of zero, which the author
+# cannot distinguish by looking, so the absence is stated rather than left to be
+# inferred. No count: the queue is append-only and deduplicates by message, and
+# the number of such values changes as an input is typed into.
+bar-chart-values-not-drawable =
+    `<barChart>` draws no bar for a value that is not a finite number, so those places on the chart are empty rather than zero.
+
+# Raised by `<barChart>` when `barWidth` is outside the (0, 1] range a fraction
+# of a bar's slot can take. $barWidth is what the author wrote.
+bar-chart-bar-width-invalid =
+    `barWidth` must be greater than 0 and at most 1, but { $barWidth } was given. Using 0.8 instead.

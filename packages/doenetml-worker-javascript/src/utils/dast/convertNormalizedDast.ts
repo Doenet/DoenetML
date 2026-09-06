@@ -814,12 +814,34 @@ export function expandAttribute({
             }
 
             if (attrDef.copyComponentAttributesForCreatedComponent) {
+                // Attribute names are matched case-insensitively everywhere
+                // else (see `attributeLowerCaseMapping` in
+                // `expandAllAttributes`), so the author's spelling can be any
+                // casing. Match it the same way here, or `<tally TYPE="...">`
+                // would leave `type` uncopied while every other reading of the
+                // attribute still saw it — and the created component would be
+                // built to one type while the parent reported another.
+                const lowerCaseMapping: Record<string, string> = {};
+                for (const authorSpelling in allUnflattenedAttributes) {
+                    lowerCaseMapping[authorSpelling.toLowerCase()] =
+                        authorSpelling;
+                }
                 for (let attrName of attrDef.copyComponentAttributesForCreatedComponent) {
-                    if (allUnflattenedAttributes[attrName]) {
+                    const authorSpelling =
+                        lowerCaseMapping[attrName.toLowerCase()];
+                    if (authorSpelling !== undefined) {
                         // XXX: we many need to increment component indices here
-                        unflattenedComponentAttributes[attrName] = JSON.parse(
-                            JSON.stringify(allUnflattenedAttributes[attrName]),
-                        );
+                        unflattenedComponentAttributes[attrName] = {
+                            ...JSON.parse(
+                                JSON.stringify(
+                                    allUnflattenedAttributes[authorSpelling],
+                                ),
+                            ),
+                            // The declared spelling, not the author's, so that
+                            // the copy is indistinguishable from one written
+                            // out on the created component.
+                            name: attrName,
+                        };
                     }
                 }
             }

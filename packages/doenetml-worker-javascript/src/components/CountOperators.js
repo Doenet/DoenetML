@@ -1,8 +1,12 @@
+import me from "math-expressions";
 import CountingBaseListOperator from "./abstract/CountingBaseListOperator";
 import {
     comparableValueFromRaw,
     compareExtractedValues,
+    returnBreakStringsIntoTypeSugarInstruction,
 } from "../utils/listValues";
+import { returnListTypeAttribute } from "../utils/listIndexOperators";
+import { returnBreakStringsIntoMathsBySpacesSugarInstruction } from "../utils/mathOperatorChildren";
 import { codedDiagnostic } from "../utils/diagnostics";
 
 /**
@@ -21,59 +25,6 @@ import { codedDiagnostic } from "../utils/diagnostics";
 function labelForValue(value, numeric) {
     return numeric ? value.numericalValue : value.textValue;
 }
-
-/**
- * The distinct values of `values`, in sorted order — the categories `<tally>`
- * uses when the author names none.
- *
- * Sorted rather than first-seen so that the result does not depend on the order
- * the data happens to arrive in: a tally of the same multiset always reads the
- * same way, which is what makes it comparable across a resample.
- *
- * Each is tagged with `isNumeric` so that the counting pass compares against it
- * exactly as this pass did when deciding it was distinct. An extracted value
- * carries no `isNumeric` of its own — the list as a whole decides, which is what
- * `numeric` is — and without the tag the counting pass falls back to comparing
- * text, disagreeing with the pass that chose the categories: in
- * `<tally type="math">2/2 1 1</tally>` the three values are one category, but
- * the two written `1` would then match nothing and go uncounted.
- *
- * A malformed number is no category. It reaches the list because
- * `allAreNumeric` asks each child whether it is a number by *type*, and a
- * `<number>` whose content does not parse still says yes — and since a `NaN`
- * equals nothing, not even another `NaN`, each one would otherwise become a
- * category of its own, labeled `NaN` and counted zero times. So they are left
- * out here and go uncounted, exactly as `<binCounts>` leaves them out of every
- * bin.
- *
- * The test is per value rather than per list. Gating it on the list being
- * compared numerically would let a malformed number through the moment any
- * text was mixed in, where it would survive as the text `NaN`, form a category
- * of that name, and match a declared category spelled `NaN`. And it cannot be
- * done by inspecting the text either: a `<text>NaN</text>` is genuine data an
- * author may have written, and compares identically. `numericByType` is what
- * separates them.
- */
-/**
- * Both passes here are O(n·k) in the number of values and the number of
- * categories: this one scans the distinct values found so far, and `tallyValues`
- * scans the categories once per value. An all-distinct list is therefore
- * quadratic.
- *
- * Left that way deliberately. Equality is `compareExtractedValues`, so that what
- * `<tally>` calls "the same value" is exactly what `<sort>` calls equal — the
- * stated goal of the family, and the reason this shares `utils/listValues`
- * rather than comparing for itself. A `Map` or a hash would need a canonical
- * string per value, which is a *second* definition of equality free to drift
- * from the comparator. Sorting once and grouping adjacent equals would keep the
- * property and is the route to take if this ever matters.
- *
- * It has not mattered so far because k is also the number of replacement
- * components produced: k ≈ n is a `<tally>` emitting one category per value,
- * each counted once, which is a degenerate output whose replacements cost more
- * than the comparisons. The shape this exists for — thousands of samples across
- * a handful of categories — is linear.
- */
 
 /**
  * Whether any declared category appears more than once, compared the same way
@@ -108,6 +59,57 @@ function isMalformedNumber(value) {
     return value.numericByType === true && Number.isNaN(value.numericalValue);
 }
 
+/**
+ * The distinct values of `values`, in sorted order — the categories `<tally>`
+ * uses when the author names none.
+ *
+ * Sorted rather than first-seen so that the result does not depend on the order
+ * the data happens to arrive in: a tally of the same multiset always reads the
+ * same way, which is what makes it comparable across a resample.
+ *
+ * Each is tagged with `isNumeric` so that the counting pass compares against it
+ * exactly as this pass did when deciding it was distinct. An extracted value
+ * carries no `isNumeric` of its own — the list as a whole decides, which is what
+ * `numeric` is — and without the tag the counting pass falls back to comparing
+ * text, disagreeing with the pass that chose the categories: in
+ * `<tally type="math">2/2 1 1</tally>` the three values are one category, but
+ * the two written `1` would then match nothing and go uncounted.
+ *
+ * A malformed number is no category. It reaches the list because
+ * `allAreNumeric` asks each child whether it is a number by *type*, and a
+ * `<number>` whose content does not parse still says yes — and since a `NaN`
+ * equals nothing, not even another `NaN`, each one would otherwise become a
+ * category of its own, labeled `NaN` and counted zero times. So they are left
+ * out here and go uncounted, exactly as `<binCounts>` leaves them out of every
+ * bin.
+ *
+ * The test is per value rather than per list. Gating it on the list being
+ * compared numerically would let a malformed number through the moment any
+ * text was mixed in, where it would survive as the text `NaN`, form a category
+ * of that name, and match a declared category spelled `NaN`. And it cannot be
+ * done by inspecting the text either: a `<text>NaN</text>` is genuine data an
+ * author may have written, and compares identically. `numericByType` is what
+ * separates them.
+ *
+ * Both passes over the data are O(n·k) in the number of values and the number
+ * of categories: this one scans the distinct values found so far, and
+ * `tallyValues` scans the categories once per value. An all-distinct list is
+ * therefore quadratic.
+ *
+ * Left that way deliberately. Equality is `compareExtractedValues`, so that what
+ * `<tally>` calls "the same value" is exactly what `<sort>` calls equal — the
+ * stated goal of the family, and the reason this shares `utils/listValues`
+ * rather than comparing for itself. A `Map` or a hash would need a canonical
+ * string per value, which is a *second* definition of equality free to drift
+ * from the comparator. Sorting once and grouping adjacent equals would keep the
+ * property and is the route to take if this ever matters.
+ *
+ * It has not mattered so far because k is also the number of replacement
+ * components produced: k ≈ n is a `<tally>` emitting one category per value,
+ * each counted once, which is a degenerate output whose replacements cost more
+ * than the comparisons. The shape this exists for — thousands of samples across
+ * a handful of categories — is linear.
+ */
 function distinctValues(values, numeric) {
     const distinct = [];
     for (const value of values) {
@@ -129,8 +131,6 @@ function distinctValues(values, numeric) {
 export class Tally extends CountingBaseListOperator {
     static componentType = "tally";
 
-    static typeAlsoReads = "categories";
-
     static componentDocs = {
         summary: "How many times each category appears in a list",
     };
@@ -138,8 +138,42 @@ export class Tally extends CountingBaseListOperator {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // A state variable as well as an attribute: `categories` is a
+        // `_componentListWithSelectableType`, whose own `type` resolves
+        // through a `parentStateVariable` of this name.
+        //
+        // It defaults to `text`, not to the `number` that type would otherwise
+        // fall back to, because a category is only ever compared against the
+        // values and text is the reading that survives that comparison whatever
+        // they are: a word stays itself, and a number written as a category is
+        // recovered by `comparableCategory` when the values are numbers. Read
+        // as numbers by default instead, every category of
+        // `categories="apple fig"` would be a `NaN`: matching nothing, and
+        // then reported as a *repeated* category, since one `NaN` reads like
+        // another — all of it silent unless the author knew to write
+        // `type="text"`.
+        //
+        // Bare string children are a separate question with a separate answer:
+        // they are read by the sugar below, from the attribute rather than
+        // from this state variable, and still require the author to say which
+        // type they meant.
+        attributes.type = {
+            ...returnListTypeAttribute(),
+            description:
+                "Component type to interpret bare string children as, which they require. Also overrides how `categories` is read, which is otherwise text.",
+        };
+
         attributes.categories = {
             createComponentOfType: "_componentListWithSelectableType",
+            // The type reaches the categories twice over, and both routes have
+            // to agree: the sugar that wraps the bare strings reads the
+            // attribute written here, while the state variable that reads the
+            // wrapped values back resolves `type` on the parent. So the
+            // default is declared in both places — `text` below, and `text`
+            // again on the `type` state variable — and an explicit `type` is
+            // copied down here so that it still wins on both routes.
+            attributesForCreatedComponent: { type: "text" },
+            copyComponentAttributesForCreatedComponent: ["type"],
             description:
                 "The categories to count, in the order the counts are reported. Omit to count the distinct values present, in sorted order.",
             highlighted: true,
@@ -148,8 +182,44 @@ export class Tally extends CountingBaseListOperator {
         return attributes;
     }
 
+    static returnSugarInstructions() {
+        let sugarInstructions = super.returnSugarInstructions();
+
+        sugarInstructions.push(
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+        );
+
+        return sugarInstructions;
+    }
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Defined here rather than by `createStateVariable` on the attribute,
+        // because the two readers of `type` do not share a default and only one
+        // of them may be advertised. `categories` resolves this variable
+        // through `parentStateVariable`, and falls back to text — the reading
+        // that survives comparison against values of any type. Bare string
+        // children resolve the *attribute*, in sugar, and have no fallback at
+        // all: read as text by default, `<tally>1 2 10</tally>` would order its
+        // categories `1, 10, 2`, so the author is asked which type they meant.
+        //
+        // Declaring the default on the attribute would publish it to the
+        // schema, and the generated reference would then promise a default that
+        // bare children reject.
+        stateVariableDefinitions.type = {
+            returnDependencies: () => ({
+                typeAttr: {
+                    dependencyType: "attributePrimitive",
+                    attributeName: "type",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: { type: dependencyValues.typeAttr ?? "text" },
+                };
+            },
+        };
 
         stateVariableDefinitions.countValues = {
             returnDependencies: () => ({
@@ -245,7 +315,7 @@ function tallyValues({ values, numeric, declaredCategories, declaredType }) {
     const comparableCategories =
         declaredCategories === null
             ? distinctValues(values, numeric)
-            : declaredCategories.map(comparableValueFromRaw);
+            : declaredCategories.map((raw) => comparableCategory(raw, numeric));
 
     const counts = comparableCategories.map(() => 0);
     let anyUncounted = false;
@@ -331,13 +401,61 @@ function tallyValues({ values, numeric, declaredCategories, declaredType }) {
 }
 
 /**
+ * The comparable form of one declared category.
+ *
+ * Categories are read as text by default, which keeps a word a word. A number
+ * written as text is not a number the values can equal, so when the values are
+ * numeric a textual category is read again the way `<number>` reads its own
+ * content: `categories="1/2 1"` then names a half rather than a piece of text
+ * no number can match. That is what lets `categories="apple fig"` and
+ * `categories="1/2 1"` each count what they say with nothing to declare.
+ *
+ * Only text is reread. A category that arrived as a component —
+ * `categories="$someList"` — already is the value it names, and rereading its
+ * displayed form would lose the digits the display rounded away.
+ */
+function comparableCategory(raw, numeric) {
+    const value = comparableValueFromRaw(raw);
+
+    if (!numeric || value === null || typeof raw !== "string") {
+        return value;
+    }
+
+    let numericalValue;
+    try {
+        numericalValue = me.fromText(raw).evaluate_to_constant();
+    } catch (e) {
+        return value;
+    }
+
+    // An infinity is kept: it is a number `compareExtractedValues` handles —
+    // it tests equality before subtracting — so `categories="1/0"` counts what
+    // `categories="Infinity"` counts, rather than the two disagreeing over the
+    // same value.
+    //
+    // `NaN` is not the only thing this can come back with, though: a category
+    // that evaluates complex — `categories="i"` — yields a complex object, on
+    // which every comparison is `NaN` and so never equal, not even to itself.
+    // Such a category would match nothing and would not even be reported as
+    // repeated. Only a real number is worth comparing numerically; anything
+    // else keeps the text it was written as, which at least compares.
+    return typeof numericalValue === "number" && !Number.isNaN(numericalValue)
+        ? { numericalValue, textValue: raw, isNumeric: true }
+        : value;
+}
+
+/**
  * The component type `<tally>`'s `categories` property reports.
  *
  * Declared categories report the type they were read as, so
  * `<tally type="boolean" categories="true false">` reads back `true, false`
- * rather than the `1, 0` a numeric reading would give. Inferred categories are
- * recovered from the comparable values by `labelForValue`, which yields a
- * number exactly when the list was compared numerically.
+ * rather than the `1, 0` a numeric reading would give, and a category left to
+ * the default reads back as the text it was written as — `categories="1/2 1"`
+ * labels its counts `1/2, 1` even though it counted halves. What a category
+ * was *compared* as is a separate question, answered by `comparableCategory`.
+ * Inferred categories are recovered from the comparable values by
+ * `labelForValue`, which yields a number exactly when the list was compared
+ * numerically.
  */
 function labelComponentType({ declaredType, comparableCategories, numeric }) {
     if (declaredType !== null) {
@@ -387,6 +505,20 @@ export class BinCounts extends CountingBaseListOperator {
         };
 
         return attributes;
+    }
+
+    static returnSugarInstructions() {
+        let sugarInstructions = super.returnSugarInstructions();
+
+        // Bare cut points and bare values are read the way `<sum>` reads its
+        // children, so `<binCounts bins="0 1 2">0 0.5 1</binCounts>` counts
+        // three numbers. There is nothing for a `type` to choose here: a value
+        // that is not a number falls in no bin, whatever it was read as.
+        sugarInstructions.push(
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+        );
+
+        return sugarInstructions;
     }
 
     static returnStateVariableDefinitions() {

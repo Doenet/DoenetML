@@ -537,6 +537,8 @@ export type MessageKey =
     | "bin-counts-too-few-cut-points"
     | "bin-counts-values-not-numeric"
     | "bin-counts-cut-points-decreasing"
+    | "bar-chart-values-not-drawable"
+    | "bar-chart-bar-width-invalid"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1140,6 +1142,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "bin-counts-too-few-cut-points",
     "bin-counts-values-not-numeric",
     "bin-counts-cut-points-decreasing",
+    "bar-chart-values-not-drawable",
+    "bar-chart-bar-width-invalid",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",
