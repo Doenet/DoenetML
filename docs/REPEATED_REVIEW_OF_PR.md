@@ -1,37 +1,117 @@
 # Repeated Review of a PR
 
-After creating a PR, use this procedure to iteratively improve it via subagent reviews.
+After creating a PR, use this procedure to iteratively improve it through a series of
+subagent reviews. Each cycle spawns one subagent, which reviews the PR as the previous
+cycle left it.
 
-## Procedure
+## Before the first cycle
 
-Run the **review cycle** below at least three times in sequence. Each cycle operates on the PR as left by the previous cycle (i.e. pull the latest branch state before spawning the next subagent).
+Put these in every subagent's brief, not just the first:
 
-### Review cycle
+- **The working directory, as an absolute path**, and an instruction to verify it before
+  starting. More than one checkout of this repository may exist on the machine, and a
+  review agent that starts in the wrong one will commit to the wrong one.
+- **What to review.** If the PR is part of a stack, its GitHub diff includes every PR
+  beneath it. Point the reviewer at `git diff <parent-branch>...HEAD`, name the branches it
+  must not touch, and say plainly that a finding in a lower PR is to be **reported, not
+  fixed**.
+- **What is already settled** — decisions taken, refactors deliberately deferred, traps
+  already hit. Without this each cycle re-derives the same conclusions and re-proposes the
+  same declined changes.
 
-Spawn one subagent and give it the following instructions:
+## The review cycle
 
-1. Review the PR according to `@./PR_REVIEW_GUIDELINES.md`.
-2. Address all issues identified during the review.
-3. Verify the changeset still describes the user-visible behavior in the diff; update if not.
-4. Verify the PR description still describes everything in the diff; update if not. Don't skip this — a stale PR description is the most common review-cycle oversight.
-5. Commit and push the results.
-6. Report back a short summary of what was changed (or report "no changes" if nothing needed updating).
+Give the subagent these instructions:
 
-Run cycles sequentially — each new subagent must see the prior subagent's commits, so wait for one to finish before spawning the next.
+1. Verify the previous cycle's changes (skip on the first cycle). Take its ledger entry as
+   a set of claims, not as settled fact, and check the ones it recorded as *assumed* or
+   *read* rather than *ran*. Confirming a change was unnecessary, or wrong, is as useful an
+   outcome as a new finding — say so and revert it.
+2. Review the PR according to `docs/PR_REVIEW_GUIDELINES.md`, through this cycle's lens.
+3. Address the issues identified during the review — but **confirm a finding before
+   changing code for it**. If the guidelines' test says you established it by *assuming*,
+   either settle it by running something or report it without acting on it. A wrong
+   correctness fix is worse here than a wrong report, because it is committed, pushed, and
+   inherited by every later cycle as a decision already taken.
+4. Verify the changeset still describes the user-visible behavior in the diff; update if not.
+5. Verify the PR description still describes everything in the diff; update if not. Don't
+   skip this — nothing else in the pipeline checks it.
+6. Commit and push the results.
+7. Append to the ledger, and report back a short summary of what was changed (or "no
+   changes" if nothing needed updating).
 
-## Stopping criterion
+Run cycles **sequentially** — each new subagent must see the prior subagent's commits, so
+wait for one to finish before spawning the next, and pull the latest branch state in
+between.
 
-- **Cycles 1–3:** always run.
-- **After cycle 3:** if cycle 3 produced *significant* changes, run cycle 4. Otherwise stop.
-- **After cycle 4:** if cycle 4 produced *significant* changes, run cycle 5. Otherwise stop.
-- **Maximum:** 5 cycles total.
+## Lenses
 
-A change counts as *significant* if it modifies behavior, refactors non-trivially, or alters more than minor wording in docs/comments. Pure typo fixes, formatting tweaks, or a "no changes" report do not count.
+Repeating one prompt has steep diminishing returns; asking a different question does not.
+Give each cycle a lens of its own. The first three lenses are different questions, not
+three attempts at the same one, and each covers a class of defect the others do not:
+
+| Cycle | Lens |
+| --- | --- |
+| 1 | **Correctness and edge cases.** Does it do what it claims, on empty, `NaN`, boundary and degenerate input? |
+| 2 | **Behavior delta.** What changed that is not visible in the diff — base classes, shared utilities, attribute types? What regressed? |
+| 3 | **Claims against code.** Every statement in the changeset, PR description, reference pages, comments and commit message, traced to the code that makes it true. Plus test and documentation coverage. |
+| 4+ | The reviewer's own judgment, informed by the ledger. |
+
+A lens is a starting point, not a restriction: a cycle that notices a bug outside its lens
+should still fix it.
+
+## The ledger
+
+Each cycle appends a short entry recording what it verified and how, what it found, and
+what it deliberately did not do and why. The next cycle reads the ledger first, so settled
+ground is not re-derived and deferred items are reconsidered rather than forgotten.
+
+Keep two kinds of entry apart, because the next cycle must treat them differently:
+
+- **Decisions** — a refactor declined as out of scope, an approach chosen, a trap already
+  hit. These are closed. Do not re-litigate them.
+- **Findings and the changes made for them**, each recorded with how it was established:
+  **ran it**, **read the code**, or **assumed**. These are open. They are the previous
+  agent's conclusions about code it was editing at the time, and the next cycle is the only
+  independent reader they will get.
+
+A ledger that blurs the two suppresses the loop's own check: fresh eyes on the last cycle's
+work are what a sequential loop has instead of a separate verification stage, and an entry
+written as "fixed, verified" spends that for nothing.
+
+## When to stop
+
+- Run at least **three** cycles — one for each lens. The minimum is three because there
+  are three lenses, not because three passes are better than two: stopping at two skips the
+  claims-against-code pass entirely, which is the one that catches a false statement
+  repeated across the changeset, the PR description and the reference pages. A quiet cycle
+  under one lens says nothing about what the next lens would find.
+- From the fourth cycle on, stop when a cycle finds **no correctness issue** — no bug, no
+  inaccurate claim, no missing coverage for behavior that is in the diff. Documentation
+  polish, wording changes and typo fixes do not by themselves justify another cycle.
+- The orchestrator judges this against the ledger. Do not leave it to the agent that made
+  the changes to decide whether its own changes were significant.
+- A cycle that reports "no changes" is a real result and is how this loop is meant to end.
+  A cycle that produces a finding in order to look productive costs the next cycle the time
+  to disprove it, so the brief should say so.
+
+When the loop ends on a cycle that *made* changes — at the cap, or because the user
+called it — those changes are the only ones no other cycle has seen. Run one more agent
+that reviews and reports without committing, rather than treating the last cycle's own
+account of its work as verification.
+
+**Five cycles is a soft cap, not a hard one.** If a fifth cycle is still turning up real
+problems, do not simply keep going, and do not stop merely because a number was reached.
+Put it to the user: report what the last two cycles found, say why the evidence suggests
+more remain, and let them decide whether to continue. A PR still yielding defects at cycle
+five may need something other than another cycle — it may need to be split, or its approach
+reconsidered — and that is a judgment for a person to make.
 
 ## Final report
 
 After the last cycle, summarize for the user:
 
-- How many cycles ran and why you stopped.
+- How many cycles ran and why they stopped.
 - The most important changes made across all cycles.
+- Anything reported but deliberately not fixed, and why.
 - A link to the PR.
