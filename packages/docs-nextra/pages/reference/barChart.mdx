@@ -14,28 +14,9 @@ simulation.
 Bare numbers work as well as `<number>{:dn}` children, so `<barChart>41 63 18</barChart>`
 draws three bars.
 
-Name the bars with `categories`; leave it out and they are numbered 1, 2, 3. A category
-is a label and nothing else — the bars are evenly spaced whatever it says, so
-`categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars rather than placing
-them at those positions. Categories are matched to bars in order, and a list longer or
-shorter than the values labels what it can.
-
-The vertical axis scales itself to the data; `yMin` and `yMax` replace it, and either may
-be set on its own. Bars are measured from zero whatever the axis shows, so a `yMin` above
-zero cuts them off at the bottom of the frame. A value that is not a finite number gets no
-bar, and says so in a warning.
-
-`size` sets how wide the chart is, `aspectRatio` its width over its height, and
-`barWidth` how much of its slot each bar fills. A `width` may be given instead of a
-`size`, and picks the nearest preset rather than being used exactly, so `width="400px"`
-draws the same chart as `size="medium"`. Read back, `yMin`, `yMax`,
-`barWidth` and `aspectRatio` report **what the chart was drawn with**, so `$chart.yMax` is
-the top of the axis you can see rather than the one you asked for.
-
 Every bar carries its category and value as an annotation, so a screen reader can walk the
 chart rather than merely announce it, and a `<shortDescription>{:dn}` becomes the
-description of the figure as a whole. `<barChart>{:dn}` draws through PreFigure, whose
-runtime is fetched the first time a page uses one; pages with no chart fetch nothing.
+description of the figure as a whole.
 
 <AttrPropDisplay name='barChart'/>
 
@@ -156,8 +137,74 @@ out and shifting the others along.
 
 
 
-Each bar takes the category in the matching position. Without `categories`, the bars are
-numbered 1, 2, 3, 4.
+Each bar takes the category in the matching position; without `categories`, the bars are
+numbered 1, 2, 3, 4. A category is a label and nothing else — the bars are evenly spaced
+whatever it says, so `categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars
+rather than placing them at those positions.
+
+
+
+---
+
+### Attribute Example: yMin, yMax
+
+
+```doenet-editor-horiz
+<barChart name="auto" categories="A B C" size="small">
+  <shortDescription>An axis chosen from the data</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</barChart>
+<p>Automatic: $auto.yMin to $auto.yMax</p>
+
+<barChart name="capped" categories="A B C" size="small" yMax="20">
+  <shortDescription>The same bars under a fixed top</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</barChart>
+<p>With `yMax="20"`: $capped.yMin to $capped.yMax</p>
+
+<barChart name="cut" categories="A B C" size="small" yMin="5">
+  <shortDescription>An axis starting above zero</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</barChart>
+<p>With `yMin="5"`: $cut.yMin to $cut.yMax</p>
+```
+
+
+
+The axis scales itself to the data, and either bound may be replaced on its own. Bars are
+measured from zero whatever the axis shows, so the third chart cuts them off at the
+bottom of the frame and the bar of height 4 disappears entirely.
+
+
+
+---
+
+### Attribute Example: size, aspectRatio, barWidth
+
+
+```doenet-editor-horiz
+<barChart categories="A B C" size="small">
+  <shortDescription>Default shape</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</barChart>
+
+<barChart categories="A B C" size="small" aspectRatio="1">
+  <shortDescription>As tall as it is wide</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</barChart>
+
+<barChart categories="A B C" size="small" barWidth="0.4">
+  <shortDescription>Narrow bars</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</barChart>
+```
+
+
+
+`size` sets the width, `aspectRatio` the width over the height, and `barWidth` how much
+of its slot each bar fills. A `width` may be given instead of a `size`, and picks the
+nearest preset rather than being used exactly, so `width="400px"` draws the same chart as
+`size="medium"`.
 
 
 
@@ -181,3 +228,9 @@ numbered 1, 2, 3, 4.
 <p>Total: <sum>$chart.barValues</sum></p>
 <p>The axis runs from $chart.yMin to $chart.yMax.</p>
 ```
+
+
+
+`yMin`, `yMax`, `barWidth` and `aspectRatio` report what the chart was drawn with rather
+than what was asked for, so `$chart.yMax` is the top of the axis you can see even though
+nothing above set one.
