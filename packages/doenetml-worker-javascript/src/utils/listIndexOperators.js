@@ -22,12 +22,17 @@ import { comparableValueFromRaw } from "./listValues";
  * read as this `type` too. Saying that on `<argMin>`, which takes no target,
  * would point the author at an attribute the component does not have.
  */
-export function returnListTypeAttribute({ readsTarget = false } = {}) {
+export function returnListTypeAttribute({
+    readsTarget = false,
+    alsoReads = null,
+} = {}) {
+    const base = "Component type to interpret bare string children as.";
+    const attributeItAlsoReads = readsTarget ? "target" : alsoReads;
     return {
         createPrimitiveOfType: "string",
-        description: readsTarget
-            ? "Component type to interpret bare string children as. Also decides how a `target` is read, since it has no type of its own."
-            : "Component type to interpret bare string children as.",
+        description: attributeItAlsoReads
+            ? `${base} Also decides how \`${attributeItAlsoReads}\` is read, since it has no type of its own.`
+            : base,
         highlighted: true,
         validValues: [
             {

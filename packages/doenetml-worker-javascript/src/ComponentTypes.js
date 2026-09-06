@@ -6,6 +6,7 @@ import * as BooleanOperatorsOfMath from "./components/BooleanOperatorsOfMath";
 import * as MathOperators from "./components/MathOperators";
 import * as MathListOperators from "./components/MathListOperators";
 import * as ListIndexOperators from "./components/ListIndexOperators";
+import * as CountOperators from "./components/CountOperators";
 import * as FunctionOperators from "./components/FunctionOperators";
 import * as TextOperatorsOfMath from "./components/TextOperatorsOfMath";
 import * as Extrema from "./components/Extrema";
@@ -220,6 +221,7 @@ const componentTypeArray = [
     ...Object.values(MathOperators),
     ...Object.values(MathListOperators),
     ...Object.values(ListIndexOperators),
+    ...Object.values(CountOperators),
     ...Object.values(FunctionOperators),
     ...Object.values(TextOperatorsOfMath),
     ...Object.values(Extrema),
