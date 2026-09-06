@@ -75,6 +75,14 @@ export default class Answer extends InlineComponent {
             description:
                 "Whether comparison uses symbolic equality (rather than numeric evaluation).",
         };
+        attributes.allowUnits = {
+            createComponentOfType: "boolean",
+            createStateVariable: "allowUnits",
+            defaultValue: true,
+            public: true,
+            description:
+                "Whether a quantity written with a unit, such as 50%, counts as a number for the isNumber and isInteger checks.",
+        };
         attributes.forceFullCheckWorkButton = {
             createComponentOfType: "boolean",
             createStateVariable: "forceFullCheckWorkButton",

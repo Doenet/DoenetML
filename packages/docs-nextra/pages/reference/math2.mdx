@@ -400,6 +400,35 @@ The `isNumeric` property returns `true` if the `<math>{:dn}` evaluates to a numb
 
 ---
 
+### Property Example: hasUnits
+
+
+```doenet-example
+<math name="percent">50%</math>
+<p><c>number</c> = $percent.number</p>
+<p><c>hasUnits</c> = $percent.hasUnits</p>
+<math name="decimal">0.5</math>
+<p><c>number</c> = $decimal.number</p>
+<p><c>hasUnits</c> = $decimal.hasUnits</p>
+```
+
+
+
+The `hasUnits` property returns `true` if the `<math>{:dn}` contains a quantity written with a
+unit, such as a percent, a currency, or an angle in degrees. A percent is worth the decimal it
+equals, so `50%` and `0.5` have the same `number`; `hasUnits` is what tells them apart.
+
+
+To require a number that was not written as a percent, pair `hasUnits` with a check that the
+value is a number at all, as in `<boolean>isnumber($m) and not $m.hasUnits</boolean>{:dn}` for
+a `<math>{:dn}` named `m`. The [`<isNumber>{:dn}`](isNumber) and
+[`<isInteger>{:dn}`](isInteger) components spell the same requirement more directly with their
+`allowUnits` attribute.
+
+
+
+---
+
 ### Property Example: latex
 
 

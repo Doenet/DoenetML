@@ -3,6 +3,7 @@ import me from "math-expressions";
 import { buildSubsetFromMathExpression, deepCompare } from "@doenet/utils";
 import {
     appliedFunctionSymbolsDefault,
+    evaluateNumericPredicate,
     textToMathFactory,
     numberToMathExpression,
 } from "./math";
@@ -362,28 +363,20 @@ export function evaluateLogic({
         // try to see if operand can be evaluated to a number
         let expression = me.fromAst(replaceMath(operands[1]));
 
-        // TODO: should we simplify before evaluating to constant?
-        let numericalValue = expression.simplify().evaluate_to_constant();
-
-        if (!Number.isFinite(numericalValue)) {
-            return 0;
-        }
-
-        if (operands[0] === "isnumber") {
-            return 1;
-        } else {
-            // to account for round off error, round to nearest integer
-            // and check if close to that integer
-            let rounded = Math.round(numericalValue);
-            if (
-                Math.abs(rounded - numericalValue) <=
-                1e-15 * Math.abs(numericalValue)
-            ) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
+        return evaluateNumericPredicate({
+            predicate: operands[0],
+            expression,
+            // `<boolean>`, `<when>`, and `<award>` all supply `allowUnits`.
+            // `<number convertBoolean>`, the one caller that offers no such
+            // attribute, leaves the key absent, which the helper reads as its
+            // default of `true` — so units stay allowed there as they always
+            // have been.
+            allowUnits: dependencyValues.allowUnits,
+            // TODO: should we simplify before evaluating to constant?
+            simplify: true,
+        })
+            ? 1
+            : 0;
     }
 
     // TODO: other set operations

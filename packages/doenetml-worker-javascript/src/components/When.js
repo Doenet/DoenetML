@@ -28,6 +28,7 @@ export default class When extends BooleanComponent {
 
         for (let attrName of [
             "symbolicEquality",
+            "allowUnits",
             "expandOnCompare",
             "simplifyOnCompare",
             "unorderedCompare",
@@ -84,6 +85,10 @@ export default class When extends BooleanComponent {
                 symbolicEquality: {
                     dependencyType: "stateVariable",
                     variableName: "symbolicEquality",
+                },
+                allowUnits: {
+                    dependencyType: "stateVariable",
+                    variableName: "allowUnits",
                 },
                 expandOnCompare: {
                     dependencyType: "stateVariable",
