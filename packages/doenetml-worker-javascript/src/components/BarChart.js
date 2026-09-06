@@ -109,7 +109,7 @@ export default class BarChart extends BlockComponent {
 
         attributes.yMin = {
             description:
-                "Lowest value shown on the vertical axis. Defaults to 0, or to the smallest value when some are negative. Ignored, along with `yMax`, unless it is a finite number below it.",
+                "Lowest value shown on the vertical axis. Defaults to 0, or to the first tick past the smallest value when some are negative, so that bar does not touch the bottom of the frame. Ignored, along with `yMax`, unless it is a finite number below it.",
             createComponentOfType: "number",
             createStateVariable: "yMinAttr",
             defaultValue: null,

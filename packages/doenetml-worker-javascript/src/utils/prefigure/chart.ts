@@ -58,6 +58,30 @@ const AXIS_LABEL_MARGIN_BASE = 14;
 const AXIS_LABEL_MARGIN_PER_CHARACTER = 9;
 
 /**
+ * Two margins on one axis, scaled to leave the drawing at least half the frame.
+ *
+ * Returned as written whenever they already fit. When they do not, both shrink
+ * by the same factor rather than one absorbing the whole reduction, so a chart
+ * too small for its margins keeps their proportions instead of losing an axis
+ * to the side that happened to be listed second.
+ */
+function fitMargins(
+    available: number,
+    near: number,
+    far: number,
+): [number, number] {
+    const total = near + far;
+    const budget = Math.max(Math.floor(available / 2), 0);
+
+    if (!Number.isFinite(available) || total <= budget || total <= 0) {
+        return [near, far];
+    }
+
+    const scale = budget / total;
+    return [Math.floor(near * scale), Math.floor(far * scale)];
+}
+
+/**
  * How many ticks of a run are measured before the estimate gives up and takes
  * the widest it has seen. The runs this measures hold a handful of ticks by
  * construction; the cap only stops a step that somehow came back too small to
@@ -245,8 +269,12 @@ function nextTickBeyond(value: number, step: number, direction: 1 | -1) {
  *
  * Bars sit at x = 1, 2, … n and are `barWidth` of their one-unit slot wide, so
  * the gap between them is what is left over. The box starts at x = 0 so the
- * vertical axis has somewhere to be drawn, and ends half a unit past the last
- * bar so the outermost bars are not flush against the frame.
+ * vertical axis has somewhere to be drawn, and ends one full unit past the last
+ * bar's center — one slot at each end — so that the gap before the first bar
+ * and the gap after the last are equal whatever `barWidth` is. Ending half a
+ * unit past the last *center* instead left the trailing gap a fraction of the
+ * leading one, and none at all at `barWidth="1"`, where the last bar sat flush
+ * against the frame.
  *
  * `yMax` is the author's when they gave one; otherwise it is rounded up to the
  * next tick so the tallest bar does not touch the top of the box. An empty
@@ -445,8 +473,21 @@ export function createBarChartPrefigureXML({
     const lastTick = tickAtOrBeyond(yMax, step, -1);
     const vlabels = `(${formatNumber(firstTick)},${formatNumber(step)},${formatNumber(lastTick)})`;
 
-    const [marginBottom, marginRight, marginTop] =
+    const [wantedBottom, marginRight, wantedTop] =
         CHART_MARGINS_BOTTOM_RIGHT_TOP;
+
+    // The vertical margins are fixed pixel counts, so on a short enough frame
+    // they exceed it: at `size="tiny"` the frame is 70x46.67 and the 46px of
+    // top and bottom margin leave a plot one pixel tall, while an
+    // `aspectRatio="2"` frame of 35px is 12px shorter than the diagram its own
+    // margins produce, which the renderer then clips. Capped at half the frame
+    // and scaled together, for the reason the left margin is capped: room
+    // reserved around a drawing is only worth having if a drawing is left.
+    const [marginBottom, marginTop] = fitMargins(
+        heightPx,
+        wantedBottom,
+        wantedTop,
+    );
 
     // The left margin has to know the labels before the box is sized, since it
     // is what stops the widest of them being clipped. Capped at half the

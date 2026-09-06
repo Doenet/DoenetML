@@ -154,6 +154,54 @@ describe("barChart prefigure tests @group4", async () => {
             expect(innerWidth).toBeGreaterThan(425 / 4);
         });
 
+        it("leaves a drawing inside the smallest frame a chart can be given", async () => {
+            // The vertical margins are fixed pixel counts, and `size="tiny"` is
+            // a supported preset 70px wide. Unscaled, its 46.67px frame kept
+            // 46px of margin and a plot one pixel tall; with `aspectRatio="2"`
+            // the 46px of margin plus that one pixel made a diagram 12px taller
+            // than the 35px frame holding it, which the renderer clips.
+            for (const { markup, frameHeight } of [
+                {
+                    markup: `<barChart name="c" size="tiny"><number>4</number></barChart>`,
+                    frameHeight: 70 / 1.5,
+                },
+                {
+                    markup: `<barChart name="c" size="tiny" aspectRatio="2"><number>4</number></barChart>`,
+                    frameHeight: 70 / 2,
+                },
+            ]) {
+                const xml = await chartXML(markup);
+
+                // `margins` is written left, bottom, right, top.
+                const margins = xml
+                    .match(/margins="\[([^\]]*)\]"/)?.[1]
+                    .split(",")
+                    .map(Number)!;
+                const [, marginBottom, , marginTop] = margins;
+                const innerHeight = Number(
+                    xml.match(/dimensions="\([^,]*,([^)]*)\)"/)?.[1],
+                );
+
+                expect(innerHeight).toBeGreaterThan(1);
+                // The diagram, margins included, fits the frame it was given.
+                expect(
+                    innerHeight + marginBottom + marginTop,
+                ).toBeLessThanOrEqual(frameHeight + 0.01);
+            }
+        });
+
+        it("leaves the usual margins alone on every frame big enough for them", async () => {
+            // Only a frame too short for them scales the vertical margins; the
+            // sizes an author actually charts with keep the 30 and 16 the
+            // layout was designed around.
+            for (const size of ["small", "medium", "large", "full"]) {
+                const xml = await chartXML(
+                    `<barChart name="c" size="${size}"><number>4</number></barChart>`,
+                );
+                expect(xml).toContain(",30,12,16]");
+            }
+        });
+
         it("reserves room for a minus sign on a chart that goes below zero", async () => {
             const xml = await chartXML(`
     <barChart name="c"><number>-1200</number><number>400</number></barChart>
