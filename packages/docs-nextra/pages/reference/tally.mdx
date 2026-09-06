@@ -12,16 +12,6 @@ component that renders how many times each category appears among its arguments:
 of counts, one per category. Where [`<count>{:dn}`](count) reports how many values there
 are in total, `<tally>{:dn}` reports how many there are of each kind.
 
-Name the categories with `categories` to fix which ones are counted and in what order;
-omit it and they are the distinct values present, in sorted order.
-
-Bare string children are read as what they look like: every one of them naming a number
-makes the list numeric, and anything else makes it text. `type` overrides that when the
-look is misleading — numerals that are labels rather than quantities, or expressions that
-should be compared as maths rather than as the characters they were typed with. Written
-out, it also decides how `categories` is read, which is otherwise text. Values arriving as
-a list or a reference are read as what they already are.
-
 <AttrPropDisplay name='tally'/>
 
 ## Examples
