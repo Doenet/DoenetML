@@ -75,8 +75,16 @@ function compareIndexValues(value1: unknown, value2: unknown) {
  *
  * Each writing of an index gets its own component index and its own position,
  * so those are what to look past. What has to agree is what the index names:
- * the same component type, the same referent and path where it is a
+ * the same component type, the same referent and remaining path where it is a
  * reference, and the same children where it is built out of them.
+ *
+ * A reference is compared by where it lands, not by how it was spelled. Two
+ * spellings that reach the same component with the same path still unresolved
+ * — `$holder.k` written in one place and `$k` in the other — name one value,
+ * and `Award` already treats the reference *around* the index that way. So
+ * `originalPath`, which records the spelling, is not compared: doing so made
+ * an index stricter than the reference containing it, and made a nested index
+ * cost twice as much per level, since the same components hang off both paths.
  *
  * Attributes are not compared, because an index carries none an author wrote.
  * The only attribute on a component in this position is `createComponentOfType`,
@@ -110,10 +118,6 @@ function compareIndexComponents(
             !comparePathsIgnorePosition(
                 extending1.unresolvedPath,
                 extending2.unresolvedPath,
-            ) ||
-            !comparePathsIgnorePosition(
-                extending1.originalPath,
-                extending2.originalPath,
             )
         ) {
             return false;

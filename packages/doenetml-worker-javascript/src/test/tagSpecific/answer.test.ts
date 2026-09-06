@@ -3511,6 +3511,41 @@ Enter any letter:
         });
     });
 
+    // An index is compared by where its reference lands, not by how it was
+    // spelled. `$holder.k` and `$k` reach one number by two routes, so they
+    // name one index, and the reference *around* the index is already matched
+    // that way.
+    it("referencesAreResponses recognizes an index reference written two ways", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <setup>
+          <group name="mis">$mi1 $mi2</group>
+          <group name="holder"><number name="k">1</number></group>
+        </setup>
+        <answer name="ans">
+          <award referencesAreResponses="$mis[$holder.k]"><when>$mis[$k] = 1</when></award>
+        </answer>
+        `,
+        });
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const answer =
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues;
+        expect(answer.creditAchieved).eq(1);
+        expect(answer.currentResponses.map((r: any) => r.tree)).eqls([1]);
+    });
+
     // The comparison must still tell two different indices apart.
     it("referencesAreResponses does not recognize a different reference index", async () => {
         async function submitAndGetResponses(

@@ -21,6 +21,8 @@ Recognize an index written inside a reference in two places that were quietly dr
 
 Written with a literal index — `$inputs[1]` — an award like this recorded the response all along. Written with `$i`, it graded correctly but stored nothing: `currentResponses` and `submittedResponses` came back empty, with no warning, so a question scored right and kept no answer. Inside a `<repeat>`, where the index is the iteration value, `$i` is the only thing there is to write.
 
+The two writings of the index need not match letter for letter, only land in the same place: `referencesAreResponses="$inputs[$holder.i]"` matches a `<when>` that says `$inputs[$i]`.
+
 An index that cannot be applied is now reported when it is written in a `target`. `<updateValue target="$p.styleDescription[1]" />` names an index on a property that is not a list, and said nothing at all; the same reference in `extend` or in ordinary text has always warned `Cannot reference index $p.styleDescription[1]`. The warning arrives when the target is read — on the press for `<updateValue>`, at once for a running `<animateFromSequence>` — which is where those components' other target warnings already arrive.
 
 Closes #1845. `<callAction target="$p.styleDescription[1]" />` remains silent and #1565 stays open for it: it rejects any property in a `target` before an index is ever applied, so it needs a message about the property rather than this one about the index.
