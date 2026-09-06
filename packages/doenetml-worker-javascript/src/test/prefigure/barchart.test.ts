@@ -190,6 +190,38 @@ describe("barChart prefigure tests @group4", async () => {
             }
         });
 
+        it("draws a diagram the size of its frame at any aspect ratio", async () => {
+            // The margins are drawn around `dimensions`, so a diagram whose
+            // margins do not fit is bigger than the frame holding it and the
+            // renderer clips the difference. An `aspectRatio` of a million asks
+            // for a frame a fraction of a pixel tall, which the margins dwarf.
+            for (const ratio of ["1000000", "1000", "0.001"]) {
+                const xml = await chartXML(
+                    `<barChart name="c" aspectRatio="${ratio}"><number>4</number></barChart>`,
+                );
+
+                const [marginLeft, marginBottom, marginRight, marginTop] = xml
+                    .match(/margins="\[([^\]]*)\]"/)?.[1]
+                    .split(",")
+                    .map(Number)!;
+                const [innerWidth, innerHeight] = xml
+                    .match(/dimensions="\(([^)]*)\)"/)?.[1]
+                    .split(",")
+                    .map(Number)!;
+
+                expect(innerWidth).toBeGreaterThan(0);
+                expect(innerHeight).toBeGreaterThan(0);
+                expect(innerWidth + marginLeft + marginRight).toBeCloseTo(
+                    425,
+                    2,
+                );
+                expect(innerHeight + marginBottom + marginTop).toBeCloseTo(
+                    425 / Number(ratio),
+                    6,
+                );
+            }
+        });
+
         it("leaves the usual margins alone on every frame big enough for them", async () => {
             // Only a frame too short for them scales the vertical margins; the
             // sizes an author actually charts with keep the 30 and 16 the

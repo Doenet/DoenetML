@@ -35306,9 +35306,8 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to interpret bare string children as. Also overrides how `categories` is read, which is otherwise text.",
+                    "description": "Component type to interpret bare string children as, which they require. Also overrides how `categories` is read, which is otherwise text.",
                     "highlighted": true,
-                    "defaultValue": "text",
                     "values": [
                         "number",
                         "math",

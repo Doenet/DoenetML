@@ -337,6 +337,29 @@ describe("Counting operator tag tests @group4", async () => {
             });
         });
 
+        it("an infinite category counts what an infinite value is", async () => {
+            // Rereading a textual category rejects only `NaN`, which is the
+            // test a math value gets. An infinity is a number the comparison
+            // handles, so the two ways of writing one agree rather than one
+            // matching and the other falling back to text that never can.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="v"><number>1/0</number><number>5</number></numberList>
+    <p name="pExpression"><tally categories="1/0 5">$v</tally></p>
+    <p name="pWord"><tally categories="Infinity 5">$v</tally></p>
+    `,
+            });
+
+            for (const name of ["pExpression", "pWord"]) {
+                await expectText({
+                    core,
+                    resolvePathToNodeIdx,
+                    name,
+                    text: "1, 1",
+                });
+            }
+        });
+
         it("categories given as components keep every digit they have", async () => {
             // The reread above is of text only. A category that arrived as a
             // component already *is* the value it names, and rereading the

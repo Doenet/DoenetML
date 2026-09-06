@@ -160,9 +160,7 @@ export class Tally extends CountingBaseListOperator {
         attributes.type = {
             ...returnListTypeAttribute(),
             description:
-                "Component type to interpret bare string children as. Also overrides how `categories` is read, which is otherwise text.",
-            createStateVariable: "type",
-            defaultValue: "text",
+                "Component type to interpret bare string children as, which they require. Also overrides how `categories` is read, which is otherwise text.",
         };
 
         attributes.categories = {
@@ -196,6 +194,32 @@ export class Tally extends CountingBaseListOperator {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Defined here rather than by `createStateVariable` on the attribute,
+        // because the two readers of `type` do not share a default and only one
+        // of them may be advertised. `categories` resolves this variable
+        // through `parentStateVariable`, and falls back to text — the reading
+        // that survives comparison against values of any type. Bare string
+        // children resolve the *attribute*, in sugar, and have no fallback at
+        // all: read as text by default, `<tally>1 2 10</tally>` would order its
+        // categories `1, 10, 2`, so the author is asked which type they meant.
+        //
+        // Declaring the default on the attribute would publish it to the
+        // schema, and the generated reference would then promise a default that
+        // bare children reject.
+        stateVariableDefinitions.type = {
+            returnDependencies: () => ({
+                typeAttr: {
+                    dependencyType: "attributePrimitive",
+                    attributeName: "type",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: { type: dependencyValues.typeAttr ?? "text" },
+                };
+            },
+        };
 
         stateVariableDefinitions.countValues = {
             returnDependencies: () => ({
@@ -404,9 +428,14 @@ function comparableCategory(raw, numeric) {
         return value;
     }
 
-    return Number.isFinite(numericalValue)
-        ? { numericalValue, textValue: raw, isNumeric: true }
-        : value;
+    // `NaN` is the only result that is not a number here, which is the test
+    // `comparableValueFromRaw` applies to a math value. An infinity is a
+    // number the comparison handles — it compares equal to itself before any
+    // subtraction — so `categories="1/0"` counts what `categories="Infinity"`
+    // counts, rather than the two disagreeing over the same value.
+    return Number.isNaN(numericalValue)
+        ? value
+        : { numericalValue, textValue: raw, isNumeric: true };
 }
 
 /**

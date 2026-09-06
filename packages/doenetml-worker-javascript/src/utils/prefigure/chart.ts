@@ -473,40 +473,41 @@ export function createBarChartPrefigureXML({
     const lastTick = tickAtOrBeyond(yMax, step, -1);
     const vlabels = `(${formatNumber(firstTick)},${formatNumber(step)},${formatNumber(lastTick)})`;
 
-    const [wantedBottom, marginRight, wantedTop] =
+    const [wantedBottom, wantedRight, wantedTop] =
         CHART_MARGINS_BOTTOM_RIGHT_TOP;
 
-    // The vertical margins are fixed pixel counts, so on a short enough frame
-    // they exceed it: at `size="tiny"` the frame is 70x46.67 and the 46px of
-    // top and bottom margin leave a plot one pixel tall, while an
-    // `aspectRatio="2"` frame of 35px is 12px shorter than the diagram its own
-    // margins produce, which the renderer then clips. Capped at half the frame
-    // and scaled together, for the reason the left margin is capped: room
-    // reserved around a drawing is only worth having if a drawing is left.
+    // The left margin has to know the labels before the box is sized, since it
+    // is what stops the widest of them being clipped — the labels of
+    // `<barChart>1e308</barChart>` run to 411 characters and ask for 3713
+    // pixels of it.
+    const wantedLeft =
+        AXIS_LABEL_MARGIN_BASE +
+        AXIS_LABEL_MARGIN_PER_CHARACTER *
+            widestTickLabelLength(firstTick, lastTick, step);
+
+    // Both pairs are then fitted to the frame, which leaves each of them at
+    // most half of it. That is what makes the two dimensions below exact: the
+    // margins are drawn around `dimensions`, so a diagram whose margins do not
+    // fit is larger than the frame holding it and the renderer clips the
+    // difference — which is what a `size="tiny"` chart did, and what an
+    // `aspectRatio` of a million does from the other direction, by asking for a
+    // frame a fraction of a pixel tall.
+    const [marginLeft, marginRight] = fitMargins(
+        widthPx,
+        wantedLeft,
+        wantedRight,
+    );
     const [marginBottom, marginTop] = fitMargins(
         heightPx,
         wantedBottom,
         wantedTop,
     );
 
-    // The left margin has to know the labels before the box is sized, since it
-    // is what stops the widest of them being clipped. Capped at half the
-    // chart, because a gutter wide enough to swallow the drawing is worse than
-    // a clipped number: the labels of `<barChart>1e308</barChart>` run to 411
-    // characters, which would reserve 3713 pixels around a drawing one pixel
-    // wide.
-    const marginLeft = Math.min(
-        AXIS_LABEL_MARGIN_BASE +
-            AXIS_LABEL_MARGIN_PER_CHARACTER *
-                widestTickLabelLength(firstTick, lastTick, step),
-        Math.max(Math.floor(widthPx / 2), AXIS_LABEL_MARGIN_BASE),
-    );
-    // The margins are added around `dimensions`, so shrink it by them to keep
-    // the chart the size the frame reserved for it. A chart small enough for
-    // the margins to swallow it keeps a positive inner size rather than
-    // collapsing.
-    const innerWidth = Math.max(widthPx - marginLeft - marginRight, 1);
-    const innerHeight = Math.max(heightPx - marginBottom - marginTop, 1);
+    // Positive without being floored at a pixel, since fitting the margins
+    // already leaves at least half the frame to draw in. Flooring at 1 was what
+    // made a fraction-of-a-pixel frame hold a 1px drawing.
+    const innerWidth = widthPx - marginLeft - marginRight;
+    const innerHeight = heightPx - marginBottom - marginTop;
     const dimensions = `(${formatNumber(innerWidth)},${formatNumber(innerHeight)})`;
     const margins = `[${marginLeft},${marginBottom},${marginRight},${marginTop}]`;
 

@@ -25,8 +25,10 @@ be set on its own. Bars are measured from zero whatever the axis shows, so a `yM
 zero cuts them off at the bottom of the frame. A value that is not a finite number gets no
 bar, and says so in a warning.
 
-`size` — or an explicit `width` — sets how wide the chart is, `aspectRatio` its width over
-its height, and `barWidth` how much of its slot each bar fills. Read back, `yMin`, `yMax`,
+`size` sets how wide the chart is, `aspectRatio` its width over its height, and
+`barWidth` how much of its slot each bar fills. A `width` may be given instead of a
+`size`, and picks the nearest preset rather than being used exactly, so `width="400px"`
+draws the same chart as `size="medium"`. Read back, `yMin`, `yMax`,
 `barWidth` and `aspectRatio` report **what the chart was drawn with**, so `$chart.yMax` is
 the top of the axis you can see rather than the one you asked for.
 
