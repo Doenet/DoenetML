@@ -318,7 +318,9 @@ describe("summaryStatistics tag tests @group4", async () => {
     `);
 
             expect(sv.summaryStatistics.mean).eq("1.67");
-            // Rounding is for display only — the property keeps full precision.
+            // The state variable keeps full precision; what an author sees
+            // from `$s.mean` is rounded, since the reference carries the
+            // same display setting the table does.
             expect(sv.mean).closeTo(5 / 3, 1e-12);
         });
 

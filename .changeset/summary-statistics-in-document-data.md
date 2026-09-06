@@ -29,7 +29,7 @@ Every statistic is a readable property as well as a table cell, so a sentence an
 Four further things that could only surface once the component ran at all:
 
 - The statistics are plain numbers, but they were passed to `roundForDisplay`, which takes and returns math-expressions — it threw, and would have handed the renderer an `Expression` to put in a table cell. They are now lifted into an expression for rounding and rendered back to a string.
-- `count` was rounded along with everything else, so `displayDigits="3"` would have reported 1234 observations as 1230. A count is an exact tally and is no longer rounded. Rounding applies only to the table; the properties keep full precision.
+- `count` was rounded along with everything else, so `displayDigits="3"` would have reported 1234 observations as 1230. A count is an exact tally and is no longer rounded, while every other statistic rounds in the table and in a reference to it alike.
 - An empty list reached `sum`, which reduces without an initial value, and `Math.min`, which answers `Infinity` for nothing. Reachable now that children supply the data — a `<repeat>` that produced nothing — so every statistic but `count` reports nothing rather than failing.
 - `padZeros` and `avoidScientificNotation` were accepted as attributes but never reached the table: the rounded value was written out with no display parameters, so `displayDecimals="3" padZeros` showed a mean of 1.5 as `1.5`, and `avoidScientificNotation` left a small mean in scientific notation. Both now apply, alongside `displayDigits`, `displayDecimals` and `displaySmallAsZero`.
 
