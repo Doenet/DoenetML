@@ -102,12 +102,6 @@ do not sum to the number of values. That is reported as an information message r
 than a warning, since a list fed by an input legitimately holds values outside the
 categories while a student is still typing.
 
-A value that is not a number at all — a `<number>{:dn}` whose content does not parse —
-matches nothing in the same way, and so falls under that same message when the
-categories are declared. When they are inferred it gets no category and no message: a
-value that is not equal even to itself cannot be a category, and every occurrence would
-otherwise become one of its own, labeled `NaN` and counted zero times.
-
 
 ## Attribute Examples
 
