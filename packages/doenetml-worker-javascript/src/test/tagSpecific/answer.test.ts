@@ -3441,6 +3441,223 @@ Enter any letter:
         });
     });
 
+    // An index that is itself a reference — `$mis[$k]` rather than `$mis[1]` —
+    // is two separate components where the author wrote the same thing twice,
+    // once in the attribute and once in the `<when>`. Matching the attribute
+    // against the descendant it points at therefore has to compare what those
+    // two components refer to; comparing them as values says an index differs
+    // from itself, and the input is graded but never recorded.
+    it("referencesAreResponses recognizes an index that is itself a reference", async () => {
+        async function submitAndGetResponses(index: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <setup>
+          <group name="mis">$mi1 $mi2</group>
+          <number name="k">1</number>
+          <number name="j">2</number>
+        </setup>
+        <answer name="ans">
+          <award referencesAreResponses="$mis${index}"><when>$mis${index} = 1</when></award>
+        </answer>
+        `,
+            });
+
+            await updateMathInputValue({
+                latex: "1",
+                componentIdx: await resolvePathToNodeIdx("mi1"),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx("ans"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const answer =
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues;
+            return {
+                credit: answer.creditAchieved,
+                current: answer.currentResponses.map((r: any) => r.tree),
+                submitted: answer.submittedResponses.map((r: any) => r.tree),
+            };
+        }
+
+        expect(await submitAndGetResponses("[$k]")).eqls({
+            credit: 1,
+            current: [1],
+            submitted: [1],
+        });
+
+        // The literal index, which worked all along, for contrast.
+        expect(await submitAndGetResponses("[1]")).eqls({
+            credit: 1,
+            current: [1],
+            submitted: [1],
+        });
+
+        // An index that is an expression rather than a bare reference — the
+        // `$i - 1` an author writes inside a `<repeat>`. Here the index is
+        // built out of children (a reference and the text after it) rather
+        // than being a reference itself, so it is the children that have to
+        // agree.
+        expect(await submitAndGetResponses("[$j - 1]")).eqls({
+            credit: 1,
+            current: [1],
+            submitted: [1],
+        });
+    });
+
+    // An index is compared by where its reference lands, not by how it was
+    // spelled. `$holder.k` and `$k` reach one number by two routes, so they
+    // name one index, and the reference *around* the index is already matched
+    // that way.
+    it("referencesAreResponses recognizes an index reference written two ways", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <setup>
+          <group name="mis">$mi1 $mi2</group>
+          <group name="holder"><number name="k">1</number></group>
+        </setup>
+        <answer name="ans">
+          <award referencesAreResponses="$mis[$holder.k]"><when>$mis[$k] = 1</when></award>
+        </answer>
+        `,
+        });
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const answer =
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues;
+        expect(answer.creditAchieved).eq(1);
+        expect(answer.currentResponses.map((r: any) => r.tree)).eqls([1]);
+    });
+
+    // The comparison must still tell two different indices apart.
+    it("referencesAreResponses does not recognize a different reference index", async () => {
+        async function submitAndGetResponses(
+            attributeIndex: string,
+            whenIndex: string,
+        ) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <setup>
+          <group name="mis">$mi1 $mi2</group>
+          <number name="k">1</number>
+          <number name="j">2</number>
+        </setup>
+        <answer name="ans">
+          <award referencesAreResponses="$mis${attributeIndex}"><when>$mis${whenIndex} = 1</when></award>
+        </answer>
+        `,
+            });
+
+            await updateMathInputValue({
+                latex: "1",
+                componentIdx: await resolvePathToNodeIdx("mi1"),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx("ans"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const answer =
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues;
+            return {
+                credit: answer.creditAchieved,
+                current: answer.currentResponses,
+            };
+        }
+
+        // `$mis[$j]` names the second input, so the first one is not its
+        // response: the two indices refer to different components.
+        expect(await submitAndGetResponses("[$j]", "[$k]")).eqls({
+            credit: 1,
+            current: [],
+        });
+
+        // A bare reference against an expression built around the same
+        // reference: `$k` alone and `$k + 1` are not even the same kind of
+        // component.
+        expect(await submitAndGetResponses("[$k + 1]", "[$k]")).eqls({
+            credit: 1,
+            current: [],
+        });
+
+        // Two expressions around the *same* reference, so neither the kind of
+        // component nor the referent tells them apart — only the text written
+        // after `$j`, which is where the children have to be compared.
+        expect(await submitAndGetResponses("[$j + 0]", "[$j - 1]")).eqls({
+            credit: 1,
+            current: [],
+        });
+    });
+
+    // The form the fix is for: the index is the `<repeat>`'s iteration value,
+    // which is the only thing an author has to write there. Each iteration
+    // gets its own copy of both references, renumbered as the body is
+    // duplicated, so the match has to hold up per iteration rather than once
+    // for the document.
+    it("referencesAreResponses recognizes a repeat's iteration value as an index", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <setup><group name="inputs"><mathInput name="a" /><mathInput name="b" /></group></setup>
+        <repeat name="r" for="1 2" valueName="i">
+          <answer name="ans">
+            <award referencesAreResponses="$inputs[$i]"><when>$inputs[$i] = 1</when></award>
+          </answer>
+        </repeat>
+        `,
+        });
+
+        for (const input of ["a", "b"]) {
+            await updateMathInputValue({
+                latex: "1",
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+        }
+
+        for (const iteration of [1, 2]) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(`r[${iteration}].ans`),
+                core,
+            });
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const iteration of [1, 2]) {
+            const answer =
+                stateVariables[
+                    await resolvePathToNodeIdx(`r[${iteration}].ans`)
+                ].stateValues;
+            expect({
+                credit: answer.creditAchieved,
+                current: answer.currentResponses.map((r: any) => r.tree),
+                submitted: answer.submittedResponses.map((r: any) => r.tree),
+            }).eqls({ credit: 1, current: [1], submitted: [1] });
+        }
+    });
+
     it("isResponse from referencesAreResponses is not recursively copied", async () => {
         const doenetML = `
         <mathInput name="mi" />

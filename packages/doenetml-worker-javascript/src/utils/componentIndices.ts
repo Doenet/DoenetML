@@ -130,11 +130,9 @@ function newComponentIndicesForExtending(
         num: number;
     },
 ) {
-    let newExtending: Source<SerializedRefResolution> = extending;
-
     const refResolution = unwrapSource(extending);
 
-    let originalPath: SerializedRefResolutionPathPart[] = [];
+    const originalPath: SerializedRefResolutionPathPart[] = [];
     for (const pathPath of refResolution.originalPath) {
         const newPathPart = { ...pathPath };
         const index: SerializedPathIndex[] = [];
@@ -154,13 +152,19 @@ function newComponentIndicesForExtending(
         }
         newPathPart.index = index;
         originalPath.push(newPathPart);
-
-        const newRefResolution = { ...refResolution };
-        newRefResolution.originalPath = originalPath;
-
-        newExtending = addSource(newRefResolution, extending);
     }
-    return { extending: newExtending, nComponents };
+
+    // Clone once, after the path has been rebuilt, so that a duplicate never
+    // shares its `extending` with the component it was copied from. A path
+    // with no parts at all reaches here from an unresolvable reference
+    // (`convertNormalizedDast` gives those an empty `originalPath`), and that
+    // is the case that would otherwise hand back the source's own object.
+    const newRefResolution = { ...refResolution, originalPath };
+
+    return {
+        extending: addSource(newRefResolution, extending),
+        nComponents,
+    };
 }
 
 function newComponentIndicesForAttributes(

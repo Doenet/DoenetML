@@ -487,12 +487,22 @@ export class Dependency {
                 // component is the one that carries the reference; its
                 // resolution remembers where in the document it was read
                 // from, which is why the lookup belongs here.
+                //
+                // A component that takes its reference in an attribute —
+                // `<updateValue target="$p.styleDescription[1]" />` — is not
+                // itself a reference and so has no resolution to read. The
+                // `$…` sits on a separate component behind the attribute,
+                // which is not the component this dependency hangs off.
+                // Those components pass the path along with the dependency
+                // instead, and it is then the only record of what the author
+                // typed that is reachable from here.
                 const referringComponent =
                     this.dependencyHandler.core._components[
                         this.upstreamComponentIdx
                     ];
                 const referenceText = doenetMLStringForReference(
-                    referringComponent?.refResolution?.originalPath,
+                    this.definition.referenceOriginalPath ??
+                        referringComponent?.refResolution?.originalPath,
                     this.dependencyHandler.core.allDoenetMLs,
                 );
                 mappedVarNames = await arrayEntryNamesFromPropIndex({
@@ -503,9 +513,13 @@ export class Dependency {
                     reference: referenceText
                         ? {
                               text: `$${referenceText}`,
-                              // Marked where the index was written.
-                              position: referringComponent.position,
-                              sourceDoc: referringComponent.sourceDoc,
+                              // Marked where the index was written. Read
+                              // with `?.`: a path carried on the dependency
+                              // yields text whether or not the component
+                              // that dependency hangs off is still there to
+                              // be found.
+                              position: referringComponent?.position,
+                              sourceDoc: referringComponent?.sourceDoc,
                           }
                         : undefined,
                 });
