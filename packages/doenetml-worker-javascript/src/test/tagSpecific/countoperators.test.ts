@@ -395,6 +395,44 @@ describe("Counting operator tag tests @group4", async () => {
             });
         });
 
+        it("an explicit type reaches the categories however it is spelled", async () => {
+            // DoenetML matches attribute names case-insensitively, so the two
+            // routes `type` reaches `categories` by have to match it the same
+            // way. The type the categories are *wrapped* with is copied down
+            // from the attribute as the author spelled it, while the type they
+            // are *read back* as resolves through the parent's state variable,
+            // which is matched case-insensitively. A case-sensitive copy left
+            // the two disagreeing: the categories were built as text and then
+            // reported as booleans, where `"false"` is a non-empty string and
+            // so reads back as `true`, giving two categories named `true`, a
+            // spurious repeated-category warning, and counts that no longer
+            // describe the data.
+            for (const spelling of ["type", "Type", "TYPE"]) {
+                let { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <booleanList name="b">true false true</booleanList>
+    <tally name="t" ${spelling}="boolean" categories="true false">$b</tally>
+    <p name="pCounts">$t</p>
+    <p name="pCategories">$t.categories</p>
+    `,
+                });
+
+                await expectText({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: "pCounts",
+                    text: "2, 1",
+                });
+                await expectText({
+                    core,
+                    resolvePathToNodeIdx,
+                    name: "pCategories",
+                    text: "true, false",
+                });
+                expect(getDiagnosticsByType(core).warnings.length).eq(0);
+            }
+        });
+
         it("a value that is not a number is no category at all", async () => {
             // A `NaN` equals nothing, not even another `NaN`, so left in it
             // would become one category per occurrence, each labeled `NaN` and
