@@ -1713,16 +1713,37 @@ function validateAttributeValue({
                     );
                 }
             }
+            // Two messages, because there are two outcomes and the author
+            // can act on only one of them. An attribute with a real default
+            // is *replaced*, and naming the replacement is the whole point of
+            // saying anything — `displayMode="sideways"` draws as `block`,
+            // and an author who is not told that goes looking for a bug in
+            // the wrong place. An attribute whose default is `null` is
+            // *dropped* instead: nothing stood in for the value, and the
+            // component behaves as though the attribute had not been written.
+            // Reporting that as "using value `null`" describes a fallback
+            // that did not happen, and names a value no author could have
+            // typed. (`null` is the only nothing that reaches here — an
+            // undefined default threw above.)
             diagnostics.push(
-                codedDiagnostic({
-                    type: "info",
-                    code: "doenet-i0048",
-                    args: {
-                        value: String(valueOrig),
-                        attribute,
-                        default: String(defaultValue),
-                    },
-                }),
+                defaultValue === null
+                    ? codedDiagnostic({
+                          type: "info",
+                          code: "doenet-i0051",
+                          args: {
+                              value: String(valueOrig),
+                              attribute,
+                          },
+                      })
+                    : codedDiagnostic({
+                          type: "info",
+                          code: "doenet-i0048",
+                          args: {
+                              value: String(valueOrig),
+                              attribute,
+                              default: String(defaultValue),
+                          },
+                      }),
             );
             value = defaultValue;
         }

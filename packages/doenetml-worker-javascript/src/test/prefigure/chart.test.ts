@@ -2,12 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 import { getGraphRendererState, getWarnings } from "./graph-prefigure.helpers";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-/** The PreFigure XML `<barChart name="c">` produces. */
+/** The PreFigure XML `<chart type="bar" name="c">` produces. */
 async function chartXML(
     doenetML: string,
     options: { theme?: "dark" | "light" } = {},
@@ -16,13 +17,210 @@ async function chartXML(
 }
 
 const FOUR_BARS = `
-    <barChart name="c" categories="North South East West">
+    <chart type="bar" name="c" categories="North South East West">
       <shortDescription>Counts by region</shortDescription>
       <number>41</number><number>63</number><number>18</number><number>78</number>
-    </barChart>
+    </chart>
     `;
 
-describe("barChart prefigure tests @group4", async () => {
+describe("chart prefigure tests @group4", async () => {
+    describe("chart type", async () => {
+        it("draws nothing and warns when no type is named", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart name="c" categories="A B C"><number>4</number><number>9</number><number>2</number></chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+
+            // Null rather than an empty diagram: the renderer takes it as
+            // "put nothing on the page", so a typeless chart leaves no frame
+            // behind that would read as a chart that failed to load.
+            expect(chart.prefigureXML).eq(null);
+
+            const { warnings } = getDiagnosticsByType(core);
+            expect(warnings.map((w) => w.code)).toContain("doenet-w0146");
+        });
+
+        it("treats a type it does not know as no type at all", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart name="c" type="pie"><number>4</number></chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            expect(
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML,
+            ).eq(null);
+            // `bar` would be the only type to fall back to, and falling back to
+            // it would draw a chart nobody asked for.
+            expect(sv[await resolvePathToNodeIdx("c")].stateValues.type).eq(
+                null,
+            );
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.code)).toContain("doenet-w0146");
+            // The rejected value is named too, in a message of its own, which
+            // is why the warning above does not assume the attribute is
+            // missing.
+            expect(d.infos.some((i) => i.message.includes("pie"))).eq(true);
+        });
+
+        it("reports no axis for a chart that was not drawn", async () => {
+            // `yMin`/`yMax` report what the chart was drawn with, and nothing
+            // was: a number here would describe an axis that is not on screen.
+            // A chart that *was* drawn always has both, so the reading of
+            // `NaN` is unambiguous — it is this case and no other.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart name="c"><number>4</number></chart>
+    <p name="bounds">$c.yMin, $c.yMax</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            expect(
+                sv[await resolvePathToNodeIdx("bounds")].stateValues.text,
+            ).eq("NaN, NaN");
+
+            // The values are still readable: they are what the children say,
+            // whatever is done with them.
+            expect(sv[await resolvePathToNodeIdx("c")].stateValues.values).eqls(
+                [4],
+            );
+        });
+
+        it("says nothing about the type once one is named", async () => {
+            const { core } = await createTestCore({
+                doenetML: `
+    <chart type="bar"><number>4</number></chart>
+    `,
+            });
+            await core.returnAllStateVariables(false, true);
+            expect(
+                getDiagnosticsByType(core).warnings.map((w) => w.code),
+            ).not.toContain("doenet-w0146");
+        });
+
+        it("accepts the type in any case", async () => {
+            const xml = await chartXML(`
+    <chart name="c" type="Bar"><number>4</number></chart>
+    `);
+            expect(xml).toContain("<rectangle ");
+        });
+
+        it("takes an empty type as no type at all", async () => {
+            // Both of these reach the attribute as the empty string rather
+            // than as an absent attribute — `type=""` because that is what was
+            // written, `type="$nope"` because a reference with no referent
+            // supplies nothing. Neither names a chart, so both draw nothing.
+            for (const written of [`type=""`, `type="$nope"`]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `<chart name="c" ${written}><number>4</number></chart>`,
+                });
+                const sv = await core.returnAllStateVariables(false, true);
+                const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+
+                expect(chart.type).eq(null);
+                expect(chart.prefigureXML).eq(null);
+                expect(
+                    getDiagnosticsByType(core).warnings.map((w) => w.code),
+                ).toContain("doenet-w0146");
+            }
+        });
+
+        it("follows a type that changes while the document is open", async () => {
+            // The reason the choice of chart is an attribute rather than a tag
+            // of its own: it can be computed, so one document can draw the same
+            // values however a student asks for them. The chart therefore has
+            // to appear and disappear as the type changes, not just be decided
+            // once when the document loads.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textInput name="ti" prefill="pie" />
+    <chart name="c" type="$ti"><number>4</number></chart>
+    `,
+            });
+            const chart = async () =>
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("c")
+                ].stateValues;
+            const ti = await resolvePathToNodeIdx("ti");
+
+            // Starts on a type there is no chart for, so nothing is drawn.
+            expect((await chart()).type).eq(null);
+            expect((await chart()).prefigureXML).eq(null);
+
+            await updateTextInputValue({ text: "bar", componentIdx: ti, core });
+            expect((await chart()).type).eq("bar");
+            expect((await chart()).prefigureXML).toContain("<rectangle ");
+            expect((await chart()).yMax).eq(5);
+
+            // And back: the chart goes away again rather than keeping the last
+            // drawing it managed.
+            await updateTextInputValue({ text: "pie", componentIdx: ti, core });
+            expect((await chart()).prefigureXML).eq(null);
+            expect((await chart()).yMax).eq(null);
+        });
+
+        it("carries the type through a chart that extends another", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart name="c" type="bar"><number>4</number></chart>
+    <chart extend="$c" name="copy" />
+    <chart extend="$c" name="untyped" type="pie" />
+    <chart name="none"><number>4</number></chart>
+    <chart extend="$none" name="typed" type="bar" />
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const stateValues = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues;
+
+            // A plain copy draws what it copied.
+            expect((await stateValues("copy")).type).eq("bar");
+            expect((await stateValues("copy")).prefigureXML).toContain(
+                "<rectangle ",
+            );
+
+            // Overriding with a type there is no chart for turns the copy off
+            // and leaves the chart it extends drawn.
+            expect((await stateValues("untyped")).type).eq(null);
+            expect((await stateValues("untyped")).prefigureXML).eq(null);
+            expect((await stateValues("c")).prefigureXML).toContain(
+                "<rectangle ",
+            );
+
+            // And the other way: a copy can name the type its source never did.
+            expect((await stateValues("typed")).type).eq("bar");
+            expect((await stateValues("typed")).prefigureXML).toContain(
+                "<rectangle ",
+            );
+        });
+
+        it("still reports the markup's own problems when nothing is drawn", async () => {
+            // Deliberate. `barWidth` is wrong however the chart is drawn, and a
+            // chart with no short description will be inaccessible the moment a
+            // type is named, so both are reported alongside the missing type
+            // rather than held back until it is supplied — otherwise fixing the
+            // type is what reveals the next problem. Only the drawing is gated
+            // on `chartGeometry`; the checks feeding it are not.
+            const { core } = await createTestCore({
+                doenetML: `
+    <chart name="c" barWidth="5"><number>4</number></chart>
+    `,
+            });
+            await core.returnAllStateVariables(false, true);
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.code)).toEqual(
+                expect.arrayContaining(["doenet-w0143", "doenet-w0146"]),
+            );
+            expect(d.accessibility.length).eq(1);
+        });
+    });
+
     describe("diagram shape", async () => {
         it("emits one rectangle and one tick mark per bar", async () => {
             const xml = await chartXML(FOUR_BARS);
@@ -80,7 +278,7 @@ describe("barChart prefigure tests @group4", async () => {
             // a whole step could not reach 0.1 or 0.9, so the axis is labeled
             // in fractions even though every bar is an integer.
             const xml = await chartXML(`
-    <barChart name="c" yMin="0.1" yMax="0.9"><number>1</number></barChart>
+    <chart type="bar" name="c" yMin="0.1" yMax="0.9"><number>1</number></chart>
     `);
 
             const step = Number(xml.match(/vlabels="\([^,]*,([^,]*),/)?.[1]);
@@ -92,10 +290,10 @@ describe("barChart prefigure tests @group4", async () => {
             // thousands lost the leading digit of `1,500`, because PreFigure
             // draws the separator too. Ordinary sample sizes, not exotic ones.
             const small = await chartXML(`
-    <barChart name="c"><number>41</number><number>78</number></barChart>
+    <chart type="bar" name="c"><number>41</number><number>78</number></chart>
     `);
             const large = await chartXML(`
-    <barChart name="c"><number>503</number><number>1064</number></barChart>
+    <chart type="bar" name="c"><number>503</number><number>1064</number></chart>
     `);
 
             expect(small).toContain('margins="[32,30,12,16]"');
@@ -115,7 +313,7 @@ describe("barChart prefigure tests @group4", async () => {
             // So the width is asserted exactly rather than as a lower bound: it
             // is `0.00025`, the widest label actually drawn, and nothing else.
             const xml = await chartXML(`
-    <barChart name="c"><number>0.0001</number><number>0.0002</number></barChart>
+    <chart type="bar" name="c"><number>0.0001</number><number>0.0002</number></chart>
     `);
 
             expect(xml).toContain('vlabels="(0,0.00005,0.00025)"');
@@ -132,7 +330,7 @@ describe("barChart prefigure tests @group4", async () => {
             // fractional: this axis runs from -1 to 1 in halves, so the widest
             // label drawn is `-0.5`, wider than either end.
             const xml = await chartXML(`
-    <barChart name="c"><number>-0.9</number><number>0.9</number></barChart>
+    <chart type="bar" name="c"><number>-0.9</number><number>0.9</number></chart>
     `);
 
             expect(xml).toContain('vlabels="(-1,0.5,1)"');
@@ -145,7 +343,7 @@ describe("barChart prefigure tests @group4", async () => {
             // hundreds of characters. Left uncapped, the margin they ask for
             // leaves a drawing one pixel wide inside a chart of gutter.
             const xml = await chartXML(`
-    <barChart name="c"><number>1e308</number></barChart>
+    <chart type="bar" name="c"><number>1e308</number></chart>
     `);
 
             const margin = Number(xml.match(/margins="\[([^,]*),/)?.[1]);
@@ -162,11 +360,11 @@ describe("barChart prefigure tests @group4", async () => {
             // than the 35px frame holding it, which the renderer clips.
             for (const { markup, frameHeight } of [
                 {
-                    markup: `<barChart name="c" size="tiny"><number>4</number></barChart>`,
+                    markup: `<chart type="bar" name="c" size="tiny"><number>4</number></chart>`,
                     frameHeight: 70 / 1.5,
                 },
                 {
-                    markup: `<barChart name="c" size="tiny" aspectRatio="2"><number>4</number></barChart>`,
+                    markup: `<chart type="bar" name="c" size="tiny" aspectRatio="2"><number>4</number></chart>`,
                     frameHeight: 70 / 2,
                 },
             ]) {
@@ -197,7 +395,7 @@ describe("barChart prefigure tests @group4", async () => {
             // for a frame a fraction of a pixel tall, which the margins dwarf.
             for (const ratio of ["1000000", "1000", "0.001"]) {
                 const xml = await chartXML(
-                    `<barChart name="c" aspectRatio="${ratio}"><number>4</number></barChart>`,
+                    `<chart type="bar" name="c" aspectRatio="${ratio}"><number>4</number></chart>`,
                 );
 
                 const [marginLeft, marginBottom, marginRight, marginTop] = xml
@@ -228,7 +426,7 @@ describe("barChart prefigure tests @group4", async () => {
             // layout was designed around.
             for (const size of ["small", "medium", "large", "full"]) {
                 const xml = await chartXML(
-                    `<barChart name="c" size="${size}"><number>4</number></barChart>`,
+                    `<chart type="bar" name="c" size="${size}"><number>4</number></chart>`,
                 );
                 expect(xml).toContain(",30,12,16]");
             }
@@ -236,7 +434,7 @@ describe("barChart prefigure tests @group4", async () => {
 
         it("reserves room for a minus sign on a chart that goes below zero", async () => {
             const xml = await chartXML(`
-    <barChart name="c"><number>-1200</number><number>400</number></barChart>
+    <chart type="bar" name="c"><number>-1200</number><number>400</number></chart>
     `);
 
             // The negative end is the longest label, so it sets the width.
@@ -251,7 +449,7 @@ describe("barChart prefigure tests @group4", async () => {
             // 212.5 tall, less the 30 + 16 of vertical margin, and 425 less the
             // 23 + 12 of horizontal margin across.
             const { graphState } = await getGraphRendererState(
-                `<barChart name="c" aspectRatio="2"><number>4</number></barChart>`,
+                `<chart type="bar" name="c" aspectRatio="2"><number>4</number></chart>`,
                 "c",
             );
             expect(graphState.aspectRatio).eq(2);
@@ -265,7 +463,7 @@ describe("barChart prefigure tests @group4", async () => {
             // height around a drawing of some other shape.
             for (const bad of ["0", "-2", "x"]) {
                 const { graphState: fallback } = await getGraphRendererState(
-                    `<barChart name="c" aspectRatio="${bad}"><number>4</number></barChart>`,
+                    `<chart type="bar" name="c" aspectRatio="${bad}"><number>4</number></chart>`,
                     "c",
                 );
                 expect(fallback.aspectRatio).eq(1.5);
@@ -296,10 +494,10 @@ describe("barChart prefigure tests @group4", async () => {
 
         it("escapes author text on its way into the XML", async () => {
             const xml = await chartXML(`
-    <barChart name="c" categories="'a&amp;b' '&lt;c&gt;'">
+    <chart type="bar" name="c" categories="'a&amp;b' '&lt;c&gt;'">
       <shortDescription>Q &amp; A &lt;here&gt;</shortDescription>
       <number>1</number><number>2</number>
-    </barChart>
+    </chart>
     `);
 
             expect(xml).toContain(">&apos;a&amp;b&apos;</tick-mark>");
@@ -323,29 +521,49 @@ describe("barChart prefigure tests @group4", async () => {
             // 80 is already a multiple of the step, so the box goes one step
             // further rather than clipping the bar against the frame.
             const xml = await chartXML(`
-    <barChart name="c"><number>80</number></barChart>
+    <chart type="bar" name="c"><number>80</number></chart>
     `);
             expect(xml).toContain('bbox="(0,0,2,100)"');
         });
 
         it("honors an explicit yMax", async () => {
             const xml = await chartXML(`
-    <barChart name="c" yMax="100"><number>41</number><number>63</number></barChart>
+    <chart type="bar" name="c" yMax="100"><number>41</number><number>63</number></chart>
     `);
             expect(xml).toContain('bbox="(0,0,3,100)"');
+        });
+
+        it("trims the bars to the box when a bound cuts across them", async () => {
+            // Every bar is measured from zero, so `yMin="5"` leaves the whole
+            // of the bar of 4 and the bar of 2 below the axis, and the lower
+            // two thirds of the bar of 9. Unclipped, PreFigure paints those
+            // parts outside the frame — over the category labels beneath it
+            // and off the bottom of the picture — so the bar geometry stays as
+            // the data has it and the drawing is clipped to the box instead.
+            const xml = await chartXML(`
+    <chart type="bar" name="c" categories="A B C" yMin="5"><number>4</number><number>9</number><number>2</number></chart>
+    `);
+            expect(xml).toContain('bbox="(0,5,4,10)"');
+            // All three bars are still emitted, measured from zero: the axis
+            // is what hides two of them, not the geometry.
+            expect((xml.match(/<rectangle /g) ?? []).length).eq(3);
+            expect(xml).toContain(
+                '<rectangle at="bar-1" lower-left="(0.6,0)" dimensions="(0.8,4)" cliptobbox="yes"',
+            );
+            expect((xml.match(/cliptobbox="yes"/g) ?? []).length).eq(3);
         });
 
         it("gives an empty chart a box one tick tall", async () => {
             // Zeros rather than nothing: an empty chart should read as empty,
             // not as broken.
-            const xml = await chartXML(`<barChart name="c" />`);
+            const xml = await chartXML(`<chart type="bar" name="c" />`);
             expect(xml).toContain('bbox="(0,0,1,1)"');
             expect(xml).not.toContain("<rectangle ");
         });
 
         it("drops the floor below zero for a negative value", async () => {
             const xml = await chartXML(`
-    <barChart name="c"><number>5</number><number>-3</number></barChart>
+    <chart type="bar" name="c"><number>5</number><number>-3</number></chart>
     `);
             // One tick of room past the extremes on both sides.
             expect(xml).toContain('bbox="(0,-4,3,6)"');
@@ -360,14 +578,14 @@ describe("barChart prefigure tests @group4", async () => {
             // -4, -2, 0 ... only by luck; with an odd floor it would never
             // mark the axis the bars are measured from.
             const xml = await chartXML(`
-    <barChart name="c"><number>5</number><number>-3</number></barChart>
+    <chart type="bar" name="c"><number>5</number><number>-3</number></chart>
     `);
             expect(xml).toContain('vlabels="(-4,2,6)"');
         });
 
         it("keeps zero in view when every bar hangs below it", async () => {
             const xml = await chartXML(`
-    <barChart name="c"><number>-5</number><number>-3</number></barChart>
+    <chart type="bar" name="c"><number>-5</number><number>-3</number></chart>
     `);
             // The box is a whole number of ticks in both directions, so the
             // run of labels reaches the top of it and passes through zero.
@@ -379,7 +597,7 @@ describe("barChart prefigure tests @group4", async () => {
             // A step chosen from the single bar of height 1 would be 1, and a
             // thousand labels would be written down the axis.
             const xml = await chartXML(`
-    <barChart name="c" yMin="0" yMax="1000"><number>1</number></barChart>
+    <chart type="bar" name="c" yMin="0" yMax="1000"><number>1</number></chart>
     `);
             expect(xml).toContain('bbox="(0,0,2,1000)"');
             expect(xml).toContain('vlabels="(0,200,1000)"');
@@ -398,7 +616,7 @@ describe("barChart prefigure tests @group4", async () => {
                 'yMax="Infinity"',
             ]) {
                 const xml = await chartXML(`
-    <barChart name="c" ${bounds}><number>4</number></barChart>
+    <chart type="bar" name="c" ${bounds}><number>4</number></chart>
     `);
                 expect(xml).toContain('bbox="(0,0,2,5)"');
                 expect(xml).not.toContain("null");
@@ -412,7 +630,7 @@ describe("barChart prefigure tests @group4", async () => {
             // Anchoring the run at the bounds instead would label this box at
             // 10, 30, 50, 70, 90.
             const xml = await chartXML(`
-    <barChart name="c" yMin="10" yMax="95"><number>50</number></barChart>
+    <chart type="bar" name="c" yMin="10" yMax="95"><number>50</number></chart>
     `);
             expect(xml).toContain('bbox="(0,10,2,95)"');
             expect(xml).toContain('vlabels="(20,20,80)"');
@@ -423,7 +641,7 @@ describe("barChart prefigure tests @group4", async () => {
             // are not labeled in halves — but proportions are not counts, and
             // a box from 0 to 1 labeled only at its ends says nothing.
             const xml = await chartXML(`
-    <barChart name="c"><number>0.35</number><number>0.42</number><number>0.28</number></barChart>
+    <chart type="bar" name="c"><number>0.35</number><number>0.42</number><number>0.28</number></chart>
     `);
             expect(xml).toContain('bbox="(0,0,4,0.5)"');
             expect(xml).toContain('vlabels="(0,0.1,0.5)"');
@@ -433,7 +651,7 @@ describe("barChart prefigure tests @group4", async () => {
     describe("labels and values", async () => {
         it("numbers the bars when no categories are named", async () => {
             const xml = await chartXML(`
-    <barChart name="c"><number>4</number><number>7</number></barChart>
+    <chart type="bar" name="c"><number>4</number><number>7</number></chart>
     `);
             expect(xml).toContain(">1</tick-mark>");
             expect(xml).toContain(">2</tick-mark>");
@@ -441,7 +659,7 @@ describe("barChart prefigure tests @group4", async () => {
 
         it("prints the value above each bar when asked", async () => {
             const xml = await chartXML(`
-    <barChart name="c" displayValues><number>41</number></barChart>
+    <chart type="bar" name="c" displayValues><number>41</number></chart>
     `);
             expect(xml).toContain('<label anchor="(1,41)" alignment="north"');
             expect(xml).toContain(">41</label>");
@@ -452,18 +670,18 @@ describe("barChart prefigure tests @group4", async () => {
             // name nothing and are dropped, missing ones leave the bar
             // numbered rather than unlabeled.
             const tooFew = await chartXML(`
-    <barChart name="c" categories="A">
+    <chart type="bar" name="c" categories="A">
       <number>1</number><number>2</number>
-    </barChart>
+    </chart>
     `);
             expect(tooFew.match(/<tick-mark /g)?.length).eq(2);
             expect(tooFew).toContain(">A</tick-mark>");
             expect(tooFew).toContain(">2</tick-mark>");
 
             const tooMany = await chartXML(`
-    <barChart name="c" categories="A B C D">
+    <chart type="bar" name="c" categories="A B C D">
       <number>1</number><number>2</number>
-    </barChart>
+    </chart>
     `);
             expect(tooMany.match(/<tick-mark /g)?.length).eq(2);
             expect(tooMany).toContain(">B</tick-mark>");
@@ -475,7 +693,7 @@ describe("barChart prefigure tests @group4", async () => {
             // number, so it takes a different path to its value; the two kinds
             // still make one run of bars in the order they were written.
             const xml = await chartXML(`
-    <barChart name="c"><number>1</number><math>7</math><number>3</number></barChart>
+    <chart type="bar" name="c"><number>1</number><math>7</math><number>3</number></chart>
     `);
             expect(xml).toContain('at="bar-1" lower-left="(0.6,0)"');
             expect(xml).toContain('dimensions="(0.8,1)"');
@@ -491,7 +709,7 @@ describe("barChart prefigure tests @group4", async () => {
             // Not at zero: that is the far end of the bar from the one the
             // number belongs to, and it would sit on the horizontal axis.
             const xml = await chartXML(`
-    <barChart name="c" displayValues><number>-5</number></barChart>
+    <chart type="bar" name="c" displayValues><number>-5</number></chart>
     `);
             expect(xml).toContain('<label anchor="(1,-5)" alignment="south"');
             expect(xml).toContain(">-5</label>");
@@ -503,11 +721,11 @@ describe("barChart prefigure tests @group4", async () => {
 
         it("carries the axis labels", async () => {
             const xml = await chartXML(`
-    <barChart name="c">
+    <chart type="bar" name="c">
       <xLabel>region</xLabel>
       <yLabel>count</yLabel>
       <number>4</number>
-    </barChart>
+    </chart>
     `);
             expect(xml).toContain("<xlabel");
             expect(xml).toContain(">region</xlabel>");
@@ -518,7 +736,7 @@ describe("barChart prefigure tests @group4", async () => {
     describe("bar width", async () => {
         it("narrows the bars", async () => {
             const xml = await chartXML(`
-    <barChart name="c" barWidth="0.5"><number>4</number></barChart>
+    <chart type="bar" name="c" barWidth="0.5"><number>4</number></chart>
     `);
             expect(xml).toContain(
                 '<rectangle at="bar-1" lower-left="(0.75,0)" dimensions="(0.5,4)"',
@@ -532,7 +750,7 @@ describe("barChart prefigure tests @group4", async () => {
             // `barWidth="1"`, where the last bar sat flush against the frame.
             for (const barWidth of [0.8, 1]) {
                 const xml = await chartXML(`
-    <barChart name="c" barWidth="${barWidth}"><number>4</number><number>6</number></barChart>
+    <chart type="bar" name="c" barWidth="${barWidth}"><number>4</number><number>6</number></chart>
     `);
 
                 const xMax = Number(xml.match(/bbox="\(0,[^,]*,([^,]*),/)?.[1]);
@@ -554,7 +772,7 @@ describe("barChart prefigure tests @group4", async () => {
             // 0 and 1" and they do not behave alike.
             for (const barWidth of ["3", "0", "-0.5"]) {
                 const { warnings } = await getWarnings(`
-    <barChart name="c" barWidth="${barWidth}"><number>4</number></barChart>
+    <chart type="bar" name="c" barWidth="${barWidth}"><number>4</number></chart>
     `);
                 expect(
                     warnings.some((w) =>
@@ -564,7 +782,7 @@ describe("barChart prefigure tests @group4", async () => {
             }
 
             const { warnings } = await getWarnings(`
-    <barChart name="c" barWidth="1"><number>4</number></barChart>
+    <chart type="bar" name="c" barWidth="1"><number>4</number></chart>
     `);
             expect(
                 warnings.some((w) =>
@@ -593,7 +811,7 @@ describe("barChart prefigure tests @group4", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     ${FOUR_BARS}
-    <p name="pv">$c.barValues</p>
+    <p name="pv">$c.values</p>
     <p name="pc">$c.categories</p>
     `,
             });
@@ -604,6 +822,31 @@ describe("barChart prefigure tests @group4", async () => {
             expect(sv[await resolvePathToNodeIdx("pc")].stateValues.text).eq(
                 "North, South, East, West",
             );
+        });
+
+        it("indexes the values one at a time", async () => {
+            // `values` is an array with `value` as its entry prefix, so a
+            // single bar's number is `$c.value2` — the pairing `$c.categories`
+            // and `$c.category2` already have. An index past the last bar names
+            // nothing rather than reporting a number, and the whole array still
+            // feeds an operator that takes a list.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    ${FOUR_BARS}
+    <p name="first">$c.value1</p>
+    <p name="second">$c.value2</p>
+    <p name="past">[$c.value9]</p>
+    <p name="total"><sum>$c.values</sum></p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const text = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues.text;
+
+            expect(await text("first")).eq("41");
+            expect(await text("second")).eq("63");
+            expect(await text("past")).eq("[]");
+            expect(await text("total")).eq("200");
         });
 
         it("reports the scale it drew, not the scale it was asked for", async () => {
@@ -617,10 +860,10 @@ describe("barChart prefigure tests @group4", async () => {
     ${FOUR_BARS}
     <p name="auto">$c.yMin, $c.yMax, $c.barWidth</p>
 
-    <barChart name="d" yMin="10" yMax="95" barWidth="3"><number>50</number></barChart>
+    <chart type="bar" name="d" yMin="10" yMax="95" barWidth="3"><number>50</number></chart>
     <p name="given">$d.yMin, $d.yMax, $d.barWidth</p>
 
-    <barChart name="e" yMin="Infinity"><number>4</number></barChart>
+    <chart type="bar" name="e" yMin="Infinity"><number>4</number></chart>
     <p name="dropped">$e.yMin, $e.yMax</p>
     `,
             });
@@ -644,18 +887,18 @@ describe("barChart prefigure tests @group4", async () => {
     describe("accessibility", async () => {
         it("asks for a short description when there is none", async () => {
             const { core } = await createTestCore({
-                doenetML: `<barChart name="c"><number>4</number></barChart>`,
+                doenetML: `<chart type="bar" name="c"><number>4</number></chart>`,
             });
             await core.returnAllStateVariables(false, true);
             const { accessibility } = getDiagnosticsByType(core);
-            expect(
-                accessibility.some((a) => a.message.includes("barChart")),
-            ).eq(true);
+            expect(accessibility.some((a) => a.message.includes("chart"))).eq(
+                true,
+            );
         });
 
         it("stays quiet for a decorative chart", async () => {
             const { core } = await createTestCore({
-                doenetML: `<barChart name="c" decorative><number>4</number></barChart>`,
+                doenetML: `<chart type="bar" name="c" decorative><number>4</number></chart>`,
             });
             await core.returnAllStateVariables(false, true);
             const { accessibility } = getDiagnosticsByType(core);
@@ -676,10 +919,10 @@ describe("barChart prefigure tests @group4", async () => {
     <numberList name="draws">5 40 80 100 20 90 76 3</numberList>
     <searchSorted name="which" target="$draws" hide>$cum</searchSorted>
     <tally name="counts" categories="1 2 3 4" hide>$which</tally>
-    <barChart name="c" categories="$labels">
+    <chart type="bar" name="c" categories="$labels">
       <shortDescription>Sampled counts</shortDescription>
       $counts
-    </barChart>
+    </chart>
     `);
 
             // counts are 3, 1, 2, 2
@@ -693,7 +936,7 @@ describe("barChart prefigure tests @group4", async () => {
         it("draws no bar for a non-finite value, and warns", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c"><number>4</number><math>x</math><number>2</number></barChart>
+    <chart type="bar" name="c"><number>4</number><math>x</math><number>2</number></chart>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -717,7 +960,7 @@ describe("barChart prefigure tests @group4", async () => {
         it("says nothing when every value is finite", async () => {
             const { core } = await createTestCore({
                 doenetML: `
-    <barChart><number>4</number><number>2</number></barChart>
+    <chart type="bar"><number>4</number><number>2</number></chart>
     `,
             });
             await core.returnAllStateVariables(false, true);
@@ -727,7 +970,7 @@ describe("barChart prefigure tests @group4", async () => {
         it("keeps the box finite for values at the top of the double range", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c"><number>1e308</number></barChart>
+    <chart type="bar" name="c"><number>1e308</number></chart>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -744,7 +987,7 @@ describe("barChart prefigure tests @group4", async () => {
         it("keeps a category on the axis for a slot with no bar", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c" categories="North South East"><number>4</number><math>x</math><number>2</number></barChart>
+    <chart type="bar" name="c" categories="North South East"><number>4</number><math>x</math><number>2</number></chart>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -761,7 +1004,7 @@ describe("barChart prefigure tests @group4", async () => {
         it("does not clip a bar whose value carries floating-point dust", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c"><number>0.1 + 0.2</number></barChart>
+    <chart type="bar" name="c"><number>0.1 + 0.2</number></chart>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -777,8 +1020,8 @@ describe("barChart prefigure tests @group4", async () => {
         it("survives a subnormal aspectRatio and a subnormal value", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="a" aspectRatio="5e-324"><number>4</number></barChart>
-    <barChart name="b"><number>5e-324</number></barChart>
+    <chart type="bar" name="a" aspectRatio="5e-324"><number>4</number></chart>
+    <chart type="bar" name="b"><number>5e-324</number></chart>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -797,8 +1040,8 @@ describe("barChart prefigure tests @group4", async () => {
         it("reads bare numbers as bar heights", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c" categories="A B C">41 63 18</barChart>
-    <p name="p">$c.barValues</p>
+    <chart type="bar" name="c" categories="A B C">41 63 18</chart>
+    <p name="p">$c.values</p>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -817,8 +1060,8 @@ describe("barChart prefigure tests @group4", async () => {
         it("evaluates a bare fraction rather than charting NaN", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c">1/2 3/4</barChart>
-    <p name="p">$c.barValues</p>
+    <chart type="bar" name="c">1/2 3/4</chart>
+    <p name="p">$c.values</p>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -830,8 +1073,8 @@ describe("barChart prefigure tests @group4", async () => {
         it("mixes bare numbers with element children", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <barChart name="c">4 <number>9</number> 2</barChart>
-    <p name="p">$c.barValues</p>
+    <chart type="bar" name="c">4 <number>9</number> 2</chart>
+    <p name="p">$c.values</p>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);

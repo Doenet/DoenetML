@@ -27,7 +27,15 @@ const DEFAULT_ASPECT_RATIO = 1.5;
 const DEFAULT_BAR_WIDTH = 0.8;
 
 /**
- * A bar chart of its number children, one bar per value.
+ * A chart of its number children. `type` picks which chart is drawn; `bar` is
+ * the only one implemented so far, one bar per value.
+ *
+ * One tag with a `type` rather than a tag per chart: a pie chart, a box plot
+ * and a scatter plot are all coming, and they differ in how the same list of
+ * values is drawn rather than in what an author is doing. `<chart type="pie">`
+ * puts that choice where it can be read — and, being an attribute, where it
+ * can be computed, so a document can chart the same data both ways without
+ * duplicating the tag around it.
  *
  * Rendered with PreFigure rather than JSXGraph, which buys three things a
  * hand-drawn chart would not have: the bars become one compiled SVG however
@@ -41,7 +49,7 @@ const DEFAULT_BAR_WIDTH = 0.8;
  * that resamples, an SVG renderer can go behind the same component without
  * touching what an author writes.
  */
-export default class BarChart extends BlockComponent {
+export default class Chart extends BlockComponent {
     constructor(args) {
         super(args);
 
@@ -50,10 +58,11 @@ export default class BarChart extends BlockComponent {
         });
     }
 
-    static componentType = "barChart";
+    static componentType = "chart";
 
     static componentDocs = {
-        summary: "A bar chart of a list of values, one bar per value.",
+        summary:
+            "A chart of a list of values. `type` picks which chart is drawn.",
     };
 
     static createAttributesObject() {
@@ -61,8 +70,43 @@ export default class BarChart extends BlockComponent {
 
         Object.assign(
             attributes,
-            returnSizeAttributes({ componentName: "bar chart" }),
+            returnSizeAttributes({ componentName: "chart" }),
         );
+
+        // Deliberately has no default, so `<chart>` on its own draws nothing
+        // and says why. `bar` is the only chart implemented so far, but it is
+        // not the one an author reaches for most often — a pie chart is at
+        // least as common, and a scatter plot more so. Defaulting to `bar` now
+        // would let documents come to rely on it, and any later change would
+        // silently redraw them as something else. Requiring the attribute
+        // keeps that door open at the cost of one word in every document.
+        //
+        // `validValues` rather than `suggestedValues`: the list of charts is
+        // closed, so `type="pie"` is an author error today rather than a
+        // choice this component declines to constrain, and the language server
+        // should say so where it is written. The cost is that an unrecognized
+        // value is reported twice — once naming the value that was rejected,
+        // once by `chartGeometry` below saying nothing was drawn — which is
+        // the pair `<sampleMultivariateRandomNumber type>` already produces,
+        // and the second message is worded not to assume the attribute is
+        // missing.
+        attributes.type = {
+            description:
+                "Which chart to draw. Required; there is no default, and `<chart>` with no type draws nothing.",
+            createComponentOfType: "text",
+            createStateVariable: "type",
+            defaultValue: null,
+            public: true,
+            toLowerCase: true,
+            highlighted: true,
+            validValues: [
+                {
+                    value: "bar",
+                    description:
+                        "A bar chart: one bar per value, standing on a baseline of zero, under a horizontal axis of category names.",
+                },
+            ],
+        };
 
         // `aspectRatio`, `barWidth`, `yMin` and `yMax` are each read into a
         // private `…Attr` state variable rather than straight into the name
@@ -77,7 +121,7 @@ export default class BarChart extends BlockComponent {
         // is read into a private `xminPrelim` and the public `xMin` reports
         // the axis that was drawn.
         attributes.aspectRatio = {
-            description: "Aspect ratio (width / height) for the bar chart.",
+            description: "Aspect ratio (width / height) for the chart.",
             createComponentOfType: "number",
             createStateVariable: "aspectRatioAttr",
             defaultValue: DEFAULT_ASPECT_RATIO,
@@ -133,7 +177,7 @@ export default class BarChart extends BlockComponent {
         };
 
         attributes.showBorder = {
-            description: "Whether to render a border around the bar chart.",
+            description: "Whether to render a border around the chart.",
             createComponentOfType: "boolean",
             createStateVariable: "showBorder",
             defaultValue: true,
@@ -142,7 +186,7 @@ export default class BarChart extends BlockComponent {
         };
 
         attributes.displayMode = {
-            description: "How to size the bar chart.",
+            description: "How to size the chart.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             validValues: [
@@ -163,7 +207,7 @@ export default class BarChart extends BlockComponent {
 
         attributes.horizontalAlign = {
             description:
-                "Horizontal alignment of the bar chart within its container.",
+                "Horizontal alignment of the chart within its container.",
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
             validValues: [
@@ -209,9 +253,9 @@ export default class BarChart extends BlockComponent {
     static additionalSchemaChildren = ["string"];
 
     /**
-     * Bare numbers are read as bar heights: `<barChart>41 63 18</barChart>`.
-     * Unconditional, with nothing to consult — a bar height is a number
-     * whatever else the chart is doing, and the categories are labels that no
+     * Bare numbers are read as values: `<chart type="bar">41 63 18</chart>`.
+     * Unconditional, with nothing to consult — a charted value is a number
+     * whatever chart is drawn from it, and the categories are labels that no
      * reading of the values touches. Broken into maths rather than numbers, as
      * `<sum>` and `<mean>` do, so that `1/2` is half rather than `NaN`.
      */
@@ -250,7 +294,7 @@ export default class BarChart extends BlockComponent {
         Object.assign(
             stateVariableDefinitions,
             returnSelectedStyleStateVariableDefinition(),
-            returnSizeStateVariableDefinitions({ componentName: "bar chart" }),
+            returnSizeStateVariableDefinitions({ componentName: "chart" }),
             returnAxisLabelStateVariableDefinitions({ axis: "x" }),
             returnAxisLabelStateVariableDefinitions({ axis: "y" }),
         );
@@ -270,7 +314,7 @@ export default class BarChart extends BlockComponent {
         // public: `$chart.aspectRatio` reports the ratio the chart was drawn
         // at, so the substitution can at least be read back.
         stateVariableDefinitions.aspectRatio = {
-            description: "The aspect ratio (width / height) of the bar chart.",
+            description: "The aspect ratio (width / height) of the chart.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -343,12 +387,12 @@ export default class BarChart extends BlockComponent {
         // drawing walkable by a screen reader — only when this is true, because
         // for `<graph>` it means "the author wrote an `<annotations>` child".
         // A chart always writes its own, one per bar under a figure-level
-        // parent, so for `<barChart>` the answer is always yes; leaving it
+        // parent, so for `<chart>` the answer is always yes; leaving it
         // false would emit the annotations and then never let anyone reach
         // them.
         stateVariableDefinitions.hasAuthorAnnotations = {
             description:
-                "Whether the bar chart carries annotations to navigate. Always true: they are generated from the bars.",
+                "Whether the chart carries annotations to navigate. Always true: they are generated from the bars.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -361,16 +405,20 @@ export default class BarChart extends BlockComponent {
         Object.assign(
             stateVariableDefinitions,
             returnShortDescriptionStateVariableDefinition({
-                componentType: "barChart",
-                componentName: "bar chart",
+                componentType: "chart",
+                componentName: "chart",
             }),
         );
 
-        stateVariableDefinitions.barValues = {
-            description: "The value of each bar, in order.",
+        // `values` rather than `barValues`: what a chart is given is a list of
+        // values, and only the drawing of them is bar-shaped. A pie chart takes
+        // the same list, so naming it after the mark would leave a `pieValues`
+        // beside it reporting the identical numbers.
+        stateVariableDefinitions.values = {
+            description: "The value charted at each position, in order.",
             public: true,
             isArray: true,
-            entryPrefixes: ["barValue"],
+            entryPrefixes: ["value"],
             shadowingInstructions: {
                 createComponentOfType: "number",
             },
@@ -394,19 +442,19 @@ export default class BarChart extends BlockComponent {
                 },
             }),
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
-                const barValues = {};
+                const values = {};
                 for (const arrayKey of arrayKeys) {
                     const child =
                         globalDependencyValues.valueChildren[arrayKey];
                     const value = child?.stateValues.value;
                     // A `<math>` child arrives as a math-expression; a
                     // `<number>` child as a plain number.
-                    barValues[arrayKey] =
+                    values[arrayKey] =
                         typeof value?.evaluate_to_constant === "function"
                             ? value.evaluate_to_constant()
                             : value;
                 }
-                return { setValue: { barValues } };
+                return { setValue: { values } };
             },
         };
 
@@ -419,13 +467,13 @@ export default class BarChart extends BlockComponent {
                 createComponentOfType: "text",
             },
             returnArraySizeDependencies: () => ({
-                barValues: {
+                values: {
                     dependencyType: "stateVariable",
-                    variableName: "barValues",
+                    variableName: "values",
                 },
             }),
             returnArraySize({ dependencyValues }) {
-                return [dependencyValues.barValues.length];
+                return [dependencyValues.values.length];
             },
             returnArrayDependenciesByKey: () => ({
                 globalDependencies: {
@@ -443,7 +491,7 @@ export default class BarChart extends BlockComponent {
                 for (const arrayKey of arrayKeys) {
                     const ind = Number(arrayKey);
                     // A category with no bar under it never reaches this loop,
-                    // whose keys are sized by `barValues`; a bar with no
+                    // whose keys are sized by `values`; a bar with no
                     // category of its own falls back to its position.
                     const declaredLabel = declared?.[ind];
                     categories[arrayKey] =
@@ -459,13 +507,30 @@ export default class BarChart extends BlockComponent {
         // with nothing PreFigure-specific in it. Every input it reads has
         // already been checked by the state variable above it, so this is
         // geometry and nothing else.
+        //
+        // Null when `type` names no chart this component knows how to draw,
+        // which is the one place that decision is made: everything downstream —
+        // the axis the chart reports, the XML it renders, the frame the
+        // renderer puts around it — reads the absence from here rather than
+        // re-deciding it against `type`. A second chart type adds a branch to
+        // this definition and nothing below it changes shape.
+        //
+        // Only what is *drawn* is gated here. The checks above still run and
+        // still report on a chart with no type: `barWidth="5"` is wrong however
+        // the values are drawn, and a chart with no `<shortDescription>` will
+        // be inaccessible the moment a type is named. Holding those back would
+        // mean naming the type is what reveals the next problem.
         stateVariableDefinitions.chartGeometry = {
             description:
-                "The bars and bounding box of the chart, in data coordinates.",
+                "The bars and bounding box of the chart, in data coordinates, or null when there is no chart to draw.",
             returnDependencies: () => ({
-                barValues: {
+                type: {
                     dependencyType: "stateVariable",
-                    variableName: "barValues",
+                    variableName: "type",
+                },
+                values: {
+                    dependencyType: "stateVariable",
+                    variableName: "values",
                 },
                 categories: {
                     dependencyType: "stateVariable",
@@ -485,8 +550,25 @@ export default class BarChart extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // A type the attribute rejected arrives here as `null`,
+                // exactly as a missing one does, so both get the one message —
+                // which is why it says no chart was named rather than that the
+                // attribute is missing. The value that was rejected has
+                // already been named in a message of its own.
+                if (dependencyValues.type !== "bar") {
+                    return {
+                        setValue: { chartGeometry: null },
+                        sendDiagnostics: [
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0146",
+                            }),
+                        ],
+                    };
+                }
+
                 const geometry = computeBarChartGeometry({
-                    values: dependencyValues.barValues,
+                    values: dependencyValues.values,
                     labels: dependencyValues.categories,
                     barWidth: dependencyValues.barWidth,
                     yMinAttr: dependencyValues.yMinAttr,
@@ -518,9 +600,12 @@ export default class BarChart extends BlockComponent {
         // nor `yMax` the attribute answers that question: both are optional,
         // and both are dropped together when what they ask for is not a box
         // there is room to draw in. So the pair is defined off the geometry,
-        // which is where the automatic bounds and the author's are reconciled.
+        // which is where the automatic bounds and the author's are reconciled —
+        // and where a chart that was never drawn has no axis to report, which
+        // is `null` rather than a number nothing on the screen backs up.
         stateVariableDefinitions.yMin = {
-            description: "The lowest value shown on the vertical axis.",
+            description:
+                "The lowest value shown on the vertical axis, or null when there is no chart to draw.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -529,7 +614,7 @@ export default class BarChart extends BlockComponent {
                 {
                     variableName: "yMax",
                     description:
-                        "The highest value shown on the vertical axis.",
+                        "The highest value shown on the vertical axis, or null when there is no chart to draw.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "number",
@@ -543,14 +628,18 @@ export default class BarChart extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                const [, yMin, , yMax] = dependencyValues.chartGeometry.bounds;
+                const bounds = dependencyValues.chartGeometry?.bounds;
+                if (!bounds) {
+                    return { setValue: { yMin: null, yMax: null } };
+                }
+                const [, yMin, , yMax] = bounds;
                 return { setValue: { yMin, yMax } };
             },
         };
 
         stateVariableDefinitions.prefigureXML = {
             description:
-                "The PreFigure-formatted XML rendered for this bar chart.",
+                "The PreFigure-formatted XML rendered for this chart, or null when there is no chart to draw.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -604,6 +693,13 @@ export default class BarChart extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // No geometry, no drawing: `chartGeometry` has already said
+                // why, and the renderer takes a null here as "put nothing on
+                // the page", frame and all.
+                if (dependencyValues.chartGeometry === null) {
+                    return { setValue: { prefigureXML: null } };
+                }
+
                 const darkMode =
                     dependencyValues.document?.stateValues.theme === "dark";
 

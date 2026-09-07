@@ -4,7 +4,7 @@ import { styleAttributes } from "./style";
 import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
- * PreFigure assembly for `<barChart>`.
+ * PreFigure assembly for `<chart type="bar">`.
  *
  * Kept apart from `graph.ts` because a chart is not a graph with bars in it: it
  * owns its own bounding box, its horizontal axis is categorical rather than
@@ -305,7 +305,7 @@ export function computeBarChartGeometry({
 }): BarChartGeometry {
     // A value that is not a finite number has no bar. Drawing it as zero would
     // put a real datum on the chart that the data does not contain, and
-    // `barValues` would still report the `NaN` — so the picture and the public
+    // `values` would still report the `NaN` — so the picture and the public
     // property would disagree. The slot is kept, so the remaining bars stay
     // under their own categories, and it is simply empty.
     const drawable = values.map((value) => Number.isFinite(value));
@@ -478,7 +478,7 @@ export function createBarChartPrefigureXML({
 
     // The left margin has to know the labels before the box is sized, since it
     // is what stops the widest of them being clipped — the labels of
-    // `<barChart>1e308</barChart>` run to 411 characters and ask for 3713
+    // `<chart type="bar">1e308</chart>` run to 411 characters and ask for 3713
     // pixels of it.
     const wantedLeft =
         AXIS_LABEL_MARGIN_BASE +
@@ -542,7 +542,7 @@ export function createBarChartPrefigureXML({
     const barAttrs = styleAttributes({
         selectedStyle,
         diagnostics,
-        warningPrefix: "<barChart>",
+        warningPrefix: "<chart>",
     }).join(" ");
 
     const elements: string[] = [];
@@ -564,8 +564,17 @@ export function createBarChartPrefigureXML({
         const lowerLeft = `(${formatNumber(bar.lowerLeft[0])},${formatNumber(bar.lowerLeft[1])})`;
         const barDimensions = `(${formatNumber(bar.dimensions[0])},${formatNumber(bar.dimensions[1])})`;
 
+        // Trimmed to the box it is drawn in. Every bar is measured from zero,
+        // so a `yMin` above zero, or a `yMax` below the tallest value, leaves
+        // part of a bar outside the axes — and PreFigure draws a rectangle
+        // unclipped unless asked (`cliptobbox` defaults to `no` for this
+        // element), so that part would be painted over the category labels
+        // below the frame, or above it, and off the edge of the picture.
+        // Asking for the clip is what makes a bound cut the bars off at the
+        // frame: a bar lying entirely outside the box disappears, and one
+        // crossing the edge is drawn as far as the box goes.
         elements.push(
-            `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}"${barAttrs ? ` ${barAttrs}` : ""} />`,
+            `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}" cliptobbox="yes"${barAttrs ? ` ${barAttrs}` : ""} />`,
         );
 
         if (displayValues) {

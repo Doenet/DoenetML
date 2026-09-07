@@ -655,7 +655,20 @@ children-invalid = Invalid children for `<{ $componentType }>`: Found invalid ch
 
 ## Falling back to a default
 
+# The attribute had a default to fall back to, and the message names it: the
+# component went on to behave as though the author had written that value, and
+# an author not told which one goes looking for the difference in the wrong
+# place.
 attribute-value-invalid-using-default = Invalid value `{ $value }` for attribute `{ $attribute }`, using value `{ $default }`
+
+# The same rejection where the attribute has no default to fall back to, so
+# nothing stood in for the value and the component behaves as though the
+# attribute had not been written. A separate message rather than the one above
+# with a blank in it: "using value `null`" would describe a substitution that
+# did not happen, and name a value no author could have typed. What follows is
+# usually a second message from the component itself, saying what it did
+# without the attribute.
+attribute-value-invalid-ignoring = Invalid value `{ $value }` for attribute `{ $attribute }`, ignoring it
 
 ## Loading a DoenetML version
 
@@ -1106,15 +1119,25 @@ bin-counts-cut-points-decreasing =
 
 ## Charts
 
-# Raised by `<barChart>` when a value is not a finite number, so it gets no bar.
-# The alternative reading of a missing bar is a value of zero, which the author
-# cannot distinguish by looking, so the absence is stated rather than left to be
-# inferred. No count: the queue is append-only and deduplicates by message, and
-# the number of such values changes as an input is typed into.
+# Raised by `<chart type="bar">` when a value is not a finite number, so it gets
+# no bar. The alternative reading of a missing bar is a value of zero, which the
+# author cannot distinguish by looking, so the absence is stated rather than left
+# to be inferred. No count: the queue is append-only and deduplicates by message,
+# and the number of such values changes as an input is typed into. (The message
+# key is `bar-chart-…` because a code names one situation forever and this one
+# was issued while the component was still spelled `<barChart>`.)
 bar-chart-values-not-drawable =
-    `<barChart>` draws no bar for a value that is not a finite number, so those places on the chart are empty rather than zero.
+    A bar chart draws no bar for a value that is not a finite number, so those places on the chart are empty rather than zero.
 
-# Raised by `<barChart>` when `barWidth` is outside the (0, 1] range a fraction
-# of a bar's slot can take. $barWidth is what the author wrote.
+# Raised by `<chart type="bar">` when `barWidth` is outside the (0, 1] range a
+# fraction of a bar's slot can take. $barWidth is what the author wrote.
 bar-chart-bar-width-invalid =
     `barWidth` must be greater than 0 and at most 1, but { $barWidth } was given. Using 0.8 instead.
+
+# `type` has no default, so this is what `<chart>` on its own gets. A type the
+# attribute does not recognize falls back to no type at all and reaches this
+# message too, after a separate one naming the value that was rejected — hence
+# "no chart type was named" rather than wording that assumes the attribute is
+# missing.
+chart-type-not-specified =
+    No chart type was named, so nothing was drawn. Give the type attribute the name of a chart, such as `type="bar"`.

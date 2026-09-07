@@ -3,37 +3,40 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 
-# `<barChart>{:dn}`
+# `<chart>{:dn}`
 
-<ComponentDisplay name='barChart'/>
+<ComponentDisplay name='chart'/>
 
-`<barChart>{:dn}` draws one bar per number it is given. Pair it with
-[`<tally>{:dn}`](tally) or [`<binCounts>{:dn}`](binCounts) to chart a sampling
-simulation.
+`<chart>{:dn}` draws a list of values. `type` picks which chart is drawn, and there is
+no default: `<chart type="bar">{:dn}` draws one bar per value, while `<chart>{:dn}` on
+its own draws nothing and warns that no chart type was named.
 
-Bare numbers work as well as `<number>{:dn}` children, so `<barChart>41 63 18</barChart>`
-draws three bars.
+Pair it with [`<tally>{:dn}`](tally) or [`<binCounts>{:dn}`](binCounts) to chart a
+sampling simulation.
+
+Bare numbers work as well as `<number>{:dn}` children, so
+`<chart type="bar">41 63 18</chart>` draws three bars.
 
 Every bar carries its category and value as an annotation, so a screen reader can walk the
 chart rather than merely announce it, and a `<shortDescription>{:dn}` becomes the
 description of the figure as a whole.
 
-<AttrPropDisplay name='barChart'/>
+<AttrPropDisplay name='chart'/>
 
 ## Examples
 
-### Example: a chart of counts
+### Example: a bar chart of counts
 
 
 ```doenet-editor-horiz
-<barChart categories="North South East West" displayValues>
+<chart type="bar" categories="North South East West" displayValues>
   <shortDescription>Population by region</shortDescription>
   <yLabel>people</yLabel>
   <number>41</number>
   <number>63</number>
   <number>18</number>
   <number>78</number>
-</barChart>
+</chart>
 ```
 
 
@@ -44,7 +47,7 @@ description of the figure as a whole.
 
 ---
 
-### Example: charting a simulation
+### Example: a bar chart of a simulation
 
 
 ```doenet-editor-horiz
@@ -60,11 +63,11 @@ description of the figure as a whole.
 <searchSorted name="which" target="$draws" hide>$cum</searchSorted>
 <tally name="counts" categories="1 2 3 4" hide>$which</tally>
 
-<barChart categories="$labels">
+<chart type="bar" categories="$labels">
   <shortDescription>Where 60 sampled individuals came from</shortDescription>
   <yLabel>count</yLabel>
   $counts
-</barChart>
+</chart>
 
 <callAction actionName="resample" target="$draws">
   <label>Draw again</label>
@@ -77,7 +80,7 @@ Five tags hold the whole simulation:
 [`<sampleRandomNumbers>{:dn}`](sampleRandomNumbers) draws the sample,
 [`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
 [`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
-in, [`<tally>{:dn}`](tally) counts them, and `<barChart>{:dn}` draws the counts.
+in, [`<tally>{:dn}`](tally) counts them, and `<chart>{:dn}` draws the counts.
 
 Because `<tally>{:dn}` is given its categories rather than left to discover them, a
 subpopulation that draws nothing still counts zero and keeps its bar, instead of dropping
@@ -87,7 +90,7 @@ out and shifting the others along.
 
 ---
 
-### Example: a histogram of a continuous quantity
+### Example: a bar chart as a histogram
 
 
 ```doenet-editor-horiz
@@ -100,11 +103,11 @@ out and shifting the others along.
   numSamples="200" hide />
 <binCounts name="h" bins="$edges" hide>$z</binCounts>
 
-<barChart categories="$bins">
+<chart type="bar" categories="$bins">
   <shortDescription>200 draws from a standard normal distribution</shortDescription>
   <yLabel>count</yLabel>
   $h
-</barChart>
+</chart>
 
 <callAction actionName="resample" target="$z">
   <label>Draw again</label>
@@ -114,25 +117,50 @@ out and shifting the others along.
 
 
 [`<binCounts>{:dn}`](binCounts) turns the sample into counts per interval and
-`<barChart>{:dn}` draws them. Each bin is named by its midpoint rather than its range.
+`<chart>{:dn}` draws them. Each bin is named by its midpoint rather than its range.
 
 
 
 ## Attribute Examples
 
+### Attribute Example: type
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="A B C" size="small">
+  <shortDescription>Three values as bars</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</chart>
+
+<chart categories="A B C" size="small">
+  <shortDescription>The same values with no type</shortDescription>
+  <number>4</number><number>9</number><number>2</number>
+</chart>
+```
+
+
+
+`type` has no default, so the second chart draws nothing at all and warns that no chart
+type was named. `bar` is the only type so far; a value the chart does not recognize is
+reported and then treated as no type, so it draws nothing too.
+
+
+
+---
+
 ### Attribute Example: categories
 
 
 ```doenet-editor-horiz
-<barChart categories="North South East West" size="small">
+<chart type="bar" categories="North South East West" size="small">
   <shortDescription>Population by region, its bars named</shortDescription>
   <number>41</number><number>63</number><number>18</number><number>78</number>
-</barChart>
+</chart>
 
-<barChart size="small">
+<chart type="bar" size="small">
   <shortDescription>The same four values with no categories</shortDescription>
   <number>41</number><number>63</number><number>18</number><number>78</number>
-</barChart>
+</chart>
 ```
 
 
@@ -150,22 +178,22 @@ rather than placing them at those positions.
 
 
 ```doenet-editor-horiz
-<barChart name="auto" categories="A B C" size="small">
+<chart name="auto" type="bar" categories="A B C" size="small">
   <shortDescription>An axis chosen from the data</shortDescription>
   <number>4</number><number>9</number><number>2</number>
-</barChart>
+</chart>
 <p>Automatic: $auto.yMin to $auto.yMax</p>
 
-<barChart name="capped" categories="A B C" size="small" yMax="20">
+<chart name="capped" type="bar" categories="A B C" size="small" yMax="20">
   <shortDescription>The same bars under a fixed top</shortDescription>
   <number>4</number><number>9</number><number>2</number>
-</barChart>
+</chart>
 <p>With `yMax="20"`: $capped.yMin to $capped.yMax</p>
 
-<barChart name="cut" categories="A B C" size="small" yMin="5">
+<chart name="cut" type="bar" categories="A B C" size="small" yMin="5">
   <shortDescription>An axis starting above zero</shortDescription>
   <number>4</number><number>9</number><number>2</number>
-</barChart>
+</chart>
 <p>With `yMin="5"`: $cut.yMin to $cut.yMax</p>
 ```
 
@@ -173,7 +201,8 @@ rather than placing them at those positions.
 
 The axis scales itself to the data, and either bound may be replaced on its own. Bars are
 measured from zero whatever the axis shows, so the third chart cuts them off at the
-bottom of the frame and the bar of height 4 disappears entirely.
+bottom of the frame, and the two bars that end below 5 disappear entirely, leaving only
+the one of height 9.
 
 
 
@@ -183,20 +212,20 @@ bottom of the frame and the bar of height 4 disappears entirely.
 
 
 ```doenet-editor-horiz
-<barChart categories="A B C" size="small">
+<chart type="bar" categories="A B C" size="small">
   <shortDescription>Default shape</shortDescription>
   <number>4</number><number>9</number><number>2</number>
-</barChart>
+</chart>
 
-<barChart categories="A B C" size="small" aspectRatio="1">
+<chart type="bar" categories="A B C" size="small" aspectRatio="1">
   <shortDescription>As tall as it is wide</shortDescription>
   <number>4</number><number>9</number><number>2</number>
-</barChart>
+</chart>
 
-<barChart categories="A B C" size="small" barWidth="0.4">
+<chart type="bar" categories="A B C" size="small" barWidth="0.4">
   <shortDescription>Narrow bars</shortDescription>
   <number>4</number><number>9</number><number>2</number>
-</barChart>
+</chart>
 ```
 
 
@@ -212,25 +241,25 @@ nearest preset rather than being used exactly, so `width="400px"` draws the same
 
 ## Property Examples
 
-### Property Example: barValues, categories, yMin, yMax
+### Property Example: values, categories, yMin, yMax
 
 
 ```doenet-editor-horiz
-<barChart name="chart" categories="A B C" size="small">
+<chart name="counts" type="bar" categories="A B C" size="small">
   <shortDescription>Three values</shortDescription>
   <number>4</number>
   <number>9</number>
   <number>2</number>
-</barChart>
+</chart>
 
-<p>Values: $chart.barValues</p>
-<p>Categories: $chart.categories</p>
-<p>Total: <sum>$chart.barValues</sum></p>
-<p>The axis runs from $chart.yMin to $chart.yMax.</p>
+<p>Values: $counts.values</p>
+<p>Categories: $counts.categories</p>
+<p>Total: <sum>$counts.values</sum></p>
+<p>The axis runs from $counts.yMin to $counts.yMax.</p>
 ```
 
 
 
 `yMin`, `yMax`, `barWidth` and `aspectRatio` report what the chart was drawn with rather
-than what was asked for, so `$chart.yMax` is the top of the axis you can see even though
+than what was asked for, so `$counts.yMax` is the top of the axis you can see even though
 nothing above set one.

@@ -5,7 +5,7 @@ import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 /**
  * The state variables a component must supply to be framed by `GraphFrame`.
  *
- * `<graph>` and `<barChart>` both declare these; the chart declares nothing
+ * `<graph>` and `<chart>` both declare these; the chart declares nothing
  * else of a graph's, which is why the frame asks for this rather than for
  * `GraphSVs`.
  */

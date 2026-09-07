@@ -3,12 +3,12 @@ import { codedDiagnostic } from "./diagnostics";
 /**
  * The `shortDescription` state variable shared by the components that take a
  * `<shortDescription>` child and are reported as inaccessible without one:
- * `<graph>`, `<barChart>` and `<image>`.
+ * `<graph>`, `<chart>` and `<image>`.
  *
  * All three read the child the same way and raise the same accessibility
  * diagnostic, differing only in the tag they name, so the definition lives here
  * rather than as a copy apiece — the arrangement `utils/componentSize` and
- * `utils/axisLabel` already use for the other pieces `<graph>` and `<barChart>`
+ * `utils/axisLabel` already use for the other pieces `<graph>` and `<chart>`
  * hold in common.
  *
  * The *last* child wins, which is what makes a `<shortDescription>` on a

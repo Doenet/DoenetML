@@ -1,6 +1,6 @@
 /**
  * The `<xLabel>` / `<yLabel>` child wiring shared by framed components with
- * axes — `<graph>` and `<barChart>`.
+ * axes — `<graph>` and `<chart>`.
  *
  * The two axes' definitions are identical apart from the axis letter, and were
  * written out twice in `Graph.js`; parameterizing them means an axis label

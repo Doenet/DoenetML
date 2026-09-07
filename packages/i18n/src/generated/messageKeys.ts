@@ -459,6 +459,7 @@ export type MessageKey =
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
+    | "attribute-value-invalid-ignoring"
     | "doenetml-version-not-found"
     | "parse-invalid-doenetml"
     | "parse-tag-missing-close-tag"
@@ -540,6 +541,7 @@ export type MessageKey =
     | "bin-counts-cut-points-decreasing"
     | "bar-chart-values-not-drawable"
     | "bar-chart-bar-width-invalid"
+    | "chart-type-not-specified"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1065,6 +1067,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
+    "attribute-value-invalid-ignoring",
     "doenetml-version-not-found",
     "parse-invalid-doenetml",
     "parse-tag-missing-close-tag",
@@ -1146,6 +1149,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "bin-counts-cut-points-decreasing",
     "bar-chart-values-not-drawable",
     "bar-chart-bar-width-invalid",
+    "chart-type-not-specified",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

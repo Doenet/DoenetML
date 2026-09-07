@@ -479,6 +479,28 @@ describe("coded diagnostics reach the record @group4", () => {
         );
     });
 
+    // The other half of `validateAttributeValue`'s rejection: an attribute
+    // whose default is `null` has nothing to fall back to, so it is dropped
+    // rather than replaced and gets a message with no `default` in it. The
+    // component then says for itself what it did without the attribute —
+    // here, `<chart>`'s "no chart type was named".
+    it("codes an attribute value that was dropped for want of a default", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<chart name="c" type="pie"><number>4</number></chart>`,
+        });
+
+        const { infos } = getDiagnosticsByType(core);
+        expect(infos.length).eq(1);
+        expect(infos[0].code).eq("doenet-i0051");
+        expect(infos[0].args).eqls({
+            value: "pie",
+            attribute: "type",
+        });
+        expect(infos[0].message).eq(
+            "Invalid value `pie` for attribute `type`, ignoring it",
+        );
+    });
+
     // The two tests below are the only ones here whose diagnostic is not
     // raised in this package at all. `@doenet/parser` names it, writes the
     // English itself (it cannot render from the catalogs — see

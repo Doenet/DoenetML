@@ -57,7 +57,7 @@
         "searchSorted",
         "tally",
         "binCounts",
-        "barChart",
+        "chart",
         "clampFunction",
         "wrapFunctionPeriodic",
         "derivative",
@@ -3460,7 +3460,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -4457,7 +4457,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -5454,7 +5454,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -7381,7 +7381,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -37647,7 +37647,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -38978,7 +38978,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -40193,7 +40193,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -41077,7 +41077,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -41961,7 +41961,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -42848,7 +42848,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -43458,9 +43458,9 @@
                 }
             ]
         },
-        "barChart": {
+        "chart": {
             "type": "element",
-            "name": "barChart",
+            "name": "chart",
             "attributes": {
                 "name": {
                     "optional": true,
@@ -43535,6 +43535,12 @@
                         "medium",
                         "large",
                         "full"
+                    ]
+                },
+                "type": {
+                    "optional": true,
+                    "type": [
+                        "bar"
                     ]
                 },
                 "aspectRatio": {
@@ -43915,6 +43921,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "type",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which chart to draw. Required; there is no default, and `<chart>` with no type draws nothing.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
@@ -43925,21 +43938,21 @@
                     "name": "showBorder",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to render a border around the bar chart.",
+                    "description": "Whether to render a border around the chart.",
                     "fromAttribute": true
                 },
                 {
                     "name": "displayMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How to size the bar chart.",
+                    "description": "How to size the chart.",
                     "fromAttribute": true
                 },
                 {
                     "name": "horizontalAlign",
                     "type": "text",
                     "isArray": false,
-                    "description": "Horizontal alignment of the bar chart within its container.",
+                    "description": "Horizontal alignment of the chart within its container.",
                     "fromAttribute": true
                 },
                 {
@@ -43983,13 +43996,13 @@
                     "name": "size",
                     "type": "text",
                     "isArray": false,
-                    "description": "The size of the bar chart."
+                    "description": "The size of the chart."
                 },
                 {
                     "name": "width",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "The width of the bar chart."
+                    "description": "The width of the chart."
                 },
                 {
                     "name": "xLabel",
@@ -44007,7 +44020,7 @@
                     "name": "aspectRatio",
                     "type": "number",
                     "isArray": false,
-                    "description": "The aspect ratio (width / height) of the bar chart."
+                    "description": "The aspect ratio (width / height) of the chart."
                 },
                 {
                     "name": "barWidth",
@@ -44019,19 +44032,19 @@
                     "name": "hasAuthorAnnotations",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the bar chart carries annotations to navigate. Always true: they are generated from the bars."
+                    "description": "Whether the chart carries annotations to navigate. Always true: they are generated from the bars."
                 },
                 {
                     "name": "shortDescription",
                     "type": "text",
                     "isArray": false,
-                    "description": "A short accessibility description of the bar chart."
+                    "description": "A short accessibility description of the chart."
                 },
                 {
-                    "name": "barValues",
+                    "name": "values",
                     "type": "number",
                     "isArray": true,
-                    "description": "The value of each bar, in order.",
+                    "description": "The value charted at each position, in order.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -44059,19 +44072,19 @@
                     "name": "yMin",
                     "type": "number",
                     "isArray": false,
-                    "description": "The lowest value shown on the vertical axis."
+                    "description": "The lowest value shown on the vertical axis, or null when there is no chart to draw."
                 },
                 {
                     "name": "yMax",
                     "type": "number",
                     "isArray": false,
-                    "description": "The highest value shown on the vertical axis."
+                    "description": "The highest value shown on the vertical axis, or null when there is no chart to draw."
                 },
                 {
                     "name": "prefigureXML",
                     "type": "text",
                     "isArray": false,
-                    "description": "The PreFigure-formatted XML rendered for this bar chart."
+                    "description": "The PreFigure-formatted XML rendered for this chart, or null when there is no chart to draw."
                 }
             ]
         },
@@ -55114,7 +55127,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -56328,7 +56341,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -57542,7 +57555,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -58756,7 +58769,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -59977,7 +59990,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -61191,7 +61204,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -62412,7 +62425,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -63633,7 +63646,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -64854,7 +64867,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -66075,7 +66088,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -67289,7 +67302,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -68503,7 +68516,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -69717,7 +69730,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -70931,7 +70944,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -72145,7 +72158,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -73359,7 +73372,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -74579,7 +74592,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -75785,7 +75798,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -76991,7 +77004,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -78632,7 +78645,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -85932,7 +85945,7 @@
                     "ref": "hr"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "section"
@@ -86679,7 +86692,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -87594,7 +87607,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -88591,7 +88604,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -89523,7 +89536,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -90373,7 +90386,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -91253,7 +91266,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -93742,7 +93755,7 @@
                     "ref": "hr"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "section"
@@ -94498,7 +94511,7 @@
                     "ref": "hr"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "section"
@@ -94999,7 +95012,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -100883,7 +100896,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -118201,7 +118214,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -124343,7 +124356,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -126654,7 +126667,7 @@
                     "ref": "isBetween"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "em"
@@ -128550,7 +128563,7 @@
                     "ref": "hr"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "section"
@@ -129336,7 +129349,7 @@
                     "ref": "hr"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "section"
@@ -129823,7 +129836,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -130698,7 +130711,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -133984,7 +133997,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -135970,7 +135983,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -138969,7 +138982,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -141261,7 +141274,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -143388,7 +143401,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -144231,7 +144244,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -145088,7 +145101,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -146464,7 +146477,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -147871,7 +147884,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -148690,7 +148703,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -149528,7 +149541,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -151261,7 +151274,7 @@
                     "ref": "hr"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "section"
@@ -152570,7 +152583,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -153445,7 +153458,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -154301,7 +154314,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -156795,7 +156808,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -159984,7 +159997,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -165550,7 +165563,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -166400,7 +166413,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
@@ -168352,7 +168365,7 @@
                     "ref": "binCounts"
                 },
                 {
-                    "ref": "barChart"
+                    "ref": "chart"
                 },
                 {
                     "ref": "clampFunction"
