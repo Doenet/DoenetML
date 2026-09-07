@@ -4,7 +4,7 @@ import { styleAttributes } from "./style";
 import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
- * PreFigure assembly for `<barChart>`.
+ * PreFigure assembly for `<chart type="bar">`.
  *
  * Kept apart from `graph.ts` because a chart is not a graph with bars in it: it
  * owns its own bounding box, its horizontal axis is categorical rather than
@@ -305,7 +305,7 @@ export function computeBarChartGeometry({
 }): BarChartGeometry {
     // A value that is not a finite number has no bar. Drawing it as zero would
     // put a real datum on the chart that the data does not contain, and
-    // `barValues` would still report the `NaN` — so the picture and the public
+    // `values` would still report the `NaN` — so the picture and the public
     // property would disagree. The slot is kept, so the remaining bars stay
     // under their own categories, and it is simply empty.
     const drawable = values.map((value) => Number.isFinite(value));
@@ -478,7 +478,7 @@ export function createBarChartPrefigureXML({
 
     // The left margin has to know the labels before the box is sized, since it
     // is what stops the widest of them being clipped — the labels of
-    // `<barChart>1e308</barChart>` run to 411 characters and ask for 3713
+    // `<chart type="bar">1e308</chart>` run to 411 characters and ask for 3713
     // pixels of it.
     const wantedLeft =
         AXIS_LABEL_MARGIN_BASE +
@@ -542,7 +542,7 @@ export function createBarChartPrefigureXML({
     const barAttrs = styleAttributes({
         selectedStyle,
         diagnostics,
-        warningPrefix: "<barChart>",
+        warningPrefix: "<chart>",
     }).join(" ");
 
     const elements: string[] = [];

@@ -8,7 +8,7 @@ import {
 /**
  * The `size` / `width` pair that decides how wide a framed component renders.
  *
- * `<graph>` and `<barChart>` size themselves identically — a named preset, or
+ * `<graph>` and `<chart>` size themselves identically — a named preset, or
  * an explicit `width` snapped to the nearest preset — and both hand the result
  * to `GraphFrame`, so the wiring lives here rather than in each of them.
  *

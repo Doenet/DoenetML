@@ -88,6 +88,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0048": "attribute-value-invalid-using-default",
     "doenet-i0049": "index-operator-no-values",
     "doenet-i0050": "tally-values-outside-categories",
+    "doenet-i0051": "attribute-value-invalid-ignoring",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -232,6 +233,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0143": "bar-chart-bar-width-invalid",
     "doenet-w0144": "bar-chart-values-not-drawable",
     "doenet-w0145": "invalid-type-ignored",
+    "doenet-w0146": "chart-type-not-specified",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

@@ -7,7 +7,7 @@ import * as MathOperators from "./components/MathOperators";
 import * as MathListOperators from "./components/MathListOperators";
 import * as ListIndexOperators from "./components/ListIndexOperators";
 import * as CountOperators from "./components/CountOperators";
-import BarChart from "./components/BarChart";
+import Chart from "./components/Chart";
 import * as FunctionOperators from "./components/FunctionOperators";
 import * as TextOperatorsOfMath from "./components/TextOperatorsOfMath";
 import * as Extrema from "./components/Extrema";
@@ -223,7 +223,7 @@ const componentTypeArray = [
     ...Object.values(MathListOperators),
     ...Object.values(ListIndexOperators),
     ...Object.values(CountOperators),
-    BarChart,
+    Chart,
     ...Object.values(FunctionOperators),
     ...Object.values(TextOperatorsOfMath),
     ...Object.values(Extrema),

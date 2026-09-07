@@ -44,7 +44,7 @@ const STATISTICS = [
     {
         value: "minimum",
         description: "The smallest value.",
-        // Reduced rather than spread, as `<barChart>` reduces for the same
+        // Reduced rather than spread, as `<chart>` reduces for the same
         // reason: `Math.min(...column)` throws once the column is longer than
         // the engine's argument limit, and a column that long is exactly what
         // summarizing a simulation produces.
