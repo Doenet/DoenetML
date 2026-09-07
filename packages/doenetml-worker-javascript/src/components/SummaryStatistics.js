@@ -44,7 +44,11 @@ const STATISTICS = [
     {
         value: "minimum",
         description: "The smallest value.",
-        compute: (column) => Math.min(...column),
+        // Reduced rather than spread, as `<barChart>` reduces for the same
+        // reason: `Math.min(...column)` throws once the column is longer than
+        // the engine's argument limit, and a column that long is exactly what
+        // summarizing a simulation produces.
+        compute: (column) => column.reduce((a, c) => (c < a ? c : a)),
     },
     {
         value: "quartile1",
@@ -60,7 +64,7 @@ const STATISTICS = [
     {
         value: "maximum",
         description: "The largest value.",
-        compute: (column) => Math.max(...column),
+        compute: (column) => column.reduce((a, c) => (c > a ? c : a)),
     },
     { value: "range", description: "The maximum minus the minimum." },
     {
