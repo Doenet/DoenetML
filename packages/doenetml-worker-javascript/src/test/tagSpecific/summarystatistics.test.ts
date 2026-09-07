@@ -341,6 +341,46 @@ describe("summaryStatistics tag tests @group4", async () => {
             ]);
         });
 
+        it("selects the five-number summary by name", async () => {
+            const sv = await statisticsOf(`
+    <summaryStatistics name="s" statisticsToDisplay="fiveNumberSummary">
+      <number>3</number><number>1</number><number>4</number><number>1</number>
+      <number>5</number><number>9</number><number>2</number><number>6</number>
+    </summaryStatistics>
+    `);
+
+            // Tukey's five, and the five a box plot draws. Neither `mean` nor
+            // `count` is among them, which is what makes this a narrower
+            // selection than `default` rather than an alias for it.
+            expect(sv.statisticsToDisplay).eqls([
+                "minimum",
+                "quartile1",
+                "median",
+                "quartile3",
+                "maximum",
+            ]);
+        });
+
+        it("combines the five-number summary with a statistic named beside it", async () => {
+            const sv = await statisticsOf(`
+    <summaryStatistics name="s" statisticsToDisplay="fiveNumberSummary mean">
+      <number>1</number><number>2</number>
+    </summaryStatistics>
+    `);
+
+            // Composes the way `default` does, and the result is in the
+            // canonical order rather than the order asked for -- `mean` leads
+            // even though it was written last.
+            expect(sv.statisticsToDisplay).eqls([
+                "mean",
+                "minimum",
+                "quartile1",
+                "median",
+                "quartile3",
+                "maximum",
+            ]);
+        });
+
         it("shows every statistic for `all`", async () => {
             const sv = await statisticsOf(`
     <summaryStatistics name="s" statisticsToDisplay="all">

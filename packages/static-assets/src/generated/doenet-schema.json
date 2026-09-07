@@ -126713,13 +126713,15 @@
                 },
                 {
                     "name": "statisticsToDisplay",
-                    "description": "Which summary statistics to display (or \"default\" / \"all\").",
+                    "description": "Which summary statistics to display (or \"default\" / \"all\" / \"fiveNumberSummary\").",
+                    "highlighted": true,
                     "defaultValue": [
                         "default"
                     ],
                     "values": [
                         "default",
                         "all",
+                        "fiveNumberSummary",
                         "mean",
                         "stdev",
                         "variance",
@@ -126741,6 +126743,10 @@
                         {
                             "value": "all",
                             "description": "Every statistic listed here."
+                        },
+                        {
+                            "value": "fiveNumberSummary",
+                            "description": "Tukey's five-number summary: minimum, quartile1, median, quartile3, maximum."
                         },
                         {
                             "value": "mean",
@@ -126930,73 +126936,85 @@
                     "name": "mean",
                     "type": "number",
                     "isArray": false,
-                    "description": "The arithmetic mean of the values."
+                    "description": "The arithmetic mean of the values.",
+                    "highlighted": true
                 },
                 {
                     "name": "stdev",
                     "type": "number",
                     "isArray": false,
-                    "description": "The sample standard deviation."
+                    "description": "The sample standard deviation.",
+                    "highlighted": true
                 },
                 {
                     "name": "variance",
                     "type": "number",
                     "isArray": false,
-                    "description": "The sample variance."
+                    "description": "The sample variance.",
+                    "highlighted": true
                 },
                 {
                     "name": "stderr",
                     "type": "number",
                     "isArray": false,
-                    "description": "The standard error of the mean."
+                    "description": "The standard error of the mean.",
+                    "highlighted": true
                 },
                 {
                     "name": "count",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of non-missing values."
+                    "description": "The number of non-missing values.",
+                    "highlighted": true
                 },
                 {
                     "name": "minimum",
                     "type": "number",
                     "isArray": false,
-                    "description": "The smallest value."
+                    "description": "The smallest value.",
+                    "highlighted": true
                 },
                 {
                     "name": "quartile1",
                     "type": "number",
                     "isArray": false,
-                    "description": "The first quartile (25th percentile)."
+                    "description": "The first quartile (25th percentile).",
+                    "highlighted": true
                 },
                 {
                     "name": "median",
                     "type": "number",
                     "isArray": false,
-                    "description": "The median value."
+                    "description": "The median value.",
+                    "highlighted": true
                 },
                 {
                     "name": "quartile3",
                     "type": "number",
                     "isArray": false,
-                    "description": "The third quartile (75th percentile)."
+                    "description": "The third quartile (75th percentile).",
+                    "highlighted": true
                 },
                 {
                     "name": "maximum",
                     "type": "number",
                     "isArray": false,
-                    "description": "The largest value."
+                    "description": "The largest value.",
+                    "highlighted": true
                 },
                 {
                     "name": "range",
                     "type": "number",
                     "isArray": false,
-                    "description": "The maximum minus the minimum."
+                    "description": "The maximum minus the minimum.",
+                    "highlighted": true
                 },
                 {
                     "name": "sum",
                     "type": "number",
                     "isArray": false,
-                    "description": "The sum of the values."
+                    "description": "The sum of the values.",
+                    "highlighted": true
                 }
             ],
             "top": true,

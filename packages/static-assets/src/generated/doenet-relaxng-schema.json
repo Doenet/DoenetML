@@ -161357,6 +161357,7 @@
                     "type": [
                         "default",
                         "all",
+                        "fiveNumberSummary",
                         "mean",
                         "stdev",
                         "variance",

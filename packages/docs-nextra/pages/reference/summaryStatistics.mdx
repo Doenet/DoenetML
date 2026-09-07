@@ -107,20 +107,22 @@ both the counts and the table.
 <summaryStatistics statisticsToDisplay="count mean stdev">$scores</summaryStatistics>
 
 <summaryStatistics statisticsToDisplay="default sum">$scores</summaryStatistics>
+
+<summaryStatistics statisticsToDisplay="fiveNumberSummary">$scores</summaryStatistics>
 ```
 
 
 
-Omit it for a standard selection. `default` and `all` name a set rather than excluding
-what sits beside them, so `statisticsToDisplay="default sum"` shows the standard
-selection *and* the sum. Statistics appear in a fixed order whatever order they are asked
-for in, so two documents showing the same set read the same way.
+Omit it for a standard selection. `default`, `all` and `fiveNumberSummary` name a set
+rather than excluding what sits beside them, so `statisticsToDisplay="default sum"` shows
+the standard selection *and* the sum. Statistics appear in a fixed order whatever order
+they are asked for in, so two documents showing the same set read the same way.
 
 
 
 ---
 
-### Attribute Example: displayDigits, displayDecimals, displaySmallAsZero, padZeros, avoidScientificNotation
+### Attribute Example: displayDigits
 
 
 ```doenet-editor-horiz
@@ -135,9 +137,10 @@ for in, so two documents showing the same set read the same way.
 
 
 
-These shape how the numbers are written, in the table and in a reference to a statistic
-alike — a reference carries the same setting, so `$rounded.mean` prints `81.4` here
-rather than the mean in full.
+`displayDigits` shapes how the numbers are written, in the table and in a reference to a
+statistic alike — a reference carries the same setting, so `$rounded.mean` prints `81.4`
+here rather than the mean in full. `displayDecimals`, `displaySmallAsZero`, `padZeros`
+and `avoidScientificNotation` shape them the same way and follow the same rule.
 
 `count` is the exception. It is an exact tally, so it is never rounded: this table would
 still report 1234 observations as `1234`, where three significant digits would have made
@@ -149,7 +152,7 @@ them `1230`.
 
 ## Property Examples
 
-### Property Example: mean, stdev, variance, stderr, count, minimum, quartile1, median, quartile3, maximum, range, sum
+### Property Example: mean, count, minimum, maximum, range
 
 
 ```doenet-editor-horiz
@@ -163,6 +166,7 @@ them `1230`.
 
 
 
-Every statistic is readable this way, including the ones the table was not asked to
-show: `statisticsToDisplay` chooses what is *displayed*, not what is computed, so
-`$s.minimum` and `$s.maximum` above are available from a table that lists neither.
+Every statistic is readable this way, `stdev`, `variance`, `stderr`, the quartiles,
+`median` and `sum` included — and so are the ones the table was not asked to show:
+`statisticsToDisplay` chooses what is *displayed*, not what is computed, so `$s.minimum`
+and `$s.maximum` above are available from a table that lists neither.

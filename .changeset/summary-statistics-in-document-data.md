@@ -24,7 +24,7 @@ Every statistic is a readable property as well as a table cell, so a sentence an
 
 Bare numbers work as children, so `<summaryStatistics>4 9 2</summaryStatistics>` summarizes three values without wrapping each in a `<number>`. They are read as `<sum>` reads them, so a bare `1/2` is half rather than nothing.
 
-`statisticsToDisplay` chooses the columns. `default` and `all` name a set of statistics rather than excluding the ones written beside them, so `statisticsToDisplay="default sum"` shows the standard selection *and* the sum; whatever order they are asked for in, the columns appear in a fixed order.
+`statisticsToDisplay` chooses the columns. `default`, `all` and `fiveNumberSummary` name a set of statistics rather than excluding the ones written beside them, so `statisticsToDisplay="default sum"` shows the standard selection *and* the sum; whatever order they are asked for in, the columns appear in a fixed order. `fiveNumberSummary` is the minimum, quartiles, median and maximum — the five values a box plot draws, named so a document can say what it means rather than list five statistics.
 
 **The `source`/`column` data-frame path is removed rather than kept.** It could not have worked: `sourceName` depended on a `dependencyType` of `attributeTargetComponentNames`, declared through an attribute option `createTargetComponentNames`, and neither name exists anywhere else in the codebase — no dependency type is registered under it. Because `sourceName` was defined unconditionally, *every* use of `<summaryStatistics>` threw while its dependencies were built, whether or not a `source` was given. The component has never run. Summarizing a data frame can come back with the data-frame story, written against dependency types that exist; `<dataFrame>` itself is untouched and still excluded.
 
@@ -39,6 +39,6 @@ The table itself is drawn for the first time, so it is drawn properly: its cells
 
 Also removed: `byCategoryColumn`, an attribute that was declared but never implemented; and the renderer's `width`/`height` styling, read from state variables the component does not define, so both were always `undefined`. The caption no longer names a column, since there is no longer a column to name. Every one of its 346 translations was written around that column name, so all of them are retired with it: a reader in another language sees the English caption until it is translated again.
 
-The `statisticsToDisplay` values — `default`, `all`, and the twelve statistics — now reach autocomplete and the reference page, which the component's own comment noted they did not.
+The `statisticsToDisplay` values — `default`, `all`, `fiveNumberSummary`, and the twelve statistics — now reach autocomplete and the reference page, which the component's own comment noted they did not.
 
 Closes #1834.

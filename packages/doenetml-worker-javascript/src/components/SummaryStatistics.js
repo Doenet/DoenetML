@@ -74,6 +74,27 @@ const STATISTICS = [
     },
 ];
 
+/**
+ * The subset of `STATISTICS` that `statisticsToDisplay="fiveNumberSummary"`
+ * selects — Tukey's five-number summary, and the five values a box plot draws.
+ *
+ * Named rather than left to the author to list, for the reason `default` and
+ * `all` are named: a document that says `fiveNumberSummary` says what it means,
+ * where one listing five statistics only says what it shows. The term is taught
+ * as a term, so the source should be able to use it.
+ *
+ * Tukey defined it over hinges, which differ from quartiles on some sample
+ * sizes — R's `fivenum` computes hinges, its `quantile` does not. These are the
+ * quartiles, which is what textbooks and every other tool mean by the name.
+ */
+const FIVE_NUMBER_SUMMARY = [
+    "minimum",
+    "quartile1",
+    "median",
+    "quartile3",
+    "maximum",
+];
+
 /** The subset of `STATISTICS` that `statisticsToDisplay="default"` selects. */
 const DEFAULT_STATISTICS = [
     "mean",
@@ -170,22 +191,32 @@ export default class SummaryStatistics extends BlockComponent {
             createStateVariable: "statisticsToDisplayPrelim",
             defaultValue: ["default"],
             toLowerCase: true,
-            // `default` and `all` are selections over the statistics rather
-            // than statistics of their own, so they are listed here rather
-            // than in `STATISTICS`.
+            // The one attribute that decides what this component shows, so it
+            // is the one the reference page should open on. The five
+            // number-display attributes beside it come from
+            // `returnNumberDisplayAttributes` and are highlighted on no
+            // component; they shape the numbers rather than choose them.
+            highlighted: true,
+            // `default`, `all` and `fiveNumberSummary` are selections over
+            // the statistics rather than statistics of their own, so they are
+            // listed here rather than in `STATISTICS`.
             validValues: [
                 {
                     value: "default",
                     description: `The default selection: ${DEFAULT_STATISTICS.join(", ")}.`,
                 },
                 { value: "all", description: "Every statistic listed here." },
+                {
+                    value: "fiveNumberSummary",
+                    description: `Tukey's five-number summary: ${FIVE_NUMBER_SUMMARY.join(", ")}.`,
+                },
                 ...STATISTICS.map(({ value, description }) => ({
                     value,
                     description,
                 })),
             ],
             description:
-                'Which summary statistics to display (or "default" / "all").',
+                'Which summary statistics to display (or "default" / "all" / "fiveNumberSummary").',
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -265,6 +296,8 @@ export default class SummaryStatistics extends BlockComponent {
                         for (const s of DEFAULT_STATISTICS) requested.add(s);
                     } else if (stat === "all") {
                         for (const s of options) requested.add(s);
+                    } else if (stat === "fivenumbersummary") {
+                        for (const s of FIVE_NUMBER_SUMMARY) requested.add(s);
                     } else {
                         requested.add(stat);
                     }
@@ -396,13 +429,20 @@ export default class SummaryStatistics extends BlockComponent {
             },
         };
 
+        // Every statistic is highlighted: they are what the component is for,
+        // each is separately quotable in a sentence, and the docs' Highlighted
+        // section is the only one open by default. Without this the reference
+        // page offers a reader nothing but closed sections.
         for (let statistic of STATISTICS) {
-            stateVariableDefinitions[statistic.value] = statistic.compute
-                ? returnColumnStatisticDefinition(statistic)
-                : {
-                      description: statistic.description,
-                      ...derivedStatistics[statistic.value],
-                  };
+            stateVariableDefinitions[statistic.value] = {
+                ...(statistic.compute
+                    ? returnColumnStatisticDefinition(statistic)
+                    : {
+                          description: statistic.description,
+                          ...derivedStatistics[statistic.value],
+                      }),
+                highlighted: true,
+            };
         }
 
         stateVariableDefinitions.summaryStatistics = {
