@@ -127,9 +127,58 @@ Notes:
 - `<PropDisplay name='componentName'/>` — properties only.
 - `<ComponentDisplay name='componentName'/>` — injects the component's `summary` from the schema.
 
-Because these read from the schema, the only authoring requirement is to keep `componentDocs.summary` and per-attribute/per-property `description` strings populated on the component class (the schema generator hard-fails if any are missing). You do not need to write attribute/property tables by hand.
+Because these read from the schema, you do not write attribute/property tables by hand. Two things must be right on the component class, and only the first is enforced: every `componentDocs.summary` and every per-attribute/per-property `description` must be populated (the schema generator hard-fails if any are missing), and the **`highlighted` and `groupName` flags must be chosen** (nothing checks these at all — see below).
 
 If a class is missing a `summary` or an attribute is missing a `description`, **fix it in the component source rather than working around it in MDX** — the schema generator will refuse to run otherwise.
+
+### `highlighted` and `groupName` — what the reader sees first
+
+**This is the half of the table nothing enforces, so it is the half that goes wrong.** The schema generator refuses to run over a missing `description`, and is silent about a component whose every attribute is unflagged — that page builds, passes CI, and renders as a wall of closed sections.
+
+`<AttrPropDisplay>` sorts items into four sections (`components/props-display.tsx`): **Highlighted** (`highlighted: true`), then **functional groups** (by `groupName`), then **Other** (neither), then **Common to all components**. Only Highlighted is open by default, so a component with nothing highlighted shows the reader nothing.
+
+**Highlight the few attributes that decide what the component does** — the ones an author reaches for on purpose, the ones the page's own examples demonstrate. Not the formatting knobs shared across many components: the five `returnNumberDisplayAttributes()` attributes are grouped as `number-display` and highlighted almost nowhere, because they shape how a number is written rather than what the component computes.
+
+**`groupName` is a separate decision, and the vocabulary is open.** It is a free string that nothing validates; the renderer falls back with `GROUP_LABELS[groupName] ?? groupName`, so an unrecognized group renders with its raw name as the heading. `GROUP_ORDER` in `props-display.tsx` is a sort order and label registry, not a whitelist — read it for the current names (`sorting`, `number-display`, `labels`, `positioning`, `styling`, `answer-grading`, `scoring`, `triggering`).
+
+Those existing groups are assigned almost entirely by *shared attribute helpers* rather than by components, which is why they look like a uniform taxonomy. The consequence to carry into a new component: **what it inherits arrives grouped and flagged; what it declares itself arrives bare.** If its own attributes form a real family, name a group for them — but do not stretch an existing name to cover something it does not describe, since a misleading heading is worse than "Other".
+
+A name absent from `GROUP_ORDER` sorts *after* every name in it, so register a new one there too; `sorting`, declared in `Sort.js` for that component's own attributes, sits first. This matters less than it looks: every group section is closed, so their order decides which closed heading sits highest, not what anyone sees. **Prominence is `highlighted`'s job** — and an item can be both, appearing in Highlighted *and* in its group.
+
+**Properties are highlighted independently of attributes.** A public state variable definition takes `highlighted: true` exactly as an attribute does — `<argMin>`'s `value` is highlighted with no attribute behind it. Where a component's output *is* its properties, highlight them all: `<summaryStatistics>` highlights its twelve statistics.
+
+**Inherited flags must be actively switched off.** `super.createAttributesObject()` hands down the parent's attribute objects with their flags intact, so a subclass inherits a highlight set chosen for a different component while its own attributes arrive unflagged — the page then opens on the parent's concerns and hides the child's. The repository's idiom is a destructuring strip, in `abstract/ListIndexBaseOperator.js`:
+
+```js
+// `<math>` highlights these because they shape the expression it parses and
+// renders. The value here is an integer index, so they are beside the point.
+for (const attrName of ["format", "simplify", "displayDigits"]) {
+    if (attributes[attrName]) {
+        const { highlighted: _highlighted, ...rest } = attributes[attrName];
+        attributes[attrName] = rest;
+    }
+}
+```
+
+`highlighted: false` works too (the generator copies the flag unless it is `undefined`); the strip just leaves nothing in the schema. Turning one *on* is the plain mutation, as `Math.js` does with `displayDigits`.
+
+Note those three attribute names. `format`, `simplify` and `displayDigits` are `<math>`'s highlighted set, and are the inherited trio most likely to be wrong on anything that computes *with* maths rather than rendering one — check them first when extending something math-derived. `<round>` shipped carrying them: its own `numDecimals` and `numDigits` sat in the closed "Other" section while the page opened on `<math>`'s three, so an author looking for how many digits to round to met the *display* attribute and not the rounding one. That is worse than an unflagged page, because it looks curated. An inherited set is invisible when reading the subclass — it shows only in the rendered page or the schema.
+
+**Check it before opening a PR**, since no build step will:
+
+```bash
+npm run build:schema -w @doenet/static-assets
+python3 -c "
+import json,io
+d=json.load(io.open('packages/static-assets/src/generated/doenet-schema.json',encoding='utf-8'))
+for e in d['elements']:
+    if e['name']=='<componentName>':
+        print([a['name'] for a in e.get('attributes',[]) if a.get('highlighted')])
+        print([p['name'] for p in e.get('properties',[]) if p.get('highlighted')])
+"
+```
+
+Empty lists mean the page opens closed. Read the result against the page's own examples: an attribute worth an `### Attribute Example:` section is almost always worth highlighting.
 
 ## Choosing an example fence
 
