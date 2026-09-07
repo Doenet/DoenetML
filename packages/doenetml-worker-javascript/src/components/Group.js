@@ -9,7 +9,7 @@ export default class Group extends CompositeComponent {
     static componentDocs = {
         summary: "A logical grouping of components",
     };
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static treatAsComponentForRecursiveReplacements = true;
     static includeBlankStringChildren = true;

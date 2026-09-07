@@ -8,7 +8,7 @@ export default class Intersection extends CompositeComponent {
     static componentDocs = {
         summary: "Renders intersections between graphical objects",
     };
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAsComponent = ["point"];
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";

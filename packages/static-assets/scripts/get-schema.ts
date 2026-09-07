@@ -207,6 +207,12 @@ type ComponentClass = {
     /**
      * If a composite component class has the static variable allowInSchemaAnywhere set to true,
      * then we will treat it as though it were any component type when determining schema relationships.
+     *
+     * Use this for a composite whose replacements are copies of whatever the
+     * author put inside it (`<group>`, `<repeat>`, `<select>`, …), or which
+     * produces no replacements at all (`<setup>`). Neither kind has a
+     * replacement type the schema could check against, so both must be
+     * accepted wherever their container accepts any children.
      */
     allowInSchemaAnywhere?: boolean;
     /**
@@ -214,6 +220,15 @@ type ComponentClass = {
      * then we will treat it as though it were any of those
      * component types (as well as its actual component type)
      * when determining schema relationships
+     *
+     * Use this only for a composite with a fixed replacement type — `<mathList>`
+     * expands to `math`, `<intersection>` to `point`. Note that each listed type
+     * is the *starting* type of the inherit/adapt walk below, so an abstract type
+     * such as `_inline` matches only containers that accept arbitrary inline
+     * content; it does not reach a container that accepts one concrete inline
+     * type (`<math>` accepts `math`, but `_inline` neither inherits from nor
+     * adapts to `math`). A composite that can legitimately appear inside such a
+     * container wants `allowInSchemaAnywhere` instead.
      */
     allowInSchemaAsComponent?: string[];
     createAttributesObject: () => Record<string, AttributeObject>;
@@ -621,6 +636,25 @@ export function getSchema(
         const cClass = componentClasses[type];
         if (cClass.excludeFromSchema) {
             delete componentClasses[type];
+        }
+    }
+
+    // The two schema marks contradict each other: one says the replacement
+    // type is unpredictable, the other names it. Both are statics, so a
+    // composite that extends a marked one inherits the mark even when it
+    // declares a replacement type of its own (`SortIndices extends Sort`, but
+    // always expands to `number`). The loop below would silently let
+    // `allowInSchemaAnywhere` win and widen the subclass to every container,
+    // so hard-fail instead and make the subclass say which it means.
+    for (const type in componentClasses) {
+        const cClass = componentClasses[type];
+        if (cClass.allowInSchemaAnywhere && cClass.allowInSchemaAsComponent) {
+            throw Error(
+                `\`${type}\` sets both allowInSchemaAnywhere and allowInSchemaAsComponent ` +
+                    `[${cClass.allowInSchemaAsComponent.join(", ")}]. A composite either has an ` +
+                    `unpredictable replacement type or a fixed one, not both. If the mark comes ` +
+                    `from a base class, set \`static allowInSchemaAnywhere = false\` on the subclass.`,
+            );
         }
     }
 
