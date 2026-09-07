@@ -1183,6 +1183,37 @@ describe("Content-transparent composites in typed containers", () => {
         ).toEqual([]);
     });
 
+    it("Does not see a chart-only child hidden inside a wrapper", async () => {
+        // The limit of a context-free schema plus an immediate-parent check.
+        // `<section>` accepts `<group>`, `<group>` accepts anything its
+        // container would have, and the violation checker compares a node only
+        // with its own parent — so a `<series>` one level down is invisible,
+        // even though the same tag written directly under `<section>` is
+        // caught.
+        //
+        // Pinned rather than fixed: closing it means resolving a node through
+        // the content-transparent composites to the first container that
+        // really constrains it, which needs the schema to say which composites
+        // those are. Tracked in #1886. Asserted here so that it is a known
+        // gap with a shape, and so that a future fix has something to flip.
+        const wrapped = new AutoCompleter(
+            `<section><group><series>4</series></group></section>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await wrapped.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
+
+        // Directly under the same parent, it is caught.
+        const direct = new AutoCompleter(
+            `<section><series>4</series></section>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await direct.getSchemaViolations()).map((d) => d.message),
+        ).toContain("Element `<series>` is not allowed inside of `<section>`.");
+    });
+
     it("Reports a chart-only child written outside a chart", async () => {
         // What the narrowing buys: `<series>` means nothing outside a
         // `<chart>`, and a chart is the only element whose child groups name
