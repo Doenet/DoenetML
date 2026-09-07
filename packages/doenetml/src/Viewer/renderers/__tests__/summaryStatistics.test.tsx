@@ -5,7 +5,8 @@
  * file there is bundled and shipped: this one went out at 1.8 MB beside the
  * 2 kB renderer it tests, carrying `vitest` and `react-dom/server` into the
  * standalone bundle and the extension's preview window. Every other test under
- * `renderers/` sits in a subdirectory for the same reason.
+ * `renderers/` sits in a subdirectory beside the module it tests, so the glob
+ * cannot reach any of them; this was the only one directly in `renderers/`.
  */
 
 import React from "react";
