@@ -36524,6 +36524,7 @@
                 {
                     "name": "layout",
                     "description": "How the bars of several series share a category's slot.",
+                    "highlighted": true,
                     "defaultValue": "grouped",
                     "values": [
                         "grouped",
@@ -36704,7 +36705,8 @@
                     "type": "text",
                     "isArray": false,
                     "description": "How the bars of several series share a category's slot.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "legend",

@@ -1160,6 +1160,48 @@ describe("chart prefigure tests @group4", async () => {
             expect(xml).toContain('bbox="(0,0,3,10)"');
         });
 
+        it("keeps a saturated stack's far corner inside the double range", async () => {
+            const xml = await chartXML(`
+    <chart type="bar" name="c" layout="stacked"><series>1e308</series><series>1e308</series></chart>
+    `);
+
+            // Saturating the running total is not enough on its own. A segment
+            // drawn at the ceiling with its own value as its height has a far
+            // corner past the top of the double range — both attributes finite,
+            // their sum not — and PreFigure computes that corner rather than
+            // reading it, which came out as `L nan -inf` in the drawn path.
+            // Measuring the segment between the two ends it is actually drawn
+            // at leaves it flat against the ceiling instead.
+            expect(xml).toContain('lower-left="(0.6,1e+308)"');
+            const stackedTop = xml.match(
+                /at="bar-2-1" lower-left="\(0\.6,([^)]*)\)" dimensions="\(0\.8,([^)]*)\)"/,
+            );
+            expect(stackedTop, "the second segment should be drawn").not.eq(
+                null,
+            );
+            const base = Number(stackedTop?.[1]);
+            const height = Number(stackedTop?.[2]);
+            expect(Number.isFinite(base + height)).eq(true);
+            expect(base + height).toBeLessThanOrEqual(Number.MAX_VALUE);
+        });
+
+        it("draws every value label over every bar, not just its own", async () => {
+            const xml = await chartXML(`
+    <chart type="bar" name="c" layout="stacked" displayValues categories="A">
+      <series>4</series><series>6</series>
+    </chart>
+    `);
+
+            // A stacked segment starts exactly where the one below it ends,
+            // which is where that one's label is anchored — so a label emitted
+            // beside its own bar is painted over by the next series' rectangle.
+            // Every label therefore comes after every rectangle.
+            const lastRectangle = xml.lastIndexOf("<rectangle ");
+            const firstLabel = xml.indexOf("<label ");
+            expect(firstLabel).toBeGreaterThan(lastRectangle);
+            expect((xml.match(/<label /g) ?? []).length).eq(2);
+        });
+
         it("stacks bars from the baseline, up and down separately", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

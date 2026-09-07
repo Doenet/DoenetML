@@ -94,6 +94,9 @@ Commonly edited packages that others consume: `utils`, `parser`, `i18n`, `static
 Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) before running tests. Highlights:
 - For `@doenet/test-cypress`, rebuild before Cypress runs after code changes.
 - Follow the required sequence: `build -> preview -> cypress run`.
+- Run Cypress with `test-cypress-fast-fail` or `test-cypress-all`. **`npm run test-cypress`
+  is `cypress open`** — it opens a GUI and never exits; so is
+  `test:prefigure-live-accessibility`.
 - Do not rely on an old build or an already-running preview server after source edits.
 - The runbook includes non-interactive test commands, Cypress preview-server workflow, fail-fast Cypress commands, and stale-asset troubleshooting.
 

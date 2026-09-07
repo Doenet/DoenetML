@@ -13,6 +13,38 @@ Avoid commands that open watchers/UIs unless explicitly requested:
 - `cypress open`
 - long-running `dev` commands used as test commands
 
+### The npm scripts that open a GUI
+
+"Don't run `cypress open`" is not enough on its own, because **no agent thinks it is
+running `cypress open`** — it runs an npm script whose name looks like a test command. In
+`packages/test-cypress/package.json`:
+
+| Script | What it actually runs | |
+| --- | --- | --- |
+| `test-cypress` | `cypress open` | ❌ **opens a GUI** |
+| `test:prefigure-live-accessibility` | `cypress open --env RUN_LIVE_PREFIGURE_ACCESSIBILITY=1` | ❌ **opens a GUI** |
+| `test-cypress-fast-fail` | `cypress run … --headless` | ✅ use this |
+| `test-cypress-all` | `cypress run … --headless` | ✅ use this |
+
+`test-cypress` is the trap: it is the script whose name matches the package, so it is the
+one an agent reaches for first. It has opened a window on a user's desktop. Prefer
+`test-cypress-fast-fail`, and to run the live-accessibility specs pass the env var to it
+yourself rather than using the `test:prefigure-live-accessibility` script:
+
+```bash
+npm run test-cypress-fast-fail -w @doenet/test-cypress -- \
+  --config specPattern="cypress/e2e/prefigure/prefigureLiveAccessibility.cy.js" \
+  --env RUN_LIVE_PREFIGURE_ACCESSIBILITY=1
+```
+
+If you do start one by accident, it will not exit on its own and it will block whatever is
+waiting on it. Kill it with `pkill -9 -f "Cypress/.*/Cypress"`, and do not simply re-run
+the same command — a killed child that the parent immediately relaunches reopens the
+window.
+
+Redirect a Cypress run to a file and grep the file. Piping it into `head` can wedge the
+run rather than ending it.
+
 ## Rebuild an Edited Package Before Testing Its Consumers
 
 Every `@doenet/*` package's `exports` point at its `dist/`, and no vitest config aliases them back to `src/`. A test that imports another package **by its `@doenet/` name** gets the **last build** of it. (A *relative* path bypasses `exports` and resolves to whatever it points at. `packages/static-assets/scripts/get-schema.ts` and `packages/doenetml-worker-javascript/src/test/utils/test-core.ts` reach a sibling's `src/` that way and so see an edit without a rebuild, while `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reaches `parser/dist` and still needs one.)

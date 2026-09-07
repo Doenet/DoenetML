@@ -179,6 +179,10 @@ export default class Chart extends BlockComponent {
             defaultValue: "grouped",
             public: true,
             toLowerCase: true,
+            // Alongside `type` and `categories` in the open section of the
+            // generated attribute table: it decides how a multi-series chart is
+            // read, which is not something to find by expanding "Other".
+            highlighted: true,
             validValues: [
                 {
                     value: "grouped",

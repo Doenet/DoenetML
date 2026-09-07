@@ -261,10 +261,15 @@ function snapNumber(value: number): number {
  * `formatNumber` writes as `null` — a literal `null` in the bounding box, in
  * the axis labels, and in the lower-left corner of every segment stacked above
  * the overflow. Saturating at the largest representable value keeps all three
- * drawable: the segment that overflows is drawn from a real corner and clipped
- * by the top of the frame, and anything stacked above it starts at that ceiling
- * with no room left to climb. A stack drawn against the edge of the box is a
- * far smaller problem than a diagram nothing can compile.
+ * drawable.
+ *
+ * Saturating the running total is not on its own enough, which is why the
+ * segment heights below are measured from it rather than from the values: a
+ * rectangle drawn at a saturated base with its own value as its height has a
+ * *far corner* that overflows even though both attributes are finite, and
+ * PreFigure computes that corner rather than reading it. It came out as
+ * `L nan -inf` in the path data of a diagram that otherwise compiled, which is
+ * the shape of bug that a check on the emitted XML cannot see.
  */
 function saturatingAdd(total: number, value: number): number {
     const sum = total + value;
@@ -477,15 +482,30 @@ export function computeBarChartGeometry({
                 ? slot
                 : slot - halfSlot + (seriesIndex + 0.5) * oneBarWidth;
 
+            // `height` is the distance between the two ends of the segment as
+            // they are actually drawn, not the magnitude of the value. The two
+            // differ only where the running total saturates, and there the
+            // difference is the whole point: a segment given its own value as a
+            // height at a base already at the ceiling has a far corner beyond
+            // the double range, which PreFigure resolves to `nan`/`-inf` in the
+            // path it draws. Measuring between the ends instead leaves the last
+            // segment flat against the ceiling. `value` is untouched, so the
+            // annotation still reads the datum the author gave.
             let base;
+            let height;
             if (!stacked) {
                 base = Math.min(0, value);
+                height = Math.abs(value);
             } else if (value < 0) {
-                base = saturatingAdd(stackBelow[ind], value);
-                stackBelow[ind] = base;
+                const bottom = saturatingAdd(stackBelow[ind], value);
+                height = stackBelow[ind] - bottom;
+                base = bottom;
+                stackBelow[ind] = bottom;
             } else {
                 base = stackAbove[ind];
-                stackAbove[ind] = saturatingAdd(base, value);
+                const top = saturatingAdd(base, value);
+                height = top - base;
+                stackAbove[ind] = top;
             }
 
             // Snapped for the reason every tick value here is: a bar's corner
@@ -503,7 +523,7 @@ export function computeBarChartGeometry({
                     snapNumber(center - oneBarWidth / 2),
                     snapNumber(base),
                 ],
-                dimensions: [snapNumber(oneBarWidth), Math.abs(value)],
+                dimensions: [snapNumber(oneBarWidth), height],
             });
         });
     });
@@ -786,6 +806,17 @@ export function createBarChartPrefigureXML({
     const seriesAnnotations: string[][] = geometry.series.map(() => []);
     /** The handle of each series' first bar, for the legend to point at. */
     const seriesKeyHandles: (string | null)[] = geometry.series.map(() => null);
+    /**
+     * The `displayValues` labels, held back until every rectangle is drawn.
+     *
+     * SVG paints in document order, and under `stacked` the next series' bar
+     * begins exactly where this one's ends — which is exactly where this one's
+     * label is anchored. Emitted alongside their own bars, every label but the
+     * topmost ends up beneath the segment above it. They are decoration rather
+     * than structure — nothing annotates them — so they lose nothing by leaving
+     * their series' `<group>` and being drawn over the whole chart instead.
+     */
+    const valueLabelElements: string[] = [];
 
     for (const bar of geometry.bars) {
         const handle = `bar-${bar.seriesIndex + 1}-${bar.slot}`;
@@ -829,7 +860,7 @@ export function createBarChartPrefigureXML({
                     : bar.lowerLeft[1] + bar.dimensions[1];
             const anchorX = bar.lowerLeft[0] + bar.dimensions[0] / 2;
             const anchor = `(${formatNumber(anchorX)},${formatNumber(barTop)})`;
-            seriesElements[bar.seriesIndex].push(
+            valueLabelElements.push(
                 `<label anchor="${escapeXml(anchor)}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(bar.value) ?? "")}</label>`,
             );
         }
@@ -917,7 +948,7 @@ export function createBarChartPrefigureXML({
         : "";
     const annotationsElement = `<annotations><annotation ref="figure"${figureAnnotationText}>${annotationElements.join("")}</annotation></annotations>`;
 
-    const xml = `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}${titleElement}${legendElement}</coordinates>${captionElement}${annotationsElement}</diagram>`;
+    const xml = `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}${valueLabelElements.join("")}${titleElement}${legendElement}</coordinates>${captionElement}${annotationsElement}</diagram>`;
 
     return { xml, diagnostics };
 }
