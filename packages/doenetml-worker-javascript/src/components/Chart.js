@@ -208,7 +208,8 @@ export default class Chart extends BlockComponent {
                 },
                 {
                     value: "yes",
-                    description: "Always draw a legend.",
+                    description:
+                        "Ask for a legend. A legend names the series, so it stays empty — and is not drawn — until at least one of them carries a label.",
                 },
                 {
                     value: "no",
@@ -786,7 +787,8 @@ export default class Chart extends BlockComponent {
         // `yes` is still honored — it simply produces nothing until a series
         // has a label to show.
         stateVariableDefinitions.showLegend = {
-            description: "Whether a legend is drawn.",
+            description:
+                "Whether a legend was asked for. One is drawn only once a series carries a label to put in it.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

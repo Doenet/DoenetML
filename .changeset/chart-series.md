@@ -28,7 +28,7 @@ A series carries its own `<label>`, which names it in the legend, and its own `s
 
 A `<title>` child is drawn above the chart, inside the picture rather than beside it, so it survives being printed or exported — and it becomes the caption of a tactile rendering, which no text placed around the chart could do.
 
-The legend is drawn as soon as a series has a label, keyed off the bars themselves so its swatches cannot disagree with the colors they name. `legend="no"` suppresses it, `legend="yes"` asks for one where none would appear on its own, and `legendPosition` picks the corner — the same four corner names `<legend>` already uses inside a `<graph>`.
+The legend is drawn as soon as a series has a label, keyed off the bars themselves so its swatches cannot disagree with the colors they name. `legend="no"` suppresses it, `legend="yes"` asks for one — which still needs a named series to have anything to show — and `legendPosition` picks the corner — the same four corner names `<legend>` already uses inside a `<graph>`.
 
 A screen reader now walks the chart series by series and then bar by bar within a series, instead of meeting every bar of every group as one flat list.
 

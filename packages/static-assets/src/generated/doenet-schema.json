@@ -36557,7 +36557,7 @@
                         },
                         {
                             "value": "yes",
-                            "description": "Always draw a legend."
+                            "description": "Ask for a legend. A legend names the series, so it stays empty — and is not drawn — until at least one of them carries a label."
                         },
                         {
                             "value": "no",
@@ -36892,7 +36892,7 @@
                     "name": "showLegend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether a legend is drawn."
+                    "description": "Whether a legend was asked for. One is drawn only once a series carries a label to put in it."
                 },
                 {
                     "name": "yMin",

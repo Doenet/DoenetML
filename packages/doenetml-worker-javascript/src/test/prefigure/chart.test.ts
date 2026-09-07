@@ -985,6 +985,29 @@ describe("chart prefigure tests @group4", async () => {
             expect(xml).not.toContain("null");
             expect(xml).not.toContain("Infinity");
         });
+
+        it("keeps a stack of such values finite too", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" layout="stacked">
+      <series>1e308</series>
+      <series>1e308</series>
+      <series>5</series>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+
+            // A stack is a sum, and a sum of finite values need not be finite:
+            // two of these overflow, and the third segment then starts from
+            // the overflow. The box, the axis labels and every corner have to
+            // stay numbers a diagram can be built from.
+            expect(chart.prefigureXML).not.toContain("null");
+            expect(chart.prefigureXML).not.toContain("Infinity");
+            expect(Number.isFinite(chart.yMax)).eq(true);
+            expect(chart.yMax).toBeGreaterThan(0);
+        });
     });
 
     describe("extreme numbers stay drawable", async () => {
@@ -1348,6 +1371,16 @@ describe("chart prefigure tests @group4", async () => {
     </chart>
     `);
             expect(suppressed).not.toContain("<legend ");
+
+            // `yes` asks for a legend, but a legend names the series: with
+            // none of them named there is nothing to put in one, so the
+            // request draws no box rather than an empty one.
+            const askedFor = await chartXML(`
+    <chart type="bar" name="c" legend="yes">
+      <series>4</series><series>9</series>
+    </chart>
+    `);
+            expect(askedFor).not.toContain("<legend ");
 
             const lowerLeft = await chartXML(`
     <chart type="bar" name="c" legendPosition="lowerLeft">

@@ -182,8 +182,11 @@ export type BarGeometry = {
 export type BarChartGeometry = {
     /**
      * The series drawn, in order, whether or not any of their values could be.
-     * A series with no drawable value still belongs in the legend: it is a
-     * group of the data that happens to be empty, not a group that is absent.
+     * One whose every value is non-finite is kept rather than dropped: it is a
+     * group of the data that happens to be empty, not a group that is absent,
+     * so it keeps its place in the order and a screen reader still reaches it
+     * by name. It gets no swatch in the legend, since PreFigure builds one out
+     * of an element the item points at and there is no bar to point at.
      */
     series: { label: string }[];
     bars: BarGeometry[];
@@ -213,6 +216,26 @@ const TARGET_TICK_INTERVALS = 5;
  */
 function snapNumber(value: number): number {
     return Number.isFinite(value) ? Number(value.toPrecision(12)) : value;
+}
+
+/**
+ * A running total kept inside the range a double can hold.
+ *
+ * A stack's height is the sum of its segments, and a sum of finite values need
+ * not be finite: two series of `1e308` stack to `Infinity`, which
+ * `formatNumber` writes as `null` — a literal `null` in the bounding box, in
+ * the axis labels, and in the lower-left corner of every segment stacked above
+ * the overflow. Saturating at the largest representable value keeps all three
+ * drawable. The segments past that point then have nowhere left to climb and
+ * are drawn on top of one another, which is a far smaller problem than a
+ * diagram nothing can compile.
+ */
+function saturatingAdd(total: number, value: number): number {
+    const sum = total + value;
+    if (Number.isFinite(sum)) {
+        return sum;
+    }
+    return sum > 0 ? Number.MAX_VALUE : -Number.MAX_VALUE;
 }
 
 /**
@@ -422,11 +445,11 @@ export function computeBarChartGeometry({
             if (!stacked) {
                 base = Math.min(0, value);
             } else if (value < 0) {
-                base = stackBelow[ind] + value;
-                stackBelow[ind] += value;
+                base = saturatingAdd(stackBelow[ind], value);
+                stackBelow[ind] = base;
             } else {
                 base = stackAbove[ind];
-                stackAbove[ind] += value;
+                stackAbove[ind] = saturatingAdd(base, value);
             }
 
             // Snapped for the reason every tick value here is: a bar's corner
