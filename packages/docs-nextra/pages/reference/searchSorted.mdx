@@ -138,3 +138,31 @@ When the target equals several entries, `side` chooses which end of that run to 
 
 
 Only an ordering is needed, not arithmetic, so a sorted text list works the same way.
+
+
+
+---
+
+## Attribute Examples
+
+### Attribute Example: target
+
+
+```doenet-editor-horiz
+<textList name="cities">
+  <text>Boston</text><text>Chicago</text><text>New York</text>
+</textList>
+
+<text name="wanted">New York</text>
+
+<p>Written out: <searchSorted type="text" target="New York">$cities</searchSorted></p>
+<p>Referenced: <searchSorted type="text" target="$wanted">$cities</searchSorted></p>
+```
+
+
+
+`target` is read the way bare children are: whitespace separates one target from the
+next, so `target="New York"` asks where two separate words belong and gets two answers.
+A value with a space in it is written as a `<text>{:dn}` of its own and referenced —
+which is also how the sorted list is built, since
+`<textList>Boston Chicago New York</textList>{:dn}` is four entries and not three.

@@ -96,3 +96,31 @@ roster, so her slot is 0 while the others keep their positions.
 
 Finding a position in one list and reading it out of another is the usual reason to
 want `<indexOf>{:dn}` rather than a test for membership.
+
+
+
+---
+
+## Attribute Examples
+
+### Attribute Example: target
+
+
+```doenet-editor-horiz
+<textList name="cities">
+  <text>Boston</text><text>New York</text><text>Chicago</text>
+</textList>
+
+<text name="wanted">New York</text>
+
+<p>Written out: <indexOf type="text" target="New York">$cities</indexOf></p>
+<p>Referenced: <indexOf type="text" target="$wanted">$cities</indexOf></p>
+```
+
+
+
+`target` is read the way bare children are: whitespace separates one target from the
+next, so `target="New York"` asks for two of them and neither is on the list. A value
+with a space in it is written as a `<text>{:dn}` of its own and referenced — which is
+also how the list holding it is built, since `<textList>Boston New York</textList>{:dn}`
+is three cities and not two.
