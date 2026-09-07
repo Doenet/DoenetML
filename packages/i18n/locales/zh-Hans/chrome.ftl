@@ -87,7 +87,6 @@ orbital-add-down-arrow = 添加向下箭头
 orbital-remove-arrow = 删除箭头
 orbital-row-label = 第 { $row } 行的标签
 pretzel-answer = 答案
-summary-statistics-caption = { $column } 的描述统计量
 
 ## Math input
 

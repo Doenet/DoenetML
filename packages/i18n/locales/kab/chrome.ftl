@@ -69,7 +69,6 @@ orbital-add-down-arrow = Rnu taneccabt s wadda
 orbital-remove-arrow = Kkes taneccabt
 orbital-row-label = Tabzimt n yizirig { $row }
 pretzel-answer = Tiririt
-summary-statistics-caption = Agzul n tsiḍa n { $column }
 
 ## Math input
 

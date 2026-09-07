@@ -29,13 +29,13 @@
 # and it is why nothing in `content.ftl` welds a genitive onto a value.
 #
 # **The other three files cannot take that way out, and do not pretend to.** A
-# message like `summary-statistics-caption` or the `variant-*` family names a
-# thing the document contains and needs a genitive to do it, with no invariant
-# particle to reach for. Those write the default shape, གི་ and གིས་, after a
-# placeable — right for most syllables and wrong for some — and that is a
-# recorded limit rather than a decision. Rewording each of them to avoid the
-# genitive is the correction owed; keeping one shape throughout is what makes
-# the wrong ones findable.
+# message like `orbital-row-label` or the `variant-*` family names a thing the
+# document contains and needs a genitive to do it, with no invariant particle
+# to reach for. Those write the default shape, གི་ and གིས་, after a placeable
+# — right for most syllables and wrong for some — and that is a recorded limit
+# rather than a decision. Rewording each of them to avoid the genitive is the
+# correction owed; keeping one shape throughout is what makes the wrong ones
+# findable.
 #
 # Tibetan adjectives **follow** the noun: ཐིག་དམར་པོ, a red line. So
 # `style-with-noun` puts the description after the noun, which is the position

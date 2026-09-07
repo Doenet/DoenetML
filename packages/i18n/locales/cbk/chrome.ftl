@@ -53,9 +53,9 @@
 # and Filipino, and the classroom vocabulary for mathematics is English on top
 # of the Spanish the language already carries. Where a Spanish-lexifier word
 # is the one in use — «linea», «punto», «circulo», «poligono», «cuadrado»,
-# «fila», «columna», «estadistica» — it is used. Where it is not, the English
-# word is kept outright (`WCAG`, `renderer`, `reload`, `teclado`'s neighbours
-# in `editor.ftl`) rather than coined.
+# «fila», «columna» — it is used. Where it is not, the English word is kept
+# outright (`WCAG`, `renderer`, `reload`, `teclado`'s neighbours in
+# `editor.ftl`) rather than coined.
 
 answer-checking = Ta revisa...
 answer-submitting = Ta manda...
@@ -131,7 +131,6 @@ orbital-row-label = Letrero para na fila { $row }
 
 pretzel-answer = Respuesta
 
-summary-statistics-caption = Resumen de estadistica de { $column }
 
 math-input-preview-region = vista previa del matematico expresion
 math-input-preview = Vista previa

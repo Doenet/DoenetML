@@ -124,7 +124,6 @@ orbital-add-down-arrow = Алов нал поладомс
 orbital-remove-arrow = Налоть саемс
 orbital-row-label = { $row } рядонь тешкс
 pretzel-answer = Каршо вал
-summary-statistics-caption = { $column } баганонь прядомань статистика
 
 ## Math input
 

@@ -61,7 +61,7 @@
 # Brahui is not a medium of instruction anywhere: schooling in its area is in
 # Urdu and English, and roughly half the everyday lexicon is Balochi or Persian
 # already. So the technical vocabulary below — `کی بورڈ`, `میٹرکس`, `کالم`,
-# `شماریاتی`, `فیصد`, `آربیٹل`, `WCAG` — is the Urdu and Balochi vocabulary a
+# `فیصد`, `آربیٹل`, `WCAG` — is the Urdu and Balochi vocabulary a
 # Brahui-speaking pupil actually meets, and the sentences around it are built
 # on Brahui's own case clitics and word order. The grammar is Brahui; a good
 # deal of the vocabulary is not, and this file says so rather than inventing
@@ -127,9 +127,6 @@ orbital-add-down-arrow = چیری تیر نا ھور کننگ
 orbital-remove-arrow = تیر نا در کننگ
 orbital-row-label = رج { $row } نا نام
 pretzel-answer = جواب
-# «کالم» names what `$column` is, so the genitive clitic falls behind a word
-# this catalog writes rather than behind the value.
-summary-statistics-caption = کالم { $column } نا شماریاتی خلاصہ
 
 ## Math input
 

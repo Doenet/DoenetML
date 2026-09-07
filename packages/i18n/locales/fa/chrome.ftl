@@ -76,9 +76,6 @@ orbital-add-down-arrow = افزودن پیکان رو به پایین
 orbital-remove-arrow = حذف پیکان
 orbital-row-label = برچسب سطر { $row }
 pretzel-answer = پاسخ
-# «ستون» names what `$column` is, so that the ezāfe joining the phrase to it
-# does not have to be written onto a placeable.
-summary-statistics-caption = خلاصهٔ آماری ستون { $column }
 
 ## Math input
 

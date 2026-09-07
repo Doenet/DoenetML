@@ -48,12 +48,12 @@
 #
 # ## Borrowing, declared
 #
-# «vektor», «parabola», «polygon», «fonksyon», «diamont», «statistegow»,
-# «theorem» and «ionek» are English/international terms in SWF spelling — the
-# register a Cornish pupil actually meets mathematics and chemistry in is
-# English. The language's own words carry the everyday layer: the colours «du»,
-# «gwynn», «loos», «rudh», «melyn», «gwyrdh», «glas», «gell»; «linen»,
-# «kylgh», «trihorn», «krows», «poynt», «folen», «gwir» and «gow».
+# «vektor», «parabola», «polygon», «fonksyon», «diamont», «theorem» and «ionek»
+# are English/international terms in SWF spelling — the register a Cornish
+# pupil actually meets mathematics and chemistry in is English. The language's
+# own words carry the everyday layer: the colours «du», «gwynn», «loos»,
+# «rudh», «melyn», «gwyrdh», «glas», «gell»; «linen», «kylgh», «trihorn»,
+# «krows», «poynt», «folen», «gwir» and «gow».
 #
 # `noun-regular-polygon`'s tail prints a numeral in front of «tenewen», whose
 # `t` lenites after «dew» and spirantizes after «tri», and is written once

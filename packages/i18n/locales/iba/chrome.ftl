@@ -41,11 +41,11 @@
 # «tidak», «dengan», «atau» — has found a defect, and it is the defect this
 # seed is most likely to have made.
 #
-# DECLARED LOANS. `WCAG`, `DoenetML`, `renderer`, `statistik`, `matematik`,
-# `markah`, `label`, `baris`, `lajur`, `papan kekunci`, `komponen`, `akses`
-# and `amaran` are written as they stand. The first four are English; the rest
-# are the Malay school words, kept because that is what an Iban reader has met
-# them as, and named here rather than replaced with a coinage.
+# DECLARED LOANS. `WCAG`, `DoenetML`, `renderer`, `matematik`, `markah`,
+# `label`, `baris`, `lajur`, `papan kekunci`, `komponen`, `akses` and `amaran`
+# are written as they stand. The first four are English; the rest are the Malay
+# school words, kept because that is what an Iban reader has met them as, and
+# named here rather than replaced with a coinage.
 #
 # WHAT THIS CATALOG DOES NOT KNOW. It has no Iban word for "to hide", so
 # `footnote-hide` says "close" («Tutup») instead — the word that can be
@@ -122,7 +122,6 @@ orbital-add-down-arrow = Tambah Anak Panah Ka Baruh
 orbital-remove-arrow = Buai Anak Panah
 orbital-row-label = Nama ke baris { $row }
 pretzel-answer = Saut
-summary-statistics-caption = Ringkas statistik { $column }
 
 
 ## Math input

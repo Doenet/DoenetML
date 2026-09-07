@@ -89,7 +89,6 @@ orbital-add-down-arrow = Magdagdag ng Pababang Arrow
 orbital-remove-arrow = Alisin ang Arrow
 orbital-row-label = Label para sa hanay { $row }
 pretzel-answer = Sagot
-summary-statistics-caption = Buod na istatistika ng { $column }
 
 ## Math input
 

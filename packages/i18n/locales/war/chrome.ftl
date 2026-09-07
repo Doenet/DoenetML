@@ -86,7 +86,6 @@ orbital-add-down-arrow = Dugangi hin pana nga palugsad
 orbital-remove-arrow = Kuhaa an pana
 orbital-row-label = Etiketa para ha linya { $row }
 pretzel-answer = Baton
-summary-statistics-caption = Sumaryo nga estadistika han { $column }
 
 ## Math input
 

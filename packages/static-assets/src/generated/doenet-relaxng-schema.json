@@ -232,6 +232,7 @@
         "regionHalfPlane",
         "codeEditor",
         "hasSameFactoring",
+        "summaryStatistics",
         "legend",
         "label",
         "matchesPattern",
@@ -3975,6 +3976,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -4969,6 +4973,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -5961,6 +5968,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -7885,6 +7895,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -38150,6 +38163,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -39478,6 +39494,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -40690,6 +40709,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -41571,6 +41593,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -42450,6 +42475,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -43334,6 +43362,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -55590,6 +55621,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -56799,6 +56833,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -58012,6 +58049,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -59221,6 +59261,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -60441,6 +60484,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -61650,6 +61696,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -62870,6 +62919,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -64086,6 +64138,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -65306,6 +65361,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -66524,6 +66582,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -67733,6 +67794,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -68946,6 +69010,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -70155,6 +70222,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -71368,6 +71438,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -72579,6 +72652,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -73788,6 +73864,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -75007,6 +75086,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -76210,6 +76292,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -77411,6 +77496,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -79058,6 +79146,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -86015,6 +86106,9 @@
                     "ref": "codeEditor"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "blockQuote"
                 },
                 {
@@ -87101,6 +87195,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -88011,6 +88108,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -89007,6 +89107,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -89936,6 +90039,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -90781,6 +90887,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -91658,6 +91767,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -93768,6 +93880,9 @@
                     "ref": "codeEditor"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "blockQuote"
                 },
                 {
@@ -94519,6 +94634,9 @@
                 },
                 {
                     "ref": "codeEditor"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "blockQuote"
@@ -95386,6 +95504,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -101276,6 +101397,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -118593,6 +118717,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -124732,6 +124859,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -126893,6 +127023,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -128555,6 +128688,9 @@
                     "ref": "codeEditor"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "blockQuote"
                 },
                 {
@@ -129333,6 +129469,9 @@
                 },
                 {
                     "ref": "codeEditor"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "blockQuote"
@@ -130198,6 +130337,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -131070,6 +131212,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -134352,6 +134497,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -136336,6 +136484,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -139334,6 +139485,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -141620,6 +141774,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -143747,6 +143904,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -144585,6 +144745,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -145439,6 +145602,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -146809,6 +146975,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -148218,6 +148387,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -149032,6 +149204,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -149864,6 +150039,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -151219,6 +151397,9 @@
                 },
                 {
                     "ref": "codeEditor"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "blockQuote"
@@ -152905,6 +153086,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -153777,6 +153961,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -154628,6 +154815,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -157119,6 +157309,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -160307,6 +160500,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -161090,6 +161286,563 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The boolean rendered as a text string (\"true\" or \"false\", in the document's language)."
+                }
+            ]
+        },
+        "summaryStatistics": {
+            "type": "element",
+            "name": "summaryStatistics",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "statisticsToDisplay": {
+                    "optional": true,
+                    "type": [
+                        "default",
+                        "all",
+                        "fiveNumberSummary",
+                        "mean",
+                        "stdev",
+                        "variance",
+                        "stderr",
+                        "count",
+                        "minimum",
+                        "quartile1",
+                        "median",
+                        "quartile3",
+                        "maximum",
+                        "range",
+                        "sum"
+                    ]
+                },
+                "displayDigits": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDecimals": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displaySmallAsZero": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "padZeros": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "avoidScientificNotation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "statisticsToDisplay",
+                    "type": "textList",
+                    "isArray": false,
+                    "description": "Which summary statistics to display."
+                },
+                {
+                    "name": "mean",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The arithmetic mean of the values."
+                },
+                {
+                    "name": "stdev",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The sample standard deviation."
+                },
+                {
+                    "name": "variance",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The sample variance."
+                },
+                {
+                    "name": "stderr",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The standard error of the mean."
+                },
+                {
+                    "name": "count",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of non-missing values."
+                },
+                {
+                    "name": "minimum",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The smallest value."
+                },
+                {
+                    "name": "quartile1",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The first quartile (25th percentile)."
+                },
+                {
+                    "name": "median",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The median value."
+                },
+                {
+                    "name": "quartile3",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The third quartile (75th percentile)."
+                },
+                {
+                    "name": "maximum",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The largest value."
+                },
+                {
+                    "name": "range",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The maximum minus the minimum."
+                },
+                {
+                    "name": "sum",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The sum of the values."
                 }
             ]
         },
@@ -165313,6 +166066,9 @@
                     "ref": "hasSameFactoring"
                 },
                 {
+                    "ref": "summaryStatistics"
+                },
+                {
                     "ref": "legend"
                 },
                 {
@@ -166158,6 +166914,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"
@@ -168098,6 +168857,9 @@
                 },
                 {
                     "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
                 },
                 {
                     "ref": "legend"

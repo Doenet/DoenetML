@@ -78,7 +78,6 @@ orbital-add-down-arrow = Adicionar seta para baixo
 orbital-remove-arrow = Remover seta
 orbital-row-label = Rótulo da linha { $row }
 pretzel-answer = Resposta
-summary-statistics-caption = Estatísticas descritivas de { $column }
 
 ## Math input
 

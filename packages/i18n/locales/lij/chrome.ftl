@@ -92,7 +92,6 @@ orbital-add-down-arrow = Azonzi 'na frecia in zù
 orbital-remove-arrow = Leva a frecia
 orbital-row-label = Etichetta pe-a riga { $row }
 pretzel-answer = Risposta
-summary-statistics-caption = Statistiche de scinteizi de { $column }
 
 ## Math input
 

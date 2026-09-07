@@ -75,7 +75,6 @@ orbital-add-down-arrow = Piel omleech tafoegje
 orbital-remove-arrow = Piel fuortsmite
 orbital-row-label = Namme foar rige { $row }
 pretzel-answer = Antwurd
-summary-statistics-caption = Gearfetsjende statistiken fan { $column }
 
 ## Math input
 

@@ -109,7 +109,6 @@ orbital-add-down-arrow = Pili ammukartoq ilanngullugu
 orbital-remove-arrow = Pili peeruk
 orbital-row-label = Rækkimut { $row } ateq
 pretzel-answer = Akissut
-summary-statistics-caption = { $column } pillugu naatsorsuutit
 
 
 ## Math input

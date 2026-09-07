@@ -123,7 +123,6 @@ orbital-row-label = Label ko row { $row }
 
 pretzel-answer = Sëmbag
 
-summary-statistics-caption = Summary statistics o { $column }
 
 math-input-preview-region = preview o math expression
 math-input-preview = Preview

@@ -89,7 +89,6 @@ orbital-add-down-arrow = Imbuhin panah tuun
 orbital-remove-arrow = Kaadang panahne
 orbital-row-label = Label anggon baris { $row }
 pretzel-answer = Pasaut
-summary-statistics-caption = Ringkesan statistik { $column }
 
 ## Math input
 

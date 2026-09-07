@@ -42,10 +42,10 @@
 #
 # **Loans, named.** Sranan Tongo takes its technical vocabulary from Dutch and
 # English, and this seed keeps that rather than coining: «funksi», «vektor»,
-# «komponent», «atribut», «statistik», «matriks», «kibord», «interval»,
-# «krediti», «informasi», «aksesibiliteit». The grammar around them is Sranan:
-# the preverbal «e / ben / sa / musu», «no» for negation, «fu» for possession
-# and purpose, «na» as the copula. «Aksesibiliteit» is the weakest word in the
+# «komponent», «atribut», «matriks», «kibord», «interval», «krediti»,
+# «informasi», «aksesibiliteit». The grammar around them is Sranan: the
+# preverbal «e / ben / sa / musu», «no» for negation, «fu» for possession and
+# purpose, «na» as the copula. «Aksesibiliteit» is the weakest word in the
 # file — it is an English-shaped loan for a concept Suriname discusses in
 # Dutch — and is what a reviewer should look at first. The technical
 # vocabulary in this file is therefore a **lexifier loan set**, Dutch- and
@@ -132,8 +132,6 @@ orbital-remove-arrow = Puru a peiri
 orbital-row-label = Nen gi rei { $row }
 
 pretzel-answer = Piki
-
-summary-statistics-caption = Kortu statistik fu { $column }
 
 
 ## Math input

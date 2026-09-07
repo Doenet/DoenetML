@@ -77,7 +77,6 @@ orbital-add-down-arrow = নিম্নমুখী তির যোগ কর�
 orbital-remove-arrow = তির সরান
 orbital-row-label = { $row } নং সারির লেবেল
 pretzel-answer = উত্তর
-summary-statistics-caption = { $column }-এর সারসংক্ষেপ পরিসংখ্যান
 
 ## Math input
 

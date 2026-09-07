@@ -98,9 +98,6 @@ orbital-add-down-arrow = جیر پیکان هارِسون
 orbital-remove-arrow = پیکان ره وردار
 orbital-row-label = { $row } سطرِ برچسب
 pretzel-answer = جواب
-# «ستون» names what `$column` is, so the phrase can be built around the
-# placeable without anything being attached to it.
-summary-statistics-caption = { $column } ستونِ آماری خلاصه
 
 
 ## Math input

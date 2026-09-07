@@ -86,7 +86,6 @@ orbital-add-down-arrow = Dagdagan nin panang pasiring sa ibaba
 orbital-remove-arrow = Halion an pana
 orbital-row-label = Etiketa para sa linya { $row }
 pretzel-answer = Simbag
-summary-statistics-caption = Buod na estadistika kan { $column }
 
 ## Math input
 

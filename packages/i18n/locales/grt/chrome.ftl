@@ -140,8 +140,6 @@ orbital-row-label = Row { $row }-ni lebel
 
 pretzel-answer = Aganchakani
 
-summary-statistics-caption = { $column }-ni summary statistics
-
 
 ## Math input
 

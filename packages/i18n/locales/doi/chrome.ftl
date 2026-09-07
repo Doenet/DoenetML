@@ -69,7 +69,6 @@ orbital-add-down-arrow = थल्ले आला तीर जोड़ो
 orbital-remove-arrow = तीर हटाओ
 orbital-row-label = पंगत { $row } दा लेबल
 pretzel-answer = जवाब
-summary-statistics-caption = { $column } दा सांख्यिकी सार
 
 ## Math input
 

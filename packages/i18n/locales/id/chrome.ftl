@@ -75,7 +75,6 @@ orbital-add-down-arrow = Tambah panah bawah
 orbital-remove-arrow = Hapus panah
 orbital-row-label = Label untuk baris { $row }
 pretzel-answer = Jawaban
-summary-statistics-caption = Statistik ringkasan dari { $column }
 
 ## Math input
 

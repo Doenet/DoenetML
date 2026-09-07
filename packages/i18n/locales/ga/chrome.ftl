@@ -84,7 +84,6 @@ orbital-add-down-arrow = Cuir saighead síos leis
 orbital-remove-arrow = Bain saighead
 orbital-row-label = Lipéad don ró { $row }
 pretzel-answer = Freagra
-summary-statistics-caption = Staitisticí achoimre { $column }
 
 ## Math input
 

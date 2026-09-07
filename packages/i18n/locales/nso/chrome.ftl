@@ -69,7 +69,6 @@ orbital-add-down-arrow = Oketša Mosebe wa Tlase
 orbital-remove-arrow = Tloša Mosebe
 orbital-row-label = Leina la mothaladi wa { $row }
 pretzel-answer = Karabo
-summary-statistics-caption = Kakaretšo ya dipalopalo tša { $column }
 
 ## Math input
 

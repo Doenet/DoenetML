@@ -56,9 +56,9 @@
 #   * **English, in the Latin alphabet**, for computing and the DoenetML
 #     vocabulary: `keyboard`, `row`, `column`, `box`, `credit`, `preview`,
 #     `math expression`, `interval`, `document`, `renderer`, `load`,
-#     `summary statistics`, `WCAG AA`, `accessibility`. Karen technical
-#     writing leaves such terms in Latin letters, and writing them out in
-#     Karen syllables would invent a spelling no reader has seen.
+#     `WCAG AA`, `accessibility`. Karen technical writing leaves such terms in
+#     Latin letters, and writing them out in Karen syllables would invent a
+#     spelling no reader has seen.
 #
 # The Karen is the frame, and it is a real one: the **negative circumfix
 # တ…ဘၣ်** (တသ့ဘၣ် 'cannot', တအိၣ်ဘၣ် 'there is none', တထံၣ်ဘၣ် 'not
@@ -160,8 +160,6 @@ orbital-remove-arrow = ထုးထီၣ်ကွံာ် မြား
 orbital-row-label = row { $row } အဂီၢ် အမံၤ
 
 pretzel-answer = တၢ်စံးဆၢ
-
-summary-statistics-caption = { $column } အဂီၢ် summary statistics
 
 
 ## Math input

@@ -79,7 +79,6 @@ orbital-add-down-arrow = Yongeza Utolo Olujonge Ezantsi
 orbital-remove-arrow = Susa Utolo
 orbital-row-label = Ilebhile yomqolo { $row }
 pretzel-answer = Impendulo
-summary-statistics-caption = Amanani ashwankathelweyo e-{ $column }
 
 ## Math input
 

@@ -44,15 +44,15 @@
 # Guatemala and Nicaragua, English in Belize. The technical nouns here are
 # **Spanish loans respelled to the Garifuna alphabet and carried in a Garifuna
 # frame**: «respuesta», «tekladu», «matrisi», «kolumna», «fila», «intentu»,
-# «erroru», «adbertensia», «informasion», «dokumentu», «estadístika»,
-# «espresion», «renderisadóru», «aksesibilidá». The frame around them is
-# Garifuna: the second-person imperative prefix `b-` on the loan verbs
-# («Bagregaru» add, «Bakitaru» remove, «Bakambiaru» change, «Bakargaru» load),
-# «lidan» in, «lun» to, «luma» with, «anihein» there is, «úati» there is none,
-# «mama» the negative copula, «siñá» cannot, and the privative `ma-` of
-# «mabuiti». A Belizean speaker may prefer the English loan in any of these
-# slots — *keyboard*, *matrix*, *error* — and should feel free to substitute,
-# but the whole file has to move together.
+# «erroru», «adbertensia», «informasion», «dokumentu», «espresion»,
+# «renderisadóru», «aksesibilidá». The frame around them is Garifuna: the
+# second-person imperative prefix `b-` on the loan verbs («Bagregaru» add,
+# «Bakitaru» remove, «Bakambiaru» change, «Bakargaru» load), «lidan» in, «lun»
+# to, «luma» with, «anihein» there is, «úati» there is none, «mama» the
+# negative copula, «siñá» cannot, and the privative `ma-` of «mabuiti». A
+# Belizean speaker may prefer the English loan in any of these slots —
+# *keyboard*, *matrix*, *error* — and should feel free to substitute, but the
+# whole file has to move together.
 #
 # **Confidence, and it is low.** «buiti» and its privative «mabuiti», the two
 # verdicts on a submitted answer, carry a great deal of this file and are worth
@@ -143,8 +143,6 @@ orbital-remove-arrow = Bakitaru flecha
 orbital-row-label = Etiketa lun fila { $row }
 
 pretzel-answer = Respuesta
-
-summary-statistics-caption = Estadístika lun { $column }
 
 
 ## Math input

@@ -118,7 +118,6 @@ orbital-add-down-arrow = নিচের তীর বাড়াইন
 orbital-remove-arrow = তীর সরাইন
 orbital-row-label = { $row } নম্বর সারির নাম
 pretzel-answer = জুয়াপ
-summary-statistics-caption = { $column }-র সারসংক্ষেপ পরিসংখ্যান
 
 
 ## Math input

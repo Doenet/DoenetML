@@ -93,7 +93,6 @@ orbital-add-down-arrow = Zonte une frece in jù
 orbital-remove-arrow = Gjave la frece
 orbital-row-label = Etichete pe rie { $row }
 pretzel-answer = Rispueste
-summary-statistics-caption = Statistichis di sintesi di { $column }
 
 ## Math input
 

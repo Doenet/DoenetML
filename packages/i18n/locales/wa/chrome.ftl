@@ -36,20 +36,20 @@
 # (add), «oister» (remove), «bodjî» (move), «disfacer» (erase), «rissayî»
 # (try again). So are the nouns «saye» (attempt), «roye» (row, line),
 # «boesse» (box), «sayete» (arrow), «taprece» (keyboard), «pådje» (page),
-# «racsegne» (piece of information), «aroke» (error), «rascourti» (summary),
-# and the deverbal `-aedje` nouns this catalog leans on for the progress
-# strings: «verifiaedje», «evoyaedje», «enondaedje», «håynaedje».
+# «racsegne» (piece of information), «aroke» (error), and the deverbal
+# `-aedje` nouns this catalog leans on for the progress strings:
+# «verifiaedje», «evoyaedje», «enondaedje», «håynaedje».
 #
 # The technical register is **French, respelled by rifondou rules**:
-# «response», «espression», «matematike», «statistike», «colone»,
-# «intervale», «infôrmåcion», «accessibilité», «violåcion», «etikete»,
-# «macsimom», «module», «documint». Two words are the
-# Walloon software-localisation register rather than general Walloon —
-# «clitchî» for *to click* and «håyner» for *to display* — and are the words
-# the existing Walloon KDE/GNOME translations use. «apiercu» (preview) and
-# «Comintaires» (feedback) are the weakest entries in the file: Walloon has
-# no settled word for either, and these are French loans respelled, not
-# attested Walloon terms. `WCAG AA` is the standard's name and is not a word.
+# «response», «espression», «matematike», «colone», «intervale»,
+# «infôrmåcion», «accessibilité», «violåcion», «etikete», «macsimom»,
+# «module», «documint». Two words are the Walloon software-localisation
+# register rather than general Walloon — «clitchî» for *to click* and «håyner»
+# for *to display* — and are the words the existing Walloon KDE/GNOME
+# translations use. «apiercu» (preview) and «Comintaires» (feedback) are the
+# weakest entries in the file: Walloon has no settled word for either, and
+# these are French loans respelled, not attested Walloon terms. `WCAG AA` is
+# the standard's name and is not a word.
 #
 # **Counts.** CLDR has its own plural data for `wa`, with two categories,
 # `one` and `other`. Walloon's `one` **covers zero as well as one**: a zero
@@ -133,7 +133,6 @@ orbital-add-down-arrow = Radjouter ene sayete viè l' bas
 orbital-remove-arrow = Oister ene sayete
 orbital-row-label = Etikete del roye { $row }
 pretzel-answer = Response
-summary-statistics-caption = Rascourti des statistikes di { $column }
 
 ## Math input
 

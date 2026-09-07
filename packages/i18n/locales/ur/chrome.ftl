@@ -76,7 +76,6 @@ orbital-add-down-arrow = نیچے کا تیر شامل کریں
 orbital-remove-arrow = تیر ہٹائیں
 orbital-row-label = سطر { $row } کا عنوان
 pretzel-answer = جواب
-summary-statistics-caption = کالم { $column } کا شماریاتی خلاصہ
 
 ## Math input
 

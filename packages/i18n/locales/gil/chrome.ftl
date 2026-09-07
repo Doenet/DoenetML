@@ -75,9 +75,9 @@
 # `locales/kos` states for its whole residue, applied here only where it is
 # needed. `document`, `page`, `keyboard`, `row`, `column`, `box`, `arrow`,
 # `point`, `interval`, `line` (the source line), `credit`, `renderer`,
-# `statistics`, `accessibility`, `expression` and `math` are loans of that kind
-# here. Everything else below is Kiribati. The frame — word order, the linker,
-# the absence of gender and number agreement — is this file's contribution; the
+# `accessibility`, `expression` and `math` are loans of that kind here.
+# Everything else below is Kiribati. The frame — word order, the linker, the
+# absence of gender and number agreement — is this file's contribution; the
 # loans are its debt, and replacing one needs no permission.
 #
 # **Words this file commits to** (a reviewer should check these first, since
@@ -170,8 +170,6 @@ orbital-remove-arrow = Kaakea te Arrow
 orbital-row-label = Te ara ibukin row { $row }
 
 pretzel-answer = Kaeka
-
-summary-statistics-caption = Kabwarabwaraan te statistics ibukin { $column }
 
 
 ## Math input

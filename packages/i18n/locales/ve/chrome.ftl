@@ -69,7 +69,6 @@ orbital-add-down-arrow = Engedza Musevhe wa Fhasi
 orbital-remove-arrow = Bvisa Musevhe
 orbital-row-label = Dzina ḽa mutalo { $row }
 pretzel-answer = Phindulo
-summary-statistics-caption = Manweledzo a tshivhalo tsha { $column }
 
 ## Math input
 

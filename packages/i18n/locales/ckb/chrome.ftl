@@ -96,9 +96,6 @@ orbital-add-down-arrow = زیادکردنی تیری خوارەوە
 orbital-remove-arrow = لابردنی تیر
 orbital-row-label = ناونیشانی ڕیزی { $row }
 pretzel-answer = وەڵام
-# «ستوون» names what `$column` is, so that the ezafe joining the phrase to it
-# falls on a word this catalog writes rather than on the placeable.
-summary-statistics-caption = کورتەی ئاماری ستوونی { $column }
 
 ## Math input
 

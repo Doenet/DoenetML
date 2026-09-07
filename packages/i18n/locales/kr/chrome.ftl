@@ -69,7 +69,6 @@ orbital-add-down-arrow = Kǝnyi Kǝskabega Zawuge
 orbital-remove-arrow = Kǝnyiga Burge
 orbital-row-label = Layin { $row }-be cin
 pretzel-answer = Jawab
-summary-statistics-caption = { $column }-be kǝlkǝlwa
 
 ## Math input
 

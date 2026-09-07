@@ -82,7 +82,6 @@ orbital-add-down-arrow = Żid vleġġa 'l isfel
 orbital-remove-arrow = Neħħi vleġġa
 orbital-row-label = Tikketta għar-ringiela { $row }
 pretzel-answer = Tweġiba
-summary-statistics-caption = Statistika fil-qosor ta' { $column }
 
 ## Math input
 

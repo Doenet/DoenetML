@@ -76,7 +76,6 @@ orbital-add-down-arrow = Shto shigjetë poshtë
 orbital-remove-arrow = Hiq shigjetën
 orbital-row-label = Etiketë për rreshtin { $row }
 pretzel-answer = Përgjigje
-summary-statistics-caption = Statistika përmbledhëse për { $column }
 
 ## Math input
 

@@ -26,10 +26,9 @@
 # value that arrives as an argument and would want a genitive, a dative or one
 # of the locatives on it. The way out throughout is the first one the README
 # lists — **name what the value is** — so the ending falls on a noun this
-# catalog writes: «`<{ $component }>` компонентдихъ …», «{ $column } тӀвар алай
-# столбец», «{ $attribute } атрибутда», «{ $attribute }="{ $uri }" адресдай».
-# A reviewer who deletes one of those nouns has to put the case somewhere else,
-# not onto the placeable.
+# catalog writes: «`<{ $component }>` компонентдихъ …», «{ $attribute }
+# атрибутда», «{ $attribute }="{ $uri }" адресдай». A reviewer who deletes one
+# of those nouns has to put the case somewhere else, not onto the placeable.
 #
 # The technical vocabulary is Russian, because that is what a Lezgian speaker
 # who studied mathematics or computing studied it in: «компонент», «атрибут»,

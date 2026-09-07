@@ -4857,8 +4857,8 @@ third family to take that way out, after Kʼicheʼ and the Bisayan catalogs.
 
 **The other three files in each are where the way out runs out**, and it is
 worth saying because no earlier catalog has shown the boundary this clearly. A
-message that names a thing the document contains — `summary-statistics-caption`,
-the fifteen `variant-*` diagnostics — needs a genitive, and there is no
+message that names a thing the document contains — `orbital-row-label`, the
+fifteen `variant-*` diagnostics — needs a genitive, and there is no
 invariant genitive to reach for. Both catalogs write the default shape, གི་ and
 གིས་, after a placeable: correct after most syllables and wrong after some.
 That is a recorded limit, and the reason to write one shape rather than guess

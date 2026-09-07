@@ -75,7 +75,6 @@ orbital-add-down-arrow = Gehitu beherako gezia
 orbital-remove-arrow = Kendu gezia
 orbital-row-label = { $row }. errenkadaren etiketa
 pretzel-answer = Erantzuna
-summary-statistics-caption = { $column } zutabearen laburpen-estatistikak
 
 ## Math input
 

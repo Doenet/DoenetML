@@ -95,7 +95,6 @@ orbital-add-down-arrow = Gionta na flecia an giù
 orbital-remove-arrow = Gava la flecia
 orbital-row-label = Etichëtta për la riga { $row }
 pretzel-answer = Rispòsta
-summary-statistics-caption = Statìstiche ëd sintesi ëd { $column }
 
 ## Math input
 

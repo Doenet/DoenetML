@@ -72,11 +72,11 @@
 # built by the language's own productive rule, and none is attested to this
 # seed: «papa tātā» keyboard (writing-board), «tātāʻanga vaevae» footnote
 # (foot-writing), «rārangi tū» column beside «rārangi» row, «urunga»
-# accessibility (from «uru» to enter), «ʻakapotoʻanga» summary, «ʻakaraʻanga
-# mua» preview. Two words this seed is **least** sure of and a reviewer should
-# check first: «ʻuaki» to open and «ʻōpani» to close — the second may be a
-# Tahitian loan rather than a Rarotongan word, and if Rarotongan has its own
-# pair they belong here and in `collapsible-click-to-*` together.
+# accessibility (from «uru» to enter), «ʻakaraʻanga mua» preview. Two words
+# this seed is **least** sure of and a reviewer should check first: «ʻuaki» to
+# open and «ʻōpani» to close — the second may be a Tahitian loan rather than a
+# Rarotongan word, and if Rarotongan has its own pair they belong here and in
+# `collapsible-click-to-*` together.
 #
 # **Number.** Rarotongan marks no number on the noun — «te rārangi» one line,
 # «te au rārangi» many, and the noun itself does not move — so a count in
@@ -159,7 +159,6 @@ orbital-add-down-arrow = Tāpiri i tētai pere ki raro
 orbital-remove-arrow = ʻIriti i te pere
 orbital-row-label = Tāpaʻo nō te rārangi { $row }
 pretzel-answer = Pauʻanga
-summary-statistics-caption = Tatauʻanga ʻakapoto o { $column }
 
 ## Math input
 

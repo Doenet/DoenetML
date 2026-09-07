@@ -80,7 +80,6 @@ orbital-add-down-arrow = Ӱлӹкӹ пикшым ешӓраш
 orbital-remove-arrow = Пикшым карангдаш
 orbital-row-label = { $row } рӓдӹн пӓлӹжӹ
 pretzel-answer = Вашмут
-summary-statistics-caption = { $column } меҥгын иктешлӹмӹ статистикыжӹ
 
 ## Math input
 

@@ -38,9 +38,9 @@
 # coining one. Most are the Turkish word, which is what modern Crimean Tatar
 # reaches for in school and press vocabulary («klaviatura» is the exception,
 # taken from Russian, as school usage in Crimea has it); a few are Russian, by
-# the same route: «ball» for a mark or credit, «statistika», «funktsiya»,
-# «variant», «matritsa». Buttons take the bare imperative — «Aç», not
-# «Açıñız» — which is what a Crimean Tatar control is labelled with.
+# the same route: «ball» for a mark or credit, «funktsiya», «variant»,
+# «matritsa». Buttons take the bare imperative — «Aç», not «Açıñız» — which is
+# what a Crimean Tatar control is labelled with.
 
 
 ## Answer submission
@@ -102,7 +102,6 @@ orbital-add-down-arrow = Aşağı oq ekle
 orbital-remove-arrow = Oqnı çıqar
 orbital-row-label = { $row }. satırnıñ etiketi
 pretzel-answer = Cevap
-summary-statistics-caption = { $column } içün cıyma statistika
 
 
 ## Math input

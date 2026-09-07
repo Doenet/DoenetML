@@ -53,16 +53,16 @@
 #
 # **Loans.** The technical register is French, carried in creole grammar and
 # respelled by the Saint Lucian rules: «wéponn», «kwedi», «enfòmasyon»,
-# «matématik», «ekspwesyon», «apèsi», «estatistik», «kolòn», «entèval»,
-# «klavyé», «éwè», «avètisman», «aksésibilité», «vyolasyon», «inisyalizé»,
-# «anwéjistwé», «maksimòm», «disponib», «etikèt». Saint Lucia schools in
-# English, so the English loans arrive by a shorter road than they do in
-# Guadeloupe: «fidbak» (*feedback*) and «wandè» (*renderer*) are here for that
-# reason as much as for want of a creole word. «WCAG AA» is the standard's
-# name and is not a word. The grammar around all of them is creole: preverbal
-# «ka» for the progressive, «ké» for the future, «té» for the anterior, «pa»
-# for negation, «pé pa» for *cannot*, «ni» for *have*, «sé» for the equative
-# copula, and the postposed determiner throughout.
+# «matématik», «ekspwesyon», «apèsi», «kolòn», «entèval», «klavyé», «éwè»,
+# «avètisman», «aksésibilité», «vyolasyon», «inisyalizé», «anwéjistwé»,
+# «maksimòm», «disponib», «etikèt». Saint Lucia schools in English, so the
+# English loans arrive by a shorter road than they do in Guadeloupe: «fidbak»
+# (*feedback*) and «wandè» (*renderer*) are here for that reason as much as
+# for want of a creole word. «WCAG AA» is the standard's name and is not a
+# word. The grammar around all of them is creole: preverbal «ka» for the
+# progressive, «ké» for the future, «té» for the anterior, «pa» for negation,
+# «pé pa» for *cannot*, «ni» for *have*, «sé» for the equative copula, and the
+# postposed determiner throughout.
 #
 # **Confidence.** Saint Lucian has a settled orthography, a dictionary and a
 # translated Bible, but no written computing register at all: there is no
@@ -133,7 +133,6 @@ orbital-add-down-arrow = Ajouté on flèch anba
 orbital-remove-arrow = Òté on flèch
 orbital-row-label = Etikèt pou wanjé { $row }
 pretzel-answer = Wéponn
-summary-statistics-caption = Estatistik wezimé pou { $column }
 
 ## Math input
 

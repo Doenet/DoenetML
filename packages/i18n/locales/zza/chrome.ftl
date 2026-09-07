@@ -42,11 +42,10 @@
 # on; it is the first thing to check if the slider reads oddly.
 #
 # **Loans this file keeps**, rather than inventing a Zazaki word for:
-# `klavye`, `matrîs`, `kontrol`, `puan`, `îstatîstîk`, `etîket`, `orbîtal` and
-# `WCAG` — Turkish or international words a Zazaki speaker schooled in Turkey
-# uses. `verdîyayîş` for *preview* is modeled on the Kurmanji IT term
-# «pêşdîtin» rather than taken from attested Zazaki, and is flagged here for
-# that reason.
+# `klavye`, `matrîs`, `kontrol`, `puan`, `etîket`, `orbîtal` and `WCAG` —
+# Turkish or international words a Zazaki speaker schooled in Turkey uses.
+# `verdîyayîş` for *preview* is modeled on the Kurmanji IT term «pêşdîtin»
+# rather than taken from attested Zazaki, and is flagged here for that reason.
 
 
 ## Answer submission
@@ -110,9 +109,6 @@ orbital-add-down-arrow = Tîrê cêrî zêdekerdış
 orbital-remove-arrow = Tîr wedardış
 orbital-row-label = Rêze { $row } rê etîket
 pretzel-answer = Cewab
-# «sıtûn» names what `$column` is, so that the phrase does not have to attach
-# anything to the placeable itself.
-summary-statistics-caption = Sıtûn { $column } rê xulasa îstatîstîkî
 
 
 ## Math input

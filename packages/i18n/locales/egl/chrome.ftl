@@ -126,7 +126,6 @@ orbital-add-down-arrow = Żónta na frazza in ṡå
 orbital-remove-arrow = Câva la frazza
 orbital-row-label = Etichèta pr la rîga { $row }
 pretzel-answer = Rispòsta
-summary-statistics-caption = Statìstic ed sìntesi ed { $column }
 
 ## Math input
 

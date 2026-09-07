@@ -48,10 +48,10 @@
 #
 # **Loans.** The computing and mathematics register is English, respelled into
 # Kriol phonology and carried in Kriol grammar: «kiiboad», «rispans»,
-# «kredit», «matriks», «vekta», «fongshan», «statistiks», «expreshan»,
-# «dakiument», «renderer», «infamayshan», «akseh» (*access*). Where a Kriol
-# word exists it is used instead — «chrai» for *attempt*, «rang» for
-# *incorrect*, «lef» for *remaining*, «tek out» for *remove*.
+# «kredit», «matriks», «vekta», «fongshan», «expreshan», «dakiument»,
+# «renderer», «infamayshan», «akseh» (*access*). Where a Kriol word exists it
+# is used instead — «chrai» for *attempt*, «rang» for *incorrect*, «lef» for
+# *remaining*, «tek out» for *remove*.
 #
 # **Confidence.** Kriol has a settled orthography and a dictionary but very
 # little written technical prose, so the loans above are respellings this seed
@@ -132,8 +132,6 @@ orbital-remove-arrow = Tek out di Aro
 orbital-row-label = Laybl fi roa { $row }
 
 pretzel-answer = Ansa
-
-summary-statistics-caption = Somari statistiks a { $column }
 
 
 math-input-preview-region = priviu a di mat expreshan

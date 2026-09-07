@@ -74,7 +74,6 @@ orbital-add-down-arrow = Thêm mũi tên xuống
 orbital-remove-arrow = Xóa mũi tên
 orbital-row-label = Nhãn cho hàng { $row }
 pretzel-answer = Đáp án
-summary-statistics-caption = Thống kê mô tả của { $column }
 
 ## Math input
 

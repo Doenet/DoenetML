@@ -36,14 +36,14 @@
 #
 # **The ezafe is a suffix, and one message has to weld it to a placeable.**
 # Where the catalog writes the word itself the ezafe is written attached and
-# unhyphenated («kenori», «foni», «statistikayi»). Where it must follow a
-# value the catalog never sees — `{ $noun }`, `{ $color }`, `{ $width }` — it
-# is written as a hyphenated `-i`, because gluing it on invisibly would be
-# unreadable and there is no way to choose the form without seeing the word.
-# **That is a recorded debt: the ezafe is `-i` after a consonant but `-yi`
-# after a vowel, and this catalog always writes `-i`.** Every hyphenated `-i`
-# in these files is therefore wrong after a vowel-final word, and a speaker
-# fixing this locale should start there.
+# unhyphenated («kenori», «foni»). Where it must follow a value the catalog
+# never sees — `{ $noun }`, `{ $color }`, `{ $width }` — it is written as a
+# hyphenated `-i`, because gluing it on invisibly would be unreadable and
+# there is no way to choose the form without seeing the word. **That is a
+# recorded debt: the ezafe is `-i` after a consonant but `-yi` after a vowel,
+# and this catalog always writes `-i`.** Every hyphenated `-i` in these files
+# is therefore wrong after a vowel-final word, and a speaker fixing this
+# locale should start there.
 #
 # **Plural.** The Tat plural is «-ho» — «xətho» lines, «nüqtəho» points,
 # «məsələho» problems — and it is used in this file wherever the catalog

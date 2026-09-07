@@ -80,7 +80,6 @@ orbital-add-down-arrow = Na'saga un flecha papa'
 orbital-remove-arrow = Na'suha i flecha
 orbital-row-label = Etiketa para i liña { $row }
 pretzel-answer = Ineppe'
-summary-statistics-caption = Kabåles na estadistika i { $column }
 
 ## Math input
 

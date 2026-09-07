@@ -74,7 +74,6 @@ orbital-add-down-arrow = Дæлæмæ фат бафтауын
 orbital-remove-arrow = Фат аппарын
 orbital-row-label = { $row } рæнхъы нысан
 pretzel-answer = Дзуапп
-summary-statistics-caption = { $column } цæджындзы фæстаг статистикæ
 
 ## Math input
 

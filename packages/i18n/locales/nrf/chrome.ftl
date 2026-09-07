@@ -45,14 +45,14 @@
 #
 # **What is borrowed.** The technical register is **French, respelled by Le
 # Maistre's rules**: «rêponse», «vèrification», «maximum»,
-# «gardé», «înformâtion», «expression», «mathémâtique», «statistique»,
-# «colonne», «întervalle», «module», «document», «accessibilité»,
-# «violâtion», «êtitchette», «orbital». That is the honest register: schooling
-# in Jersey is in **English**, and no Norman computing vocabulary has ever
-# been published. «aperçu» (preview) and «Coumenta» (feedback) are the two
-# weakest entries in the file — French loans in Jèrriais dress, not attested
-# Jèrriais words — and «clavyi» (keyboard) is a third. `WCAG AA` is the
-# standard's name and is not a word.
+# «gardé», «înformâtion», «expression», «mathémâtique», «colonne»,
+# «întervalle», «module», «document», «accessibilité», «violâtion»,
+# «êtitchette», «orbital». That is the honest register: schooling in Jersey is
+# in **English**, and no Norman computing vocabulary has ever been published.
+# «aperçu» (preview) and «Coumenta» (feedback) are the two weakest entries in
+# the file — French loans in Jèrriais dress, not attested Jèrriais words — and
+# «clavyi» (keyboard) is a third. `WCAG AA` is the standard's name and is not
+# a word.
 #
 # **Counts.** `Intl.PluralRules` has **no CLDR data for `nrf`** — the tag
 # resolves against the runtime's default locale, so any `[zero]`, `[two]`,
@@ -141,7 +141,6 @@ orbital-add-down-arrow = Ajouter eune flèche en bas
 orbital-remove-arrow = Ôter eune flèche
 orbital-row-label = Êtitchette d'la rangie { $row }
 pretzel-answer = Rêponse
-summary-statistics-caption = Rêsumé des statistiques dé { $column }
 
 ## Math input
 

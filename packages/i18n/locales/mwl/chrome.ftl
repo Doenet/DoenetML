@@ -37,12 +37,12 @@
 # disguised.** Mirandese has no computing or mathematical terminology of its
 # own; every Mirandese speaker is schooled in Portuguese and reads a screen in
 # it. So «teclado», «documento», «renderizador», «matemática», «acessibilidade»,
-# «statísticas», «rótulo», «coluna», «matriz» and «bariante» are Portuguese
-# words, given Mirandese spelling where the Convenção supplies one
-# («acessibilidade» keeps its Portuguese shape; «anformaçon», «spresson»,
-# «pré-besualizaçon» and «biolaçon» take the Mirandese `-on` for Portuguese
-# `-ão` and the initial `an-`/`s-` the convention prescribes). Where a word is
-# Portuguese it is Portuguese; nothing has been coined.
+# «rótulo», «coluna», «matriz» and «bariante» are Portuguese words, given
+# Mirandese spelling where the Convenção supplies one («acessibilidade» keeps
+# its Portuguese shape; «anformaçon», «spresson», «pré-besualizaçon» and
+# «biolaçon» take the Mirandese `-on` for Portuguese `-ão` and the initial
+# `an-`/`s-` the convention prescribes). Where a word is Portuguese it is
+# Portuguese; nothing has been coined.
 #
 # **Counts.** CLDR has **no plural data for `mwl`**, so `Intl.PluralRules`
 # resolves the tag against the runtime's own locale and any `[one]` branch
@@ -123,7 +123,6 @@ orbital-add-down-arrow = Acrecentar seta para baixo
 orbital-remove-arrow = Tirar seta
 orbital-row-label = Rótulo de la filera { $row }
 pretzel-answer = Repuosta
-summary-statistics-caption = Statísticas resumidas de { $column }
 
 
 ## Math input

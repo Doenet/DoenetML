@@ -91,7 +91,6 @@ orbital-add-down-arrow = Uray wach'ita yapay
 orbital-remove-arrow = Wach'ita qichuy
 orbital-row-label = { $row } siqipaq suti
 pretzel-answer = Kutichiy
-summary-statistics-caption = { $column } huñusqa yupaykuna
 
 ## Math input
 

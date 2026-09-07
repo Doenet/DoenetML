@@ -100,7 +100,6 @@ orbital-add-down-arrow = Lisää alaspäin osoittava nuoli
 orbital-remove-arrow = Poista nuoli
 orbital-row-label = Rivin { $row } nimike
 pretzel-answer = Vastaus
-summary-statistics-caption = Yhteenvetotunnusluvut: { $column }
 
 ## Math input
 

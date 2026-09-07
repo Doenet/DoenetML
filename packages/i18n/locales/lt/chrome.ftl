@@ -82,7 +82,6 @@ orbital-add-down-arrow = Pridėti rodyklę žemyn
 orbital-remove-arrow = Pašalinti rodyklę
 orbital-row-label = { $row } eilutės žymė
 pretzel-answer = Atsakymas
-summary-statistics-caption = { $column } suvestinė statistika
 
 ## Math input
 

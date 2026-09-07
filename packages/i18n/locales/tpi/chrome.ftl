@@ -84,7 +84,6 @@ orbital-add-down-arrow = Putim wanpela spia i go daun
 orbital-remove-arrow = Rausim spia
 orbital-row-label = Nem bilong lain { $row }
 pretzel-answer = Bekim
-summary-statistics-caption = Sotpela ripot namba bilong { $column }
 
 ## Math input
 

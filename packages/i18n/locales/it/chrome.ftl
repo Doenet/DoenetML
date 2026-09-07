@@ -77,7 +77,6 @@ orbital-add-down-arrow = Aggiungi freccia in giù
 orbital-remove-arrow = Rimuovi freccia
 orbital-row-label = Etichetta per la riga { $row }
 pretzel-answer = Risposta
-summary-statistics-caption = Statistiche descrittive di { $column }
 
 ## Math input
 

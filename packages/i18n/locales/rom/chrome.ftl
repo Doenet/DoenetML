@@ -133,7 +133,6 @@ orbital-add-down-arrow = Thov jekh strela tele
 orbital-remove-arrow = Ikal avri e strela
 orbital-row-label = Etiketa vaš o rando { $row }
 pretzel-answer = Phendipe
-summary-statistics-caption = Sumarno statistika katar { $column }
 
 ## Math input
 

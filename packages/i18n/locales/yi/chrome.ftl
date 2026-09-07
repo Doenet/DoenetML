@@ -82,7 +82,6 @@ orbital-add-down-arrow = גיב צו אַ פֿייַל אַראָפּ
 orbital-remove-arrow = נעם אַרויס אַ פֿייַל
 orbital-row-label = צייכן פֿאַר רייע { $row }
 pretzel-answer = ענטפֿער
-summary-statistics-caption = סטאַטיסטישער סך-הכּל פֿון { $column }
 
 ## Math input
 

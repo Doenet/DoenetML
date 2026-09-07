@@ -34,10 +34,10 @@
 #
 # **Loans, named.** Gagauz technical vocabulary comes from Russian and
 # Romanian, and this seed keeps it rather than coining: «klaviatura»,
-# «statistika», «funkțiya», «variant», «matrița», «komponent», «atribut»,
-# «format», «tip», «ball» (a mark), «aktivitet», «problema», «tablița».
-# «Geri bildirim» for *feedback* is a Turkish calque and is the weakest word
-# in the file. Buttons take the bare imperative: «Aç», not «Açınız».
+# «funkțiya», «variant», «matrița», «komponent», «atribut», «format», «tip»,
+# «ball» (a mark), «aktivitet», «problema», «tablița». «Geri bildirim» for
+# *feedback* is a Turkish calque and is the weakest word in the file. Buttons
+# take the bare imperative: «Aç», not «Açınız».
 
 
 ## Answer submission
@@ -99,7 +99,6 @@ orbital-add-down-arrow = Așaa ok kat
 orbital-remove-arrow = Oku sil
 orbital-row-label = { $row }. sıranın etiketi
 pretzel-answer = Cuvap
-summary-statistics-caption = { $column } için toplu statistika
 
 
 ## Math input

@@ -70,7 +70,6 @@ orbital-add-down-arrow = Paas Peb sẽn kẽng tẽngre
 orbital-remove-arrow = Yiis Peb
 orbital-row-label = Sõor { $row } yʋʋre
 pretzel-answer = Leoore
-summary-statistics-caption = { $column } sõdb koɛɛgã
 
 ## Math input
 

@@ -101,7 +101,6 @@ orbital-add-down-arrow = Lasseet njuolâ vuálás
 orbital-remove-arrow = Váldee erâld njuolâ
 orbital-row-label = Ravvuu { $row } nommâdâs
 pretzel-answer = Västidâs
-summary-statistics-caption = { $column } čuákánkiäsu
 
 ## Math input
 

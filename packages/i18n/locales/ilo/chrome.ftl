@@ -92,7 +92,6 @@ orbital-add-down-arrow = Mangnayon iti pana nga agpababa
 orbital-remove-arrow = Ikkaten ti pana
 orbital-row-label = Etiketa para iti intar { $row }
 pretzel-answer = Sungbat
-summary-statistics-caption = Pakabuklan a estadistika ti { $column }
 
 ## Math input
 

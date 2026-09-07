@@ -70,7 +70,6 @@ orbital-add-down-arrow = Tonton Ganda Hangaw
 orbital-remove-arrow = Kaa Hangaw
 orbital-row-label = Kar { $row } maa
 pretzel-answer = Tuuruyaŋ
-summary-statistics-caption = { $column } lasaabu feerijandi
 
 ## Math input
 

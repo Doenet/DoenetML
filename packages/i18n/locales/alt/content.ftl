@@ -48,8 +48,8 @@
 #
 # LOANS KEPT. `вектор`, `функция`, `парабола`, `квадрат`, `ромб`, `крест`,
 # `плюс`, `точка`, `область`, `фон`, `абзац`, `теорема`, `каскад`, `вариант`,
-# `статистика`, `горизонталь`, `вертикаль`, `диагональ` are the Russian words
-# as Altai writes them. They stand because they are what the language uses.
+# `горизонталь`, `вертикаль`, `диагональ` are the Russian words as Altai writes
+# them. They stand because they are what the language uses.
 #
 # CONFIDENCE. The least certain items are `боро` (gray), `кӱреҥ` (brown), the
 # `мӱйӱш`-based figure names (`кӧп мӱйӱштӱ` polygon, `ӱч мӱйӱштӱ` triangle,

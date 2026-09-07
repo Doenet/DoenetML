@@ -75,7 +75,6 @@ orbital-add-down-arrow = Onjezani Muvi Wopita Pansi
 orbital-remove-arrow = Chotsani Muvi
 orbital-row-label = Chizindikiro cha mzere { $row }
 pretzel-answer = Yankho
-summary-statistics-caption = Chidule cha ziwerengero za { $column }
 
 ## Math input
 

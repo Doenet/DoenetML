@@ -56,13 +56,13 @@
 #
 # **Loans.** The technical register is French, carried in creole grammar and
 # respelled by the Guianese rules: «répons», «kredi», «enfòmasyon»,
-# «matématik», «ekspresyon», «apèsi», «estatistik», «kolòn», «entèval»,
-# «klavyé», «erè», «avètisman», «aksésibilité», «vyolasyon», «inisyalizé»,
-# «anrejistré», «maksimòm», «disponib», «etikèt». Two are English: «fidbak»
-# (*feedback*) and «randè» (*renderer*). «WCAG AA» is the standard's name and
-# is not a word. The grammar around all of them is creole: preverbal «ka» for
-# the progressive, «ké» for the future, «té» for the anterior, «pa» for
-# negation, «ni» for *have*, and the postposed determiner throughout.
+# «matématik», «ekspresyon», «apèsi», «kolòn», «entèval», «klavyé», «erè»,
+# «avètisman», «aksésibilité», «vyolasyon», «inisyalizé», «anrejistré»,
+# «maksimòm», «disponib», «etikèt». Two are English: «fidbak» (*feedback*) and
+# «randè» (*renderer*). «WCAG AA» is the standard's name and is not a word.
+# The grammar around all of them is creole: preverbal «ka» for the
+# progressive, «ké» for the future, «té» for the anterior, «pa» for negation,
+# «ni» for *have*, and the postposed determiner throughout.
 #
 # **Confidence.** Guianese has a settled orthography and a body of published
 # writing, but no written computing register: «randè» and «fidbak» are the
@@ -133,7 +133,6 @@ orbital-add-down-arrow = Ajouté roun flèch anba
 orbital-remove-arrow = Òté roun flèch
 orbital-row-label = Etikèt pou ranjé { $row }
 pretzel-answer = Répons
-summary-statistics-caption = Estatistik rezimé pou { $column }
 
 ## Math input
 

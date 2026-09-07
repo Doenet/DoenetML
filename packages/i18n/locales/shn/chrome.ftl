@@ -53,10 +53,9 @@
 #   * **English, in the Latin alphabet**, for computing and for the DoenetML
 #     vocabulary: `keyboard`, `row`, `column`, `box`, `credit`, `preview`,
 #     `math expression`, `interval`, `document`, `page`, `renderer`, `load`,
-#     `summary statistics`, `WCAG AA`, `accessibility`. Myanmar-script
-#     technical writing routinely leaves such terms in Latin letters, and
-#     writing them out in Shan syllables would invent a spelling no reader has
-#     seen.
+#     `WCAG AA`, `accessibility`. Myanmar-script technical writing routinely
+#     leaves such terms in Latin letters, and writing them out in Shan
+#     syllables would invent a spelling no reader has seen.
 #
 # The Shan is the frame: ဢၼ် (relative), တီႈ (at), ၼႂ်း (in), လူၺ်ႈ (with),
 # လႄႈ (and), ဢမ်ႇၼၼ် (or), ဢမ်ႇ (not), မီး (have), ပဵၼ် (be), လႆႈ (get, can),
@@ -155,8 +154,6 @@ orbital-remove-arrow = ဢဝ်ဢွၵ်ႇ မြား
 orbital-row-label = ၸိုဝ်ႈ တႃႇ row { $row }
 
 pretzel-answer = ၶေႃႈတွပ်ႇ
-
-summary-statistics-caption = summary statistics ၶွင် { $column }
 
 
 ## Math input

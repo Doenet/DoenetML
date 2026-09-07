@@ -75,7 +75,6 @@ orbital-add-down-arrow = Ongeraho Akambi Kajya Hasi
 orbital-remove-arrow = Kuraho Akambi
 orbital-row-label = Akarango k'umurongo { $row }
 pretzel-answer = Igisubizo
-summary-statistics-caption = Incamake y'imibare ya { $column }
 
 ## Math input
 

@@ -83,7 +83,6 @@ orbital-add-down-arrow = Yomümnge kiñe pülki naq
 orbital-remove-arrow = Nentunge kiñe pülki
 orbital-row-label = Ti wirin { $row } üy
 pretzel-answer = Llowdungun
-summary-statistics-caption = { $column } rakin
 
 ## Math input
 

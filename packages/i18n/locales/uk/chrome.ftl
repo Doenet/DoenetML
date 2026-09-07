@@ -83,7 +83,6 @@ orbital-add-down-arrow = Додати стрілку вниз
 orbital-remove-arrow = Вилучити стрілку
 orbital-row-label = Підпис рядка { $row }
 pretzel-answer = Відповідь
-summary-statistics-caption = Зведена статистика для { $column }
 
 ## Math input
 

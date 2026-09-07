@@ -68,7 +68,6 @@ orbital-add-down-arrow = ތިރިއަށް އަމާޒު އިތުރުކުރޭ
 orbital-remove-arrow = އަމާޒު ނަގާ
 orbital-row-label = ރޯ { $row } ގެ ލޭބަލް
 pretzel-answer = ޖަވާބު
-summary-statistics-caption = { $column } ގެ ތަފާސް ހިސާބުގެ ޚުލާސާ
 
 ## Math input
 

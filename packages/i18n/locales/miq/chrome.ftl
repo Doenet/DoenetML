@@ -44,11 +44,10 @@
 # Moravian mission and the Honduran Mosquitia. This file carries, from English,
 # «kredit», «trai», «kliks», «kibord», «baks», «raw», «kolum», «arru», «nut»,
 # «ansa», «dukumint», «rindarar» and «WCAG»; from Spanish, «puntu»,
-# «interbalu», «estadistika», «matematika», «aksesibilidad» and «pista». The
-# frame around them is Mískito: native verbs («kaikaia» to look, «mangkaia» to
-# put, «sakaia» to take out, «kwakaia» to open, «prakaia» to close), the
-# negator «apia» following what it negates, SOV order, and the copulas `sa` and
-# `kaisa`.
+# «interbalu», «matematika», «aksesibilidad» and «pista». The frame around them
+# is Mískito: native verbs («kaikaia» to look, «mangkaia» to put, «sakaia» to
+# take out, «kwakaia» to open, «prakaia» to close), the negator «apia» following
+# what it negates, SOV order, and the copulas `sa` and `kaisa`.
 #
 # **Confidence.** Every key in the English catalog is translated. The weakest
 # words are «Saura» for *error* (the ordinary word for *bad*, doing duty for a
@@ -117,7 +116,6 @@ orbital-add-down-arrow = Arru munhta mangkaia
 orbital-remove-arrow = Arru sakaia
 orbital-row-label = Raw { $row } nina
 pretzel-answer = Ansa
-summary-statistics-caption = { $column } estadistika tanka
 
 
 ## Math input

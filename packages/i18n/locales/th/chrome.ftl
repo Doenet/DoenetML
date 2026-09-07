@@ -77,7 +77,6 @@ orbital-add-down-arrow = เพิ่มลูกศรลง
 orbital-remove-arrow = ลบลูกศร
 orbital-row-label = ชื่อของแถวที่ { $row }
 pretzel-answer = คำตอบ
-summary-statistics-caption = สถิติสรุปของ { $column }
 
 ## Math input
 

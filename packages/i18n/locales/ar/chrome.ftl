@@ -91,9 +91,6 @@ orbital-add-down-arrow = إضافة سهم لأسفل
 orbital-remove-arrow = حذف سهم
 orbital-row-label = تسمية الصف { $row }
 pretzel-answer = الإجابة
-# «للعمود» names what `$column` is, so that the sentence does not have to
-# attach a one-letter preposition to a placeable.
-summary-statistics-caption = ملخص إحصائي للعمود { $column }
 
 ## Math input
 

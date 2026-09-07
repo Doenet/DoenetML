@@ -75,7 +75,6 @@ orbital-add-down-arrow = Aşak ok goş
 orbital-remove-arrow = Oky aýyr
 orbital-row-label = { $row } setiriniň belgisi
 pretzel-answer = Jogap
-summary-statistics-caption = { $column } sütüniniň jemleýji statistikasy
 
 ## Math input
 

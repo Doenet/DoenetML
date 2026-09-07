@@ -69,7 +69,6 @@ orbital-add-down-arrow = Gbua Aro Na Lɔ Kunafɔ
 orbital-remove-arrow = Wumbu Aro
 orbital-row-label = Lɔlɔi { $row } biyei
 pretzel-answer = Njepei
-summary-statistics-caption = { $column } nambasia hugɔɔla
 
 ## Math input
 

@@ -64,10 +64,10 @@
 #
 # **Loans.** The computing register is Dutch and English, reshaped to
 # Saramaccan phonology and carried in Saramaccan grammar: «kiibolo»
-# (*keyboard*), «punti» (*point*, and the score word here), «statistika»,
-# «matematika», «ekispesi» (*expression*), «dokumenti», «infoomasi»,
-# «pagina», «masini», «futunota», «vekitoo», «funsi», «renderer» (left as the
-# code's own name), «WCAG» and «aksesibiliteiti».
+# (*keyboard*), «punti» (*point*, and the score word here), «matematika»,
+# «ekispesi» (*expression*), «dokumenti», «infoomasi», «pagina», «masini»,
+# «futunota», «vekitoo», «funsi», «renderer» (left as the code's own name),
+# «WCAG» and «aksesibiliteiti».
 #
 # **Confidence.** Saramaccan has a dictionary, a full scripture translation
 # and almost no written technical prose, so the loans above are shapes this
@@ -148,8 +148,6 @@ orbital-remove-arrow = Puu di peli
 orbital-row-label = Nen da lo { $row }
 
 pretzel-answer = Piki
-
-summary-statistics-caption = Sooto statistika u { $column }
 
 
 math-input-preview-region = luku fosu u di matematika-ekispesi

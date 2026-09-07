@@ -93,7 +93,6 @@ orbital-add-down-arrow = Тёбенге окъ къошув
 orbital-remove-arrow = Окъну гетерив
 orbital-row-label = { $row } сатырны белгиси
 pretzel-answer = Жавап
-summary-statistics-caption = { $column } багъананы жыйынтыкъ статистикасы
 
 ## Math input
 

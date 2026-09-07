@@ -113,7 +113,6 @@ orbital-add-down-arrow = Pfiil abe zuefüege
 orbital-remove-arrow = Pfiil ewägnäh
 orbital-row-label = Bschriftig für d Ziile { $row }
 pretzel-answer = Antwort
-summary-statistics-caption = Chennzahle vo { $column }
 
 ## Math input
 

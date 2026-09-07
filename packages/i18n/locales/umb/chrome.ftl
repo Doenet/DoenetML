@@ -69,7 +69,6 @@ orbital-add-down-arrow = Vokiya Oseta Yokemehi
 orbital-remove-arrow = Pindula Oseta
 orbital-row-label = Onduko yongoli { $row }
 pretzel-answer = Etambululo
-summary-statistics-caption = Elomboloko lyovialua vya { $column }
 
 ## Math input
 

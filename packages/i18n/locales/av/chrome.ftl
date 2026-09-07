@@ -23,11 +23,11 @@
 # written out and where the one place it could have mattered is explained.
 #
 # The interface and mathematical vocabulary is the Russian one wherever written
-# Avar uses it — «клавиатура», «строка», «столбец», «интервал», «статистика»,
-# «выражение» — because that is what an Avar-speaking reader meets on a screen
-# and in a textbook. Where Avar has an everyday word that carries the meaning,
-# that word is used instead: «гьумер» for a page, «жаваб» for an answer,
-# «гъалатӀ» for an error.
+# Avar uses it — «клавиатура», «строка», «столбец», «интервал», «выражение» —
+# because that is what an Avar-speaking reader meets on a screen and in a
+# textbook. Where Avar has an everyday word that carries the meaning, that word
+# is used instead: «гьумер» for a page, «жаваб» for an answer, «гъалатӀ» for an
+# error.
 
 
 ## Answer submission
@@ -92,7 +92,6 @@ orbital-add-down-arrow = Гъоркьан хӀулу жубазе
 orbital-remove-arrow = ХӀулу нахъе босизе
 orbital-row-label = { $row } абураб строкаялъул цӀар
 pretzel-answer = Жаваб
-summary-statistics-caption = { $column } абураб столбецалъул жамгӀияб статистика
 
 ## Math input
 

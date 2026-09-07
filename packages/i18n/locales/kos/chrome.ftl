@@ -194,7 +194,6 @@ orbital-add-down-arrow = Weang arrow nu ten
 orbital-remove-arrow = Eisla arrow
 orbital-row-label = Ine lun row { $row }
 pretzel-answer = Topuk
-summary-statistics-caption = Summary statistics lun { $column }
 
 
 ## Math input

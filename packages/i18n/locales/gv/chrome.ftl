@@ -34,8 +34,8 @@
 # `tag`, `renderer`, `WCAG`, and every DoenetML identifier. That is declared
 # rather than disguised — a Manx speaker reading an editor reads those words in
 # English. Where a Manx word exists it is used: «roshtynys» for *accessibility*
-# (on roshtyn, *to reach*), «staydraaghyn» for *statistics*, «raaue» for
-# *warning*, «cowrey» for *hint* and for a *sign*.
+# (on roshtyn, *to reach*), «raaue» for *warning*, «cowrey» for *hint* and for
+# a *sign*.
 #
 # **Counts.** CLDR gives Manx **rules of its own**. The declared categories are
 # `one`, `two`, `few`, `many` and `other`, but for **integer** counts only four
@@ -67,9 +67,9 @@
 # not laziness, and it is why `answer-show-responses` below has one form.
 #
 # **Weakest first.** «prowal» does duty for both *attempt* and *proof*;
-# «roshtynys» and «staydraaghyn» are formations rather than dictionary entries;
-# and the wholesale English markup vocabulary is the first thing a reviewer
-# with Culture Vannin's word lists to hand should replace.
+# «roshtynys» is a formation rather than a dictionary entry; and the wholesale
+# English markup vocabulary is the first thing a reviewer with Culture
+# Vannin's word lists to hand should replace.
 
 
 ## Answer submission
@@ -139,7 +139,6 @@ orbital-add-down-arrow = Cur side neose rish
 orbital-remove-arrow = Scughey side
 orbital-row-label = Lipey son rea { $row }
 pretzel-answer = Ansoor
-summary-statistics-caption = Staydraaghyn giare jeh { $column }
 
 
 ## Math input

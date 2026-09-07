@@ -75,7 +75,6 @@ orbital-add-down-arrow = Piel na nerrn tofögen
 orbital-remove-arrow = Piel wegnehmen
 orbital-row-label = Beteken för Reeg { $row }
 pretzel-answer = Antwoort
-summary-statistics-caption = Tosamenfaten Statistiken vun { $column }
 
 ## Math input
 

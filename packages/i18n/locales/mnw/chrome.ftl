@@ -47,9 +47,9 @@
 #   * **English, in the Latin alphabet**, for computing and the DoenetML
 #     vocabulary: `keyboard`, `row`, `column`, `box`, `credit`, `preview`,
 #     `math expression`, `interval`, `document`, `renderer`, `load`,
-#     `summary statistics`, `WCAG AA`, `accessibility`. Myanmar-script
-#     technical writing leaves such terms in Latin letters, and writing them
-#     out in Mon syllables would invent a spelling no reader has seen.
+#     `WCAG AA`, `accessibility`. Myanmar-script technical writing leaves such
+#     terms in Latin letters, and writing them out in Mon syllables would
+#     invent a spelling no reader has seen.
 #
 # The Mon is the frame: နွံ (there is), ဟွံမွဲ (there is not), ဒှ် (to be),
 # ဟွံ (not), ဂှ် (that), မ (relativizer), လဝ် (perfective), မံၚ်
@@ -150,8 +150,6 @@ orbital-remove-arrow = ပတိတ် မြား
 orbital-row-label = ယၟု သွက် row { $row }
 
 pretzel-answer = သွဟ်
-
-summary-statistics-caption = summary statistics နူ { $column }
 
 
 ## Math input

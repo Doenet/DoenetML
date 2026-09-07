@@ -42,14 +42,14 @@
 #
 # **Loans.** The technical register is French, carried in creole grammar and
 # respelled by GEREC: «répons», «kredi», «enfòmasyon», «matématik»,
-# «ekspresyon», «apèsi», «estatistik», «kolòn», «entèval», «klavyé», «erè»,
-# «avètisman», «aksésibilité», «vyolasyon», «inisyalizé», «anrejistré»,
-# «maksimòm», «disponib», «etikèt», «orbital». Two are English, taken through
-# the same door the language takes them through in speech: «fidbak»
-# (*feedback*) and «randè» (*renderer*); «WCAG AA» is the standard's name and
-# is not a word. The grammar around all of them is creole: preverbal «ka» for
-# the progressive, «pa» for negation, «pé pa» for *cannot*, «ni» for *have*,
-# and the postposed determiner throughout.
+# «ekspresyon», «apèsi», «kolòn», «entèval», «klavyé», «erè», «avètisman»,
+# «aksésibilité», «vyolasyon», «inisyalizé», «anrejistré», «maksimòm»,
+# «disponib», «etikèt», «orbital». Two are English, taken through the same
+# door the language takes them through in speech: «fidbak» (*feedback*) and
+# «randè» (*renderer*); «WCAG AA» is the standard's name and is not a word.
+# The grammar around all of them is creole: preverbal «ka» for the
+# progressive, «pa» for negation, «pé pa» for *cannot*, «ni» for *have*, and
+# the postposed determiner throughout.
 #
 # **Confidence.** Guadeloupean has a settled orthography and a real written
 # literature, but very little written computing register: nobody has published
@@ -122,7 +122,6 @@ orbital-add-down-arrow = Ajouté on flèch anba
 orbital-remove-arrow = Òté on flèch
 orbital-row-label = Etikèt pou ranjé { $row }
 pretzel-answer = Répons
-summary-statistics-caption = Estatistik rezimé pou { $column }
 
 ## Math input
 
