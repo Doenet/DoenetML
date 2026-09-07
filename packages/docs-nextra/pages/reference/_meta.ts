@@ -1,5 +1,3 @@
-import { split } from "postcss/lib/list";
-
 export default {
     componentIndex: "Alphabetical Index",
     componentTypes: "Index by Component Type",
@@ -18,8 +16,8 @@ export default {
     answer4: { title: "answer (Advanced Use)" },
     argMax: { title: "argMax" },
     argMin: { title: "argMin" },
-    asList: { title: "asList" },
     aside: { title: "aside" },
+    asList: { title: "asList" },
     atom: { title: "atom" },
     attr: { title: "attr" },
     attractTo: { title: "attractTo" },
@@ -258,10 +256,10 @@ export default {
     summaryStatistics: { title: "summaryStatistics" },
     table: { title: "table" },
     tabular: { title: "tabular" },
-    tally: { title: "tally" },
     tag: { title: "tag" },
     tagc: { title: "tagc" },
     tage: { title: "tage" },
+    tally: { title: "tally" },
     task: { title: "task" },
     term: { title: "term" },
     text: { title: "text" },
