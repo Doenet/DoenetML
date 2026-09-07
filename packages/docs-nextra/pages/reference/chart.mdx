@@ -7,19 +7,9 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 <ComponentDisplay name='chart'/>
 
-`<chart>{:dn}` draws a list of values. `type` picks which chart is drawn, and there is
-no default: `<chart type="bar">{:dn}` draws one bar per value, while `<chart>{:dn}` on
-its own draws nothing and warns that no chart type was named.
-
-Pair it with [`<tally>{:dn}`](tally) or [`<binCounts>{:dn}`](binCounts) to chart a
-sampling simulation.
-
-Bare numbers work as well as `<number>{:dn}` children, so
-`<chart type="bar">41 63 18</chart>` draws three bars.
-
-Every bar carries its category and value as an annotation, so a screen reader can walk the
-chart rather than merely announce it, and a `<shortDescription>{:dn}` becomes the
-description of the figure as a whole.
+`<chart>{:dn}` draws data, and `type` picks which chart is drawn. There is no default: `bar`
+is the only type so far, and `<chart>{:dn}` with no type draws nothing and says so. To chart
+several groups of data together, give the chart a `<series>{:dn}` child per group.
 
 <AttrPropDisplay name='chart'/>
 
@@ -41,56 +31,45 @@ description of the figure as a whole.
 
 
 
-`displayValues` prints each bar's value above it.
+Bare numbers work as well as `<number>{:dn}` children, so
+`<chart type="bar">41 63 18 78</chart>` draws the same four bars. `displayValues` prints
+each bar's value above it.
+
+Every bar carries its category and value as an annotation, so a screen reader can walk the
+chart rather than merely announce it, and a `<shortDescription>{:dn}` becomes the
+description of the figure as a whole.
+
+
+
+---
+
+### Example: several series in one chart
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="North South East West">
+  <title>Population by region</title>
+  <shortDescription>Population by region, 2024 against 2025</shortDescription>
+  <yLabel>people</yLabel>
+  <series><label>2024</label>41 63 18 78</series>
+  <series><label>2025</label>45 60 22 80</series>
+</chart>
+```
+
+
+
+Each `<series>{:dn}` is one group of the data, drawn in its own color. Its `<label>{:dn}`
+names it in the legend, which appears as soon as a series has one. A screen reader walks
+the chart series by series, then bar by bar within a series.
+
+A `<title>{:dn}` is drawn above the chart and travels with the picture, so it is still
+there if the chart is printed or exported.
 
 
 
 ---
 
 ### Example: a bar chart of a simulation
-
-
-```doenet-editor-horiz
-<setup>
-  <numberList name="pop">30 45 12 60</numberList>
-  <textList name="labels">North South East West</textList>
-  <cumulativeSum name="cum">$pop</cumulativeSum>
-  <number name="total"><sum>$pop</sum></number>
-</setup>
-
-<sampleRandomNumbers name="draws" type="discreteUniform"
-  from="1" to="$total" numSamples="60" hide />
-<searchSorted name="which" target="$draws" hide>$cum</searchSorted>
-<tally name="counts" categories="1 2 3 4" hide>$which</tally>
-
-<chart type="bar" categories="$labels">
-  <shortDescription>Where 60 sampled individuals came from</shortDescription>
-  <yLabel>count</yLabel>
-  $counts
-</chart>
-
-<callAction actionName="resample" target="$draws">
-  <label>Draw again</label>
-</callAction>
-```
-
-
-
-Five tags hold the whole simulation:
-[`<sampleRandomNumbers>{:dn}`](sampleRandomNumbers) draws the sample,
-[`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
-[`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
-in, [`<tally>{:dn}`](tally) counts them, and `<chart>{:dn}` draws the counts.
-
-Because `<tally>{:dn}` is given its categories rather than left to discover them, a
-subpopulation that draws nothing still counts zero and keeps its bar, instead of dropping
-out and shifting the others along.
-
-
-
----
-
-### Example: a bar chart as a histogram
 
 
 ```doenet-editor-horiz
@@ -116,8 +95,10 @@ out and shifting the others along.
 
 
 
-[`<binCounts>{:dn}`](binCounts) turns the sample into counts per interval and
-`<chart>{:dn}` draws them. Each bin is named by its midpoint rather than its range.
+[`<binCounts>{:dn}`](binCounts) turns a sample into counts per interval and `<chart>{:dn}`
+draws them; [`<tally>{:dn}`](tally) does the same for named categories. Building a whole
+sampling simulation this way is walked through in
+[Charting a Simulation](../guides/charting-a-simulation).
 
 
 
@@ -169,6 +150,65 @@ Each bar takes the category in the matching position; without `categories`, the 
 numbered 1, 2, 3, 4. A category is a label and nothing else — the bars are evenly spaced
 whatever it says, so `categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars
 rather than placing them at those positions.
+
+With several series, the categories run along the axis and the series are what the legend
+names, so a chart of four categories and two series has four category names and two series
+labels.
+
+
+
+---
+
+### Attribute Example: layout
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="A B C" size="small">
+  <shortDescription>Two series side by side</shortDescription>
+  <series><label>first</label>4 9 2</series>
+  <series><label>second</label>6 1 5</series>
+</chart>
+
+<chart type="bar" categories="A B C" size="small" layout="stacked">
+  <shortDescription>The same two series stacked</shortDescription>
+  <series><label>first</label>4 9 2</series>
+  <series><label>second</label>6 1 5</series>
+</chart>
+```
+
+
+
+Side by side by default, so the bars can be compared both across categories and across
+series. `layout="stacked"` puts them one above another instead, so each category's total is
+what you read; negative values stack downward from the baseline rather than through the
+positive ones. A chart of one series looks the same either way.
+
+
+
+---
+
+### Attribute Example: legend, legendPosition
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="A B" size="small" legendPosition="upperLeft">
+  <shortDescription>A legend in the upper-left corner</shortDescription>
+  <series><label>first</label>4 9</series>
+  <series><label>second</label>6 1</series>
+</chart>
+
+<chart type="bar" categories="A B" size="small" legend="no">
+  <shortDescription>The same chart with the legend suppressed</shortDescription>
+  <series><label>first</label>4 9</series>
+  <series><label>second</label>6 1</series>
+</chart>
+```
+
+
+
+A legend appears as soon as a series has a `<label>{:dn}`, so a chart of one unnamed series
+never grows one. `legend="no"` suppresses it and `legend="yes"` asks for it even where it
+would not appear on its own. `legendPosition` picks which corner it sits in.
 
 
 
@@ -231,9 +271,39 @@ the one of height 9.
 
 
 `size` sets the width, `aspectRatio` the width over the height, and `barWidth` how much
-of its slot each bar fills. A `width` may be given instead of a `size`, and picks the
-nearest preset rather than being used exactly, so `width="400px"` draws the same chart as
-`size="medium"`.
+of its slot each category fills — the series of a category divide that between them. A
+`width` may be given instead of a `size`, and picks the nearest preset rather than being
+used exactly, so `width="400px"` draws the same chart as `size="medium"`.
+
+
+
+---
+
+## Children
+
+### Child Example: `<series>{:dn}`
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="A B C" size="small">
+  <shortDescription>Three series, the third given a style of its own</shortDescription>
+  <series name="first"><label>first</label>4 9 2</series>
+  <series><label>second</label>6 1 5</series>
+  <series styleNumber="6"><label>third</label>2 4 8</series>
+</chart>
+
+<p>The first series holds $first.values, drawn in style $first.styleNumber.</p>
+```
+
+
+
+Each `<series>{:dn}` holds one group of the data. Its children are the values, bare numbers
+or `<number>{:dn}` and `<math>{:dn}` children alike, and its `<label>{:dn}` names it in the
+legend. Series take consecutive style numbers unless one is given a `styleNumber` of its
+own, so the groups come out in different colors without being asked to.
+
+A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
+all, which is why the simple charts above need no series at all.
 
 
 
@@ -241,7 +311,7 @@ nearest preset rather than being used exactly, so `width="400px"` draws the same
 
 ## Property Examples
 
-### Property Example: values, categories, yMin, yMax
+### Property Example: values, categories, numSeries, yMin, yMax
 
 
 ```doenet-editor-horiz
@@ -254,11 +324,15 @@ nearest preset rather than being used exactly, so `width="400px"` draws the same
 
 <p>Values: $counts.values</p>
 <p>Categories: $counts.categories</p>
+<p>Series: $counts.numSeries</p>
 <p>Total: <sum>$counts.values</sum></p>
 <p>The axis runs from $counts.yMin to $counts.yMax.</p>
 ```
 
 
+
+`values` is every value in the chart, series by series, so a chart of one series reports
+exactly what it was given; naming a `<series>{:dn}` is how one group is read on its own.
 
 `yMin`, `yMax`, `barWidth` and `aspectRatio` report what the chart was drawn with rather
 than what was asked for, so `$counts.yMax` is the top of the axis you can see even though

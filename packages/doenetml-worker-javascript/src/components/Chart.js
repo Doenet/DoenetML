@@ -17,7 +17,10 @@ import {
     createBarChartPrefigureXML,
 } from "../utils/prefigure/chart";
 import { resolveSelectedStyleForTheme } from "../utils/prefigure/style";
-import { returnBreakStringsIntoMathsBySpacesSugarInstruction } from "../utils/mathOperatorChildren";
+import {
+    numericValuesFromValueChildren,
+    returnBreakStringsIntoMathsBySpacesSugarInstruction,
+} from "../utils/mathOperatorChildren";
 import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
 
 /** The width-to-height ratio a chart is drawn at when none is asked for. */
@@ -27,8 +30,15 @@ const DEFAULT_ASPECT_RATIO = 1.5;
 const DEFAULT_BAR_WIDTH = 0.8;
 
 /**
- * A chart of its number children. `type` picks which chart is drawn; `bar` is
- * the only one implemented so far, one bar per value.
+ * A chart of its data. `type` picks which chart is drawn; `bar` is the only one
+ * implemented so far, one bar per value.
+ *
+ * Data arrives as one or more `<series>` children, which is the shape every
+ * standard statistical plotting package takes: a chart is data, a mark, and a
+ * set of encodings mapping the data onto position and color. `type` is the
+ * mark; a `<series>` is the group the color encoding splits on. A chart whose
+ * children are bare values has one series, built here, so the simple case reads
+ * as it always did.
  *
  * One tag with a `type` rather than a tag per chart: a pie chart, a box plot
  * and a scatter plot are all coming, and they differ in how the same list of
@@ -62,7 +72,7 @@ export default class Chart extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "A chart of a list of values. `type` picks which chart is drawn.",
+            "A chart of one or more series of values. `type` picks which chart is drawn.",
     };
 
     static createAttributesObject() {
@@ -145,10 +155,96 @@ export default class Chart extends BlockComponent {
 
         attributes.barWidth = {
             description:
-                "How much of each bar's slot the bar fills: greater than 0 and at most 1, so a bar may fill its slot but must have some width. The rest is the gap to the next bar.",
+                "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them.",
             createComponentOfType: "number",
             createStateVariable: "barWidthAttr",
             defaultValue: DEFAULT_BAR_WIDTH,
+        };
+
+        // `grouped` rather than `stacked` by default: side-by-side bars can be
+        // compared category by category *and* series by series, where a stack
+        // only ever answers the first question — every segment above the bottom
+        // one starts at a different place, so their lengths are what a reader
+        // has to compare by eye. Stacking earns its place when the total is the
+        // point, which is a choice about the data rather than the usual case.
+        //
+        // One series is drawn identically either way, so this matters only once
+        // there is something to arrange.
+        attributes.layout = {
+            description:
+                "How the bars of several series share a category's slot.",
+            createComponentOfType: "text",
+            createStateVariable: "layout",
+            defaultValue: "grouped",
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "grouped",
+                    description:
+                        "Side by side within the category's slot, each series taking an equal share of it.",
+                },
+                {
+                    value: "stacked",
+                    description:
+                        "One above another from the baseline, so each slot shows its total. Negative values stack downward.",
+                },
+            ],
+        };
+
+        attributes.legend = {
+            description:
+                "Whether to draw a legend naming the series. By default one is drawn when a series has a `<label>`.",
+            createComponentOfType: "text",
+            createStateVariable: "legend",
+            defaultValue: "auto",
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "auto",
+                    description:
+                        "Draw a legend when at least one series carries a label.",
+                },
+                {
+                    value: "yes",
+                    description: "Always draw a legend.",
+                },
+                {
+                    value: "no",
+                    description: "Never draw a legend.",
+                },
+            ],
+        };
+
+        // The same four corners, under the same names, that `<legend>` offers
+        // inside a `<graph>`: a legend is the same thing in both places and an
+        // author should not have to learn two vocabularies for where it goes.
+        attributes.legendPosition = {
+            description: "Which corner of the chart the legend sits in.",
+            createComponentOfType: "text",
+            createStateVariable: "legendPosition",
+            defaultValue: "upperRight",
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "upperRight",
+                    description: "Place the legend in the upper-right corner.",
+                },
+                {
+                    value: "upperLeft",
+                    description: "Place the legend in the upper-left corner.",
+                },
+                {
+                    value: "lowerRight",
+                    description: "Place the legend in the lower-right corner.",
+                },
+                {
+                    value: "lowerLeft",
+                    description: "Place the legend in the lower-left corner.",
+                },
+            ],
         };
 
         attributes.yMin = {
@@ -274,8 +370,16 @@ export default class Chart extends BlockComponent {
             returnAxisLabelChildGroup({ axis: "x" }),
             returnAxisLabelChildGroup({ axis: "y" }),
             {
+                group: "titles",
+                componentTypes: ["title"],
+            },
+            {
                 group: "shortDescriptions",
                 componentTypes: ["shortDescription"],
+            },
+            {
+                group: "series",
+                componentTypes: ["series"],
             },
             {
                 group: "numbers",
@@ -410,12 +514,147 @@ export default class Chart extends BlockComponent {
             }),
         );
 
-        // `values` rather than `barValues`: what a chart is given is a list of
-        // values, and only the drawing of them is bar-shaped. A pie chart takes
-        // the same list, so naming it after the mark would leave a `pieValues`
-        // beside it reporting the identical numbers.
+        // The style number each `<series>` child takes when its author named
+        // none: the chart's own, then one more for every series after the
+        // first, which is the categorical color scale a grouping variable gets
+        // in every plotting package. Keyed by component index rather than
+        // ordered, because it is the series that reads it and a series knows
+        // only its own index.
+        //
+        // The chart works this out rather than the series, because a series
+        // cannot see its siblings. The direction of the dependency is what
+        // keeps it acyclic: this reads the series children's identities and
+        // nothing they compute, so a series may read it back to settle its
+        // style.
+        stateVariableDefinitions.seriesStyleNumbers = {
+            description:
+                "The default style number for each series child, by component index.",
+            returnDependencies: () => ({
+                seriesChildren: {
+                    dependencyType: "child",
+                    childGroups: ["series"],
+                },
+                styleNumber: {
+                    dependencyType: "stateVariable",
+                    variableName: "styleNumber",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const seriesStyleNumbers = {};
+                dependencyValues.seriesChildren.forEach((child, ind) => {
+                    seriesStyleNumbers[child.componentIdx] =
+                        dependencyValues.styleNumber + ind;
+                });
+                return { setValue: { seriesStyleNumbers } };
+            },
+        };
+
+        // The one place the two ways of giving a chart its data are reconciled,
+        // so that everything downstream sees a list of series whatever was
+        // written. A chart with `<series>` children has those; a chart with
+        // bare values has one series holding them, drawn in the chart's own
+        // style and carrying no label — which is exactly a chart of one
+        // unnamed group, and needs no legend.
+        stateVariableDefinitions.seriesData = {
+            description:
+                "Each series' label, values and style, in the order they are drawn.",
+            returnDependencies: () => ({
+                seriesChildren: {
+                    dependencyType: "child",
+                    childGroups: ["series"],
+                    variableNames: [
+                        "label",
+                        "labelHasLatex",
+                        "values",
+                        "selectedStyle",
+                    ],
+                },
+                valueChildren: {
+                    dependencyType: "child",
+                    childGroups: ["numbers", "maths"],
+                    variableNames: ["value"],
+                },
+                selectedStyle: {
+                    dependencyType: "stateVariable",
+                    variableName: "selectedStyle",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { seriesChildren, valueChildren } = dependencyValues;
+
+                if (seriesChildren.length === 0) {
+                    return {
+                        setValue: {
+                            seriesData: [
+                                {
+                                    label: "",
+                                    labelHasLatex: false,
+                                    values: numericValuesFromValueChildren(
+                                        valueChildren,
+                                    ),
+                                    selectedStyle:
+                                        dependencyValues.selectedStyle,
+                                },
+                            ],
+                        },
+                    };
+                }
+
+                const seriesData = seriesChildren.map((child) => ({
+                    label: child.stateValues.label,
+                    labelHasLatex: child.stateValues.labelHasLatex,
+                    values: child.stateValues.values,
+                    selectedStyle: child.stateValues.selectedStyle,
+                }));
+
+                // A value written beside the series is not a series of its own
+                // and is not part of any of them, so there is nowhere on the
+                // chart to draw it. Dropping it silently would leave the author
+                // reading a chart that is missing data they can see in their
+                // source.
+                return {
+                    setValue: { seriesData },
+                    sendDiagnostics:
+                        valueChildren.length > 0
+                            ? [
+                                  codedDiagnostic({
+                                      type: "warning",
+                                      code: "doenet-w0147",
+                                  }),
+                              ]
+                            : [],
+                };
+            },
+        };
+
+        stateVariableDefinitions.numSeries = {
+            description: "How many series the chart draws.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "integer",
+            },
+            returnDependencies: () => ({
+                seriesData: {
+                    dependencyType: "stateVariable",
+                    variableName: "seriesData",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { numSeries: dependencyValues.seriesData.length },
+            }),
+        };
+
+        // `values` rather than `barValues`: what a chart is given is values,
+        // and only the drawing of them is bar-shaped. A pie chart takes the
+        // same numbers, so naming it after the mark would leave a `pieValues`
+        // beside it reporting the identical ones.
+        //
+        // Every series' values, one after another. A chart of one series — the
+        // usual chart — reports exactly the values it was given, and a chart of
+        // several reports all of its data; `$series.values` on a named series
+        // is how one group is read on its own.
         stateVariableDefinitions.values = {
-            description: "The value charted at each position, in order.",
+            description: "Every value charted, series by series.",
             public: true,
             isArray: true,
             entryPrefixes: ["value"],
@@ -423,36 +662,34 @@ export default class Chart extends BlockComponent {
                 createComponentOfType: "number",
             },
             returnArraySizeDependencies: () => ({
-                valueChildren: {
-                    dependencyType: "child",
-                    childGroups: ["numbers", "maths"],
-                    variableNames: ["value"],
+                seriesData: {
+                    dependencyType: "stateVariable",
+                    variableName: "seriesData",
                 },
             }),
             returnArraySize({ dependencyValues }) {
-                return [dependencyValues.valueChildren.length];
+                return [
+                    dependencyValues.seriesData.reduce(
+                        (total, oneSeries) => total + oneSeries.values.length,
+                        0,
+                    ),
+                ];
             },
             returnArrayDependenciesByKey: () => ({
                 globalDependencies: {
-                    valueChildren: {
-                        dependencyType: "child",
-                        childGroups: ["numbers", "maths"],
-                        variableNames: ["value"],
+                    seriesData: {
+                        dependencyType: "stateVariable",
+                        variableName: "seriesData",
                     },
                 },
             }),
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                const flattened = globalDependencyValues.seriesData.flatMap(
+                    (oneSeries) => oneSeries.values,
+                );
                 const values = {};
                 for (const arrayKey of arrayKeys) {
-                    const child =
-                        globalDependencyValues.valueChildren[arrayKey];
-                    const value = child?.stateValues.value;
-                    // A `<math>` child arrives as a math-expression; a
-                    // `<number>` child as a plain number.
-                    values[arrayKey] =
-                        typeof value?.evaluate_to_constant === "function"
-                            ? value.evaluate_to_constant()
-                            : value;
+                    values[arrayKey] = flattened[arrayKey];
                 }
                 return { setValue: { values } };
             },
@@ -466,14 +703,23 @@ export default class Chart extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
+            // As many as the longest series: every series is drawn against the
+            // same categories, so a series that runs short leaves the later
+            // slots empty rather than shortening the axis under the others.
             returnArraySizeDependencies: () => ({
-                values: {
+                seriesData: {
                     dependencyType: "stateVariable",
-                    variableName: "values",
+                    variableName: "seriesData",
                 },
             }),
             returnArraySize({ dependencyValues }) {
-                return [dependencyValues.values.length];
+                return [
+                    dependencyValues.seriesData.reduce(
+                        (longest, oneSeries) =>
+                            Math.max(longest, oneSeries.values.length),
+                        0,
+                    ),
+                ];
             },
             returnArrayDependenciesByKey: () => ({
                 globalDependencies: {
@@ -490,9 +736,10 @@ export default class Chart extends BlockComponent {
                 const categories = {};
                 for (const arrayKey of arrayKeys) {
                     const ind = Number(arrayKey);
-                    // A category with no bar under it never reaches this loop,
-                    // whose keys are sized by `values`; a bar with no
-                    // category of its own falls back to its position.
+                    // A category past the end of every series never reaches
+                    // this loop, whose keys are sized by the longest of them; a
+                    // slot with no category of its own falls back to its
+                    // position.
                     const declaredLabel = declared?.[ind];
                     categories[arrayKey] =
                         declaredLabel === undefined
@@ -500,6 +747,74 @@ export default class Chart extends BlockComponent {
                             : declaredLabel;
                 }
                 return { setValue: { categories } };
+            },
+        };
+
+        // The last `<title>` child, the way the last `<xLabel>` child wins on
+        // the axis: a chart written twice over should read as the later of the
+        // two rather than as an error about the earlier.
+        stateVariableDefinitions.title = {
+            description:
+                "The chart's title, or the empty string when it has none.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                titleChildren: {
+                    dependencyType: "child",
+                    childGroups: ["titles"],
+                    variableNames: ["text"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const titleChild =
+                    dependencyValues.titleChildren[
+                        dependencyValues.titleChildren.length - 1
+                    ];
+                return {
+                    setValue: {
+                        title: titleChild?.stateValues.text ?? "",
+                    },
+                };
+            },
+        };
+
+        // A legend names the series, so `auto` asks whether they are named:
+        // there is nothing to put in a legend of a chart whose series carry no
+        // labels, and a box with one blank line in it is worse than no box.
+        // `yes` is still honored — it simply produces nothing until a series
+        // has a label to show.
+        stateVariableDefinitions.showLegend = {
+            description: "Whether a legend is drawn.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                legend: {
+                    dependencyType: "stateVariable",
+                    variableName: "legend",
+                },
+                seriesData: {
+                    dependencyType: "stateVariable",
+                    variableName: "seriesData",
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.legend === "no") {
+                    return { setValue: { showLegend: false } };
+                }
+                if (dependencyValues.legend === "yes") {
+                    return { setValue: { showLegend: true } };
+                }
+                return {
+                    setValue: {
+                        showLegend: dependencyValues.seriesData.some(
+                            (oneSeries) => oneSeries.label,
+                        ),
+                    },
+                };
             },
         };
 
@@ -528,9 +843,9 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "type",
                 },
-                values: {
+                seriesData: {
                     dependencyType: "stateVariable",
-                    variableName: "values",
+                    variableName: "seriesData",
                 },
                 categories: {
                     dependencyType: "stateVariable",
@@ -539,6 +854,10 @@ export default class Chart extends BlockComponent {
                 barWidth: {
                     dependencyType: "stateVariable",
                     variableName: "barWidth",
+                },
+                layout: {
+                    dependencyType: "stateVariable",
+                    variableName: "layout",
                 },
                 yMinAttr: {
                     dependencyType: "stateVariable",
@@ -568,9 +887,12 @@ export default class Chart extends BlockComponent {
                 }
 
                 const geometry = computeBarChartGeometry({
-                    values: dependencyValues.values,
+                    series: dependencyValues.seriesData.map(
+                        ({ label, values }) => ({ label, values }),
+                    ),
                     labels: dependencyValues.categories,
                     barWidth: dependencyValues.barWidth,
+                    layout: dependencyValues.layout,
                     yMinAttr: dependencyValues.yMinAttr,
                     yMaxAttr: dependencyValues.yMaxAttr,
                 });
@@ -674,6 +996,18 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "yLabelHasLatex",
                 },
+                title: {
+                    dependencyType: "stateVariable",
+                    variableName: "title",
+                },
+                showLegend: {
+                    dependencyType: "stateVariable",
+                    variableName: "showLegend",
+                },
+                legendPosition: {
+                    dependencyType: "stateVariable",
+                    variableName: "legendPosition",
+                },
                 displayValues: {
                     dependencyType: "stateVariable",
                     variableName: "displayValues",
@@ -682,9 +1016,9 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "shortDescription",
                 },
-                selectedStyle: {
+                seriesData: {
                     dependencyType: "stateVariable",
-                    variableName: "selectedStyle",
+                    variableName: "seriesData",
                 },
                 document: {
                     dependencyType: "ancestor",
@@ -707,16 +1041,29 @@ export default class Chart extends BlockComponent {
 
                 const { xml, diagnostics } = createBarChartPrefigureXML({
                     geometry: dependencyValues.chartGeometry,
+                    // Resolved here rather than in the geometry, which is
+                    // renderer-neutral and has no view of the page's theme:
+                    // what a series is drawn in depends on which theme the
+                    // reader is in, where what it is drawn as does not.
+                    seriesRendering: dependencyValues.seriesData.map(
+                        ({ label, labelHasLatex, selectedStyle }) => ({
+                            label,
+                            labelHasLatex,
+                            selectedStyle: resolveSelectedStyleForTheme(
+                                selectedStyle,
+                                darkMode,
+                            ),
+                        }),
+                    ),
                     widthPx,
                     heightPx: widthPx / dependencyValues.aspectRatio,
                     xLabel: dependencyValues.xLabel,
                     xLabelHasLatex: dependencyValues.xLabelHasLatex,
                     yLabel: dependencyValues.yLabel,
                     yLabelHasLatex: dependencyValues.yLabelHasLatex,
-                    selectedStyle: resolveSelectedStyleForTheme(
-                        dependencyValues.selectedStyle,
-                        darkMode,
-                    ),
+                    title: dependencyValues.title,
+                    showLegend: dependencyValues.showLegend,
+                    legendPosition: dependencyValues.legendPosition,
                     displayValues: dependencyValues.displayValues,
                     shortDescription: dependencyValues.shortDescription,
                     darkMode,

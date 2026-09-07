@@ -1141,3 +1141,10 @@ bar-chart-bar-width-invalid =
 # missing.
 chart-type-not-specified =
     No chart type was named, so nothing was drawn. Give the type attribute the name of a chart, such as `type="bar"`.
+
+# Raised by `<chart>` when values are written beside its `<series>` children.
+# A value outside every series belongs to no group of the data, so there is no
+# place on the chart to draw it; saying so matters because the alternative
+# reading of the missing bar is that the value was zero.
+chart-values-outside-series =
+    A chart with `<series>` children draws only the values inside them, so values written beside a series were not drawn. Move them into a series of their own.

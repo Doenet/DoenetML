@@ -85,3 +85,19 @@ export function mathOperatorInputsFromChildren({
             : child.stateValues.value;
     });
 }
+
+/**
+ * The numeric value of each `<number>` or `<math>` child, in order.
+ *
+ * A `<number>` child's value is already a plain number; a `<math>` child's is a
+ * math-expression, and one that is not constant evaluates to `NaN` — which is
+ * what the charts read as a value they cannot draw, rather than as a zero.
+ */
+export function numericValuesFromValueChildren(children) {
+    return children.map((child) => {
+        const value = child?.stateValues.value;
+        return typeof value?.evaluate_to_constant === "function"
+            ? value.evaluate_to_constant()
+            : value;
+    });
+}

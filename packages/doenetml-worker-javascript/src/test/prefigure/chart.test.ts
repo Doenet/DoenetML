@@ -231,10 +231,10 @@ describe("chart prefigure tests @group4", async () => {
             // Bars sit at x = 1..4, 0.8 of their slot wide, so the first spans
             // 0.6 to 1.4.
             expect(xml).toContain(
-                '<rectangle at="bar-1" lower-left="(0.6,0)" dimensions="(0.8,41)"',
+                '<rectangle at="bar-1-1" lower-left="(0.6,0)" dimensions="(0.8,41)"',
             );
             expect(xml).toContain(
-                '<rectangle at="bar-4" lower-left="(3.6,0)" dimensions="(0.8,78)"',
+                '<rectangle at="bar-1-4" lower-left="(3.6,0)" dimensions="(0.8,78)"',
             );
         });
 
@@ -480,7 +480,7 @@ describe("chart prefigure tests @group4", async () => {
                 '<annotation ref="figure" text="Counts by region">',
             );
             expect(xml).toContain(
-                '<annotation ref="bar-2" text="South: 63" />',
+                '<annotation ref="bar-1-2" text="South: 63" />',
             );
         });
 
@@ -503,7 +503,7 @@ describe("chart prefigure tests @group4", async () => {
             expect(xml).toContain(">&apos;a&amp;b&apos;</tick-mark>");
             expect(xml).toContain(">&apos;&lt;c&gt;&apos;</tick-mark>");
             expect(xml).toContain(
-                '<annotation ref="bar-2" text="&apos;&lt;c&gt;&apos;: 2" />',
+                '<annotation ref="bar-1-2" text="&apos;&lt;c&gt;&apos;: 2" />',
             );
             expect(xml).toContain('text="Q &amp; A &lt;here&gt;"');
             // Nothing an author typed reaches the XML as markup.
@@ -548,7 +548,7 @@ describe("chart prefigure tests @group4", async () => {
             // is what hides two of them, not the geometry.
             expect((xml.match(/<rectangle /g) ?? []).length).eq(3);
             expect(xml).toContain(
-                '<rectangle at="bar-1" lower-left="(0.6,0)" dimensions="(0.8,4)" cliptobbox="yes"',
+                '<rectangle at="bar-1-1" lower-left="(0.6,0)" dimensions="(0.8,4)" cliptobbox="yes"',
             );
             expect((xml.match(/cliptobbox="yes"/g) ?? []).length).eq(3);
         });
@@ -569,7 +569,7 @@ describe("chart prefigure tests @group4", async () => {
             expect(xml).toContain('bbox="(0,-4,3,6)"');
             // A negative bar hangs from the axis rather than growing from it.
             expect(xml).toContain(
-                '<rectangle at="bar-2" lower-left="(1.6,-3)" dimensions="(0.8,3)"',
+                '<rectangle at="bar-1-2" lower-left="(1.6,-3)" dimensions="(0.8,3)"',
             );
         });
 
@@ -695,13 +695,13 @@ describe("chart prefigure tests @group4", async () => {
             const xml = await chartXML(`
     <chart type="bar" name="c"><number>1</number><math>7</math><number>3</number></chart>
     `);
-            expect(xml).toContain('at="bar-1" lower-left="(0.6,0)"');
+            expect(xml).toContain('at="bar-1-1" lower-left="(0.6,0)"');
             expect(xml).toContain('dimensions="(0.8,1)"');
             expect(xml).toContain(
-                '<rectangle at="bar-2" lower-left="(1.6,0)" dimensions="(0.8,7)"',
+                '<rectangle at="bar-1-2" lower-left="(1.6,0)" dimensions="(0.8,7)"',
             );
             expect(xml).toContain(
-                '<rectangle at="bar-3" lower-left="(2.6,0)" dimensions="(0.8,3)"',
+                '<rectangle at="bar-1-3" lower-left="(2.6,0)" dimensions="(0.8,3)"',
             );
         });
 
@@ -739,7 +739,7 @@ describe("chart prefigure tests @group4", async () => {
     <chart type="bar" name="c" barWidth="0.5"><number>4</number></chart>
     `);
             expect(xml).toContain(
-                '<rectangle at="bar-1" lower-left="(0.75,0)" dimensions="(0.5,4)"',
+                '<rectangle at="bar-1-1" lower-left="(0.75,0)" dimensions="(0.5,4)"',
             );
         });
 
@@ -755,10 +755,10 @@ describe("chart prefigure tests @group4", async () => {
 
                 const xMax = Number(xml.match(/bbox="\(0,[^,]*,([^,]*),/)?.[1]);
                 const lastLeft = Number(
-                    xml.match(/at="bar-2" lower-left="\(([^,]*),/)?.[1],
+                    xml.match(/at="bar-1-2" lower-left="\(([^,]*),/)?.[1],
                 );
                 const firstLeft = Number(
-                    xml.match(/at="bar-1" lower-left="\(([^,]*),/)?.[1],
+                    xml.match(/at="bar-1-1" lower-left="\(([^,]*),/)?.[1],
                 );
 
                 expect(xMax - (lastLeft + barWidth)).closeTo(firstLeft, 1e-12);
@@ -927,8 +927,12 @@ describe("chart prefigure tests @group4", async () => {
 
             // counts are 3, 1, 2, 2
             expect(xml).toContain('dimensions="(0.8,3)"');
-            expect(xml).toContain('<annotation ref="bar-1" text="North: 3" />');
-            expect(xml).toContain('<annotation ref="bar-4" text="West: 2" />');
+            expect(xml).toContain(
+                '<annotation ref="bar-1-1" text="North: 3" />',
+            );
+            expect(xml).toContain(
+                '<annotation ref="bar-1-4" text="West: 2" />',
+            );
         });
     });
 
@@ -1080,6 +1084,280 @@ describe("chart prefigure tests @group4", async () => {
             const sv = await core.returnAllStateVariables(false, true);
             expect(sv[await resolvePathToNodeIdx("p")].stateValues.text).eq(
                 "4, 9, 2",
+            );
+        });
+    });
+    describe("series", async () => {
+        it("draws bare values as one unnamed series", async () => {
+            // The implicit series is what makes the simple chart simple: the
+            // author writes values, and everything downstream still sees a list
+            // of series.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c">4 9 2</chart>
+    <p name="n">$c.numSeries</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+
+            expect(sv[await resolvePathToNodeIdx("n")].stateValues.text).eq(
+                "1",
+            );
+            // No group to name and none to distinguish, so the bars go straight
+            // into the diagram and straight under the figure annotation.
+            expect(chart.prefigureXML).not.toContain("<group ");
+            expect(chart.prefigureXML).not.toContain("<legend ");
+        });
+
+        it("places grouped bars side by side within each slot", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" categories="A B">
+      <series><label>first</label>4 9</series>
+      <series><label>second</label>6 1</series>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // The two series divide the 0.8 slot between them, so each bar is
+            // 0.4 wide and the pair spans 0.6 to 1.4 — exactly the ground one
+            // series covers on its own at the same `barWidth`.
+            expect(xml).toContain(
+                '<rectangle at="bar-1-1" lower-left="(0.6,0)" dimensions="(0.4,4)"',
+            );
+            expect(xml).toContain(
+                '<rectangle at="bar-2-1" lower-left="(1,0)" dimensions="(0.4,6)"',
+            );
+            // Bars are measured from the baseline, so the taller of the pair
+            // sets the top of the box rather than their total.
+            expect(xml).toContain('bbox="(0,0,3,10)"');
+        });
+
+        it("stacks bars from the baseline, up and down separately", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" layout="stacked" categories="A">
+      <series>4</series>
+      <series>6</series>
+      <series>-3</series>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // Full width, and each positive bar starts where the last one
+            // ended. The negative one hangs from zero rather than from the top
+            // of the positive stack, which is what keeps a mixed-sign stack
+            // from drawing its bars through each other.
+            expect(xml).toContain(
+                '<rectangle at="bar-1-1" lower-left="(0.6,0)" dimensions="(0.8,4)"',
+            );
+            expect(xml).toContain(
+                '<rectangle at="bar-2-1" lower-left="(0.6,4)" dimensions="(0.8,6)"',
+            );
+            expect(xml).toContain(
+                '<rectangle at="bar-3-1" lower-left="(0.6,-3)" dimensions="(0.8,3)"',
+            );
+            // The box holds the totals, not the largest single value: the
+            // stack reaches 10, which is a tick past the 6 the tallest bar
+            // alone would have asked for.
+            expect(xml).toContain('bbox="(0,-5,2,15)"');
+        });
+
+        it("gives consecutive series consecutive style numbers", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" styleNumber="2">
+      <series name="s1">4</series>
+      <series name="s2">6</series>
+      <series name="s3" styleNumber="6">1</series>
+    </chart>
+    <p name="p">$s1.styleNumber $s2.styleNumber $s3.styleNumber</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            // Offset by the chart's own style, so a one-series chart is drawn
+            // in exactly the style the chart asked for, and an author who names
+            // a style on a series keeps it.
+            expect(sv[await resolvePathToNodeIdx("p")].stateValues.text).eq(
+                "2 3 6",
+            );
+        });
+
+        it("groups each series for a screen reader to stop at", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" categories="A B">
+      <series><label>first</label>4 9</series>
+      <series>6 1</series>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            expect(xml).toContain('<group at="series-1">');
+            expect(xml).toContain('<group at="series-2">');
+            // The bars hang under their series, which hangs under the figure.
+            expect(xml).toContain(
+                '<annotation ref="series-1" text="first"><annotation ref="bar-1-1" text="A: 4" />',
+            );
+            // An unnamed series still has to be distinguishable from the one
+            // before it, so it is named by its position.
+            expect(xml).toContain('<annotation ref="series-2" text="2">');
+        });
+
+        it("counts every series in values, and reports how many there are", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c">
+      <series name="s1">4 9</series>
+      <series name="s2">6 1</series>
+    </chart>
+    <p name="all">$c.values</p>
+    <p name="one">$s2.values</p>
+    <p name="n">$c.numSeries</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            expect(sv[await resolvePathToNodeIdx("all")].stateValues.text).eq(
+                "4, 9, 6, 1",
+            );
+            expect(sv[await resolvePathToNodeIdx("one")].stateValues.text).eq(
+                "6, 1",
+            );
+            expect(sv[await resolvePathToNodeIdx("n")].stateValues.text).eq(
+                "2",
+            );
+        });
+
+        it("keeps the axis as long as the longest series", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" categories="A B C">
+      <series>4 9 2</series>
+      <series>6</series>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // A short series leaves its later slots empty rather than
+            // shortening the axis under the series that does reach them.
+            expect((xml.match(/<tick-mark /g) ?? []).length).eq(3);
+            expect((xml.match(/<rectangle /g) ?? []).length).eq(4);
+        });
+
+        it("warns about values written beside a series", async () => {
+            const { core } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c">7<series>4 9</series></chart>
+    `,
+            });
+            await core.returnAllStateVariables(false, true);
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.code)).toContain("doenet-w0147");
+        });
+    });
+
+    describe("title and legend", async () => {
+        it("draws a title above the chart and widens the top margin for it", async () => {
+            const withoutTitle = await chartXML(`
+    <chart type="bar" name="c" categories="A">4</chart>
+    `);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" categories="A">
+      <title>Counts by region</title>
+      4
+    </chart>
+    <p name="t">$c.title</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            expect(sv[await resolvePathToNodeIdx("t")].stateValues.text).eq(
+                "Counts by region",
+            );
+            // Centered on the box and anchored at its top, so it is drawn into
+            // the margin rather than over the bars.
+            expect(xml).toContain(
+                'alignment="north" scale="1.4" color="currentColor">Counts by region</label>',
+            );
+            // The caption reaches tactile output only, so it is emitted as well
+            // as the label rather than instead of it.
+            expect(xml).toContain("<caption>Counts by region</caption>");
+
+            // Room had to be made: the margins are drawn outside the
+            // dimensions, so a title in a margin sized for an axis label would
+            // be cut off by the edge of the picture.
+            const topMargin = (x: string) =>
+                Number(x.match(/margins="\[[^\]]*,([^,\]]*)\]"/)?.[1]);
+            expect(topMargin(xml)).toBeGreaterThan(topMargin(withoutTitle));
+        });
+
+        it("draws a legend when a series is named, and not when none is", async () => {
+            const named = await chartXML(`
+    <chart type="bar" name="c">
+      <series><label>2024</label>4</series>
+      <series><label>2025</label>6</series>
+    </chart>
+    `);
+            const unnamed = await chartXML(`
+    <chart type="bar" name="c">
+      <series>4</series>
+      <series>6</series>
+    </chart>
+    `);
+
+            // Keyed off the bars themselves: PreFigure reads the referenced
+            // element's fill and draws a swatch of it, so the legend cannot
+            // disagree with the bars it names.
+            expect(named).toContain(
+                '<item ref="bar-1-1" color="currentColor">2024</item>',
+            );
+            expect(named).toContain(
+                '<item ref="bar-2-1" color="currentColor">2025</item>',
+            );
+            // Transparent box, outlined in the page's text color: PreFigure
+            // fills a legend white with no attribute to say otherwise, which
+            // would read as a hole punched in a chart drawn in dark mode.
+            expect(named).toContain('opacity="0" stroke="currentColor"');
+            // Nothing to say, so no box with a blank line in it.
+            expect(unnamed).not.toContain("<legend ");
+        });
+
+        it("honors legend and legendPosition", async () => {
+            const suppressed = await chartXML(`
+    <chart type="bar" name="c" legend="no">
+      <series><label>2024</label>4</series>
+    </chart>
+    `);
+            expect(suppressed).not.toContain("<legend ");
+
+            const lowerLeft = await chartXML(`
+    <chart type="bar" name="c" legendPosition="lowerLeft">
+      <series><label>2024</label>4</series>
+    </chart>
+    `);
+            // Anchored at the corner it sits in, and aligned away from it so
+            // the box lands inside the chart rather than outside.
+            expect(lowerLeft).toContain(
+                '<legend anchor="(0,0)" alignment="ne"',
             );
         });
     });

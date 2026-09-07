@@ -242,5 +242,6 @@
     "doenet-w0143": "bar-chart-bar-width-invalid",
     "doenet-w0144": "bar-chart-values-not-drawable",
     "doenet-w0145": "invalid-type-ignored",
-    "doenet-w0146": "chart-type-not-specified"
+    "doenet-w0146": "chart-type-not-specified",
+    "doenet-w0147": "chart-values-outside-series"
 }
