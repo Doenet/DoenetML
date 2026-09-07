@@ -608,6 +608,71 @@ describe("List operator tag tests @group4", async () => {
             });
         });
 
+        it("splits a written-out target on whitespace, so a value with a space is referenced instead", async () => {
+            // Vectorizing `target` made it a list, and a list reads a bare
+            // string by splitting it: `target="New York"` is two targets, not
+            // one, so a city that is on the list is found at neither. The way
+            // to ask for a value containing a space is to build it outside and
+            // reference it -- which is also how the list itself is built, since
+            // a bare `<textList>` would split the same way.
+            //
+            // Untested when the vectorization landed, which is how the change
+            // reached `main` without anyone noticing it. Both reference pages
+            // now document it; this keeps the documented behavior honest.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="cities">
+      <text>Boston</text><text>New York</text><text>Chicago</text>
+    </textList>
+    <text name="wanted">New York</text>
+    <p name="pSplit"><indexOf type="text" target="New York">$cities</indexOf></p>
+    <p name="pReferenced"><indexOf type="text" target="$wanted">$cities</indexOf></p>
+    `,
+            });
+
+            // Two targets, "New" and "York", neither of which is a city here.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSplit",
+                text: "0, 0",
+            });
+            // One target, found where it actually sits.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pReferenced",
+                text: "2",
+            });
+        });
+
+        it("splits a written-out searchSorted target the same way", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="cities">
+      <text>Boston</text><text>Chicago</text><text>New York</text>
+    </textList>
+    <text name="wanted">New York</text>
+    <p name="pSplit"><searchSorted type="text" target="New York">$cities</searchSorted></p>
+    <p name="pReferenced"><searchSorted type="text" target="$wanted">$cities</searchSorted></p>
+    `,
+            });
+
+            // "New" belongs at 3 and "York" after everything, at 4.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSplit",
+                text: "3, 4",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pReferenced",
+                text: "3",
+            });
+        });
+
         it("indexOf a text", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
