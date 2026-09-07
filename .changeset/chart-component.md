@@ -28,10 +28,10 @@ Categories are labels rather than values: the bars are evenly spaced whatever a 
 
 A value that is not a finite number gets no bar, and that is reported as a warning. Its place on the axis is kept, so the remaining bars stay under their own categories rather than shifting along.
 
-The vertical axis scales itself: one tick above the tallest bar so it never touches the frame, and labeled values a whole number of steps from zero, which is the baseline the bars are measured from. `yMin` and `yMax` override it, and may each be set on their own. A value of zero keeps its slot and its category label, so a `<tally>` category nothing landed in does not drop out of the chart.
+The vertical axis scales itself: one tick above the tallest bar so it never touches the frame, and labeled values a whole number of steps from zero, which is the baseline the bars are measured from. `yMin` and `yMax` override it, and may each be set on their own; bars are still measured from zero, so a bound that crosses them cuts them off at the frame and a bar lying entirely outside it does not appear. A value of zero keeps its slot and its category label, so a `<tally>` category nothing landed in does not drop out of the chart.
 
 `size` and `width` and `aspectRatio` size a chart the way they size a `<graph>`, and `barWidth` is the fraction of its slot each bar fills. `values`, `categories`, `yMin`, `yMax`, `barWidth` and `aspectRatio` all read back off the chart, and the last four report **what it was drawn with** — the axis an automatic chart chose for itself, and the fallback used in place of a width or a ratio the chart could not honor.
 
-Every bar carries its category and value as an annotation, so the chart is navigable by screen reader rather than merely present, and a `<shortDescription>` becomes the description of the figure as a whole. The chart renders through PreFigure, whose runtime is fetched the first time a page uses one; pages with no chart fetch nothing.
+Every bar carries its category and value as an annotation, so the chart is navigable by screen reader rather than merely present, and a `<shortDescription>` becomes the description of the figure as a whole. The chart renders through PreFigure, whose runtime is fetched the first time a page draws through it. A `<chart>` with no type draws nothing, so it fetches nothing either.
 
 Closes #1833.

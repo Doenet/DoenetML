@@ -564,8 +564,17 @@ export function createBarChartPrefigureXML({
         const lowerLeft = `(${formatNumber(bar.lowerLeft[0])},${formatNumber(bar.lowerLeft[1])})`;
         const barDimensions = `(${formatNumber(bar.dimensions[0])},${formatNumber(bar.dimensions[1])})`;
 
+        // Trimmed to the box it is drawn in. Every bar is measured from zero,
+        // so a `yMin` above zero, or a `yMax` below the tallest value, leaves
+        // part of a bar outside the axes — and PreFigure draws a rectangle
+        // unclipped unless asked (`cliptobbox` defaults to `no` for this
+        // element), so that part would be painted over the category labels
+        // below the frame, or above it, and off the edge of the picture.
+        // Asking for the clip is what makes a bound cut the bars off at the
+        // frame: a bar lying entirely outside the box disappears, and one
+        // crossing the edge is drawn as far as the box goes.
         elements.push(
-            `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}"${barAttrs ? ` ${barAttrs}` : ""} />`,
+            `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}" cliptobbox="yes"${barAttrs ? ` ${barAttrs}` : ""} />`,
         );
 
         if (displayValues) {

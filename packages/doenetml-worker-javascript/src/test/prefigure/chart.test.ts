@@ -533,6 +533,26 @@ describe("chart prefigure tests @group4", async () => {
             expect(xml).toContain('bbox="(0,0,3,100)"');
         });
 
+        it("trims the bars to the box when a bound cuts across them", async () => {
+            // Every bar is measured from zero, so `yMin="5"` leaves the whole
+            // of the bar of 4 and the bar of 2 below the axis, and the lower
+            // two thirds of the bar of 9. Unclipped, PreFigure paints those
+            // parts outside the frame — over the category labels beneath it
+            // and off the bottom of the picture — so the bar geometry stays as
+            // the data has it and the drawing is clipped to the box instead.
+            const xml = await chartXML(`
+    <chart type="bar" name="c" categories="A B C" yMin="5"><number>4</number><number>9</number><number>2</number></chart>
+    `);
+            expect(xml).toContain('bbox="(0,5,4,10)"');
+            // All three bars are still emitted, measured from zero: the axis
+            // is what hides two of them, not the geometry.
+            expect((xml.match(/<rectangle /g) ?? []).length).eq(3);
+            expect(xml).toContain(
+                '<rectangle at="bar-1" lower-left="(0.6,0)" dimensions="(0.8,4)" cliptobbox="yes"',
+            );
+            expect((xml.match(/cliptobbox="yes"/g) ?? []).length).eq(3);
+        });
+
         it("gives an empty chart a box one tick tall", async () => {
             // Zeros rather than nothing: an empty chart should read as empty,
             // not as broken.
