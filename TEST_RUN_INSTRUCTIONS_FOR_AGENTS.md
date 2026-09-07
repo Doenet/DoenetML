@@ -13,6 +13,34 @@ Avoid commands that open watchers/UIs unless explicitly requested:
 - `cypress open`
 - long-running `dev` commands used as test commands
 
+## Rebuild an Edited Package Before Testing Its Consumers
+
+Every `@doenet/*` package's `exports` point at its `dist/`, and no vitest config aliases them back to `src/`. A test in one package that imports another always gets the **last build** of that other package.
+
+Nothing rebuilds it for you: the `test` scripts are a bare `vitest` with no Wireit dependencies, so neither `npm run test -w <pkg>` nor `npx vitest` builds anything.
+
+**Rule: after editing `packages/<A>/src/`, run `npm run build -w @doenet/<A>` before running tests in any package other than `<A>`.**
+
+An up-to-date build is a Wireit cache hit and returns in well under a second, so run it rather than reasoning about whether it is needed.
+
+Why this matters more than it sounds: the failure is usually **silent**. A removed or renamed export throws (`someFn is not a function`), which at least looks like a problem. The common case is worse — the old code still runs, so the suite passes against the previous behavior, or a fix you just made appears to have done nothing. Do not conclude that a change had no effect until you have rebuilt the package you changed.
+
+### Generated sources need the build too
+
+A generator that writes into `src/generated/` has not produced a `dist/` yet. Run the package's `build` afterwards:
+
+```bash
+# schema: regenerate, then build so consumers (lsp-tools, lsp, docs) see it
+npm run build:schema -w packages/static-assets
+npm run build -w @doenet/static-assets
+
+# i18n message keys / diagnostic codes
+npm run codegen -w @doenet/i18n
+npm run build -w @doenet/i18n
+```
+
+Adding an i18n **locale** needs all four, in this order — `codegen` → `build -w @doenet/i18n` → `build:schema` → `build -w @doenet/static-assets`. Skipping the second step drops locales from the schema.
+
 ## Critical test-cypress Warning
 
 If you changed code that affects Cypress behavior or rendering, you must rebuild `@doenet/test-cypress` before any Cypress run.
@@ -204,9 +232,10 @@ rebuild the docs (step 1) before running the tests — Cypress reads the built
 
 1. Use non-interactive commands only.
 2. For Vitest, include `--run`.
-3. For `@doenet/test-cypress`, rebuild first after any code change.
-4. Only after rebuilding, start preview server.
-5. Only after rebuilding and starting preview, run Cypress.
-6. Use `cypress run` (headless), not `cypress open`.
-7. Stop background preview server after tests finish.
-8. For `@doenet/docs-cypress`, build the docs first, then serve `out/` on port 3000, then run Cypress.
+3. If you edited another package's `src/`, build that package first — nothing does it for you, and a stale `dist/` passes silently.
+4. For `@doenet/test-cypress`, rebuild first after any code change.
+5. Only after rebuilding, start preview server.
+6. Only after rebuilding and starting preview, run Cypress.
+7. Use `cypress run` (headless), not `cypress open`.
+8. Stop background preview server after tests finish.
+9. For `@doenet/docs-cypress`, build the docs first, then serve `out/` on port 3000, then run Cypress.
