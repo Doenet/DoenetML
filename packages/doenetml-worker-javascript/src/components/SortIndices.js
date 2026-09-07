@@ -27,6 +27,11 @@ export default class SortIndices extends Sort {
             "The indices that put a list in sorted order, rather than the sorted values",
     };
 
+    // `<sort>` is `allowInSchemaAnywhere` because its replacements are copies
+    // of its children, whatever those are. `<sortIndices>` always expands to
+    // `number` instead, so it must shed the inherited mark rather than be
+    // accepted in every container.
+    static allowInSchemaAnywhere = false;
     static allowInSchemaAsComponent = ["number"];
 
     static returnStateVariableDefinitions() {

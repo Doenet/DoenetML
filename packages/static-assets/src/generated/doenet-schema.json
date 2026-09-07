@@ -6342,10 +6342,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "022222222222",
+            "childBuckets": "02222222222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -6637,10 +6636,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "022222222222",
+            "childBuckets": "02222222222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -7899,12 +7897,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "1111111110222222222222211",
+            "childBuckets": "111111111022222222222211",
             "abstractAncestors": [
                 "_booleanOperator",
                 "_inline",
@@ -8298,12 +8295,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "1111111110222222222222211",
+            "childBuckets": "111111111022222222222211",
             "abstractAncestors": [
                 "_booleanOperator",
                 "_inline",
@@ -8697,12 +8693,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "1111111110222222222222211",
+            "childBuckets": "111111111022222222222211",
             "abstractAncestors": [
                 "_booleanOperator",
                 "_inline",
@@ -9096,12 +9091,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "1111111110222222222222211",
+            "childBuckets": "111111111022222222222211",
             "abstractAncestors": [
                 "_booleanOperator",
                 "_inline",
@@ -9495,12 +9489,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "1111111110222222222222211",
+            "childBuckets": "111111111022222222222211",
             "abstractAncestors": [
                 "_booleanOperator",
                 "_inline",
@@ -36278,7 +36271,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "yLabel",
                 "shortDescription",
@@ -36342,6 +36334,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "matrix",
@@ -36375,7 +36368,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "0222222222220011111111111111111111111222221122222122022210112221222222122212122222222222222222222222222222",
+            "childBuckets": "0222222222200111111111111111111111112222211222221220222101122212222221222212122222222222222222222222222222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -44428,7 +44421,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -44639,6 +44631,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -44666,7 +44659,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45232,7 +45225,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -45443,6 +45435,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -45470,7 +45463,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46036,7 +46029,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -46247,6 +46239,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -46274,7 +46267,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46840,7 +46833,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -47051,6 +47043,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -47078,7 +47071,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -47644,7 +47637,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -47855,6 +47847,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -47882,7 +47875,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -48457,7 +48450,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -48668,6 +48660,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -48695,7 +48688,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49261,7 +49254,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -49472,6 +49464,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -49499,7 +49492,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -50074,7 +50067,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -50285,6 +50277,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -50312,7 +50305,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -50887,7 +50880,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -51098,6 +51090,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -51125,7 +51118,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -51700,7 +51693,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -51911,6 +51903,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -51938,7 +51931,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -52513,7 +52506,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -52724,6 +52716,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -52751,7 +52744,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -53317,7 +53310,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -53528,6 +53520,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -53555,7 +53548,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54121,7 +54114,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -54332,6 +54324,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -54359,7 +54352,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54925,7 +54918,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -55136,6 +55128,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -55163,7 +55156,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -55729,7 +55722,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -55940,6 +55932,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -55967,7 +55960,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -56533,7 +56526,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -56744,6 +56736,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -56771,7 +56764,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -57337,7 +57330,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -57548,6 +57540,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -57575,7 +57568,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_unnumberedSectioningComponent",
                 "_sectioningComponent",
@@ -58138,7 +58131,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -58349,6 +58341,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -58376,7 +58369,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -58929,7 +58922,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -59140,6 +59132,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -59167,7 +59160,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -59720,10 +59713,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "022222222222",
+            "childBuckets": "02222222222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -60084,10 +60076,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "022222222222",
+            "childBuckets": "02222222222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -61010,10 +61001,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "022222222222",
+            "childBuckets": "02222222222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -61477,11 +61467,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -62239,7 +62228,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -62320,6 +62308,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "split",
                 "latex",
                 "m",
@@ -62343,7 +62332,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112222222222201111111111111111111111122222112211022010122212111122211111111222222012222222222222222222222222222222",
+            "childBuckets": "112222222222011111111111111111111111222221122110220101222121111222111111112222220122222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -63016,7 +63005,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -63103,6 +63091,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -63112,7 +63101,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222222012222111111111111111111111122222112222222222222122220222212222201221222212222221222212212222",
+            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -63688,7 +63677,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "clampFunction",
@@ -63776,6 +63764,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -63785,7 +63774,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11222222222220111010122221111111111111111111111222221122222222221222202222122222011222212222221222212212222",
+            "childBuckets": "11222222222201110101222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -65024,10 +65013,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "022222222222",
+            "childBuckets": "02222222222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -65278,10 +65266,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "2022222222222",
+            "childBuckets": "202222222222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -66351,7 +66338,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "orbitalDiagram",
                 "rightHandSide",
@@ -66437,6 +66423,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -66446,7 +66433,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "02222222222201222211111111111111111111112222211222222222222212222022212222201221222212222221222212212222",
+            "childBuckets": "02222222222012222111111111111111111111122222112222222222222122220222122222012212222122222212222212212222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67624,7 +67611,6 @@
                 "setup",
                 "caption",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "subsetOfRealsInput",
                 "codeEditor",
@@ -67633,7 +67619,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "111111111111111111111111111111111111112111112222211112221222111111",
+            "childBuckets": "11111111111111111111111111111111111111211111222221111222122111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -67902,10 +67888,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "022222222222",
+            "childBuckets": "02222222222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -71067,14 +71052,13 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "description",
                 "shortDescription",
                 "matrix"
             ],
-            "childBuckets": "11222222222220000",
+            "childBuckets": "1122222222220000",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -71622,7 +71606,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "description",
@@ -71711,6 +71694,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -71720,7 +71704,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112222222222200012222111111111111111111111122222112222222222222122220222212222222221222212222221222212212222",
+            "childBuckets": "112222222222000122221111111111111111111111222221122222222222221222202222122222222212222122222212222212212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -72910,7 +72894,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -73120,6 +73103,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -73147,7 +73131,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110111000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111101110110000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -76524,12 +76508,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "1111111110222222222222211",
+            "childBuckets": "111111111022222222222211",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -79037,7 +79020,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -79118,6 +79100,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "split",
                 "latex",
                 "m",
@@ -79141,7 +79124,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112222222222201111111111111111111111122222112211022010122212111122211111111222222012222222222222222222222222222222",
+            "childBuckets": "112222222222011111111111111111111111222221122110220101222121111222111111112222220122222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -80656,7 +80639,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -80743,6 +80725,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -80752,7 +80735,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222222012222111111111111111111111122222112222222222222122220222212222201221222212222221222212212222",
+            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -81318,11 +81301,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -81904,11 +81886,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -82400,11 +82381,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -83005,11 +82985,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -83747,11 +83726,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -84489,11 +84467,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -85268,11 +85245,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -86091,7 +86067,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -86178,6 +86153,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -86187,7 +86163,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222222012222111111111111111111111122222112222222222222122220222212222201221222212222221222212212222",
+            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -86995,7 +86971,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -87082,6 +87057,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -87091,7 +87067,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222222012222111111111111111111111122222112222222222222122220222212222201221222212222221222212212222",
+            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -87730,7 +87706,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "clampFunction",
@@ -87818,6 +87793,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -87827,7 +87803,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11222222222220111010122221111111111111111111111222221122222222221222202222122222011222212222221222212212222",
+            "childBuckets": "11222222222201110101222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -88688,7 +88664,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "rightHandSide",
                 "m",
@@ -88774,6 +88749,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -88783,7 +88759,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "20222222222212222111111111111111111111122222112222222222222122220222212222201221222212222221222212212222",
+            "childBuckets": "20222222222122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -88994,7 +88970,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "subsetOfReals",
                 "matrix",
@@ -89040,12 +89015,13 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "split",
                 "bestFitLine",
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "1111111111111111111111122222112210222101222222212122222112222222222222222222222222222222222222222222222",
+            "childBuckets": "1111111111111111111111122222112210222101222222212122221122222222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -89281,7 +89257,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -89354,6 +89329,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "split",
                 "latex",
                 "m",
@@ -89377,7 +89353,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "1122222222222011111111111111111111111222221122110220101222121111222222222012222222222222222222222222222222",
+            "childBuckets": "1122222222220111111111111111111111112222211221102201012221211112222222220122222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -90065,7 +90041,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -90128,6 +90103,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "matrix",
@@ -90161,7 +90137,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222222011111111111111111111111222221122222122022210112221222222122212122222222222222222222222222222",
+            "childBuckets": "1122222222220111111111111111111111112222211222221220222101122212222221222212122222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -90638,7 +90614,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "matrixInput",
                 "fractionInput",
@@ -90733,6 +90708,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -90755,7 +90731,7 @@
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "202222222222111111011000122221111111111111111111111222221122222221222221000010212220012212222122222211122122112221111111110011",
+            "childBuckets": "202222222221111110110001222211111111111111111111112222211222222212222210000102122200122122221222222111222122112221111111110011",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -91704,7 +91680,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "rightHandSide",
                 "m",
@@ -91790,6 +91765,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -91817,7 +91793,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "20222222222212222111111111111111111111122222112222222122222122020222212222201221222212222221112212211222221111111110212120",
+            "childBuckets": "20222222222122221111111111111111111111222221122222221222221220202222122222012212222122222211122212211222221111111110212120",
             "abstractAncestors": [
                 "_base"
             ],
@@ -92861,7 +92837,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "description",
@@ -92950,6 +92925,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -92959,7 +92935,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112222222222200012222111111111111111111111122222112222222222222122220222212222222221222212222221222212212222",
+            "childBuckets": "112222222222000122221111111111111111111111222221122222222222221222202222122222222212222122222212222212212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -93740,7 +93716,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "description",
@@ -93823,6 +93798,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "hasSameFactoring",
@@ -93831,7 +93807,7 @@
                 "latex",
                 "intervalList"
             ],
-            "childBuckets": "11222222222220002222222222222222222222222222222222222222222222212220222222222222222222222221122222212",
+            "childBuckets": "11222222222200022222222222222222222222222222222222222222222222122202222222222222222222222211222222212",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -94304,7 +94280,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "description",
@@ -94407,6 +94382,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -94416,7 +94392,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11222222222220001111111110221112222111111111111111111111122222112222222222222122220222212222201221222212222221222212212222",
+            "childBuckets": "11222222222200011111111102211122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -94798,14 +94774,13 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "description",
                 "shortDescription",
                 "choice"
             ],
-            "childBuckets": "11222222222220000",
+            "childBuckets": "1122222222220000",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -96757,7 +96732,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "yLabel",
                 "shortDescription",
@@ -96880,6 +96854,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "split",
                 "hasSameFactoring",
                 "label",
@@ -96899,7 +96874,7 @@
                 "graph",
                 "annotations"
             ],
-            "childBuckets": "0222222222220001111111111111111111111122222112222211111022111111111111111221212212111111111111222001112222222222212202222201222222112220212220010000000",
+            "childBuckets": "0222222222200011111111111111111111111222221122222111110221111111111111112212122121111111111112220011122222222222122022222012222221122220212220010000000",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -97786,10 +97761,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "202222222222",
+            "childBuckets": "20222222222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -97939,10 +97913,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "202222222222",
+            "childBuckets": "20222222222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -99094,13 +99067,12 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "xLabel",
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "1112012222222222110",
+            "childBuckets": "111201222222222110",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -101886,13 +101858,12 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "row",
                 "column",
                 "cellBlock"
             ],
-            "childBuckets": "202222222222000",
+            "childBuckets": "20222222222000",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -102921,10 +102892,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "202222222222",
+            "childBuckets": "20222222222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -103272,10 +103242,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "202222222222",
+            "childBuckets": "20222222222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -103467,13 +103436,12 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "row",
                 "column",
                 "cellBlock"
             ],
-            "childBuckets": "202222222222000",
+            "childBuckets": "20222222222000",
             "abstractAncestors": [
                 "_base"
             ],
@@ -103649,10 +103617,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "202222222222",
+            "childBuckets": "20222222222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -104049,7 +104016,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "rightHandSide",
                 "xLabel",
@@ -104184,6 +104150,7 @@
                 "functionIterates",
                 "footnote",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfReals",
                 "split",
@@ -104251,7 +104218,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "0222222222221111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212221212122111111111112221212222221112111112112211111222111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "0222222222211111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122212121221111111111122212122222211121111122112211111222111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -104440,7 +104407,6 @@
                 "setup",
                 "caption",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "rightHandSide",
@@ -104576,6 +104542,7 @@
                 "functionIterates",
                 "footnote",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfReals",
                 "split",
@@ -104642,7 +104609,7 @@
                 "pretzel",
                 "cascade"
             ],
-            "childBuckets": "2222222202221111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222121212211111111111222121222222111211111211221111122211111111111111111111111111111111111111111111111111111",
+            "childBuckets": "2222222202211111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212221212122111111111112221212222221112111112211221111122211111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -106557,7 +106524,6 @@
                 "setup",
                 "endpoint",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "subsetOfReals",
                 "bestFitLine",
@@ -106573,7 +106539,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222222222222221111222221211111111111112222221222222222212222111111121222",
+            "childBuckets": "22222222222222222222222222222222222111122222121111111111111222222122222222221222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -106809,7 +106775,6 @@
                 "setup",
                 "endpoint",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "subsetOfReals",
                 "bestFitLine",
@@ -106825,7 +106790,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222222222222221111222221211111111111112222221222222222212222111111121222",
+            "childBuckets": "22222222222222222222222222222222222111122222121111111111111222222122222222221222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -107011,10 +106976,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "2221111111122222222",
+            "childBuckets": "222111111112222222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -107172,10 +107136,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "2221111111122222222",
+            "childBuckets": "222111111112222222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -107407,7 +107370,6 @@
                 "setup",
                 "endpoint",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "subsetOfReals",
                 "bestFitLine",
@@ -107423,7 +107385,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222222222222221111222221211111111111112222221222222222212222111111121222",
+            "childBuckets": "22222222222222222222222222222222222111122222121111111111111222222122222222221222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -107592,7 +107554,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "bestFitLine",
                 "lineSegment",
@@ -107604,7 +107565,7 @@
                 "cobwebPolyline",
                 "polyline"
             ],
-            "childBuckets": "1202222222222100011110",
+            "childBuckets": "120222222222100011110",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -107732,7 +107693,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "rightHandSide",
@@ -107940,6 +107900,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -108871,10 +108832,9 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle"
             ],
-            "childBuckets": "202222222222",
+            "childBuckets": "20222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -113357,12 +113317,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "shortDescription",
                 "description"
             ],
-            "childBuckets": "2222222222200",
+            "childBuckets": "222222222200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -114023,12 +113982,11 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "shortDescription",
                 "description"
             ],
-            "childBuckets": "2222222222200",
+            "childBuckets": "222222222200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -114364,7 +114322,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "rightHandSide",
                 "xLabel",
@@ -114571,6 +114528,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -117118,11 +117076,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -117510,7 +117467,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "title",
@@ -117717,6 +117673,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -117743,7 +117700,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "111111111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -118075,14 +118032,13 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "callAction",
                 "xLabel",
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "2222220222220110",
+            "childBuckets": "222222022220110",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -119432,7 +119388,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "stylePalette",
                 "feedbackDefinition",
@@ -119642,6 +119597,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -119669,7 +119625,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "011111111111001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "011111111110011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -120467,7 +120423,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -120548,6 +120503,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "split",
                 "latex",
                 "m",
@@ -120571,7 +120527,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112222222222201111111111111111111111122222112211022010122212111122211111111222222012222222222222222222222222222222",
+            "childBuckets": "112222222222011111111111111111111111222221122110220101222121111222111111112222220122222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -124501,11 +124457,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -125068,11 +125023,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -125384,7 +125338,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "clampFunction",
@@ -125393,7 +125346,7 @@
                 "function",
                 "piecewiseFunction"
             ],
-            "childBuckets": "1122222222222011101",
+            "childBuckets": "112222222222011101",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -125720,7 +125673,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "rightHandSide",
                 "m",
@@ -125801,6 +125753,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -125810,7 +125763,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1112012222222222122221111111111111111111111222221122222222221222202222122222011222212222221222212212222",
+            "childBuckets": "1112012222222221222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -126102,7 +126055,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "rightHandSide",
                 "m",
@@ -126183,6 +126135,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -126192,7 +126145,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1112012222222222122221111111111111111111111222221122222222221222202222122222011222212222221222212212222",
+            "childBuckets": "1112012222222221222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -126498,11 +126451,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -128406,11 +128358,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label"
             ],
-            "childBuckets": "11222222222220",
+            "childBuckets": "1122222222220",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -129805,11 +129756,10 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "column"
             ],
-            "childBuckets": "2022222222220",
+            "childBuckets": "202222222220",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -132256,7 +132206,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "label",
                 "rightHandSide",
@@ -132342,7 +132291,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112222222222202222222222222222222222222222222222211112222121111111111111222212222212111111121222",
+            "childBuckets": "11222222222202222222222222222222222222222222222211112222121111111111111222212222212111111121222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -133044,7 +132993,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "title",
                 "styleDefinition",
@@ -133255,6 +133203,7 @@
                 "footnote",
                 "caption",
                 "endpoint",
+                "sortIndices",
                 "solveEquations",
                 "subsetOfRealsInput",
                 "subsetOfReals",
@@ -133282,7 +133231,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111011101110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponent",
                 "_block",
@@ -134236,7 +134185,6 @@
                 "setup",
                 "endpoint",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "subsetOfReals",
                 "matrix",
@@ -134279,11 +134227,12 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "sortIndices",
                 "split",
                 "bestFitLine",
                 "latex"
             ],
-            "childBuckets": "1111111111111111111111122222112211022201212222222212122122211222222222222222222222222222222222222222222",
+            "childBuckets": "1111111111111111111111122222112211022201212222222212122122112222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -134463,7 +134412,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "intervalList",
                 "rightHandSide",
@@ -134549,6 +134497,7 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "subsetOfReals",
                 "split",
                 "bestFitLine",
@@ -134557,7 +134506,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "2022222222222122221111111111111111111111222221122222222222221222202222122222222222221222222122221221222",
+            "childBuckets": "2022222222221222211111111111111111111112222211222222222222212222022221222222222222212222221222221221222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -134780,7 +134729,6 @@
                 "module",
                 "setup",
                 "sort",
-                "sortIndices",
                 "shuffle",
                 "subsetOfReals",
                 "matrix",
@@ -134826,12 +134774,13 @@
                 "pluralize",
                 "lorem",
                 "endpoint",
+                "sortIndices",
                 "split",
                 "bestFitLine",
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "1111111111111111111111122222112210222101222222212122222112222222222222222222222222222222222222222222222",
+            "childBuckets": "1111111111111111111111122222112210222101222222212122221122222222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"

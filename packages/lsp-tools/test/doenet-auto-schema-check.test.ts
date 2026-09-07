@@ -1108,12 +1108,45 @@ describe("Content-transparent composites in typed containers", () => {
         // `<split>` produces `text` replacements, so the old
         // `_inline`/`_block`/`_graphical` mark let it into containers that
         // take only graphical objects. `["text"]` takes it back out.
-        const source = `<graph><point name="P">(1,2)</point><constrainTo><split>a b</split></constrainTo></graph>`;
+        const source = `<graph><point name="P">(1,2)<constrainTo><split>a b</split></constrainTo></point></graph>`;
         const ac = new AutoCompleter(source, doenetSchema.elements);
         const messages = (await ac.getSchemaViolations()).map((d) => d.message);
-        expect(messages).toContain(
+        expect(messages).toEqual([
             "Element `<split>` is not allowed inside of `<constrainTo>`.",
+        ]);
+    });
+
+    it("Doesn't let <sortIndices> inherit <sort>'s anywhere mark", async () => {
+        // `<sortIndices>` extends `<sort>` and would pick up its
+        // `allowInSchemaAnywhere` static by inheritance, but it expands to
+        // `number` rather than to copies of its children, so it belongs only
+        // where a number belongs.
+        const inImage = new AutoCompleter(
+            `<image source="doenet:x"><sortIndices>3 1 2</sortIndices></image>`,
+            doenetSchema.elements,
         );
+        expect(
+            (await inImage.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([
+            "Element `<sortIndices>` is not allowed inside of `<image>`.",
+        ]);
+
+        // `<sort>` itself, being content-transparent, is fine there.
+        const sortInImage = new AutoCompleter(
+            `<image source="doenet:x"><sort>3 1 2</sort></image>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await sortInImage.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
+
+        const inNumberList = new AutoCompleter(
+            `<numberList><sortIndices>3 1 2</sortIndices></numberList>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inNumberList.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
     });
 
     it("Doesn't offer a composite as a child of a childless element", async () => {

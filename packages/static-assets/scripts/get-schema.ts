@@ -639,6 +639,25 @@ export function getSchema(
         }
     }
 
+    // The two schema marks contradict each other: one says the replacement
+    // type is unpredictable, the other names it. Both are statics, so a
+    // composite that extends a marked one inherits the mark even when it
+    // declares a replacement type of its own (`SortIndices extends Sort`, but
+    // always expands to `number`). The loop below would silently let
+    // `allowInSchemaAnywhere` win and widen the subclass to every container,
+    // so hard-fail instead and make the subclass say which it means.
+    for (const type in componentClasses) {
+        const cClass = componentClasses[type];
+        if (cClass.allowInSchemaAnywhere && cClass.allowInSchemaAsComponent) {
+            throw Error(
+                `\`${type}\` sets both allowInSchemaAnywhere and allowInSchemaAsComponent ` +
+                    `[${cClass.allowInSchemaAsComponent.join(", ")}]. A composite either has an ` +
+                    `unpredictable replacement type or a fixed one, not both. If the mark comes ` +
+                    `from a base class, set \`static allowInSchemaAnywhere = false\` on the subclass.`,
+            );
+        }
+    }
+
     /**
      * A record of, for each component type, the list of all component types that
      * inherit from or adapt to that component type.
