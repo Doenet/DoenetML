@@ -111,9 +111,10 @@ const DEFAULT_STATISTICS = [
  * The state variable definition for one statistic computed straight from the
  * data column.
  *
- * `compute` is called only for a non-empty column: `reduce` without an initial
- * value throws on an empty array and `Math.min` of nothing is `Infinity`, so an
- * empty column reports `null` — nothing to show — instead.
+ * `compute` is called only for a non-empty column: every one of them throws on
+ * an empty array — a `reduce` without an initial value, and math-expressions'
+ * own statistics alike — so an empty column reports `null`, nothing to show,
+ * instead.
  */
 function returnColumnStatisticDefinition({
     value: name,
@@ -194,8 +195,9 @@ export default class SummaryStatistics extends BlockComponent {
             // The one attribute that decides what this component shows, so it
             // is the one the reference page should open on. The five
             // number-display attributes beside it come from
-            // `returnNumberDisplayAttributes` and are highlighted on no
-            // component; they shape the numbers rather than choose them.
+            // `returnNumberDisplayAttributes` and are left in their
+            // `number-display` group: they shape how the numbers are written
+            // rather than choose which ones are written.
             highlighted: true,
             // `default`, `all` and `fiveNumberSummary` are selections over
             // the statistics rather than statistics of their own, so they are
@@ -285,11 +287,13 @@ export default class SummaryStatistics extends BlockComponent {
                 // attribute machinery.
                 const desiredStats = dependencyValues.statisticsToDisplayPrelim;
 
-                // `default` and `all` stand for a set of statistics rather
-                // than excluding the ones named beside them, so each is
-                // expanded in place and the whole request is unioned:
-                // `statisticsToDisplay="default sum"` is the default selection
-                // and the sum, not the default selection alone.
+                // `default`, `all` and `fiveNumberSummary` stand for a set of
+                // statistics rather than excluding the ones named beside them,
+                // so each is expanded in place and the whole request is
+                // unioned: `statisticsToDisplay="default sum"` is the default
+                // selection and the sum, not the default selection alone.
+                // Matched lower-cased, which is why the third reads
+                // `fivenumbersummary` here and `fiveNumberSummary` above.
                 const requested = new Set();
                 for (const stat of desiredStats) {
                     if (stat === "default") {
