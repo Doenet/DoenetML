@@ -50,6 +50,32 @@ describe("Chart prefigure renderer live validation @group4", () => {
     </chart>`,
                     expectText: "bar (stacked, mixed signs)",
                 },
+                {
+                    doenetML: `
+    <chart type="scatter" name="c">
+      <shortDescription>Height against weight</shortDescription>
+      <xLabel>height</xLabel>
+      <yLabel>weight</yLabel>
+      <series x="1.5 2.5 3.5 4.5"><label>control</label>4 9 2 7</series>
+      <series x="1.5 2.5 3.5 4.5"><label>treated</label>6 1 5 3</series>
+    </chart>`,
+                    expectText: "scatter (two series, numeric axes)",
+                },
+                {
+                    doenetML: `
+    <chart type="line" name="c" categories="North South East West">
+      <title>Population by region</title>
+      <series><label>2024</label>41 63 18 78</series>
+    </chart>`,
+                    expectText: "line (categorical axis)",
+                },
+                {
+                    doenetML: `
+    <chart type="line" name="c" markers="false">
+      <series x="1 2 3 4 5">4 9 2 7 3</series>
+    </chart>`,
+                    expectText: "line (numeric axis, no markers)",
+                },
             ];
 
             for (const c of cases) {

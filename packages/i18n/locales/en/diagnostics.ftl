@@ -1148,3 +1148,13 @@ chart-type-not-specified =
 # reading of the missing bar is that the value was zero.
 chart-values-outside-series =
     A chart with `<series>` children draws only the values inside them, so values written beside a series were not drawn. Move them into a series of their own.
+
+# Raised by `<chart type="line">` and `<chart type="scatter">` when a point
+# cannot be placed. Two situations reach it and the message covers both: a value
+# that is not a finite number, and a value with no `x` beside it — which is what
+# a series given fewer horizontal coordinates than values produces from the
+# position they run out. Neither is distinguishable by looking from having asked
+# for fewer points. No count: the queue deduplicates by message, and the number
+# changes as an input is typed into.
+chart-points-not-drawable =
+    A point needs a finite number for both coordinates, so values missing one were not drawn.

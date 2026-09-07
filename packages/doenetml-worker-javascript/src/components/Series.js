@@ -84,6 +84,19 @@ export default class Series extends BaseComponent {
             defaultValue: null,
         };
 
+        // The horizontal coordinates, for the types that place their marks by
+        // measurement rather than by position. A `numberList` rather than a
+        // list of children, because the values are already the children: the
+        // two lists are read together, position by position, and writing one of
+        // them as children and the other as an attribute is what keeps that
+        // pairing visible in the source.
+        attributes.x = {
+            createComponentOfType: "numberList",
+            description:
+                "The horizontal coordinate of each value, for a chart whose marks are placed by measurement. Without it a series is drawn under `categories`, at 1, 2, 3 and so on.",
+            highlighted: true,
+        };
+
         return attributes;
     }
 
@@ -182,6 +195,33 @@ export default class Series extends BaseComponent {
             stateVariableDefinitions,
             returnSelectedStyleStateVariableDefinition(),
         );
+
+        // Null rather than an empty list when the attribute is absent, because
+        // the two mean different things to the chart: no `x` at all puts the
+        // series under the categories, where an empty one is a series whose
+        // coordinates ran out before its first value.
+        stateVariableDefinitions.x = {
+            description:
+                "The horizontal coordinate of each value, or null when the series has none.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "numberList",
+            },
+            returnDependencies: () => ({
+                xAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "x",
+                    variableNames: ["numbers"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        x: dependencyValues.xAttr?.stateValues.numbers ?? null,
+                    },
+                };
+            },
+        };
 
         stateVariableDefinitions.values = {
             description: "The values in this series, in order.",

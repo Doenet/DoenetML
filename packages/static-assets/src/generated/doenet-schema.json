@@ -36493,12 +36493,22 @@
                     "highlighted": true,
                     "defaultValue": null,
                     "values": [
-                        "bar"
+                        "bar",
+                        "line",
+                        "scatter"
                     ],
                     "autocompleteValues": [
                         {
                             "value": "bar",
                             "description": "A bar chart: one bar per value, standing on a baseline of zero, under a horizontal axis of category names."
+                        },
+                        {
+                            "value": "line",
+                            "description": "A line chart: a path through each series' values in the order given, under category names or against an `x` of their own."
+                        },
+                        {
+                            "value": "scatter",
+                            "description": "A scatter plot: one point per pair of an `x` and a value, on two numeric axes."
                         }
                     ],
                     "type": "keyword"
@@ -36593,6 +36603,18 @@
                     "type": "keyword"
                 },
                 {
+                    "name": "xMin",
+                    "description": "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. Ignored, along with `xMax`, unless it is a finite number below it.",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "xMax",
+                    "description": "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. Ignored, along with `xMin`, unless it is a finite number above it.",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
                     "name": "yMin",
                     "description": "Lowest value shown on the vertical axis. Defaults to 0, or to the first tick past the smallest value when some are negative, so that bar does not touch the bottom of the frame. Ignored, along with `yMax`, unless it is a finite number below it.",
                     "defaultValue": null,
@@ -36608,6 +36630,16 @@
                     "name": "displayValues",
                     "description": "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
                     "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "markers",
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -36737,6 +36769,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "markers",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
                     "fromAttribute": true
                 },
                 {
@@ -36890,6 +36929,18 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether a legend is drawn."
+                },
+                {
+                    "name": "xMin",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The leftmost value shown on the horizontal axis, or null when it is not a numeric axis."
+                },
+                {
+                    "name": "xMax",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The rightmost value shown on the horizontal axis, or null when it is not a numeric axis."
                 },
                 {
                     "name": "yMin",
@@ -37113,6 +37164,12 @@
                         "false"
                     ],
                     "type": "boolean"
+                },
+                {
+                    "name": "x",
+                    "description": "The horizontal coordinate of each value, for a chart whose marks are placed by measurement. Without it a series is drawn under `categories`, at 1, 2, 3 and so on.",
+                    "highlighted": true,
+                    "type": "numberList"
                 }
             ],
             "properties": [
@@ -37180,6 +37237,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "The style number this series is drawn with; defaults to its position among the chart's series."
+                },
+                {
+                    "name": "x",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "The horizontal coordinate of each value, or null when the series has none."
                 },
                 {
                     "name": "values",

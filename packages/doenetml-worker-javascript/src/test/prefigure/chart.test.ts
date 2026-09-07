@@ -1974,4 +1974,182 @@ describe("chart prefigure tests @group4", async () => {
             );
         });
     });
+    describe("line and scatter", async () => {
+        it("draws a scatter plot on two numeric axes", async () => {
+            const xml = await chartXML(`
+    <chart type="scatter" name="c">
+      <shortDescription>Height against weight</shortDescription>
+      <series x="1 2 3">4 9 2</series>
+    </chart>
+    `);
+
+            // A numeric horizontal axis is labeled by `hlabels`, the exact
+            // counterpart of the `vlabels` the vertical one already used, where
+            // a categorical axis gets tick marks and no `hlabels` at all.
+            expect(xml).toContain('hlabels="(0,1,4)"');
+            expect(xml).not.toContain("<tick-mark ");
+
+            expect((xml.match(/<point /g) ?? []).length).eq(3);
+            expect(xml).toContain('<point at="point-1-1" p="(1,4)"');
+            // Clipped, because a point is drawn unclipped unless asked and an
+            // authored bound would otherwise leave it outside the axes.
+            expect(xml).toContain('cliptobbox="yes"');
+
+            // Both coordinates are what a reader needs from a measured
+            // position, where a category name is the whole of a bar's.
+            expect(xml).toContain('<annotation ref="point-1-1" text="1, 4" />');
+        });
+
+        it("does not force zero onto the axes of a scatter", async () => {
+            const xml = await chartXML(`
+    <chart type="scatter" name="c"><series x="100 101 102">50 52 51</series></chart>
+    `);
+
+            // A point is not a length measured from a baseline, so there is
+            // nothing for the axis to be measured from. Forcing zero in would
+            // push every point into a corner of the picture.
+            const bbox = xml.match(/bbox="\(([^)]*)\)"/)?.[1].split(",");
+            expect(Number(bbox?.[0])).toBeGreaterThan(90);
+            expect(Number(bbox?.[1])).toBeGreaterThan(40);
+        });
+
+        it("draws a line through the points in the order given", async () => {
+            const xml = await chartXML(`
+    <chart type="line" name="c"><series x="3 1 2">4 9 2</series></chart>
+    `);
+
+            // Not sorted by x: a path through time is a real chart, and
+            // reordering it would quietly draw something else.
+            expect(xml).toContain('points="[(3,4),(1,9),(2,2)]"');
+            expect(xml).toContain('closed="no"');
+            // A polyline is a stroke, so it carries no fill: a fill on an open
+            // path is painted across the region it would enclose if closed.
+            const polygon = xml.match(/<polygon [^>]*\/>/)?.[0] ?? "";
+            expect(polygon).not.toContain("fill=");
+            expect(polygon).toContain("stroke=");
+        });
+
+        it("puts a line without x under the categories, and one with x on a numeric axis", async () => {
+            const categorical = await chartXML(`
+    <chart type="line" name="c" categories="A B C">4 9 2</chart>
+    `);
+            const numeric = await chartXML(`
+    <chart type="line" name="c"><series x="1 2 3">4 9 2</series></chart>
+    `);
+
+            // The one type that reads both kinds of axis, which is what makes
+            // it usable for a time series and for a category-by-category
+            // comparison without being two components.
+            expect(categorical).toContain(">A</tick-mark>");
+            expect(categorical).not.toContain("hlabels=");
+            expect(categorical).toContain(
+                '<annotation ref="point-1-1" text="A: 4" />',
+            );
+            // Same box a bar chart of the same categories gets.
+            expect(categorical).toContain('bbox="(0,0,4,10)"');
+
+            expect(numeric).toContain("hlabels=");
+            expect(numeric).not.toContain("<tick-mark ");
+        });
+
+        it("draws markers by default and annotates the line without them", async () => {
+            const withMarkers = await chartXML(`
+    <chart type="line" name="c"><series x="1 2 3">4 9 2</series></chart>
+    `);
+            const withoutMarkers = await chartXML(`
+    <chart type="line" name="c" markers="false"><series x="1 2 3"><label>a</label>4 9 2</series></chart>
+    `);
+
+            expect((withMarkers.match(/<point /g) ?? []).length).eq(3);
+            expect(withoutMarkers).not.toContain("<point ");
+
+            // A marker is an element, and an element is what an annotation can
+            // point at — so with them off the line carries the series' whole
+            // annotation and the chart can be reached but not walked.
+            expect(withoutMarkers).toContain(
+                '<annotation ref="line-1" text="a" />',
+            );
+            // Named by the series, never by a count: a generated number of
+            // points would be English no catalog could translate.
+            expect(withoutMarkers).not.toContain('points"');
+        });
+
+        it("keys a line chart's legend off the line, not a marker", async () => {
+            const xml = await chartXML(`
+    <chart type="line" name="c">
+      <series x="1 2"><label>first</label>4 9</series>
+      <series x="1 2"><label>second</label>6 1</series>
+    </chart>
+    `);
+
+            // PreFigure draws a line swatch for a key with no fill and a box
+            // for one with, so pointing at the polyline is what puts a line in
+            // a line chart's legend.
+            expect(xml).toContain(
+                '<item ref="line-1" color="currentColor">first</item>',
+            );
+            expect(xml).toContain(
+                '<item ref="line-2" color="currentColor">second</item>',
+            );
+            expect(xml).toContain('<group at="series-1">');
+        });
+
+        it("drops a value with no x beside it, and warns", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="scatter" name="c"><series x="1 2">4 9 2</series></chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // A point needs both coordinates, so the third value has nowhere to
+            // go — indistinguishable by looking from having asked for two.
+            expect((xml.match(/<point /g) ?? []).length).eq(2);
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.code)).toContain("doenet-w0148");
+        });
+
+        it("reports the horizontal axis only when it is numeric", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="scatter" name="num"><series x="1 2 3">4 9 2</series></chart>
+    <p name="numBounds">$num.xMin, $num.xMax</p>
+    <chart type="line" name="cat" categories="A B C">4 9 2</chart>
+    <p name="catBounds">$cat.xMin, $cat.xMax</p>
+    <chart type="bar" name="bar" categories="A B C">4 9 2</chart>
+    <p name="barBounds">$bar.xMin, $bar.xMax</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            expect(
+                sv[await resolvePathToNodeIdx("numBounds")].stateValues.text,
+            ).eq("0, 4");
+            // Positions on a categorical axis are 1, 2, 3 whatever the
+            // categories say, so there is no measured extent to report.
+            expect(
+                sv[await resolvePathToNodeIdx("catBounds")].stateValues.text,
+            ).eq("NaN, NaN");
+            expect(
+                sv[await resolvePathToNodeIdx("barBounds")].stateValues.text,
+            ).eq("NaN, NaN");
+        });
+
+        it("honors xMin and xMax, and ignores a pair that describes no box", async () => {
+            const capped = await chartXML(`
+    <chart type="scatter" name="c" xMin="-5" xMax="15"><series x="1 2 3">4 9 2</series></chart>
+    `);
+            expect(capped).toContain('bbox="(-5,0,15,10)"');
+
+            const backwards = await chartXML(`
+    <chart type="scatter" name="c" xMin="15" xMax="-5"><series x="1 2 3">4 9 2</series></chart>
+    `);
+            // A box of zero or negative width has no drawing in it to be worth
+            // honoring the author's request over.
+            expect(backwards).toContain('bbox="(0,0,4,10)"');
+        });
+    });
 });

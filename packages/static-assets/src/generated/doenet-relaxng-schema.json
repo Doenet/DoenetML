@@ -44809,7 +44809,9 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "bar"
+                        "bar",
+                        "line",
+                        "scatter"
                     ]
                 },
                 "aspectRatio": {
@@ -44855,6 +44857,18 @@
                         "lowerLeft"
                     ]
                 },
+                "xMin": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "xMax": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "yMin": {
                     "optional": true,
                     "type": [
@@ -44868,6 +44882,13 @@
                     ]
                 },
                 "displayValues": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "markers": {
                     "optional": true,
                     "type": [
                         "true",
@@ -45289,6 +45310,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "markers",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "showBorder",
                     "type": "boolean",
                     "isArray": false,
@@ -45441,6 +45469,18 @@
                     "description": "Whether a legend is drawn."
                 },
                 {
+                    "name": "xMin",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The leftmost value shown on the horizontal axis, or null when it is not a numeric axis."
+                },
+                {
+                    "name": "xMax",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The rightmost value shown on the horizontal axis, or null when it is not a numeric axis."
+                },
+                {
                     "name": "yMin",
                     "type": "number",
                     "isArray": false,
@@ -45528,6 +45568,12 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "x": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -45915,6 +45961,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "The style number this series is drawn with; defaults to its position among the chart's series."
+                },
+                {
+                    "name": "x",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "The horizontal coordinate of each value, or null when the series has none."
                 },
                 {
                     "name": "values",

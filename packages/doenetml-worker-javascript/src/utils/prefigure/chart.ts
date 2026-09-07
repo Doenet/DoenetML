@@ -397,6 +397,100 @@ function nextTickBeyond(value: number, step: number, direction: 1 | -1) {
 }
 
 /**
+ * An axis wide enough for the data, ending on values a reader recognizes.
+ *
+ * Run twice, because the box is wider than the data it was built around: a step
+ * chosen from the data alone can be a magnitude too small for the box it ends up
+ * in, which would leave the axis labeled far more finely than the five-or-so
+ * intervals asked for.
+ *
+ * `baseline` is the value the axis has to contain, and to sit exactly on when
+ * the data is all to one side of it. That is zero for a bar chart, whose bars
+ * are measured from it and would otherwise be drawn as lengths that mean
+ * nothing; it is `null` for a scatter or a line, whose points are measured from
+ * nothing, so the axis is free to start where the data does. Forcing zero into
+ * the axis of a scatter of adult heights would push every point into the top
+ * fifth of the picture and leave four-fifths of it empty.
+ */
+function autoAxisBounds({
+    low,
+    high,
+    minStep,
+    baseline,
+}: {
+    low: number;
+    high: number;
+    minStep: number;
+    baseline: number | null;
+}): [number, number] {
+    function boundsFor(step: number): [number, number] {
+        if (baseline === null) {
+            // A run of identical values has no span to divide, so the axis is
+            // one step either side of them rather than a line of no height at
+            // all — which is the same reason an empty bar chart still gets a
+            // box one tick tall.
+            if (!(high > low)) {
+                return [snapNumber(low - step), snapNumber(high + step)];
+            }
+            return [
+                nextTickBeyond(low, step, -1),
+                nextTickBeyond(high, step, 1),
+            ];
+        }
+        return [
+            low >= baseline ? baseline : nextTickBeyond(low, step, -1),
+            high <= baseline
+                ? snapNumber(baseline + step)
+                : nextTickBeyond(high, step, 1),
+        ];
+    }
+
+    const [firstMin, firstMax] = boundsFor(
+        niceTickStep(high - low || 1, minStep),
+    );
+    return boundsFor(niceTickStep(firstMax - firstMin, minStep));
+}
+
+/**
+ * The author's bounds when they describe a box there is room to draw in, and
+ * the automatic ones otherwise.
+ *
+ * A box of zero or negative height has no drawing in it to be worth honoring
+ * the author's request over. `NaN` fails the comparison on its own, but an
+ * infinity does not: `yMin="-Infinity"` compares as below every `yMax` and
+ * would reach `formatNumber`, which answers `null` for anything non-finite and
+ * would write the literal `null` into the bounding box.
+ */
+function reconcileBounds(
+    requestedMin: number | null,
+    requestedMax: number | null,
+    autoMin: number,
+    autoMax: number,
+): [number, number] {
+    const min = requestedMin ?? autoMin;
+    const max = requestedMax ?? autoMax;
+    if (!Number.isFinite(min) || !Number.isFinite(max) || !(min < max)) {
+        return [autoMin, autoMax];
+    }
+    return [min, max];
+}
+
+/**
+ * The spacing between labeled values on an axis that ended up spanning
+ * `min` to `max`.
+ *
+ * Settled against the box that was drawn rather than against the data alone:
+ * `yMin="0" yMax="1000"` over a single bar of height 1 would otherwise keep the
+ * step the data asked for and label the axis a thousand times.
+ */
+function tickStepForBounds(min: number, max: number, wholeValues: boolean) {
+    return niceTickStep(
+        max - min,
+        wholeValues && Number.isInteger(min) && Number.isInteger(max) ? 1 : 0,
+    );
+}
+
+/**
  * The bar rectangles and bounding box for one or more series of values.
  *
  * Slots sit at x = 1, 2, … n, one per category, and the bars of a slot occupy
@@ -586,43 +680,18 @@ export function computeBarChartGeometry({
         }
     }
 
-    /**
-     * One tick of headroom past the tallest bar, so it never touches the
-     * frame; the same below when any value is negative. A chart with nothing
-     * in it still gets one tick of height rather than collapsing.
-     */
-    function autoBoundsFor(step: number): [number, number] {
-        return [
-            reachBelow >= 0 ? 0 : nextTickBeyond(reachBelow, step, -1),
-            reachAbove <= 0 ? step : nextTickBeyond(reachAbove, step, 1),
-        ];
-    }
+    const [autoYMin, autoYMax] = autoAxisBounds({
+        low: reachBelow,
+        high: reachAbove,
+        minStep,
+        baseline: 0,
+    });
 
-    // Twice, because the box is taller than the data it was built around: a
-    // step chosen from the data alone can be a magnitude too small for the box
-    // it ends up in, which would leave the axis labeled far more finely than
-    // the five-or-so intervals asked for.
-    const [firstMin, firstMax] = autoBoundsFor(
-        niceTickStep(reachAbove - reachBelow || 1, minStep),
-    );
-    const [autoYMin, autoYMax] = autoBoundsFor(
-        niceTickStep(firstMax - firstMin, minStep),
-    );
-
-    let yMin = yMinAttr ?? autoYMin;
-    let yMax = yMaxAttr ?? autoYMax;
-    if (!Number.isFinite(yMin) || !Number.isFinite(yMax) || !(yMin < yMax)) {
-        yMin = autoYMin;
-        yMax = autoYMax;
-    }
-
-    // The step is settled against the box that ended up being drawn, not
-    // against the data alone: `yMin="0" yMax="1000"` over a single bar of
-    // height 1 would otherwise keep the step the data asked for and label the
-    // axis a thousand times.
-    const tickStep = niceTickStep(
-        yMax - yMin,
-        wholeValues && Number.isInteger(yMin) && Number.isInteger(yMax) ? 1 : 0,
+    const [yMin, yMax] = reconcileBounds(
+        yMinAttr,
+        yMaxAttr,
+        autoYMin,
+        autoYMax,
     );
 
     const slots: BarChartGeometry["slots"] = [];
@@ -645,12 +714,220 @@ export function computeBarChartGeometry({
         // the first at the default width, and flush against it at
         // `barWidth="1"`.
         bounds: [0, yMin, numSlots + 1, yMax],
-        tickStep,
+        tickStep: tickStepForBounds(yMin, yMax, wholeValues),
         undrawnValues,
     };
 }
 
-/** How a series is drawn and named, alongside the geometry of its bars. */
+/**
+ * One series' values for a chart drawn as points, with the horizontal
+ * coordinates when the author gave them.
+ *
+ * `x` is `null` for a series whose points sit under categories rather than at
+ * measured positions — a line chart of counts per region, where the horizontal
+ * axis carries names and the spacing between them means nothing.
+ */
+export type ChartPointSeriesValues = ChartSeriesValues & {
+    x: number[] | null;
+};
+
+/** One drawn point, in data coordinates. */
+export type ChartPointMark = {
+    /** Which series the point belongs to, 0-based. */
+    seriesIndex: number;
+    x: number;
+    y: number;
+    /** 1-based position along a categorical axis, or null on a numeric one. */
+    slot: number | null;
+    /** The category the point sits under, or "" on a numeric axis. */
+    label: string;
+};
+
+export type PointChartGeometry = {
+    /** The series drawn, in order, whether or not any of their points could be. */
+    series: { label: string }[];
+    points: ChartPointMark[];
+    /**
+     * Every position on a categorical horizontal axis, with the category it is
+     * labeled by — or null when the axis is numeric and carries its own
+     * numbers instead.
+     */
+    slots: { center: number; label: string }[] | null;
+    /** `[xMin, yMin, xMax, yMax]` in data coordinates. */
+    bounds: [number, number, number, number];
+    /** The spacing between labeled values on the vertical axis. */
+    tickStep: number;
+    /** The same on the horizontal axis, or null when it is categorical. */
+    xTickStep: number | null;
+    /** How many values could not be drawn as a point. */
+    undrawnValues: number;
+};
+
+/**
+ * The points and bounding box for a chart drawn as points — a scatter plot, or
+ * a line chart, which is the same points with a path through them.
+ *
+ * The horizontal axis is whichever kind the data asks for. A series with an `x`
+ * makes it numeric, because the positions are measurements and the distance
+ * between them is part of what the chart says; a series without one puts its
+ * points at 1, 2, … n under `categories`, exactly where a bar chart puts its
+ * bars. A line chart is the only type that reads both, and that is what makes
+ * it usable for a time series and for a category-by-category comparison
+ * without being two components.
+ *
+ * Unlike a bar chart, neither axis is anchored to zero: a point is not a length
+ * measured from a baseline, so there is nothing for the axis to be measured
+ * from, and forcing zero in would push a scatter of adult heights into the top
+ * fifth of the picture. Both axes are instead rounded outward to the next tick
+ * past the data, so no point is drawn on the frame.
+ */
+export function computePointChartGeometry({
+    series,
+    labels,
+    xMinAttr,
+    xMaxAttr,
+    yMinAttr,
+    yMaxAttr,
+}: {
+    series: ChartPointSeriesValues[];
+    labels: string[];
+    xMinAttr: number | null;
+    xMaxAttr: number | null;
+    yMinAttr: number | null;
+    yMaxAttr: number | null;
+}): PointChartGeometry {
+    // One series carrying an `x` settles the axis for all of them: two series
+    // cannot be read against each other if one is placed by measurement and the
+    // other by position. A series with no `x` of its own then falls back to 1,
+    // 2, … n, which is where it would have been drawn anyway.
+    const numericAxis = series.some((oneSeries) => oneSeries.x !== null);
+
+    const numSlots = series.reduce(
+        (widest, oneSeries) => Math.max(widest, oneSeries.values.length),
+        0,
+    );
+
+    const points: ChartPointMark[] = [];
+    let undrawnValues = 0;
+
+    // Series-major, as the bars are, so a series' points are contiguous: the
+    // drawing groups them under one annotation and the legend keys off the
+    // first of them.
+    series.forEach((oneSeries, seriesIndex) => {
+        oneSeries.values.forEach((y, ind) => {
+            const slot = ind + 1;
+            const x = numericAxis ? (oneSeries.x?.[ind] ?? NaN) : slot;
+
+            // A point needs both coordinates, so a `y` with no `x` beside it is
+            // as undrawable as a `y` that is not a number — which is what a
+            // series given fewer horizontal coordinates than values produces
+            // from the position the coordinates run out.
+            if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                undrawnValues++;
+                return;
+            }
+
+            points.push({
+                seriesIndex,
+                x,
+                y,
+                slot: numericAxis ? null : slot,
+                label: numericAxis ? "" : (labels[ind] ?? String(slot)),
+            });
+        });
+    });
+
+    /** Whole-number data gets whole-number ticks. */
+    function wholeAlong(pick: (point: ChartPointMark) => number) {
+        return points.every((point) => Number.isInteger(pick(point)));
+    }
+
+    let low = 0;
+    let high = 0;
+    let first = true;
+    for (const point of points) {
+        if (first) {
+            low = point.y;
+            high = point.y;
+            first = false;
+        } else {
+            low = Math.min(low, point.y);
+            high = Math.max(high, point.y);
+        }
+    }
+
+    const wholeY = wholeAlong((point) => point.y);
+    const [autoYMin, autoYMax] = autoAxisBounds({
+        low,
+        high,
+        minStep: wholeY ? 1 : 0,
+        baseline: null,
+    });
+    const [yMin, yMax] = reconcileBounds(
+        yMinAttr,
+        yMaxAttr,
+        autoYMin,
+        autoYMax,
+    );
+
+    if (!numericAxis) {
+        return {
+            series: series.map(({ label }) => ({ label })),
+            points,
+            slots: Array.from({ length: numSlots }, (_unused, ind) => ({
+                center: ind + 1,
+                label: labels[ind] ?? String(ind + 1),
+            })),
+            // The same box a bar chart of the same categories gets, so the two
+            // can be read against each other and a `<chart type>` switched
+            // between them does not move the data sideways.
+            bounds: [0, yMin, numSlots + 1, yMax],
+            tickStep: tickStepForBounds(yMin, yMax, wholeY),
+            xTickStep: null,
+            undrawnValues,
+        };
+    }
+
+    let xLow = 0;
+    let xHigh = 0;
+    let firstX = true;
+    for (const point of points) {
+        if (firstX) {
+            xLow = point.x;
+            xHigh = point.x;
+            firstX = false;
+        } else {
+            xLow = Math.min(xLow, point.x);
+            xHigh = Math.max(xHigh, point.x);
+        }
+    }
+
+    const wholeX = wholeAlong((point) => point.x);
+    const [autoXMin, autoXMax] = autoAxisBounds({
+        low: xLow,
+        high: xHigh,
+        minStep: wholeX ? 1 : 0,
+        baseline: null,
+    });
+    const [xMin, xMax] = reconcileBounds(
+        xMinAttr,
+        xMaxAttr,
+        autoXMin,
+        autoXMax,
+    );
+
+    return {
+        series: series.map(({ label }) => ({ label })),
+        points,
+        slots: null,
+        bounds: [xMin, yMin, xMax, yMax],
+        tickStep: tickStepForBounds(yMin, yMax, wholeY),
+        xTickStep: tickStepForBounds(xMin, xMax, wholeX),
+        undrawnValues,
+    };
+}
+
+/** How a series is drawn and named, alongside the geometry of its marks. */
 export type ChartSeriesRendering = {
     label: string;
     labelHasLatex: boolean;
@@ -854,9 +1131,53 @@ const TITLE_MARGIN = 14 * TITLE_SCALE + 10;
  * horizontal axis has its automatic labels suppressed and gets one
  * `<tick-mark>` per category instead.
  */
-export function createBarChartPrefigureXML({
-    geometry,
-    seriesRendering,
+/** A run of labeled values on one axis. */
+type AxisTicks = { first: number; last: number; step: number };
+
+/**
+ * The run of labeled values inside `min`…`max`, a whole number of steps from
+ * zero.
+ *
+ * Anchoring at `min` instead would label a box running from 10 to 95 at 10, 30,
+ * 50, 70, 90, every one of them offset from zero by half a step — and zero is
+ * the baseline a bar chart's bars are measured from. (PreFigure draws no label
+ * where the two axes cross.)
+ */
+function axisTicks(min: number, max: number, step: number): AxisTicks {
+    return {
+        first: tickAtOrBeyond(min, step, 1),
+        last: tickAtOrBeyond(max, step, -1),
+        step,
+    };
+}
+
+/** The `(start, step, end)` triple PreFigure's `hlabels`/`vlabels` take. */
+function axisLabelsAttr({ first, last, step }: AxisTicks) {
+    return `(${formatNumber(first)},${formatNumber(step)},${formatNumber(last)})`;
+}
+
+/** How wide the widest label on an axis will be drawn, in pixels. */
+function axisLabelWidth(ticks: AxisTicks) {
+    return (
+        AXIS_LABEL_MARGIN_PER_CHARACTER *
+        widestTickLabelLength(ticks.first, ticks.last, ticks.step)
+    );
+}
+
+/**
+ * Everything around the marks: the frame, the axes, the tick marks, the title,
+ * the legend and the annotation tree.
+ *
+ * Shared because it is the same for every chart type — what differs between a
+ * bar chart and a scatter plot is the marks, not the picture they are drawn
+ * in. Each caller hands over its marks already grouped by series, and gets the
+ * whole diagram back.
+ */
+function assembleChartDiagram({
+    bounds,
+    yTicks,
+    xTicks,
+    slots,
     widthPx,
     heightPx,
     xLabel,
@@ -866,12 +1187,21 @@ export function createBarChartPrefigureXML({
     title,
     showLegend,
     legendPosition,
-    displayValues,
+    seriesRendering,
+    seriesLabels,
+    seriesElements,
+    seriesAnnotations,
+    seriesKeyHandles,
+    overlayElements,
     shortDescription,
-    darkMode = false,
+    darkMode,
 }: {
-    geometry: BarChartGeometry;
-    seriesRendering: ChartSeriesRendering[];
+    bounds: [number, number, number, number];
+    yTicks: AxisTicks;
+    /** Null when the horizontal axis carries category names instead of numbers. */
+    xTicks: AxisTicks | null;
+    /** Null when the horizontal axis is numeric. */
+    slots: { center: number; label: string }[] | null;
     widthPx: number;
     heightPx: number;
     xLabel?: string;
@@ -881,28 +1211,22 @@ export function createBarChartPrefigureXML({
     title?: string;
     showLegend: boolean;
     legendPosition: keyof typeof LEGEND_PLACEMENTS;
-    displayValues: boolean;
+    seriesRendering: ChartSeriesRendering[];
+    seriesLabels: string[];
+    seriesElements: string[][];
+    seriesAnnotations: string[][];
+    seriesKeyHandles: (string | null)[];
+    /**
+     * Drawn after every series, so nothing a later series draws can cover it.
+     * A `displayValues` label sits at the end of its own mark, which under
+     * `stacked` is where the next segment starts.
+     */
+    overlayElements: string[];
     shortDescription?: string;
-    darkMode?: boolean;
-}): { xml: string; diagnostics: DiagnosticRecord[] } {
-    const diagnostics: DiagnosticRecord[] = [];
-
-    const [xMin, yMin, xMax, yMax] = geometry.bounds;
+    darkMode: boolean;
+}): string {
+    const [xMin, yMin, xMax, yMax] = bounds;
     const bbox = `(${formatNumber(xMin)},${formatNumber(yMin)},${formatNumber(xMax)},${formatNumber(yMax)})`;
-
-    // `decorations="no"` suppresses the automatic labels on both axes; the
-    // explicit `vlabels` brings them back on the vertical one only.
-    //
-    // The run starts at the first multiple of the step inside the box rather
-    // than at `yMin`, so every labeled value is a whole number of steps away
-    // from zero — the baseline the bars are measured from. Anchoring at `yMin`
-    // instead would label a box running from 10 to 95 at 10, 30, 50, 70, 90,
-    // every one of them offset from that baseline by half a step. (PreFigure
-    // draws no label at zero itself, since that is where the two axes cross.)
-    const step = geometry.tickStep;
-    const firstTick = tickAtOrBeyond(yMin, step, 1);
-    const lastTick = tickAtOrBeyond(yMax, step, -1);
-    const vlabels = `(${formatNumber(firstTick)},${formatNumber(step)},${formatNumber(lastTick)})`;
 
     const [baseBottom, baseRight, baseTop] = CHART_MARGINS_BOTTOM_RIGHT_TOP;
 
@@ -914,12 +1238,12 @@ export function createBarChartPrefigureXML({
     // A series earns a legend entry by having both a label and a mark for the
     // swatch to be read off, so the test is over the geometry rather than over
     // the handles, which are not assigned until the bars are built below.
-    const seriesWithABar = new Set(geometry.bars.map((bar) => bar.seriesIndex));
-    const legendLabels = geometry.series
-        .map(({ label }, seriesIndex) =>
-            seriesWithABar.has(seriesIndex) ? label : "",
-        )
-        .filter((label) => label !== "");
+    // A series earns an entry by having a mark for the swatch to be read off,
+    // which is exactly the series that were given a key handle.
+    const legendLabels = seriesLabels.filter(
+        (label, seriesIndex) =>
+            label !== "" && seriesKeyHandles[seriesIndex] !== null,
+    );
     const legendDrawn = showLegend && legendLabels.length > 0;
     const placement =
         LEGEND_PLACEMENTS[legendPosition] ?? LEGEND_PLACEMENTS.outsideright;
@@ -928,7 +1252,13 @@ export function createBarChartPrefigureXML({
 
     // Annotated, since the base margins are literal types off an `as const`
     // tuple and these are widened past them.
-    let wantedRight: number = baseRight;
+    // A number on the horizontal axis is centered on its tick, so the
+    // outermost two hang half their width past the corners of the box. A
+    // categorical axis has none, and its category names are drawn as tick
+    // marks that PreFigure centers itself.
+    const halfWidestXLabel = xTicks ? Math.ceil(axisLabelWidth(xTicks) / 2) : 0;
+
+    let wantedRight: number = Math.max(baseRight, halfWidestXLabel);
     let wantedBottom: number = baseBottom;
     const legendOnRight = legendOutside && placement.side === "right";
     const legendOnBottom = legendOutside && placement.side === "bottom";
@@ -940,7 +1270,7 @@ export function createBarChartPrefigureXML({
         // adding the two left 20px of every legended chart's width empty.
         // Floored at it anyway, in case the two ever cross.
         wantedRight = Math.max(
-            baseRight,
+            wantedRight,
             LEGEND_ANCHOR_OFFSET + legendSize.width + LEGEND_OUTSIDE_GAP,
         );
     } else if (legendOnBottom) {
@@ -971,10 +1301,13 @@ export function createBarChartPrefigureXML({
     // is what stops the widest of them being clipped — the labels of
     // `<chart type="bar">1e308</chart>` run to 411 characters and ask for 3713
     // pixels of it.
-    const wantedLeft =
-        AXIS_LABEL_MARGIN_BASE +
-        AXIS_LABEL_MARGIN_PER_CHARACTER *
-            widestTickLabelLength(firstTick, lastTick, step);
+    // The vertical axis' numbers usually set the left margin, but on a chart
+    // of small counts against large x values they do not, which is why it
+    // takes the larger of the two.
+    const wantedLeft = Math.max(
+        AXIS_LABEL_MARGIN_BASE + axisLabelWidth(yTicks),
+        halfWidestXLabel,
+    );
 
     // Both pairs are then fitted to the frame, which leaves each of them at
     // most half of it. That is what makes the two dimensions below exact: the
@@ -1027,7 +1360,10 @@ export function createBarChartPrefigureXML({
     }
 
     const axesInner = axisLabelElements.join("");
-    const axesAttrs = `axes="all" decorations="no" vlabels="${escapeXml(vlabels)}"${strokeAttr}`;
+    const hlabelsAttr = xTicks
+        ? ` hlabels="${escapeXml(axisLabelsAttr(xTicks))}"`
+        : "";
+    const axesAttrs = `axes="all" decorations="no" vlabels="${escapeXml(axisLabelsAttr(yTicks))}"${hlabelsAttr}${strokeAttr}`;
     const axesElement = axesInner
         ? `<axes ${axesAttrs}>${axesInner}</axes>`
         : `<axes ${axesAttrs} />`;
@@ -1039,7 +1375,7 @@ export function createBarChartPrefigureXML({
     // the bars, so a value with no bar still has its category on the axis —
     // otherwise the gap would read as a missing category rather than as a
     // missing value.
-    for (const slot of geometry.slots) {
+    for (const slot of slots ?? []) {
         elements.push(
             `<tick-mark axis="horizontal" location="${formatNumber(slot.center)}"${strokeAttr} ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(slot.label)}</tick-mark>`,
         );
@@ -1050,92 +1386,16 @@ export function createBarChartPrefigureXML({
     // a `<group>`, which is what gives a screen reader a level to stop at
     // between the chart and its bars — the reason `<group>` exists in PreFigure
     // at all — and gives the legend an element per series to key off.
-    const groupSeries = geometry.series.length > 1;
-
-    // Once per series, not once per bar: every bar of a series is drawn from
-    // the same `selectedStyle`, so the attribute string is identical across
-    // them, and `styleAttributes` also reports an unsupported fill or line
-    // style through `diagnostics` — which the queue deduplicates by message,
-    // but there is no reason to hand it the same one per bar to discard.
-    const seriesStyleAttrs = geometry.series.map((_unused, seriesIndex) =>
-        styleAttributes({
-            selectedStyle: seriesRendering[seriesIndex]?.selectedStyle,
-            diagnostics,
-            warningPrefix: "<chart>",
-        }).join(" "),
-    );
-
-    const seriesElements: string[][] = geometry.series.map(() => []);
-    const seriesAnnotations: string[][] = geometry.series.map(() => []);
-    /** The handle of each series' first bar, for the legend to point at. */
-    const seriesKeyHandles: (string | null)[] = geometry.series.map(() => null);
-    /**
-     * The `displayValues` labels, held back until every rectangle is drawn.
-     *
-     * SVG paints in document order, and under `stacked` the next series' bar
-     * begins exactly where this one's ends — which is exactly where this one's
-     * label is anchored. Emitted alongside their own bars, every label but the
-     * topmost ends up beneath the segment above it. They are decoration rather
-     * than structure — nothing annotates them — so they lose nothing by leaving
-     * their series' `<group>` and being drawn over the whole chart instead.
-     */
-    const valueLabelElements: string[] = [];
-
-    for (const bar of geometry.bars) {
-        const handle = `bar-${bar.seriesIndex + 1}-${bar.slot}`;
-        if (seriesKeyHandles[bar.seriesIndex] === null) {
-            seriesKeyHandles[bar.seriesIndex] = handle;
-        }
-
-        const barAttrs = seriesStyleAttrs[bar.seriesIndex] ?? "";
-
-        const lowerLeft = `(${formatNumber(bar.lowerLeft[0])},${formatNumber(bar.lowerLeft[1])})`;
-        const barDimensions = `(${formatNumber(bar.dimensions[0])},${formatNumber(bar.dimensions[1])})`;
-
-        // Trimmed to the box it is drawn in. Every bar is measured from zero,
-        // so a `yMin` above zero, or a `yMax` below the tallest value, leaves
-        // part of a bar outside the axes — and PreFigure draws a rectangle
-        // unclipped unless asked (`cliptobbox` defaults to `no` for this
-        // element), so that part would be painted over the category labels
-        // below the frame, or above it, and off the edge of the picture.
-        // Asking for the clip is what makes a bound cut the bars off at the
-        // frame: a bar lying entirely outside the box disappears, and one
-        // crossing the edge is drawn as far as the box goes.
-        seriesElements[bar.seriesIndex].push(
-            `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}" cliptobbox="yes"${barAttrs ? ` ${barAttrs}` : ""} />`,
-        );
-
-        if (displayValues) {
-            // At the far end of the bar, outside it: above a bar that grows up
-            // and below one that hangs down. Anchoring every label at zero
-            // instead would print a negative bar's value on the horizontal
-            // axis, a whole bar away from the end it belongs to. Under
-            // `stacked` the bar does not start at zero, so the end is where the
-            // rectangle ends rather than at its own value.
-            const alignment = bar.value < 0 ? "south" : "north";
-            const barTop =
-                bar.value < 0
-                    ? bar.lowerLeft[1]
-                    : bar.lowerLeft[1] + bar.dimensions[1];
-            const anchorX = bar.lowerLeft[0] + bar.dimensions[0] / 2;
-            // Snapped for the reason the bars' own corners are: both are
-            // reached by adding the geometry back up, and the dust that leaves
-            // would be written into the XML — a grouped bar of three series
-            // would be labeled at `0.7333333333334999`, and the top of a stack
-            // of 0.1, 0.2 and 0.3 at `0.6000000000000001`.
-            const anchor = `(${formatNumber(snapNumber(anchorX))},${formatNumber(snapNumber(barTop))})`;
-            valueLabelElements.push(
-                `<label anchor="${escapeXml(anchor)}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(bar.value) ?? "")}</label>`,
-            );
-        }
-
-        seriesAnnotations[bar.seriesIndex].push(
-            `<annotation ref="${escapeXml(handle)}" text="${escapeXml(`${bar.label}: ${formatNumber(bar.value)}`)}" />`,
-        );
-    }
+    // One series is drawn straight into the diagram, and its marks are
+    // annotated straight under the figure. Several are each wrapped in a
+    // `<group>`, which is what gives a screen reader a level to stop at
+    // between the chart and its marks — the reason `<group>` exists in
+    // PreFigure at all — and gives the legend an element per series to key
+    // off.
+    const groupSeries = seriesLabels.length > 1;
 
     const annotationElements: string[] = [];
-    geometry.series.forEach((oneSeries, seriesIndex) => {
+    seriesLabels.forEach((seriesLabel, seriesIndex) => {
         if (!groupSeries) {
             elements.push(...seriesElements[seriesIndex]);
             annotationElements.push(...seriesAnnotations[seriesIndex]);
@@ -1154,7 +1414,7 @@ export function createBarChartPrefigureXML({
         // the fallback is a localized phrase, built where the document's
         // language is known rather than invented here.
         const seriesName =
-            oneSeries.label ||
+            seriesLabel ||
             seriesRendering[seriesIndex]?.unlabeledName ||
             `${seriesIndex + 1}`;
         annotationElements.push(
@@ -1172,11 +1432,11 @@ export function createBarChartPrefigureXML({
     // reads as a hole punched in a chart drawn in dark mode; `stroke` does take
     // an attribute, so the box keeps an outline that follows the page's text
     // color in both themes.
-    const legendItems = geometry.series
-        .map((oneSeries, seriesIndex) => {
+    const legendItems = seriesLabels
+        .map((seriesLabel, seriesIndex) => {
             const handle = seriesKeyHandles[seriesIndex];
             const text = labelMarkup({
-                label: oneSeries.label,
+                label: seriesLabel,
                 labelHasLatex: seriesRendering[seriesIndex]?.labelHasLatex,
             });
             if (handle === null || !text) {
@@ -1311,7 +1571,354 @@ export function createBarChartPrefigureXML({
         : "";
     const annotationsElement = `<annotations><annotation ref="figure"${figureAnnotationText}>${annotationElements.join("")}</annotation></annotations>`;
 
-    const xml = `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}${valueLabelElements.join("")}${titleElement}${legendElement}</coordinates>${captionElement}${annotationsElement}</diagram>`;
+    const xml = `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}${overlayElements.join("")}${titleElement}${legendElement}</coordinates>${captionElement}${annotationsElement}</diagram>`;
+
+    return xml;
+}
+
+export function createBarChartPrefigureXML({
+    geometry,
+    seriesRendering,
+    widthPx,
+    heightPx,
+    xLabel,
+    xLabelHasLatex,
+    yLabel,
+    yLabelHasLatex,
+    title,
+    showLegend,
+    legendPosition,
+    displayValues,
+    shortDescription,
+    darkMode = false,
+}: {
+    geometry: BarChartGeometry;
+    seriesRendering: ChartSeriesRendering[];
+    widthPx: number;
+    heightPx: number;
+    xLabel?: string;
+    xLabelHasLatex?: boolean;
+    yLabel?: string;
+    yLabelHasLatex?: boolean;
+    title?: string;
+    showLegend: boolean;
+    legendPosition: keyof typeof LEGEND_PLACEMENTS;
+    displayValues: boolean;
+    shortDescription?: string;
+    darkMode?: boolean;
+}): { xml: string; diagnostics: DiagnosticRecord[] } {
+    const diagnostics: DiagnosticRecord[] = [];
+
+    const [, yMin, , yMax] = geometry.bounds;
+
+    // Once per series, not once per bar: every bar of a series is drawn from
+    // the same `selectedStyle`, so the attribute string is identical across
+    // them, and `styleAttributes` also reports an unsupported fill or line
+    // style through `diagnostics` — which the queue deduplicates by message,
+    // but there is no reason to hand it the same one per bar to discard.
+    const seriesStyleAttrs = geometry.series.map((_unused, seriesIndex) =>
+        styleAttributes({
+            selectedStyle: seriesRendering[seriesIndex]?.selectedStyle,
+            diagnostics,
+            warningPrefix: "<chart>",
+        }).join(" "),
+    );
+
+    const seriesElements: string[][] = geometry.series.map(() => []);
+    const seriesAnnotations: string[][] = geometry.series.map(() => []);
+    /** The handle of each series' first bar, for the legend to point at. */
+    const seriesKeyHandles: (string | null)[] = geometry.series.map(() => null);
+    /**
+     * The `displayValues` labels, held back until every rectangle is drawn.
+     *
+     * SVG paints in document order, and under `stacked` the next series' bar
+     * begins exactly where this one's ends — which is exactly where this one's
+     * label is anchored. Emitted alongside their own bars, every label but the
+     * topmost ends up beneath the segment above it. They are decoration rather
+     * than structure — nothing annotates them — so they lose nothing by leaving
+     * their series' `<group>` and being drawn over the whole chart instead.
+     */
+    const valueLabelElements: string[] = [];
+
+    for (const bar of geometry.bars) {
+        const handle = `bar-${bar.seriesIndex + 1}-${bar.slot}`;
+        if (seriesKeyHandles[bar.seriesIndex] === null) {
+            seriesKeyHandles[bar.seriesIndex] = handle;
+        }
+
+        const barAttrs = seriesStyleAttrs[bar.seriesIndex] ?? "";
+
+        const lowerLeft = `(${formatNumber(bar.lowerLeft[0])},${formatNumber(bar.lowerLeft[1])})`;
+        const barDimensions = `(${formatNumber(bar.dimensions[0])},${formatNumber(bar.dimensions[1])})`;
+
+        // Trimmed to the box it is drawn in. Every bar is measured from zero,
+        // so a `yMin` above zero, or a `yMax` below the tallest value, leaves
+        // part of a bar outside the axes — and PreFigure draws a rectangle
+        // unclipped unless asked (`cliptobbox` defaults to `no` for this
+        // element), so that part would be painted over the category labels
+        // below the frame, or above it, and off the edge of the picture.
+        // Asking for the clip is what makes a bound cut the bars off at the
+        // frame: a bar lying entirely outside the box disappears, and one
+        // crossing the edge is drawn as far as the box goes.
+        seriesElements[bar.seriesIndex].push(
+            `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}" cliptobbox="yes"${barAttrs ? ` ${barAttrs}` : ""} />`,
+        );
+
+        if (displayValues) {
+            // At the far end of the bar, outside it: above a bar that grows up
+            // and below one that hangs down. Anchoring every label at zero
+            // instead would print a negative bar's value on the horizontal
+            // axis, a whole bar away from the end it belongs to. Under
+            // `stacked` the bar does not start at zero, so the end is where the
+            // rectangle ends rather than at its own value.
+            const alignment = bar.value < 0 ? "south" : "north";
+            const barTop =
+                bar.value < 0
+                    ? bar.lowerLeft[1]
+                    : bar.lowerLeft[1] + bar.dimensions[1];
+            const anchorX = bar.lowerLeft[0] + bar.dimensions[0] / 2;
+            // Snapped for the reason the bars' own corners are: both are
+            // reached by adding the geometry back up, and the dust that leaves
+            // would be written into the XML — a grouped bar of three series
+            // would be labeled at `0.7333333333334999`, and the top of a stack
+            // of 0.1, 0.2 and 0.3 at `0.6000000000000001`.
+            const anchor = `(${formatNumber(snapNumber(anchorX))},${formatNumber(snapNumber(barTop))})`;
+            valueLabelElements.push(
+                `<label anchor="${escapeXml(anchor)}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(bar.value) ?? "")}</label>`,
+            );
+        }
+
+        seriesAnnotations[bar.seriesIndex].push(
+            `<annotation ref="${escapeXml(handle)}" text="${escapeXml(`${bar.label}: ${formatNumber(bar.value)}`)}" />`,
+        );
+    }
+
+    const xml = assembleChartDiagram({
+        bounds: geometry.bounds,
+        yTicks: axisTicks(yMin, yMax, geometry.tickStep),
+        xTicks: null,
+        slots: geometry.slots,
+        widthPx,
+        heightPx,
+        xLabel,
+        xLabelHasLatex,
+        yLabel,
+        yLabelHasLatex,
+        title,
+        showLegend,
+        legendPosition,
+        seriesRendering,
+        seriesLabels: geometry.series.map(({ label }) => label),
+        seriesElements,
+        seriesAnnotations,
+        seriesKeyHandles,
+        overlayElements: valueLabelElements,
+        shortDescription,
+        darkMode,
+    });
+
+    return { xml, diagnostics };
+}
+
+/**
+ * How a point chart's marks are joined up.
+ *
+ * The two types differ in this and in nothing else: they are the same points,
+ * with or without a path through them.
+ */
+export type PointChartShape = "scatter" | "line";
+
+/**
+ * Builds the PreFigure XML for a scatter plot or a line chart.
+ *
+ * One `<point>` per datum rather than PreFigure's own `<scatter>`, which
+ * rewrites itself into a `<repeat>` of points sharing a single `point-text`
+ * (`statistics.py`) — so every point in a series would carry the same
+ * annotation. A point per datum gives each its own coordinates in the tree a
+ * screen reader walks, which is the whole reason a chart renders through
+ * PreFigure rather than being drawn by hand.
+ *
+ * A line adds a `<polygon closed="no">` through the series' points in the order
+ * they were given. Not sorted by `x`: a path through time is a real chart, and
+ * reordering it would quietly draw something else.
+ */
+export function createPointChartPrefigureXML({
+    geometry,
+    shape,
+    seriesRendering,
+    markers,
+    widthPx,
+    heightPx,
+    xLabel,
+    xLabelHasLatex,
+    yLabel,
+    yLabelHasLatex,
+    title,
+    showLegend,
+    legendPosition,
+    displayValues,
+    shortDescription,
+    darkMode = false,
+}: {
+    geometry: PointChartGeometry;
+    shape: PointChartShape;
+    seriesRendering: ChartSeriesRendering[];
+    /** Whether a line chart draws a marker at each of its points. */
+    markers: boolean;
+    widthPx: number;
+    heightPx: number;
+    xLabel?: string;
+    xLabelHasLatex?: boolean;
+    yLabel?: string;
+    yLabelHasLatex?: boolean;
+    title?: string;
+    showLegend: boolean;
+    legendPosition: keyof typeof LEGEND_PLACEMENTS;
+    displayValues: boolean;
+    shortDescription?: string;
+    darkMode?: boolean;
+}): { xml: string; diagnostics: DiagnosticRecord[] } {
+    const diagnostics: DiagnosticRecord[] = [];
+
+    const [xMin, yMin, xMax, yMax] = geometry.bounds;
+
+    // A scatter is nothing but its points, so it always draws them; a line
+    // draws them unless the author turned them off, which is what a series long
+    // enough for its markers to merge into the line needs.
+    const drawMarkers = shape === "scatter" || markers;
+    const drawLine = shape === "line";
+
+    const seriesElements: string[][] = geometry.series.map(() => []);
+    const seriesAnnotations: string[][] = geometry.series.map(() => []);
+    const seriesKeyHandles: (string | null)[] = geometry.series.map(() => null);
+    /** Drawn after every series, so a later one cannot cover a value label. */
+    const valueLabelElements: string[] = [];
+    const pointsBySeries: ChartPointMark[][] = geometry.series.map(() => []);
+
+    for (const point of geometry.points) {
+        pointsBySeries[point.seriesIndex]?.push(point);
+    }
+
+    pointsBySeries.forEach((seriesPoints, seriesIndex) => {
+        const selectedStyle = seriesRendering[seriesIndex]?.selectedStyle;
+
+        if (drawLine && seriesPoints.length > 0) {
+            // `includeFill: false`, because a polyline is a stroke: a fill on an
+            // open path is painted across the region the path would enclose if
+            // it were closed, which for a line chart is the area under it.
+            const lineAttrs = styleAttributes({
+                selectedStyle,
+                diagnostics,
+                warningPrefix: "<chart>",
+                includeFill: false,
+            }).join(" ");
+
+            const handle = `line-${seriesIndex + 1}`;
+            const coordinates = seriesPoints
+                .map(
+                    (point) =>
+                        `(${formatNumber(point.x)},${formatNumber(point.y)})`,
+                )
+                .join(",");
+
+            seriesElements[seriesIndex].push(
+                `<polygon at="${escapeXml(handle)}" points="${escapeXml(`[${coordinates}]`)}" closed="no" cliptobbox="yes"${lineAttrs ? ` ${lineAttrs}` : ""} />`,
+            );
+
+            // The line is what the legend points at for this series: its stroke
+            // is the color the series is read by, and PreFigure draws a line
+            // swatch for a key with no fill, which is what a line chart's
+            // legend should show.
+            seriesKeyHandles[seriesIndex] = handle;
+
+            // With no markers there is nothing else in the series to annotate,
+            // so the line carries the whole of it. That is a chart a screen
+            // reader can reach but not walk point by point, which is the cost
+            // of `markers="false"` and is why it is not the default.
+            //
+            // Named by the series, or by its position when it has no name —
+            // the same rule the group level uses, and for the same reason
+            // nothing here says how many points there are: a count would be
+            // English generated in the worker, which is the one thing the
+            // annotations deliberately never contain, since there would be no
+            // way to translate it.
+            if (!drawMarkers) {
+                const label = seriesRendering[seriesIndex]?.label;
+                seriesAnnotations[seriesIndex].push(
+                    `<annotation ref="${escapeXml(handle)}" text="${escapeXml(
+                        label || `${seriesIndex + 1}`,
+                    )}" />`,
+                );
+            }
+        }
+
+        if (!drawMarkers) {
+            return;
+        }
+
+        const pointAttrs = pointStyleAttributes({
+            selectedStyle,
+            diagnostics,
+            warningPrefix: "<chart>",
+        }).join(" ");
+
+        seriesPoints.forEach((point, ind) => {
+            const handle = `point-${seriesIndex + 1}-${ind + 1}`;
+            if (seriesKeyHandles[seriesIndex] === null) {
+                seriesKeyHandles[seriesIndex] = handle;
+            }
+
+            const coordinates = `(${formatNumber(point.x)},${formatNumber(point.y)})`;
+
+            seriesElements[seriesIndex].push(
+                `<point at="${escapeXml(handle)}" p="${escapeXml(coordinates)}" cliptobbox="yes"${pointAttrs ? ` ${pointAttrs}` : ""} />`,
+            );
+
+            if (displayValues) {
+                valueLabelElements.push(
+                    `<label anchor="${escapeXml(coordinates)}" alignment="north" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(point.y) ?? "")}</label>`,
+                );
+            }
+
+            // On a categorical axis the position is a name, so the annotation
+            // reads the way the bar chart's does; on a numeric one it is a
+            // measurement and both coordinates are what the reader needs.
+            const spoken = point.label
+                ? `${point.label}: ${formatNumber(point.y)}`
+                : `${formatNumber(point.x)}, ${formatNumber(point.y)}`;
+
+            seriesAnnotations[seriesIndex].push(
+                `<annotation ref="${escapeXml(handle)}" text="${escapeXml(spoken)}" />`,
+            );
+        });
+    });
+
+    const xml = assembleChartDiagram({
+        bounds: geometry.bounds,
+        yTicks: axisTicks(yMin, yMax, geometry.tickStep),
+        xTicks:
+            geometry.xTickStep === null
+                ? null
+                : axisTicks(xMin, xMax, geometry.xTickStep),
+        slots: geometry.slots,
+        widthPx,
+        heightPx,
+        xLabel,
+        xLabelHasLatex,
+        yLabel,
+        yLabelHasLatex,
+        title,
+        showLegend,
+        legendPosition,
+        seriesRendering,
+        seriesLabels: geometry.series.map(({ label }) => label),
+        seriesElements,
+        seriesAnnotations,
+        seriesKeyHandles,
+        overlayElements: valueLabelElements,
+        shortDescription,
+        darkMode,
+    });
 
     return { xml, diagnostics };
 }

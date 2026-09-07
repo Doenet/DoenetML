@@ -26,6 +26,57 @@ liveDescribe("Live chart rendering @group4", { tags: ["@group4"] }, () => {
         cy.visit("/");
     });
 
+    /**
+     * Every piece of drawn text in the diagram, with something to call it by.
+     *
+     * Two kinds, and missing the second is easy: authored strings — category
+     * names, the title, a legend entry — are SVG `<text>`, but the *numbers on
+     * the axes* are not. PreFigure builds each of those as a `<label><m>…</m>`
+     * (`axes.py`), so MathJax renders them as glyph references and they carry
+     * their value in `data-semantic-speech` rather than as text content. A
+     * sweep that looked only at `<text>` would therefore skip the labels most
+     * likely to be clipped, which is the whole thing this is watching for.
+     */
+    function drawnText(svg) {
+        const items = [];
+        for (const textEl of svg.querySelectorAll("text")) {
+            items.push({
+                label: textEl.textContent?.trim() ?? "",
+                box: textEl.getBoundingClientRect(),
+            });
+        }
+        for (const mathEl of svg.querySelectorAll("[data-semantic-speech]")) {
+            items.push({
+                label: mathEl.getAttribute("data-semantic-speech") ?? "",
+                box: mathEl.getBoundingClientRect(),
+            });
+        }
+        return items.filter(({ box }) => box.width !== 0 || box.height !== 0);
+    }
+
+    /** Nothing drawn may fall outside the picture the browser paints. */
+    function expectNothingClipped(svg, where) {
+        const frame = svg.getBoundingClientRect();
+        for (const { label, box } of drawnText(svg)) {
+            expect(
+                box.left,
+                `"${label}" should start inside ${where}`,
+            ).to.be.at.least(frame.left - 0.5);
+            expect(
+                box.right,
+                `"${label}" should end inside ${where}`,
+            ).to.be.at.most(frame.right + 0.5);
+            expect(
+                box.top,
+                `"${label}" should sit below the top edge of ${where}`,
+            ).to.be.at.least(frame.top - 0.5);
+            expect(
+                box.bottom,
+                `"${label}" should sit above the bottom edge of ${where}`,
+            ).to.be.at.most(frame.bottom + 0.5);
+        }
+    }
+
     it("draws the categories, the title and the legend inside the picture", () => {
         cy.window().then((win) => {
             win.postMessage(
@@ -73,32 +124,16 @@ liveDescribe("Live chart rendering @group4", { tags: ["@group4"] }, () => {
         // the SVG, where the browser simply does not paint it — which is what a
         // clipped axis label looked like, and is invisible in the XML.
         cy.get("#c .svg svg").then(($svg) => {
-            const svg = $svg[0];
-            const frame = svg.getBoundingClientRect();
+            expectNothingClipped($svg[0], "the chart");
+        });
 
-            for (const textEl of svg.querySelectorAll("text")) {
-                const box = textEl.getBoundingClientRect();
-                if (box.width === 0 && box.height === 0) {
-                    continue;
-                }
-                const label = textEl.textContent?.trim() ?? "";
-                expect(
-                    box.left,
-                    `"${label}" should start inside the picture`,
-                ).to.be.at.least(frame.left - 0.5);
-                expect(
-                    box.right,
-                    `"${label}" should end inside the picture`,
-                ).to.be.at.most(frame.right + 0.5);
-                expect(
-                    box.top,
-                    `"${label}" should sit below the top edge`,
-                ).to.be.at.least(frame.top - 0.5);
-                expect(
-                    box.bottom,
-                    `"${label}" should sit above the bottom edge`,
-                ).to.be.at.most(frame.bottom + 0.5);
-            }
+        // The vertical axis is labeled, and by the values the geometry chose.
+        cy.get("#c .svg svg").should(($svg) => {
+            const spoken = [
+                ...$svg[0].querySelectorAll("[data-semantic-speech]"),
+            ].map((el) => el.getAttribute("data-semantic-speech"));
+            expect(spoken).to.include("20");
+            expect(spoken).to.include("80");
         });
 
         // The title belongs in the margin above the bars, not over them.
@@ -117,6 +152,79 @@ liveDescribe("Live chart rendering @group4", { tags: ["@group4"] }, () => {
                 ...bars.map((bar) => bar.getBoundingClientRect().top),
             );
             expect(titleBottom).to.be.at.most(highestBar);
+        });
+    });
+
+    it("draws a scatter on numeric axes and a line through its points", () => {
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<text name="ready">ready</text>
+<chart name="s" type="scatter">
+  <shortDescription>Weight against height</shortDescription>
+  <xLabel>height</xLabel>
+  <yLabel>weight</yLabel>
+  <series x="1.5 1.6 1.7 1.8"><label>control</label>55 62 70 79</series>
+</chart>
+<chart name="l" type="line" categories="Mon Tue Wed">
+  <shortDescription>Visitors per weekday</shortDescription>
+  12 19 15
+</chart>
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#s .svg svg", { timeout: 30000 }).should("exist");
+        cy.get("#l .svg svg", { timeout: 30000 }).should("exist");
+
+        // The numeric axis is `hlabels`, which PreFigure draws itself — so
+        // whether the numbers came out at all, and inside the picture, is only
+        // visible here.
+        cy.get("#s .svg svg").should(($svg) => {
+            const text = $svg.text();
+            expect(text).to.include("height");
+            expect(text).to.include("weight");
+            expect(text).to.include("control");
+
+            // The numbers on a numeric axis are MathJax, not text — so they
+            // are read off `data-semantic-speech`, and a chart whose data sits
+            // nowhere near the origin still has to carry them.
+            const spoken = [
+                ...$svg[0].querySelectorAll("[data-semantic-speech]"),
+            ].map((el) => el.getAttribute("data-semantic-speech"));
+            expect(spoken.some((value) => /^1\.\d$/.test(value ?? ""))).to.be
+                .true;
+            expect(spoken.some((value) => Number(value) >= 55)).to.be.true;
+        });
+
+        // Nothing outside the picture on either chart. A numeric horizontal
+        // axis centers its outermost numbers on the corners of the box, so
+        // half of each hangs past them — a margin no bar chart ever had to
+        // reserve, and one this side of the code estimates rather than
+        // measures.
+        for (const id of ["#s", "#l"]) {
+            cy.get(`${id} .svg svg`).then(($svg) => {
+                expectNothingClipped($svg[0], id);
+            });
+        }
+
+        // A line chart under categories keeps the tick-mark axis, so its
+        // weekday names are painted the way a bar chart's are.
+        cy.get("#l .svg svg").should("contain.text", "Wed");
+
+        // Each point is its own element, so each carries its own annotation —
+        // which is what makes the chart walkable rather than merely present.
+        cy.get("#s .cml", { timeout: 30000 }).should(($cml) => {
+            const ids = [...$cml[0].querySelectorAll("annotation")].map((el) =>
+                el.getAttribute("id"),
+            );
+            expect(ids.filter((id) => id?.includes("point-1-"))).to.have.length(
+                4,
+            );
         });
     });
 
