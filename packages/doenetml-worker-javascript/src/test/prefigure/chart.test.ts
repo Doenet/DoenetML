@@ -1399,6 +1399,12 @@ describe("chart prefigure tests @group4", async () => {
 
     <chart type="bar" name="off" legend="false"><series><label>2024</label>4</series></chart>
     <p name="offShows">$off.showLegend</p>
+
+    <chart type="bar" name="undrawable"><series><label>2024</label><math>x</math></series></chart>
+    <p name="undrawableShows">$undrawable.showLegend</p>
+
+    <chart name="typeless"><series><label>2024</label>4</series></chart>
+    <p name="typelessShows">$typeless.showLegend</p>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -1415,6 +1421,26 @@ describe("chart prefigure tests @group4", async () => {
             expect(
                 sv[await resolvePathToNodeIdx("offShows")].stateValues.text,
             ).eq("false");
+            // Named is not enough: an item's swatch is drawn from a bar it
+            // points at, so a series with no drawable value gets no item and
+            // this chart gets no legend.
+            expect(
+                sv[await resolvePathToNodeIdx("undrawableShows")].stateValues
+                    .text,
+            ).eq("false");
+            expect(
+                sv[await resolvePathToNodeIdx("undrawable")].stateValues
+                    .prefigureXML,
+            ).not.toContain("<legend ");
+            // And a chart with no type draws nothing at all, legend included.
+            expect(
+                sv[await resolvePathToNodeIdx("typelessShows")].stateValues
+                    .text,
+            ).eq("false");
+            expect(
+                sv[await resolvePathToNodeIdx("typeless")].stateValues
+                    .prefigureXML,
+            ).eq(null);
         });
 
         it("honors legend and legendPosition", async () => {

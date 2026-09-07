@@ -211,8 +211,9 @@ unnamed never grows one — a legend names the series, and there is nothing to p
 until they are named. `legend="false"` suppresses it even when they are, and
 `legendPosition` picks which corner it sits in.
 
-`$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for both a
-suppressed legend and an unnamed one.
+`$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
+legend, for series that are unnamed, and for named series with no value that could be
+drawn.
 
 
 

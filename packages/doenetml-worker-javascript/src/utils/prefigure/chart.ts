@@ -27,13 +27,16 @@ import type { DiagnosticRecord } from "@doenet/utils";
  *
  * `<legend>` is emitted here and nowhere else in this folder; `<group>` is
  * shared with `components/curve.ts`, which wraps a multi-piece curve in one.
- * Both are emitted only by a chart of more than one series. A group is what
- * gives a screen reader a level to stop at between the chart and its bars —
- * grouping components to be annotated together is what `group.py` exists for —
- * and it is what the legend's items point at. PreFigure assembles a legend out
- * of the elements its items refer to, reading each one's `fill` for the swatch,
- * so a series' color reaches the legend by the same attribute that draws it and
- * the two cannot drift apart.
+ * A chart of more than one series wraps each of them in a `<group>`, which is
+ * what gives a screen reader a level to stop at between the chart and its bars
+ * — grouping components to be annotated together is what `group.py` exists for.
+ *
+ * A legend is drawn as soon as a series is named, whether the chart has one
+ * series or several, and each of its items points at that series' first bar
+ * rather than at the group. PreFigure assembles a legend out of the elements
+ * its items refer to, reading each one's `fill` for the swatch, so a series'
+ * color reaches the legend by the same attribute that draws it and the two
+ * cannot drift apart.
  *
  * A legend's background box is filled white by `legend.py` with no attribute to
  * say otherwise, which reads as a hole punched in a chart drawn in dark mode.
@@ -205,6 +208,36 @@ export type BarChartGeometry = {
     /** How many values had no bar because they were not finite numbers. */
     undrawnValues: number;
 };
+
+/**
+ * Whether the legend this chart would draw has anything to put in it.
+ *
+ * An item is a name beside a swatch, and PreFigure builds the swatch out of an
+ * element the item points at, so a series needs both a label and a bar: one
+ * whose every value is non-finite is named but has nothing to point at, and
+ * one drawn from an unnamed series would be a swatch beside a blank line.
+ *
+ * Exported so that `<chart>`'s `showLegend` asks the same question the XML
+ * below is built from, rather than restating it somewhere it could drift.
+ * Whether a label carries LaTeX changes how it is written, not whether there
+ * is anything to write, so it is not asked here.
+ */
+export function barChartLegendHasItems(
+    geometry: BarChartGeometry | null,
+): boolean {
+    if (geometry === null) {
+        return false;
+    }
+    const seriesWithABar = new Set(geometry.bars.map((bar) => bar.seriesIndex));
+    return geometry.series.some(
+        (oneSeries, seriesIndex) =>
+            seriesWithABar.has(seriesIndex) &&
+            labelMarkup({
+                label: oneSeries.label,
+                labelHasLatex: false,
+            }) !== null,
+    );
+}
 
 /** How many labeled intervals the vertical axis aims to be divided into. */
 const TARGET_TICK_INTERVALS = 5;
@@ -612,7 +645,6 @@ export function createBarChartPrefigureXML({
     yLabel,
     yLabelHasLatex,
     title,
-    titleHasLatex,
     showLegend,
     legendPosition,
     displayValues,
@@ -628,7 +660,6 @@ export function createBarChartPrefigureXML({
     yLabel?: string;
     yLabelHasLatex?: boolean;
     title?: string;
-    titleHasLatex?: boolean;
     showLegend: boolean;
     legendPosition: keyof typeof LEGEND_PLACEMENTS;
     displayValues: boolean;
@@ -656,10 +687,11 @@ export function createBarChartPrefigureXML({
 
     const [wantedBottom, wantedRight, baseTop] = CHART_MARGINS_BOTTOM_RIGHT_TOP;
 
-    const titleText = labelMarkup({
-        label: title,
-        labelHasLatex: titleHasLatex,
-    });
+    // No `titleHasLatex` beside the axis labels' flags: a `<title>`'s text
+    // arrives already flattened, so `<title><m>\mu</m> counts</title>` reaches
+    // here as the string `μ counts` with no LaTeX left in it to typeset, where
+    // `<xLabel><m>\mu</m></xLabel>` arrives as `\mu` and is marked up.
+    const titleText = labelMarkup({ label: title, labelHasLatex: false });
 
     // The title is drawn above the frame, so the top margin has to grow to hold
     // it — the margins are what PreFigure adds outside `dimensions`, so a title

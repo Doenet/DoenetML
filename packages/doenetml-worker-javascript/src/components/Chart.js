@@ -13,6 +13,7 @@ import {
     returnAxisLabelStateVariableDefinitions,
 } from "../utils/axisLabel";
 import {
+    barChartLegendHasItems,
     computeBarChartGeometry,
     createBarChartPrefigureXML,
 } from "../utils/prefigure/chart";
@@ -192,17 +193,10 @@ export default class Chart extends BlockComponent {
             ],
         };
 
-        // A plain boolean, defaulting to true, rather than a three-state
-        // `auto`/`yes`/`no`. There is nothing for a third state to mean: a
-        // legend names the series, so a chart whose series carry no labels has
-        // nothing to put in one and "ask for it anyway" and "draw it when there
-        // is one" are the same instruction. The three-state version had a value
-        // that changed no drawing and only made `showLegend` report a legend
-        // that was not there.
-        //
-        // (`yes`/`no` was PreFigure's vocabulary — `cliptobbox="yes"`,
-        // `decorations="no"`, which this component emits a few files away — and
-        // no other Doenet attribute spells a boolean that way.)
+        // A boolean is enough to say this: a legend names the series, so a
+        // chart whose series carry no labels has nothing to put in one, and
+        // "draw a legend" and "draw one where there is something to show" are
+        // the same instruction. Whether one appears is `showLegend` below.
         attributes.legend = {
             description:
                 'Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
@@ -775,16 +769,17 @@ export default class Chart extends BlockComponent {
             },
         };
 
-        // A legend names the series, so `auto` asks whether they are named:
-        // there is nothing to put in a legend of a chart whose series carry no
-        // labels, and a box with one blank line in it is worse than no box.
-        // `yes` is still honored — it simply produces nothing until a series
-        // has a label to show.
-        // Whether a legend is drawn, not whether one was asked for: both
-        // conditions are here, so the value an author reads back is the one
-        // they can see. Reporting the request instead would leave
-        // `$chart.showLegend` true beside a chart with no legend in it, which
-        // is the kind of property it is worse to expose than to omit.
+        // Whether a legend is drawn, not whether one was asked for, so the
+        // value an author reads back is the one they can see.
+        //
+        // Both conditions the drawing makes are here, and the second is asked
+        // of the geometry rather than of the data, by the same test the XML
+        // builds its items from. A label alone is not enough: an item's swatch
+        // is built from a bar it points at, so a named series whose every value
+        // is non-finite gets no item, and a chart of nothing but such series
+        // gets no legend however it was labeled. Asking the data instead would
+        // leave `$chart.showLegend` true beside a chart with no legend in it —
+        // the kind of property it is worse to expose than to omit.
         stateVariableDefinitions.showLegend = {
             description: "Whether a legend is drawn.",
             public: true,
@@ -796,9 +791,9 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "legend",
                 },
-                seriesData: {
+                chartGeometry: {
                     dependencyType: "stateVariable",
-                    variableName: "seriesData",
+                    variableName: "chartGeometry",
                 },
             }),
             definition({ dependencyValues }) {
@@ -806,8 +801,8 @@ export default class Chart extends BlockComponent {
                     setValue: {
                         showLegend:
                             dependencyValues.legend &&
-                            dependencyValues.seriesData.some(
-                                (oneSeries) => oneSeries.label,
+                            barChartLegendHasItems(
+                                dependencyValues.chartGeometry,
                             ),
                     },
                 };

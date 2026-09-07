@@ -15,9 +15,9 @@ Avoid commands that open watchers/UIs unless explicitly requested:
 
 ## Rebuild an Edited Package Before Testing Its Consumers
 
-Every `@doenet/*` package's `exports` point at its `dist/`, and no vitest config aliases them back to `src/`. A test that imports another package **by its `@doenet/` name** gets the **last build** of it. (A few tests and scripts reach a sibling's `src/` by relative path instead — `packages/static-assets/scripts/get-schema.ts` and the `static-assets` schema tests read `doenetml-worker-javascript/src` — and those see an edit without a rebuild.)
+Every `@doenet/*` package's `exports` point at its `dist/`, and no vitest config aliases them back to `src/`. A test that imports another package **by its `@doenet/` name** gets the **last build** of it. (A *relative* path bypasses `exports` and resolves to whatever it points at. `packages/static-assets/scripts/get-schema.ts` and `packages/doenetml-worker-javascript/src/test/utils/test-core.ts` reach a sibling's `src/` that way and so see an edit without a rebuild, while `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reaches `parser/dist` and still needs one.)
 
-Nothing rebuilds it for you: almost every `test` script is a bare `vitest` with no Wireit dependencies, so neither `npm run test -w <pkg>` nor `npx vitest` builds anything. Only `doenetml-prototype` and `doenetml-to-pretext` run a Wireit build before their `vitest`.
+Nothing rebuilds it for you: almost no `test` script does, so neither `npm run test -w <pkg>` nor `npx vitest` builds anything. The exceptions are `doenetml-prototype`, `doenetml-to-pretext` and `doenetml-worker-rust`, whose `test` runs a Wireit build first.
 
 **Rule: after editing `packages/<A>/src/`, run `npm run build -w @doenet/<A>` before running tests in any package other than `<A>`.**
 
