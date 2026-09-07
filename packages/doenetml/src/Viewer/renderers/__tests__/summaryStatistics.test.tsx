@@ -1,3 +1,13 @@
+/**
+ * This file must stay out of `renderers/` itself. `DocViewer` loads a renderer
+ * with ``import(`./renderers/${rendererClassName}.tsx`)``, which Vite resolves
+ * by building a chunk for *every* `.tsx` directly in that directory. A test
+ * file there is bundled and shipped: this one went out at 1.8 MB beside the
+ * 2 kB renderer it tests, carrying `vitest` and `react-dom/server` into the
+ * standalone bundle and the extension's preview window. Every other test under
+ * `renderers/` sits in a subdirectory for the same reason.
+ */
+
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -9,7 +19,7 @@ import { describe, expect, it, vi } from "vitest";
  */
 const currentSVs: { value: Record<string, any> } = { value: {} };
 
-vi.mock("../useDoenetRenderer", () => ({
+vi.mock("../../useDoenetRenderer", () => ({
     default: () => ({
         id: "table-under-test",
         SVs: currentSVs.value,
@@ -18,7 +28,7 @@ vi.mock("../useDoenetRenderer", () => ({
     }),
 }));
 
-import SummaryStatistics from "./summaryStatistics";
+import SummaryStatistics from "../summaryStatistics";
 
 /**
  * The markup the renderer emits for one set of statistics.
