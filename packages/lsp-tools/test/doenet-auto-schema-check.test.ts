@@ -1062,7 +1062,8 @@ describe("Content-transparent composites in typed containers", () => {
     // those `allowInSchemaAnywhere` is what stops the LSP warning about
     // authoring that core accepts — `<math>1 + <group>2 3</group></math>`
     // evaluates to `1 + 2 * 3`, and `<numberList><sort>3 1 2</sort></numberList>`
-    // to `1,2,3`.
+    // to `1,2,3`. `<setup>` carries the same mark for the opposite reason: it
+    // produces no replacements, so it is legal wherever anything is.
     const transparentComposites = [
         ["group", `<math><group><math>1</math></group></math>`],
         ["repeat", `<math><repeat for="1 2" valueName="v">$v</repeat></math>`],
