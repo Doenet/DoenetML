@@ -526,12 +526,45 @@ describe("summaryStatistics tag tests @group4", async () => {
                     .text,
             ).eq("81.4");
             // The count is the exception in a reference as well as in the
-            // table: three significant digits would make seven of it anyway,
-            // but it never goes through the rounding at all.
+            // table. Seven of it survives three significant digits either way,
+            // so this assertion alone would pass even if the count were being
+            // rounded -- see the test below, which uses a count that does not.
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCount")].stateValues
                     .text,
             ).eq("7");
+        });
+
+        it("does not round a referenced count either", async () => {
+            // The table's exact count is pinned above; this pins the *reference*
+            // to it, with a count that rounding would visibly change: at two
+            // significant digits, 123 becomes 120.
+            //
+            // What keeps them apart is a difference between two blocks of
+            // `shadowingInstructions`. Every computed statistic declares
+            // `addAttributeComponentsShadowingStateVariables:
+            // returnNumberDisplayAttributeComponentShadowing()`, which is why
+            // `$rounded.mean` above prints 81.4. `count` declares an `integer`
+            // and no such shadowing, so a reference to it inherits no
+            // `displayDigits` to be rounded by. Add that line to `count` and
+            // this test fails.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <summaryStatistics name="s" statisticsToDisplay="count" displayDigits="2">
+      <repeatForSequence from="1" to="123" valueName="v"><number>$v</number></repeatForSequence>
+    </summaryStatistics>
+    <p name="pCount">$s.count</p>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pCount")].stateValues
+                    .text,
+            ).eq("123");
         });
 
         it("read as NaN where there is no value", async () => {
