@@ -37,7 +37,7 @@ This is an npm workspace monorepo. Key points:
 - All packages build via **Vite** and **Wireit** (a task orchestration tool that manages build dependencies)
 - **Wireit** is configured in each `package.json`'s `wireit` field; it automatically rebuilds dependencies when inputs change
 - Each package can be built/tested independently with `-w <package-name>` or `-w @scope/package-name` flags
-- **Every `@doenet/*` package exports only from its `dist/`.** One package importing another always gets the *built* code, never the other's `src/`. Nothing rebuilds it for you at test time — see [Cross-package edits need a rebuild](#cross-package-edits-need-a-rebuild-before-testing)
+- **Every `@doenet/*` package exports only from its `dist/`.** Importing one *by package name* gets the built code, never the other's `src/`. Nothing rebuilds it for you at test time — see [Cross-package edits need a rebuild](#cross-package-edits-need-a-rebuild-before-testing)
 
 ## Build & Development Commands
 
@@ -74,7 +74,9 @@ Builds prerequisites and serves docs (Nextra-based) at `http://localhost:3000`.
 
 **After editing a package's `src/`, build that package before running tests in any other package:** `npm run build -w @doenet/<edited-package>`.
 
-Every `@doenet/*` package's `exports` point at `dist/`, and no vitest config aliases them back to `src/`. So a test in package B that imports package A gets A's last build. The `test` scripts are a bare `vitest` with no Wireit dependencies, so neither `npm run test -w B` nor `npx vitest` rebuilds A — meaning an edit-then-test loop across a package boundary reads stale code.
+Every `@doenet/*` package's `exports` point at `dist/`, and no vitest config aliases them back to `src/`. So a test in package B that imports `@doenet/A` gets A's last build. Almost every `test` script is a bare `vitest` with no Wireit dependencies, so neither `npm run test -w B` nor `npx vitest` rebuilds A — meaning an edit-then-test loop across a package boundary reads stale code. (`doenetml-prototype` and `doenetml-to-pretext` are the two exceptions: their `test` runs a Wireit build first, which does rebuild `parser` and `doenetml-worker`.)
+
+The exception is a sibling reached by *relative path* rather than by package name, which resolves to its `src/` and so needs no rebuild: `packages/static-assets/scripts/get-schema.ts` and the `static-assets` schema tests read `doenetml-worker-javascript/src` directly, which is why the schema is generated from component source.
 
 The failure is usually silent and misleading. A missing export throws (`X is not a function`), which is at least obvious; more often the old code still runs and the test **passes against the previous behavior**, or a fix you just made appears not to work. Do not conclude a change had no effect until you have rebuilt.
 

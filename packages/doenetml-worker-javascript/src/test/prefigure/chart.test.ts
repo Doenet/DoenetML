@@ -1214,6 +1214,30 @@ describe("chart prefigure tests @group4", async () => {
             );
         });
 
+        it("still numbers the series apart when a repeat builds them", async () => {
+            const xml = await chartXML(`
+    <chart type="bar" name="c" categories="A" styleNumber="2">
+      <repeat for="1 2 3" valueName="v">
+        <series>$v</series>
+      </repeat>
+    </chart>
+    `);
+
+            // Building one series per group of the data is what a repeat is
+            // for, so the wrapper must not be what a series takes its style
+            // from: if a series fell back to the styleNumber of the component
+            // around it, all three would read the chart's own 2 off the repeat
+            // and come out one color.
+            const fills = [
+                ...xml.matchAll(/<rectangle [^>]*?fill="([^"]*)"/g),
+            ].map((m) => m[1]);
+            expect(fills.length).eq(3);
+            expect(new Set(fills).size).eq(3);
+            for (const seriesNumber of [1, 2, 3]) {
+                expect(xml).toContain(`at="bar-${seriesNumber}-1"`);
+            }
+        });
+
         it("groups each series for a screen reader to stop at", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

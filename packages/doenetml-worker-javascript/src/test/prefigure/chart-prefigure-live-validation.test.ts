@@ -7,12 +7,12 @@ import {
 
 /**
  * What a Vitest assertion on the generated XML cannot tell us: whether PreFigure
- * accepts it. `<group>`, `<legend>` and a scaled `<label>` are each emitted by
- * `<chart>` and by nothing else in the worker, and a legend in particular is
- * assembled in Python out of the elements its items point at — so an item
- * referring to a handle that does not exist, or to one whose element carries no
- * `fill`, is a drawing with a piece missing rather than a compile error the
- * tests below would catch.
+ * accepts it. `<legend>` and a scaled `<label>` are emitted by `<chart>` and by
+ * nothing else in the worker, and no other live case compiles the `<group>` a
+ * chart nests its series in. A legend in particular is assembled in Python out
+ * of the elements its items point at — so an item referring to a handle that
+ * does not exist, or to one whose element carries no `fill`, is a drawing with a
+ * piece missing rather than a compile error the tests below would catch.
  *
  * Opt-in, like the graph's: it posts to a live build service, so it is off by
  * default and run with `RUN_LIVE_PREFIGURE_VALIDATION=1`.

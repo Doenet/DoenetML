@@ -25,13 +25,15 @@ import type { DiagnosticRecord } from "@doenet/utils";
  * printed at the end of each bar, and the chart's title, drawn above the frame
  * at a `scale` the axis numbers do not use.
  *
- * `<group>` and `<legend>` are emitted here and nowhere else in this folder, and
- * only by a chart of more than one series. A group is what gives a screen reader
- * a level to stop at between the chart and its bars — grouping components to be
- * annotated together is what `group.py` exists for — and it is what the legend's
- * items point at. PreFigure assembles a legend out of the elements its items
- * refer to, reading each one's `fill` for the swatch, so a series' color reaches
- * the legend by the same attribute that draws it and the two cannot drift apart.
+ * `<legend>` is emitted here and nowhere else in this folder; `<group>` is
+ * shared with `components/curve.ts`, which wraps a multi-piece curve in one.
+ * Both are emitted only by a chart of more than one series. A group is what
+ * gives a screen reader a level to stop at between the chart and its bars —
+ * grouping components to be annotated together is what `group.py` exists for —
+ * and it is what the legend's items point at. PreFigure assembles a legend out
+ * of the elements its items refer to, reading each one's `fill` for the swatch,
+ * so a series' color reaches the legend by the same attribute that draws it and
+ * the two cannot drift apart.
  *
  * A legend's background box is filled white by `legend.py` with no attribute to
  * say otherwise, which reads as a hole punched in a chart drawn in dark mode.
