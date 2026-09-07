@@ -65,6 +65,46 @@ describe("Content-transparent composites inside typed containers @group2", () =>
         ).eq("1, 2, 3");
     });
 
+    it("<repeatForSequence> inside <math>", async () => {
+        expect(
+            await mathValueOf(
+                `<math name="m"><repeatForSequence to="2" valueName="v">$v</repeatForSequence></math>`,
+                "m",
+            ),
+        ).eq("1, 2");
+    });
+
+    it("<select> inside <math>", async () => {
+        expect(
+            await mathValueOf(
+                `<math name="m"><select><option><math>1</math></option></select></math>`,
+                "m",
+            ),
+        ).eq("1");
+    });
+
+    it("<module> inside <math>", async () => {
+        expect(
+            await mathValueOf(
+                `<math name="m"><module><math>1</math></module></math>`,
+                "m",
+            ),
+        ).eq("1");
+    });
+
+    it("<shuffle> inside <numberList>", async () => {
+        // Order is by definition unpredictable; what the schema mark asserts is
+        // that all three numbers reach the `<numberList>`.
+        expect(
+            [
+                ...(await numbersOf(
+                    `<numberList name="nl"><shuffle>1 2 3</shuffle></numberList>`,
+                    "nl",
+                )),
+            ].sort(),
+        ).eqls([1, 2, 3]);
+    });
+
     it("<sort> inside <numberList>", async () => {
         expect(
             await numbersOf(
@@ -100,5 +140,47 @@ describe("Content-transparent composites inside typed containers @group2", () =>
                 "nl",
             ),
         ).eqls([1, 2]);
+    });
+});
+
+/**
+ * The mirror image of the tests above. `<split>` and `<intersection>` are not
+ * content-transparent: whatever they are given, they expand to `text` and to
+ * `point` respectively. The schema says so with
+ * `allowInSchemaAsComponent = ["text"]` / `["point"]`, which is what keeps
+ * `<split>` out of a graphical-only container such as `<constrainTo>`. If the
+ * replacement type ever changes, that mark has to change with it.
+ */
+describe("Composites with a fixed replacement type @group2", () => {
+    /** The component types of the named component's non-string children. */
+    async function childComponentTypes(doenetML: string, name: string) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        return stateVariables[await resolvePathToNodeIdx(name)].activeChildren
+            .filter((child: any) => child.componentIdx !== undefined)
+            .map(
+                (child: any) =>
+                    stateVariables[child.componentIdx].componentType,
+            );
+    }
+
+    it("<split> expands to text", async () => {
+        expect(
+            await childComponentTypes(
+                `<p name="p"><split>a b</split></p>`,
+                "p",
+            ),
+        ).eqls(["text", "text", "text"]);
+    });
+
+    it("<intersection> expands to point", async () => {
+        expect(
+            await childComponentTypes(
+                `<graph name="g"><line name="l1">y=x</line><line name="l2">y=-x</line><intersection>$l1 $l2</intersection></graph>`,
+                "g",
+            ),
+        ).eqls(["line", "line", "point"]);
     });
 });

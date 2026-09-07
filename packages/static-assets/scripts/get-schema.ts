@@ -210,9 +210,9 @@ type ComponentClass = {
      *
      * Use this for a composite whose replacements are copies of whatever the
      * author put inside it (`<group>`, `<repeat>`, `<select>`, …), or which
-     * produces no replacements at all (`<setup>`). The schema cannot predict
-     * what such a composite becomes, so it must be accepted wherever its
-     * container accepts any children.
+     * produces no replacements at all (`<setup>`). Neither kind has a
+     * replacement type the schema could check against, so both must be
+     * accepted wherever their container accepts any children.
      */
     allowInSchemaAnywhere?: boolean;
     /**
