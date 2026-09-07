@@ -20,7 +20,7 @@ One tag with a `type` rather than a tag per chart. A pie chart, a box plot and a
 
 `type` has **no default**. `<chart>` on its own draws nothing at all and warns that no chart type was named, and a type it does not recognize is reported and then treated the same way. Defaulting to `bar` would let documents come to rely on it, and `bar` is not the chart most authors reach for first.
 
-A rejected attribute value now says which of the two things happened to it. Where the attribute has a default, the message still names the value used in its place — "Invalid value `sideways` for attribute `displayMode`, using value `block`". Where it has none, the attribute is dropped rather than replaced, and the message now says so: "Invalid value `pie` for attribute `type`, ignoring it", where it used to report a fallback to `null` — a value no author could have written. Eight attributes are in that second group, `<chart type>` among them.
+A rejected attribute value now says which of the two things happened to it. Where the attribute has a default, the message still names the value used in its place — "Invalid value `sideways` for attribute `displayMode`, using value `block`". Where it has none, the attribute is dropped rather than replaced, and the message now says so: "Invalid value `pie` for attribute `type`, ignoring it", where it used to report a fallback to `null` — a value no author could have written. Seven attributes are in that second group, `<chart type>` among them.
 
 Bare numbers are read as values, so `<chart type="bar">41 63 18</chart>` draws three bars without wrapping each in a `<number>`.
 

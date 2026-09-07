@@ -514,6 +514,12 @@ export default class Chart extends BlockComponent {
         // renderer puts around it — reads the absence from here rather than
         // re-deciding it against `type`. A second chart type adds a branch to
         // this definition and nothing below it changes shape.
+        //
+        // Only what is *drawn* is gated here. The checks above still run and
+        // still report on a chart with no type: `barWidth="5"` is wrong however
+        // the values are drawn, and a chart with no `<shortDescription>` will
+        // be inaccessible the moment a type is named. Holding those back would
+        // mean naming the type is what reveals the next problem.
         stateVariableDefinitions.chartGeometry = {
             description:
                 "The bars and bounding box of the chart, in data coordinates, or null when there is no chart to draw.",

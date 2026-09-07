@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { getGraphRendererState, getWarnings } from "./graph-prefigure.helpers";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -107,6 +108,116 @@ describe("chart prefigure tests @group4", async () => {
     <chart name="c" type="Bar"><number>4</number></chart>
     `);
             expect(xml).toContain("<rectangle ");
+        });
+
+        it("takes an empty type as no type at all", async () => {
+            // Both of these reach the attribute as the empty string rather
+            // than as an absent attribute — `type=""` because that is what was
+            // written, `type="$nope"` because a reference with no referent
+            // supplies nothing. Neither names a chart, so both draw nothing.
+            for (const written of [`type=""`, `type="$nope"`]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `<chart name="c" ${written}><number>4</number></chart>`,
+                });
+                const sv = await core.returnAllStateVariables(false, true);
+                const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+
+                expect(chart.type).eq(null);
+                expect(chart.prefigureXML).eq(null);
+                expect(
+                    getDiagnosticsByType(core).warnings.map((w) => w.code),
+                ).toContain("doenet-w0146");
+            }
+        });
+
+        it("follows a type that changes while the document is open", async () => {
+            // The reason the choice of chart is an attribute rather than a tag
+            // of its own: it can be computed, so one document can draw the same
+            // values however a student asks for them. The chart therefore has
+            // to appear and disappear as the type changes, not just be decided
+            // once when the document loads.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textInput name="ti" prefill="pie" />
+    <chart name="c" type="$ti"><number>4</number></chart>
+    `,
+            });
+            const chart = async () =>
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("c")
+                ].stateValues;
+            const ti = await resolvePathToNodeIdx("ti");
+
+            // Starts on a type there is no chart for, so nothing is drawn.
+            expect((await chart()).type).eq(null);
+            expect((await chart()).prefigureXML).eq(null);
+
+            await updateTextInputValue({ text: "bar", componentIdx: ti, core });
+            expect((await chart()).type).eq("bar");
+            expect((await chart()).prefigureXML).toContain("<rectangle ");
+            expect((await chart()).yMax).eq(5);
+
+            // And back: the chart goes away again rather than keeping the last
+            // drawing it managed.
+            await updateTextInputValue({ text: "pie", componentIdx: ti, core });
+            expect((await chart()).prefigureXML).eq(null);
+            expect((await chart()).yMax).eq(null);
+        });
+
+        it("carries the type through a chart that extends another", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart name="c" type="bar"><number>4</number></chart>
+    <chart extend="$c" name="copy" />
+    <chart extend="$c" name="untyped" type="pie" />
+    <chart name="none"><number>4</number></chart>
+    <chart extend="$none" name="typed" type="bar" />
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const stateValues = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues;
+
+            // A plain copy draws what it copied.
+            expect((await stateValues("copy")).type).eq("bar");
+            expect((await stateValues("copy")).prefigureXML).toContain(
+                "<rectangle ",
+            );
+
+            // Overriding with a type there is no chart for turns the copy off
+            // and leaves the chart it extends drawn.
+            expect((await stateValues("untyped")).type).eq(null);
+            expect((await stateValues("untyped")).prefigureXML).eq(null);
+            expect((await stateValues("c")).prefigureXML).toContain(
+                "<rectangle ",
+            );
+
+            // And the other way: a copy can name the type its source never did.
+            expect((await stateValues("typed")).type).eq("bar");
+            expect((await stateValues("typed")).prefigureXML).toContain(
+                "<rectangle ",
+            );
+        });
+
+        it("still reports the markup's own problems when nothing is drawn", async () => {
+            // Deliberate. `barWidth` is wrong however the chart is drawn, and a
+            // chart with no short description will be inaccessible the moment a
+            // type is named, so both are reported alongside the missing type
+            // rather than held back until it is supplied — otherwise fixing the
+            // type is what reveals the next problem. Only the drawing is gated
+            // on `chartGeometry`; the checks feeding it are not.
+            const { core } = await createTestCore({
+                doenetML: `
+    <chart name="c" barWidth="5"><number>4</number></chart>
+    `,
+            });
+            await core.returnAllStateVariables(false, true);
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.code)).toEqual(
+                expect.arrayContaining(["doenet-w0143", "doenet-w0146"]),
+            );
+            expect(d.accessibility.length).eq(1);
         });
     });
 
@@ -691,6 +802,31 @@ describe("chart prefigure tests @group4", async () => {
             expect(sv[await resolvePathToNodeIdx("pc")].stateValues.text).eq(
                 "North, South, East, West",
             );
+        });
+
+        it("indexes the values one at a time", async () => {
+            // `values` is an array with `value` as its entry prefix, so a
+            // single bar's number is `$c.value2` — the pairing `$c.categories`
+            // and `$c.category2` already have. An index past the last bar names
+            // nothing rather than reporting a number, and the whole array still
+            // feeds an operator that takes a list.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    ${FOUR_BARS}
+    <p name="first">$c.value1</p>
+    <p name="second">$c.value2</p>
+    <p name="past">[$c.value9]</p>
+    <p name="total"><sum>$c.values</sum></p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const text = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues.text;
+
+            expect(await text("first")).eq("41");
+            expect(await text("second")).eq("63");
+            expect(await text("past")).eq("[]");
+            expect(await text("total")).eq("200");
         });
 
         it("reports the scale it drew, not the scale it was asked for", async () => {
