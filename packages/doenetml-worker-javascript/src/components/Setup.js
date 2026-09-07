@@ -6,6 +6,9 @@ export default class Setup extends CompositeComponent {
     static componentDocs = {
         summary: "Container for components used for setup but not rendered",
     };
+    // `<setup>` contributes no replacements, so it is harmless in any container.
+    static allowInSchemaAnywhere = true;
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 

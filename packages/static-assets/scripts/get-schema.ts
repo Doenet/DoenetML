@@ -207,6 +207,12 @@ type ComponentClass = {
     /**
      * If a composite component class has the static variable allowInSchemaAnywhere set to true,
      * then we will treat it as though it were any component type when determining schema relationships.
+     *
+     * Use this for a composite whose replacements are copies of whatever the
+     * author put inside it (`<group>`, `<repeat>`, `<select>`, …), or which
+     * produces no replacements at all (`<setup>`). The schema cannot predict
+     * what such a composite becomes, so it must be accepted wherever its
+     * container accepts any children.
      */
     allowInSchemaAnywhere?: boolean;
     /**
@@ -214,6 +220,15 @@ type ComponentClass = {
      * then we will treat it as though it were any of those
      * component types (as well as its actual component type)
      * when determining schema relationships
+     *
+     * Use this only for a composite with a fixed replacement type — `<mathList>`
+     * expands to `math`, `<intersection>` to `point`. Note that each listed type
+     * is the *starting* type of the inherit/adapt walk below, so an abstract type
+     * such as `_inline` matches only containers that accept arbitrary inline
+     * content; it does not reach a container that accepts one concrete inline
+     * type (`<math>` accepts `math`, but `_inline` neither inherits from nor
+     * adapts to `math`). A composite that can legitimately appear inside such a
+     * container wants `allowInSchemaAnywhere` instead.
      */
     allowInSchemaAsComponent?: string[];
     createAttributesObject: () => Record<string, AttributeObject>;

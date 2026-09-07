@@ -1055,3 +1055,71 @@ describe("AutoCompleter", () => {
         });
     });
 });
+
+describe("Content-transparent composites in typed containers", () => {
+    // A composite whose replacements are copies of whatever the author put
+    // inside it can legitimately appear wherever its content can. Marking
+    // those `allowInSchemaAnywhere` is what stops the LSP warning about
+    // authoring that core accepts — `<math>1 + <group>2 3</group></math>`
+    // evaluates to `1 + 2 * 3`, and `<numberList><sort>3 1 2</sort></numberList>`
+    // to `1,2,3`.
+    const transparentComposites = [
+        ["group", `<math><group><math>1</math></group></math>`],
+        ["repeat", `<math><repeat for="1 2" valueName="v">$v</repeat></math>`],
+        [
+            "repeatForSequence",
+            `<math><repeatForSequence to="2" valueName="v">$v</repeatForSequence></math>`,
+        ],
+        [
+            "select",
+            `<math><select><option><math>1</math></option></select></math>`,
+        ],
+        ["module", `<math><module><math>1</math></module></math>`],
+        ["collect", `<math><collect from="$g" componentType="point" /></math>`],
+        ["shuffle", `<numberList><shuffle>1 2 3</shuffle></numberList>`],
+        ["sort", `<numberList><sort>3 1 2</sort></numberList>`],
+        ["setup", `<math>1+<setup><number name="n">5</number></setup>2</math>`],
+    ] as const;
+
+    for (const [name, source] of transparentComposites) {
+        it(`Accepts <${name}> inside a container that takes one concrete type`, async () => {
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const messages = (await ac.getSchemaViolations()).map(
+                (d) => d.message,
+            );
+            expect(
+                messages.filter((m) => m.includes("not allowed inside")),
+            ).toEqual([]);
+        });
+    }
+
+    it("Still rejects a composite with a fixed replacement type in the wrong container", async () => {
+        // `<booleanList>` expands to `boolean`, which `<math>` doesn't take.
+        // Widening the transparent composites must leave these checks intact.
+        const source = `<math><booleanList>true false</booleanList></math>`;
+        const ac = new AutoCompleter(source, doenetSchema.elements);
+        const messages = (await ac.getSchemaViolations()).map((d) => d.message);
+        expect(messages).toContain(
+            "Element `<booleanList>` is not allowed inside of `<math>`.",
+        );
+    });
+
+    it("Rejects <split> in a graphical container now that it expands to `text`", async () => {
+        // `<split>` produces `text` replacements, so the old
+        // `_inline`/`_block`/`_graphical` mark let it into containers that
+        // take only graphical objects. `["text"]` takes it back out.
+        const source = `<graph><point name="P">(1,2)</point><constrainTo><split>a b</split></constrainTo></graph>`;
+        const ac = new AutoCompleter(source, doenetSchema.elements);
+        const messages = (await ac.getSchemaViolations()).map((d) => d.message);
+        expect(messages).toContain(
+            "Element `<split>` is not allowed inside of `<constrainTo>`.",
+        );
+    });
+
+    it("Doesn't offer a composite as a child of a childless element", async () => {
+        // `allowInSchemaAnywhere` only expands declared child groups, so
+        // `<br>` and friends stay empty.
+        const br = doenetSchema.elements.find((e) => e.name === "br");
+        expect(br?.children).toEqual([]);
+    });
+});
