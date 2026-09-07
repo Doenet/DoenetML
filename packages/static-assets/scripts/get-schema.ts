@@ -752,6 +752,10 @@ export function getSchema(
         let children: string[] = [];
         const childRanks: Record<string, number> = {};
         let acceptsStringChildren = false;
+        // Whether the class declares `_base` as a child, i.e. takes arbitrary
+        // content rather than a named set of children. Only such a class needs
+        // the `allowInSchemaAnywhere` widening below.
+        let acceptsAnyChild = false;
 
         // Record `name` as a child, keeping the smallest (most direct) rank
         // when it's reachable through more than one declared child group.
@@ -790,6 +794,9 @@ export function getSchema(
                     ) {
                         acceptsStringChildren = true;
                     }
+                    if (type2 === "_base") {
+                        acceptsAnyChild = true;
+                    }
                 }
             }
         }
@@ -819,20 +826,28 @@ export function getSchema(
                 ) {
                     acceptsStringChildren = true;
                 }
+                if (type2 === "_base") {
+                    acceptsAnyChild = true;
+                }
             }
         }
 
         // The other half of `allowInSchemaAnywhere`. That mark says the
         // composite's replacements are copies of whatever an author puts inside
         // it, so it is accepted wherever its container accepts children — and
-        // by the same argument the composite must accept whatever its container
-        // would have. Its own child groups cannot say that: they are written in
-        // terms of `_base`, which a component narrowed by
-        // `inSchemaOnlyInheritAs` deliberately no longer reaches. Without this,
-        // `<chart><repeat><series>…</series></repeat></chart>` is reported as a
-        // series in the wrong place, when a composite is exactly what an author
-        // reaches for to build one series per group of their data.
-        if (cClass.allowInSchemaAnywhere) {
+        // by the same argument such a composite must accept whatever its
+        // container would have. It already says so, by declaring `_base` as a
+        // child; what `_base` no longer reaches is a component narrowed by
+        // `inSchemaOnlyInheritAs`, which deliberately inherits from nothing.
+        // Without this, `<chart><repeat><series>…</series></repeat></chart>` is
+        // reported as a series in the wrong place, when a composite is exactly
+        // what an author reaches for to build one series per group of data.
+        //
+        // Gated on `_base` because `allowInSchemaAnywhere` says nothing about
+        // what a composite takes *inside* it: `<select>` takes only `<option>`
+        // and `<collect>` takes no children at all, and widening those would
+        // accept in the editor what core then rejects as an invalid child.
+        if (cClass.allowInSchemaAnywhere && acceptsAnyChild) {
             for (const type2 in componentClasses) {
                 addChild(type2, CHILD_RANK_ADAPTER);
             }

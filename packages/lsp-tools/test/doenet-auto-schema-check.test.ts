@@ -1208,4 +1208,27 @@ describe("Content-transparent composites in typed containers", () => {
             (await inSection.getSchemaViolations()).map((d) => d.message),
         ).toContain("Element `<series>` is not allowed inside of `<section>`.");
     });
+
+    it("Doesn't widen a composite that takes named children", async () => {
+        // `allowInSchemaAnywhere` describes where a composite may be written,
+        // not what may be written inside it. `<select>` takes only `<option>`
+        // and `<collect>` takes no children at all, and core rejects anything
+        // else as an invalid child — so the widening above must not reach
+        // them, or the editor would accept what core then refuses.
+        const inSelect = new AutoCompleter(
+            `<select numToSelect="1"><p>a</p></select>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inSelect.getSchemaViolations()).map((d) => d.message),
+        ).toEqual(["Element `<p>` is not allowed inside of `<select>`."]);
+
+        const inCollect = new AutoCompleter(
+            `<graph name="g" /><collect from="$g" componentType="point"><p>a</p></collect>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inCollect.getSchemaViolations()).map((d) => d.message),
+        ).toEqual(["Element `<p>` is not allowed inside of `<collect>`."]);
+    });
 });

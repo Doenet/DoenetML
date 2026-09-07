@@ -60,14 +60,22 @@ export default class Series extends BaseComponent {
 
         Object.assign(attributes, returnLabelAttributes());
 
-        // The inherited `styleNumber` falls back to the parent's, which is the
-        // right rule for a component drawn *inside* something styled and the
-        // wrong one here: every series of a chart would come out the color of
-        // the chart, and a two-series chart would be two indistinguishable
-        // groups of bars. So the attribute is read into a private name and the
-        // public `styleNumber` below fills in the series' own position when the
-        // author did not choose one, which is the categorical color scale every
-        // plotting package applies to a grouping variable.
+        // The inherited `styleNumber` falls back to the parent's and then to
+        // the enclosing composite's, which is the right rule for a component
+        // drawn *inside* something styled and the wrong one here: every series
+        // of a chart would come out the color of the chart, and a two-series
+        // chart would be two indistinguishable groups of bars. Both fall-backs
+        // have to go, not just the parent one — a `<repeat>` inside
+        // `<chart styleNumber="2">` takes the chart's number itself, so a
+        // series built by one would read it back off the repeat and every
+        // repeated series would again be one color.
+        //
+        // So the attribute is read into a private name and the public
+        // `styleNumber` below fills in the series' own position when the author
+        // did not choose one, which is the categorical color scale every
+        // plotting package applies to a grouping variable. The cost is that
+        // `styleNumber` on a wrapper around a series does nothing; it is named
+        // on the `<series>` itself.
         attributes.styleNumber = {
             description:
                 "The style number this series is drawn with. Defaults to the series' position among the chart's series, so consecutive series are consecutive colors.",

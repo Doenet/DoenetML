@@ -226,9 +226,10 @@ function snapNumber(value: number): number {
  * `formatNumber` writes as `null` — a literal `null` in the bounding box, in
  * the axis labels, and in the lower-left corner of every segment stacked above
  * the overflow. Saturating at the largest representable value keeps all three
- * drawable. The segments past that point then have nowhere left to climb and
- * are drawn on top of one another, which is a far smaller problem than a
- * diagram nothing can compile.
+ * drawable: the segment that overflows is drawn from a real corner and clipped
+ * by the top of the frame, and anything stacked above it starts at that ceiling
+ * with no room left to climb. A stack drawn against the edge of the box is a
+ * far smaller problem than a diagram nothing can compile.
  */
 function saturatingAdd(total: number, value: number): number {
     const sum = total + value;
