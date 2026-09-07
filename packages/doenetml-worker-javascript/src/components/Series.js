@@ -45,6 +45,16 @@ export default class Series extends BaseComponent {
     // is what turns values into a picture.
     static rendererType = undefined;
 
+    // A series is only meaningful inside a `<chart>`, so the schema should say
+    // so: without this it inherits from `_base` and is therefore accepted
+    // wherever a base component is — the root of a document, a `<section>`, a
+    // `<div>` — where it would be built, drawn by nothing, and never mentioned.
+    // Narrowing it to its own type leaves `<chart>`'s child group, which names
+    // `series` outright, as the only place it fits, and the language server
+    // then reports one written anywhere else. `<shortDescription>`, the chart's
+    // other child-only component, is declared the same way.
+    static inSchemaOnlyInheritAs = [];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

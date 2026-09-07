@@ -1156,4 +1156,56 @@ describe("Content-transparent composites in typed containers", () => {
         const br = doenetSchema.elements.find((e) => e.name === "br");
         expect(br?.children).toEqual([]);
     });
+
+    it("Accepts a narrowed child inside a transparent composite", async () => {
+        // The other direction of the same argument. A component narrowed by
+        // `inSchemaOnlyInheritAs` — `<series>`, `<shortDescription>` — no
+        // longer reaches the `_base` that a composite's child groups are
+        // written in terms of, so without the matching widening it is reported
+        // in the wrong place merely for being wrapped. Building one series per
+        // group of the data is exactly what a `<repeat>` is for.
+        const inRepeat = new AutoCompleter(
+            `<chart type="bar"><repeat for="1 2" valueName="v"><series>$v</series></repeat></chart>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inRepeat.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
+
+        const descriptionInGroup = new AutoCompleter(
+            `<chart type="bar"><group><shortDescription>counts</shortDescription></group>4 9</chart>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await descriptionInGroup.getSchemaViolations()).map(
+                (d) => d.message,
+            ),
+        ).toEqual([]);
+    });
+
+    it("Reports a chart-only child written outside a chart", async () => {
+        // What the narrowing buys: `<series>` means nothing outside a
+        // `<chart>`, and a chart is the only element whose child groups name
+        // it. Without `inSchemaOnlyInheritAs` it would inherit from `_base`
+        // and so be accepted at the root of a document, in a `<section>` and
+        // in every other container that takes arbitrary content — where it
+        // would be built, drawn by nothing, and never mentioned.
+        const atRoot = new AutoCompleter(
+            `<series>4 9</series>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await atRoot.getSchemaViolations()).map((d) => d.message),
+        ).toContain(
+            "Element `<series>` is not allowed at the root of the document.",
+        );
+
+        const inSection = new AutoCompleter(
+            `<section><series>4 9</series></section>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inSection.getSchemaViolations()).map((d) => d.message),
+        ).toContain("Element `<series>` is not allowed inside of `<section>`.");
+    });
 });

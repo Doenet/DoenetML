@@ -822,6 +822,22 @@ export function getSchema(
             }
         }
 
+        // The other half of `allowInSchemaAnywhere`. That mark says the
+        // composite's replacements are copies of whatever an author puts inside
+        // it, so it is accepted wherever its container accepts children — and
+        // by the same argument the composite must accept whatever its container
+        // would have. Its own child groups cannot say that: they are written in
+        // terms of `_base`, which a component narrowed by
+        // `inSchemaOnlyInheritAs` deliberately no longer reaches. Without this,
+        // `<chart><repeat><series>…</series></repeat></chart>` is reported as a
+        // series in the wrong place, when a composite is exactly what an author
+        // reaches for to build one series per group of their data.
+        if (cClass.allowInSchemaAnywhere) {
+            for (const type2 in componentClasses) {
+                addChild(type2, CHILD_RANK_ADAPTER);
+            }
+        }
+
         children = [...new Set(children)];
         // Encode the per-child bucket as a digit string aligned with
         // `children`, so the JSON doesn't grow one line per (element ×
