@@ -349,7 +349,7 @@ describe("summaryStatistics tag tests @group4", async () => {
     </summaryStatistics>
     `);
 
-            // Tukey's five, and the five a box plot draws. Neither `mean` nor
+            // The five a box plot draws. Neither `mean` nor
             // `count` is among them, which is what makes this a narrower
             // selection than `default` rather than an alias for it.
             expect(sv.statisticsToDisplay).eqls([

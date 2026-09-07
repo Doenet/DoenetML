@@ -76,16 +76,20 @@ const STATISTICS = [
 
 /**
  * The subset of `STATISTICS` that `statisticsToDisplay="fiveNumberSummary"`
- * selects — Tukey's five-number summary, and the five values a box plot draws.
+ * selects — the five values a box plot draws.
  *
  * Named rather than left to the author to list, for the reason `default` and
  * `all` are named: a document that says `fiveNumberSummary` says what it means,
  * where one listing five statistics only says what it shows. The term is taught
  * as a term, so the source should be able to use it.
  *
- * Tukey defined it over hinges, which differ from quartiles on some sample
- * sizes — R's `fivenum` computes hinges, its `quantile` does not. These are the
- * quartiles, which is what textbooks and every other tool mean by the name.
+ * Not attributed to Tukey anywhere an author reads, because these are not his.
+ * He defined the summary over hinges; `quartile1` and `quartile3` here are
+ * interpolated percentiles, which differ on some sample sizes — over
+ * `1 2 3 4 5 6` these give 2.25 and 4.75 where hinges give 2 and 5. R keeps the
+ * two apart as `fivenum` and `quantile`. The unattributed name is what every
+ * textbook uses for min/Q1/median/Q3/max however the quartiles are computed, so
+ * it is accurate; "Tukey's" would promise the other calculation.
  */
 const FIVE_NUMBER_SUMMARY = [
     "minimum",
@@ -210,7 +214,7 @@ export default class SummaryStatistics extends BlockComponent {
                 { value: "all", description: "Every statistic listed here." },
                 {
                     value: "fiveNumberSummary",
-                    description: `Tukey's five-number summary: ${FIVE_NUMBER_SUMMARY.join(", ")}.`,
+                    description: `The five-number summary: ${FIVE_NUMBER_SUMMARY.join(", ")}.`,
                 },
                 ...STATISTICS.map(({ value, description }) => ({
                     value,

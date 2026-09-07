@@ -126746,7 +126746,7 @@
                         },
                         {
                             "value": "fiveNumberSummary",
-                            "description": "Tukey's five-number summary: minimum, quartile1, median, quartile3, maximum."
+                            "description": "The five-number summary: minimum, quartile1, median, quartile3, maximum."
                         },
                         {
                             "value": "mean",
