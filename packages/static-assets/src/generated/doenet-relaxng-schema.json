@@ -44840,9 +44840,8 @@
                 "legend": {
                     "optional": true,
                     "type": [
-                        "auto",
-                        "yes",
-                        "no"
+                        "true",
+                        "false"
                     ]
                 },
                 "legendPosition": {
@@ -45268,9 +45267,9 @@
                 },
                 {
                     "name": "legend",
-                    "type": "text",
+                    "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series. By default one is drawn when a series has a `<label>`.",
+                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
                     "fromAttribute": true
                 },
                 {
@@ -45437,7 +45436,7 @@
                     "name": "showLegend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether a legend was asked for. One is drawn only once a series carries a label to put in it."
+                    "description": "Whether a legend is drawn."
                 },
                 {
                     "name": "yMin",

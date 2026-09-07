@@ -197,7 +197,7 @@ positive ones. A chart of one series looks the same either way.
   <series><label>second</label>6 1</series>
 </chart>
 
-<chart type="bar" categories="A B" size="small" legend="no">
+<chart type="bar" categories="A B" size="small" legend="false">
   <shortDescription>The same chart with the legend suppressed</shortDescription>
   <series><label>first</label>4 9</series>
   <series><label>second</label>6 1</series>
@@ -206,10 +206,13 @@ positive ones. A chart of one series looks the same either way.
 
 
 
-A legend appears as soon as a series has a `<label>{:dn}`, so a chart of one unnamed series
-never grows one. `legend="no"` suppresses it, and `legend="yes"` asks for one — though a
-legend names the series, so it has nothing to show until they are named. `legendPosition`
-picks which corner it sits in.
+A legend appears as soon as a series has a `<label>{:dn}`, so a chart whose series are
+unnamed never grows one — a legend names the series, and there is nothing to put in one
+until they are named. `legend="false"` suppresses it even when they are, and
+`legendPosition` picks which corner it sits in.
+
+`$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for both a
+suppressed legend and an unnamed one.
 
 
 

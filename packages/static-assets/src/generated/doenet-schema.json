@@ -36543,28 +36543,13 @@
                 },
                 {
                     "name": "legend",
-                    "description": "Whether to draw a legend naming the series. By default one is drawn when a series has a `<label>`.",
-                    "defaultValue": "auto",
+                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "defaultValue": true,
                     "values": [
-                        "auto",
-                        "yes",
-                        "no"
+                        "true",
+                        "false"
                     ],
-                    "autocompleteValues": [
-                        {
-                            "value": "auto",
-                            "description": "Draw a legend when at least one series carries a label."
-                        },
-                        {
-                            "value": "yes",
-                            "description": "Ask for a legend. A legend names the series, so it stays empty — and is not drawn — until at least one of them carries a label."
-                        },
-                        {
-                            "value": "no",
-                            "description": "Never draw a legend."
-                        }
-                    ],
-                    "type": "keyword"
+                    "type": "boolean"
                 },
                 {
                     "name": "legendPosition",
@@ -36723,9 +36708,9 @@
                 },
                 {
                     "name": "legend",
-                    "type": "text",
+                    "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series. By default one is drawn when a series has a `<label>`.",
+                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
                     "fromAttribute": true
                 },
                 {
@@ -36892,7 +36877,7 @@
                     "name": "showLegend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether a legend was asked for. One is drawn only once a series carries a label to put in it."
+                    "description": "Whether a legend is drawn."
                 },
                 {
                     "name": "yMin",

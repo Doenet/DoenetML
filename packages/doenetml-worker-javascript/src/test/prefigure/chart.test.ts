@@ -1388,23 +1388,42 @@ describe("chart prefigure tests @group4", async () => {
             expect(unnamed).not.toContain("<legend ");
         });
 
+        it("reports whether a legend is drawn, not whether one was asked for", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="named"><series><label>2024</label>4</series></chart>
+    <p name="namedShows">$named.showLegend</p>
+
+    <chart type="bar" name="unnamed"><series>4</series><series>9</series></chart>
+    <p name="unnamedShows">$unnamed.showLegend</p>
+
+    <chart type="bar" name="off" legend="false"><series><label>2024</label>4</series></chart>
+    <p name="offShows">$off.showLegend</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            expect(
+                sv[await resolvePathToNodeIdx("namedShows")].stateValues.text,
+            ).eq("true");
+            // A legend names the series, so unnamed series leave nothing to put
+            // in one — and the property says so rather than reporting a legend
+            // the author cannot see.
+            expect(
+                sv[await resolvePathToNodeIdx("unnamedShows")].stateValues.text,
+            ).eq("false");
+            expect(
+                sv[await resolvePathToNodeIdx("offShows")].stateValues.text,
+            ).eq("false");
+        });
+
         it("honors legend and legendPosition", async () => {
             const suppressed = await chartXML(`
-    <chart type="bar" name="c" legend="no">
+    <chart type="bar" name="c" legend="false">
       <series><label>2024</label>4</series>
     </chart>
     `);
             expect(suppressed).not.toContain("<legend ");
-
-            // `yes` asks for a legend, but a legend names the series: with
-            // none of them named there is nothing to put in one, so the
-            // request draws no box rather than an empty one.
-            const askedFor = await chartXML(`
-    <chart type="bar" name="c" legend="yes">
-      <series>4</series><series>9</series>
-    </chart>
-    `);
-            expect(askedFor).not.toContain("<legend ");
 
             const lowerLeft = await chartXML(`
     <chart type="bar" name="c" legendPosition="lowerLeft">

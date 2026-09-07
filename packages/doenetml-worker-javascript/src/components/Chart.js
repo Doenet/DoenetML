@@ -192,30 +192,24 @@ export default class Chart extends BlockComponent {
             ],
         };
 
+        // A plain boolean, defaulting to true, rather than a three-state
+        // `auto`/`yes`/`no`. There is nothing for a third state to mean: a
+        // legend names the series, so a chart whose series carry no labels has
+        // nothing to put in one and "ask for it anyway" and "draw it when there
+        // is one" are the same instruction. The three-state version had a value
+        // that changed no drawing and only made `showLegend` report a legend
+        // that was not there.
+        //
+        // (`yes`/`no` was PreFigure's vocabulary — `cliptobbox="yes"`,
+        // `decorations="no"`, which this component emits a few files away — and
+        // no other Doenet attribute spells a boolean that way.)
         attributes.legend = {
             description:
-                "Whether to draw a legend naming the series. By default one is drawn when a series has a `<label>`.",
-            createComponentOfType: "text",
+                'Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
+            createComponentOfType: "boolean",
             createStateVariable: "legend",
-            defaultValue: "auto",
+            defaultValue: true,
             public: true,
-            toLowerCase: true,
-            validValues: [
-                {
-                    value: "auto",
-                    description:
-                        "Draw a legend when at least one series carries a label.",
-                },
-                {
-                    value: "yes",
-                    description:
-                        "Ask for a legend. A legend names the series, so it stays empty — and is not drawn — until at least one of them carries a label.",
-                },
-                {
-                    value: "no",
-                    description: "Never draw a legend.",
-                },
-            ],
         };
 
         // The same four corners, under the same names, that `<legend>` offers
@@ -786,9 +780,13 @@ export default class Chart extends BlockComponent {
         // labels, and a box with one blank line in it is worse than no box.
         // `yes` is still honored — it simply produces nothing until a series
         // has a label to show.
+        // Whether a legend is drawn, not whether one was asked for: both
+        // conditions are here, so the value an author reads back is the one
+        // they can see. Reporting the request instead would leave
+        // `$chart.showLegend` true beside a chart with no legend in it, which
+        // is the kind of property it is worse to expose than to omit.
         stateVariableDefinitions.showLegend = {
-            description:
-                "Whether a legend was asked for. One is drawn only once a series carries a label to put in it.",
+            description: "Whether a legend is drawn.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -804,17 +802,13 @@ export default class Chart extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                if (dependencyValues.legend === "no") {
-                    return { setValue: { showLegend: false } };
-                }
-                if (dependencyValues.legend === "yes") {
-                    return { setValue: { showLegend: true } };
-                }
                 return {
                     setValue: {
-                        showLegend: dependencyValues.seriesData.some(
-                            (oneSeries) => oneSeries.label,
-                        ),
+                        showLegend:
+                            dependencyValues.legend &&
+                            dependencyValues.seriesData.some(
+                                (oneSeries) => oneSeries.label,
+                            ),
                     },
                 };
             },
