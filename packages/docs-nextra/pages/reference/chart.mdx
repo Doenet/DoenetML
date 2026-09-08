@@ -58,9 +58,20 @@ description of the figure as a whole.
 
 
 
-Each `<series>{:dn}` is one group of the data, drawn in its own color. Its `<label>{:dn}`
-names it in the legend, which appears as soon as a series has one. A screen reader walks
-the chart series by series, then bar by bar within a series.
+Each `<series>{:dn}` is one group of the data, drawn in its own color. Its children are the
+values — bare numbers, `<number>{:dn}` and `<math>{:dn}` children, a
+[`<numberList>{:dn}`](numberList), or a reference to something that produces numbers — and
+its `<label>{:dn}` names it in the legend, which appears as soon as a series has one.
+Series take consecutive style numbers unless one is given a `styleNumber` of its own, so
+the groups come out in different colors without being asked to. A screen reader walks the
+chart series by series, then bar by bar within a series.
+
+A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
+all, which is why the simpler charts here need no series at all.
+
+`hide` on a `<series>{:dn}` takes it out of the chart entirely — out of `values` and
+`numSeries` as well as out of the picture — where `<chart hide>{:dn}` hides the picture
+without emptying it.
 
 A `<title>{:dn}` is drawn above the chart and travels with the picture, so it is still
 there if the chart is printed or exported.
@@ -99,47 +110,6 @@ there if the chart is printed or exported.
 draws them; [`<tally>{:dn}`](tally) does the same for named categories. Building a whole
 sampling simulation this way is walked through in
 [Charting a Simulation](../guides/charting-a-simulation).
-
-
-
-### Example: `<series>{:dn}`, one group of the data at a time
-
-
-```doenet-editor-horiz
-<chart type="bar" categories="A B C" size="small">
-  <shortDescription>Three series, the third given a style of its own</shortDescription>
-  <series name="first"><label>first</label>4 9 2</series>
-  <series><label>second</label>6 1 5</series>
-  <series styleNumber="6"><label>third</label>2 4 8</series>
-</chart>
-
-<p>The first series holds $first.values, drawn in style $first.styleNumber.</p>
-```
-
-
-
-Each `<series>{:dn}` holds one group of the data. Its children are the values, bare numbers
-or `<number>{:dn}` and `<math>{:dn}` children alike, and its `<label>{:dn}` names it in the
-legend. Series take consecutive style numbers unless one is given a `styleNumber` of its
-own, so the groups come out in different colors without being asked to.
-
-A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
-all, which is why the simple charts above need no series at all.
-
-`hide` on a `<series>{:dn}` takes it out of the chart altogether — not just out of the
-picture. The chart's `values`, `numSeries` and categories all describe what is drawn, so a
-`<sum>{:dn}` of `$chart.values{:dn}` beside the chart totals the bars a reader can see
-rather than including one they cannot. This is unlike `hide` elsewhere in DoenetML, which
-stops a component rendering without changing what it contributes — a
-[`<binCounts>{:dn}`](binCounts) marked `hide` still feeds the chart it is referenced into.
-The series keeps its own data either way: `$hidden.values{:dn}` on a hidden series still
-reports the values it was given.
-
-Hiding the **chart** is different from hiding its series: `<chart hide>{:dn}` takes the
-picture off the page without emptying it, so `$chart.values{:dn}` and
-`$chart.numSeries{:dn}` still describe everything it holds.
-
-
 
 ---
 
