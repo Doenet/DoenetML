@@ -7,9 +7,9 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 <ComponentDisplay name='chart'/>
 
-`<chart>{:dn}` draws data, and `type` picks which chart is drawn. There is no default, so
-`<chart>{:dn}` with no type draws nothing and says so. To chart several groups of data
-together, give the chart a `<series>{:dn}` child per group.
+`<chart>{:dn}` draws data, and `type` picks which chart is drawn — there is no default, so
+every chart names one. To chart several groups of data together, give the chart a
+`<series>{:dn}` child per group.
 
 <AttrPropDisplay name='chart'/>
 
@@ -34,8 +34,6 @@ names. A series holds one value per category.
 ```
 
 
-
-Bars are measured from zero, so the vertical axis always includes it.
 
 
 
@@ -65,20 +63,12 @@ category, or a value per `x` when it has one.
 Without an `x` the points sit under `categories`, evenly spaced; with one they sit at the
 positions it gives and the axis carries numbers. Values are never re-ordered — a path that doubles back is drawn as one.
 
-One series with an `x` puts the whole chart on a numeric axis, so give every series one or
-none. A series without one in a chart whose other series have them has no coordinates for
-its values, and they are reported rather than drawn.
-
-A marker is drawn at each point by default. `markers="false"` leaves the line alone, which
-suits a long series, at the cost that a screen reader can then reach the line but not walk
-it point by point.
-
 
 
 ### `type="scatter"`
 
 One point per value, drawn at the `x` beside it. A series holds the vertical coordinates
-and its `x` the horizontal ones, so the chart is read on two numeric axes.
+and its `x` the horizontal ones.
 
 
 ```doenet-editor-horiz
@@ -92,12 +82,6 @@ and its `x` the horizontal ones, so the chart is read on two numeric axes.
 ```
 
 
-
-Neither axis is anchored to zero: a point is not a length measured from a baseline, so the
-axes scale to the data. A value with no `x` beside it has nowhere to go and is reported
-rather than drawn — but only where there is a numeric axis to be off. Give no series an
-`x` at all and there is none, so the points sit under `categories` as a line chart's do,
-one per position, and the chart is a dot plot rather than a scatter.
 
 ## Examples
 
@@ -226,8 +210,7 @@ hold the same three values. Two of them are the same numbers under different mar
 is the whole of what this attribute does — everything else about a chart is written the
 same way whichever type is named.
 
-There is no default, so the third draws nothing and says so. A value that is not a chart
-is reported by name and then treated the same way, so `type="donut"` also draws nothing.
+There is no default, so the third draws nothing and says so.
 
 Every type is listed under [Chart types](#chart-types), with what a series holds for each.
 
