@@ -97,6 +97,16 @@ describe("Chart prefigure renderer live validation @group4", () => {
                 ["Population 2024 AB", "small"],
                 ["Northern Territory 2024", "small"],
                 ["a fairly long series label here indeed ok", "medium"],
+                // Glyphs the width classes had in the wrong bin. `%` is
+                // 11.9px and `&` 10.3px — wider than any lowercase letter —
+                // and `|` is 7.7px, not the hairline it looks like. Reserved
+                // at the lowercase width, `%%%%%%` was drawn 12.6px outside
+                // the picture.
+                ["%%%%%%", "large"],
+                ["&&&&&&", "large"],
+                ["||||||", "large"],
+                ["######", "large"],
+                ["OCTOBER TOTALS", "large"],
             ] as [string, string][]) {
                 const prefigureXML = await getPrefigureXML(
                     `<chart type="bar" name="c" categories="A B" size="${size}">
@@ -137,6 +147,60 @@ describe("Chart prefigure renderer live validation @group4", () => {
                         gap,
                         `${label}: legend leaves too much width unused`,
                     ).toBeLessThan(30);
+                }
+            }
+        },
+    );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: an outsideBottom legend is drawn inside the picture",
+        async () => {
+            // The margin reserves room from an estimate of the box's height,
+            // and `fitMargins` then caps the margin without the box shrinking
+            // with it. Anchored at a fixed distance under the axis, the legend
+            // ran off the bottom of the picture from four named series on a
+            // small chart, and by 70px at eight. Only the rendered SVG says
+            // how tall the box really came out, so it is measured here.
+            for (const size of ["small", "medium"]) {
+                for (const count of [2, 4, 6, 8]) {
+                    const series = Array.from(
+                        { length: count },
+                        (_unused, index) =>
+                            `<series><label>s${index + 1}</label>${index + 1}</series>`,
+                    ).join("");
+                    const prefigureXML = await getPrefigureXML(
+                        `<chart type="bar" name="c" size="${size}" legendPosition="outsideBottom" categories="A">${series}</chart>`,
+                        "c",
+                    );
+                    const result =
+                        await validatePrefigureXMLAgainstBuildService(
+                            prefigureXML,
+                        );
+                    expect(result.ok, `${size}/${count}: build failed`).toBe(
+                        true,
+                    );
+
+                    const svg: string = result.body?.svg ?? "";
+                    const pictureHeight = Number(
+                        svg.match(/<svg[^>]*height="([\d.]+)"/)?.[1],
+                    );
+                    const box = svg.match(
+                        /transform="translate\(([-\d.]+),([-\d.]+)\)[^"]*"[^>]*>\s*<rect x="0" y="0" width="([\d.]+)" height="([\d.]+)"[^>]*stroke="currentColor" fill="white"/,
+                    );
+                    expect(
+                        box,
+                        `${size}/${count}: no legend box drawn`,
+                    ).toBeTruthy();
+
+                    const bottom = Number(box![2]) + Number(box![4]);
+                    expect(
+                        pictureHeight - bottom,
+                        `${size}/${count}: legend is clipped at the bottom`,
+                    ).toBeGreaterThan(0);
+                    expect(
+                        Number(box![2]),
+                        `${size}/${count}: legend is clipped at the top`,
+                    ).toBeGreaterThanOrEqual(0);
                 }
             }
         },

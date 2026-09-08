@@ -1719,9 +1719,12 @@ describe("chart prefigure tests @group4", async () => {
     `);
 
             // Centered under the plot, and below the horizontal axis' own
-            // labels rather than over them — PreFigure offers a legend no
-            // offset, so the anchor drops out of the box by the band those
-            // labels occupy.
+            // labels rather than over them: the anchor drops by whatever the
+            // reserved margin leaves once the box, PreFigure's own 4px offset
+            // and the gap to the edge are taken out of it. On a chart roomy
+            // enough for the legend that comes to the band those labels
+            // occupy; on a crowded one it comes to less, and the box rises
+            // over them rather than off the bottom of the picture.
             const anchor = xml.match(/<legend anchor="\(([^,]*),([^)]*)\)"/);
             expect(Number(anchor?.[1])).eq(1.5);
             expect(Number(anchor?.[2])).toBeLessThan(0);
@@ -1736,52 +1739,121 @@ describe("chart prefigure tests @group4", async () => {
 
         it("leaves the outsideBottom legend room below it", async () => {
             for (const size of ["small", "medium", "large"]) {
-                const xml = await chartXML(`
+                for (const count of [2, 4, 6, 8]) {
+                    // More series than the margin can hold is the case that used to
+                    // run off the bottom: a floor at the band the category names
+                    // occupy kept the box below them and outside the picture, by
+                    // 70px at eight series on a small chart.
+                    const series = Array.from(
+                        { length: count },
+                        (_unused, index) =>
+                            `<series><label>s${index + 1}</label>${index + 1} ${index + 2}</series>`,
+                    ).join("");
+                    const xml = await chartXML(`
     <chart type="bar" name="c" categories="A B" size="${size}" legendPosition="outsideBottom">
-      <series><label>first</label>4 9</series>
-      <series><label>second</label>6 1</series>
+      ${series}
     </chart>
     `);
 
-                const [, yMin, , yMax] = (
-                    xml.match(/bbox="\(([^)]*)\)"/)?.[1] ?? ""
-                )
-                    .split(",")
-                    .map(Number);
-                const [, innerHeight] = (
-                    xml.match(/dimensions="\(([^)]*)\)"/)?.[1] ?? ""
-                )
-                    .split(",")
-                    .map(Number);
-                const marginBottom = Number(
-                    xml.match(/margins="\[[^,]*,([^,]*),/)?.[1],
-                );
-                const anchorY = Number(
-                    xml.match(/<legend anchor="\([^,]*,([^)]*)\)"/)?.[1],
-                );
+                    const [, yMin, , yMax] = (
+                        xml.match(/bbox="\(([^)]*)\)"/)?.[1] ?? ""
+                    )
+                        .split(",")
+                        .map(Number);
+                    const [, innerHeight] = (
+                        xml.match(/dimensions="\(([^)]*)\)"/)?.[1] ?? ""
+                    )
+                        .split(",")
+                        .map(Number);
+                    const marginBottom = Number(
+                        xml.match(/margins="\[[^,]*,([^,]*),/)?.[1],
+                    );
+                    const marginTop = Number(
+                        xml.match(/margins="\[[^\]]*,([^,\]]*)\]"/)?.[1],
+                    );
+                    const anchorY = Number(
+                        xml.match(/<legend anchor="\([^,]*,([^)]*)\)"/)?.[1],
+                    );
 
-                // How far below the axis the box is anchored, back in pixels.
-                const belowAxis =
-                    ((yMin - anchorY) * innerHeight) / (yMax - yMin);
+                    // How far below the axis the box is anchored, back in pixels.
+                    const belowAxis =
+                        ((yMin - anchorY) * innerHeight) / (yMax - yMin);
 
-                // Everything the margin has to hold: the drop to the anchor,
-                // PreFigure's own 4px offset, and the box itself — which is at
-                // most the estimate the margin was reserved from. Anything left
-                // over is the gap to the edge of the picture, and it must be
-                // positive or the legend is drawn past the bottom of the SVG.
-                const estimatedLegendHeight = 3 + 2 * 21;
-                const used = belowAxis + 4 + estimatedLegendHeight;
-                expect(
-                    marginBottom - used,
-                    `${size}: legend should have room below it`,
-                ).toBeGreaterThan(0);
+                    // Everything the margin has to hold: the drop to the anchor,
+                    // PreFigure's own 4px offset, and the box itself — which is at
+                    // most the estimate the margin was reserved from. Anything left
+                    // over is the gap to the edge of the picture, and it must be
+                    // positive or the legend is drawn past the bottom of the SVG.
+                    const estimatedLegendHeight = 3 + count * 21;
+                    const used = belowAxis + 4 + estimatedLegendHeight;
 
-                // And it must still clear the category names under the axis.
-                expect(
-                    belowAxis,
-                    `${size}: clears the tick labels`,
-                ).toBeGreaterThanOrEqual(30);
+                    // Only where a box that size could be placed inside the
+                    // picture at all. The reserved height is deliberately
+                    // generous — it cannot know whether the labels carry a
+                    // descender — so on a small chart with many series it can
+                    // exceed the whole frame, and then no anchor puts it
+                    // inside. What the *drawn* box does in that case is
+                    // measured against the build service in
+                    // `chart-prefigure-live-validation.test.ts`, which is the
+                    // only thing that knows how tall the legend really came
+                    // out.
+                    const pictureHeight =
+                        innerHeight + marginBottom + marginTop;
+                    if (estimatedLegendHeight + 4 + 8 <= pictureHeight) {
+                        expect(
+                            marginBottom - used,
+                            `${size}/${count}: legend should have room below it`,
+                        ).toBeGreaterThan(0);
+                    }
+
+                    // It clears the category names whenever the margin it asked
+                    // for was granted. Where `fitMargins` capped that, the box
+                    // rises over them instead — which is the other outside
+                    // placement's trade-off, and better than leaving the picture.
+                    expect(
+                        belowAxis,
+                        `${size}/${count}: the box's top stays in the picture`,
+                    ).toBeGreaterThanOrEqual(-(marginTop + innerHeight));
+                }
             }
+        });
+
+        it("reserves more width for a wide glyph than a narrow one", async () => {
+            // The width classes are measured, not guessed. `%` is 11.9px and
+            // `&` 10.3px — wider than any lowercase letter — and `|` is 7.7px
+            // rather than the hairline it looks like. All three were reserved
+            // at the lowercase width, and `%%%%%%` was drawn 12.6px past the
+            // right edge of the picture.
+            const rightMargin = async (label: string) =>
+                Number(
+                    (
+                        await chartXML(`
+    <chart type="bar" name="c" categories="A">
+      <series><label>${label}</label>4</series>
+    </chart>
+    `)
+                    ).match(/margins="\[[^,]*,[^,]*,([^,]*),/)?.[1],
+                );
+
+            const narrow = await rightMargin("llllll");
+            for (const label of [
+                "%%%%%%",
+                "&amp;&amp;&amp;&amp;&amp;&amp;",
+                "||||||",
+                "######",
+            ]) {
+                expect(
+                    await rightMargin(label),
+                    `${label} is drawn wider than llllll`,
+                ).toBeGreaterThan(narrow);
+            }
+
+            // And a capital is wider than the lowercase it shadows, but `O` is
+            // not `F`: treating every capital alike wasted 20px on a label in
+            // capitals.
+            expect(await rightMargin("OOOOOO")).toBeGreaterThan(
+                await rightMargin("FFFFFF"),
+            );
         });
 
         it("reserves the right margin from how wide the labels are drawn", async () => {

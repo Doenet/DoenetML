@@ -719,13 +719,29 @@ function estimateLegendSize(labels: string[]): {
 /**
  * Roughly how wide a string is drawn at PreFigure's 14px sans-serif, in pixels.
  *
- * Five classes rather than a per-character table, since the only thing asked of
- * this is a margin wide enough: it has to come out over rather than exact, and
- * by as little as it can manage. The figures are rounded up from what real
- * renders came back with — a lowercase letter or a digit is about eight pixels,
- * a capital about eleven, and `m`, `w`, `M` and `W` about thirteen. Against six
- * measured labels this reserves between 1 and 9 pixels more than was drawn, and
- * less than was drawn in none of them.
+ * Classes rather than a per-character table, since the only thing asked of this
+ * is a margin wide enough: it has to come out over rather than exact, and by as
+ * little as it can manage. Every printable ASCII character was measured from a
+ * real render — a legend of six copies of it, less the fixed furniture, divided
+ * by six — and each class is set just above the widest character in it. The
+ * tightest margin is 0.21px (`O` and `Q`), the widest label surplus about 26px
+ * on fifteen characters, and no ASCII character is reserved short.
+ *
+ * The classes are not the ones a reader would guess, which is why they are
+ * measured: `%` is 11.9px and `&` 10.3px, wider than any lowercase letter,
+ * while `|` is 7.7px rather than the hairline its shape suggests. All three
+ * were previously reserved at the lowercase width, and a legend labeled
+ * `%%%%%%` was drawn 12.6px past the right edge of the picture. Capitals span
+ * 7.4px (`F`) to 11.0px (`O`), so treating them alike wasted 20px on an
+ * all-capitals label.
+ *
+ * Text outside ASCII falls to the default and can be reserved short. A CJK
+ * ideograph is about a full em — some 14px here — so a Chinese or Japanese
+ * label is under-reserved from two characters up, which is why the ranges
+ * below are given the widest class. That much cannot be checked against the
+ * build service: it has no font for those glyphs and draws every one of them
+ * at a uniform 8.4px, so the figure comes from typography rather than from a
+ * measurement, unlike everything else here.
  */
 function estimateTextWidth(text: string): number {
     let width = 0;
@@ -733,23 +749,43 @@ function estimateTextWidth(text: string): number {
         if (character === " ") {
             width += 4.5;
         } else if (NARROW_CHARACTERS.includes(character)) {
-            width += 5;
+            width += 5.5;
         } else if (SEMI_NARROW_CHARACTERS.includes(character)) {
-            width += 6;
-        } else if (WIDE_CHARACTERS.includes(character)) {
-            width += 14;
-        } else if (character >= "A" && character <= "Z") {
-            width += 11.5;
+            width += 7;
+        } else if (
+            WIDE_CHARACTERS.includes(character) ||
+            character.codePointAt(0)! >= FULL_WIDTH_FIRST_CODE_POINT
+        ) {
+            width += 13.6;
+        } else if (BROAD_CHARACTERS.includes(character)) {
+            width += 11.2;
         } else {
-            width += 8.5;
+            width += 9.5;
         }
     }
     return width;
 }
 
-const NARROW_CHARACTERS = "iIl.,:;!|'\u2019";
-const SEMI_NARROW_CHARACTERS = 'fjrt()[]{}/\\-\u2013"';
-const WIDE_CHARACTERS = "mMwW@";
+/** Measured at 3.3 to 5.0px: `'` is the narrowest thing drawn. */
+const NARROW_CHARACTERS = "ijlIJ'.,:;!()-[]\u2019";
+
+/** 5.0 to 6.3px. */
+const SEMI_NARROW_CHARACTERS = 'ftr/\\{}"_?\u2013';
+
+/** 11.3 to 13.3px, the widest glyphs there are. */
+const WIDE_CHARACTERS = "mwMW@%";
+
+/** 10.2 to 11.0px: the round capitals, and `&`. */
+const BROAD_CHARACTERS = "GDUHNOQ&";
+
+/**
+ * Where the classes above stop describing the text.
+ *
+ * Hangul begins at U+1100 and CJK, kana and the emoji planes follow, all of
+ * them about an em wide. Latin, Greek and Cyrillic sit below it and are close
+ * enough to the measured classes to use them.
+ */
+const FULL_WIDTH_FIRST_CODE_POINT = 0x1100;
 
 /** The key swatch and the three paddings `legend.py` puts around the labels. */
 const LEGEND_FURNITURE_WIDTH = 30;
@@ -1152,11 +1188,12 @@ export function createBarChartPrefigureXML({
 
     let legendElement = "";
     if (legendDrawn && legendItems.length > 0) {
-        // PreFigure anchors a legend in *data* coordinates and offers no offset
-        // of its own (`legend.py` reads only anchor, alignment, scale,
-        // vertical-skip, stroke and opacity), so a legend that belongs in a
+        // PreFigure anchors a legend in *data* coordinates, and takes no
+        // offset attribute — `legend.py` reads only anchor, alignment, scale,
+        // vertical-skip, stroke and opacity. So a legend that belongs in a
         // margin is anchored at a coordinate outside the box and left to the
-        // same linear transform as everything else.
+        // same linear transform as everything else. It does apply an offset of
+        // its own on top of that, which `LEGEND_ANCHOR_OFFSET` accounts for.
         // Pixels to data units, on each axis. Guarded, because the span of a
         // chart of `-1e308` and `1e308` is `Infinity`: an offset scaled by that
         // is `-Infinity`, which `formatNumber` writes as `null`, and
@@ -1219,23 +1256,31 @@ export function createBarChartPrefigureXML({
             anchorX = xMax - pullLeft * unitsPerPixelX;
             anchorY = yMax + pullUp * unitsPerPixelY;
         } else {
-            // Below the plot and centered. Placed from the *bottom* of the
-            // picture rather than a fixed distance under the axis, so the gap
-            // to the edge is the one that was reserved however the margin came
-            // out — measuring down from the axis instead left the box flush
-            // against the edge, and 1.6px past it, whenever `fitMargins` had to
-            // shrink what was asked for.
+            // Below the plot and centered, placed from the *bottom* of the
+            // picture rather than a fixed distance under the axis: the gap to
+            // the edge is then the one that was reserved, however the margin
+            // came out. Measuring down from the axis instead left the box
+            // flush against the edge, and 1.6px past it, whenever `fitMargins`
+            // had to shrink what was asked for.
             //
-            // Never above the band the horizontal axis' own labels occupy,
-            // which is what the floor is for: a margin too small to hold the
-            // legend should let it run off the bottom rather than draw it over
-            // the category names.
+            // The floor is the top of the picture, for the reason the right-hand
+            // placement pulls its box back inside: `fitMargins` caps the
+            // margin, the box does not shrink with it, and a floor at the band
+            // the category names occupy is what let the legend run off the
+            // bottom of the picture instead — a `size="small"` chart was
+            // outside from four named series, and outside by 70px at eight.
+            // Rising over the category names is the lesser fault, and it is
+            // what the other outside placement already chooses.
+            //
+            // `fitMargins` only ever shrinks, so the first term is at most
+            // `baseBottom` and equals it whenever the margin was granted in
+            // full: an uncrowded chart is placed exactly where it was before.
             const belowAxis = Math.max(
                 marginBottom -
                     LEGEND_OUTSIDE_GAP -
                     legendSize.height -
                     LEGEND_ANCHOR_OFFSET,
-                baseBottom,
+                -(marginTop + innerHeight),
             );
             anchorX = (xMin + xMax) / 2;
             anchorY = yMin - belowAxis * unitsPerPixelY;
