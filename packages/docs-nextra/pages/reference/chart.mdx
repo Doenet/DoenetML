@@ -112,13 +112,7 @@ one series.
 
 
 The slice names go in the legend, and around the rim instead when there is no legend to hold
-them. A pie has no axes, so it is the one type that reads neither `xMin`/`xMax` nor
-`yMin`/`yMax`, and neither an `<xLabel>{:dn}` nor a `<yLabel>{:dn}` — put that text in a
-`<title>{:dn}` instead. Each slice takes a color of its own, where every other type colors
-by series.
-
-A slice is a share of a total, so a negative value has none, and neither does a value that
-is not a number; both are left out of the total as well, and the chart says so.
+them. Each slice takes a color of its own, where every other type colors by series.
 
 
 
@@ -360,8 +354,8 @@ mark, as the third chart above does: room has to be made for one, either by a bo
 pushes the data clear of that corner or by choosing a corner the data does not reach.
 
 On a pie the legend names the *slices* rather than the series, since a pie's colors tell its
-slices apart. `legend="false"` there moves the names out to the rim rather than dropping
-them, so they are always somewhere:
+slices apart. `legend="false"` there moves the names out to the rim, so they are
+always somewhere:
 
 
 ```doenet-editor-horiz
