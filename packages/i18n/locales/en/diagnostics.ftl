@@ -1157,4 +1157,4 @@ chart-values-outside-series =
 # for fewer points. No count: the queue deduplicates by message, and the number
 # changes as an input is typed into.
 chart-points-not-drawable =
-    A point needs a finite number for both coordinates, so values missing one were not drawn.
+    A point needs a finite number for both coordinates, so values with no coordinate beside them, and coordinates with no value, were not drawn.

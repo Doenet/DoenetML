@@ -2200,6 +2200,35 @@ describe("chart prefigure tests @group4", async () => {
             expect(xml).toContain('<group at="series-1">');
         });
 
+        it("drops a coordinate with no value beside it, and warns", async () => {
+            // The mirror of the case below, and the one the geometry could not
+            // see: it walks the values, so a surplus coordinate was never
+            // visited. `<series x="1 2 3">4 9</series>` dropped its third
+            // coordinate in silence while the opposite mismatch said so, which
+            // made the warning depend on which list happened to be longer.
+            const surplus = await getWarnings(`
+    <chart type="scatter" name="c"><series x="1 2 3">4 9</series></chart>
+    `);
+            expect(surplus.warnings.length).eq(1);
+            expect(surplus.warnings[0].message).contain(
+                "coordinates with no value",
+            );
+
+            // Two coordinates and two values is not a mismatch, however many
+            // of either the other series has.
+            const matched = await getWarnings(`
+    <chart type="scatter" name="c"><series x="1 2 3">4 9 2</series></chart>
+    `);
+            expect(matched.warnings.length).eq(0);
+
+            // And a bar chart ignores `x` entirely, so a surplus one there is
+            // not a mismatch to report.
+            const onABar = await getWarnings(`
+    <chart type="bar" name="c" categories="A B"><series x="1 2 3">4 9</series></chart>
+    `);
+            expect(onABar.warnings.length).eq(0);
+        });
+
         it("drops a value with no x beside it, and warns", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

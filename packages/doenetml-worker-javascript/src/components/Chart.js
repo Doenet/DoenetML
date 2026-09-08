@@ -333,6 +333,12 @@ export default class Chart extends BlockComponent {
             createStateVariable: "markers",
             defaultValue: true,
             public: true,
+            // Alongside `layout`, which is the same thing for a bar chart: the
+            // one control over how a type arranges what it draws. Turning
+            // markers off also costs a screen reader the ability to walk the
+            // series point by point, which is not a trade to make from a
+            // collapsed section of the table.
+            highlighted: true,
         };
 
         attributes.showBorder = {

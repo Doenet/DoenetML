@@ -874,8 +874,8 @@ export function computePointChartGeometry({
             const slot = ind + 1;
             const x = numericAxis ? (oneSeries.x?.[ind] ?? NaN) : slot;
 
-            // A point needs both coordinates, so a `y` with no `x` beside it is
-            // as undrawable as a `y` that is not a number — which is what a
+            // A point needs both coordinates, so a `y` with no `x` beside it
+            // is as undrawable as a `y` that is not a number — which is what a
             // series given fewer horizontal coordinates than values produces
             // from the position the coordinates run out.
             if (!Number.isFinite(x) || !Number.isFinite(y)) {
@@ -891,6 +891,19 @@ export function computePointChartGeometry({
                 label: numericAxis ? "" : (labels[ind] ?? String(slot)),
             });
         });
+
+        // The mirror of the case above, which the loop cannot reach because it
+        // walks the values: a coordinate with no value beside it is a point
+        // with only one coordinate, exactly as undrawable as a value with no
+        // coordinate. Counting only one direction meant
+        // `<series x="1 2 3">4 9</series>` dropped its third coordinate in
+        // silence while `<series x="1 2">4 9 2</series>` said so.
+        if (numericAxis) {
+            undrawnValues += Math.max(
+                0,
+                (oneSeries.x?.length ?? 0) - oneSeries.values.length,
+            );
+        }
     });
 
     /** Whole-number data gets whole-number ticks. */

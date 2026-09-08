@@ -36639,6 +36639,7 @@
                 {
                     "name": "markers",
                     "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -36776,7 +36777,8 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "showBorder",
