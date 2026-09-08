@@ -52,7 +52,7 @@ RUN git clone https://github.com/liblouis/liblouis.git . && \
 RUN pip install pycairo
 
 # 5. Pin Prefigure version and share it with runtime cache keying.
-ARG PREFIG_VERSION=0.5.15
+ARG PREFIG_VERSION=0.7.6
 ENV PREFIG_CACHE_VERSION=${PREFIG_VERSION}
 
 # 5. Install Prefigure
