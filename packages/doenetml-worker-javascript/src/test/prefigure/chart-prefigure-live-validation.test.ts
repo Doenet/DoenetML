@@ -248,4 +248,116 @@ describe("Chart prefigure renderer live validation @group4", () => {
             }
         },
     );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: a chart drawn below or left of zero keeps its axis labels inside the picture",
+        async () => {
+            // PreFigure moves an axis to the frame *past* the data when the
+            // data lies entirely at or below zero (`axes.py`, `position_axes`):
+            // the horizontal axis and its labels go to the top of the box, and
+            // the vertical axis and its numbers to the right. Which margin has
+            // to hold them therefore depends on the data, and getting it wrong
+            // is invisible in the XML — the labels are simply drawn past the
+            // edge of the SVG, where the browser does not paint them. A scatter
+            // of negative `x` had *every* number on its vertical axis outside
+            // the picture, and one of negative values had the numbers on its
+            // horizontal axis cut in half by the top edge.
+            for (const [what, doenetML] of [
+                [
+                    "below zero",
+                    `<chart type="scatter" name="c"><series x="1 2 3">-400 -900 -200</series></chart>`,
+                ],
+                [
+                    "below zero, titled",
+                    `<chart type="scatter" name="c"><title>Losses by quarter</title><series x="1 2 3">-400 -900 -200</series></chart>`,
+                ],
+                [
+                    "below zero, under categories",
+                    `<chart type="line" name="c" categories="Mon Tue Wed">-4 -9 -2</chart>`,
+                ],
+                [
+                    "left of zero",
+                    `<chart type="scatter" name="c"><series x="-1 -2 -3">400 900 200</series></chart>`,
+                ],
+                [
+                    "left of zero, with a legend",
+                    `<chart type="scatter" name="c"><series x="-1 -2 -3"><label>Population 2024</label>400 900 200</series><series x="-1 -2 -3"><label>Population 2025</label>450 950 250</series></chart>`,
+                ],
+                [
+                    "below and left of zero",
+                    `<chart type="scatter" name="c"><series x="-1 -2 -3">-400 -900 -200</series></chart>`,
+                ],
+            ] as [string, string][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const picture = svg.match(
+                    /<svg[^>]*width="([\d.]+)"[^>]*height="([\d.]+)"/,
+                );
+                expect(picture, `${what}: no picture`).toBeTruthy();
+                const pictureWidth = Number(picture![1]);
+                const pictureHeight = Number(picture![2]);
+
+                // An axis number is a `<label>` PreFigure hands to MathJax, so
+                // it reaches the SVG as a group translated to the tick and then
+                // back by half the laid-out size, wrapping an inner `<svg>`
+                // that carries that size. A category name is a `<tick-mark>`
+                // and reaches it as plain `<text>`, whose drawn width the SVG
+                // does not record — so those are measured vertically only,
+                // which is the direction they were clipped in.
+                const measured = [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__label-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<svg[^>]*width="([\d.]+)px" height="([\d.]+)px"/g,
+                    ),
+                ].map((label) => ({
+                    left: Number(label[1]) + Number(label[3]),
+                    top: Number(label[2]) + Number(label[4]),
+                    width: Number(label[5]),
+                    height: Number(label[6]),
+                    what:
+                        svg
+                            .slice(label.index)
+                            .match(/data-semantic-speech="([^"]*)"/)?.[1] ?? "",
+                }));
+                const named = [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__tick-mark-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<text[^>]*font-size="([\d.]+)"[^>]*>([^<]*)</g,
+                    ),
+                ].map((tick) => ({
+                    left: 0,
+                    top: Number(tick[2]) + Number(tick[4]),
+                    width: 0,
+                    height: Number(tick[5]),
+                    what: tick[6],
+                }));
+
+                expect(
+                    measured.length + named.length,
+                    `${what}: no axis labels drawn`,
+                ).toBeGreaterThan(0);
+
+                for (const label of [...measured, ...named]) {
+                    expect(
+                        label.left,
+                        `${what}: "${label.what}" starts outside the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        label.left + label.width,
+                        `${what}: "${label.what}" ends outside the picture`,
+                    ).toBeLessThan(pictureWidth + 0.5);
+                    expect(
+                        label.top,
+                        `${what}: "${label.what}" sits above the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        label.top + label.height,
+                        `${what}: "${label.what}" sits below the picture`,
+                    ).toBeLessThan(pictureHeight + 0.5);
+                }
+            }
+        },
+    );
 });

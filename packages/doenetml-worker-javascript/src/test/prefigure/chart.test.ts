@@ -2312,5 +2312,86 @@ describe("chart prefigure tests @group4", async () => {
             const d = getDiagnosticsByType(core);
             expect(d.warnings.map((w) => w.code)).toContain("doenet-w0148");
         });
+
+        it("reserves the margin the axis labels are actually drawn in", async () => {
+            // PreFigure moves an axis to the frame *past* the data when the
+            // data lies entirely at or below zero: the horizontal axis and its
+            // labels go to the top of the box, and the vertical axis and its
+            // numbers to the right. Reserving the near margin for them left the
+            // labels drawn into a margin sized for nothing — measured against
+            // the build service, a scatter of negative `x` had every number on
+            // its vertical axis outside the picture, and one of negative values
+            // had the numbers on its horizontal axis cut in half by the top
+            // edge. A bar chart reaches neither on its own, which is why this is
+            // new with the types that are free of zero on both axes.
+            //
+            // `margins` is written left, bottom, right, top.
+            const marginsOf = async (doenetML: string) =>
+                (await chartXML(doenetML))
+                    .match(/margins="\[([^\]]*)\]"/)?.[1]
+                    .split(",")
+                    .map(Number) ?? [];
+
+            const [, upBottom, , upTop] = await marginsOf(`
+    <chart type="line" name="c" categories="A B C">4 9 2</chart>
+    `);
+            const [, downBottom, , downTop] = await marginsOf(`
+    <chart type="line" name="c" categories="A B C">-4 -9 -2</chart>`);
+
+            // The band the category names occupy changes sides with them,
+            // rather than being reserved twice or reserved below names drawn
+            // above.
+            expect(downTop).eq(upBottom);
+            expect(downBottom).eq(upTop);
+
+            const [rightLeft, , rightRight] = await marginsOf(`
+    <chart type="scatter" name="c"><series x="1 2 3">4 9 2</series></chart>
+    `);
+            const [leftLeft, , leftRight] = await marginsOf(`
+    <chart type="scatter" name="c"><series x="-1 -2 -3">4 9 2</series></chart>
+    `);
+
+            // Same numbers on the vertical axis either way, so the band is the
+            // same width; only the side it is reserved on changes.
+            expect(leftRight).eq(rightLeft);
+            expect(leftLeft).toBeLessThan(rightLeft);
+
+            // And a chart whose data straddles zero is left exactly as it was:
+            // PreFigure draws that axis through the middle of the plot, where
+            // no margin holds it.
+            const straddling = await marginsOf(`
+    <chart type="scatter" name="c"><series x="-1 2 3">-4 9 -2</series></chart>
+    `);
+            expect(straddling).toEqual([32, 30, 12, 16]);
+        });
+
+        it("raises a title clear of horizontal axis labels sharing the top margin", async () => {
+            const xml = await chartXML(`
+    <chart type="scatter" name="c"><title>Losses</title><series x="1 2 3">-4 -9 -2</series></chart>
+    `);
+
+            // Both the title and the horizontal axis' numbers are anchored to
+            // the top of the box and drawn upwards from it, so a title left at
+            // `yMax` would be drawn over them.
+            const [, , , yMax] = xml
+                .match(/bbox="\(([^)]*)\)"/)![1]
+                .split(",")
+                .map(Number);
+            const titleY = Number(
+                xml.match(
+                    /<label anchor="\([^,]*,([^)]*)\)" alignment="north" scale=/,
+                )?.[1],
+            );
+            expect(titleY).toBeGreaterThan(yMax);
+
+            // A chart drawn above zero keeps its title on the frame, where
+            // nothing else is.
+            const upward = await chartXML(`
+    <chart type="scatter" name="c"><title>Gains</title><series x="1 2 3">4 9 2</series></chart>
+    `);
+            expect(upward).toContain(
+                '<label anchor="(2,10)" alignment="north"',
+            );
+        });
     });
 });

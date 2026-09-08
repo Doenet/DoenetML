@@ -1297,6 +1297,32 @@ function assembleChartDiagram({
     const legendSize = estimateLegendSize(legendLabels, legendKeyWidth);
     const legendOutside = legendDrawn && "side" in placement;
 
+    // Which side of the box each axis' labels land on, which is not always the
+    // near one. `position_axes` (`axes.py`) keeps an axis against the frame the
+    // data starts from while the data straddles zero or lies above it, and
+    // moves it to the frame *past* the data when the data lies entirely at or
+    // below zero: with `yMax` at or below zero the horizontal axis and its
+    // labels go to the top of the box, and with `xMax` at or below zero the
+    // vertical axis and its numbers go to the right. Reserving the near margin
+    // for labels drawn against the far one is a margin holding nothing and a
+    // drawing running past the edge of the picture — a scatter of negative `x`
+    // had its whole vertical axis numbered outside the picture, and one of
+    // negative values had the numbers on its horizontal axis cut in half by the
+    // top edge.
+    //
+    // Both are reachable only where an axis is free of zero, so a bar chart
+    // reaches neither on its own: its horizontal extent runs from zero to the
+    // number of categories, and its vertical axis runs past zero to the data.
+    // An author who writes an all-negative `yMin`/`yMax` pair on one reaches
+    // the first, and is held by the same reservation.
+    const xLabelsOnTop = yMax <= 0;
+    const yLabelsOnRight = xMax <= 0;
+
+    /** The band the vertical axis' numbers occupy, on whichever side. */
+    const yLabelBand = AXIS_LABEL_MARGIN_BASE + axisLabelWidth(yTicks);
+    /** The band the horizontal axis' numbers or category names occupy. */
+    const xLabelBand = baseBottom;
+
     // Annotated, since the base margins are literal types off an `as const`
     // tuple and these are widened past them.
     // A number on the horizontal axis is centered on its tick, so the
@@ -1305,31 +1331,42 @@ function assembleChartDiagram({
     // marks that PreFigure centers itself.
     const halfWidestXLabel = xTicks ? Math.ceil(axisLabelWidth(xTicks) / 2) : 0;
 
-    let wantedRight: number = Math.max(baseRight, halfWidestXLabel);
-    let wantedBottom: number = baseBottom;
+    /**
+     * How far past the plot's right edge the vertical axis' numbers reach, and
+     * so how far anything else placed in that margin has to start beyond it.
+     */
+    const rightOfPlot = yLabelsOnRight ? yLabelBand : 0;
+
+    let wantedRight: number = Math.max(
+        baseRight,
+        halfWidestXLabel,
+        rightOfPlot,
+    );
+    let wantedBottom: number = xLabelsOnTop ? baseTop : xLabelBand;
     const legendOnRight = legendOutside && placement.side === "right";
     const legendOnBottom = legendOutside && placement.side === "bottom";
     if (legendOnRight) {
         // PreFigure's offset, then the box, then a gap to the edge of the
-        // picture. `baseRight` is *not* added underneath: it is there to hold
-        // the half of the outermost axis label that overhangs the corner, and
-        // the legend already reserves more than that past the same edge, so
+        // picture, all beyond whatever the axis numbers already took of the
+        // same margin. `baseRight` is *not* added underneath: it is there to
+        // hold the half of the outermost axis label that overhangs the corner,
+        // and the legend already reserves more than that past the same edge, so
         // adding the two left 20px of every legended chart's width empty.
         // Floored at it anyway, in case the two ever cross.
         wantedRight = Math.max(
             wantedRight,
-            LEGEND_ANCHOR_OFFSET + legendSize.width + LEGEND_OUTSIDE_GAP,
+            rightOfPlot +
+                LEGEND_ANCHOR_OFFSET +
+                legendSize.width +
+                LEGEND_OUTSIDE_GAP,
         );
     } else if (legendOnBottom) {
         // The band the horizontal axis' own labels occupy, then PreFigure's
         // offset, then the box, then a gap to the edge of the picture. Unlike
-        // the right, `baseBottom` is a band the legend sits *below* rather than
-        // an overhang it covers, so here the two really do add.
-        wantedBottom =
-            baseBottom +
-            LEGEND_ANCHOR_OFFSET +
-            legendSize.height +
-            LEGEND_OUTSIDE_GAP;
+        // the right, that band is one the legend sits *below* rather than an
+        // overhang it covers, so here the two really do add.
+        wantedBottom +=
+            LEGEND_ANCHOR_OFFSET + legendSize.height + LEGEND_OUTSIDE_GAP;
     }
 
     // No `titleHasLatex` beside the axis labels' flags: a `<title>`'s text
@@ -1341,8 +1378,11 @@ function assembleChartDiagram({
     // The title is drawn above the frame, so the top margin has to grow to hold
     // it — the margins are what PreFigure adds outside `dimensions`, so a title
     // drawn into a margin sized for the corner of an axis label would be cut
-    // off by the edge of the picture.
-    const wantedTop = baseTop + (titleText ? TITLE_MARGIN : 0);
+    // off by the edge of the picture. Above the horizontal axis' own labels
+    // where those are up there too, which is why the band is the base rather
+    // than added to it.
+    const wantedTop =
+        (xLabelsOnTop ? xLabelBand : baseTop) + (titleText ? TITLE_MARGIN : 0);
 
     // The left margin has to know the labels before the box is sized, since it
     // is what stops the widest of them being clipped — the labels of
@@ -1350,9 +1390,10 @@ function assembleChartDiagram({
     // pixels of it.
     // The vertical axis' numbers usually set the left margin, but on a chart
     // of small counts against large x values they do not, which is why it
-    // takes the larger of the two.
+    // takes the larger of the two — and on a chart drawn entirely to the left
+    // of zero they are not there at all, having moved to the right margin.
     const wantedLeft = Math.max(
-        AXIS_LABEL_MARGIN_BASE + axisLabelWidth(yTicks),
+        yLabelsOnRight ? 0 : yLabelBand,
         halfWidestXLabel,
     );
 
@@ -1383,6 +1424,21 @@ function assembleChartDiagram({
     const innerHeight = heightPx - marginBottom - marginTop;
     const dimensions = `(${formatNumber(innerWidth)},${formatNumber(innerHeight)})`;
     const margins = `[${marginLeft},${marginBottom},${marginRight},${marginTop}]`;
+
+    // Pixels to data units, on each axis, for everything anchored at a
+    // coordinate but placed by a distance in the picture. Guarded, because the
+    // span of a chart of `-1e308` and `1e308` is `Infinity`: an offset scaled
+    // by that is `-Infinity`, which `formatNumber` writes as `null`, and
+    // `anchor="(1.5,null)"` is XML PreFigure cannot read. A zero scale leaves
+    // the anchor on the corner it was measured from, which is finite and
+    // drawable, and a chart spanning the whole double range has no legible
+    // placement to lose.
+    const finiteScale = (span: number, pixels: number) => {
+        const scale = span / (pixels || 1);
+        return Number.isFinite(scale) ? scale : 0;
+    };
+    const unitsPerPixelX = finiteScale(xMax - xMin, innerWidth);
+    const unitsPerPixelY = finiteScale(yMax - yMin, innerHeight);
 
     const strokeAttr = darkModeAxisStrokeAttr(darkMode);
 
@@ -1498,20 +1554,6 @@ function assembleChartDiagram({
         // margin is anchored at a coordinate outside the box and left to the
         // same linear transform as everything else. It does apply an offset of
         // its own on top of that, which `LEGEND_ANCHOR_OFFSET` accounts for.
-        // Pixels to data units, on each axis. Guarded, because the span of a
-        // chart of `-1e308` and `1e308` is `Infinity`: an offset scaled by that
-        // is `-Infinity`, which `formatNumber` writes as `null`, and
-        // `anchor="(1.5,null)"` is XML PreFigure cannot read. A zero scale
-        // leaves the anchor on the corner it was measured from, which is
-        // finite and drawable, and a chart spanning the whole double range has
-        // no legible placement to lose.
-        const finiteScale = (span: number, pixels: number) => {
-            const scale = span / (pixels || 1);
-            return Number.isFinite(scale) ? scale : 0;
-        };
-        const unitsPerPixelX = finiteScale(xMax - xMin, innerWidth);
-        const unitsPerPixelY = finiteScale(yMax - yMin, innerHeight);
-
         let anchorX;
         let anchorY;
         if (!("side" in placement)) {
@@ -1519,7 +1561,10 @@ function assembleChartDiagram({
             anchorY = placement.corner.startsWith("top") ? yMax : yMin;
         } else if (placement.side === "right") {
             // `se` puts the box below and right of the anchor, so the corner of
-            // the box lands in the margin just past the plot's right edge.
+            // the box lands in the margin just past the plot's right edge —
+            // past the vertical axis' numbers as well, on a chart drawn
+            // entirely to the left of zero, where PreFigure puts them in that
+            // same margin.
             //
             // Then pulled back inside the picture. The margin was reserved to
             // hold the box, but `fitMargins` caps it, so a small chart with
@@ -1535,7 +1580,10 @@ function assembleChartDiagram({
             // what the inside placements do by design. A legend outside the
             // picture is not there at all.
             const overhangRight =
-                LEGEND_ANCHOR_OFFSET + legendSize.width + LEGEND_OUTSIDE_GAP;
+                rightOfPlot +
+                LEGEND_ANCHOR_OFFSET +
+                legendSize.width +
+                LEGEND_OUTSIDE_GAP;
             const overhangBottom =
                 LEGEND_ANCHOR_OFFSET + legendSize.height + LEGEND_OUTSIDE_GAP;
             // Pulled only as far as the picture's own edge. A box wider or
@@ -1557,7 +1605,7 @@ function assembleChartDiagram({
                 Math.max(overhangBottom - (innerHeight + marginBottom), 0),
                 marginTop,
             );
-            anchorX = xMax - pullLeft * unitsPerPixelX;
+            anchorX = xMax + (rightOfPlot - pullLeft) * unitsPerPixelX;
             anchorY = yMax + pullUp * unitsPerPixelY;
         } else {
             // Below the plot and centered, placed from the *bottom* of the
@@ -1576,9 +1624,10 @@ function assembleChartDiagram({
             // Rising over the category names is the lesser fault, and it is
             // what the other outside placement already chooses.
             //
-            // `fitMargins` only ever shrinks, so the first term is at most
-            // `baseBottom` and equals it whenever the margin was granted in
-            // full: an uncrowded chart is placed exactly where it was before.
+            // `fitMargins` only ever shrinks, so the first term is at most the
+            // band the axis labels were reserved, and equals it whenever the
+            // margin was granted in full: an uncrowded chart is placed exactly
+            // where it was before.
             const belowAxis = Math.max(
                 marginBottom -
                     LEGEND_OUTSIDE_GAP -
@@ -1598,10 +1647,17 @@ function assembleChartDiagram({
     // and would leave a visual chart untitled — so the caption is emitted as
     // well as the label rather than instead of it, and a title is a title in
     // every format the diagram is produced in.
+    //
+    // Raised clear of the horizontal axis' labels where those share the top
+    // margin, which is where PreFigure puts them on a chart drawn entirely
+    // below zero. Both are anchored to the top of the box and drawn upwards
+    // from it, so without the lift they would be drawn over each other.
     let titleElement = "";
     let captionElement = "";
     if (titleText) {
-        const anchor = `(${formatNumber((xMin + xMax) / 2)},${formatNumber(yMax)})`;
+        const anchor = `(${formatNumber((xMin + xMax) / 2)},${formatNumber(
+            yMax + (xLabelsOnTop ? xLabelBand : 0) * unitsPerPixelY,
+        )})`;
         titleElement = `<label anchor="${escapeXml(anchor)}" alignment="north" scale="${TITLE_SCALE}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${titleText}</label>`;
         captionElement = `<caption>${titleText}</caption>`;
     }
