@@ -22,18 +22,16 @@ several groups of data together, give the chart a `<series>{:dn}` child per grou
 <chart type="bar" categories="North South East West" displayValues>
   <shortDescription>Population by region</shortDescription>
   <yLabel>people</yLabel>
-  <number>41</number>
-  <number>63</number>
-  <number>18</number>
-  <number>78</number>
+  41 63 18 78
 </chart>
 ```
 
 
 
-Bare numbers work as well as `<number>{:dn}` children, so
-`<chart type="bar">41 63 18 78</chart>` draws the same four bars. `displayValues` prints
-each bar's value above it.
+The values are written as plain numbers, separated by spaces. `<number>{:dn}` and
+`<math>{:dn}` children work too, as does a reference to anything that produces numbers,
+which is how a chart of computed values is written. `displayValues` prints each bar's
+value above it.
 
 Every bar carries its category and value as an annotation, so a screen reader can walk the
 chart rather than merely announce it, and a `<shortDescription>{:dn}` becomes the
@@ -117,12 +115,12 @@ sampling simulation this way is walked through in
 ```doenet-editor-horiz
 <chart type="bar" categories="A B C" size="small">
   <shortDescription>Three values as bars</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 
 <chart categories="A B C" size="small">
   <shortDescription>The same values with no type</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 ```
 
@@ -142,12 +140,12 @@ reported and then treated as no type, so it draws nothing too.
 ```doenet-editor-horiz
 <chart type="bar" categories="North South East West" size="small">
   <shortDescription>Population by region, its bars named</shortDescription>
-  <number>41</number><number>63</number><number>18</number><number>78</number>
+  41 63 18 78
 </chart>
 
 <chart type="bar" size="small">
   <shortDescription>The same four values with no categories</shortDescription>
-  <number>41</number><number>63</number><number>18</number><number>78</number>
+  41 63 18 78
 </chart>
 ```
 
@@ -170,16 +168,16 @@ labels.
 
 
 ```doenet-editor-horiz
-<chart type="bar" categories="A B C" size="small">
+<chart type="bar" categories="A B C" size="small" displayValues>
   <shortDescription>Two series side by side</shortDescription>
   <series><label>first</label>4 9 2</series>
-  <series><label>second</label>6 1 5</series>
+  <series><label>second</label>6 5 7</series>
 </chart>
 
-<chart type="bar" categories="A B C" size="small" layout="stacked">
+<chart type="bar" categories="A B C" size="small" layout="stacked" displayValues>
   <shortDescription>The same two series stacked</shortDescription>
   <series><label>first</label>4 9 2</series>
-  <series><label>second</label>6 1 5</series>
+  <series><label>second</label>6 5 7</series>
 </chart>
 ```
 
@@ -189,6 +187,11 @@ Side by side by default, so the bars can be compared both across categories and 
 series. `layout="stacked"` puts them one above another instead, so each category's total is
 what you read; negative values stack downward from the baseline rather than through the
 positive ones. A chart of one series looks the same either way.
+
+`displayValues` labels each series separately in both, so a stacked bar reads as its
+parts: the second chart's middle bar is 9 and 5 rather than 14. Give a stacked chart
+segments too thin to label and the numbers will run together, since each is drawn at the
+top of its own segment.
 
 
 
@@ -247,19 +250,19 @@ drawn.
 ```doenet-editor-horiz
 <chart name="auto" type="bar" categories="A B C" size="small">
   <shortDescription>An axis chosen from the data</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 <p>Automatic: $auto.yMin to $auto.yMax</p>
 
 <chart name="capped" type="bar" categories="A B C" size="small" yMax="20">
   <shortDescription>The same bars under a fixed top</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 <p>With `yMax="20"`: $capped.yMin to $capped.yMax</p>
 
 <chart name="cut" type="bar" categories="A B C" size="small" yMin="5">
   <shortDescription>An axis starting above zero</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 <p>With `yMin="5"`: $cut.yMin to $cut.yMax</p>
 ```
@@ -281,17 +284,17 @@ the one of height 9.
 ```doenet-editor-horiz
 <chart type="bar" categories="A B C" size="small">
   <shortDescription>Default shape</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 
 <chart type="bar" categories="A B C" size="small" aspectRatio="1">
   <shortDescription>As tall as it is wide</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 
 <chart type="bar" categories="A B C" size="small" barWidth="0.4">
   <shortDescription>Narrow bars</shortDescription>
-  <number>4</number><number>9</number><number>2</number>
+  4 9 2
 </chart>
 ```
 
@@ -316,9 +319,7 @@ used exactly, so `width="400px"` draws the same chart as `size="medium"`.
 ```doenet-editor-horiz
 <chart name="counts" type="bar" categories="A B C" size="small">
   <shortDescription>Three values</shortDescription>
-  <number>4</number>
-  <number>9</number>
-  <number>2</number>
+  4 9 2
 </chart>
 
 <p>Values: $counts.values</p>
