@@ -824,9 +824,8 @@ export type PointChartGeometry = {
  * makes it numeric, because the positions are measurements and the distance
  * between them is part of what the chart says; a series without one puts its
  * points at 1, 2, … n under `categories`, exactly where a bar chart puts its
- * bars. A line chart is the only type that reads both, and that is what makes
- * it usable for a time series and for a category-by-category comparison
- * without being two components.
+ * bars. Reading either kind is what lets one type serve both a time series and
+ * a category-by-category comparison without being two components.
  *
  * Unlike a bar chart, neither axis is anchored to zero: a point is not a length
  * measured from a baseline, so there is nothing for the axis to be measured

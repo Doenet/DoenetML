@@ -37,8 +37,8 @@ const DEFAULT_ASPECT_RATIO = 1.5;
 const DEFAULT_BAR_WIDTH = 0.8;
 
 /**
- * A chart of its data. `type` picks which chart is drawn; `bar` is the only one
- * implemented so far, one bar per value.
+ * A chart of its data. `type` picks which chart is drawn: one bar per value, a
+ * path through them, or a point at each.
  *
  * Data arrives as one or more `<series>` children, which is the shape every
  * standard statistical plotting package takes: a chart is data, a mark, and a
@@ -91,10 +91,10 @@ export default class Chart extends BlockComponent {
         );
 
         // Deliberately has no default, so `<chart>` on its own draws nothing
-        // and says why. `bar` is the only chart implemented so far, but it is
-        // not the one an author reaches for most often — a pie chart is at
-        // least as common, and a scatter plot more so. Defaulting to `bar` now
-        // would let documents come to rely on it, and any later change would
+        // and says why. `bar` would be the obvious default and is not the one
+        // an author reaches for most often — a pie chart is at least as
+        // common. Defaulting to it would let documents come to rely on the
+        // default rather than on a type they named, and any later change would
         // silently redraw them as something else. Requiring the attribute
         // keeps that door open at the cost of one word in every document.
         //
