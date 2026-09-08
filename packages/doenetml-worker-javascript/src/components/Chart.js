@@ -113,7 +113,7 @@ export default class Chart extends BlockComponent {
         // keeps that door open at the cost of one word in every document.
         //
         // `validValues` rather than `suggestedValues`: the list of charts is
-        // closed, so `type="pie"` is an author error today rather than a
+        // closed, so `type="donut"` is an author error rather than a
         // choice this component declines to constrain, and the language server
         // should say so where it is written. The cost is that an unrecognized
         // value is reported twice — once naming the value that was rejected,

@@ -308,20 +308,51 @@ liveDescribe("Live chart rendering @group4", { tags: ["@group4"] }, () => {
             });
         }
 
-        // One annotation per slice under the figure, which is what makes the
-        // pie walkable. One series, so there is no `<group>` level between
-        // them.
+        // One annotation per slice, hanging straight off the figure, which is
+        // what makes the pie walkable. One series, so there is no `<group>`
+        // level between them — asserted over the links rather than only the
+        // ids, since a slice annotation that named no parent would still be
+        // present and still be unreachable.
         cy.get("#p .cml", { timeout: 30000 }).should(($cml) => {
-            const ids = [...$cml[0].querySelectorAll("annotation")].map((el) =>
-                el.getAttribute("id"),
-            );
+            const annotations = [...$cml[0].querySelectorAll("annotation")];
+            const ids = annotations.map((el) => el.getAttribute("id"));
             expect(ids.filter((id) => id?.includes("slice-"))).to.have.length(
                 4,
             );
             expect(ids.filter((id) => id?.includes("series-"))).to.have.length(
                 0,
             );
+
+            const figure = annotations.find((el) =>
+                (el.getAttribute("id") ?? "").endsWith("figure"),
+            );
+            expect(figure, "figure annotation").to.exist;
+            const figureChildren = [
+                ...figure.querySelectorAll("children > *"),
+            ].map((el) => el.textContent.trim());
+            expect(figureChildren).to.have.length(4);
+            for (const sliceId of figureChildren) {
+                expect(sliceId).to.match(/slice-\d+$/);
+                const slice = annotations.find(
+                    (el) => el.getAttribute("id") === sliceId,
+                );
+                expect(slice, `annotation for ${sliceId}`).to.exist;
+                const parents = [...slice.querySelectorAll("parents > *")].map(
+                    (el) => el.textContent.trim(),
+                );
+                expect(parents.some((id) => id.endsWith("figure"))).to.be.true;
+            }
         });
+
+        // diagcess claims the chart by marking it up and taking it over, which
+        // it only does once both the drawing and the annotations are in the
+        // DOM. Waited for before the click, because the click is what activates
+        // the explorer and nothing clicks again afterwards.
+        cy.get("#p .ChemAccess-element", { timeout: 30000 })
+            .should("have.attr", "has-svg", "true")
+            .and("have.attr", "has-cml", "true")
+            .and("have.attr", "tabindex", "0")
+            .and("have.attr", "role", "application");
 
         cy.get("#p .ChemAccess-element").click({ force: true });
         cy.get("#p .cacc-message", { timeout: 30000 })

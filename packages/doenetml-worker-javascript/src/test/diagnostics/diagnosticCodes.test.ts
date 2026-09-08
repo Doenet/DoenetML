@@ -486,18 +486,18 @@ describe("coded diagnostics reach the record @group4", () => {
     // here, `<chart>`'s "no chart type was named".
     it("codes an attribute value that was dropped for want of a default", async () => {
         const { core } = await createTestCore({
-            doenetML: `<chart name="c" type="pie"><number>4</number></chart>`,
+            doenetML: `<chart name="c" type="donut"><number>4</number></chart>`,
         });
 
         const { infos } = getDiagnosticsByType(core);
         expect(infos.length).eq(1);
         expect(infos[0].code).eq("doenet-i0051");
         expect(infos[0].args).eqls({
-            value: "pie",
+            value: "donut",
             attribute: "type",
         });
         expect(infos[0].message).eq(
-            "Invalid value `pie` for attribute `type`, ignoring it",
+            "Invalid value `donut` for attribute `type`, ignoring it",
         );
     });
 
