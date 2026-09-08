@@ -85,15 +85,21 @@ describe("Chart prefigure renderer live validation @group4", () => {
             // from a character count. So the box is measured here rather than
             // predicted, across labels chosen to be much wider and much
             // narrower than their length suggests.
-            for (const label of [
-                "WWWWWW",
-                "llllll",
-                "Q1",
-                "Population 2024",
-                "Wm. & Mary (VA)",
-            ]) {
+            for (const [label, size] of [
+                ["WWWWWW", "large"],
+                ["llllll", "large"],
+                ["Q1", "large"],
+                ["Population 2024", "large"],
+                ["Wm. & Mary (VA)", "large"],
+                // Labels wide enough that the margin `fitMargins` allows can no
+                // longer hold the box. These were drawn 14 to 41px past the
+                // right edge of the picture before the anchor was pulled in.
+                ["Population 2024 AB", "small"],
+                ["Northern Territory 2024", "small"],
+                ["a fairly long series label here indeed ok", "medium"],
+            ] as [string, string][]) {
                 const prefigureXML = await getPrefigureXML(
-                    `<chart type="bar" name="c" categories="A B" size="large">
+                    `<chart type="bar" name="c" categories="A B" size="${size}">
                        <series><label>${label}</label>4 9</series>
                        <series><label>${label} II</label>6 1</series>
                      </chart>`,
@@ -115,14 +121,23 @@ describe("Chart prefigure renderer live validation @group4", () => {
                 expect(box, `${label}: no legend box drawn`).toBeTruthy();
 
                 const gap = pictureWidth - (Number(box![1]) + Number(box![3]));
-                // Inside the picture, and not by so much that the width is
-                // being wasted: the margin reserves an 8px gap, and whatever
-                // the estimate came out over is added to it.
+                // Inside the picture, always. This is the assertion that
+                // matters: a box drawn past the edge is clipped, and the SVG
+                // gives no sign of it.
                 expect(gap, `${label}: legend is clipped`).toBeGreaterThan(0);
-                expect(
-                    gap,
-                    `${label}: legend leaves too much width unused`,
-                ).toBeLessThan(30);
+
+                // And not wasting width, for labels short enough that the
+                // estimate is close. The estimate is a sum of per-character
+                // classes, so its error grows with the label: it is within a
+                // pixel or two of a short one and around 25px over a
+                // forty-character one, and that surplus becomes gap. Bounding
+                // the long ones here would only pin the estimate's error.
+                if (label.length <= 15) {
+                    expect(
+                        gap,
+                        `${label}: legend leaves too much width unused`,
+                    ).toBeLessThan(30);
+                }
             }
         },
     );

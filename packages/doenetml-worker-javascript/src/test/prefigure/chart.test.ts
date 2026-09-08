@@ -1185,6 +1185,43 @@ describe("chart prefigure tests @group4", async () => {
             expect(base + height).toBeLessThanOrEqual(Number.MAX_VALUE);
         });
 
+        it("keeps the far corner finite when snapping would round it over", async () => {
+            // Measuring the height between the two ends is not enough either,
+            // because the height is then snapped, and `toPrecision(12)` rounds
+            // *up* as readily as down. A small base under a saturated total is
+            // where that shows: the exact difference fits, and the snapped one
+            // does not. This came back as `L nan -inf` in the drawn path with
+            // the chart reporting no null anywhere in its XML.
+            for (const first of [
+                "1.7976931348623157e302",
+                "1e300",
+                "5.99e307",
+            ]) {
+                const xml = await chartXML(`
+    <chart type="bar" name="c" layout="stacked" categories="A" displayValues>
+      <series>${first}</series><series>1.7976931348623157e308</series>
+    </chart>
+    `);
+                const corners = [
+                    ...xml.matchAll(
+                        /lower-left="\(([^,]*),([^)]*)\)" dimensions="\(([^,]*),([^)]*)\)"/g,
+                    ),
+                ].map((m) => Number(m[2]) + Number(m[4]));
+                expect(corners.length, `${first}: bars drawn`).toBeGreaterThan(
+                    0,
+                );
+                for (const corner of corners) {
+                    expect(
+                        Number.isFinite(corner),
+                        `${first}: far corner ${corner}`,
+                    ).eq(true);
+                }
+                expect(xml, `${first}: no null in the XML`).not.toContain(
+                    "null",
+                );
+            }
+        });
+
         it("measures a stack of fractions without leaving dust in the XML", async () => {
             const xml = await chartXML(`
     <chart type="bar" name="c" layout="stacked" displayValues categories="A">
@@ -1774,6 +1811,75 @@ describe("chart prefigure tests @group4", async () => {
             // Stacking the base margin underneath made it 74, and left that
             // 12px of the picture's width empty in every chart with a legend.
             expect(await withLabels("Q1")).toBeLessThan(70);
+        });
+
+        it("keeps the legend anchor finite on an axis that spans the doubles", async () => {
+            // `yMax - yMin` for data at both ends of the double range is
+            // `Infinity`, and an offset scaled by that is `-Infinity`, which
+            // `formatNumber` writes as `null`. `anchor="(1.5,null)"` is not XML
+            // PreFigure can read, so the offset is dropped instead.
+            for (const position of ["outsideBottom", "outsideRight"]) {
+                const xml = await chartXML(`
+    <chart type="bar" name="c" legendPosition="${position}" categories="A B">
+      <series><label>lo</label>-1.7976931348623157e308 1</series>
+      <series><label>hi</label>1.7976931348623157e308 2</series>
+    </chart>
+    `);
+                const anchor = xml.match(
+                    /<legend anchor="\(([^,]*),([^)]*)\)"/,
+                );
+                expect(anchor, `${position}: a legend is drawn`).not.eq(null);
+                expect(
+                    Number.isFinite(Number(anchor?.[1])),
+                    `${position}: anchor x is ${anchor?.[1]}`,
+                ).eq(true);
+                expect(
+                    Number.isFinite(Number(anchor?.[2])),
+                    `${position}: anchor y is ${anchor?.[2]}`,
+                ).eq(true);
+                expect(xml, `${position}: no null`).not.toContain("null");
+            }
+        });
+
+        it("pulls an outsideRight legend back inside a margin too small for it", async () => {
+            // `fitMargins` caps the margin at two thirds of the frame, but the
+            // box does not shrink with it, so a small chart with long labels
+            // had its legend drawn past the right edge of the picture and
+            // clipped — 41px past it for a 23-character label. The anchor comes
+            // in by the difference so the box lands inside.
+            const placement = async (doenetML: string) => {
+                const xml = await chartXML(doenetML);
+                const [xMin, , xMax] = (
+                    xml.match(/bbox="\(([^)]*)\)"/)?.[1] ?? ""
+                )
+                    .split(",")
+                    .map(Number);
+                return {
+                    anchorX: Number(
+                        xml.match(/<legend anchor="\(([^,]*),/)?.[1],
+                    ),
+                    xMin,
+                    xMax,
+                };
+            };
+
+            const long = await placement(`
+    <chart type="bar" name="c" size="small" categories="A">
+      <series><label>Northern Territory 2024</label>4</series>
+    </chart>
+    `);
+            const short = await placement(`
+    <chart type="bar" name="c" size="small" categories="A">
+      <series><label>Q1</label>4</series>
+    </chart>
+    `);
+
+            // A legend that fits is anchored on the plot's right edge, and the
+            // short-labeled chart's still is.
+            expect(short.anchorX).eq(short.xMax);
+            // The long-labeled one comes in, and not past the plot itself.
+            expect(long.anchorX).toBeLessThan(long.xMax);
+            expect(long.anchorX).toBeGreaterThanOrEqual(long.xMin);
         });
 
         it("honors legend and legendPosition", async () => {

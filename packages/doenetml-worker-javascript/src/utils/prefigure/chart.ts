@@ -255,6 +255,34 @@ function snapNumber(value: number): number {
 }
 
 /**
+ * How tall a stacked segment between `base` and `top` is drawn, snapped.
+ *
+ * Measuring the height as a difference is what keeps a segment based at the
+ * saturation ceiling from overflowing, but snapping that difference can undo
+ * it: `toPrecision(12)` rounds, and rounding *up* a height that was measured
+ * against the largest representable number puts `base + height` back over the
+ * edge. A base of `1.798e302` under a saturated total came out as a rectangle
+ * whose far corner was `Infinity`, which PreFigure drew as
+ * `L nan -inf` — the same shape of bug the difference was introduced to fix.
+ *
+ * So the snapped height is used only while the corner it reconstructs is still
+ * finite, and the exact difference is the fallback. The last case shrinks by
+ * one part in 2^52, which no picture can show, and exists because subtracting
+ * and adding back can itself round over the ceiling.
+ */
+function segmentHeight(base: number, top: number): number {
+    const exact = top - base;
+    const snapped = snapNumber(exact);
+    if (Number.isFinite(base + snapped)) {
+        return snapped;
+    }
+    if (Number.isFinite(base + exact)) {
+        return exact;
+    }
+    return exact * (1 - Number.EPSILON);
+}
+
+/**
  * A running total kept inside the range a double can hold.
  *
  * A stack's height is the sum of its segments, and a sum of finite values need
@@ -506,13 +534,13 @@ export function computeBarChartGeometry({
                 height = Math.abs(value);
             } else if (value < 0) {
                 const bottom = saturatingAdd(stackBelow[ind], value);
-                height = snapNumber(stackBelow[ind] - bottom);
+                height = segmentHeight(bottom, stackBelow[ind]);
                 base = bottom;
                 stackBelow[ind] = bottom;
             } else {
                 base = stackAbove[ind];
                 const top = saturatingAdd(base, value);
-                height = snapNumber(top - base);
+                height = segmentHeight(base, top);
                 stackAbove[ind] = top;
             }
 
@@ -850,12 +878,10 @@ export function createBarChartPrefigureXML({
     // A series earns a legend entry by having both a label and a mark for the
     // swatch to be read off, so the test is over the geometry rather than over
     // the handles, which are not assigned until the bars are built below.
-    const seriesHasBar = geometry.series.map((_unused, seriesIndex) =>
-        geometry.bars.some((bar) => bar.seriesIndex === seriesIndex),
-    );
+    const seriesWithABar = new Set(geometry.bars.map((bar) => bar.seriesIndex));
     const legendLabels = geometry.series
         .map(({ label }, seriesIndex) =>
-            seriesHasBar[seriesIndex] ? label : "",
+            seriesWithABar.has(seriesIndex) ? label : "",
         )
         .filter((label) => label !== "");
     const legendDrawn = showLegend && legendLabels.length > 0;
@@ -1131,6 +1157,20 @@ export function createBarChartPrefigureXML({
         // vertical-skip, stroke and opacity), so a legend that belongs in a
         // margin is anchored at a coordinate outside the box and left to the
         // same linear transform as everything else.
+        // Pixels to data units, on each axis. Guarded, because the span of a
+        // chart of `-1e308` and `1e308` is `Infinity`: an offset scaled by that
+        // is `-Infinity`, which `formatNumber` writes as `null`, and
+        // `anchor="(1.5,null)"` is XML PreFigure cannot read. A zero scale
+        // leaves the anchor on the corner it was measured from, which is
+        // finite and drawable, and a chart spanning the whole double range has
+        // no legible placement to lose.
+        const finiteScale = (span: number, pixels: number) => {
+            const scale = span / (pixels || 1);
+            return Number.isFinite(scale) ? scale : 0;
+        };
+        const unitsPerPixelX = finiteScale(xMax - xMin, innerWidth);
+        const unitsPerPixelY = finiteScale(yMax - yMin, innerHeight);
+
         let anchorX;
         let anchorY;
         if (!("side" in placement)) {
@@ -1139,8 +1179,45 @@ export function createBarChartPrefigureXML({
         } else if (placement.side === "right") {
             // `se` puts the box below and right of the anchor, so the corner of
             // the box lands in the margin just past the plot's right edge.
-            anchorX = xMax;
-            anchorY = yMax;
+            //
+            // Then pulled back inside the picture. The margin was reserved to
+            // hold the box, but `fitMargins` caps it, so a small chart with
+            // long labels gets a margin narrower than what it was reserved
+            // from — and the box, which does not shrink with it, was drawn
+            // past the edge of the SVG and clipped: `size="small"` with two
+            // thirty-character labels put the legend's right edge at 360px in
+            // a 255px picture. Height is not reserved at all, so a chart of
+            // enough labeled series ran off the bottom the same way.
+            //
+            // Overlapping the plot is the lesser fault: a legend over a bar is
+            // still readable and still says what the colors mean, and it is
+            // what the inside placements do by design. A legend outside the
+            // picture is not there at all.
+            const overhangRight =
+                LEGEND_ANCHOR_OFFSET + legendSize.width + LEGEND_OUTSIDE_GAP;
+            const overhangBottom =
+                LEGEND_ANCHOR_OFFSET + legendSize.height + LEGEND_OUTSIDE_GAP;
+            // Pulled only as far as the picture's own edge. A box wider or
+            // taller than the whole picture cannot be placed inside it by
+            // moving it, so it keeps overflowing the side it always
+            // overflowed; dragging it further would only move the clipped part
+            // to the other end.
+            const pullLeft = Math.min(
+                Math.max(overhangRight - marginRight, 0),
+                Math.max(
+                    marginLeft +
+                        innerWidth +
+                        LEGEND_ANCHOR_OFFSET -
+                        LEGEND_OUTSIDE_GAP,
+                    0,
+                ),
+            );
+            const pullUp = Math.min(
+                Math.max(overhangBottom - (innerHeight + marginBottom), 0),
+                marginTop,
+            );
+            anchorX = xMax - pullLeft * unitsPerPixelX;
+            anchorY = yMax + pullUp * unitsPerPixelY;
         } else {
             // Below the plot and centered. Placed from the *bottom* of the
             // picture rather than a fixed distance under the axis, so the gap
@@ -1153,7 +1230,6 @@ export function createBarChartPrefigureXML({
             // which is what the floor is for: a margin too small to hold the
             // legend should let it run off the bottom rather than draw it over
             // the category names.
-            const unitsPerPixel = (yMax - yMin) / (innerHeight || 1);
             const belowAxis = Math.max(
                 marginBottom -
                     LEGEND_OUTSIDE_GAP -
@@ -1162,7 +1238,7 @@ export function createBarChartPrefigureXML({
                 baseBottom,
             );
             anchorX = (xMin + xMax) / 2;
-            anchorY = yMin - belowAxis * unitsPerPixel;
+            anchorY = yMin - belowAxis * unitsPerPixelY;
         }
         const anchor = `(${formatNumber(anchorX)},${formatNumber(anchorY)})`;
         legendElement = `<legend anchor="${escapeXml(anchor)}" alignment="${placement.alignment}" opacity="0" stroke="currentColor">${legendItems.join("")}</legend>`;

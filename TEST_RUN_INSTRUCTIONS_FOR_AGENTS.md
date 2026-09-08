@@ -42,9 +42,18 @@ The glob matters: `RUN_LIVE_PREFIGURE_ACCESSIBILITY` gates more than one suite
 single file silently runs a fraction of what the variable enables.
 
 If you do start one by accident, it will not exit on its own and it will block whatever is
-waiting on it. Kill it with `pkill -9 -f "Cypress/.*/Cypress"`, and do not simply re-run
-the same command — a killed child that the parent immediately relaunches reopens the
-window.
+waiting on it.
+
+**Stop the thing you started, not every Cypress on the machine.** A developer may have
+their own Cypress open, and this repository's CI runs Cypress too, so `pkill -f cypress`
+takes those down with yours and `-9` denies all of them the chance to clean up. Signal the
+process group of the command you ran — `kill -TERM -<pgid>`, where the pgid is the pid of
+the `npm` process you started (`ps -o pgid= -p <pid>`) — and escalate to `-KILL` on that
+same group only if it has not gone after a few seconds.
+
+Killing the child on its own does not work: `cypress open` is launched by a parent that
+relaunches it, so the window closes and immediately reopens. If the run was started by a
+subagent, stop the agent; that is what owns the parent.
 
 Redirect a Cypress run to a file and grep the file. Piping it into `head` can wedge the
 run rather than ending it.
