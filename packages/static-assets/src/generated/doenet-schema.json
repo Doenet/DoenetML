@@ -36490,15 +36490,26 @@
                 {
                     "name": "type",
                     "description": "Which chart to draw. Required; there is no default, and `<chart>` with no type draws nothing.",
+                    "groupName": "marks",
                     "highlighted": true,
                     "defaultValue": null,
                     "values": [
-                        "bar"
+                        "bar",
+                        "line",
+                        "scatter"
                     ],
                     "autocompleteValues": [
                         {
                             "value": "bar",
                             "description": "A bar chart: one bar per value, standing on a baseline of zero, under a horizontal axis of category names."
+                        },
+                        {
+                            "value": "line",
+                            "description": "A line chart: a path through each series' values in the order given, under category names or against an `x` of their own."
+                        },
+                        {
+                            "value": "scatter",
+                            "description": "A scatter plot: one point per value, against an `x` of its own, or under category names where no series carries one."
                         }
                     ],
                     "type": "keyword"
@@ -36511,19 +36522,22 @@
                 },
                 {
                     "name": "categories",
-                    "description": "The label under each bar. Defaults to the bar's position, 1, 2, 3 and so on.",
+                    "description": "The label under each position on the horizontal axis. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
+                    "groupName": "axes",
                     "highlighted": true,
                     "type": "textList"
                 },
                 {
                     "name": "barWidth",
                     "description": "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them.",
+                    "groupName": "marks",
                     "defaultValue": 0.8,
                     "type": "number"
                 },
                 {
                     "name": "layout",
                     "description": "How the bars of several series share a category's slot.",
+                    "groupName": "marks",
                     "highlighted": true,
                     "defaultValue": "grouped",
                     "values": [
@@ -36544,7 +36558,8 @@
                 },
                 {
                     "name": "legend",
-                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "description": "Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "groupName": "legend",
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -36555,6 +36570,7 @@
                 {
                     "name": "legendPosition",
                     "description": "Where the legend sits.",
+                    "groupName": "legend",
                     "defaultValue": "outsideRight",
                     "values": [
                         "outsideRight",
@@ -36593,21 +36609,50 @@
                     "type": "keyword"
                 },
                 {
+                    "name": "xMin",
+                    "description": "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+                    "groupName": "axes",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
+                    "name": "xMax",
+                    "description": "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+                    "groupName": "axes",
+                    "defaultValue": null,
+                    "type": "number"
+                },
+                {
                     "name": "yMin",
-                    "description": "Lowest value shown on the vertical axis. Defaults to 0, or to the first tick past the smallest value when some are negative, so that bar does not touch the bottom of the frame. Ignored, along with `yMax`, unless it is a finite number below it.",
+                    "description": "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
+                    "groupName": "axes",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "yMax",
-                    "description": "Highest value shown on the vertical axis. Defaults to the next tick above the tallest bar. Ignored, along with `yMin`, unless it is a finite number above it.",
+                    "description": "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
+                    "groupName": "axes",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "displayValues",
-                    "description": "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
+                    "groupName": "marks",
                     "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "markers",
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "groupName": "marks",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -36708,6 +36753,7 @@
                     "isArray": false,
                     "description": "Which chart to draw. Required; there is no default, and `<chart>` with no type draws nothing.",
                     "fromAttribute": true,
+                    "groupName": "marks",
                     "highlighted": true
                 },
                 {
@@ -36716,28 +36762,41 @@
                     "isArray": false,
                     "description": "How the bars of several series share a category's slot.",
                     "fromAttribute": true,
+                    "groupName": "marks",
                     "highlighted": true
                 },
                 {
                     "name": "legend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
-                    "fromAttribute": true
+                    "description": "Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "fromAttribute": true,
+                    "groupName": "legend"
                 },
                 {
                     "name": "legendPosition",
                     "type": "text",
                     "isArray": false,
                     "description": "Where the legend sits.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "groupName": "legend"
                 },
                 {
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
-                    "fromAttribute": true
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
+                    "fromAttribute": true,
+                    "groupName": "marks"
+                },
+                {
+                    "name": "markers",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "fromAttribute": true,
+                    "groupName": "marks",
+                    "highlighted": true
                 },
                 {
                     "name": "showBorder",
@@ -36831,7 +36890,8 @@
                     "name": "barWidth",
                     "type": "number",
                     "isArray": false,
-                    "description": "How much of its slot each bar fills: greater than 0 and at most 1."
+                    "description": "How much of its slot each bar fills: greater than 0 and at most 1.",
+                    "groupName": "marks"
                 },
                 {
                     "name": "hasAuthorAnnotations",
@@ -36849,13 +36909,17 @@
                     "name": "numSeries",
                     "type": "integer",
                     "isArray": false,
-                    "description": "How many series the chart draws."
+                    "description": "How many series the chart draws.",
+                    "groupName": "data",
+                    "highlighted": true
                 },
                 {
                     "name": "values",
                     "type": "number",
                     "isArray": true,
                     "description": "Every value charted, series by series.",
+                    "groupName": "data",
+                    "highlighted": true,
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -36870,6 +36934,7 @@
                     "type": "text",
                     "isArray": true,
                     "description": "The label under each bar, in order.",
+                    "groupName": "axes",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -36883,25 +36948,43 @@
                     "name": "title",
                     "type": "text",
                     "isArray": false,
-                    "description": "The chart's title, or the empty string when it has none."
+                    "description": "The chart's title, or the empty string when it has none.",
+                    "groupName": "marks"
                 },
                 {
                     "name": "showLegend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether a legend is drawn."
+                    "description": "Whether a legend is drawn.",
+                    "groupName": "legend"
+                },
+                {
+                    "name": "xMin",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The leftmost value shown on the horizontal axis, or null when it is not a numeric axis.",
+                    "groupName": "axes"
+                },
+                {
+                    "name": "xMax",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The rightmost value shown on the horizontal axis, or null when it is not a numeric axis.",
+                    "groupName": "axes"
                 },
                 {
                     "name": "yMin",
                     "type": "number",
                     "isArray": false,
-                    "description": "The lowest value shown on the vertical axis, or null when there is no chart to draw."
+                    "description": "The lowest value shown on the vertical axis, or null when there is no chart to draw.",
+                    "groupName": "axes"
                 },
                 {
                     "name": "yMax",
                     "type": "number",
                     "isArray": false,
-                    "description": "The highest value shown on the vertical axis, or null when there is no chart to draw."
+                    "description": "The highest value shown on the vertical axis, or null when there is no chart to draw.",
+                    "groupName": "axes"
                 },
                 {
                     "name": "prefigureXML",
@@ -37113,6 +37196,12 @@
                         "false"
                     ],
                     "type": "boolean"
+                },
+                {
+                    "name": "x",
+                    "description": "The horizontal coordinate of each value, for a chart whose marks are placed by measurement. Without it a series is drawn under `categories`, at 1, 2, 3 and so on.",
+                    "highlighted": true,
+                    "type": "numberList"
                 }
             ],
             "properties": [
@@ -37180,6 +37269,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "The style number this series is drawn with; defaults to its position among the chart's series."
+                },
+                {
+                    "name": "x",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "The horizontal coordinate of each value, or null when the series has none."
                 },
                 {
                     "name": "values",

@@ -50,6 +50,32 @@ describe("Chart prefigure renderer live validation @group4", () => {
     </chart>`,
                     expectText: "bar (stacked, mixed signs)",
                 },
+                {
+                    doenetML: `
+    <chart type="scatter" name="c">
+      <shortDescription>Height against weight</shortDescription>
+      <xLabel>height</xLabel>
+      <yLabel>weight</yLabel>
+      <series x="1.5 2.5 3.5 4.5"><label>control</label>4 9 2 7</series>
+      <series x="1.5 2.5 3.5 4.5"><label>treated</label>6 1 5 3</series>
+    </chart>`,
+                    expectText: "scatter (two series, numeric axes)",
+                },
+                {
+                    doenetML: `
+    <chart type="line" name="c" categories="North South East West">
+      <title>Population by region</title>
+      <series><label>2024</label>41 63 18 78</series>
+    </chart>`,
+                    expectText: "line (categorical axis)",
+                },
+                {
+                    doenetML: `
+    <chart type="line" name="c" markers="false">
+      <series x="1 2 3 4 5">4 9 2 7 3</series>
+    </chart>`,
+                    expectText: "line (numeric axis, no markers)",
+                },
             ];
 
             for (const c of cases) {
@@ -108,45 +134,62 @@ describe("Chart prefigure renderer live validation @group4", () => {
                 ["######", "large"],
                 ["OCTOBER TOTALS", "large"],
             ] as [string, string][]) {
-                const prefigureXML = await getPrefigureXML(
-                    `<chart type="bar" name="c" categories="A B" size="${size}">
+                // Both key shapes: a bar's legend key is a swatch of fill, a
+                // line's is a segment of stroke and 14px wider, and the margin
+                // is reserved from an estimate that has to know which.
+                for (const chartType of ["bar", "line"]) {
+                    const prefigureXML = await getPrefigureXML(
+                        `<chart type="${chartType}" name="c" categories="A B" size="${size}">
                        <series><label>${label}</label>4 9</series>
                        <series><label>${label} II</label>6 1</series>
                      </chart>`,
-                    "c",
-                );
-                const result =
-                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
-                expect(result.ok, `${label}: build failed`).toBe(true);
+                        "c",
+                    );
+                    const result =
+                        await validatePrefigureXMLAgainstBuildService(
+                            prefigureXML,
+                        );
+                    expect(
+                        result.ok,
+                        `${label}/${chartType}: build failed`,
+                    ).toBe(true);
 
-                const svg: string = result.body?.svg ?? "";
-                const pictureWidth = Number(
-                    svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
-                );
-                // `legend.py` draws the box as a rect at the origin of a
-                // translated group, stroked and filled white.
-                const box = svg.match(
-                    /transform="translate\(([-\d.]+),([-\d.]+)\)[^"]*"[^>]*>\s*<rect x="0" y="0" width="([\d.]+)"[^>]*stroke="currentColor" fill="white"/,
-                );
-                expect(box, `${label}: no legend box drawn`).toBeTruthy();
+                    const svg: string = result.body?.svg ?? "";
+                    const pictureWidth = Number(
+                        svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
+                    );
+                    // `legend.py` draws the box as a rect at the origin of a
+                    // translated group, stroked and filled white.
+                    const box = svg.match(
+                        /transform="translate\(([-\d.]+),([-\d.]+)\)[^"]*"[^>]*>\s*<rect x="0" y="0" width="([\d.]+)"[^>]*stroke="currentColor" fill="white"/,
+                    );
+                    expect(
+                        box,
+                        `${label}/${chartType}: no legend box drawn`,
+                    ).toBeTruthy();
 
-                const gap = pictureWidth - (Number(box![1]) + Number(box![3]));
-                // Inside the picture, always. This is the assertion that
-                // matters: a box drawn past the edge is clipped, and the SVG
-                // gives no sign of it.
-                expect(gap, `${label}: legend is clipped`).toBeGreaterThan(0);
-
-                // And not wasting width, for labels short enough that the
-                // estimate is close. The estimate is a sum of per-character
-                // classes, so its error grows with the label: it is within a
-                // pixel or two of a short one and around 25px over a
-                // forty-character one, and that surplus becomes gap. Bounding
-                // the long ones here would only pin the estimate's error.
-                if (label.length <= 15) {
+                    const gap =
+                        pictureWidth - (Number(box![1]) + Number(box![3]));
+                    // Inside the picture, always. This is the assertion that
+                    // matters: a box drawn past the edge is clipped, and the SVG
+                    // gives no sign of it.
                     expect(
                         gap,
-                        `${label}: legend leaves too much width unused`,
-                    ).toBeLessThan(30);
+                        `${label}/${chartType}: legend is clipped`,
+                    ).toBeGreaterThan(0);
+
+                    // And not wasting width, for labels short enough that the
+                    // estimate is close. The estimate is a sum of per-character
+                    // classes, so its error grows with the label: it is within a
+                    // pixel or two of a short one and around 25px over a
+                    // forty-character one, and that surplus becomes gap. Bounding
+                    // the long ones here would only pin the estimate's error.
+                    if (label.length <= 15) {
+                        expect(
+                            gap,
+                            `${label}/${chartType}: legend leaves too much width unused`,
+                        ).toBeLessThan(30);
+                    }
                 }
             }
         },
@@ -201,6 +244,257 @@ describe("Chart prefigure renderer live validation @group4", () => {
                         Number(box![2]),
                         `${size}/${count}: legend is clipped at the top`,
                     ).toBeGreaterThanOrEqual(0);
+                }
+            }
+        },
+    );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: a chart drawn below or left of zero keeps its axis labels inside the picture",
+        async () => {
+            // PreFigure moves an axis to the frame *past* the data when the
+            // data lies entirely at or below zero (`axes.py`, `position_axes`):
+            // the horizontal axis and its labels go to the top of the box, and
+            // the vertical axis and its numbers to the right. Which margin has
+            // to hold them therefore depends on the data, and getting it wrong
+            // is invisible in the XML — the labels are simply drawn past the
+            // edge of the SVG, where the browser does not paint them. A scatter
+            // of negative `x` had *every* number on its vertical axis outside
+            // the picture, and one of negative values had the numbers on its
+            // horizontal axis cut in half by the top edge.
+            for (const [what, doenetML] of [
+                [
+                    "below zero",
+                    `<chart type="scatter" name="c"><series x="1 2 3">-400 -900 -200</series></chart>`,
+                ],
+                [
+                    "below zero, titled",
+                    `<chart type="scatter" name="c"><title>Losses by quarter</title><series x="1 2 3">-400 -900 -200</series></chart>`,
+                ],
+                [
+                    "below zero, under categories",
+                    `<chart type="line" name="c" categories="Mon Tue Wed">-4 -9 -2</chart>`,
+                ],
+                [
+                    "left of zero",
+                    `<chart type="scatter" name="c"><series x="-1 -2 -3">400 900 200</series></chart>`,
+                ],
+                [
+                    "left of zero, with a legend",
+                    `<chart type="scatter" name="c"><series x="-1 -2 -3"><label>Population 2024</label>400 900 200</series><series x="-1 -2 -3"><label>Population 2025</label>450 950 250</series></chart>`,
+                ],
+                [
+                    "below and left of zero",
+                    `<chart type="scatter" name="c"><series x="-1 -2 -3">-400 -900 -200</series></chart>`,
+                ],
+            ] as [string, string][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const picture = svg.match(
+                    /<svg[^>]*width="([\d.]+)"[^>]*height="([\d.]+)"/,
+                );
+                expect(picture, `${what}: no picture`).toBeTruthy();
+                const pictureWidth = Number(picture![1]);
+                const pictureHeight = Number(picture![2]);
+
+                // An axis number is a `<label>` PreFigure hands to MathJax, so
+                // it reaches the SVG as a group translated to the tick and then
+                // back by half the laid-out size, wrapping an inner `<svg>`
+                // that carries that size. A category name is a `<tick-mark>`
+                // and reaches it as plain `<text>`, whose drawn width the SVG
+                // does not record — so those are measured vertically only,
+                // which is the direction they were clipped in.
+                const measured = [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__label-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<svg[^>]*width="([\d.]+)px" height="([\d.]+)px"/g,
+                    ),
+                ].map((label) => ({
+                    left: Number(label[1]) + Number(label[3]),
+                    top: Number(label[2]) + Number(label[4]),
+                    width: Number(label[5]),
+                    height: Number(label[6]),
+                    what:
+                        svg
+                            .slice(label.index)
+                            .match(/data-semantic-speech="([^"]*)"/)?.[1] ?? "",
+                }));
+                const named = [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__tick-mark-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<text[^>]*font-size="([\d.]+)"[^>]*>([^<]*)</g,
+                    ),
+                ].map((tick) => ({
+                    left: 0,
+                    top: Number(tick[2]) + Number(tick[4]),
+                    width: 0,
+                    height: Number(tick[5]),
+                    what: tick[6],
+                }));
+
+                expect(
+                    measured.length + named.length,
+                    `${what}: no axis labels drawn`,
+                ).toBeGreaterThan(0);
+
+                for (const label of [...measured, ...named]) {
+                    expect(
+                        label.left,
+                        `${what}: "${label.what}" starts outside the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        label.left + label.width,
+                        `${what}: "${label.what}" ends outside the picture`,
+                    ).toBeLessThan(pictureWidth + 0.5);
+                    expect(
+                        label.top,
+                        `${what}: "${label.what}" sits above the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        label.top + label.height,
+                        `${what}: "${label.what}" sits below the picture`,
+                    ).toBeLessThan(pictureHeight + 0.5);
+                }
+            }
+        },
+    );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: an axis' name stays inside the plot when its axis moves to the far frame",
+        async () => {
+            // `<xlabel>` is anchored at the right end of the horizontal axis and
+            // `<ylabel>` at the top of the vertical one (`apply_axis_labels`,
+            // `axes.py`), and the alignment decides which way each is drawn from
+            // there. Against the far frames the old alignments drew them out of
+            // the plot: a `<yLabel>` ran 78px past the right edge of a 425px
+            // picture, where the browser does not paint it, and an `<xLabel>`
+            // landed on the numbers of its own axis. Neither is visible in the
+            // XML, so both are measured here.
+            //
+            // An axis' name is plain `<text>`, whose drawn width the SVG does
+            // not record. PreFigure lays a label out as `translate(anchor)
+            // translate(width*dx, -height*dy)`, so the second translate gives
+            // the width away only for the alignments with `dx != 0` — which is
+            // the answer here but not the question. The width is taken instead
+            // off a control render, where the same string is drawn `nw` at the
+            // same size and its width *is* the second translate.
+            const NAME = "weight in kilograms";
+            /** Height of one line of an axis name, measured on the control. */
+            const LINE = 14;
+
+            const nameBoxes = (svg: string) =>
+                [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__label-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<text[^>]*>([^<]*)</g,
+                    ),
+                ]
+                    .filter((name) => name[5] === NAME)
+                    .map((name) => ({
+                        shift: Number(name[3]),
+                        left: Number(name[1]) + Number(name[3]),
+                        top: Number(name[2]) + Number(name[4]),
+                    }));
+
+            const control = await validatePrefigureXMLAgainstBuildService(
+                await getPrefigureXML(
+                    `<chart type="scatter" name="c"><xLabel>${NAME}</xLabel><series x="1 2 3">4 9 2</series></chart>`,
+                    "c",
+                ),
+            );
+            expect(control.ok, "control build failed").toBe(true);
+            const [drawnNw] = nameBoxes(control.body?.svg ?? "");
+            expect(drawnNw, "control: axis name not found").toBeTruthy();
+            // `nw` is `dx = -1`, so the shift is the width itself.
+            const width = -drawnNw.shift;
+            expect(width, "control: axis name has no width").toBeGreaterThan(
+                50,
+            );
+
+            for (const [what, doenetML, expected] of [
+                [
+                    "left of zero",
+                    `<chart type="scatter" name="c"><yLabel>${NAME}</yLabel><series x="-1 -2 -3">400 900 200</series></chart>`,
+                    1,
+                ],
+                [
+                    "below zero",
+                    `<chart type="scatter" name="c"><xLabel>${NAME}</xLabel><series x="1 2 3">-400 -900 -200</series></chart>`,
+                    1,
+                ],
+                [
+                    "below and left of zero",
+                    `<chart type="scatter" name="c"><xLabel>${NAME}</xLabel><yLabel>${NAME}</yLabel><series x="-1 -2 -3">-400 -900 -200</series></chart>`,
+                    2,
+                ],
+            ] as [string, string, number][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const pictureWidth = Number(
+                    svg.match(/<svg[^>]*width="([\d.]+)"/)![1],
+                );
+
+                const names = nameBoxes(svg);
+                expect(names.length, `${what}: axis names not found`).toBe(
+                    expected,
+                );
+
+                for (const name of names) {
+                    expect(
+                        name.left,
+                        `${what}: the axis name starts outside the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        name.left + width,
+                        `${what}: the axis name ends outside the picture`,
+                    ).toBeLessThan(pictureWidth + 0.5);
+                }
+
+                // And clear of the numbers on the axes, which is the other way
+                // a name drawn out of the plot went wrong: the horizontal axis'
+                // numbers share the top margin with an `<xLabel>` drawn `nw`
+                // from an axis that has moved up there.
+                const numbers = [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__label-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<svg[^>]*width="([\d.]+)px" height="([\d.]+)px"/g,
+                    ),
+                ].map((number) => ({
+                    left: Number(number[1]) + Number(number[3]),
+                    top: Number(number[2]) + Number(number[4]),
+                    width: Number(number[5]),
+                    height: Number(number[6]),
+                }));
+                expect(
+                    numbers.length,
+                    `${what}: no axis numbers`,
+                ).toBeGreaterThan(0);
+
+                for (const name of names) {
+                    for (const number of numbers) {
+                        const overlaps =
+                            name.left < number.left + number.width &&
+                            number.left < name.left + width &&
+                            name.top < number.top + number.height &&
+                            number.top < name.top + LINE;
+                        expect(
+                            overlaps,
+                            `${what}: the axis name is drawn over an axis number`,
+                        ).toBe(false);
+                    }
+                }
+
+                // The two names share an anchor once both axes have moved, so
+                // the second is dropped a line rather than drawn over the first.
+                if (names.length === 2) {
+                    expect(
+                        Math.abs(names[0].top - names[1].top),
+                        `${what}: the two axis names are drawn on the same line`,
+                    ).toBeGreaterThanOrEqual(LINE);
                 }
             }
         },

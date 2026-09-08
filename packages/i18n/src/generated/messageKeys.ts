@@ -544,6 +544,7 @@ export type MessageKey =
     | "bar-chart-bar-width-invalid"
     | "chart-type-not-specified"
     | "chart-values-outside-series"
+    | "chart-points-not-drawable"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1154,6 +1155,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "bar-chart-bar-width-invalid",
     "chart-type-not-specified",
     "chart-values-outside-series",
+    "chart-points-not-drawable",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

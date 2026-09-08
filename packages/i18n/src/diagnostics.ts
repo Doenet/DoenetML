@@ -235,6 +235,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0145": "invalid-type-ignored",
     "doenet-w0146": "chart-type-not-specified",
     "doenet-w0147": "chart-values-outside-series",
+    "doenet-w0148": "chart-points-not-drawable",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

@@ -7,11 +7,88 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 <ComponentDisplay name='chart'/>
 
-`<chart>{:dn}` draws data, and `type` picks which chart is drawn. There is no default: `bar`
-is the only type so far, and `<chart>{:dn}` with no type draws nothing and says so. To chart
-several groups of data together, give the chart a `<series>{:dn}` child per group.
+`<chart>{:dn}` draws data, and `type` picks which chart is drawn — there is no default, so
+every chart names one. To chart several groups of data together, give the chart a
+`<series>{:dn}` child per group.
 
 <AttrPropDisplay name='chart'/>
+
+## Chart types
+
+Each type reads its data a little differently. What a `<series>{:dn}` holds is what changes;
+everything around it — the title, the legend, the labels, the sizing — is the same whichever
+chart is drawn.
+
+### `type="bar"`
+
+One bar per value, standing on a baseline of zero, under a horizontal axis of category
+names. A series holds one value per category.
+
+
+```doenet-editor-horiz
+<chart type="bar" categories="North South East West" displayValues size="small">
+  <shortDescription>Population by region</shortDescription>
+  <yLabel>people</yLabel>
+  41 63 18 78
+</chart>
+
+<chart type="bar" categories="small medium large" size="small" legendPosition="upperRight">
+  <shortDescription>Orders by size in two months</shortDescription>
+  <yLabel>orders</yLabel>
+  <series><label>March</label>8 15 6</series>
+  <series><label>April</label>11 13 9</series>
+</chart>
+```
+
+
+
+
+
+### `type="line"`
+
+A path through each series' values, in the order given. A series holds one value per
+category, or a value per `x` when it has one.
+
+
+```doenet-editor-horiz
+<chart type="line" categories="Mon Tue Wed Thu Fri" size="small">
+  <shortDescription>Visitors per weekday</shortDescription>
+  <yLabel>visitors</yLabel>
+  12 19 15 22 30
+</chart>
+
+<chart type="line" size="small">
+  <shortDescription>Position against time</shortDescription>
+  <xLabel>seconds</xLabel>
+  <yLabel>meters</yLabel>
+  <series x="0 0.5 1 1.5 2">0 1.2 4.9 11 19.6</series>
+</chart>
+```
+
+
+
+Without an `x` the points sit under `categories`, evenly spaced; with an `x` they sit at
+the positions it gives and the axis carries numbers. Values are never re-ordered — a path that doubles back is drawn as one.
+
+
+
+### `type="scatter"`
+
+One point per value, drawn at the `x` beside it. A series holds the vertical coordinates
+and its `x` the horizontal ones.
+
+
+```doenet-editor-horiz
+<chart type="scatter" size="small">
+  <shortDescription>Weight against height for two groups</shortDescription>
+  <xLabel>height</xLabel>
+  <yLabel>weight</yLabel>
+  <series x="1.5 1.6 1.7 1.8"><label>control</label>55 62 70 79</series>
+  <series x="1.5 1.6 1.7 1.8"><label>treated</label>58 66 72 84</series>
+</chart>
+```
+
+
 
 ## Examples
 
@@ -62,7 +139,12 @@ values — bare numbers, `<number>{:dn}` and `<math>{:dn}` children, a
 its `<label>{:dn}` names it in the legend, which appears as soon as a series has one.
 Series take consecutive style numbers unless one is given a `styleNumber` of its own, so
 the groups come out in different colors without being asked to. A screen reader walks the
-chart series by series, then bar by bar within a series.
+chart series by series, then mark by mark within a series.
+
+A series may also carry an `x`, which gives its values horizontal coordinates and puts the
+chart on a numeric axis instead of the categories. `type="scatter"{:dn}` is normally drawn
+that way, and `type="line"{:dn}` may be; both fall back to the categories when no series
+carries an `x`.
 
 A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
 all, which is why the simpler charts here need no series at all.
@@ -117,17 +199,27 @@ sampling simulation this way is walked through in
   4 9 2
 </chart>
 
+<chart type="line" categories="A B C" size="small">
+  <shortDescription>The same three values as a line</shortDescription>
+  4 9 2
+</chart>
+
 <chart categories="A B C" size="small">
-  <shortDescription>The same values with no type</shortDescription>
+  <shortDescription>The same values again, with no type</shortDescription>
   4 9 2
 </chart>
 ```
 
 
 
-`type` has no default, so the second chart draws nothing at all and warns that no chart
-type was named. `bar` is the only type so far; a value the chart does not recognize is
-reported and then treated as no type, so it draws nothing too.
+`type` picks the mark the data is drawn with, not the data itself: all three charts above
+hold the same three values. Two of them are the same numbers under different marks, which
+is the whole of what this attribute does — everything else about a chart is written the
+same way whichever type is named.
+
+There is no default, so the third draws nothing and says so.
+
+Every type is listed under [Chart types](#chart-types), with what a series holds for each.
 
 
 
@@ -200,22 +292,22 @@ top of its own segment.
 
 
 ```doenet-editor-horiz
-<chart type="bar" categories="A B" size="small">
-  <shortDescription>A legend beside the chart</shortDescription>
-  <series><label>first</label>4 9</series>
-  <series><label>second</label>6 1</series>
+<chart type="scatter" size="small">
+  <shortDescription>Two groups of measurements, the legend beside the chart</shortDescription>
+  <series x="1 2 3"><label>before</label>4 9 7</series>
+  <series x="1 2 3"><label>after</label>6 11 10</series>
 </chart>
 
-<chart type="bar" categories="A B" size="small" legendPosition="outsideBottom">
+<chart type="scatter" size="small" legendPosition="outsideBottom">
   <shortDescription>The same legend below the chart</shortDescription>
-  <series><label>first</label>4 9</series>
-  <series><label>second</label>6 1</series>
+  <series x="1 2 3"><label>before</label>4 9 7</series>
+  <series x="1 2 3"><label>after</label>6 11 10</series>
 </chart>
 
-<chart type="bar" categories="A B" size="small" legendPosition="upperRight">
+<chart type="scatter" size="small" legendPosition="upperRight">
   <shortDescription>The same legend inside the plot</shortDescription>
-  <series><label>first</label>4 9</series>
-  <series><label>second</label>6 1</series>
+  <series x="1 2 3"><label>before</label>4 9 7</series>
+  <series x="1 2 3"><label>after</label>6 11 10</series>
 </chart>
 ```
 
@@ -227,13 +319,13 @@ until they are named. `legend="false"` suppresses it even when they are.
 
 `legendPosition` says where it goes. By default it sits **outside** the plot, to the right,
 in a margin widened to hold it — so it never covers the data, at the cost of some of the
-chart's width. `outsideBottom` puts it under the category names instead, spending height
+chart's width. `outsideBottom` puts it below the horizontal axis instead, spending height
 rather than width, which suits long series labels or a wide chart.
 
 The four inside corners — `upperRight`, `upperLeft`, `lowerRight`, `lowerLeft` — spend
-neither, and are worth reaching for when the chart has a corner to spare. They can overlap
-the data, as the third chart above shows: giving the chart a `yMax` above its tallest value
-is what makes room for one.
+neither, and are worth reaching for when the chart has a corner to spare. They can cover a
+mark, as the third chart above does: room has to be made for one, either by a bound that
+pushes the data clear of that corner or by choosing a corner the data does not reach.
 
 `$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
 legend, for series that are unnamed, and for named series with no value that could be
@@ -273,6 +365,66 @@ measured from zero whatever the axis shows, so the third chart cuts them off at 
 bottom of the frame, and the two bars that end below 5 disappear entirely, leaving only
 the one of height 9.
 
+A bar chart's vertical axis always includes zero, because its bars are measured from it. A
+line or scatter chart's does not: its points are measured from nothing, so the axis scales
+to the data alone.
+
+
+
+---
+
+### Attribute Example: xMin, xMax
+
+
+```doenet-editor-horiz
+<chart name="auto" type="scatter" size="small">
+  <shortDescription>An axis chosen from the data</shortDescription>
+  <series x="1 2 3">4 9 2</series>
+</chart>
+<p>Automatic: $auto.xMin to $auto.xMax</p>
+
+<chart name="wide" type="scatter" size="small" xMin="-5" xMax="15">
+  <shortDescription>The same points on a wider axis</shortDescription>
+  <series x="1 2 3">4 9 2</series>
+</chart>
+<p>With <c>xMin="-5" xMax="15"</c>: $wide.xMin to $wide.xMax</p>
+```
+
+
+
+The horizontal counterpart of `yMin` and `yMax`, and only for a chart whose horizontal axis
+carries numbers. On a categorical axis the positions are 1, 2, 3 whatever the categories
+say, so there is nothing to bound: a bar chart, and a line or scatter chart no series of
+which carries an `x`, ignore these and report nothing for them.
+
+
+
+---
+
+### Attribute Example: markers
+
+
+```doenet-editor-horiz
+<chart type="line" size="small">
+  <shortDescription>A short series with its points marked</shortDescription>
+  <series x="1 2 3 4 5">4 9 2 7 3</series>
+</chart>
+
+<chart type="line" size="small" markers="false">
+  <shortDescription>The same series drawn as a line alone</shortDescription>
+  <series x="1 2 3 4 5">4 9 2 7 3</series>
+</chart>
+```
+
+
+
+A marker is drawn at each of a line chart's points unless `markers="false"` says otherwise,
+which suits a series long enough for the markers to merge into the line. A scatter plot is
+its markers, so it always draws them and ignores this.
+
+The markers are also what a screen reader walks: each one carries its own annotation, and
+with them off the line carries a single annotation for the whole series instead.
+
 
 
 ---
@@ -299,10 +451,11 @@ the one of height 9.
 
 
 
-`size` sets the width, `aspectRatio` the width over the height, and `barWidth` how much
-of its slot each category fills — the series of a category divide that between them. A
-`width` may be given instead of a `size`, and picks the nearest preset rather than being
-used exactly, so `width="400px"` draws the same chart as `size="medium"`.
+`size` sets the width and `aspectRatio` the width over the height, whichever chart is
+drawn. `barWidth` is bar-only: it says how much of its slot each category fills, and the
+series of a category divide that between them. A `width` may be given instead of a `size`,
+and picks the nearest preset rather than being used exactly, so `width="400px"` draws the
+same chart as `size="medium"`.
 
 
 
@@ -331,6 +484,7 @@ used exactly, so `width="400px"` draws the same chart as `size="medium"`.
 `values` is every value in the chart, series by series, so a chart of one series reports
 exactly what it was given; naming a `<series>{:dn}` is how one group is read on its own.
 
-`yMin`, `yMax`, `barWidth` and `aspectRatio` report what the chart was drawn with rather
-than what was asked for, so `$counts.yMax` is the top of the axis you can see even though
-nothing above set one.
+`yMin`, `yMax`, `xMin`, `xMax`, `barWidth` and `aspectRatio` report what the chart was
+drawn with rather than what was asked for, so `$counts.yMax` is the top of the axis you can
+see even though nothing above set one. `xMin` and `xMax` report nothing for a chart whose
+horizontal axis carries category names rather than numbers.

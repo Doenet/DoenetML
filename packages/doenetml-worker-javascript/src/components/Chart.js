@@ -13,9 +13,11 @@ import {
     returnAxisLabelStateVariableDefinitions,
 } from "../utils/axisLabel";
 import {
-    barChartLegendHasItems,
+    chartLegendHasItems,
     computeBarChartGeometry,
+    computePointChartGeometry,
     createBarChartPrefigureXML,
+    createPointChartPrefigureXML,
 } from "../utils/prefigure/chart";
 import { resolveSelectedStyleForTheme } from "../utils/prefigure/style";
 import {
@@ -35,8 +37,8 @@ const DEFAULT_ASPECT_RATIO = 1.5;
 const DEFAULT_BAR_WIDTH = 0.8;
 
 /**
- * A chart of its data. `type` picks which chart is drawn; `bar` is the only one
- * implemented so far, one bar per value.
+ * A chart of its data. `type` picks which chart is drawn: one bar per value, a
+ * path through them, or a point at each.
  *
  * Data arrives as one or more `<series>` children, which is the shape every
  * standard statistical plotting package takes: a chart is data, a mark, and a
@@ -89,10 +91,10 @@ export default class Chart extends BlockComponent {
         );
 
         // Deliberately has no default, so `<chart>` on its own draws nothing
-        // and says why. `bar` is the only chart implemented so far, but it is
-        // not the one an author reaches for most often — a pie chart is at
-        // least as common, and a scatter plot more so. Defaulting to `bar` now
-        // would let documents come to rely on it, and any later change would
+        // and says why. `bar` would be the obvious default and is not the one
+        // an author reaches for most often — a pie chart is at least as
+        // common. Defaulting to it would let documents come to rely on the
+        // default rather than on a type they named, and any later change would
         // silently redraw them as something else. Requiring the attribute
         // keeps that door open at the cost of one word in every document.
         //
@@ -106,6 +108,7 @@ export default class Chart extends BlockComponent {
         // and the second message is worded not to assume the attribute is
         // missing.
         attributes.type = {
+            groupName: "marks",
             description:
                 "Which chart to draw. Required; there is no default, and `<chart>` with no type draws nothing.",
             createComponentOfType: "text",
@@ -120,11 +123,21 @@ export default class Chart extends BlockComponent {
                     description:
                         "A bar chart: one bar per value, standing on a baseline of zero, under a horizontal axis of category names.",
                 },
+                {
+                    value: "line",
+                    description:
+                        "A line chart: a path through each series' values in the order given, under category names or against an `x` of their own.",
+                },
+                {
+                    value: "scatter",
+                    description:
+                        "A scatter plot: one point per value, against an `x` of its own, or under category names where no series carries one.",
+                },
             ],
         };
 
-        // `aspectRatio`, `barWidth`, `yMin` and `yMax` are each read into a
-        // private `…Attr` state variable rather than straight into the name
+        // `aspectRatio`, `barWidth` and both pairs of bounds are each read into
+        // a private `…Attr` state variable rather than straight into the name
         // they share with the attribute. The public name is then defined below
         // as *what the chart was drawn with*, which is not always what was
         // asked for: a ratio CSS would reject, a bar width that is not a
@@ -152,13 +165,15 @@ export default class Chart extends BlockComponent {
         // `categories="North South East"`. Numbers referenced in from a
         // `<tally>` are converted to their text, which is what a label is.
         attributes.categories = {
+            groupName: "axes",
             createComponentOfType: "textList",
             description:
-                "The label under each bar. Defaults to the bar's position, 1, 2, 3 and so on.",
+                "The label under each position on the horizontal axis. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
             highlighted: true,
         };
 
         attributes.barWidth = {
+            groupName: "marks",
             description:
                 "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them.",
             createComponentOfType: "number",
@@ -176,6 +191,7 @@ export default class Chart extends BlockComponent {
         // One series is drawn identically either way, so this matters only once
         // there is something to arrange.
         attributes.layout = {
+            groupName: "marks",
             description:
                 "How the bars of several series share a category's slot.",
             createComponentOfType: "text",
@@ -206,8 +222,9 @@ export default class Chart extends BlockComponent {
         // "draw a legend" and "draw one where there is something to show" are
         // the same instruction. Whether one appears is `showLegend` below.
         attributes.legend = {
+            groupName: "legend",
             description:
-                'Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
+                'Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
             createComponentOfType: "boolean",
             createStateVariable: "legend",
             defaultValue: true,
@@ -227,6 +244,7 @@ export default class Chart extends BlockComponent {
         // spends height, which is the trade to make when the series labels are
         // long enough that the first is expensive.
         attributes.legendPosition = {
+            groupName: "legend",
             description: "Where the legend sits.",
             createComponentOfType: "text",
             createStateVariable: "legendPosition",
@@ -263,29 +281,76 @@ export default class Chart extends BlockComponent {
             ],
         };
 
-        attributes.yMin = {
+        // Only the types that place their marks along a measured horizontal
+        // axis have an `x` to bound. On a categorical axis the positions are 1,
+        // 2, 3 whatever the categories say, so there is nothing an author could
+        // usefully ask for and these are ignored.
+        attributes.xMin = {
+            groupName: "axes",
             description:
-                "Lowest value shown on the vertical axis. Defaults to 0, or to the first tick past the smallest value when some are negative, so that bar does not touch the bottom of the frame. Ignored, along with `yMax`, unless it is a finite number below it.",
+                "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+            createComponentOfType: "number",
+            createStateVariable: "xMinAttr",
+            defaultValue: null,
+        };
+
+        attributes.xMax = {
+            groupName: "axes",
+            description:
+                "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+            createComponentOfType: "number",
+            createStateVariable: "xMaxAttr",
+            defaultValue: null,
+        };
+
+        attributes.yMin = {
+            groupName: "axes",
+            description:
+                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
             createComponentOfType: "number",
             createStateVariable: "yMinAttr",
             defaultValue: null,
         };
 
         attributes.yMax = {
+            groupName: "axes",
             description:
-                "Highest value shown on the vertical axis. Defaults to the next tick above the tallest bar. Ignored, along with `yMin`, unless it is a finite number above it.",
+                "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
             createComponentOfType: "number",
             createStateVariable: "yMaxAttr",
             defaultValue: null,
         };
 
         attributes.displayValues = {
+            groupName: "marks",
             description:
-                "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
+                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,
             public: true,
+        };
+
+        // True by default, and not only because a short series reads better
+        // with them: a marker is an element, and an element is what an
+        // annotation can point at. With markers off, the line carries one
+        // annotation for the whole series and a screen reader can reach the
+        // chart but not walk it — which is a real cost, and so a choice rather
+        // than a default.
+        attributes.markers = {
+            groupName: "marks",
+            description:
+                "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+            createComponentOfType: "boolean",
+            createStateVariable: "markers",
+            defaultValue: true,
+            public: true,
+            // Alongside `layout`, which is the same thing for a bar chart: the
+            // one control over how a type arranges what it draws. Turning
+            // markers off also costs a screen reader the ability to walk the
+            // series point by point, which is not a trade to make from a
+            // collapsed section of the table.
+            highlighted: true,
         };
 
         attributes.showBorder = {
@@ -472,6 +537,7 @@ export default class Chart extends BlockComponent {
         // `chartGeometry` is handed a width it can use as given and the number
         // read back from the chart is the one it was drawn with.
         stateVariableDefinitions.barWidth = {
+            groupName: "marks",
             description:
                 "How much of its slot each bar fills: greater than 0 and at most 1.",
             public: true,
@@ -582,6 +648,7 @@ export default class Chart extends BlockComponent {
                         "label",
                         "labelHasLatex",
                         "values",
+                        "x",
                         "selectedStyle",
                         "hiddenIgnoreParent",
                     ],
@@ -610,6 +677,12 @@ export default class Chart extends BlockComponent {
                                     values: numericValuesFromValueChildren(
                                         valueChildren,
                                     ),
+                                    // Bare values carry no coordinates, so the
+                                    // horizontal axis stays categorical — which
+                                    // is what makes `<chart type="line">4 9 2`
+                                    // draw a line over three categories rather
+                                    // than refuse for want of an `x`.
+                                    x: null,
                                     selectedStyle:
                                         dependencyValues.selectedStyle,
                                     unlabeledName: contentTranslator(
@@ -655,6 +728,10 @@ export default class Chart extends BlockComponent {
                         label: child.stateValues.label,
                         labelHasLatex: child.stateValues.labelHasLatex,
                         values: child.stateValues.values,
+                        // Null on a series that gave none, which is what puts
+                        // the chart on a categorical axis rather than a
+                        // numeric one.
+                        x: child.stateValues.x,
                         selectedStyle: child.stateValues.selectedStyle,
                         // Built here, where the document's language is known.
                         // The drawing has no way to ask, and a bare position
@@ -686,6 +763,8 @@ export default class Chart extends BlockComponent {
         };
 
         stateVariableDefinitions.numSeries = {
+            groupName: "data",
+            highlighted: true,
             description: "How many series the chart draws.",
             public: true,
             shadowingInstructions: {
@@ -712,6 +791,8 @@ export default class Chart extends BlockComponent {
         // several reports all of its data; `$series.values` on a named series
         // is how one group is read on its own.
         stateVariableDefinitions.values = {
+            groupName: "data",
+            highlighted: true,
             description: "Every value charted, series by series.",
             public: true,
             isArray: true,
@@ -754,6 +835,7 @@ export default class Chart extends BlockComponent {
         };
 
         stateVariableDefinitions.categories = {
+            groupName: "axes",
             description: "The label under each bar, in order.",
             public: true,
             isArray: true,
@@ -812,6 +894,7 @@ export default class Chart extends BlockComponent {
         // the axis: a chart written twice over should read as the later of the
         // two rather than as an error about the earlier.
         stateVariableDefinitions.title = {
+            groupName: "marks",
             description:
                 "The chart's title, or the empty string when it has none.",
             public: true,
@@ -857,6 +940,7 @@ export default class Chart extends BlockComponent {
         // leave `$chart.showLegend` true beside a chart with no legend in it —
         // the kind of property it is worse to expose than to omit.
         stateVariableDefinitions.showLegend = {
+            groupName: "legend",
             description: "Whether a legend is drawn.",
             public: true,
             shadowingInstructions: {
@@ -877,9 +961,7 @@ export default class Chart extends BlockComponent {
                     setValue: {
                         showLegend:
                             dependencyValues.legend &&
-                            barChartLegendHasItems(
-                                dependencyValues.chartGeometry,
-                            ),
+                            chartLegendHasItems(dependencyValues.chartGeometry),
                     },
                 };
             },
@@ -926,6 +1008,14 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "layout",
                 },
+                xMinAttr: {
+                    dependencyType: "stateVariable",
+                    variableName: "xMinAttr",
+                },
+                xMaxAttr: {
+                    dependencyType: "stateVariable",
+                    variableName: "xMaxAttr",
+                },
                 yMinAttr: {
                     dependencyType: "stateVariable",
                     variableName: "yMinAttr",
@@ -941,7 +1031,9 @@ export default class Chart extends BlockComponent {
                 // which is why it says no chart was named rather than that the
                 // attribute is missing. The value that was rejected has
                 // already been named in a message of its own.
-                if (dependencyValues.type !== "bar") {
+                const { type } = dependencyValues;
+
+                if (type !== "bar" && type !== "line" && type !== "scatter") {
                     return {
                         setValue: { chartGeometry: null },
                         sendDiagnostics: [
@@ -953,31 +1045,66 @@ export default class Chart extends BlockComponent {
                     };
                 }
 
-                const geometry = computeBarChartGeometry({
+                if (type === "bar") {
+                    const geometry = computeBarChartGeometry({
+                        series: dependencyValues.seriesData.map(
+                            ({ label, values }) => ({ label, values }),
+                        ),
+                        labels: dependencyValues.categories,
+                        barWidth: dependencyValues.barWidth,
+                        layout: dependencyValues.layout,
+                        yMinAttr: dependencyValues.yMinAttr,
+                        yMaxAttr: dependencyValues.yMaxAttr,
+                    });
+
+                    return {
+                        setValue: { chartGeometry: geometry },
+                        // A value that is not a finite number gets no bar.
+                        // Saying so matters because the alternative reading of
+                        // a missing bar is a value of zero, and the author
+                        // cannot tell the two apart by looking. The message
+                        // carries no count, so the append-only diagnostics
+                        // queue holds one of it however often the values
+                        // change.
+                        sendDiagnostics:
+                            geometry.undrawnValues > 0
+                                ? [
+                                      codedDiagnostic({
+                                          type: "warning",
+                                          code: "doenet-w0144",
+                                      }),
+                                  ]
+                                : [],
+                    };
+                }
+
+                // `line` and `scatter` are the same points, drawn with or
+                // without a path through them, so they share their geometry
+                // and differ only in what is made of it below.
+                const geometry = computePointChartGeometry({
                     series: dependencyValues.seriesData.map(
-                        ({ label, values }) => ({ label, values }),
+                        ({ label, values, x }) => ({ label, values, x }),
                     ),
                     labels: dependencyValues.categories,
-                    barWidth: dependencyValues.barWidth,
-                    layout: dependencyValues.layout,
+                    xMinAttr: dependencyValues.xMinAttr,
+                    xMaxAttr: dependencyValues.xMaxAttr,
                     yMinAttr: dependencyValues.yMinAttr,
                     yMaxAttr: dependencyValues.yMaxAttr,
                 });
 
                 return {
                     setValue: { chartGeometry: geometry },
-                    // A value that is not a finite number gets no bar. Saying
-                    // so matters because the alternative reading of a missing
-                    // bar is a value of zero, and the author cannot tell the
-                    // two apart by looking. The message carries no count, so
-                    // the append-only diagnostics queue holds one of it however
-                    // often the values change.
+                    // A point needs both of its coordinates, so this covers a
+                    // value that is not a finite number *and* a value whose
+                    // `x` ran out — the second of which is what a series given
+                    // fewer coordinates than values produces, and is otherwise
+                    // indistinguishable from having asked for fewer points.
                     sendDiagnostics:
                         geometry.undrawnValues > 0
                             ? [
                                   codedDiagnostic({
                                       type: "warning",
-                                      code: "doenet-w0144",
+                                      code: "doenet-w0148",
                                   }),
                               ]
                             : [],
@@ -992,7 +1119,53 @@ export default class Chart extends BlockComponent {
         // which is where the automatic bounds and the author's are reconciled —
         // and where a chart that was never drawn has no axis to report, which
         // is `null` rather than a number nothing on the screen backs up.
+        // The horizontal extent the chart was actually drawn at, for the same
+        // reason the vertical pair is defined off the geometry: both bounds are
+        // optional and both are dropped together when what they ask for is not
+        // a box there is room to draw in. Null on a chart with a categorical
+        // axis as well as on one that was never drawn — the positions there are
+        // 1, 2, 3 whatever the categories say, so there is no measured extent
+        // to report.
+        stateVariableDefinitions.xMin = {
+            groupName: "axes",
+            description:
+                "The leftmost value shown on the horizontal axis, or null when it is not a numeric axis.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "xMax",
+                    groupName: "axes",
+                    description:
+                        "The rightmost value shown on the horizontal axis, or null when it is not a numeric axis.",
+                    public: true,
+                    shadowingInstructions: {
+                        createComponentOfType: "number",
+                    },
+                },
+            ],
+            returnDependencies: () => ({
+                chartGeometry: {
+                    dependencyType: "stateVariable",
+                    variableName: "chartGeometry",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const geometry = dependencyValues.chartGeometry;
+                // `slots` is the categorical axis' positions, and a chart that
+                // has them is one whose horizontal axis carries names.
+                if (!geometry || geometry.slots) {
+                    return { setValue: { xMin: null, xMax: null } };
+                }
+                const [xMin, , xMax] = geometry.bounds;
+                return { setValue: { xMin, xMax } };
+            },
+        };
+
         stateVariableDefinitions.yMin = {
+            groupName: "axes",
             description:
                 "The lowest value shown on the vertical axis, or null when there is no chart to draw.",
             public: true,
@@ -1002,6 +1175,7 @@ export default class Chart extends BlockComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "yMax",
+                    groupName: "axes",
                     description:
                         "The highest value shown on the vertical axis, or null when there is no chart to draw.",
                     public: true,
@@ -1063,6 +1237,14 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "yLabelHasLatex",
                 },
+                type: {
+                    dependencyType: "stateVariable",
+                    variableName: "type",
+                },
+                markers: {
+                    dependencyType: "stateVariable",
+                    variableName: "markers",
+                },
                 title: {
                     dependencyType: "stateVariable",
                     variableName: "title",
@@ -1106,7 +1288,7 @@ export default class Chart extends BlockComponent {
 
                 const widthPx = dependencyValues.width?.size ?? 425;
 
-                const { xml, diagnostics } = createBarChartPrefigureXML({
+                const shared = {
                     geometry: dependencyValues.chartGeometry,
                     // Resolved here rather than in the geometry, which is
                     // renderer-neutral and has no view of the page's theme:
@@ -1140,7 +1322,19 @@ export default class Chart extends BlockComponent {
                     displayValues: dependencyValues.displayValues,
                     shortDescription: dependencyValues.shortDescription,
                     darkMode,
-                });
+                };
+
+                // The one place the type decides how the geometry is drawn.
+                // `chartGeometry` has already decided *which* geometry there
+                // is, so a type that reached here is one this knows about.
+                const { xml, diagnostics } =
+                    dependencyValues.type === "bar"
+                        ? createBarChartPrefigureXML(shared)
+                        : createPointChartPrefigureXML({
+                              ...shared,
+                              shape: dependencyValues.type,
+                              markers: dependencyValues.markers,
+                          });
 
                 return {
                     setValue: { prefigureXML: xml },

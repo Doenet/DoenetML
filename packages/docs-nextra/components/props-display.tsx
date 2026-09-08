@@ -84,6 +84,10 @@ export type PropInfo = {
  */
 const GROUP_ORDER = [
     "sorting",
+    "data",
+    "marks",
+    "axes",
+    "legend",
     "number-display",
     "labels",
     "positioning",
@@ -96,6 +100,10 @@ const GROUP_ORDER = [
 /** Human-readable section titles for the known functional groups. */
 const GROUP_LABELS: Record<string, string> = {
     sorting: "Sort order",
+    data: "Data",
+    marks: "Marks",
+    axes: "Axes",
+    legend: "Legend",
     "number-display": "Number display",
     labels: "Labels",
     positioning: "Positioning",
