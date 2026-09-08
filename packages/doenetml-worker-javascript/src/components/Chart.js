@@ -130,7 +130,7 @@ export default class Chart extends BlockComponent {
                 {
                     value: "scatter",
                     description:
-                        "A scatter plot: one point per pair of an `x` and a value, on two numeric axes.",
+                        "A scatter plot: one point per value, against an `x` of its own, or under category names where no series carries one.",
                 },
             ],
         };
@@ -166,7 +166,7 @@ export default class Chart extends BlockComponent {
         attributes.categories = {
             createComponentOfType: "textList",
             description:
-                "The label under each bar. Defaults to the bar's position, 1, 2, 3 and so on.",
+                "The label under each position on the horizontal axis. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
             highlighted: true,
         };
 
@@ -297,7 +297,7 @@ export default class Chart extends BlockComponent {
 
         attributes.yMin = {
             description:
-                "Lowest value shown on the vertical axis. Defaults to 0, or to the first tick past the smallest value when some are negative, so that bar does not touch the bottom of the frame. Ignored, along with `yMax`, unless it is a finite number below it.",
+                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. Ignored, along with `yMax`, unless it is a finite number below it.",
             createComponentOfType: "number",
             createStateVariable: "yMinAttr",
             defaultValue: null,
@@ -305,7 +305,7 @@ export default class Chart extends BlockComponent {
 
         attributes.yMax = {
             description:
-                "Highest value shown on the vertical axis. Defaults to the next tick above the tallest bar. Ignored, along with `yMin`, unless it is a finite number above it.",
+                "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. Ignored, along with `yMin`, unless it is a finite number above it.",
             createComponentOfType: "number",
             createStateVariable: "yMaxAttr",
             defaultValue: null,
@@ -313,7 +313,7 @@ export default class Chart extends BlockComponent {
 
         attributes.displayValues = {
             description:
-                "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
+                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,

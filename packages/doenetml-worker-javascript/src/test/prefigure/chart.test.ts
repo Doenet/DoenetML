@@ -2149,6 +2149,58 @@ describe("chart prefigure tests @group4", async () => {
             expect(d.warnings.map((w) => w.code)).toContain("doenet-w0148");
         });
 
+        it("puts a scatter with no x anywhere under the categories", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="scatter" name="c" categories="A B C">4 9 2</chart>
+    <p name="bounds">$c.xMin, $c.xMax</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // "A value with no `x` beside it is not drawn" holds only where
+            // there is a numeric axis to be off. With no `x` anywhere there is
+            // none, so the points take the slots a bar chart's bars would, and
+            // the chart is a dot plot rather than an empty picture.
+            expect((xml.match(/<point /g) ?? []).length).eq(3);
+            expect(xml).toContain('<point at="point-1-1" p="(1,4)"');
+            expect(xml).toContain(
+                '<tick-mark axis="horizontal" location="1" color="currentColor">A</tick-mark>',
+            );
+            expect(xml).not.toContain("hlabels=");
+            // Named by its category, as a bar is, rather than by a coordinate
+            // pair on an axis that carries no measurement.
+            expect(xml).toContain('<annotation ref="point-1-1" text="A: 4" />');
+
+            // Nothing was undrawable, so nothing is reported.
+            expect(getDiagnosticsByType(core).warnings).toEqual([]);
+            // And there is no measured horizontal extent to report.
+            expect(
+                sv[await resolvePathToNodeIdx("bounds")].stateValues.text,
+            ).eq("NaN, NaN");
+        });
+
+        it("prints the values of a line whose markers are off", async () => {
+            const xml = await chartXML(`
+    <chart type="line" name="c" displayValues markers="false">
+      <series x="1 2 3">4 9 2</series>
+    </chart>
+    `);
+
+            // A value label is anchored to the coordinates rather than to a
+            // marker, so turning the markers off does not take the numbers with
+            // them: an author who wrote both asked for a line with its values
+            // printed along it.
+            expect(xml).not.toContain("<point ");
+            expect(
+                xml.match(/<label anchor="\([\d.,]+\)" alignment="north"/g)
+                    ?.length,
+            ).eq(3);
+            expect(xml).toContain('<label anchor="(2,9)" alignment="north"');
+        });
+
         it("reports the horizontal axis only when it is numeric", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

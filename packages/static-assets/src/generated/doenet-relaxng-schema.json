@@ -45306,7 +45306,7 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each bar's value at its far end — above a bar that rises, below one that falls.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
                     "fromAttribute": true
                 },
                 {

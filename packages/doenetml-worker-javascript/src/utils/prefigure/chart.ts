@@ -1780,6 +1780,11 @@ export function createBarChartPrefigureXML({
  */
 export type PointChartShape = "scatter" | "line";
 
+/** A point as PreFigure writes a coordinate pair, `(x,y)`. */
+function pointCoordinates(point: ChartPointMark) {
+    return `(${formatNumber(point.x)},${formatNumber(point.y)})`;
+}
+
 /**
  * Builds the PreFigure XML for a scatter plot or a line chart.
  *
@@ -1866,12 +1871,7 @@ export function createPointChartPrefigureXML({
             }).join(" ");
 
             const handle = `line-${seriesIndex + 1}`;
-            const coordinates = seriesPoints
-                .map(
-                    (point) =>
-                        `(${formatNumber(point.x)},${formatNumber(point.y)})`,
-                )
-                .join(",");
+            const coordinates = seriesPoints.map(pointCoordinates).join(",");
 
             seriesElements[seriesIndex].push(
                 `<polygon at="${escapeXml(handle)}" points="${escapeXml(`[${coordinates}]`)}" closed="no" cliptobbox="yes"${lineAttrs ? ` ${lineAttrs}` : ""} />`,
@@ -1907,6 +1907,19 @@ export function createPointChartPrefigureXML({
             }
         }
 
+        // A value label is anchored to a pair of coordinates rather than to a
+        // marker, so it is drawn whether or not there is one there: an author
+        // who wrote both `displayValues` and `markers="false"` asked for a line
+        // with its numbers printed along it, and dropping them would leave an
+        // attribute doing nothing with nothing said about it.
+        if (displayValues) {
+            for (const point of seriesPoints) {
+                valueLabelElements.push(
+                    `<label anchor="${escapeXml(pointCoordinates(point))}" alignment="north" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(point.y) ?? "")}</label>`,
+                );
+            }
+        }
+
         if (!drawMarkers) {
             return;
         }
@@ -1923,17 +1936,9 @@ export function createPointChartPrefigureXML({
                 seriesKeyHandles[seriesIndex] = handle;
             }
 
-            const coordinates = `(${formatNumber(point.x)},${formatNumber(point.y)})`;
-
             seriesElements[seriesIndex].push(
-                `<point at="${escapeXml(handle)}" p="${escapeXml(coordinates)}" cliptobbox="yes"${pointAttrs ? ` ${pointAttrs}` : ""} />`,
+                `<point at="${escapeXml(handle)}" p="${escapeXml(pointCoordinates(point))}" cliptobbox="yes"${pointAttrs ? ` ${pointAttrs}` : ""} />`,
             );
-
-            if (displayValues) {
-                valueLabelElements.push(
-                    `<label anchor="${escapeXml(coordinates)}" alignment="north" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(point.y) ?? "")}</label>`,
-                );
-            }
 
             // On a categorical axis the position is a name, so the annotation
             // reads the way the bar chart's does; on a numeric one it is a

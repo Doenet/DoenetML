@@ -78,8 +78,8 @@ it point by point.
 
 ### `type="scatter"`
 
-One point per pair of an `x` and a value, on two numeric axes. A series holds the vertical
-coordinates, and its `x` the horizontal ones.
+One point per value, drawn at the `x` beside it. A series holds the vertical coordinates
+and its `x` the horizontal ones, so the chart is read on two numeric axes.
 
 
 ```doenet-editor-horiz
@@ -96,7 +96,9 @@ coordinates, and its `x` the horizontal ones.
 
 Neither axis is anchored to zero: a point is not a length measured from a baseline, so the
 axes scale to the data. A value with no `x` beside it has nowhere to go and is reported
-rather than drawn.
+rather than drawn — but only where there is a numeric axis to be off. Give no series an
+`x` at all and there is none, so the points sit under `categories` as a line chart's do,
+one per position, and the chart is a dot plot rather than a scatter.
 
 ## Examples
 
@@ -150,8 +152,9 @@ the groups come out in different colors without being asked to. A screen reader 
 chart series by series, then mark by mark within a series.
 
 A series may also carry an `x`, which gives its values horizontal coordinates and puts the
-chart on a numeric axis instead of the categories — required by `type="scatter"{:dn}` and
-optional for `type="line"{:dn}`.
+chart on a numeric axis instead of the categories. It is what `type="scatter"{:dn}` is
+normally drawn from and optional for `type="line"{:dn}`; either type falls back to the
+categories when no series carries one.
 
 A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
 all, which is why the simpler charts here need no series at all.
@@ -392,8 +395,8 @@ to the data alone.
 
 The horizontal counterpart of `yMin` and `yMax`, and only for a chart whose horizontal axis
 carries numbers. On a categorical axis the positions are 1, 2, 3 whatever the categories
-say, so there is nothing to bound: a bar chart, and a line chart without an `x`, ignore
-these and report nothing for them.
+say, so there is nothing to bound: a bar chart, and a line or scatter chart no series of
+which carries an `x`, ignore these and report nothing for them.
 
 
 
