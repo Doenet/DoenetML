@@ -44830,6 +44830,31 @@
                         "string"
                     ]
                 },
+                "layout": {
+                    "optional": true,
+                    "type": [
+                        "grouped",
+                        "stacked"
+                    ]
+                },
+                "legend": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "legendPosition": {
+                    "optional": true,
+                    "type": [
+                        "outsideRight",
+                        "outsideBottom",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft"
+                    ]
+                },
                 "yMin": {
                     "optional": true,
                     "type": [
@@ -44917,7 +44942,13 @@
                     "ref": "yLabel"
                 },
                 {
+                    "ref": "title"
+                },
+                {
                     "ref": "shortDescription"
+                },
+                {
+                    "ref": "series"
                 },
                 {
                     "ref": "rightHandSide"
@@ -45230,6 +45261,27 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "layout",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "How the bars of several series share a category's slot.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "legend",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "legendPosition",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Where the legend sits.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
@@ -45343,10 +45395,16 @@
                     "description": "A short accessibility description of the chart."
                 },
                 {
+                    "name": "numSeries",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "How many series the chart draws."
+                },
+                {
                     "name": "values",
                     "type": "number",
                     "isArray": true,
-                    "description": "The value charted at each position, in order.",
+                    "description": "Every value charted, series by series.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -45371,6 +45429,18 @@
                     ]
                 },
                 {
+                    "name": "title",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The chart's title, or the empty string when it has none."
+                },
+                {
+                    "name": "showLegend",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a legend is drawn."
+                },
+                {
                     "name": "yMin",
                     "type": "number",
                     "isArray": false,
@@ -45387,6 +45457,478 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The PreFigure-formatted XML rendered for this chart, or null when there is no chart to draw."
+                }
+            ]
+        },
+        "series": {
+            "type": "element",
+            "name": "series",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component."
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number this series is drawn with; defaults to its position among the chart's series."
+                },
+                {
+                    "name": "values",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "The values in this series, in order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
                 }
             ]
         },
@@ -133656,6 +134198,72 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "else"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "stylePalette"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "case"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,
@@ -134531,6 +135139,72 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "else"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "stylePalette"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "case"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,
@@ -137898,6 +138572,66 @@
                 },
                 {
                     "ref": "else"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "stylePalette"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,
@@ -139914,6 +140648,72 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "else"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "stylePalette"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "case"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,
@@ -151983,6 +152783,72 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "else"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "stylePalette"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "case"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,
@@ -153637,6 +154503,63 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "else"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "case"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,
@@ -156721,6 +157644,72 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "else"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "stylePalette"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "case"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,
@@ -158452,6 +159441,72 @@
                 },
                 {
                     "ref": "vectorList"
+                },
+                {
+                    "ref": "cascadeMessage"
+                },
+                {
+                    "ref": "else"
+                },
+                {
+                    "ref": "series"
+                },
+                {
+                    "ref": "li"
+                },
+                {
+                    "ref": "feedbackDefinition"
+                },
+                {
+                    "ref": "styleDefinition"
+                },
+                {
+                    "ref": "stylePalette"
+                },
+                {
+                    "ref": "controlVectors"
+                },
+                {
+                    "ref": "when"
+                },
+                {
+                    "ref": "option"
+                },
+                {
+                    "ref": "constrainToGrid"
+                },
+                {
+                    "ref": "constrainToGraph"
+                },
+                {
+                    "ref": "attractToGrid"
+                },
+                {
+                    "ref": "constrainTo"
+                },
+                {
+                    "ref": "attractTo"
+                },
+                {
+                    "ref": "constraintUnion"
+                },
+                {
+                    "ref": "attractToConstraint"
+                },
+                {
+                    "ref": "constrainToInterior"
+                },
+                {
+                    "ref": "considerAsResponses"
+                },
+                {
+                    "ref": "case"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "shortDescription"
                 }
             ],
             "textChildrenAllowed": true,

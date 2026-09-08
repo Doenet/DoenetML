@@ -6,6 +6,7 @@ export default {
     "accessible-activities": "Writing Accessible Activities",
     "check-accessibility": "Checking Accessibility",
     "accessible-interactive-graphs": "Accessible Interactive Graphs",
+    "charting-a-simulation": "Charting a Simulation",
     answerValidation: {
         name: "Answer Validation",
         display: "hidden",

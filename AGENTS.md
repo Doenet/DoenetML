@@ -37,6 +37,7 @@ This is an npm workspace monorepo. Key points:
 - All packages build via **Vite** and **Wireit** (a task orchestration tool that manages build dependencies)
 - **Wireit** is configured in each `package.json`'s `wireit` field; it automatically rebuilds dependencies when inputs change
 - Each package can be built/tested independently with `-w <package-name>` or `-w @scope/package-name` flags
+- **Every `@doenet/*` package exports only from its `dist/`.** Importing one *by package name* gets the built code, never the other's `src/`. Nothing rebuilds it for you at test time — see [Cross-package edits need a rebuild](#cross-package-edits-need-a-rebuild-before-testing)
 
 ## Build & Development Commands
 
@@ -69,9 +70,33 @@ Builds prerequisites and serves docs (Nextra-based) at `http://localhost:3000`.
 
 ## Testing
 
+### Cross-package edits need a rebuild before testing
+
+**After editing a package's `src/`, build that package before running tests in any other package:** `npm run build -w @doenet/<edited-package>`.
+
+Every `@doenet/*` package's `exports` point at `dist/`, and no vitest config aliases them back to `src/`. So a test in package B that imports `@doenet/A` gets A's last build. Almost no `test` script rebuilds anything — most are a bare `vitest` — so neither `npm run test -w B` nor `npx vitest` rebuilds A, and an edit-then-test loop across a package boundary reads stale code. Three `test` scripts run a Wireit build first: `doenetml-prototype` and `doenetml-to-pretext` rebuild `parser` and `doenetml-worker`, and `doenetml-worker-rust` rebuilds `parser`.
+
+A *relative* path is the exception, because it bypasses `exports` and resolves to whatever it points at. Where that is a sibling's `src/`, an edit is picked up with no rebuild: `packages/static-assets/scripts/get-schema.ts` and `check-docs-coverage.ts` read `doenetml-worker-javascript/src`, which is why the schema is generated from component source, and `doenetml-worker-javascript/src/test/utils/test-core.ts` — the harness under every worker test — reads `doenetml/src/flags`. It is not only tests and scripts; `packages/standalone/src/coordinator.ts` imports `doenetml-iframe/src` the same way. Where a relative path points at a `dist/` instead, the build is still needed: `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reads `parser/dist`.
+
+The failure is usually silent and misleading. A missing export throws (`X is not a function`), which is at least obvious; more often the old code still runs and the test **passes against the previous behavior**, or a fix you just made appears not to work. Do not conclude a change had no effect until you have rebuilt.
+
+A build that is already up to date is a Wireit cache hit and takes well under a second, so just run it — do not try to reason about whether it is needed.
+
+Two extra traps:
+
+- **Generated sources.** A generator that writes into `src/generated/` (`npm run build:schema -w packages/static-assets`, `npm run codegen -w @doenet/i18n`) has not produced a `dist/` yet. Run the package's `build` afterwards, or consumers keep reading the old artifact. Adding an i18n locale needs the full sequence: `codegen -w @doenet/i18n` → `build -w @doenet/i18n` → `build:schema -w packages/static-assets` → `build -w @doenet/static-assets`.
+- **`@doenet/test-cypress`** has its own rule, below, and a root `npm run build` does not cover it.
+
+Commonly edited packages that others consume: `utils`, `parser`, `i18n`, `static-assets`, `lsp-tools`, `doenetml-worker-javascript`, `ui-components`. When in doubt about the graph, `npm run build:all` is the blunt instrument.
+
+### Running the tests
+
 Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) before running tests. Highlights:
 - For `@doenet/test-cypress`, rebuild before Cypress runs after code changes.
 - Follow the required sequence: `build -> preview -> cypress run`.
+- Run Cypress with `test-cypress-fast-fail` or `test-cypress-all`. **`npm run test-cypress`
+  is `cypress open`** — it opens a GUI and never exits; so is
+  `test:prefigure-live-accessibility`.
 - Do not rely on an old build or an already-running preview server after source edits.
 - The runbook includes non-interactive test commands, Cypress preview-server workflow, fail-fast Cypress commands, and stale-asset troubleshooting.
 

@@ -154,6 +154,7 @@ export type MessageKey =
     | "section-name.theorem"
     | "section-title-prefix"
     | "hint-title"
+    | "chart-unlabeled-series"
     | "table-name"
     | "figure-name"
     | "paginator-previous"
@@ -542,6 +543,7 @@ export type MessageKey =
     | "bar-chart-values-not-drawable"
     | "bar-chart-bar-width-invalid"
     | "chart-type-not-specified"
+    | "chart-values-outside-series"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -762,6 +764,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "section-name.theorem",
     "section-title-prefix",
     "hint-title",
+    "chart-unlabeled-series",
     "table-name",
     "figure-name",
     "paginator-previous",
@@ -1150,6 +1153,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "bar-chart-values-not-drawable",
     "bar-chart-bar-width-invalid",
     "chart-type-not-specified",
+    "chart-values-outside-series",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

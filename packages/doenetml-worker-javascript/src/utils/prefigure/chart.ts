@@ -21,8 +21,27 @@ import type { DiagnosticRecord } from "@doenet/utils";
  * to the tick marks below.
  *
  * `<label>` is not new — `components/vector.ts` and `components/angle.ts`
- * already emit it — but it is put to a new use here: the optional value
- * printed at the end of each bar.
+ * already emit it — but it is put to two new uses here: the optional value
+ * printed at the end of each bar, and the chart's title, drawn above the frame
+ * at a `scale` the axis numbers do not use.
+ *
+ * `<legend>` is emitted here and nowhere else in this folder; `<group>` is
+ * shared with `components/curve.ts`, which wraps a multi-piece curve in one.
+ * A chart of more than one series wraps each of them in a `<group>`, which is
+ * what gives a screen reader a level to stop at between the chart and its bars
+ * — grouping components to be annotated together is what `group.py` exists for.
+ *
+ * A legend is drawn as soon as a series is named, whether the chart has one
+ * series or several, and each of its items points at that series' first bar
+ * rather than at the group. PreFigure assembles a legend out of the elements
+ * its items refer to, reading each one's `fill` for the swatch, so a series'
+ * color reaches the legend by the same attribute that draws it and the two
+ * cannot drift apart.
+ *
+ * A legend's background box is filled white by `legend.py` with no attribute to
+ * say otherwise, which reads as a hole punched in a chart drawn in dark mode.
+ * Its `opacity` and `stroke` *are* attributes, so the box is made transparent
+ * and given an outline that follows the page's text color instead.
  *
  * Both axes sit on the edge of the bounding box — the vertical one at x = 0,
  * the horizontal one at the baseline — so their labels would be drawn outside
@@ -69,9 +88,10 @@ function fitMargins(
     available: number,
     near: number,
     far: number,
+    budgetFraction = 1 / 2,
 ): [number, number] {
     const total = near + far;
-    const budget = Math.max(Math.floor(available / 2), 0);
+    const budget = Math.max(Math.floor(available * budgetFraction), 0);
 
     if (!Number.isFinite(available) || total <= budget || total <= 0) {
         return [near, far];
@@ -136,10 +156,29 @@ function widestTickLabelLength(
     return widest;
 }
 
+/**
+ * One series' values, as the geometry needs them.
+ *
+ * The label rides along because it is what a bar's annotation names the bar's
+ * group by, and an annotation is part of the drawing rather than part of how it
+ * is styled.
+ */
+export type ChartSeriesValues = {
+    /** The name of the group, or `""` when the series has none. */
+    label: string;
+    values: number[];
+};
+
+/** How the bars of several series share a category's slot. */
+export type BarLayout = "grouped" | "stacked";
+
 /** The bar geometry a chart renders, in data coordinates. */
 export type BarGeometry = {
+    /** Which series the bar belongs to, 0-based. */
+    seriesIndex: number;
     /** 1-based position along the categorical axis. */
-    center: number;
+    slot: number;
+    /** The category the slot is labeled by. */
     label: string;
     value: number;
     lowerLeft: [number, number];
@@ -147,6 +186,15 @@ export type BarGeometry = {
 };
 
 export type BarChartGeometry = {
+    /**
+     * The series drawn, in order, whether or not any of their values could be.
+     * One whose every value is non-finite is kept rather than dropped: it is a
+     * group of the data that happens to be empty, not a group that is absent,
+     * so it keeps its place in the order and a screen reader still reaches it
+     * by name. It gets no swatch in the legend, since PreFigure builds one out
+     * of an element the item points at and there is no bar to point at.
+     */
+    series: { label: string }[];
     bars: BarGeometry[];
     /**
      * Every position on the categorical axis, drawn or not, with the category
@@ -162,6 +210,36 @@ export type BarChartGeometry = {
     undrawnValues: number;
 };
 
+/**
+ * Whether the legend this chart would draw has anything to put in it.
+ *
+ * An item is a name beside a swatch, and PreFigure builds the swatch out of an
+ * element the item points at, so a series needs both a label and a bar: one
+ * whose every value is non-finite is named but has nothing to point at, and
+ * one drawn from an unnamed series would be a swatch beside a blank line.
+ *
+ * Exported so that `<chart>`'s `showLegend` asks the same question the XML
+ * below is built from, rather than restating it somewhere it could drift.
+ * Whether a label carries LaTeX changes how it is written, not whether there
+ * is anything to write, so it is not asked here.
+ */
+export function barChartLegendHasItems(
+    geometry: BarChartGeometry | null,
+): boolean {
+    if (geometry === null) {
+        return false;
+    }
+    const seriesWithABar = new Set(geometry.bars.map((bar) => bar.seriesIndex));
+    return geometry.series.some(
+        (oneSeries, seriesIndex) =>
+            seriesWithABar.has(seriesIndex) &&
+            labelMarkup({
+                label: oneSeries.label,
+                labelHasLatex: false,
+            }) !== null,
+    );
+}
+
 /** How many labeled intervals the vertical axis aims to be divided into. */
 const TARGET_TICK_INTERVALS = 5;
 
@@ -174,6 +252,60 @@ const TARGET_TICK_INTERVALS = 5;
  */
 function snapNumber(value: number): number {
     return Number.isFinite(value) ? Number(value.toPrecision(12)) : value;
+}
+
+/**
+ * How tall a stacked segment between `base` and `top` is drawn, snapped.
+ *
+ * Measuring the height as a difference is what keeps a segment based at the
+ * saturation ceiling from overflowing, but snapping that difference can undo
+ * it: `toPrecision(12)` rounds, and rounding *up* a height that was measured
+ * against the largest representable number puts `base + height` back over the
+ * edge. A base of `1.798e302` under a saturated total came out as a rectangle
+ * whose far corner was `Infinity`, which PreFigure drew as
+ * `L nan -inf` — the same shape of bug the difference was introduced to fix.
+ *
+ * So the snapped height is used only while the corner it reconstructs is still
+ * finite, and the exact difference is the fallback. The last case shrinks by
+ * one part in 2^52, which no picture can show, and exists because subtracting
+ * and adding back can itself round over the ceiling.
+ */
+function segmentHeight(base: number, top: number): number {
+    const exact = top - base;
+    const snapped = snapNumber(exact);
+    if (Number.isFinite(base + snapped)) {
+        return snapped;
+    }
+    if (Number.isFinite(base + exact)) {
+        return exact;
+    }
+    return exact * (1 - Number.EPSILON);
+}
+
+/**
+ * A running total kept inside the range a double can hold.
+ *
+ * A stack's height is the sum of its segments, and a sum of finite values need
+ * not be finite: two series of `1e308` stack to `Infinity`, which
+ * `formatNumber` writes as `null` — a literal `null` in the bounding box, in
+ * the axis labels, and in the lower-left corner of every segment stacked above
+ * the overflow. Saturating at the largest representable value keeps all three
+ * drawable.
+ *
+ * Saturating the running total is not on its own enough, which is why the
+ * segment heights below are measured from it rather than from the values: a
+ * rectangle drawn at a saturated base with its own value as its height has a
+ * *far corner* that overflows even though both attributes are finite, and
+ * PreFigure computes that corner rather than reading it. It came out as
+ * `L nan -inf` in the path data of a diagram that otherwise compiled, which is
+ * the shape of bug that a check on the emitted XML cannot see.
+ */
+function saturatingAdd(total: number, value: number): number {
+    const sum = total + value;
+    if (Number.isFinite(sum)) {
+        return sum;
+    }
+    return sum > 0 ? Number.MAX_VALUE : -Number.MAX_VALUE;
 }
 
 /**
@@ -265,21 +397,30 @@ function nextTickBeyond(value: number, step: number, direction: 1 | -1) {
 }
 
 /**
- * The bar rectangles and bounding box for a list of values.
+ * The bar rectangles and bounding box for one or more series of values.
  *
- * Bars sit at x = 1, 2, … n and are `barWidth` of their one-unit slot wide, so
- * the gap between them is what is left over. The box starts at x = 0 so the
- * vertical axis has somewhere to be drawn, and ends one full unit past the last
- * bar's center — one slot at each end — so that the gap before the first bar
- * and the gap after the last are equal whatever `barWidth` is. Ending half a
- * unit past the last *center* instead left the trailing gap a fraction of the
- * leading one, and none at all at `barWidth="1"`, where the last bar sat flush
- * against the frame.
+ * Slots sit at x = 1, 2, … n, one per category, and the bars of a slot occupy
+ * `barWidth` of that one-unit slot between them — so the gap between slots is
+ * what is left over. The box starts at x = 0 so the vertical axis has somewhere
+ * to be drawn, and ends one full unit past the last slot — one slot at each end
+ * — so that the gap before the first slot and the gap after the last are equal
+ * whatever `barWidth` is. Ending half a unit past the last *center* instead
+ * left the trailing gap a fraction of the leading one, and none at all at
+ * `barWidth="1"`, where the last bar sat flush against the frame.
+ *
+ * `layout` decides how the series share a slot. Under `grouped` they stand side
+ * by side and divide `barWidth` evenly between them, so one series is drawn
+ * exactly as it would be alone; under `stacked` they sit on top of one another
+ * at the full width, positives climbing from zero and negatives hanging from
+ * it. Stacking the two directions separately is what keeps a mixed-sign stack
+ * from drawing its bars through each other, and it is what every plotting
+ * package does with the same data.
  *
  * `yMax` is the author's when they gave one; otherwise it is rounded up to the
- * next tick so the tallest bar does not touch the top of the box. An empty
- * chart, or one whose values are all zero, still gets a box one tick tall —
- * otherwise the axis would collapse and the chart would look broken rather
+ * next tick so the tallest bar does not touch the top of the box — measured
+ * against the stack totals under `stacked`, since that is what is drawn. An
+ * empty chart, or one whose values are all zero, still gets a box one tick tall
+ * — otherwise the axis would collapse and the chart would look broken rather
  * than empty.
  *
  * Bounds that do not describe a finite positive range — `yMin` at or above
@@ -291,56 +432,159 @@ function nextTickBeyond(value: number, step: number, direction: 1 | -1) {
  * non-finite and would write the literal `null` into the bounding box.
  */
 export function computeBarChartGeometry({
-    values,
+    series,
     labels,
     barWidth,
+    layout,
     yMinAttr,
     yMaxAttr,
 }: {
-    values: number[];
+    series: ChartSeriesValues[];
     labels: string[];
     barWidth: number;
+    layout: BarLayout;
     yMinAttr: number | null;
     yMaxAttr: number | null;
 }): BarChartGeometry {
+    // Every series is drawn against the same categories, so the axis is as long
+    // as the longest of them. A series that runs short simply has no bar in the
+    // slots past its end, which is the same absence a non-finite value leaves.
+    const numSlots = series.reduce(
+        (widest, oneSeries) => Math.max(widest, oneSeries.values.length),
+        0,
+    );
+
     // A value that is not a finite number has no bar. Drawing it as zero would
     // put a real datum on the chart that the data does not contain, and
     // `values` would still report the `NaN` — so the picture and the public
     // property would disagree. The slot is kept, so the remaining bars stay
     // under their own categories, and it is simply empty.
-    const drawable = values.map((value) => Number.isFinite(value));
+    const drawable = series.map((oneSeries) =>
+        oneSeries.values.map((value) => Number.isFinite(value)),
+    );
 
-    // Reduced rather than spread: `Math.max(...values)` throws once the list is
-    // longer than the engine's argument limit, which would fail a large chart
-    // before any of it could be drawn.
-    let largest = 0;
-    let smallest = 0;
-    let anyDrawable = false;
-    for (const [ind, value] of values.entries()) {
-        if (!drawable[ind]) {
-            continue;
-        }
-        if (!anyDrawable) {
-            largest = value;
-            smallest = value;
-            anyDrawable = true;
-        } else {
-            largest = Math.max(largest, value);
-            smallest = Math.min(smallest, value);
+    let undrawnValues = 0;
+    for (const seriesDrawable of drawable) {
+        for (const canDraw of seriesDrawable) {
+            if (!canDraw) {
+                undrawnValues++;
+            }
         }
     }
 
-    // The bars are measured from zero, so zero is always in view even when
-    // every value is on one side of it.
-    const reachAbove = Math.max(0, largest);
-    const reachBelow = Math.min(0, smallest);
-
     // Whole-number values get whole-number ticks; anything else — proportions,
     // averages — is free to be labeled in fractions.
-    const wholeValues = values.every(
-        (value, ind) => !drawable[ind] || Number.isInteger(value),
+    const wholeValues = series.every((oneSeries, seriesInd) =>
+        oneSeries.values.every(
+            (value, ind) =>
+                !drawable[seriesInd][ind] || Number.isInteger(value),
+        ),
     );
     const minStep = wholeValues ? 1 : 0;
+
+    const halfSlot = barWidth / 2;
+    const stacked = layout === "stacked";
+    // Under `grouped` the series divide the slot between them; under `stacked`
+    // each takes the whole of it, since they are drawn one above another.
+    const oneBarWidth = stacked
+        ? barWidth
+        : barWidth / Math.max(series.length, 1);
+
+    // How far each slot's stack has climbed above zero and hung below it. Both
+    // stay at zero under `grouped`, where every bar is measured from the
+    // baseline, so one pass builds the bars either way.
+    const stackAbove = new Array(numSlots).fill(0);
+    const stackBelow = new Array(numSlots).fill(0);
+
+    const bars: BarGeometry[] = [];
+
+    // Series-major, so a series' bars are contiguous: the drawing groups them
+    // under one annotation, and the legend keys off the first of them.
+    series.forEach((oneSeries, seriesIndex) => {
+        oneSeries.values.forEach((value, ind) => {
+            if (!drawable[seriesIndex][ind]) {
+                return;
+            }
+
+            const slot = ind + 1;
+            const center = stacked
+                ? slot
+                : slot - halfSlot + (seriesIndex + 0.5) * oneBarWidth;
+
+            // A stacked segment's `height` is the distance between the two ends
+            // it is actually drawn at, not the magnitude of its value: a
+            // segment given its own value as a height at a base already at the
+            // ceiling has a far corner beyond the double range, which PreFigure
+            // resolves to `nan`/`-inf` in the path it draws. Measuring between
+            // the ends instead leaves the last segment flat against the
+            // ceiling. `value` is untouched, so the annotation still reads the
+            // datum the author gave.
+            //
+            // Snapped like every other computed coordinate here, because
+            // subtracting one running total from another leaves the same dust
+            // that dividing a slot does: three stacked series of 0.1, 0.2 and
+            // 0.3 measure out as 0.1, 0.20000000000000004 and
+            // 0.30000000000000004. A bar under `grouped` is measured from zero
+            // and so is the author's own number, which is left exactly as
+            // written.
+            let base;
+            let height;
+            if (!stacked) {
+                base = Math.min(0, value);
+                height = Math.abs(value);
+            } else if (value < 0) {
+                const bottom = saturatingAdd(stackBelow[ind], value);
+                height = segmentHeight(bottom, stackBelow[ind]);
+                base = bottom;
+                stackBelow[ind] = bottom;
+            } else {
+                base = stackAbove[ind];
+                const top = saturatingAdd(base, value);
+                height = segmentHeight(base, top);
+                stackAbove[ind] = top;
+            }
+
+            // Snapped for the reason every tick value here is: a bar's corner
+            // is reached by dividing the slot and adding the divisions back up,
+            // and the dust that leaves would be written into the XML — the
+            // first bar of two would start at `0.6000000000000001` where a
+            // chart of one series starts at `0.6`, for a picture that is the
+            // same to the pixel.
+            bars.push({
+                seriesIndex,
+                slot,
+                label: labels[ind] ?? String(slot),
+                value,
+                lowerLeft: [
+                    snapNumber(center - oneBarWidth / 2),
+                    snapNumber(base),
+                ],
+                dimensions: [snapNumber(oneBarWidth), height],
+            });
+        });
+    });
+
+    // The bars are measured from zero, so zero is always in view even when
+    // every value is on one side of it. Under `stacked` what has to fit is the
+    // total of a slot rather than any one value in it, which is what the two
+    // running sums above already hold.
+    //
+    // Reduced rather than spread: `Math.max(...values)` throws once the list is
+    // longer than the engine's argument limit, which would fail a large chart
+    // before any of it could be drawn.
+    let reachAbove = 0;
+    let reachBelow = 0;
+    if (stacked) {
+        for (let ind = 0; ind < numSlots; ind++) {
+            reachAbove = Math.max(reachAbove, stackAbove[ind]);
+            reachBelow = Math.min(reachBelow, stackBelow[ind]);
+        }
+    } else {
+        for (const bar of bars) {
+            reachAbove = Math.max(reachAbove, bar.value);
+            reachBelow = Math.min(reachBelow, bar.value);
+        }
+    }
 
     /**
      * One tick of headroom past the tallest bar, so it never touches the
@@ -381,46 +625,227 @@ export function computeBarChartGeometry({
         wholeValues && Number.isInteger(yMin) && Number.isInteger(yMax) ? 1 : 0,
     );
 
-    const halfWidth = barWidth / 2;
-
-    // One pass, so that a bar and the slot it sits in can never be given
-    // different labels: every value gets a slot, and the drawable ones also get
-    // a rectangle.
-    const bars: BarGeometry[] = [];
     const slots: BarChartGeometry["slots"] = [];
-
-    values.forEach((value, ind) => {
+    for (let ind = 0; ind < numSlots; ind++) {
         const center = ind + 1;
-        const label = labels[ind] ?? String(center);
-        slots.push({ center, label });
-
-        if (drawable[ind]) {
-            bars.push({
-                center,
-                label,
-                value,
-                lowerLeft: [center - halfWidth, Math.min(0, value)],
-                dimensions: [barWidth, Math.abs(value)],
-            });
-        }
-    });
+        slots.push({ center, label: labels[ind] ?? String(center) });
+    }
 
     return {
+        series: series.map(({ label }) => ({ label })),
         bars,
         slots,
         // Every slot still counts toward the width, drawn or not, so a chart
         // with a gap in it keeps its remaining bars under their categories.
         //
-        // The box ends one unit past the last bar's *center*, which is where
-        // the gap beyond the last bar comes out the same size as the gap before
-        // the first one: both are `1 - barWidth/2`. Ending half a unit past the
+        // The box ends one unit past the last slot, which is where the gap
+        // beyond the last bar comes out the same size as the gap before the
+        // first one: both are `1 - barWidth/2`. Ending half a unit past the
         // center instead leaves the last bar six times closer to the frame than
-        // the first at the default width, and flush against it at `barWidth="1"`.
-        bounds: [0, yMin, values.length + 1, yMax],
+        // the first at the default width, and flush against it at
+        // `barWidth="1"`.
+        bounds: [0, yMin, numSlots + 1, yMax],
         tickStep,
-        undrawnValues: drawable.filter((canDraw) => !canDraw).length,
+        undrawnValues,
     };
 }
+
+/** How a series is drawn and named, alongside the geometry of its bars. */
+export type ChartSeriesRendering = {
+    label: string;
+    labelHasLatex: boolean;
+    /**
+     * What to call the series in the annotation tree when the author gave it no
+     * `<label>`. Localized, so it is built where the document's language is
+     * known; the drawing has no way to ask.
+     */
+    unlabeledName?: string;
+    selectedStyle: Record<string, unknown> | undefined;
+};
+
+/** Where the legend box sits, and what it is anchored to. */
+const LEGEND_PLACEMENTS = {
+    // Outside the plot, in a margin widened to hold it. Nothing is drawn there,
+    // so these never collide with the data — which the inside placements cannot
+    // promise, since a bar chart's tallest bars are exactly where a legend in an
+    // upper corner wants to be.
+    outsideright: { side: "right", alignment: "se" },
+    outsidebottom: { side: "bottom", alignment: "s" },
+    // Inside the plot, in the named corner. The author's choice to spend no
+    // width or height on the legend, at the risk of it sitting over a mark.
+    upperright: { corner: "topRight", alignment: "sw" },
+    upperleft: { corner: "topLeft", alignment: "se" },
+    lowerright: { corner: "bottomRight", alignment: "nw" },
+    lowerleft: { corner: "bottomLeft", alignment: "ne" },
+} as const;
+
+/**
+ * How wide and how tall PreFigure will draw a legend, in pixels.
+ *
+ * Estimated rather than measured, for the reason the axis margins are: the text
+ * is laid out in PreFigure's own worker and nothing here can ask what came back.
+ * `legend.py` builds the box as `outer_padding` either side of a column of
+ * labels separated by `vertical-skip`, with a key column beside them — so the
+ * height is `2*5 - 7 + n*(labelHeight + 7)` and the width is the widest label
+ * plus the key and the paddings.
+ *
+ * The height is a constant per item, measured against a real render: three
+ * items labeled `Q1`/`Q2`/`Q3` came back 61.59px tall against 66 predicted. It
+ * over-reserves because the real line box depends on whether the labels happen
+ * to carry a descender — `Q` is taller than `2`, and only the browser that laid
+ * it out knows. Over-reserving is the safe direction for a margin.
+ *
+ * The width is summed per character rather than taken as a count times a
+ * constant. An axis label is a number, so one constant fits it; a legend label
+ * is a word, and a count of characters cannot tell `WWWWWW` from `llllll`. At
+ * the 9px per character the axis uses, a legend labeled `WWWWWW` came back
+ * 109px wide against 84 predicted and was drawn 5px past the right edge of the
+ * picture, while `Population 2024` reserved 26px more than it used.
+ */
+function estimateLegendSize(labels: string[]): {
+    width: number;
+    height: number;
+} {
+    const widest = labels.reduce(
+        (widest, label) => Math.max(widest, estimateTextWidth(label)),
+        0,
+    );
+    return {
+        width: widest + LEGEND_FURNITURE_WIDTH,
+        height: LEGEND_BOX_PADDING + labels.length * LEGEND_ITEM_HEIGHT,
+    };
+}
+
+/**
+ * Roughly how wide a string is drawn at PreFigure's 14px sans-serif, in pixels.
+ *
+ * Classes rather than a per-character table, since the only thing asked of this
+ * is a margin wide enough: it has to come out over rather than exact, and by as
+ * little as it can manage. Every printable ASCII character was measured from a
+ * real render — a legend of six copies of it, less the fixed furniture, divided
+ * by six — and each class is set just above the widest character in it. The
+ * tightest margin is 0.21px (`O` and `Q`), the widest label surplus about 26px
+ * on fifteen characters, and no ASCII character is reserved short.
+ *
+ * The classes are not the ones a reader would guess, which is why they are
+ * measured: `%` is 11.9px and `&` 10.3px, wider than any lowercase letter,
+ * while `|` is 7.7px rather than the hairline its shape suggests. All three
+ * were previously reserved at the lowercase width, and a legend labeled
+ * `%%%%%%` was drawn 12.6px past the right edge of the picture. Capitals span
+ * 7.4px (`F`) to 11.0px (`O`), so treating them alike wasted 20px on an
+ * all-capitals label.
+ *
+ * Text outside ASCII falls to the default and can be reserved short. A CJK
+ * ideograph is about a full em — some 14px here — so a Chinese or Japanese
+ * label is under-reserved from two characters up, which is why the ranges
+ * below are given the widest class. That much cannot be checked against the
+ * build service: it has no font for those glyphs and draws every one of them
+ * at a uniform 8.4px, so the figure comes from typography rather than from a
+ * measurement, unlike everything else here.
+ */
+function estimateTextWidth(text: string): number {
+    let width = 0;
+    for (const character of text) {
+        if (character === " ") {
+            width += 4.5;
+        } else if (NARROW_CHARACTERS.includes(character)) {
+            width += 5.5;
+        } else if (SEMI_NARROW_CHARACTERS.includes(character)) {
+            width += 7;
+        } else if (
+            WIDE_CHARACTERS.includes(character) ||
+            character.codePointAt(0)! >= FULL_WIDTH_FIRST_CODE_POINT
+        ) {
+            width += 13.6;
+        } else if (BROAD_CHARACTERS.includes(character)) {
+            width += 11.2;
+        } else {
+            width += 9.5;
+        }
+    }
+    return width;
+}
+
+/** Measured at 3.3 to 5.0px: `'` is the narrowest thing drawn. */
+const NARROW_CHARACTERS = "ijlIJ'.,:;!()-[]\u2019";
+
+/** 5.0 to 6.3px. */
+const SEMI_NARROW_CHARACTERS = 'ftr/\\{}"_?\u2013';
+
+/** 11.3 to 13.3px, the widest glyphs there are. */
+const WIDE_CHARACTERS = "mwMW@%";
+
+/** 10.2 to 11.0px: the round capitals, and `&`. */
+const BROAD_CHARACTERS = "GDUHNOQ&";
+
+/**
+ * Where the classes above stop describing the text.
+ *
+ * Hangul begins at U+1100 and CJK, kana and the emoji planes follow, all of
+ * them about an em wide. Latin, Greek and Cyrillic sit below it and are close
+ * enough to the measured classes to use them.
+ */
+const FULL_WIDTH_FIRST_CODE_POINT = 0x1100;
+
+/** The key swatch and the three paddings `legend.py` puts around the labels. */
+const LEGEND_FURNITURE_WIDTH = 30;
+
+/** One label's line box plus the `vertical-skip` under it, at 14px. */
+const LEGEND_ITEM_HEIGHT = 21;
+
+/** What is left of the outer padding once the last item's skip is removed. */
+const LEGEND_BOX_PADDING = 3;
+
+/**
+ * The gap between a legend drawn outside the plot and the edge of the picture.
+ *
+ * Not a gap between the legend and the plot: PreFigure's own anchor offset is
+ * that, and it is the same 4px whichever side the legend is on.
+ */
+const LEGEND_OUTSIDE_GAP = 8;
+
+/**
+ * The offset `legend.py` puts between a legend's anchor and its box, in pixels.
+ *
+ * PreFigure computes it as `8 * (displacement ± 0.5)`, which comes to 4 for
+ * every alignment this file uses. It has to be counted here because the margin
+ * has to hold the box *and* the offset PreFigure will add to it — leaving it out
+ * is what let an `outsideBottom` legend hang 1.6px past the bottom of the
+ * picture.
+ */
+const LEGEND_ANCHOR_OFFSET = 4;
+
+/**
+ * The most of one dimension the margins may take when a legend is drawn outside
+ * the plot.
+ *
+ * `fitMargins` normally leaves the drawing at least half the frame, which is
+ * the right rule when the margins hold nothing but axis labels. A legend is
+ * different: it is a fixed number of pixels tall whatever the chart's size, so
+ * on a small chart the honest choice is a smaller plot rather than a legend
+ * scaled into the frame's edge or clipped by it. The author asked for the
+ * legend outside; this is what that costs.
+ */
+const LEGEND_MARGIN_BUDGET = 2 / 3;
+
+/**
+ * How much larger than the axis numbers a title is drawn.
+ *
+ * PreFigure's labels are 14px unless `scale` says otherwise (`label.py`), which
+ * is the size of the numbers on the axis — a title at that size would not read
+ * as one.
+ */
+const TITLE_SCALE = 1.4;
+
+/**
+ * Room reserved above the drawing for the title, in pixels.
+ *
+ * The height a line of 14px text scaled by `TITLE_SCALE` occupies, plus a gap
+ * to the frame. Estimated rather than measured for the same reason the left
+ * margin is: PreFigure lays the text out in its own worker, and nothing here
+ * can ask how tall it came out.
+ */
+const TITLE_MARGIN = 14 * TITLE_SCALE + 10;
 
 /**
  * Builds the PreFigure XML for a bar chart.
@@ -431,25 +856,31 @@ export function computeBarChartGeometry({
  */
 export function createBarChartPrefigureXML({
     geometry,
+    seriesRendering,
     widthPx,
     heightPx,
     xLabel,
     xLabelHasLatex,
     yLabel,
     yLabelHasLatex,
-    selectedStyle,
+    title,
+    showLegend,
+    legendPosition,
     displayValues,
     shortDescription,
     darkMode = false,
 }: {
     geometry: BarChartGeometry;
+    seriesRendering: ChartSeriesRendering[];
     widthPx: number;
     heightPx: number;
     xLabel?: string;
     xLabelHasLatex?: boolean;
     yLabel?: string;
     yLabelHasLatex?: boolean;
-    selectedStyle: Record<string, unknown> | undefined;
+    title?: string;
+    showLegend: boolean;
+    legendPosition: keyof typeof LEGEND_PLACEMENTS;
     displayValues: boolean;
     shortDescription?: string;
     darkMode?: boolean;
@@ -473,8 +904,68 @@ export function createBarChartPrefigureXML({
     const lastTick = tickAtOrBeyond(yMax, step, -1);
     const vlabels = `(${formatNumber(firstTick)},${formatNumber(step)},${formatNumber(lastTick)})`;
 
-    const [wantedBottom, wantedRight, wantedTop] =
-        CHART_MARGINS_BOTTOM_RIGHT_TOP;
+    const [baseBottom, baseRight, baseTop] = CHART_MARGINS_BOTTOM_RIGHT_TOP;
+
+    // Settled before the margins, because a legend drawn outside the plot is
+    // held by one of them. Its size does not depend on the plot's, so there is
+    // no loop here: the labels decide the legend, the legend decides the
+    // margin, the margin decides the drawing area.
+    //
+    // A series earns a legend entry by having both a label and a mark for the
+    // swatch to be read off, so the test is over the geometry rather than over
+    // the handles, which are not assigned until the bars are built below.
+    const seriesWithABar = new Set(geometry.bars.map((bar) => bar.seriesIndex));
+    const legendLabels = geometry.series
+        .map(({ label }, seriesIndex) =>
+            seriesWithABar.has(seriesIndex) ? label : "",
+        )
+        .filter((label) => label !== "");
+    const legendDrawn = showLegend && legendLabels.length > 0;
+    const placement =
+        LEGEND_PLACEMENTS[legendPosition] ?? LEGEND_PLACEMENTS.outsideright;
+    const legendSize = estimateLegendSize(legendLabels);
+    const legendOutside = legendDrawn && "side" in placement;
+
+    // Annotated, since the base margins are literal types off an `as const`
+    // tuple and these are widened past them.
+    let wantedRight: number = baseRight;
+    let wantedBottom: number = baseBottom;
+    const legendOnRight = legendOutside && placement.side === "right";
+    const legendOnBottom = legendOutside && placement.side === "bottom";
+    if (legendOnRight) {
+        // PreFigure's offset, then the box, then a gap to the edge of the
+        // picture. `baseRight` is *not* added underneath: it is there to hold
+        // the half of the outermost axis label that overhangs the corner, and
+        // the legend already reserves more than that past the same edge, so
+        // adding the two left 20px of every legended chart's width empty.
+        // Floored at it anyway, in case the two ever cross.
+        wantedRight = Math.max(
+            baseRight,
+            LEGEND_ANCHOR_OFFSET + legendSize.width + LEGEND_OUTSIDE_GAP,
+        );
+    } else if (legendOnBottom) {
+        // The band the horizontal axis' own labels occupy, then PreFigure's
+        // offset, then the box, then a gap to the edge of the picture. Unlike
+        // the right, `baseBottom` is a band the legend sits *below* rather than
+        // an overhang it covers, so here the two really do add.
+        wantedBottom =
+            baseBottom +
+            LEGEND_ANCHOR_OFFSET +
+            legendSize.height +
+            LEGEND_OUTSIDE_GAP;
+    }
+
+    // No `titleHasLatex` beside the axis labels' flags: a `<title>`'s text
+    // arrives already flattened, so `<title><m>\mu</m> counts</title>` reaches
+    // here as the string `μ counts` with no LaTeX left in it to typeset, where
+    // `<xLabel><m>\mu</m></xLabel>` arrives as `\mu` and is marked up.
+    const titleText = labelMarkup({ label: title, labelHasLatex: false });
+
+    // The title is drawn above the frame, so the top margin has to grow to hold
+    // it — the margins are what PreFigure adds outside `dimensions`, so a title
+    // drawn into a margin sized for the corner of an axis label would be cut
+    // off by the edge of the picture.
+    const wantedTop = baseTop + (titleText ? TITLE_MARGIN : 0);
 
     // The left margin has to know the labels before the box is sized, since it
     // is what stops the widest of them being clipped — the labels of
@@ -496,11 +987,13 @@ export function createBarChartPrefigureXML({
         widthPx,
         wantedLeft,
         wantedRight,
+        legendOnRight ? LEGEND_MARGIN_BUDGET : undefined,
     );
     const [marginBottom, marginTop] = fitMargins(
         heightPx,
         wantedBottom,
         wantedTop,
+        legendOnBottom ? LEGEND_MARGIN_BUDGET : undefined,
     );
 
     // Positive without being floored at a pixel, since fitting the margins
@@ -539,14 +1032,7 @@ export function createBarChartPrefigureXML({
         ? `<axes ${axesAttrs}>${axesInner}</axes>`
         : `<axes ${axesAttrs} />`;
 
-    const barAttrs = styleAttributes({
-        selectedStyle,
-        diagnostics,
-        warningPrefix: "<chart>",
-    }).join(" ");
-
     const elements: string[] = [];
-    const annotationElements: string[] = [];
 
     // The categorical axis: arbitrary text at an arbitrary position, which is
     // the one thing `hlabels` cannot express. Driven by the slots rather than
@@ -559,8 +1045,50 @@ export function createBarChartPrefigureXML({
         );
     }
 
+    // One series is drawn as it always was, straight into the diagram, and its
+    // bars are annotated straight under the figure. Several are each wrapped in
+    // a `<group>`, which is what gives a screen reader a level to stop at
+    // between the chart and its bars — the reason `<group>` exists in PreFigure
+    // at all — and gives the legend an element per series to key off.
+    const groupSeries = geometry.series.length > 1;
+
+    // Once per series, not once per bar: every bar of a series is drawn from
+    // the same `selectedStyle`, so the attribute string is identical across
+    // them, and `styleAttributes` also reports an unsupported fill or line
+    // style through `diagnostics` — which the queue deduplicates by message,
+    // but there is no reason to hand it the same one per bar to discard.
+    const seriesStyleAttrs = geometry.series.map((_unused, seriesIndex) =>
+        styleAttributes({
+            selectedStyle: seriesRendering[seriesIndex]?.selectedStyle,
+            diagnostics,
+            warningPrefix: "<chart>",
+        }).join(" "),
+    );
+
+    const seriesElements: string[][] = geometry.series.map(() => []);
+    const seriesAnnotations: string[][] = geometry.series.map(() => []);
+    /** The handle of each series' first bar, for the legend to point at. */
+    const seriesKeyHandles: (string | null)[] = geometry.series.map(() => null);
+    /**
+     * The `displayValues` labels, held back until every rectangle is drawn.
+     *
+     * SVG paints in document order, and under `stacked` the next series' bar
+     * begins exactly where this one's ends — which is exactly where this one's
+     * label is anchored. Emitted alongside their own bars, every label but the
+     * topmost ends up beneath the segment above it. They are decoration rather
+     * than structure — nothing annotates them — so they lose nothing by leaving
+     * their series' `<group>` and being drawn over the whole chart instead.
+     */
+    const valueLabelElements: string[] = [];
+
     for (const bar of geometry.bars) {
-        const handle = `bar-${bar.center}`;
+        const handle = `bar-${bar.seriesIndex + 1}-${bar.slot}`;
+        if (seriesKeyHandles[bar.seriesIndex] === null) {
+            seriesKeyHandles[bar.seriesIndex] = handle;
+        }
+
+        const barAttrs = seriesStyleAttrs[bar.seriesIndex] ?? "";
+
         const lowerLeft = `(${formatNumber(bar.lowerLeft[0])},${formatNumber(bar.lowerLeft[1])})`;
         const barDimensions = `(${formatNumber(bar.dimensions[0])},${formatNumber(bar.dimensions[1])})`;
 
@@ -573,7 +1101,7 @@ export function createBarChartPrefigureXML({
         // Asking for the clip is what makes a bound cut the bars off at the
         // frame: a bar lying entirely outside the box disappears, and one
         // crossing the edge is drawn as far as the box goes.
-        elements.push(
+        seriesElements[bar.seriesIndex].push(
             `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(lowerLeft)}" dimensions="${escapeXml(barDimensions)}" cliptobbox="yes"${barAttrs ? ` ${barAttrs}` : ""} />`,
         );
 
@@ -581,17 +1109,197 @@ export function createBarChartPrefigureXML({
             // At the far end of the bar, outside it: above a bar that grows up
             // and below one that hangs down. Anchoring every label at zero
             // instead would print a negative bar's value on the horizontal
-            // axis, a whole bar away from the end it belongs to.
+            // axis, a whole bar away from the end it belongs to. Under
+            // `stacked` the bar does not start at zero, so the end is where the
+            // rectangle ends rather than at its own value.
             const alignment = bar.value < 0 ? "south" : "north";
-            const anchor = `(${formatNumber(bar.center)},${formatNumber(bar.value)})`;
-            elements.push(
+            const barTop =
+                bar.value < 0
+                    ? bar.lowerLeft[1]
+                    : bar.lowerLeft[1] + bar.dimensions[1];
+            const anchorX = bar.lowerLeft[0] + bar.dimensions[0] / 2;
+            // Snapped for the reason the bars' own corners are: both are
+            // reached by adding the geometry back up, and the dust that leaves
+            // would be written into the XML — a grouped bar of three series
+            // would be labeled at `0.7333333333334999`, and the top of a stack
+            // of 0.1, 0.2 and 0.3 at `0.6000000000000001`.
+            const anchor = `(${formatNumber(snapNumber(anchorX))},${formatNumber(snapNumber(barTop))})`;
+            valueLabelElements.push(
                 `<label anchor="${escapeXml(anchor)}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(bar.value) ?? "")}</label>`,
             );
         }
 
-        annotationElements.push(
+        seriesAnnotations[bar.seriesIndex].push(
             `<annotation ref="${escapeXml(handle)}" text="${escapeXml(`${bar.label}: ${formatNumber(bar.value)}`)}" />`,
         );
+    }
+
+    const annotationElements: string[] = [];
+    geometry.series.forEach((oneSeries, seriesIndex) => {
+        if (!groupSeries) {
+            elements.push(...seriesElements[seriesIndex]);
+            annotationElements.push(...seriesAnnotations[seriesIndex]);
+            return;
+        }
+
+        const groupHandle = `series-${seriesIndex + 1}`;
+        elements.push(
+            `<group at="${escapeXml(groupHandle)}">${seriesElements[seriesIndex].join("")}</group>`,
+        );
+        // Named by the series where the author gave it a name, and by the
+        // fallback the chart worked out where they did not. A screen reader
+        // stopping on this level has to be told which group it has reached,
+        // and a bare position number would be indistinguishable from the
+        // values and categories announced on the levels either side of it — so
+        // the fallback is a localized phrase, built where the document's
+        // language is known rather than invented here.
+        const seriesName =
+            oneSeries.label ||
+            seriesRendering[seriesIndex]?.unlabeledName ||
+            `${seriesIndex + 1}`;
+        annotationElements.push(
+            `<annotation ref="${escapeXml(groupHandle)}" text="${escapeXml(seriesName)}">${seriesAnnotations[seriesIndex].join("")}</annotation>`,
+        );
+    });
+
+    // The legend keys off the bars themselves: PreFigure reads the referenced
+    // element's `fill` and draws a swatch of it, so a series' color is named in
+    // the legend by the same attribute that draws it and the two cannot drift
+    // apart. A series with no bar has nothing to point at and so no entry.
+    //
+    // `opacity="0"` makes the box behind the legend transparent. PreFigure
+    // fills it white with no attribute to say otherwise (`legend.py`), which
+    // reads as a hole punched in a chart drawn in dark mode; `stroke` does take
+    // an attribute, so the box keeps an outline that follows the page's text
+    // color in both themes.
+    const legendItems = geometry.series
+        .map((oneSeries, seriesIndex) => {
+            const handle = seriesKeyHandles[seriesIndex];
+            const text = labelMarkup({
+                label: oneSeries.label,
+                labelHasLatex: seriesRendering[seriesIndex]?.labelHasLatex,
+            });
+            if (handle === null || !text) {
+                return null;
+            }
+            return `<item ref="${escapeXml(handle)}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${text}</item>`;
+        })
+        .filter((item) => item !== null);
+
+    let legendElement = "";
+    if (legendDrawn && legendItems.length > 0) {
+        // PreFigure anchors a legend in *data* coordinates, and takes no
+        // offset attribute — `legend.py` reads only anchor, alignment, scale,
+        // vertical-skip, stroke and opacity. So a legend that belongs in a
+        // margin is anchored at a coordinate outside the box and left to the
+        // same linear transform as everything else. It does apply an offset of
+        // its own on top of that, which `LEGEND_ANCHOR_OFFSET` accounts for.
+        // Pixels to data units, on each axis. Guarded, because the span of a
+        // chart of `-1e308` and `1e308` is `Infinity`: an offset scaled by that
+        // is `-Infinity`, which `formatNumber` writes as `null`, and
+        // `anchor="(1.5,null)"` is XML PreFigure cannot read. A zero scale
+        // leaves the anchor on the corner it was measured from, which is
+        // finite and drawable, and a chart spanning the whole double range has
+        // no legible placement to lose.
+        const finiteScale = (span: number, pixels: number) => {
+            const scale = span / (pixels || 1);
+            return Number.isFinite(scale) ? scale : 0;
+        };
+        const unitsPerPixelX = finiteScale(xMax - xMin, innerWidth);
+        const unitsPerPixelY = finiteScale(yMax - yMin, innerHeight);
+
+        let anchorX;
+        let anchorY;
+        if (!("side" in placement)) {
+            anchorX = placement.corner.endsWith("Right") ? xMax : xMin;
+            anchorY = placement.corner.startsWith("top") ? yMax : yMin;
+        } else if (placement.side === "right") {
+            // `se` puts the box below and right of the anchor, so the corner of
+            // the box lands in the margin just past the plot's right edge.
+            //
+            // Then pulled back inside the picture. The margin was reserved to
+            // hold the box, but `fitMargins` caps it, so a small chart with
+            // long labels gets a margin narrower than what it was reserved
+            // from — and the box, which does not shrink with it, was drawn
+            // past the edge of the SVG and clipped: `size="small"` with two
+            // thirty-character labels put the legend's right edge at 360px in
+            // a 255px picture. Height is not reserved at all, so a chart of
+            // enough labeled series ran off the bottom the same way.
+            //
+            // Overlapping the plot is the lesser fault: a legend over a bar is
+            // still readable and still says what the colors mean, and it is
+            // what the inside placements do by design. A legend outside the
+            // picture is not there at all.
+            const overhangRight =
+                LEGEND_ANCHOR_OFFSET + legendSize.width + LEGEND_OUTSIDE_GAP;
+            const overhangBottom =
+                LEGEND_ANCHOR_OFFSET + legendSize.height + LEGEND_OUTSIDE_GAP;
+            // Pulled only as far as the picture's own edge. A box wider or
+            // taller than the whole picture cannot be placed inside it by
+            // moving it, so it keeps overflowing the side it always
+            // overflowed; dragging it further would only move the clipped part
+            // to the other end.
+            const pullLeft = Math.min(
+                Math.max(overhangRight - marginRight, 0),
+                Math.max(
+                    marginLeft +
+                        innerWidth +
+                        LEGEND_ANCHOR_OFFSET -
+                        LEGEND_OUTSIDE_GAP,
+                    0,
+                ),
+            );
+            const pullUp = Math.min(
+                Math.max(overhangBottom - (innerHeight + marginBottom), 0),
+                marginTop,
+            );
+            anchorX = xMax - pullLeft * unitsPerPixelX;
+            anchorY = yMax + pullUp * unitsPerPixelY;
+        } else {
+            // Below the plot and centered, placed from the *bottom* of the
+            // picture rather than a fixed distance under the axis: the gap to
+            // the edge is then the one that was reserved, however the margin
+            // came out. Measuring down from the axis instead left the box
+            // flush against the edge, and 1.6px past it, whenever `fitMargins`
+            // had to shrink what was asked for.
+            //
+            // The floor is the top of the picture, for the reason the right-hand
+            // placement pulls its box back inside: `fitMargins` caps the
+            // margin, the box does not shrink with it, and a floor at the band
+            // the category names occupy is what let the legend run off the
+            // bottom of the picture instead — a `size="small"` chart was
+            // outside from four named series, and outside by 70px at eight.
+            // Rising over the category names is the lesser fault, and it is
+            // what the other outside placement already chooses.
+            //
+            // `fitMargins` only ever shrinks, so the first term is at most
+            // `baseBottom` and equals it whenever the margin was granted in
+            // full: an uncrowded chart is placed exactly where it was before.
+            const belowAxis = Math.max(
+                marginBottom -
+                    LEGEND_OUTSIDE_GAP -
+                    legendSize.height -
+                    LEGEND_ANCHOR_OFFSET,
+                -(marginTop + innerHeight),
+            );
+            anchorX = (xMin + xMax) / 2;
+            anchorY = yMin - belowAxis * unitsPerPixelY;
+        }
+        const anchor = `(${formatNumber(anchorX)},${formatNumber(anchorY)})`;
+        legendElement = `<legend anchor="${escapeXml(anchor)}" alignment="${placement.alignment}" opacity="0" stroke="currentColor">${legendItems.join("")}</legend>`;
+    }
+
+    // Centered above the drawing, in the margin widened for it. A `<label>`
+    // rather than PreFigure's `<caption>`, which reaches tactile output only
+    // and would leave a visual chart untitled — so the caption is emitted as
+    // well as the label rather than instead of it, and a title is a title in
+    // every format the diagram is produced in.
+    let titleElement = "";
+    let captionElement = "";
+    if (titleText) {
+        const anchor = `(${formatNumber((xMin + xMax) / 2)},${formatNumber(yMax)})`;
+        titleElement = `<label anchor="${escapeXml(anchor)}" alignment="north" scale="${TITLE_SCALE}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${titleText}</label>`;
+        captionElement = `<caption>${titleText}</caption>`;
     }
 
     // A figure-level annotation is what diagcess navigates into; without one
@@ -603,7 +1311,7 @@ export function createBarChartPrefigureXML({
         : "";
     const annotationsElement = `<annotations><annotation ref="figure"${figureAnnotationText}>${annotationElements.join("")}</annotation></annotations>`;
 
-    const xml = `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates>${annotationsElement}</diagram>`;
+    const xml = `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}${valueLabelElements.join("")}${titleElement}${legendElement}</coordinates>${captionElement}${annotationsElement}</diagram>`;
 
     return { xml, diagnostics };
 }

@@ -1,0 +1,164 @@
+import { Callout } from "nextra/components"
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+
+# Charting a Simulation
+
+This guide is a set of recipes for turning a random sample into a chart a reader can watch
+change: counting draws into categories, binning them into intervals, and comparing two
+samples side by side. It assumes you already know how to write a `<chart>{:dn}` — see the
+[`<chart>{:dn}` reference](../reference/chart) for its attributes and properties.
+
+<Callout type="info">
+Every recipe below counts the sample in DoenetML rather than inside the chart, so the counts
+stay readable: `$counts{:dn}` can go into a sentence, a table, or an `<answer>{:dn}`
+beside the picture.
+</Callout>
+
+---
+
+## Count draws into named categories
+
+[`<tally>{:dn}`](../reference/tally) counts how many values fall into each category, and
+`<chart>{:dn}` draws the counts. The pieces are: draw the sample, map each draw onto a
+category, count, chart.
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <textList name="labels">North South East West</textList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="60" />
+  <searchSorted name="which" target="$draws">$cum</searchSorted>
+  <tally name="counts" categories="1 2 3 4">$which</tally>
+</setup>
+
+<chart type="bar" categories="$labels">
+  <shortDescription>Where 60 sampled individuals came from</shortDescription>
+  <yLabel>count</yLabel>
+  $counts
+</chart>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+Five tags hold the whole simulation:
+[`<sampleRandomNumbers>{:dn}`](../reference/sampleRandomNumbers) draws the sample,
+[`<cumulativeSum>{:dn}`](../reference/cumulativeSum) accumulates the subpopulation sizes,
+[`<searchSorted>{:dn}`](../reference/searchSorted) maps every draw onto the subpopulation it
+landed in, [`<tally>{:dn}`](../reference/tally) counts them, and `<chart>{:dn}` draws the
+counts.
+
+Give `<tally>{:dn}` its categories rather than leaving it to discover them. A subpopulation
+that draws nothing then still counts zero and keeps its bar, instead of dropping out and
+shifting the others along — which would make the chart jump every time the reader resamples.
+
+`<callAction>{:dn}` redraws the sample, and everything downstream follows.
+
+---
+
+## Bin a continuous sample into intervals
+
+For a measurement rather than a category, [`<binCounts>{:dn}`](../reference/binCounts) counts
+how many values fall between each pair of cut points.
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <binCounts name="h" bins="$edges">$z</binCounts>
+</setup>
+
+<chart type="bar" categories="$bins">
+  <shortDescription>200 draws from a standard normal distribution</shortDescription>
+  <yLabel>count</yLabel>
+  $h
+</chart>
+
+<callAction actionName="resample" target="$z">
+  <label>Draw again</label>
+</callAction>
+```
+
+The cut points and the category names are two different lists: `bins` says where the
+intervals begin and end, and `categories` says what to write under each bar. Naming each bin
+by its midpoint, as here, keeps the axis readable; naming it by its range works too.
+
+---
+
+## Compare two samples in one chart
+
+Give the chart a `<series>{:dn}` per sample. Each is counted separately and drawn in its own
+color, and its `<label>{:dn}` names it in the legend.
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
+  <sampleRandomNumbers name="a" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <sampleRandomNumbers name="b" type="gaussian" mean="1" variance="1"
+    numSamples="200" />
+  <binCounts name="ha" bins="$edges">$a</binCounts>
+  <binCounts name="hb" bins="$edges">$b</binCounts>
+</setup>
+
+<chart type="bar" categories="$bins">
+  <title>Two samples, means 0 and 1</title>
+  <shortDescription>200 draws from each of two normal distributions</shortDescription>
+  <yLabel>count</yLabel>
+  <series><label>mean 0</label>$ha</series>
+  <series><label>mean 1</label>$hb</series>
+</chart>
+
+<callAction actionName="resample" target="$a">
+  <label>Draw the first again</label>
+</callAction>
+<callAction actionName="resample" target="$b">
+  <label>Draw the second again</label>
+</callAction>
+```
+
+Both series are binned against the same cut points, which is what makes the bars comparable:
+a bar in one series stands next to the bar for the same interval in the other.
+
+Use `layout="stacked"{:dn}` instead when the two samples make up a whole and the total is
+what a reader should read.
+
+---
+
+## Ask about what the chart shows
+
+Because the counts are components, the same numbers that drew the chart can be asked about.
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <binCounts name="h" bins="$edges">$z</binCounts>
+</setup>
+
+<chart name="c" type="bar" categories="-2.5 -1.5 -0.5 0.5 1.5 2.5" size="small"
+  displayValues>
+  <shortDescription>200 draws from a standard normal distribution</shortDescription>
+  <yLabel>count</yLabel>
+  $h
+</chart>
+
+<answer>
+  <label>How many of the 200 draws landed between -1 and 1?</label>
+  <number><sum>$h[3] $h[4]</sum></number>
+</answer>
+
+<p>The tallest bar holds <number><max>$c.values</max></number> draws.</p>
+```
+
+`$c.values{:dn}` is every value the chart drew, so a summary can be written beside the
+picture and stay correct when the reader resamples.
