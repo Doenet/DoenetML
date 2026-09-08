@@ -67,8 +67,8 @@ category, or a value per `x` when it has one.
 
 
 
-Without an `x` the points sit under `categories`, evenly spaced; with one they sit at the
-positions it gives and the axis carries numbers. Values are never re-ordered — a path that doubles back is drawn as one.
+Without an `x` the points sit under `categories`, evenly spaced; with an `x` they sit at
+the positions it gives and the axis carries numbers. Values are never re-ordered — a path that doubles back is drawn as one.
 
 
 
@@ -142,9 +142,9 @@ the groups come out in different colors without being asked to. A screen reader 
 chart series by series, then mark by mark within a series.
 
 A series may also carry an `x`, which gives its values horizontal coordinates and puts the
-chart on a numeric axis instead of the categories. It is what `type="scatter"{:dn}` is
-normally drawn from and optional for `type="line"{:dn}`; either type falls back to the
-categories when no series carries one.
+chart on a numeric axis instead of the categories. `type="scatter"{:dn}` is normally drawn
+that way, and `type="line"{:dn}` may be; both fall back to the categories when no series
+carries an `x`.
 
 A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
 all, which is why the simpler charts here need no series at all.
