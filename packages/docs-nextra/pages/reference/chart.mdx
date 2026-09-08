@@ -325,6 +325,19 @@ own, so the groups come out in different colors without being asked to.
 A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
 all, which is why the simple charts above need no series at all.
 
+`hide` on a `<series>{:dn}` takes it out of the chart altogether — not just out of the
+picture. The chart's `values`, `numSeries` and categories all describe what is drawn, so a
+`<sum>{:dn}` of `$chart.values{:dn}` beside the chart totals the bars a reader can see
+rather than including one they cannot. This is unlike `hide` elsewhere in DoenetML, which
+stops a component rendering without changing what it contributes — a
+[`<binCounts>{:dn}`](binCounts) marked `hide` still feeds the chart it is referenced into.
+The series keeps its own data either way: `$hidden.values{:dn}` on a hidden series still
+reports the values it was given.
+
+Hiding the **chart** is different from hiding its series: `<chart hide>{:dn}` takes the
+picture off the page without emptying it, so `$chart.values{:dn}` and
+`$chart.numSeries{:dn}` still describe everything it holds.
+
 
 
 ---

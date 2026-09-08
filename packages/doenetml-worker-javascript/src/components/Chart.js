@@ -583,8 +583,19 @@ export default class Chart extends BlockComponent {
                         "labelHasLatex",
                         "values",
                         "selectedStyle",
+                        "hide",
                         "hidden",
                     ],
+                },
+                // The chart's own hidden state, to tell a series hidden on its
+                // own account apart from one hidden only because the whole
+                // chart is. `hidden` is inherited — a `<chart hide>` marks
+                // every child hidden — so filtering on it alone would let
+                // hiding a chart delete the data an author is still writing
+                // about beside it.
+                chartHidden: {
+                    dependencyType: "stateVariable",
+                    variableName: "hidden",
                 },
                 ...returnContentLocaleDependencies(),
                 valueChildren: {
@@ -638,8 +649,17 @@ export default class Chart extends BlockComponent {
                 // assigned from the child list, so hiding the second of three
                 // leaves the third the color it already had rather than
                 // recoloring the chart around it.
+                // Hidden on its own account: either the series says so
+                // itself, or something between it and the chart does — a
+                // `<group hide>` around it, say, whose replacements inherit the
+                // hiding. What does not count is the chart being hidden, which
+                // hides the drawing without emptying it.
+                const hiddenFromChart = (child) =>
+                    child.stateValues.hide ||
+                    (child.stateValues.hidden && !dependencyValues.chartHidden);
+
                 const seriesData = seriesChildren
-                    .filter((child) => !child.stateValues.hidden)
+                    .filter((child) => !hiddenFromChart(child))
                     .map((child, ind) => ({
                         label: child.stateValues.label,
                         labelHasLatex: child.stateValues.labelHasLatex,
@@ -811,7 +831,7 @@ export default class Chart extends BlockComponent {
                 titleChildren: {
                     dependencyType: "child",
                     childGroups: ["titles"],
-                    variableNames: ["text", "hidden"],
+                    variableNames: ["text", "hide"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -826,7 +846,7 @@ export default class Chart extends BlockComponent {
                 // (`utils/label.ts`).
                 return {
                     setValue: {
-                        title: titleChild?.stateValues.hidden
+                        title: titleChild?.stateValues.hide
                             ? ""
                             : (titleChild?.stateValues.text ?? ""),
                     },

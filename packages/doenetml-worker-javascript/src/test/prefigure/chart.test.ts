@@ -1383,6 +1383,56 @@ describe("chart prefigure tests @group4", async () => {
             ).eq("6, 1");
         });
 
+        it("hides the whole chart without emptying it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" hide categories="A B">
+      <title>Still the title</title>
+      <series>4 9</series>
+      <series>6 1</series>
+    </chart>
+    <p name="v">$c.values</p>
+    <p name="n">$c.numSeries</p>
+    <p name="t">$c.title</p>
+    <p name="sum"><sum>$c.values</sum></p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const read = async (name) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues.text;
+
+            // `hidden` is inherited, so a `<chart hide>` marks every child
+            // hidden — including the series. Reading that as "the author hid
+            // these series" would let hiding a chart delete the data an author
+            // is still writing about beside it, which is why the filter asks
+            // whether a series is hidden *from the chart* rather than whether
+            // it is hidden at all.
+            expect(await read("v")).eq("4, 9, 6, 1");
+            expect(await read("n")).eq("2");
+            expect(await read("sum")).eq("20");
+            expect(await read("t")).eq("Still the title");
+        });
+
+        it("still drops a series hidden on its own account inside a hidden chart", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="both" hide><series>4 9</series><series hide>6 1</series></chart>
+    <p name="bothValues">$both.values</p>
+    <chart type="bar" name="wrapped"><series>4 9</series><group hide><series>6 1</series></group></chart>
+    <p name="wrappedValues">$wrapped.values</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const read = async (name) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues.text;
+
+            // The chart being hidden is not what hid this one, so it stays out.
+            expect(await read("bothValues")).eq("4, 9");
+            // And something between the series and the chart hiding it counts
+            // too — a `<group hide>` passes its hiding to what it produces.
+            expect(await read("wrappedValues")).eq("4, 9");
+        });
+
         it("does not recolor the chart when a series is hidden", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
