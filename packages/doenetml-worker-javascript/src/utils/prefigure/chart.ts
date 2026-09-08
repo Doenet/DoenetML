@@ -1261,6 +1261,7 @@ function assembleChartDiagram({
     seriesAnnotations,
     seriesKeyHandles,
     legendKeyWidth,
+    markOverhang,
     overlayElements,
     shortDescription,
     darkMode,
@@ -1288,6 +1289,11 @@ function assembleChartDiagram({
     /** How wide the key beside each legend label is drawn. */
     legendKeyWidth: number;
     /**
+     * How far this chart's marks reach past the box, in pixels. Zero for bars,
+     * which are drawn inside it and clipped to it.
+     */
+    markOverhang: number;
+    /**
      * Drawn after every series, so nothing a later series draws can cover it.
      * A `displayValues` label sits at the end of its own mark, which under
      * `stacked` is where the next segment starts.
@@ -1299,7 +1305,13 @@ function assembleChartDiagram({
     const [xMin, yMin, xMax, yMax] = bounds;
     const bbox = `(${formatNumber(xMin)},${formatNumber(yMin)},${formatNumber(xMax)},${formatNumber(yMax)})`;
 
-    const [baseBottom, baseRight, baseTop] = CHART_MARGINS_BOTTOM_RIGHT_TOP;
+    const [rawBottom, rawRight, rawTop] = CHART_MARGINS_BOTTOM_RIGHT_TOP;
+
+    // Every side has to hold whatever the marks stick out by, since a marker
+    // sits on the box rather than inside it.
+    const baseBottom = rawBottom + markOverhang;
+    const baseRight = rawRight + markOverhang;
+    const baseTop = rawTop + markOverhang;
 
     // Settled before the margins, because a legend drawn outside the plot is
     // held by one of them. Its size does not depend on the plot's, so there is
@@ -1417,6 +1429,7 @@ function assembleChartDiagram({
     const wantedLeft = Math.max(
         yLabelsOnRight ? 0 : yLabelBand,
         halfWidestXLabel,
+        markOverhang,
     );
 
     // Both pairs are then fitted to the frame, which leaves each of them at
@@ -1863,6 +1876,8 @@ export function createBarChartPrefigureXML({
         seriesAnnotations,
         seriesKeyHandles,
         legendKeyWidth: LEGEND_SWATCH_KEY_WIDTH,
+        // A bar is drawn inside the box and clipped to it.
+        markOverhang: 0,
         overlayElements: valueLabelElements,
         shortDescription,
         darkMode,
@@ -1879,9 +1894,45 @@ export function createBarChartPrefigureXML({
  */
 export type PointChartShape = "scatter" | "line";
 
+/**
+ * How far a marker reaches past the point it stands for, in pixels.
+ *
+ * PreFigure draws a `size="5"` circle with a 4px stroke, so it paints five
+ * pixels out plus half the stroke. A point chart's marks therefore extend past
+ * the box the way an axis label extends past its corner, and the margins have
+ * to hold both — otherwise a marker at the edge lands on the title above it or
+ * the legend beside it.
+ */
+const MARKER_OVERHANG = 7;
+
 /** A point as PreFigure writes a coordinate pair, `(x,y)`. */
 function pointCoordinates(point: ChartPointMark) {
     return `(${formatNumber(point.x)},${formatNumber(point.y)})`;
+}
+
+/**
+ * Whether a point lies in the box, and so has a mark to draw.
+ *
+ * A marker is a symbol standing for a location rather than a shape with an
+ * extent of its own, so `cliptobbox` is the wrong tool for keeping one inside
+ * the frame: it cuts the symbol rather than the datum. A point at `(2,19.6)`
+ * under a `yMax` of 20 is *in* the chart, and its circle came back with the
+ * top five pixels sliced off flat — the marker reaches five pixels past a
+ * datum four tenths of a unit from the edge.
+ *
+ * So the box is applied to the point instead of to its drawing: one inside is
+ * drawn whole, one outside is not drawn at all. A bar keeps `cliptobbox`,
+ * where cutting is the right answer because a bar is a length a bound
+ * genuinely truncates, and so does the line, whose path should stop at the
+ * frame.
+ */
+function pointInBounds(
+    point: ChartPointMark,
+    [xMin, yMin, xMax, yMax]: [number, number, number, number],
+): boolean {
+    return (
+        point.x >= xMin && point.x <= xMax && point.y >= yMin && point.y <= yMax
+    );
 }
 
 /**
@@ -2013,6 +2064,9 @@ export function createPointChartPrefigureXML({
         // attribute doing nothing with nothing said about it.
         if (displayValues) {
             for (const point of seriesPoints) {
+                if (!pointInBounds(point, geometry.bounds)) {
+                    continue;
+                }
                 valueLabelElements.push(
                     `<label anchor="${escapeXml(pointCoordinates(point))}" alignment="north" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(point.y) ?? "")}</label>`,
                 );
@@ -2030,13 +2084,17 @@ export function createPointChartPrefigureXML({
         }).join(" ");
 
         seriesPoints.forEach((point, ind) => {
+            if (!pointInBounds(point, geometry.bounds)) {
+                return;
+            }
+
             const handle = `point-${seriesIndex + 1}-${ind + 1}`;
             if (seriesKeyHandles[seriesIndex] === null) {
                 seriesKeyHandles[seriesIndex] = handle;
             }
 
             seriesElements[seriesIndex].push(
-                `<point at="${escapeXml(handle)}" p="${escapeXml(pointCoordinates(point))}" cliptobbox="yes"${pointAttrs ? ` ${pointAttrs}` : ""} />`,
+                `<point at="${escapeXml(handle)}" p="${escapeXml(pointCoordinates(point))}"${pointAttrs ? ` ${pointAttrs}` : ""} />`,
             );
 
             // On a categorical axis the position is a name, so the annotation
@@ -2079,6 +2137,7 @@ export function createPointChartPrefigureXML({
         legendKeyWidth: drawLine
             ? LEGEND_LINE_KEY_WIDTH
             : LEGEND_SWATCH_KEY_WIDTH,
+        markOverhang: drawMarkers ? MARKER_OVERHANG : 0,
         overlayElements: valueLabelElements,
         shortDescription,
         darkMode,

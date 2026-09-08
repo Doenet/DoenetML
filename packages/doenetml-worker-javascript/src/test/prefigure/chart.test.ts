@@ -2059,13 +2059,51 @@ describe("chart prefigure tests @group4", async () => {
 
             expect((xml.match(/<point /g) ?? []).length).eq(3);
             expect(xml).toContain('<point at="point-1-1" p="(1,4)"');
-            // Clipped, because a point is drawn unclipped unless asked and an
-            // authored bound would otherwise leave it outside the axes.
-            expect(xml).toContain('cliptobbox="yes"');
+            // *Not* clipped. A marker is a symbol standing for a location, not
+            // a shape a bound truncates, so clipping it cuts the symbol rather
+            // than the datum: a point at `(2,19.6)` under a `yMax` of 20 came
+            // back with the top five pixels of its circle sliced off flat. The
+            // box is applied to the point instead, below.
+            expect(xml).not.toContain(
+                '<point at="point-1-1" p="(1,4)" cliptobbox',
+            );
 
             // Both coordinates are what a reader needs from a measured
             // position, where a category name is the whole of a bar's.
             expect(xml).toContain('<annotation ref="point-1-1" text="1, 4" />');
+        });
+
+        it("draws a marker whole, and only where there is one to draw", async () => {
+            // The reference page's own line chart is the case that showed it:
+            // 19.6 under a `yMax` of 20 is four tenths of a unit from the top,
+            // and the marker reaches five pixels past its datum, so the circle
+            // was drawn with a flat top against the frame.
+            const nearEdge = await chartXML(`
+    <chart type="line" name="c" size="small">
+      <series x="0 0.5 1 1.5 2">0 1.2 4.9 11 19.6</series>
+    </chart>
+    `);
+            expect(nearEdge).toContain('p="(2,19.6)"');
+            expect(nearEdge).not.toMatch(/<point[^>]*cliptobbox/);
+            // The line still is clipped: a path really should stop at the frame.
+            expect(nearEdge).toMatch(/<polygon[^>]*cliptobbox="yes"/);
+
+            // A point outside an authored box is not drawn at all, which is
+            // what `cliptobbox` used to achieve — and now its label and its
+            // annotation go with it, rather than being left pointing at an
+            // element that paints nothing.
+            const outside = await chartXML(`
+    <chart type="scatter" name="c" yMax="5" displayValues>
+      <series x="1 2 3">4 99 2</series>
+    </chart>
+    `);
+            expect((outside.match(/<point /g) ?? []).length).eq(2);
+            expect(outside).not.toContain('p="(2,99)"');
+            expect(outside).not.toContain(">99<");
+            expect(outside).not.toContain('text="2, 99"');
+            expect(outside).toContain(
+                '<annotation ref="point-1-1" text="1, 4" />',
+            );
         });
 
         it("does not force zero onto the axes of a scatter", async () => {
@@ -2389,11 +2427,21 @@ describe("chart prefigure tests @group4", async () => {
 
             // And a chart whose data straddles zero is left exactly as it was:
             // PreFigure draws that axis through the middle of the plot, where
-            // no margin holds it.
+            // no margin holds it. Measured against the same chart with its
+            // markers off, so the comparison is about the axis' position and
+            // not about the room a marker needs — which every side of a
+            // marked chart reserves, since a marker sits on the box rather
+            // than inside it.
             const straddling = await marginsOf(`
     <chart type="scatter" name="c"><series x="-1 2 3">-4 9 -2</series></chart>
     `);
-            expect(straddling).toEqual([32, 30, 12, 16]);
+            const straddlingUnmarked = await marginsOf(`
+    <chart type="line" name="c" markers="false"><series x="-1 2 3">-4 9 -2</series></chart>
+    `);
+            expect(straddlingUnmarked).toEqual([32, 30, 12, 16]);
+            // Left is set by the width of the vertical axis' numbers, which
+            // already exceeds what a marker needs; the other three grow by it.
+            expect(straddling).toEqual([32, 30 + 7, 12 + 7, 16 + 7]);
         });
 
         it("raises a title clear of horizontal axis labels sharing the top margin", async () => {
