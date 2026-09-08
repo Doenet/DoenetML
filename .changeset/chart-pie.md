@@ -17,7 +17,7 @@ Add `<chart type="pie">`.
 
 One slice per value, each one that value's share of the total. The slices run clockwise from twelve o'clock in the order the values are given, rather than sorted by size, so a pie beside a bar chart of the same data reads as the same data. `categories` names them.
 
-A pie is the one chart with no axes, so it reads neither `xMin`/`xMax` nor `yMin`/`yMax`, and `$chart.xMin` and the other three report nothing for one. It is also the one chart that colors *within* a series: its slices are what a reader tells apart, so each takes the next `styleNumber` in turn, starting at the chart's own.
+A pie is the one chart with no axes, so it reads neither `xMin`/`xMax` nor `yMin`/`yMax`, and `$chart.xMin` and the other three report nothing for one. An `<xLabel>` or `<yLabel>` has no axis to name either: it is not drawn, and the chart says so rather than dropping the text in silence — put it in a `<title>` instead. A pie is also the one chart that colors *within* a series: its slices are what a reader tells apart, so each takes the next `styleNumber` in turn, starting at the chart's own.
 
 The slice names go in the legend, and around the rim at each slice's middle when `legend="false"` leaves no legend to hold them — so they are always somewhere. `displayValues` prints each value inside its slice.
 

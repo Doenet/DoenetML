@@ -2820,6 +2820,60 @@ describe("chart prefigure tests @group4", async () => {
             );
         });
 
+        it("gives no style number to a value that is not a share at all", async () => {
+            // The other half of the rule above. A value of zero is a slice
+            // whose share is nothing, so it holds its place in the run of
+            // colors; a value that is not a share of anything is not a slice,
+            // so the slice after it takes the number instead of the one after
+            // that. Which is why replacing a zero with a negative moves the
+            // colors and replacing it with another number does not.
+            const fills = (source: string) =>
+                [...source.matchAll(/<arc [^>]*fill="([^"]*)"/g)].map(
+                    (match) => match[1],
+                );
+
+            const threeShares = fills(
+                await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">4 5 6</chart>
+    `),
+            );
+            const withAZero = fills(
+                await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">4 0 6</chart>
+    `),
+            );
+            const withANegative = fills(
+                await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">4 -1 6</chart>
+    `),
+            );
+            const withANonNumber = fills(
+                await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">
+      <number>4</number><math>1/0</math><number>6</number>
+    </chart>
+    `),
+            );
+
+            expect(threeShares.length).eq(3);
+            // Three colors that can be told apart, so the comparisons below
+            // cannot pass by accident.
+            expect(new Set(threeShares).size).eq(3);
+            for (const two of [withAZero, withANegative, withANonNumber]) {
+                expect(two.length).eq(2);
+                expect(two[0]).eq(threeShares[0]);
+            }
+
+            // The zero's number goes unused, so the last slice keeps the third
+            // color.
+            expect(withAZero[1]).eq(threeShares[2]);
+            // Neither of the others is a slice, so the last slice takes the
+            // second color — the same color it would have if the middle value
+            // had not been written at all.
+            expect(withANegative[1]).eq(threeShares[1]);
+            expect(withANonNumber[1]).eq(threeShares[1]);
+        });
+
         it("leaves out a value that is not a finite number, and says so", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
