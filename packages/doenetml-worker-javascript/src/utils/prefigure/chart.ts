@@ -625,6 +625,12 @@ export function computeBarChartGeometry({
 export type ChartSeriesRendering = {
     label: string;
     labelHasLatex: boolean;
+    /**
+     * What to call the series in the annotation tree when the author gave it no
+     * `<label>`. Localized, so it is built where the document's language is
+     * known; the drawing has no way to ask.
+     */
+    unlabeledName?: string;
     selectedStyle: Record<string, unknown> | undefined;
 };
 
@@ -809,6 +815,19 @@ export function createBarChartPrefigureXML({
     // at all — and gives the legend an element per series to key off.
     const groupSeries = geometry.series.length > 1;
 
+    // Once per series, not once per bar: every bar of a series is drawn from
+    // the same `selectedStyle`, so the attribute string is identical across
+    // them, and `styleAttributes` also reports an unsupported fill or line
+    // style through `diagnostics` — which the queue deduplicates by message,
+    // but there is no reason to hand it the same one per bar to discard.
+    const seriesStyleAttrs = geometry.series.map((_unused, seriesIndex) =>
+        styleAttributes({
+            selectedStyle: seriesRendering[seriesIndex]?.selectedStyle,
+            diagnostics,
+            warningPrefix: "<chart>",
+        }).join(" "),
+    );
+
     const seriesElements: string[][] = geometry.series.map(() => []);
     const seriesAnnotations: string[][] = geometry.series.map(() => []);
     /** The handle of each series' first bar, for the legend to point at. */
@@ -831,11 +850,7 @@ export function createBarChartPrefigureXML({
             seriesKeyHandles[bar.seriesIndex] = handle;
         }
 
-        const barAttrs = styleAttributes({
-            selectedStyle: seriesRendering[bar.seriesIndex]?.selectedStyle,
-            diagnostics,
-            warningPrefix: "<chart>",
-        }).join(" ");
+        const barAttrs = seriesStyleAttrs[bar.seriesIndex] ?? "";
 
         const lowerLeft = `(${formatNumber(bar.lowerLeft[0])},${formatNumber(bar.lowerLeft[1])})`;
         const barDimensions = `(${formatNumber(bar.dimensions[0])},${formatNumber(bar.dimensions[1])})`;
@@ -894,11 +909,17 @@ export function createBarChartPrefigureXML({
         elements.push(
             `<group at="${escapeXml(groupHandle)}">${seriesElements[seriesIndex].join("")}</group>`,
         );
-        // Named by the series where the author gave it a name, and by its
-        // position where they did not — a screen reader stopping on this level
-        // has to be told which group it has reached, and "series 2" is at least
-        // a distinguishing answer.
-        const seriesName = oneSeries.label || `${seriesIndex + 1}`;
+        // Named by the series where the author gave it a name, and by the
+        // fallback the chart worked out where they did not. A screen reader
+        // stopping on this level has to be told which group it has reached,
+        // and a bare position number would be indistinguishable from the
+        // values and categories announced on the levels either side of it — so
+        // the fallback is a localized phrase, built where the document's
+        // language is known rather than invented here.
+        const seriesName =
+            oneSeries.label ||
+            seriesRendering[seriesIndex]?.unlabeledName ||
+            `${seriesIndex + 1}`;
         annotationElements.push(
             `<annotation ref="${escapeXml(groupHandle)}" text="${escapeXml(seriesName)}">${seriesAnnotations[seriesIndex].join("")}</annotation>`,
         );

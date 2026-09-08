@@ -154,6 +154,7 @@ export type MessageKey =
     | "section-name.theorem"
     | "section-title-prefix"
     | "hint-title"
+    | "chart-unlabeled-series"
     | "table-name"
     | "figure-name"
     | "paginator-previous"
@@ -763,6 +764,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "section-name.theorem",
     "section-title-prefix",
     "hint-title",
+    "chart-unlabeled-series",
     "table-name",
     "figure-name",
     "paginator-previous",

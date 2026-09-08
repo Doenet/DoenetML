@@ -350,6 +350,20 @@ hint-title = Hint
 ## it sits is the one thing a translation cannot reorder — the same shape
 ## `section-title-prefix` has.
 
+## The name a `<chart>` gives a series that the author did not label.
+##
+## This is not decoration: it is the text a screen reader announces on the
+## level between the chart and its marks, so a reader stopping there is told
+## which group they have reached. A bare number would be indistinguishable
+## from a value or a category, which are what the levels either side of it
+## announce.
+##
+## `$position` arrives as text rather than as a number, for the reason
+## `table-name`'s `$enumeration` does: it identifies the series, so the
+## thousandth one is "series 1000" and not "series 1,000".
+chart-unlabeled-series =
+    series { $position }
+
 table-name =
     { $parts ->
         [numbered] Table { $enumeration }

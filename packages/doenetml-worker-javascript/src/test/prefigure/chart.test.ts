@@ -1334,8 +1334,70 @@ describe("chart prefigure tests @group4", async () => {
                 '<annotation ref="series-1" text="first"><annotation ref="bar-1-1" text="A: 4" />',
             );
             // An unnamed series still has to be distinguishable from the one
-            // before it, so it is named by its position.
-            expect(xml).toContain('<annotation ref="series-2" text="2">');
+            // before it — and from the categories and values announced on the
+            // levels either side of it, which a bare number would not be. So
+            // the fallback is a localized phrase rather than a position.
+            expect(xml).toContain(
+                '<annotation ref="series-2" text="series 2">',
+            );
+        });
+
+        it("leaves a hidden series and a hidden title out of the chart", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c" categories="A B">
+      <title hide>Not this</title>
+      <series name="shown"><label>first</label>4 9</series>
+      <series name="gone" hide><label>second</label>6 1</series>
+    </chart>
+    <p name="n">$c.numSeries</p>
+    <p name="t">$c.title</p>
+    <p name="hiddenValues">$gone.values</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // `hide` on a drawn child of a container means it is not drawn —
+            // the same thing it means for a `<point>` inside a `<graph>`.
+            expect((xml.match(/<rectangle /g) ?? []).length).eq(2);
+            expect(xml).not.toContain("second");
+            // With one series left there is no group and no legend entry for
+            // the one that went.
+            expect(xml).not.toContain("<group ");
+
+            // A hidden title is no title: the text is drawn into the diagram
+            // rather than rendered as a child, so `hide` reaches it only by
+            // being read.
+            expect(xml).not.toContain("Not this");
+            expect(sv[await resolvePathToNodeIdx("t")].stateValues.text).eq("");
+
+            // The chart describes the chart — one series, its values.
+            expect(sv[await resolvePathToNodeIdx("n")].stateValues.text).eq(
+                "1",
+            );
+            // The hidden series still exists and still reports its own data.
+            expect(
+                sv[await resolvePathToNodeIdx("hiddenValues")].stateValues.text,
+            ).eq("6, 1");
+        });
+
+        it("does not recolor the chart when a series is hidden", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="bar" name="c"><series name="a">4</series><series name="b" hide>9</series><series name="d">2</series></chart>
+    <p name="p">$a.styleNumber $b.styleNumber $d.styleNumber</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            // Style numbers come from the child list, so hiding the middle
+            // series leaves the last one the color it already had rather than
+            // shifting every color along.
+            expect(sv[await resolvePathToNodeIdx("p")].stateValues.text).eq(
+                "1 2 3",
+            );
         });
 
         it("counts every series in values, and reports how many there are", async () => {

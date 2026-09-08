@@ -36,6 +36,10 @@ A screen reader now walks the chart series by series and then bar by bar within 
 
 Values written beside a `<series>` belong to no group and are not drawn, which is now reported rather than left to be inferred from a missing bar.
 
+`hide` works on a `<series>` and on a chart's `<title>`, which it previously did not: a hidden series is left out of the chart entirely — out of the drawing, out of `values`, out of `numSeries` — the way a hidden `<point>` is left out of a `<graph>`, while still reporting its own values through its own name. Hiding a series does not recolor the ones after it.
+
+A series the author did not label is announced to a screen reader as "series 2" rather than as a bare "2", which was indistinguishable from the categories and values announced on the levels either side of it. The phrase is localized, so it is not English generated in the worker.
+
 A stacked chart whose segments total more than a double can hold is now drawn against the top of its frame, rather than coming back from PreFigure with the overflowing part of it missing, and `displayValues` labels are drawn over every bar rather than under the segment stacked above them.
 
 The reference page is reorganized around this, and the sampling-simulation walkthroughs that were on it move to a new **Charting a Simulation** guide. `<chart>` also gains its first browser tests, covering the renderer hand-off, the build request, the framing, and screen-reader navigation of the series.

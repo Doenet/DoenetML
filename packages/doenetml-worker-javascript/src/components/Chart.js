@@ -23,6 +23,10 @@ import {
     returnBreakStringsIntoMathsBySpacesSugarInstruction,
 } from "../utils/mathOperatorChildren";
 import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../utils/contentLocale";
 
 /** The width-to-height ratio a chart is drawn at when none is asked for. */
 const DEFAULT_ASPECT_RATIO = 1.5;
@@ -560,8 +564,10 @@ export default class Chart extends BlockComponent {
                         "labelHasLatex",
                         "values",
                         "selectedStyle",
+                        "hidden",
                     ],
                 },
+                ...returnContentLocaleDependencies(),
                 valueChildren: {
                     dependencyType: "child",
                     childGroups: ["numbers", "maths"],
@@ -587,18 +593,47 @@ export default class Chart extends BlockComponent {
                                     ),
                                     selectedStyle:
                                         dependencyValues.selectedStyle,
+                                    unlabeledName: contentTranslator(
+                                        dependencyValues,
+                                    )("chart-unlabeled-series", {
+                                        position: "1",
+                                    }),
                                 },
                             ],
                         },
                     };
                 }
 
-                const seriesData = seriesChildren.map((child) => ({
-                    label: child.stateValues.label,
-                    labelHasLatex: child.stateValues.labelHasLatex,
-                    values: child.stateValues.values,
-                    selectedStyle: child.stateValues.selectedStyle,
-                }));
+                const t = contentTranslator(dependencyValues);
+
+                // A hidden series is dropped rather than drawn and hidden,
+                // which is what `hide` means for a drawn child of a container:
+                // `<graph><point hide /></graph>` puts nothing on the page
+                // either. Dropping it here rather than at the drawing keeps
+                // `values`, `numSeries`, the categories the axis is as long as,
+                // and the picture all describing the same chart — a hidden
+                // series still reports its own `values` through its own name,
+                // exactly as a hidden `<point>` still reports its coordinates.
+                //
+                // Its *position* is not reclaimed: `seriesStyleNumbers` is
+                // assigned from the child list, so hiding the second of three
+                // leaves the third the color it already had rather than
+                // recoloring the chart around it.
+                const seriesData = seriesChildren
+                    .filter((child) => !child.stateValues.hidden)
+                    .map((child, ind) => ({
+                        label: child.stateValues.label,
+                        labelHasLatex: child.stateValues.labelHasLatex,
+                        values: child.stateValues.values,
+                        selectedStyle: child.stateValues.selectedStyle,
+                        // Built here, where the document's language is known.
+                        // The drawing has no way to ask, and a bare position
+                        // number is what a screen reader would otherwise
+                        // announce between a category and a value.
+                        unlabeledName: t("chart-unlabeled-series", {
+                            position: String(ind + 1),
+                        }),
+                    }));
 
                 // A value written beside the series is not a series of its own
                 // and is not part of any of them, so there is nowhere on the
@@ -757,7 +792,7 @@ export default class Chart extends BlockComponent {
                 titleChildren: {
                     dependencyType: "child",
                     childGroups: ["titles"],
-                    variableNames: ["text"],
+                    variableNames: ["text", "hidden"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -765,9 +800,16 @@ export default class Chart extends BlockComponent {
                     dependencyValues.titleChildren[
                         dependencyValues.titleChildren.length - 1
                     ];
+                // A hidden title is no title. The text is drawn into the
+                // diagram rather than rendered as a child component, so `hide`
+                // reaches it only by being read here — where a hidden
+                // `<label>` child is already handled the same way
+                // (`utils/label.ts`).
                 return {
                     setValue: {
-                        title: titleChild?.stateValues.text ?? "",
+                        title: titleChild?.stateValues.hidden
+                            ? ""
+                            : (titleChild?.stateValues.text ?? ""),
                     },
                 };
             },
@@ -1041,9 +1083,15 @@ export default class Chart extends BlockComponent {
                     // what a series is drawn in depends on which theme the
                     // reader is in, where what it is drawn as does not.
                     seriesRendering: dependencyValues.seriesData.map(
-                        ({ label, labelHasLatex, selectedStyle }) => ({
+                        ({
                             label,
                             labelHasLatex,
+                            selectedStyle,
+                            unlabeledName,
+                        }) => ({
+                            label,
+                            labelHasLatex,
+                            unlabeledName,
                             selectedStyle: resolveSelectedStyleForTheme(
                                 selectedStyle,
                                 darkMode,
