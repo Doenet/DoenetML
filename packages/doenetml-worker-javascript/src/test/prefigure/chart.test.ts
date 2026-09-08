@@ -1922,6 +1922,37 @@ describe("chart prefigure tests @group4", async () => {
             expect(await withLabels("Q1")).toBeLessThan(70);
         });
 
+        it("centers the title and the bottom legend without overflowing", async () => {
+            // Two finite bounds can sum to `Infinity`, and the midpoint was
+            // taken as `(xMin + xMax) / 2`. A titled scatter of large x came
+            // out with `anchor="(null,10)"`, which is not XML PreFigure can
+            // read. Only a numeric horizontal axis reaches this: a bar chart's
+            // runs from zero to the number of categories.
+            for (const doenetML of [
+                `<chart type="scatter" name="c" xMin="1e308" xMax="1.7e308">
+                   <title>T</title>
+                   <series x="1e308 1.5e308">4 9</series>
+                 </chart>`,
+                `<chart type="scatter" name="c" legendPosition="outsideBottom">
+                   <series x="1e308 1.7e308"><label>s</label>4 9</series>
+                 </chart>`,
+                `<chart type="scatter" name="c">
+                   <title>T</title>
+                   <series x="-1.7e308 1.7e308">4 9</series>
+                 </chart>`,
+            ]) {
+                const xml = await chartXML(doenetML);
+                expect(xml, "no null in the emitted XML").not.toContain("null");
+
+                for (const [, anchorX] of xml.matchAll(/anchor="\(([^,]*),/g)) {
+                    expect(
+                        Number.isFinite(Number(anchorX)),
+                        `anchor x is ${anchorX}`,
+                    ).eq(true);
+                }
+            }
+        });
+
         it("keeps the legend anchor finite on an axis that spans the doubles", async () => {
             // `yMax - yMin` for data at both ends of the double range is
             // `Infinity`, and an offset scaled by that is `-Infinity`, which

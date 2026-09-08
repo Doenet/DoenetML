@@ -257,6 +257,20 @@ export function chartLegendHasItems(
 const TARGET_TICK_INTERVALS = 5;
 
 /**
+ * The point halfway between `low` and `high`, without overflowing on the way.
+ *
+ * `(low + high) / 2` is the obvious form and it is wrong at the top of the
+ * range: two finite bounds can sum to `Infinity`, which `formatNumber` writes
+ * as `null` — and `anchor="(null,10)"` is not XML PreFigure can read. Halving
+ * first cannot overflow, because neither half is larger than the value it came
+ * from. Only a numeric horizontal axis gets near this; a bar chart's runs from
+ * zero to the number of categories.
+ */
+function midpoint(low: number, high: number): number {
+    return low / 2 + high / 2;
+}
+
+/**
  * Rounds away the dust a floating-point multiplication leaves behind, so that
  * `3 * 0.1` is written as `0.3` rather than `0.30000000000000004`.
  *
@@ -1664,7 +1678,7 @@ function assembleChartDiagram({
                     LEGEND_ANCHOR_OFFSET,
                 -(marginTop + innerHeight),
             );
-            anchorX = (xMin + xMax) / 2;
+            anchorX = midpoint(xMin, xMax);
             anchorY = yMin - belowAxis * unitsPerPixelY;
         }
         const anchor = `(${formatNumber(anchorX)},${formatNumber(anchorY)})`;
@@ -1684,7 +1698,7 @@ function assembleChartDiagram({
     let titleElement = "";
     let captionElement = "";
     if (titleText) {
-        const anchor = `(${formatNumber((xMin + xMax) / 2)},${formatNumber(
+        const anchor = `(${formatNumber(midpoint(xMin, xMax))},${formatNumber(
             yMax + (xLabelsOnTop ? xLabelBand : 0) * unitsPerPixelY,
         )})`;
         titleElement = `<label anchor="${escapeXml(anchor)}" alignment="north" scale="${TITLE_SCALE}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${titleText}</label>`;
