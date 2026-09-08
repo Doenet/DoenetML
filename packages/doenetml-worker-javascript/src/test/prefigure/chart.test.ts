@@ -2747,6 +2747,42 @@ describe("chart prefigure tests @group4", async () => {
             expect(fillsOf(shifted)[0]).eq(fillsOf(plain)[1]);
         });
 
+        it("starts the run of colors at the drawn series' own style number", async () => {
+            // The one reading `<series styleNumber>` has on a pie: the
+            // attribute names one color and a pie needs a color per slice, so
+            // what it can say is where the run begins.
+            const named = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false"><series styleNumber="4">1 1</series></chart>
+    `);
+            const fromFour = await chartXML(`
+    <chart type="pie" name="c" styleNumber="4" categories="A B" legend="false">1 1</chart>
+    `);
+            const fillsOf = (xml: string) =>
+                [...xml.matchAll(/<arc [^>]*fill="([^"]*)"/g)].map(
+                    (match) => match[1],
+                );
+
+            expect(fillsOf(named)).eqls(fillsOf(fromFour));
+
+            // And a bar chart of that same markup draws its bars in style 4,
+            // so the attribute means the same thing on both — a pie just
+            // continues from there.
+            const bar = await chartXML(`
+    <chart type="bar" name="c" categories="A B"><series styleNumber="4">1 1</series></chart>
+    `);
+            expect(bar).toContain(`fill="${fillsOf(named)[0]}"`);
+
+            // A series that names no style leaves the run where the chart's own
+            // number puts it.
+            const unnamed = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false"><series>1 1</series></chart>
+    `);
+            const bare = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false">1 1</chart>
+    `);
+            expect(fillsOf(unnamed)).eqls(fillsOf(bare));
+        });
+
         it("prints each value inside its slice", async () => {
             const xml = await chartXML(`
     <chart type="pie" name="c" categories="A B C D" displayValues>4 4 4 4</chart>

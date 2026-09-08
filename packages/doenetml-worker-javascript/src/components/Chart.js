@@ -668,11 +668,16 @@ export default class Chart extends BlockComponent {
                         "labelHasLatex",
                         "values",
                         "x",
+                        "styleNumber",
                         "selectedStyle",
                         "hiddenIgnoreParent",
                     ],
                 },
                 ...returnContentLocaleDependencies(),
+                styleNumber: {
+                    dependencyType: "stateVariable",
+                    variableName: "styleNumber",
+                },
                 valueChildren: {
                     dependencyType: "child",
                     childGroups: ["numbers", "maths"],
@@ -702,6 +707,10 @@ export default class Chart extends BlockComponent {
                                     // draw a line over three categories rather
                                     // than refuse for want of an `x`.
                                     x: null,
+                                    // The chart's own, which is what a series
+                                    // written out with no style of its own
+                                    // would have taken.
+                                    styleNumber: dependencyValues.styleNumber,
                                     selectedStyle:
                                         dependencyValues.selectedStyle,
                                     unlabeledName: contentTranslator(
@@ -751,6 +760,10 @@ export default class Chart extends BlockComponent {
                         // the chart on a categorical axis rather than a
                         // numeric one.
                         x: child.stateValues.x,
+                        // Carried alongside the resolved style because a pie
+                        // needs the *number* rather than the style: its slices
+                        // take a run of numbers starting from this one.
+                        styleNumber: child.stateValues.styleNumber,
                         selectedStyle: child.stateValues.selectedStyle,
                         // Built here, where the document's language is known.
                         // The drawing has no way to ask, and a bare position
@@ -1189,22 +1202,29 @@ export default class Chart extends BlockComponent {
             },
         };
 
-        // The style each slice of a pie is drawn in: the chart's own, then one
-        // more for every slice after the first — the same categorical color
-        // scale `seriesStyleNumbers` hands the series of every other type,
-        // applied a level down. A pie is the one chart that colors *within* a
-        // series, because its slices rather than its groups are what a reader
-        // tells apart.
+        // The style each slice of a pie is drawn in: the drawn series' number,
+        // then one more for every slice after the first — the same categorical
+        // color scale `seriesStyleNumbers` hands the series of every other
+        // type, applied a level down. A pie is the one chart that colors
+        // *within* a series, because its slices rather than its groups are what
+        // a reader tells apart.
+        //
+        // The run starts at the *series'* number rather than the chart's, which
+        // are the same number until a `<series>` names one of its own. That is
+        // the only reading of `<series styleNumber="4">` a pie has: the
+        // attribute names one color, and a pie needs a color per slice, so what
+        // it can say is where the run begins. A bar chart of the same markup
+        // draws its bars in style 4, and this draws the first slice in style 4.
         //
         // Resolved here rather than in the drawing because a style number
         // means whatever the document's `<styleDefinition>` children and the
         // reader's palette say it does, and only the core can ask.
         //
-        // Read off the geometry rather than the data, so that a slice's number
-        // follows the order the slices are drawn in. A value that got no share
-        // of the total is not a slice and takes no number; a value of zero is
-        // a slice and takes one, keeping the colors of the slices after it
-        // where they were.
+        // The count is read off the geometry rather than the data, so that a
+        // slice's number follows the order the slices are drawn in. A value
+        // that got no share of the total is not a slice and takes no number; a
+        // value of zero is a slice and takes one, keeping the colors of the
+        // slices after it where they were.
         stateVariableDefinitions.sliceStyles = {
             description:
                 "The style each slice of a pie is drawn in, in the order the slices are drawn.",
@@ -1212,6 +1232,10 @@ export default class Chart extends BlockComponent {
                 chartGeometry: {
                     dependencyType: "stateVariable",
                     variableName: "chartGeometry",
+                },
+                seriesData: {
+                    dependencyType: "stateVariable",
+                    variableName: "seriesData",
                 },
                 styleNumber: {
                     dependencyType: "stateVariable",
@@ -1231,11 +1255,18 @@ export default class Chart extends BlockComponent {
                 const numSlices =
                     geometry?.kind === "pie" ? geometry.slices.length : 0;
 
+                // The series a pie draws is the first one, and the chart's own
+                // number stands in where there is no series to ask — a chart
+                // whose every series is hidden, which has no slices either.
+                const runStart =
+                    dependencyValues.seriesData[0]?.styleNumber ??
+                    dependencyValues.styleNumber;
+
                 const sliceStyles = [];
                 for (let ind = 0; ind < numSlices; ind++) {
                     sliceStyles.push(
                         selectStyleForStyleNumber({
-                            styleNumber: dependencyValues.styleNumber + ind,
+                            styleNumber: runStart + ind,
                             ancestorWithStyle:
                                 dependencyValues.ancestorWithStyle,
                         }),
