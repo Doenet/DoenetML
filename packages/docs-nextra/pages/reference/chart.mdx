@@ -143,7 +143,11 @@ values — bare numbers, `<number>{:dn}` and `<math>{:dn}` children, a
 its `<label>{:dn}` names it in the legend, which appears as soon as a series has one.
 Series take consecutive style numbers unless one is given a `styleNumber` of its own, so
 the groups come out in different colors without being asked to. A screen reader walks the
-chart series by series, then bar by bar within a series.
+chart series by series, then mark by mark within a series.
+
+A series may also carry an `x`, which gives its values horizontal coordinates and puts the
+chart on a numeric axis instead of the categories — required by `type="scatter"{:dn}` and
+optional for `type="line"{:dn}`.
 
 A chart written with bare values and no `<series>{:dn}` has one unnamed series holding them
 all, which is why the simpler charts here need no series at all.
@@ -377,7 +381,7 @@ to the data alone.
   <shortDescription>The same points on a wider axis</shortDescription>
   <series x="1 2 3">4 9 2</series>
 </chart>
-<p>With `xMin="-5" xMax="15"`: $wide.xMin to $wide.xMax</p>
+<p>With <c>xMin="-5" xMax="15"</c>: $wide.xMin to $wide.xMax</p>
 ```
 
 

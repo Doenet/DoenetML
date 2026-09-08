@@ -1818,6 +1818,43 @@ describe("chart prefigure tests @group4", async () => {
             }
         });
 
+        it("reserves a wider key for a line chart's legend", async () => {
+            // PreFigure draws a line chart's key as a segment of the stroke
+            // rather than a block of the fill, and a segment is longer:
+            // measured against a real render, the same label came back 56.9px
+            // wide in a bar chart's legend and 70.9px in a line chart's.
+            // Reserving the swatch width for both left the line chart's legend
+            // 14px wider than its margin, with 3px of gap where 8 was meant.
+            const rightMargin = async (doenetML: string) =>
+                Number(
+                    (await chartXML(doenetML)).match(
+                        /margins="\[[^,]*,[^,]*,([^,]*),/,
+                    )?.[1],
+                );
+
+            const asBar = await rightMargin(`
+    <chart type="bar" name="c" categories="A B C">
+      <series><label>first</label>12 19 15</series>
+    </chart>
+    `);
+            const asLine = await rightMargin(`
+    <chart type="line" name="c" categories="A B C">
+      <series><label>first</label>12 19 15</series>
+    </chart>
+    `);
+            const asScatter = await rightMargin(`
+    <chart type="scatter" name="c">
+      <series x="1 2 3"><label>first</label>12 19 15</series>
+    </chart>
+    `);
+
+            expect(asLine - asBar).eq(14);
+            // A scatter keys off a point, which is a swatch like a bar's — so
+            // it is only the numeric axis' own labels that separate the two.
+            expect(asScatter).toBeGreaterThanOrEqual(asBar);
+            expect(asScatter).toBeLessThan(asLine);
+        });
+
         it("reserves more width for a wide glyph than a narrow one", async () => {
             // The width classes are measured, not guessed. `%` is 11.9px and
             // `&` 10.3px — wider than any lowercase letter — and `|` is 7.7px

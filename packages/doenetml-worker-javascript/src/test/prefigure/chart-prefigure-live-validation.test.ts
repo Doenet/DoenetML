@@ -134,45 +134,62 @@ describe("Chart prefigure renderer live validation @group4", () => {
                 ["######", "large"],
                 ["OCTOBER TOTALS", "large"],
             ] as [string, string][]) {
-                const prefigureXML = await getPrefigureXML(
-                    `<chart type="bar" name="c" categories="A B" size="${size}">
+                // Both key shapes: a bar's legend key is a swatch of fill, a
+                // line's is a segment of stroke and 14px wider, and the margin
+                // is reserved from an estimate that has to know which.
+                for (const chartType of ["bar", "line"]) {
+                    const prefigureXML = await getPrefigureXML(
+                        `<chart type="${chartType}" name="c" categories="A B" size="${size}">
                        <series><label>${label}</label>4 9</series>
                        <series><label>${label} II</label>6 1</series>
                      </chart>`,
-                    "c",
-                );
-                const result =
-                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
-                expect(result.ok, `${label}: build failed`).toBe(true);
+                        "c",
+                    );
+                    const result =
+                        await validatePrefigureXMLAgainstBuildService(
+                            prefigureXML,
+                        );
+                    expect(
+                        result.ok,
+                        `${label}/${chartType}: build failed`,
+                    ).toBe(true);
 
-                const svg: string = result.body?.svg ?? "";
-                const pictureWidth = Number(
-                    svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
-                );
-                // `legend.py` draws the box as a rect at the origin of a
-                // translated group, stroked and filled white.
-                const box = svg.match(
-                    /transform="translate\(([-\d.]+),([-\d.]+)\)[^"]*"[^>]*>\s*<rect x="0" y="0" width="([\d.]+)"[^>]*stroke="currentColor" fill="white"/,
-                );
-                expect(box, `${label}: no legend box drawn`).toBeTruthy();
+                    const svg: string = result.body?.svg ?? "";
+                    const pictureWidth = Number(
+                        svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
+                    );
+                    // `legend.py` draws the box as a rect at the origin of a
+                    // translated group, stroked and filled white.
+                    const box = svg.match(
+                        /transform="translate\(([-\d.]+),([-\d.]+)\)[^"]*"[^>]*>\s*<rect x="0" y="0" width="([\d.]+)"[^>]*stroke="currentColor" fill="white"/,
+                    );
+                    expect(
+                        box,
+                        `${label}/${chartType}: no legend box drawn`,
+                    ).toBeTruthy();
 
-                const gap = pictureWidth - (Number(box![1]) + Number(box![3]));
-                // Inside the picture, always. This is the assertion that
-                // matters: a box drawn past the edge is clipped, and the SVG
-                // gives no sign of it.
-                expect(gap, `${label}: legend is clipped`).toBeGreaterThan(0);
-
-                // And not wasting width, for labels short enough that the
-                // estimate is close. The estimate is a sum of per-character
-                // classes, so its error grows with the label: it is within a
-                // pixel or two of a short one and around 25px over a
-                // forty-character one, and that surplus becomes gap. Bounding
-                // the long ones here would only pin the estimate's error.
-                if (label.length <= 15) {
+                    const gap =
+                        pictureWidth - (Number(box![1]) + Number(box![3]));
+                    // Inside the picture, always. This is the assertion that
+                    // matters: a box drawn past the edge is clipped, and the SVG
+                    // gives no sign of it.
                     expect(
                         gap,
-                        `${label}: legend leaves too much width unused`,
-                    ).toBeLessThan(30);
+                        `${label}/${chartType}: legend is clipped`,
+                    ).toBeGreaterThan(0);
+
+                    // And not wasting width, for labels short enough that the
+                    // estimate is close. The estimate is a sum of per-character
+                    // classes, so its error grows with the label: it is within a
+                    // pixel or two of a short one and around 25px over a
+                    // forty-character one, and that surplus becomes gap. Bounding
+                    // the long ones here would only pin the estimate's error.
+                    if (label.length <= 15) {
+                        expect(
+                            gap,
+                            `${label}/${chartType}: legend leaves too much width unused`,
+                        ).toBeLessThan(30);
+                    }
                 }
             }
         },

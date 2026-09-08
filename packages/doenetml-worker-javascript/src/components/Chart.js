@@ -13,7 +13,7 @@ import {
     returnAxisLabelStateVariableDefinitions,
 } from "../utils/axisLabel";
 import {
-    barChartLegendHasItems,
+    chartLegendHasItems,
     computeBarChartGeometry,
     computePointChartGeometry,
     createBarChartPrefigureXML,
@@ -935,9 +935,7 @@ export default class Chart extends BlockComponent {
                     setValue: {
                         showLegend:
                             dependencyValues.legend &&
-                            barChartLegendHasItems(
-                                dependencyValues.chartGeometry,
-                            ),
+                            chartLegendHasItems(dependencyValues.chartGeometry),
                     },
                 };
             },

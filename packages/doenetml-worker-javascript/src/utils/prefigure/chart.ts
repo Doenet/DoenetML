@@ -1,6 +1,6 @@
 import { darkModeAxisStrokeAttr, escapeXml, formatNumber } from "./common";
 import { labelMarkup, THEME_AWARE_LABEL_COLOR_ATTR } from "./label";
-import { styleAttributes } from "./style";
+import { pointStyleAttributes, styleAttributes } from "./style";
 import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
@@ -223,16 +223,20 @@ export type BarChartGeometry = {
  * Whether a label carries LaTeX changes how it is written, not whether there
  * is anything to write, so it is not asked here.
  */
-export function barChartLegendHasItems(
-    geometry: BarChartGeometry | null,
+export function chartLegendHasItems(
+    geometry: BarChartGeometry | PointChartGeometry | null,
 ): boolean {
     if (geometry === null) {
         return false;
     }
-    const seriesWithABar = new Set(geometry.bars.map((bar) => bar.seriesIndex));
+    // Whichever kind of mark this chart is drawn from. A series earns an entry
+    // by having one, because the entry points at a mark for its swatch to be
+    // read off — which is the same question for a bar, a point and a line.
+    const marks = "bars" in geometry ? geometry.bars : (geometry.points ?? []);
+    const seriesWithAMark = new Set(marks.map((mark) => mark.seriesIndex));
     return geometry.series.some(
         (oneSeries, seriesIndex) =>
-            seriesWithABar.has(seriesIndex) &&
+            seriesWithAMark.has(seriesIndex) &&
             labelMarkup({
                 label: oneSeries.label,
                 labelHasLatex: false,
@@ -979,7 +983,10 @@ const LEGEND_PLACEMENTS = {
  * 109px wide against 84 predicted and was drawn 5px past the right edge of the
  * picture, while `Population 2024` reserved 26px more than it used.
  */
-function estimateLegendSize(labels: string[]): {
+function estimateLegendSize(
+    labels: string[],
+    keyWidth: number,
+): {
     width: number;
     height: number;
 } {
@@ -988,7 +995,7 @@ function estimateLegendSize(labels: string[]): {
         0,
     );
     return {
-        width: widest + LEGEND_FURNITURE_WIDTH,
+        width: widest + keyWidth,
         height: LEGEND_BOX_PADDING + labels.length * LEGEND_ITEM_HEIGHT,
     };
 }
@@ -1064,8 +1071,23 @@ const BROAD_CHARACTERS = "GDUHNOQ&";
  */
 const FULL_WIDTH_FIRST_CODE_POINT = 0x1100;
 
-/** The key swatch and the three paddings `legend.py` puts around the labels. */
-const LEGEND_FURNITURE_WIDTH = 30;
+/**
+ * The key and the three paddings `legend.py` puts around the labels, for a key
+ * that is a swatch of fill — a bar or a point.
+ */
+const LEGEND_SWATCH_KEY_WIDTH = 30;
+
+/**
+ * The same, for a key that is a line.
+ *
+ * PreFigure draws a line chart's key as a segment of the stroke rather than a
+ * block of the fill, and a segment is longer than a swatch: measured against a
+ * real render, the same label came back 56.894px wide in a bar chart's legend
+ * and 70.894px in a line chart's. Reserving the swatch width for both is a
+ * legend 14px wider than its margin, which is the margin's whole job to
+ * prevent.
+ */
+const LEGEND_LINE_KEY_WIDTH = 44;
 
 /** One label's line box plus the `vertical-skip` under it, at 14px. */
 const LEGEND_ITEM_HEIGHT = 21;
@@ -1192,6 +1214,7 @@ function assembleChartDiagram({
     seriesElements,
     seriesAnnotations,
     seriesKeyHandles,
+    legendKeyWidth,
     overlayElements,
     shortDescription,
     darkMode,
@@ -1216,6 +1239,8 @@ function assembleChartDiagram({
     seriesElements: string[][];
     seriesAnnotations: string[][];
     seriesKeyHandles: (string | null)[];
+    /** How wide the key beside each legend label is drawn. */
+    legendKeyWidth: number;
     /**
      * Drawn after every series, so nothing a later series draws can cover it.
      * A `displayValues` label sits at the end of its own mark, which under
@@ -1247,7 +1272,7 @@ function assembleChartDiagram({
     const legendDrawn = showLegend && legendLabels.length > 0;
     const placement =
         LEGEND_PLACEMENTS[legendPosition] ?? LEGEND_PLACEMENTS.outsideright;
-    const legendSize = estimateLegendSize(legendLabels);
+    const legendSize = estimateLegendSize(legendLabels, legendKeyWidth);
     const legendOutside = legendDrawn && "side" in placement;
 
     // Annotated, since the base margins are literal types off an `as const`
@@ -1712,6 +1737,7 @@ export function createBarChartPrefigureXML({
         seriesElements,
         seriesAnnotations,
         seriesKeyHandles,
+        legendKeyWidth: LEGEND_SWATCH_KEY_WIDTH,
         overlayElements: valueLabelElements,
         shortDescription,
         darkMode,
@@ -1836,17 +1862,20 @@ export function createPointChartPrefigureXML({
             // reader can reach but not walk point by point, which is the cost
             // of `markers="false"` and is why it is not the default.
             //
-            // Named by the series, or by its position when it has no name —
-            // the same rule the group level uses, and for the same reason
-            // nothing here says how many points there are: a count would be
-            // English generated in the worker, which is the one thing the
-            // annotations deliberately never contain, since there would be no
-            // way to translate it.
+            // Named by the series where the author gave it a name, and by the
+            // localized fallback the chart worked out where they did not —
+            // the same rule the group level uses. A bare position number would
+            // be indistinguishable from the coordinates announced around it,
+            // and a phrase built here would be English generated in the
+            // worker, which the annotations deliberately never contain. For
+            // the same reason nothing here says how many points there are.
             if (!drawMarkers) {
-                const label = seriesRendering[seriesIndex]?.label;
+                const rendering = seriesRendering[seriesIndex];
                 seriesAnnotations[seriesIndex].push(
                     `<annotation ref="${escapeXml(handle)}" text="${escapeXml(
-                        label || `${seriesIndex + 1}`,
+                        rendering?.label ||
+                            rendering?.unlabeledName ||
+                            `${seriesIndex + 1}`,
                     )}" />`,
                 );
             }
@@ -1915,6 +1944,11 @@ export function createPointChartPrefigureXML({
         seriesElements,
         seriesAnnotations,
         seriesKeyHandles,
+        // A line chart keys its legend off the line, which PreFigure draws as
+        // a segment rather than a swatch, and a segment is wider.
+        legendKeyWidth: drawLine
+            ? LEGEND_LINE_KEY_WIDTH
+            : LEGEND_SWATCH_KEY_WIDTH,
         overlayElements: valueLabelElements,
         shortDescription,
         darkMode,
