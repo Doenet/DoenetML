@@ -1170,8 +1170,8 @@ chart-pie-values-not-drawable =
 # than the one above, because the reason is different in kind: a negative bar
 # hangs below the baseline it is measured from, and a pie has no baseline to
 # hang anything from, so a negative value is not merely undrawable but has no
-# reading as a share of a total. It is left out of the total as well, since a
-# value that silently shrank every other slice would be worse than its absence.
+# reading as a share of a total. It is left out of the total as well, so the
+# slices that are drawn are shares of what was actually charted.
 chart-pie-negative-values =
     A slice is a share of a total, so a pie chart draws no slice for a negative value and leaves it out of the total.
 

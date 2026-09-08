@@ -2689,6 +2689,124 @@ describe("chart prefigure tests @group4", async () => {
             );
         });
 
+        it("aligns each rim name away from the center, and reserves the margin it is drawn into", async () => {
+            const marginsOf = (xml: string) =>
+                xml
+                    .match(/margins="\[([^\]]*)\]"/)?.[1]
+                    .split(",")
+                    .map(Number) ?? [];
+            const alignmentsOf = (xml: string) =>
+                [...xml.matchAll(/<label [^>]*alignment="([a-z]+)"/g)].map(
+                    (match) => match[1],
+                );
+
+            // Eight equal slices put a name in every direction there is, so one
+            // chart pins the whole compass at once. The middle of the first
+            // slice is one octant clockwise from twelve, and each after it one
+            // octant further.
+            const eight = await chartXML(`
+    <chart type="pie" name="c" legend="false" categories="Coal Coal Coal Coal Coal Coal Coal Coal">1 1 1 1 1 1 1 1</chart>
+    `);
+            expect(alignmentsOf(eight)).eqls([
+                "north",
+                "northeast",
+                "east",
+                "southeast",
+                "south",
+                "southwest",
+                "west",
+                "northwest",
+            ]);
+
+            // A name drawn away from the center is drawn entirely to one side
+            // of its anchor, so the margin on that side has to hold it. The
+            // same name on both sides here, so the two bands come out equal.
+            const [left, bottom, right, top] = marginsOf(eight);
+            expect(left).eq(right);
+            expect(bottom).eq(top);
+
+            // A wider name reserves more, which is what makes this the width
+            // rather than a constant.
+            const wider = await chartXML(`
+    <chart type="pie" name="c" legend="false" categories="Renewables Renewables Renewables Renewables Renewables Renewables Renewables Renewables">1 1 1 1 1 1 1 1</chart>
+    `);
+            const [widerLeft, , widerRight] = marginsOf(wider);
+            expect(widerLeft).toBeGreaterThan(left);
+            expect(widerRight).toBeGreaterThan(right);
+
+            // Two equal slices are named due east and due west, each centered
+            // on the other axis at the middle of the pie — so they reach into
+            // neither cap, and the top and bottom margins hold nothing but the
+            // room every pie keeps outside its stroke.
+            const twoAcross = await chartXML(`
+    <chart type="pie" name="c" legend="false" categories="Coal Coal">1 1</chart>
+    `);
+            expect(alignmentsOf(twoAcross)).eqls(["east", "west"]);
+            const [acrossLeft, acrossBottom, acrossRight, acrossTop] =
+                marginsOf(twoAcross);
+            expect(acrossLeft).eq(left);
+            expect(acrossRight).eq(right);
+            expect(acrossTop).toBeLessThan(top);
+            expect(acrossBottom).toBeLessThan(bottom);
+
+            // And nothing is reserved for names that are in the legend, or for
+            // names there are none of.
+            const inLegend = await chartXML(`
+    <chart type="pie" name="c" categories="Coal Coal">1 1</chart>
+    `);
+            expect(marginsOf(inLegend)[0]).eq(acrossTop);
+            const unnamed = await chartXML(`
+    <chart type="pie" name="c" legend="false" categories="$blank $blank">1 1</chart>
+    <text name="blank"></text>
+    `);
+            expect(marginsOf(unnamed)).eqls([
+                acrossTop,
+                acrossTop,
+                acrossTop,
+                acrossTop,
+            ]);
+        });
+
+        it("spends a margin on a legend outside the pie and none on one inside it", async () => {
+            const marginsOf = (xml: string) =>
+                xml
+                    .match(/margins="\[([^\]]*)\]"/)?.[1]
+                    .split(",")
+                    .map(Number) ?? [];
+
+            const twoSlices = `categories="Coal Gas">1 1</chart>`;
+            const [, , onRight] = marginsOf(
+                await chartXML(
+                    `<chart type="pie" name="c" ${twoSlices}
+    `,
+                ),
+            );
+            const [, below, , above] = marginsOf(
+                await chartXML(
+                    `<chart type="pie" name="c" legendPosition="outsideBottom" ${twoSlices}
+    `,
+                ),
+            );
+            const inCorner = marginsOf(
+                await chartXML(
+                    `<chart type="pie" name="c" legendPosition="upperRight" ${twoSlices}
+    `,
+                ),
+            );
+
+            // The default puts the box in the right margin and the box's width
+            // is what that margin has to be; `outsideBottom` spends height
+            // instead. A corner of the plot costs neither.
+            expect(onRight).toBeGreaterThan(inCorner[2]);
+            expect(below).toBeGreaterThan(above);
+            expect(inCorner).eqls([
+                inCorner[3],
+                inCorner[3],
+                inCorner[3],
+                inCorner[3],
+            ]);
+        });
+
         it("reports the legend it drew", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

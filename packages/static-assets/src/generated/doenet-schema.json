@@ -36534,7 +36534,7 @@
                 },
                 {
                     "name": "barWidth",
-                    "description": "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them. Read only by `type=\"bar\"`.",
+                    "description": "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them. Only a bar chart draws with it.",
                     "groupName": "marks",
                     "defaultValue": 0.8,
                     "type": "number"
@@ -36654,7 +36654,7 @@
                 },
                 {
                     "name": "markers",
-                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Read only by `type=\"line\"`.",
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Only a line chart draws with it.",
                     "groupName": "marks",
                     "highlighted": true,
                     "defaultValue": true,
@@ -36798,7 +36798,7 @@
                     "name": "markers",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Read only by `type=\"line\"`.",
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Only a line chart draws with it.",
                     "fromAttribute": true,
                     "groupName": "marks",
                     "highlighted": true

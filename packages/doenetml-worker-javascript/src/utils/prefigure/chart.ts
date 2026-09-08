@@ -1051,8 +1051,8 @@ export type PieSliceGeometry = {
 export type PieChartGeometry = {
     kind: "pie";
     /**
-     * The one series drawn. Empty on a chart with no data at all, so that a
-     * pie of nothing is distinguishable from a pie of one empty group.
+     * The one series drawn, or empty on a chart that was given no series at
+     * all. Kept so that a pie's geometry has the same shape as the other two.
      */
     series: { label: string }[];
     /**
@@ -1095,8 +1095,8 @@ export type PieChartGeometry = {
  * finite number cannot be one, and a negative value is not merely undrawable
  * but meaningless here: a bar hangs below the baseline it is measured from, and
  * a pie has no baseline to hang anything from. Both are counted so the chart
- * can say so, and neither is included in the total — a negative value silently
- * shrinking every other slice would be worse than its absence.
+ * can say so, and neither is included in the total, so the slices that are
+ * drawn are shares of what was actually charted and together fill the circle.
  */
 export function computePieChartGeometry({
     series,
@@ -2708,9 +2708,10 @@ function assemblePieDiagram({
     // The shorter side of the drawing area is two units across and the longer
     // one proportionally more, which is what makes a unit the same number of
     // pixels on both axes and the pie a circle rather than an ellipse. A
-    // drawing area with no extent — reachable from an `aspectRatio` that asks
-    // for a frame a fraction of a pixel tall — has no proportion to take, and
-    // falls back to a square box so that the coordinates stay numbers.
+    // drawing area with no extent has no proportion to take, and falls back to
+    // a square box so that the coordinates stay numbers. Nothing an author can
+    // write reaches that: the frame is always some pixels across, and
+    // `fitMargins` never takes all of them.
     const shorterSide = Math.min(innerWidth, innerHeight);
     const usable = shorterSide > 0 && Number.isFinite(shorterSide);
     const halfWidth = usable ? innerWidth / shorterSide : 1;
@@ -2861,8 +2862,8 @@ export function createPieChartPrefigureXML({
                 const alignment = compassAlignment(midDegrees);
                 const reach = SLICE_LABEL_REACH[alignment];
                 if (reach?.side) {
-                    // Rounded up, so that the margins stay whole pixels the
-                    // way every other margin this file emits is.
+                    // Rounded up rather than down, so the band is never
+                    // narrower than the width it was estimated from.
                     sliceLabelBands[reach.side] = Math.max(
                         sliceLabelBands[reach.side],
                         Math.ceil(estimateTextWidth(slice.label)),

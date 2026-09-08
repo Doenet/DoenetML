@@ -194,7 +194,7 @@ export default class Chart extends BlockComponent {
         attributes.barWidth = {
             groupName: "marks",
             description:
-                'How much of each category\'s slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them. Read only by `type="bar"`.',
+                "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them. Only a bar chart draws with it.",
             createComponentOfType: "number",
             createStateVariable: "barWidthAttr",
             defaultValue: DEFAULT_BAR_WIDTH,
@@ -359,7 +359,7 @@ export default class Chart extends BlockComponent {
         attributes.markers = {
             groupName: "marks",
             description:
-                'Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Read only by `type="line"`.',
+                "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Only a line chart draws with it.",
             createComponentOfType: "boolean",
             createStateVariable: "markers",
             defaultValue: true,
