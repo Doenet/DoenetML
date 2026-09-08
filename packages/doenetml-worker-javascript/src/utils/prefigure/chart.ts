@@ -636,11 +636,64 @@ export type ChartSeriesRendering = {
 
 /** Where the legend box sits, and what it is anchored to. */
 const LEGEND_PLACEMENTS = {
+    // Outside the plot, in a margin widened to hold it. Nothing is drawn there,
+    // so these never collide with the data — which the inside placements cannot
+    // promise, since a bar chart's tallest bars are exactly where a legend in an
+    // upper corner wants to be.
+    outsideright: { side: "right", alignment: "se" },
+    outsidebottom: { side: "bottom", alignment: "s" },
+    // Inside the plot, in the named corner. The author's choice to spend no
+    // width or height on the legend, at the risk of it sitting over a mark.
     upperright: { corner: "topRight", alignment: "sw" },
     upperleft: { corner: "topLeft", alignment: "se" },
     lowerright: { corner: "bottomRight", alignment: "nw" },
     lowerleft: { corner: "bottomLeft", alignment: "ne" },
 } as const;
+
+/**
+ * How wide and how tall PreFigure will draw a legend, in pixels.
+ *
+ * Estimated rather than measured, for the reason the axis margins are: the text
+ * is laid out in PreFigure's own worker and nothing here can ask what came back.
+ * `legend.py` builds the box as `outer_padding` either side of a column of
+ * labels separated by `vertical-skip`, with a key column beside them — so the
+ * height is `2*5 - 7 + n*(labelHeight + 7)` and the width is the longest label
+ * plus the key and the paddings.
+ *
+ * The two constants are what those come to for 14px text. Measured against a
+ * real render: three items labeled `Q1`/`Q2`/`Q3` came back 48.998px wide and
+ * 61.59px tall, against 48 and 66 predicted. The width is close because a
+ * digit is about nine pixels, the same figure the axis labels use; the height
+ * over-reserves, because the real line box depends on whether the labels
+ * happen to carry a descender — `Q` is taller than `2`, and only the browser
+ * that laid it out knows. Over-reserving is the safe direction for a margin.
+ */
+function estimateLegendSize(labels: string[]): {
+    width: number;
+    height: number;
+} {
+    const longest = labels.reduce(
+        (widest, label) => Math.max(widest, label.length),
+        0,
+    );
+    return {
+        width:
+            longest * AXIS_LABEL_MARGIN_PER_CHARACTER + LEGEND_FURNITURE_WIDTH,
+        height: LEGEND_BOX_PADDING + labels.length * LEGEND_ITEM_HEIGHT,
+    };
+}
+
+/** The key swatch and the three paddings `legend.py` puts around the labels. */
+const LEGEND_FURNITURE_WIDTH = 30;
+
+/** One label's line box plus the `vertical-skip` under it, at 14px. */
+const LEGEND_ITEM_HEIGHT = 21;
+
+/** What is left of the outer padding once the last item's skip is removed. */
+const LEGEND_BOX_PADDING = 3;
+
+/** The gap between the plot's edge and a legend drawn outside it. */
+const LEGEND_OUTSIDE_GAP = 8;
 
 /**
  * How much larger than the axis numbers a title is drawn.
@@ -718,7 +771,37 @@ export function createBarChartPrefigureXML({
     const lastTick = tickAtOrBeyond(yMax, step, -1);
     const vlabels = `(${formatNumber(firstTick)},${formatNumber(step)},${formatNumber(lastTick)})`;
 
-    const [wantedBottom, wantedRight, baseTop] = CHART_MARGINS_BOTTOM_RIGHT_TOP;
+    const [baseBottom, baseRight, baseTop] = CHART_MARGINS_BOTTOM_RIGHT_TOP;
+
+    // Settled before the margins, because a legend drawn outside the plot is
+    // held by one of them. Its size does not depend on the plot's, so there is
+    // no loop here: the labels decide the legend, the legend decides the
+    // margin, the margin decides the drawing area.
+    //
+    // A series earns a legend entry by having both a label and a mark for the
+    // swatch to be read off, so the test is over the geometry rather than over
+    // the handles, which are not assigned until the bars are built below.
+    const seriesHasBar = geometry.series.map((_unused, seriesIndex) =>
+        geometry.bars.some((bar) => bar.seriesIndex === seriesIndex),
+    );
+    const legendLabels = geometry.series
+        .map(({ label }, seriesIndex) =>
+            seriesHasBar[seriesIndex] ? label : "",
+        )
+        .filter((label) => label !== "");
+    const legendDrawn = showLegend && legendLabels.length > 0;
+    const placement =
+        LEGEND_PLACEMENTS[legendPosition] ?? LEGEND_PLACEMENTS.outsideright;
+    const legendSize = estimateLegendSize(legendLabels);
+    const legendOutside = legendDrawn && "side" in placement;
+
+    let wantedRight = baseRight;
+    let wantedBottom = baseBottom;
+    if (legendOutside && placement.side === "right") {
+        wantedRight = baseRight + LEGEND_OUTSIDE_GAP + legendSize.width;
+    } else if (legendOutside && placement.side === "bottom") {
+        wantedBottom = baseBottom + LEGEND_OUTSIDE_GAP + legendSize.height;
+    }
 
     // No `titleHasLatex` beside the axis labels' flags: a `<title>`'s text
     // arrives already flattened, so `<title><m>\mu</m> counts</title>` reaches
@@ -950,11 +1033,31 @@ export function createBarChartPrefigureXML({
         .filter((item) => item !== null);
 
     let legendElement = "";
-    if (showLegend && legendItems.length > 0) {
-        const placement =
-            LEGEND_PLACEMENTS[legendPosition] ?? LEGEND_PLACEMENTS.upperright;
-        const anchorX = placement.corner.endsWith("Right") ? xMax : xMin;
-        const anchorY = placement.corner.startsWith("top") ? yMax : yMin;
+    if (legendDrawn && legendItems.length > 0) {
+        // PreFigure anchors a legend in *data* coordinates and offers no offset
+        // of its own (`legend.py` reads only anchor, alignment, scale,
+        // vertical-skip, stroke and opacity), so a legend that belongs in a
+        // margin is anchored at a coordinate outside the box and left to the
+        // same linear transform as everything else.
+        let anchorX;
+        let anchorY;
+        if (!("side" in placement)) {
+            anchorX = placement.corner.endsWith("Right") ? xMax : xMin;
+            anchorY = placement.corner.startsWith("top") ? yMax : yMin;
+        } else if (placement.side === "right") {
+            // `se` puts the box below and right of the anchor, so the corner of
+            // the box lands in the margin just past the plot's right edge.
+            anchorX = xMax;
+            anchorY = yMax;
+        } else {
+            // Below the plot and centered — but under the category names rather
+            // than over them, so the anchor drops by the band the horizontal
+            // axis' own labels occupy, converted into data units at the scale
+            // this chart ended up being drawn at.
+            const unitsPerPixel = (yMax - yMin) / (innerHeight || 1);
+            anchorX = (xMin + xMax) / 2;
+            anchorY = yMin - baseBottom * unitsPerPixel;
+        }
         const anchor = `(${formatNumber(anchorX)},${formatNumber(anchorY)})`;
         legendElement = `<legend anchor="${escapeXml(anchor)}" alignment="${placement.alignment}" opacity="0" stroke="currentColor">${legendItems.join("")}</legend>`;
     }

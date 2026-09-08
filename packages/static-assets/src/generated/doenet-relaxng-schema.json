@@ -44847,6 +44847,8 @@
                 "legendPosition": {
                     "optional": true,
                     "type": [
+                        "outsideRight",
+                        "outsideBottom",
                         "upperRight",
                         "upperLeft",
                         "lowerRight",
@@ -45276,7 +45278,7 @@
                     "name": "legendPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Which corner of the chart the legend sits in.",
+                    "description": "Where the legend sits.",
                     "fromAttribute": true
                 },
                 {

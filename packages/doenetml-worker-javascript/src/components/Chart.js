@@ -214,17 +214,36 @@ export default class Chart extends BlockComponent {
             public: true,
         };
 
-        // The same four corners, under the same names, that `<legend>` offers
-        // inside a `<graph>`: a legend is the same thing in both places and an
-        // author should not have to learn two vocabularies for where it goes.
+        // Outside the plot by default, which is where ggplot2 and Vega-Lite
+        // both put a legend: a legend in a corner of the plot sits exactly
+        // where a bar chart's tallest bars do, and no corner is reliably free —
+        // a legend three series deep occupies the top third of the right-hand
+        // edge, which four tall bars will always reach.
+        //
+        // The four inside corners are kept, under the same names `<legend>`
+        // uses inside a `<graph>`, because they cost no width or height: they
+        // are the author's choice to spend nothing on the legend and watch
+        // where it lands. `outsideRight` spends width and `outsideBottom`
+        // spends height, which is the trade to make when the series labels are
+        // long enough that the first is expensive.
         attributes.legendPosition = {
-            description: "Which corner of the chart the legend sits in.",
+            description: "Where the legend sits.",
             createComponentOfType: "text",
             createStateVariable: "legendPosition",
-            defaultValue: "upperRight",
+            defaultValue: "outsideRight",
             public: true,
             toLowerCase: true,
             validValues: [
+                {
+                    value: "outsideRight",
+                    description:
+                        "To the right of the chart, outside the plot, in a margin widened to hold it. Never overlaps the data.",
+                },
+                {
+                    value: "outsideBottom",
+                    description:
+                        "Below the chart, under the category names, outside the plot. Never overlaps the data, and spends height rather than width.",
+                },
                 {
                     value: "upperRight",
                     description: "Place the legend in the upper-right corner.",

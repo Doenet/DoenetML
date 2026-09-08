@@ -191,14 +191,20 @@ positive ones. A chart of one series looks the same either way.
 
 
 ```doenet-editor-horiz
-<chart type="bar" categories="A B" size="small" legendPosition="upperLeft">
-  <shortDescription>A legend in the upper-left corner</shortDescription>
+<chart type="bar" categories="A B" size="small">
+  <shortDescription>A legend beside the chart</shortDescription>
   <series><label>first</label>4 9</series>
   <series><label>second</label>6 1</series>
 </chart>
 
-<chart type="bar" categories="A B" size="small" legend="false">
-  <shortDescription>The same chart with the legend suppressed</shortDescription>
+<chart type="bar" categories="A B" size="small" legendPosition="outsideBottom">
+  <shortDescription>The same legend below the chart</shortDescription>
+  <series><label>first</label>4 9</series>
+  <series><label>second</label>6 1</series>
+</chart>
+
+<chart type="bar" categories="A B" size="small" legendPosition="upperRight">
+  <shortDescription>The same legend inside the plot</shortDescription>
   <series><label>first</label>4 9</series>
   <series><label>second</label>6 1</series>
 </chart>
@@ -208,8 +214,17 @@ positive ones. A chart of one series looks the same either way.
 
 A legend appears as soon as a series has a `<label>{:dn}`, so a chart whose series are
 unnamed never grows one — a legend names the series, and there is nothing to put in one
-until they are named. `legend="false"` suppresses it even when they are, and
-`legendPosition` picks which corner it sits in.
+until they are named. `legend="false"` suppresses it even when they are.
+
+`legendPosition` says where it goes. By default it sits **outside** the plot, to the right,
+in a margin widened to hold it — so it never covers the data, at the cost of some of the
+chart's width. `outsideBottom` puts it under the category names instead, spending height
+rather than width, which suits long series labels or a wide chart.
+
+The four inside corners — `upperRight`, `upperLeft`, `lowerRight`, `lowerLeft` — spend
+neither, and are worth reaching for when the chart has a corner to spare. They can overlap
+the data, as the third chart above shows: giving the chart a `yMax` above its tallest value
+is what makes room for one.
 
 `$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
 legend, for series that are unnamed, and for named series with no value that could be

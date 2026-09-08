@@ -1581,6 +1581,66 @@ describe("chart prefigure tests @group4", async () => {
             ).eq(null);
         });
 
+        it("keeps the legend out of the plot by default, at the cost of a margin", async () => {
+            const withLegend = await chartXML(`
+    <chart type="bar" name="c" categories="A B">
+      <series><label>Q1</label>4 9</series>
+      <series><label>Q2</label>6 1</series>
+    </chart>
+    `);
+            const withoutLegend = await chartXML(`
+    <chart type="bar" name="c" categories="A B">
+      <series>4 9</series><series>6 1</series>
+    </chart>
+    `);
+
+            // Anchored at the plot's top-right corner and aligned `se`, which
+            // puts the box below and right of it — in the margin, where nothing
+            // is drawn. A legend in a corner of the plot sits exactly where a
+            // bar chart's tallest bars do.
+            expect(withLegend).toContain(
+                '<legend anchor="(3,10)" alignment="se"',
+            );
+
+            // The margin is widened to hold it, and only when there is one.
+            const rightMargin = (xml: string) =>
+                Number(xml.match(/margins="\[[^,]*,[^,]*,([^,]*),/)?.[1]);
+            expect(rightMargin(withLegend)).toBeGreaterThan(
+                rightMargin(withoutLegend),
+            );
+            // Which the drawing area gives up, so the frame is still the size
+            // the author asked for.
+            const innerWidth = (xml: string) =>
+                Number(xml.match(/dimensions="\(([^,]*),/)?.[1]);
+            expect(innerWidth(withLegend)).toBeLessThan(
+                innerWidth(withoutLegend),
+            );
+        });
+
+        it("puts an outsideBottom legend under the category names", async () => {
+            const xml = await chartXML(`
+    <chart type="bar" name="c" categories="A B" legendPosition="outsideBottom">
+      <series><label>Q1</label>4 9</series>
+      <series><label>Q2</label>6 1</series>
+    </chart>
+    `);
+
+            // Centered under the plot, and below the horizontal axis' own
+            // labels rather than over them — PreFigure offers a legend no
+            // offset, so the anchor drops out of the box by the band those
+            // labels occupy.
+            const anchor = xml.match(/<legend anchor="\(([^,]*),([^)]*)\)"/);
+            expect(Number(anchor?.[1])).eq(1.5);
+            expect(Number(anchor?.[2])).toBeLessThan(0);
+            expect(xml).toContain('alignment="s"');
+
+            // Height is what this one spends, where `outsideRight` spends
+            // width.
+            expect(
+                Number(xml.match(/margins="\[[^,]*,([^,]*),/)?.[1]),
+            ).toBeGreaterThan(30);
+        });
+
         it("honors legend and legendPosition", async () => {
             const suppressed = await chartXML(`
     <chart type="bar" name="c" legend="false">

@@ -36554,15 +36554,25 @@
                 },
                 {
                     "name": "legendPosition",
-                    "description": "Which corner of the chart the legend sits in.",
-                    "defaultValue": "upperRight",
+                    "description": "Where the legend sits.",
+                    "defaultValue": "outsideRight",
                     "values": [
+                        "outsideRight",
+                        "outsideBottom",
                         "upperRight",
                         "upperLeft",
                         "lowerRight",
                         "lowerLeft"
                     ],
                     "autocompleteValues": [
+                        {
+                            "value": "outsideRight",
+                            "description": "To the right of the chart, outside the plot, in a margin widened to hold it. Never overlaps the data."
+                        },
+                        {
+                            "value": "outsideBottom",
+                            "description": "Below the chart, under the category names, outside the plot. Never overlaps the data, and spends height rather than width."
+                        },
                         {
                             "value": "upperRight",
                             "description": "Place the legend in the upper-right corner."
@@ -36719,7 +36729,7 @@
                     "name": "legendPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Which corner of the chart the legend sits in.",
+                    "description": "Where the legend sits.",
                     "fromAttribute": true
                 },
                 {
