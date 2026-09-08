@@ -1110,6 +1110,7 @@ export function computePieChartGeometry({
     let undrawnValues = 0;
     let negativeValues = 0;
     let total = 0;
+    let largest = 0;
     const shares: { label: string; value: number }[] = [];
 
     values.forEach((value, ind) => {
@@ -1122,9 +1123,10 @@ export function computePieChartGeometry({
             return;
         }
         // Saturating, for the reason a stacked bar's running total is: a sum of
-        // finite values need not be finite, and a total of `Infinity` would
-        // make every share `0` and the whole pie disappear.
+        // finite values need not be finite, and `Infinity` here would reach
+        // the caller as a total that is not a number to report.
         total = saturatingAdd(total, value);
+        largest = Math.max(largest, value);
         shares.push({ label: labels[ind] ?? String(ind + 1), value });
     });
 
@@ -1132,17 +1134,31 @@ export function computePieChartGeometry({
     // A total of zero has no shares to take of it, and dividing by it would put
     // `NaN` in every angle. Nothing is drawn, and the caller says so.
     if (total > 0) {
+        // Every value against the largest of them, and the shares taken of
+        // *that* sum rather than of `total`. The ratios are the same either
+        // way in exact arithmetic, and only this way in the arithmetic there
+        // is: `total` saturates once the values sum past the top of the double
+        // range, and a share of a saturated total is not the share the data
+        // has. Two values of `1e308` came out as a 200-degree slice and a
+        // 160-degree one, and three of them drew two slices and left the third
+        // with nothing. Scaled, each value is at most 1, so their sum is at
+        // most the number of values and cannot overflow whatever the data.
+        //
+        // `largest` is above zero wherever this runs, since a total above zero
+        // takes at least one value above zero to reach.
+        let scaledTotal = 0;
+        for (const { value } of shares) {
+            scaledTotal += value / largest;
+        }
+
         /** How much of the turn the slices so far have used. */
         let turned = 0;
         for (const { label, value } of shares) {
-            const fraction = value / total;
-            // Held inside the one turn there is. The shares add to exactly one
-            // whenever the total is the sum of them, and they do not once that
-            // sum has saturated — two values of `1e308` each come out as
-            // fifty-six percent of `Number.MAX_VALUE`. Clamping keeps the
-            // slices in order and inside the circle; the data is at the edge of
-            // what a double holds, and there is no arrangement of it that is
-            // both drawable and exact.
+            const fraction = value / largest / scaledTotal;
+            // Held inside the one turn there is. The shares add to one now
+            // rather than to more, so this is the rounding guard it looks
+            // like: it stops the last slice of a run whose fractions each
+            // rounded up from reaching past twelve o'clock.
             const sweep = Math.min(fraction, Math.max(1 - turned, 0)) * 360;
             slices.push({
                 label,
@@ -2750,8 +2766,12 @@ function assemblePieDiagram({
     const { titleElement, captionElement } = titleMarkup({
         titleText,
         bounds,
-        // Nothing else shares the top margin, so the title sits against the box.
-        lift: 0,
+        // Above the slice names where those share the top margin, which is
+        // where a name whose slice points straight up is drawn. Both are
+        // anchored at the top of the box and drawn upwards from it, so without
+        // the lift a pie of eight equal slices drew its first name through its
+        // own title. The margin already holds both bands.
+        lift: sliceLabelBands.top,
         unitsPerPixelY: unitsPerPixel,
     });
 

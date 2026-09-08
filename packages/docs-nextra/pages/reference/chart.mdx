@@ -15,9 +15,9 @@ every chart names one. To chart several groups of data together, give the chart 
 
 ## Chart types
 
-Each type reads its data a little differently. What a `<series>{:dn}` holds is what changes;
-everything around it — the title, the legend, the labels, the sizing — is the same whichever
-chart is drawn.
+Each type reads its data a little differently, and what a `<series>{:dn}` holds is what
+changes. The title, the legend and the sizing are written the same way whichever chart is
+drawn.
 
 ### `type="bar"`
 
@@ -373,8 +373,9 @@ always somewhere:
 
 
 `$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
-legend, for series that are unnamed, and for named series with no value that could be
-drawn.
+legend and for one with nothing to name — series that carry no label, or named series with
+no value that could be drawn. A pie's legend names its slices and `categories` always names
+those, so a pie draws one unless `legend="false"`.
 
 
 

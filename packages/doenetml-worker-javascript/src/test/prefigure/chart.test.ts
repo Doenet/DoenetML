@@ -3163,24 +3163,71 @@ describe("chart prefigure tests @group4", async () => {
             expect(xml).toContain('range="(90,-270)"');
         });
 
-        it("keeps the slices inside one turn when the total saturates", async () => {
+        it("takes the shares the data has when the total overflows", async () => {
             const xml = await chartXML(`
     <chart type="pie" name="c" categories="A B" legend="false">1e308 1e308</chart>
     `);
 
-            // Two values of 1e308 sum past the top of the double range, and the
-            // saturated total makes each of them look like fifty-six percent of
-            // it. Held inside the one turn there is, so the slices stay in
-            // order and inside the circle rather than wrapping over each other.
+            // Two equal values are two half circles, whatever their size. The
+            // shares are taken against the largest value rather than against
+            // the sum, because the sum of these two is past the top of the
+            // double range: divided by a saturated total they came out as a
+            // 200-degree slice and a 160-degree one.
             const ranges = [...xml.matchAll(/range="\(([^)]*)\)"/g)].map(
                 (match) => match[1].split(",").map(Number),
             );
-            expect(ranges.length).eq(2);
-            expect(ranges[0][0]).eq(90);
-            expect(ranges[1][1]).closeTo(-270, 1e-9);
-            for (const [start, end] of ranges) {
-                expect(start).greaterThan(end);
-            }
+            expect(ranges).eqls([
+                [90, -90],
+                [-90, -270],
+            ]);
+
+            // And a third equal value is a third of the circle, rather than
+            // the nothing left over once a saturated total had been spent on
+            // the first two.
+            const three = await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">1e308 1e308 1e308</chart>
+    `);
+            expect((three.match(/<arc /g) ?? []).length).eq(3);
+            expect(three).toContain('range="(90,-30)"');
+            expect(three).toContain('range="(-30,-150)"');
+            expect(three).toContain('range="(-150,-270)"');
+
+            // The same at the very top of the range, where the total saturates
+            // at the first addition rather than the second.
+            const atTheCeiling = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false">1.7976931348623157e308 1.7976931348623157e308</chart>
+    `);
+            expect((atTheCeiling.match(/<arc /g) ?? []).length).eq(2);
+            expect(atTheCeiling).toContain('range="(90,-90)"');
+        });
+
+        it("lifts the title clear of a name drawn straight up", async () => {
+            // Eight equal slices put the first one's middle due north, so its
+            // name is drawn upward from near the top of the box — which is
+            // where the title goes. Measured against a real render, the two
+            // boxes overlapped by six pixels before the title was lifted.
+            const topOfBox = (xml: string) =>
+                Number(xml.match(/bbox="\([^,]*,[^,]*,[^,]*,([^)]*)\)"/)?.[1]);
+            const titleAnchor = (xml: string) =>
+                Number(
+                    xml.match(
+                        /<label anchor="\([^,]*,([^)]*)\)" alignment="north" scale=/,
+                    )?.[1],
+                );
+
+            const withNames = await chartXML(`
+    <chart type="pie" name="c" legend="false" categories="a b c d e f g h"><title>Eight of them</title>1 1 1 1 1 1 1 1</chart>
+    `);
+            // Above the top of the box by the band the names occupy, which the
+            // top margin already reserved alongside the title's own.
+            expect(titleAnchor(withNames)).greaterThan(topOfBox(withNames));
+
+            // With the names in a legend there is no band to clear, so the
+            // title sits against the box as it does on every other type.
+            const withLegend = await chartXML(`
+    <chart type="pie" name="c" categories="a b c d e f g h"><title>Eight of them</title>1 1 1 1 1 1 1 1</chart>
+    `);
+            expect(titleAnchor(withLegend)).eq(topOfBox(withLegend));
         });
 
         it("titles a pie above the drawing, in both formats", async () => {
