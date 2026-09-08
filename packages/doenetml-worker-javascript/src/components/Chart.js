@@ -108,6 +108,7 @@ export default class Chart extends BlockComponent {
         // and the second message is worded not to assume the attribute is
         // missing.
         attributes.type = {
+            groupName: "marks",
             description:
                 "Which chart to draw. Required; there is no default, and `<chart>` with no type draws nothing.",
             createComponentOfType: "text",
@@ -164,6 +165,7 @@ export default class Chart extends BlockComponent {
         // `categories="North South East"`. Numbers referenced in from a
         // `<tally>` are converted to their text, which is what a label is.
         attributes.categories = {
+            groupName: "axes",
             createComponentOfType: "textList",
             description:
                 "The label under each position on the horizontal axis. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
@@ -171,6 +173,7 @@ export default class Chart extends BlockComponent {
         };
 
         attributes.barWidth = {
+            groupName: "marks",
             description:
                 "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them.",
             createComponentOfType: "number",
@@ -188,6 +191,7 @@ export default class Chart extends BlockComponent {
         // One series is drawn identically either way, so this matters only once
         // there is something to arrange.
         attributes.layout = {
+            groupName: "marks",
             description:
                 "How the bars of several series share a category's slot.",
             createComponentOfType: "text",
@@ -218,6 +222,7 @@ export default class Chart extends BlockComponent {
         // "draw a legend" and "draw one where there is something to show" are
         // the same instruction. Whether one appears is `showLegend` below.
         attributes.legend = {
+            groupName: "legend",
             description:
                 'Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
             createComponentOfType: "boolean",
@@ -239,6 +244,7 @@ export default class Chart extends BlockComponent {
         // spends height, which is the trade to make when the series labels are
         // long enough that the first is expensive.
         attributes.legendPosition = {
+            groupName: "legend",
             description: "Where the legend sits.",
             createComponentOfType: "text",
             createStateVariable: "legendPosition",
@@ -280,38 +286,43 @@ export default class Chart extends BlockComponent {
         // 2, 3 whatever the categories say, so there is nothing an author could
         // usefully ask for and these are ignored.
         attributes.xMin = {
+            groupName: "axes",
             description:
-                "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. Ignored, along with `xMax`, unless it is a finite number below it.",
+                "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
             createComponentOfType: "number",
             createStateVariable: "xMinAttr",
             defaultValue: null,
         };
 
         attributes.xMax = {
+            groupName: "axes",
             description:
-                "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. Ignored, along with `xMin`, unless it is a finite number above it.",
+                "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
             createComponentOfType: "number",
             createStateVariable: "xMaxAttr",
             defaultValue: null,
         };
 
         attributes.yMin = {
+            groupName: "axes",
             description:
-                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. Ignored, along with `yMax`, unless it is a finite number below it.",
+                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
             createComponentOfType: "number",
             createStateVariable: "yMinAttr",
             defaultValue: null,
         };
 
         attributes.yMax = {
+            groupName: "axes",
             description:
-                "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. Ignored, along with `yMin`, unless it is a finite number above it.",
+                "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
             createComponentOfType: "number",
             createStateVariable: "yMaxAttr",
             defaultValue: null,
         };
 
         attributes.displayValues = {
+            groupName: "marks",
             description:
                 "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
             createComponentOfType: "boolean",
@@ -327,6 +338,7 @@ export default class Chart extends BlockComponent {
         // chart but not walk it — which is a real cost, and so a choice rather
         // than a default.
         attributes.markers = {
+            groupName: "marks",
             description:
                 "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
             createComponentOfType: "boolean",
@@ -525,6 +537,7 @@ export default class Chart extends BlockComponent {
         // `chartGeometry` is handed a width it can use as given and the number
         // read back from the chart is the one it was drawn with.
         stateVariableDefinitions.barWidth = {
+            groupName: "marks",
             description:
                 "How much of its slot each bar fills: greater than 0 and at most 1.",
             public: true,
@@ -750,6 +763,8 @@ export default class Chart extends BlockComponent {
         };
 
         stateVariableDefinitions.numSeries = {
+            groupName: "data",
+            highlighted: true,
             description: "How many series the chart draws.",
             public: true,
             shadowingInstructions: {
@@ -776,6 +791,8 @@ export default class Chart extends BlockComponent {
         // several reports all of its data; `$series.values` on a named series
         // is how one group is read on its own.
         stateVariableDefinitions.values = {
+            groupName: "data",
+            highlighted: true,
             description: "Every value charted, series by series.",
             public: true,
             isArray: true,
@@ -818,6 +835,7 @@ export default class Chart extends BlockComponent {
         };
 
         stateVariableDefinitions.categories = {
+            groupName: "axes",
             description: "The label under each bar, in order.",
             public: true,
             isArray: true,
@@ -876,6 +894,7 @@ export default class Chart extends BlockComponent {
         // the axis: a chart written twice over should read as the later of the
         // two rather than as an error about the earlier.
         stateVariableDefinitions.title = {
+            groupName: "marks",
             description:
                 "The chart's title, or the empty string when it has none.",
             public: true,
@@ -921,6 +940,7 @@ export default class Chart extends BlockComponent {
         // leave `$chart.showLegend` true beside a chart with no legend in it —
         // the kind of property it is worse to expose than to omit.
         stateVariableDefinitions.showLegend = {
+            groupName: "legend",
             description: "Whether a legend is drawn.",
             public: true,
             shadowingInstructions: {
@@ -1107,6 +1127,7 @@ export default class Chart extends BlockComponent {
         // 1, 2, 3 whatever the categories say, so there is no measured extent
         // to report.
         stateVariableDefinitions.xMin = {
+            groupName: "axes",
             description:
                 "The leftmost value shown on the horizontal axis, or null when it is not a numeric axis.",
             public: true,
@@ -1116,6 +1137,7 @@ export default class Chart extends BlockComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "xMax",
+                    groupName: "axes",
                     description:
                         "The rightmost value shown on the horizontal axis, or null when it is not a numeric axis.",
                     public: true,
@@ -1143,6 +1165,7 @@ export default class Chart extends BlockComponent {
         };
 
         stateVariableDefinitions.yMin = {
+            groupName: "axes",
             description:
                 "The lowest value shown on the vertical axis, or null when there is no chart to draw.",
             public: true,
@@ -1152,6 +1175,7 @@ export default class Chart extends BlockComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "yMax",
+                    groupName: "axes",
                     description:
                         "The highest value shown on the vertical axis, or null when there is no chart to draw.",
                     public: true,
