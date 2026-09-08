@@ -73,4 +73,57 @@ describe("Chart prefigure renderer live validation @group4", () => {
             }
         },
     );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: an outsideRight legend is drawn inside the picture",
+        async () => {
+            // The one thing the generated XML cannot say: how wide PreFigure
+            // actually draws the labels. The margin is reserved from an
+            // estimate, and an estimate that comes out under is a legend drawn
+            // past the right edge of the SVG and clipped — which is what a
+            // legend labeled `WWWWWW` was, by 5px, when the margin was reserved
+            // from a character count. So the box is measured here rather than
+            // predicted, across labels chosen to be much wider and much
+            // narrower than their length suggests.
+            for (const label of [
+                "WWWWWW",
+                "llllll",
+                "Q1",
+                "Population 2024",
+                "Wm. & Mary (VA)",
+            ]) {
+                const prefigureXML = await getPrefigureXML(
+                    `<chart type="bar" name="c" categories="A B" size="large">
+                       <series><label>${label}</label>4 9</series>
+                       <series><label>${label} II</label>6 1</series>
+                     </chart>`,
+                    "c",
+                );
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${label}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const pictureWidth = Number(
+                    svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
+                );
+                // `legend.py` draws the box as a rect at the origin of a
+                // translated group, stroked and filled white.
+                const box = svg.match(
+                    /transform="translate\(([-\d.]+),([-\d.]+)\)[^"]*"[^>]*>\s*<rect x="0" y="0" width="([\d.]+)"[^>]*stroke="currentColor" fill="white"/,
+                );
+                expect(box, `${label}: no legend box drawn`).toBeTruthy();
+
+                const gap = pictureWidth - (Number(box![1]) + Number(box![3]));
+                // Inside the picture, and not by so much that the width is
+                // being wasted: the margin reserves an 8px gap, and whatever
+                // the estimate came out over is added to it.
+                expect(gap, `${label}: legend is clipped`).toBeGreaterThan(0);
+                expect(
+                    gap,
+                    `${label}: legend leaves too much width unused`,
+                ).toBeLessThan(30);
+            }
+        },
+    );
 });

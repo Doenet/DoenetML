@@ -1747,6 +1747,35 @@ describe("chart prefigure tests @group4", async () => {
             }
         });
 
+        it("reserves the right margin from how wide the labels are drawn", async () => {
+            const withLabels = async (label: string) =>
+                Number(
+                    (
+                        await chartXML(`
+    <chart type="bar" name="c" categories="A B">
+      <series><label>${label}</label>4 9</series>
+      <series><label>${label}</label>6 1</series>
+    </chart>
+    `)
+                    ).match(/margins="\[[^,]*,[^,]*,([^,]*),/)?.[1],
+                );
+
+            // Two labels of the same length, drawn at very different widths.
+            // Reserving by character count could not tell them apart, and the
+            // wide one was drawn 5px past the right edge of the picture.
+            expect(await withLabels("WWWWWW")).toBeGreaterThan(
+                await withLabels("llllll"),
+            );
+
+            // The margin holds PreFigure's 4px offset, the box, and a gap to
+            // the edge — and *not* the 12px the corner of an axis label is
+            // given, which the legend already reserves well past. `Q1` comes to
+            // 4 + the 30px of key and padding + 20 of label + 8, or 62.
+            // Stacking the base margin underneath made it 74, and left that
+            // 12px of the picture's width empty in every chart with a legend.
+            expect(await withLabels("Q1")).toBeLessThan(70);
+        });
+
         it("honors legend and legendPosition", async () => {
             const suppressed = await chartXML(`
     <chart type="bar" name="c" legend="false">

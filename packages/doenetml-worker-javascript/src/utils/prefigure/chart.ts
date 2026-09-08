@@ -658,31 +658,70 @@ const LEGEND_PLACEMENTS = {
  * is laid out in PreFigure's own worker and nothing here can ask what came back.
  * `legend.py` builds the box as `outer_padding` either side of a column of
  * labels separated by `vertical-skip`, with a key column beside them — so the
- * height is `2*5 - 7 + n*(labelHeight + 7)` and the width is the longest label
+ * height is `2*5 - 7 + n*(labelHeight + 7)` and the width is the widest label
  * plus the key and the paddings.
  *
- * The two constants are what those come to for 14px text. Measured against a
- * real render: three items labeled `Q1`/`Q2`/`Q3` came back 48.998px wide and
- * 61.59px tall, against 48 and 66 predicted. The width is close because a
- * digit is about nine pixels, the same figure the axis labels use; the height
- * over-reserves, because the real line box depends on whether the labels
- * happen to carry a descender — `Q` is taller than `2`, and only the browser
- * that laid it out knows. Over-reserving is the safe direction for a margin.
+ * The height is a constant per item, measured against a real render: three
+ * items labeled `Q1`/`Q2`/`Q3` came back 61.59px tall against 66 predicted. It
+ * over-reserves because the real line box depends on whether the labels happen
+ * to carry a descender — `Q` is taller than `2`, and only the browser that laid
+ * it out knows. Over-reserving is the safe direction for a margin.
+ *
+ * The width is summed per character rather than taken as a count times a
+ * constant. An axis label is a number, so one constant fits it; a legend label
+ * is a word, and a count of characters cannot tell `WWWWWW` from `llllll`. At
+ * the 9px per character the axis uses, a legend labeled `WWWWWW` came back
+ * 109px wide against 84 predicted and was drawn 5px past the right edge of the
+ * picture, while `Population 2024` reserved 26px more than it used.
  */
 function estimateLegendSize(labels: string[]): {
     width: number;
     height: number;
 } {
-    const longest = labels.reduce(
-        (widest, label) => Math.max(widest, label.length),
+    const widest = labels.reduce(
+        (widest, label) => Math.max(widest, estimateTextWidth(label)),
         0,
     );
     return {
-        width:
-            longest * AXIS_LABEL_MARGIN_PER_CHARACTER + LEGEND_FURNITURE_WIDTH,
+        width: widest + LEGEND_FURNITURE_WIDTH,
         height: LEGEND_BOX_PADDING + labels.length * LEGEND_ITEM_HEIGHT,
     };
 }
+
+/**
+ * Roughly how wide a string is drawn at PreFigure's 14px sans-serif, in pixels.
+ *
+ * Five classes rather than a per-character table, since the only thing asked of
+ * this is a margin wide enough: it has to come out over rather than exact, and
+ * by as little as it can manage. The figures are rounded up from what real
+ * renders came back with — a lowercase letter or a digit is about eight pixels,
+ * a capital about eleven, and `m`, `w`, `M` and `W` about thirteen. Against six
+ * measured labels this reserves between 1 and 9 pixels more than was drawn, and
+ * less than was drawn in none of them.
+ */
+function estimateTextWidth(text: string): number {
+    let width = 0;
+    for (const character of text) {
+        if (character === " ") {
+            width += 4.5;
+        } else if (NARROW_CHARACTERS.includes(character)) {
+            width += 5;
+        } else if (SEMI_NARROW_CHARACTERS.includes(character)) {
+            width += 6;
+        } else if (WIDE_CHARACTERS.includes(character)) {
+            width += 14;
+        } else if (character >= "A" && character <= "Z") {
+            width += 11.5;
+        } else {
+            width += 8.5;
+        }
+    }
+    return width;
+}
+
+const NARROW_CHARACTERS = "iIl.,:;!|'\u2019";
+const SEMI_NARROW_CHARACTERS = 'fjrt()[]{}/\\-\u2013"';
+const WIDE_CHARACTERS = "mMwW@";
 
 /** The key swatch and the three paddings `legend.py` puts around the labels. */
 const LEGEND_FURNITURE_WIDTH = 30;
@@ -693,7 +732,12 @@ const LEGEND_ITEM_HEIGHT = 21;
 /** What is left of the outer padding once the last item's skip is removed. */
 const LEGEND_BOX_PADDING = 3;
 
-/** The gap between the plot's edge and a legend drawn outside it. */
+/**
+ * The gap between a legend drawn outside the plot and the edge of the picture.
+ *
+ * Not a gap between the legend and the plot: PreFigure's own anchor offset is
+ * that, and it is the same 4px whichever side the legend is on.
+ */
 const LEGEND_OUTSIDE_GAP = 8;
 
 /**
@@ -820,19 +864,28 @@ export function createBarChartPrefigureXML({
     const legendSize = estimateLegendSize(legendLabels);
     const legendOutside = legendDrawn && "side" in placement;
 
-    let wantedRight = baseRight;
-    let wantedBottom = baseBottom;
+    // Annotated, since the base margins are literal types off an `as const`
+    // tuple and these are widened past them.
+    let wantedRight: number = baseRight;
+    let wantedBottom: number = baseBottom;
     const legendOnRight = legendOutside && placement.side === "right";
     const legendOnBottom = legendOutside && placement.side === "bottom";
     if (legendOnRight) {
-        wantedRight =
-            baseRight +
-            LEGEND_ANCHOR_OFFSET +
-            legendSize.width +
-            LEGEND_OUTSIDE_GAP;
+        // PreFigure's offset, then the box, then a gap to the edge of the
+        // picture. `baseRight` is *not* added underneath: it is there to hold
+        // the half of the outermost axis label that overhangs the corner, and
+        // the legend already reserves more than that past the same edge, so
+        // adding the two left 20px of every legended chart's width empty.
+        // Floored at it anyway, in case the two ever cross.
+        wantedRight = Math.max(
+            baseRight,
+            LEGEND_ANCHOR_OFFSET + legendSize.width + LEGEND_OUTSIDE_GAP,
+        );
     } else if (legendOnBottom) {
         // The band the horizontal axis' own labels occupy, then PreFigure's
-        // offset, then the box, then a gap to the edge of the picture.
+        // offset, then the box, then a gap to the edge of the picture. Unlike
+        // the right, `baseBottom` is a band the legend sits *below* rather than
+        // an overhang it covers, so here the two really do add.
         wantedBottom =
             baseBottom +
             LEGEND_ANCHOR_OFFSET +
