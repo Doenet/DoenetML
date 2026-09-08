@@ -912,9 +912,10 @@ export function computePointChartGeometry({
                 center: ind + 1,
                 label: labels[ind] ?? String(ind + 1),
             })),
-            // The same box a bar chart of the same categories gets, so the two
-            // can be read against each other and a `<chart type>` switched
-            // between them does not move the data sideways.
+            // The same horizontal extent a bar chart of the same categories
+            // gets, so a `<chart type>` switched between them does not move the
+            // data sideways. The vertical pair is the two charts' own: a bar
+            // chart's includes zero and this one's does not.
             bounds: [0, yMin, numSlots + 1, yMax],
             tickStep: tickStepForBounds(yMin, yMax, wholeY),
             xTickStep: null,
@@ -1418,7 +1419,7 @@ function assembleChartDiagram({
 
     // The categorical axis: arbitrary text at an arbitrary position, which is
     // the one thing `hlabels` cannot express. Driven by the slots rather than
-    // the bars, so a value with no bar still has its category on the axis —
+    // the marks, so a value with no mark still has its category on the axis —
     // otherwise the gap would read as a missing category rather than as a
     // missing value.
     for (const slot of slots ?? []) {
@@ -1463,10 +1464,12 @@ function assembleChartDiagram({
         );
     });
 
-    // The legend keys off the bars themselves: PreFigure reads the referenced
-    // element's `fill` and draws a swatch of it, so a series' color is named in
-    // the legend by the same attribute that draws it and the two cannot drift
-    // apart. A series with no bar has nothing to point at and so no entry.
+    // The legend keys off the marks themselves: PreFigure reads the referenced
+    // element's own `fill` and `stroke` (`legend.py`), drawing a filled swatch
+    // for a bar or a point and a segment of stroke for a line, which carries no
+    // fill. A series' color is therefore named in the legend by the same
+    // attributes that draw it and the two cannot drift apart, and a series with
+    // no mark has nothing to point at and so no entry.
     //
     // `opacity="0"` makes the box behind the legend transparent. PreFigure
     // fills it white with no attribute to say otherwise (`legend.py`), which
@@ -1604,7 +1607,7 @@ function assembleChartDiagram({
     }
 
     // A figure-level annotation is what diagcess navigates into; without one
-    // the per-bar annotations have no parent to hang from. Its text is the
+    // the per-mark annotations have no parent to hang from. Its text is the
     // author's `<shortDescription>` when there is one — nothing is invented
     // here, so there is no generated English to translate.
     const figureAnnotationText = shortDescription

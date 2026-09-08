@@ -135,8 +135,8 @@ export default class Chart extends BlockComponent {
             ],
         };
 
-        // `aspectRatio`, `barWidth`, `yMin` and `yMax` are each read into a
-        // private `…Attr` state variable rather than straight into the name
+        // `aspectRatio`, `barWidth` and both pairs of bounds are each read into
+        // a private `…Attr` state variable rather than straight into the name
         // they share with the attribute. The public name is then defined below
         // as *what the chart was drawn with*, which is not always what was
         // asked for: a ratio CSS would reject, a bar width that is not a
