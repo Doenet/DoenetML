@@ -195,6 +195,7 @@ export type BarGeometry = {
 };
 
 export type BarChartGeometry = {
+    kind: "bar";
     /**
      * The series drawn, in order, whether or not any of their values could be.
      * One whose every value is non-finite is kept rather than dropped: it is a
@@ -223,25 +224,42 @@ export type BarChartGeometry = {
  * Whether the legend this chart would draw has anything to put in it.
  *
  * An item is a name beside a swatch, and PreFigure builds the swatch out of an
- * element the item points at, so a series needs both a label and a mark: one
- * whose every value is undrawable is named but has nothing to point at, and
- * one drawn from an unnamed series would be a swatch beside a blank line.
+ * element the item points at, so whatever the legend names needs both a name
+ * and something drawn: a series whose every value is undrawable is named but
+ * has nothing to point at, and one drawn from an unnamed series would be a
+ * swatch beside a blank line. What is named is the series on every type but
+ * one — a pie names its slices, since that is the level its colors are chosen
+ * at.
  *
  * Exported so that `<chart>`'s `showLegend` asks the same question the XML
  * below is built from, rather than restating it somewhere it could drift.
  * Whether a label carries LaTeX changes how it is written, not whether there
  * is anything to write, so it is not asked here.
  */
-export function chartLegendHasItems(
-    geometry: BarChartGeometry | PointChartGeometry | null,
-): boolean {
+export function chartLegendHasItems(geometry: ChartGeometry | null): boolean {
     if (geometry === null) {
         return false;
     }
+
+    // A pie is the one type that colors *within* a series, so its legend names
+    // the slices rather than the series. The rule is the same one applied a
+    // level down: a slice earns an entry by having an arc for the swatch to be
+    // read off, which a slice of no sweep does not.
+    if (geometry.kind === "pie") {
+        return geometry.slices.some(
+            (slice) =>
+                slice.sweep > 0 &&
+                labelMarkup({
+                    label: slice.label,
+                    labelHasLatex: false,
+                }) !== null,
+        );
+    }
+
     // Whichever kind of mark this chart is drawn from. A series earns an entry
     // by having one, because the entry points at a mark for its swatch to be
     // read off — which is the same question for a bar, a point and a line.
-    const marks = "bars" in geometry ? geometry.bars : (geometry.points ?? []);
+    const marks = geometry.kind === "bar" ? geometry.bars : geometry.points;
     const seriesWithAMark = new Set(marks.map((mark) => mark.seriesIndex));
     return geometry.series.some(
         (oneSeries, seriesIndex) =>
@@ -754,6 +772,7 @@ export function computeBarChartGeometry({
     }
 
     return {
+        kind: "bar",
         series: series.map(({ label }) => ({ label })),
         bars,
         slots,
@@ -797,6 +816,7 @@ export type ChartPointMark = {
 };
 
 export type PointChartGeometry = {
+    kind: "point";
     /** The series drawn, in order, whether or not any of their points could be. */
     series: { label: string }[];
     points: ChartPointMark[];
@@ -940,6 +960,7 @@ export function computePointChartGeometry({
 
     if (!numericAxis) {
         return {
+            kind: "point",
             series: series.map(({ label }) => ({ label })),
             points,
             slots: Array.from({ length: numSlots }, (_unused, ind) => ({
@@ -986,6 +1007,7 @@ export function computePointChartGeometry({
     );
 
     return {
+        kind: "point",
         series: series.map(({ label }) => ({ label })),
         points,
         slots: null,
@@ -995,6 +1017,162 @@ export function computePointChartGeometry({
         undrawnValues,
     };
 }
+
+/** One slice of a pie: a share of the whole turn, with the datum it stands for. */
+export type PieSliceGeometry = {
+    /** The category the slice is named by. */
+    label: string;
+    value: number;
+    /** The slice's share of the total, in `[0, 1]`. */
+    fraction: number;
+    /**
+     * Where the slice begins, in degrees clockwise from twelve o'clock, and how
+     * far it runs from there.
+     *
+     * Clockwise from the top because that is where every statistical package
+     * starts a pie, and in those terms rather than PreFigure's own — which
+     * measures counterclockwise from three o'clock — because this geometry
+     * describes the chart rather than the drawing of it. The XML builder does
+     * the conversion.
+     */
+    startAngle: number;
+    sweep: number;
+};
+
+/**
+ * The slices of a pie, as shares of a total.
+ *
+ * No `bounds`, unlike the other two: a pie has no axes, so there is no extent
+ * in data coordinates to report and nothing for an author's `xMin`/`yMax` to
+ * describe. What replaces them is the total, which is the thing every slice is
+ * measured against and the one number a pie has that its values do not already
+ * give.
+ */
+export type PieChartGeometry = {
+    kind: "pie";
+    /**
+     * The one series drawn. Empty on a chart with no data at all, so that a
+     * pie of nothing is distinguishable from a pie of one empty group.
+     */
+    series: { label: string }[];
+    /**
+     * One per value that is a share of the total — finite and not negative —
+     * in the order they were given. A value of zero is among them, with a
+     * sweep of zero: it is a real datum whose share is nothing, which is not
+     * the same as a value that could not be read.
+     */
+    slices: PieSliceGeometry[];
+    /** The total the shares are of. */
+    total: number;
+    /**
+     * How many values went into the total: those that are finite and not
+     * negative, whatever they came to. Zero where every value was rejected,
+     * which is what tells a pie whose values came to nothing from one whose
+     * values were never shares in the first place.
+     */
+    valuesInTotal: number;
+    /** How many values had no slice because they were not finite numbers. */
+    undrawnValues: number;
+    /** How many values had no slice because they were negative. */
+    negativeValues: number;
+    /** How many series the chart was given beyond the one it drew. */
+    undrawnSeries: number;
+};
+
+/**
+ * The slices for a pie chart: one angular range per value, in proportion.
+ *
+ * Slices run clockwise from twelve o'clock in the order the values were given,
+ * rather than sorted by size, which is what every statistical package does and
+ * what keeps a pie beside a bar chart of the same data readable as the same
+ * data.
+ *
+ * A pie draws one series. Concentric rings are not a standard chart and a
+ * donut is a styling variant rather than a second group, so a chart given
+ * several series draws the first and reports the rest as undrawn.
+ *
+ * Only a value that is a share of a total gets a slice. A value that is not a
+ * finite number cannot be one, and a negative value is not merely undrawable
+ * but meaningless here: a bar hangs below the baseline it is measured from, and
+ * a pie has no baseline to hang anything from. Both are counted so the chart
+ * can say so, and neither is included in the total — a negative value silently
+ * shrinking every other slice would be worse than its absence.
+ */
+export function computePieChartGeometry({
+    series,
+    labels,
+}: {
+    series: ChartSeriesValues[];
+    labels: string[];
+}): PieChartGeometry {
+    const values = series[0]?.values ?? [];
+
+    let undrawnValues = 0;
+    let negativeValues = 0;
+    let total = 0;
+    const shares: { label: string; value: number }[] = [];
+
+    values.forEach((value, ind) => {
+        if (!Number.isFinite(value)) {
+            undrawnValues++;
+            return;
+        }
+        if (value < 0) {
+            negativeValues++;
+            return;
+        }
+        // Saturating, for the reason a stacked bar's running total is: a sum of
+        // finite values need not be finite, and a total of `Infinity` would
+        // make every share `0` and the whole pie disappear.
+        total = saturatingAdd(total, value);
+        shares.push({ label: labels[ind] ?? String(ind + 1), value });
+    });
+
+    const slices: PieSliceGeometry[] = [];
+    // A total of zero has no shares to take of it, and dividing by it would put
+    // `NaN` in every angle. Nothing is drawn, and the caller says so.
+    if (total > 0) {
+        /** How much of the turn the slices so far have used. */
+        let turned = 0;
+        for (const { label, value } of shares) {
+            const fraction = value / total;
+            // Held inside the one turn there is. The shares add to exactly one
+            // whenever the total is the sum of them, and they do not once that
+            // sum has saturated — two values of `1e308` each come out as
+            // fifty-six percent of `Number.MAX_VALUE`. Clamping keeps the
+            // slices in order and inside the circle; the data is at the edge of
+            // what a double holds, and there is no arrangement of it that is
+            // both drawable and exact.
+            const sweep = Math.min(fraction, Math.max(1 - turned, 0)) * 360;
+            slices.push({
+                label,
+                value,
+                fraction,
+                // Snapped like every other computed coordinate here: the angles
+                // are reached by accumulating shares, and three equal ones
+                // would otherwise start at `120.00000000000001`.
+                startAngle: snapNumber(turned * 360),
+                sweep: snapNumber(sweep),
+            });
+            turned += sweep / 360;
+        }
+    }
+
+    return {
+        kind: "pie",
+        series: series.length > 0 ? [{ label: series[0].label }] : [],
+        slices,
+        total,
+        valuesInTotal: shares.length,
+        undrawnValues,
+        negativeValues,
+        undrawnSeries: Math.max(series.length - 1, 0),
+    };
+}
+
+/** Any of the geometries a `<chart>` produces, whichever type was named. */
+export type ChartGeometry =
+    BarChartGeometry | PointChartGeometry | PieChartGeometry;
 
 /** How a series is drawn and named, alongside the geometry of its marks. */
 export type ChartSeriesRendering = {
@@ -1180,17 +1358,18 @@ const LEGEND_OUTSIDE_GAP = 8;
 const LEGEND_ANCHOR_OFFSET = 4;
 
 /**
- * The most of one dimension the margins may take when a legend is drawn outside
- * the plot.
+ * The most of one dimension the margins may take when something the author put
+ * *outside* the plot is drawn there — a legend, or a pie's slice names.
  *
  * `fitMargins` normally leaves the drawing at least half the frame, which is
- * the right rule when the margins hold nothing but axis labels. A legend is
- * different: it is a fixed number of pixels tall whatever the chart's size, so
- * on a small chart the honest choice is a smaller plot rather than a legend
- * scaled into the frame's edge or clipped by it. The author asked for the
- * legend outside; this is what that costs.
+ * the right rule when the margins hold nothing but axis labels: those grow with
+ * the numbers on the axis and shrinking them costs a digit at worst. A legend
+ * and a name are different: both are a fixed number of pixels whatever the
+ * chart's size, so on a small chart the honest choice is a smaller drawing
+ * rather than text scaled into the frame's edge or clipped by it. The author
+ * asked for it outside; this is what that costs.
  */
-const LEGEND_MARGIN_BUDGET = 2 / 3;
+const OUTSIDE_MARGIN_BUDGET = 2 / 3;
 
 /**
  * How much larger than the axis numbers a title is drawn.
@@ -1242,6 +1421,299 @@ function axisLabelWidth(ticks: AxisTicks) {
         AXIS_LABEL_MARGIN_PER_CHARACTER *
         widestTickLabelLength(ticks.first, ticks.last, ticks.step)
     );
+}
+
+/** One line of a legend: a name, and the element its swatch is read off. */
+type LegendEntry = {
+    label: string;
+    labelHasLatex: boolean;
+    /**
+     * The handle of the element the swatch is built from, or null where there
+     * is none — a series whose every value was undrawable, or a slice of no
+     * sweep.
+     */
+    handle: string | null;
+};
+
+/**
+ * What a legend will cost and where it will go, settled before the margins.
+ *
+ * Before, because a legend drawn outside the plot is held by one of them and
+ * its size does not depend on the plot's: the entries decide the legend, the
+ * legend decides the margin, the margin decides the drawing area. So there is
+ * no loop to iterate here.
+ */
+type LegendPlan = {
+    /** The entries that will actually be written, in order. */
+    items: { label: string; markup: string; handle: string }[];
+    /** Whether a legend is drawn at all. */
+    drawn: boolean;
+    placement: (typeof LEGEND_PLACEMENTS)[keyof typeof LEGEND_PLACEMENTS];
+    size: { width: number; height: number };
+    /** In a margin widened to hold it, rather than in a corner of the plot. */
+    onRight: boolean;
+    onBottom: boolean;
+};
+
+/**
+ * Which legend entries survive, and how much room they will need.
+ *
+ * An entry needs both a name and something drawn to point at, for the reason
+ * `chartLegendHasItems` gives — and the two questions are asked here together
+ * so that the box is measured against exactly the entries that go in it.
+ */
+function planLegend({
+    entries,
+    showLegend,
+    legendPosition,
+    legendKeyWidth,
+}: {
+    entries: LegendEntry[];
+    showLegend: boolean;
+    legendPosition: keyof typeof LEGEND_PLACEMENTS;
+    /** How wide the key beside each label is drawn. */
+    legendKeyWidth: number;
+}): LegendPlan {
+    const items = entries.flatMap((entry) => {
+        const markup = labelMarkup({
+            label: entry.label,
+            labelHasLatex: entry.labelHasLatex,
+        });
+        if (entry.handle === null || markup === null) {
+            return [];
+        }
+        return [{ label: entry.label, markup, handle: entry.handle }];
+    });
+
+    const drawn = showLegend && items.length > 0;
+    const placement =
+        LEGEND_PLACEMENTS[legendPosition] ?? LEGEND_PLACEMENTS.outsideright;
+    const outside = drawn && "side" in placement;
+
+    return {
+        items,
+        drawn,
+        placement,
+        size: estimateLegendSize(
+            items.map((item) => item.label),
+            legendKeyWidth,
+        ),
+        onRight: outside && "side" in placement && placement.side === "right",
+        onBottom: outside && "side" in placement && placement.side === "bottom",
+    };
+}
+
+/** The frame a legend or a title is placed in, once the margins are settled. */
+type ChartFrame = {
+    marginLeft: number;
+    marginRight: number;
+    marginBottom: number;
+    marginTop: number;
+    innerWidth: number;
+    innerHeight: number;
+    /** Data units per pixel, for everything anchored by a distance on screen. */
+    unitsPerPixelX: number;
+    unitsPerPixelY: number;
+};
+
+/**
+ * The `<legend>` element, anchored where the plan and the frame put it.
+ *
+ * PreFigure anchors a legend in *data* coordinates and takes no offset
+ * attribute — `legend.py` reads only anchor, alignment, scale, vertical-skip,
+ * stroke and opacity. So a legend that belongs in a margin is anchored at a
+ * coordinate outside the box and left to the same linear transform as
+ * everything else. It does apply an offset of its own on top of that, which
+ * `LEGEND_ANCHOR_OFFSET` accounts for.
+ *
+ * `opacity="0"` makes the box behind it transparent. PreFigure fills it white
+ * with no attribute to say otherwise, which reads as a hole punched in a chart
+ * drawn in dark mode; `stroke` does take an attribute, so the box keeps an
+ * outline that follows the page's text color in both themes.
+ *
+ * `rightOfPlot` is how far past the plot's right edge the vertical axis'
+ * numbers reach, and so how far a legend placed in that same margin has to
+ * start beyond it. Zero on a chart whose numbers are on the left, and on one
+ * with no axes at all.
+ */
+function legendMarkup({
+    plan,
+    bounds,
+    frame,
+    rightOfPlot,
+}: {
+    plan: LegendPlan;
+    bounds: [number, number, number, number];
+    frame: ChartFrame;
+    rightOfPlot: number;
+}): string {
+    if (!plan.drawn) {
+        return "";
+    }
+
+    const [xMin, yMin, xMax, yMax] = bounds;
+    const { placement } = plan;
+    const {
+        marginLeft,
+        marginRight,
+        marginBottom,
+        marginTop,
+        innerWidth,
+        innerHeight,
+        unitsPerPixelX,
+        unitsPerPixelY,
+    } = frame;
+
+    let anchorX;
+    let anchorY;
+    if (!("side" in placement)) {
+        anchorX = placement.corner.endsWith("Right") ? xMax : xMin;
+        anchorY = placement.corner.startsWith("top") ? yMax : yMin;
+    } else if (placement.side === "right") {
+        // `se` puts the box below and right of the anchor, so the corner of
+        // the box lands in the margin just past the plot's right edge —
+        // past the vertical axis' numbers as well, on a chart drawn
+        // entirely to the left of zero, where PreFigure puts them in that
+        // same margin.
+        //
+        // Then pulled back inside the picture. The margin was reserved to
+        // hold the box, but `fitMargins` caps it, so a small chart with
+        // long labels gets a margin narrower than what it was reserved
+        // from — and the box, which does not shrink with it, was drawn
+        // past the edge of the SVG and clipped: `size="small"` with two
+        // thirty-character labels put the legend's right edge at 360px in
+        // a 255px picture. Height is not reserved at all, so a chart of
+        // enough labeled series ran off the bottom the same way.
+        //
+        // Overlapping the plot is the lesser fault: a legend over a bar is
+        // still readable and still says what the colors mean, and it is
+        // what the inside placements do by design. A legend outside the
+        // picture is not there at all.
+        const overhangRight =
+            rightOfPlot +
+            LEGEND_ANCHOR_OFFSET +
+            plan.size.width +
+            LEGEND_OUTSIDE_GAP;
+        const overhangBottom =
+            LEGEND_ANCHOR_OFFSET + plan.size.height + LEGEND_OUTSIDE_GAP;
+        // Pulled only as far as the picture's own edge. A box wider or
+        // taller than the whole picture cannot be placed inside it by
+        // moving it, so it keeps overflowing the side it always
+        // overflowed; dragging it further would only move the clipped part
+        // to the other end.
+        const pullLeft = Math.min(
+            Math.max(overhangRight - marginRight, 0),
+            Math.max(
+                marginLeft +
+                    innerWidth +
+                    LEGEND_ANCHOR_OFFSET -
+                    LEGEND_OUTSIDE_GAP,
+                0,
+            ),
+        );
+        const pullUp = Math.min(
+            Math.max(overhangBottom - (innerHeight + marginBottom), 0),
+            marginTop,
+        );
+        anchorX = xMax + (rightOfPlot - pullLeft) * unitsPerPixelX;
+        anchorY = yMax + pullUp * unitsPerPixelY;
+    } else {
+        // Below the plot and centered, placed from the *bottom* of the
+        // picture rather than a fixed distance under the axis: the gap to
+        // the edge is then the one that was reserved, however the margin
+        // came out. Measuring down from the axis instead left the box
+        // flush against the edge, and 1.6px past it, whenever `fitMargins`
+        // had to shrink what was asked for.
+        //
+        // The floor is the top of the picture, for the reason the right-hand
+        // placement pulls its box back inside: `fitMargins` caps the
+        // margin, the box does not shrink with it, and a floor at the band
+        // the category names occupy is what let the legend run off the
+        // bottom of the picture instead — a `size="small"` chart was
+        // outside from four named series, and outside by 70px at eight.
+        // Rising over the category names is the lesser fault, and it is
+        // what the other outside placement already chooses.
+        //
+        // `fitMargins` only ever shrinks, so the first term is at most the
+        // band the axis labels were reserved, and equals it whenever the
+        // margin was granted in full: an uncrowded chart is placed exactly
+        // where it was before.
+        const belowAxis = Math.max(
+            marginBottom -
+                LEGEND_OUTSIDE_GAP -
+                plan.size.height -
+                LEGEND_ANCHOR_OFFSET,
+            -(marginTop + innerHeight),
+        );
+        anchorX = midpoint(xMin, xMax);
+        anchorY = yMin - belowAxis * unitsPerPixelY;
+    }
+
+    const anchor = `(${formatNumber(anchorX)},${formatNumber(anchorY)})`;
+    const items = plan.items
+        .map(
+            (item) =>
+                `<item ref="${escapeXml(item.handle)}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${item.markup}</item>`,
+        )
+        .join("");
+    return `<legend anchor="${escapeXml(anchor)}" alignment="${placement.alignment}" opacity="0" stroke="currentColor">${items}</legend>`;
+}
+
+/**
+ * The chart's title, drawn above the frame, and the caption beside it.
+ *
+ * A `<label>` rather than PreFigure's `<caption>` alone, which reaches tactile
+ * output only and would leave a visual chart untitled — so the caption is
+ * emitted as well as the label rather than instead of it, and a title is a
+ * title in every format the diagram is produced in.
+ *
+ * `lift` raises it clear of anything else sharing the top margin, in pixels.
+ * That is the horizontal axis' own labels on a chart drawn entirely below
+ * zero, where PreFigure puts them up there: both are anchored to the top of the
+ * box and drawn upwards from it, so without the lift they would be drawn over
+ * each other.
+ */
+function titleMarkup({
+    titleText,
+    bounds,
+    lift,
+    unitsPerPixelY,
+}: {
+    titleText: string | null;
+    bounds: [number, number, number, number];
+    lift: number;
+    unitsPerPixelY: number;
+}): { titleElement: string; captionElement: string } {
+    if (!titleText) {
+        return { titleElement: "", captionElement: "" };
+    }
+
+    const [xMin, , xMax, yMax] = bounds;
+    const anchor = `(${formatNumber(midpoint(xMin, xMax))},${formatNumber(
+        yMax + lift * unitsPerPixelY,
+    )})`;
+    return {
+        titleElement: `<label anchor="${escapeXml(anchor)}" alignment="north" scale="${TITLE_SCALE}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${titleText}</label>`,
+        captionElement: `<caption>${titleText}</caption>`,
+    };
+}
+
+/**
+ * The annotation tree a screen reader navigates.
+ *
+ * A figure-level annotation is what diagcess navigates into; without one the
+ * per-mark annotations have no parent to hang from. Its text is the author's
+ * `<shortDescription>` when there is one — nothing is invented here, so there
+ * is no generated English to translate.
+ */
+function figureAnnotations(
+    shortDescription: string | undefined,
+    annotationElements: string[],
+): string {
+    const figureAnnotationText = shortDescription
+        ? ` text="${escapeXml(shortDescription)}"`
+        : "";
+    return `<annotations><annotation ref="figure"${figureAnnotationText}>${annotationElements.join("")}</annotation></annotations>`;
 }
 
 /**
@@ -1325,23 +1797,19 @@ function assembleChartDiagram({
     const baseRight = rawRight + markOverhang;
     const baseTop = rawTop + markOverhang;
 
-    // Settled before the margins, because a legend drawn outside the plot is
-    // held by one of them. Its size does not depend on the plot's, so there is
-    // no loop here: the labels decide the legend, the legend decides the
-    // margin, the margin decides the drawing area.
-    //
     // A series earns a legend entry by having both a label and a mark for the
     // swatch to be read off, which is exactly the series its caller gave a key
     // handle.
-    const legendLabels = seriesLabels.filter(
-        (label, seriesIndex) =>
-            label !== "" && seriesKeyHandles[seriesIndex] !== null,
-    );
-    const legendDrawn = showLegend && legendLabels.length > 0;
-    const placement =
-        LEGEND_PLACEMENTS[legendPosition] ?? LEGEND_PLACEMENTS.outsideright;
-    const legendSize = estimateLegendSize(legendLabels, legendKeyWidth);
-    const legendOutside = legendDrawn && "side" in placement;
+    const legend = planLegend({
+        entries: seriesLabels.map((label, seriesIndex) => ({
+            label,
+            labelHasLatex: Boolean(seriesRendering[seriesIndex]?.labelHasLatex),
+            handle: seriesKeyHandles[seriesIndex],
+        })),
+        showLegend,
+        legendPosition,
+        legendKeyWidth,
+    });
 
     // Which side of the box each axis' labels land on, which is not always the
     // near one. `position_axes` (`axes.py`) keeps an axis against the frame the
@@ -1389,9 +1857,7 @@ function assembleChartDiagram({
         rightOfPlot,
     );
     let wantedBottom: number = xLabelsOnTop ? baseTop : xLabelBand;
-    const legendOnRight = legendOutside && placement.side === "right";
-    const legendOnBottom = legendOutside && placement.side === "bottom";
-    if (legendOnRight) {
+    if (legend.onRight) {
         // PreFigure's offset, then the box, then a gap to the edge of the
         // picture, all beyond whatever the axis numbers already took of the
         // same margin. `baseRight` is *not* added underneath: it is there to
@@ -1403,16 +1869,16 @@ function assembleChartDiagram({
             wantedRight,
             rightOfPlot +
                 LEGEND_ANCHOR_OFFSET +
-                legendSize.width +
+                legend.size.width +
                 LEGEND_OUTSIDE_GAP,
         );
-    } else if (legendOnBottom) {
+    } else if (legend.onBottom) {
         // The band the horizontal axis' own labels occupy, then PreFigure's
         // offset, then the box, then a gap to the edge of the picture. Unlike
         // the right, that band is one the legend sits *below* rather than an
         // overhang it covers, so here the two really do add.
         wantedBottom +=
-            LEGEND_ANCHOR_OFFSET + legendSize.height + LEGEND_OUTSIDE_GAP;
+            LEGEND_ANCHOR_OFFSET + legend.size.height + LEGEND_OUTSIDE_GAP;
     }
 
     // No `titleHasLatex` beside the axis labels' flags: a `<title>`'s text
@@ -1455,13 +1921,13 @@ function assembleChartDiagram({
         widthPx,
         wantedLeft,
         wantedRight,
-        legendOnRight ? LEGEND_MARGIN_BUDGET : undefined,
+        legend.onRight ? OUTSIDE_MARGIN_BUDGET : undefined,
     );
     const [marginBottom, marginTop] = fitMargins(
         heightPx,
         wantedBottom,
         wantedTop,
-        legendOnBottom ? LEGEND_MARGIN_BUDGET : undefined,
+        legend.onBottom ? OUTSIDE_MARGIN_BUDGET : undefined,
     );
 
     // Positive without being floored at a pixel, since fitting the margins
@@ -1594,150 +2060,35 @@ function assembleChartDiagram({
     // fill. A series' color is therefore named in the legend by the same
     // attributes that draw it and the two cannot drift apart, and a series with
     // no mark has nothing to point at and so no entry.
-    //
-    // `opacity="0"` makes the box behind the legend transparent. PreFigure
-    // fills it white with no attribute to say otherwise (`legend.py`), which
-    // reads as a hole punched in a chart drawn in dark mode; `stroke` does take
-    // an attribute, so the box keeps an outline that follows the page's text
-    // color in both themes.
-    const legendItems = seriesLabels
-        .map((seriesLabel, seriesIndex) => {
-            const handle = seriesKeyHandles[seriesIndex];
-            const text = labelMarkup({
-                label: seriesLabel,
-                labelHasLatex: seriesRendering[seriesIndex]?.labelHasLatex,
-            });
-            if (handle === null || !text) {
-                return null;
-            }
-            return `<item ref="${escapeXml(handle)}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${text}</item>`;
-        })
-        .filter((item) => item !== null);
+    const legendElement = legendMarkup({
+        plan: legend,
+        bounds,
+        frame: {
+            marginLeft,
+            marginRight,
+            marginBottom,
+            marginTop,
+            innerWidth,
+            innerHeight,
+            unitsPerPixelX,
+            unitsPerPixelY,
+        },
+        rightOfPlot,
+    });
 
-    let legendElement = "";
-    if (legendDrawn && legendItems.length > 0) {
-        // PreFigure anchors a legend in *data* coordinates, and takes no
-        // offset attribute — `legend.py` reads only anchor, alignment, scale,
-        // vertical-skip, stroke and opacity. So a legend that belongs in a
-        // margin is anchored at a coordinate outside the box and left to the
-        // same linear transform as everything else. It does apply an offset of
-        // its own on top of that, which `LEGEND_ANCHOR_OFFSET` accounts for.
-        let anchorX;
-        let anchorY;
-        if (!("side" in placement)) {
-            anchorX = placement.corner.endsWith("Right") ? xMax : xMin;
-            anchorY = placement.corner.startsWith("top") ? yMax : yMin;
-        } else if (placement.side === "right") {
-            // `se` puts the box below and right of the anchor, so the corner of
-            // the box lands in the margin just past the plot's right edge —
-            // past the vertical axis' numbers as well, on a chart drawn
-            // entirely to the left of zero, where PreFigure puts them in that
-            // same margin.
-            //
-            // Then pulled back inside the picture. The margin was reserved to
-            // hold the box, but `fitMargins` caps it, so a small chart with
-            // long labels gets a margin narrower than what it was reserved
-            // from — and the box, which does not shrink with it, was drawn
-            // past the edge of the SVG and clipped: `size="small"` with two
-            // thirty-character labels put the legend's right edge at 360px in
-            // a 255px picture. Height is not reserved at all, so a chart of
-            // enough labeled series ran off the bottom the same way.
-            //
-            // Overlapping the plot is the lesser fault: a legend over a bar is
-            // still readable and still says what the colors mean, and it is
-            // what the inside placements do by design. A legend outside the
-            // picture is not there at all.
-            const overhangRight =
-                rightOfPlot +
-                LEGEND_ANCHOR_OFFSET +
-                legendSize.width +
-                LEGEND_OUTSIDE_GAP;
-            const overhangBottom =
-                LEGEND_ANCHOR_OFFSET + legendSize.height + LEGEND_OUTSIDE_GAP;
-            // Pulled only as far as the picture's own edge. A box wider or
-            // taller than the whole picture cannot be placed inside it by
-            // moving it, so it keeps overflowing the side it always
-            // overflowed; dragging it further would only move the clipped part
-            // to the other end.
-            const pullLeft = Math.min(
-                Math.max(overhangRight - marginRight, 0),
-                Math.max(
-                    marginLeft +
-                        innerWidth +
-                        LEGEND_ANCHOR_OFFSET -
-                        LEGEND_OUTSIDE_GAP,
-                    0,
-                ),
-            );
-            const pullUp = Math.min(
-                Math.max(overhangBottom - (innerHeight + marginBottom), 0),
-                marginTop,
-            );
-            anchorX = xMax + (rightOfPlot - pullLeft) * unitsPerPixelX;
-            anchorY = yMax + pullUp * unitsPerPixelY;
-        } else {
-            // Below the plot and centered, placed from the *bottom* of the
-            // picture rather than a fixed distance under the axis: the gap to
-            // the edge is then the one that was reserved, however the margin
-            // came out. Measuring down from the axis instead left the box
-            // flush against the edge, and 1.6px past it, whenever `fitMargins`
-            // had to shrink what was asked for.
-            //
-            // The floor is the top of the picture, for the reason the right-hand
-            // placement pulls its box back inside: `fitMargins` caps the
-            // margin, the box does not shrink with it, and a floor at the band
-            // the category names occupy is what let the legend run off the
-            // bottom of the picture instead — a `size="small"` chart was
-            // outside from four named series, and outside by 70px at eight.
-            // Rising over the category names is the lesser fault, and it is
-            // what the other outside placement already chooses.
-            //
-            // `fitMargins` only ever shrinks, so the first term is at most the
-            // band the axis labels were reserved, and equals it whenever the
-            // margin was granted in full: an uncrowded chart is placed exactly
-            // where it was before.
-            const belowAxis = Math.max(
-                marginBottom -
-                    LEGEND_OUTSIDE_GAP -
-                    legendSize.height -
-                    LEGEND_ANCHOR_OFFSET,
-                -(marginTop + innerHeight),
-            );
-            anchorX = midpoint(xMin, xMax);
-            anchorY = yMin - belowAxis * unitsPerPixelY;
-        }
-        const anchor = `(${formatNumber(anchorX)},${formatNumber(anchorY)})`;
-        legendElement = `<legend anchor="${escapeXml(anchor)}" alignment="${placement.alignment}" opacity="0" stroke="currentColor">${legendItems.join("")}</legend>`;
-    }
+    // Centered above the drawing, in the margin widened for it, and raised
+    // clear of the horizontal axis' labels where those share the top margin.
+    const { titleElement, captionElement } = titleMarkup({
+        titleText,
+        bounds,
+        lift: xLabelsOnTop ? xLabelBand : 0,
+        unitsPerPixelY,
+    });
 
-    // Centered above the drawing, in the margin widened for it. A `<label>`
-    // rather than PreFigure's `<caption>`, which reaches tactile output only
-    // and would leave a visual chart untitled — so the caption is emitted as
-    // well as the label rather than instead of it, and a title is a title in
-    // every format the diagram is produced in.
-    //
-    // Raised clear of the horizontal axis' labels where those share the top
-    // margin, which is where PreFigure puts them on a chart drawn entirely
-    // below zero. Both are anchored to the top of the box and drawn upwards
-    // from it, so without the lift they would be drawn over each other.
-    let titleElement = "";
-    let captionElement = "";
-    if (titleText) {
-        const anchor = `(${formatNumber(midpoint(xMin, xMax))},${formatNumber(
-            yMax + (xLabelsOnTop ? xLabelBand : 0) * unitsPerPixelY,
-        )})`;
-        titleElement = `<label anchor="${escapeXml(anchor)}" alignment="north" scale="${TITLE_SCALE}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${titleText}</label>`;
-        captionElement = `<caption>${titleText}</caption>`;
-    }
-
-    // A figure-level annotation is what diagcess navigates into; without one
-    // the per-mark annotations have no parent to hang from. Its text is the
-    // author's `<shortDescription>` when there is one — nothing is invented
-    // here, so there is no generated English to translate.
-    const figureAnnotationText = shortDescription
-        ? ` text="${escapeXml(shortDescription)}"`
-        : "";
-    const annotationsElement = `<annotations><annotation ref="figure"${figureAnnotationText}>${annotationElements.join("")}</annotation></annotations>`;
+    const annotationsElement = figureAnnotations(
+        shortDescription,
+        annotationElements,
+    );
 
     const xml = `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}${overlayElements.join("")}${titleElement}${legendElement}</coordinates>${captionElement}${annotationsElement}</diagram>`;
 
@@ -2153,6 +2504,410 @@ export function createPointChartPrefigureXML({
         overlayElements: valueLabelElements,
         shortDescription,
         darkMode,
+    });
+
+    return { xml, diagnostics };
+}
+
+/**
+ * The radius every pie is drawn at, in data units.
+ *
+ * One, because `assemblePieDiagram` chooses a bounding box in which one unit is
+ * the same number of pixels on both axes and the shorter side of the drawing
+ * area is two units across — so a radius of one is a circle inscribed in the
+ * drawing area, and the room outside it is the margins rather than a fraction
+ * of the box held back here.
+ */
+const PIE_RADIUS = 1;
+
+/**
+ * Room outside the pie, in pixels, on every side.
+ *
+ * The pie touches the drawing area's shorter edge, so its stroke — half of
+ * `thickness`, two pixels by default — is painted just outside it, and PreFigure
+ * puts the margins outside `dimensions`. Eight leaves that clear with a little
+ * air to spare.
+ */
+const PIE_PADDING = 8;
+
+/**
+ * How far along the radius a `displayValues` label sits, as a fraction of it.
+ *
+ * Inside the slice rather than beyond the rim, which is where the slice's name
+ * goes when there is no legend to hold it: at six tenths the number is clear of
+ * both the center, where every slice meets and the labels would collide, and
+ * the rim, where it would run into the name.
+ */
+const PIE_VALUE_LABEL_RADIUS = 0.6;
+
+/**
+ * The eight compass alignments, by octant counterclockwise from due east.
+ *
+ * `label.py` accepts these as `alignment` and draws the text away from its
+ * anchor in the named direction, which is what puts a slice's name outside the
+ * arc rather than across it. The order is PreFigure's own `alignment_circle`.
+ */
+const COMPASS_ALIGNMENTS = [
+    "east",
+    "northeast",
+    "north",
+    "northwest",
+    "west",
+    "southwest",
+    "south",
+    "southeast",
+] as const;
+
+/**
+ * The compass alignment that draws a label away from the center along `degrees`,
+ * measured counterclockwise from due east.
+ */
+function compassAlignment(degrees: number): string {
+    const octant = Math.round(degrees / 45);
+    return COMPASS_ALIGNMENTS[((octant % 8) + 8) % 8];
+}
+
+/** How much room a pie's slice names need beyond the drawing area, in pixels. */
+type SliceLabelBands = {
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+};
+
+/**
+ * Which margin a slice's name reaches into, by the alignment it is drawn with.
+ *
+ * A name aligned away from the center is drawn entirely to one side of its
+ * anchor, so it reaches into the margin on that side and no other. `north` and
+ * `south` reach into no side margin, and `east` and `west` into neither cap:
+ * both are centered on the other axis, on an anchor that sits at the middle of
+ * the pie in that direction, so what they reach toward is the pie rather than
+ * the edge of the picture. A name wider than the whole pie is the exception,
+ * and is the case a legend larger than its chart already is.
+ */
+const SLICE_LABEL_REACH: Record<
+    string,
+    { side: "left" | "right" | null; cap: "top" | "bottom" | null }
+> = {
+    east: { side: "right", cap: null },
+    northeast: { side: "right", cap: "top" },
+    southeast: { side: "right", cap: "bottom" },
+    west: { side: "left", cap: null },
+    northwest: { side: "left", cap: "top" },
+    southwest: { side: "left", cap: "bottom" },
+    north: { side: null, cap: "top" },
+    south: { side: null, cap: "bottom" },
+};
+
+/**
+ * Everything around a pie's slices: the frame, the title, the legend and the
+ * annotation tree.
+ *
+ * Separate from `assembleChartDiagram` because a pie is the one type with no
+ * axes: there is no `<axes>` element, no tick marks, no axis names, and none of
+ * the margin is holding a run of numbers. What the two share is the furniture
+ * that does not depend on axes — the legend, the title, the annotations — and
+ * they share it through the helpers above rather than through a branch.
+ *
+ * The bounding box is settled *after* the margins here, the reverse of the
+ * other assembly. It has to be: a pie has to come out round, and PreFigure
+ * scales an `<arc>`'s radius by each axis separately (`circle.py`), so one data
+ * unit must be the same number of pixels either way — which is a fact about the
+ * drawing area, and the drawing area is what is left once the margins are
+ * taken. Nothing is lost by the order, because none of a pie's margins is
+ * measured against the box the way an axis label's is.
+ */
+function assemblePieDiagram({
+    widthPx,
+    heightPx,
+    title,
+    showLegend,
+    legendPosition,
+    legendEntries,
+    sliceLabelBands,
+    elements,
+    overlayElements,
+    annotationElements,
+    shortDescription,
+}: {
+    widthPx: number;
+    heightPx: number;
+    title?: string;
+    showLegend: boolean;
+    legendPosition: keyof typeof LEGEND_PLACEMENTS;
+    /** One per slice the legend can name, in the order they are drawn. */
+    legendEntries: LegendEntry[];
+    /**
+     * How far the names drawn beyond the rim reach into each margin, in pixels.
+     * All zero when the names are in the legend instead.
+     */
+    sliceLabelBands: SliceLabelBands;
+    /** The arcs, in the order they are drawn. */
+    elements: string[];
+    /** Drawn after every arc, so no later slice can cover a label. */
+    overlayElements: string[];
+    annotationElements: string[];
+    shortDescription?: string;
+}): string {
+    // A pie's key is a swatch of fill, like a bar's: PreFigure reads the
+    // referenced arc's own `fill` (`legend.py`), and an arc has one.
+    const legend = planLegend({
+        entries: legendEntries,
+        showLegend,
+        legendPosition,
+        legendKeyWidth: LEGEND_SWATCH_KEY_WIDTH,
+    });
+
+    // No `titleHasLatex`, for the reason `assembleChartDiagram` gives: a
+    // `<title>`'s text arrives already flattened.
+    const titleText = labelMarkup({ label: title, labelHasLatex: false });
+
+    // Every side holds the pie's stroke and a little air, and whichever sides
+    // the slice names are drawn toward hold those as well.
+    const wantedLeft = PIE_PADDING + sliceLabelBands.left;
+    let wantedRight = PIE_PADDING + sliceLabelBands.right;
+    let wantedBottom = PIE_PADDING + sliceLabelBands.bottom;
+    if (legend.onRight) {
+        wantedRight = Math.max(
+            wantedRight,
+            LEGEND_ANCHOR_OFFSET + legend.size.width + LEGEND_OUTSIDE_GAP,
+        );
+    } else if (legend.onBottom) {
+        wantedBottom +=
+            LEGEND_ANCHOR_OFFSET + legend.size.height + LEGEND_OUTSIDE_GAP;
+    }
+    const wantedTop =
+        PIE_PADDING + sliceLabelBands.top + (titleText ? TITLE_MARGIN : 0);
+
+    // The names get the same larger share of the frame a legend outside the
+    // plot does, and for the same reason: a name is a fixed width whatever the
+    // chart's size, so squeezing the margin only clips it.
+    const namesBeyondRim =
+        sliceLabelBands.left > 0 ||
+        sliceLabelBands.right > 0 ||
+        sliceLabelBands.top > 0 ||
+        sliceLabelBands.bottom > 0;
+
+    const [marginLeft, marginRight] = fitMargins(
+        widthPx,
+        wantedLeft,
+        wantedRight,
+        legend.onRight || namesBeyondRim ? OUTSIDE_MARGIN_BUDGET : undefined,
+    );
+    const [marginBottom, marginTop] = fitMargins(
+        heightPx,
+        wantedBottom,
+        wantedTop,
+        legend.onBottom || namesBeyondRim ? OUTSIDE_MARGIN_BUDGET : undefined,
+    );
+
+    const innerWidth = widthPx - marginLeft - marginRight;
+    const innerHeight = heightPx - marginBottom - marginTop;
+
+    // The shorter side of the drawing area is two units across and the longer
+    // one proportionally more, which is what makes a unit the same number of
+    // pixels on both axes and the pie a circle rather than an ellipse. A
+    // drawing area with no extent — reachable from an `aspectRatio` that asks
+    // for a frame a fraction of a pixel tall — has no proportion to take, and
+    // falls back to a square box so that the coordinates stay numbers.
+    const shorterSide = Math.min(innerWidth, innerHeight);
+    const usable = shorterSide > 0 && Number.isFinite(shorterSide);
+    const halfWidth = usable ? innerWidth / shorterSide : 1;
+    const halfHeight = usable ? innerHeight / shorterSide : 1;
+    const unitsPerPixel = usable ? 2 / shorterSide : 0;
+
+    const bounds: [number, number, number, number] = [
+        -halfWidth,
+        -halfHeight,
+        halfWidth,
+        halfHeight,
+    ];
+
+    const dimensions = `(${formatNumber(innerWidth)},${formatNumber(innerHeight)})`;
+    const margins = `[${marginLeft},${marginBottom},${marginRight},${marginTop}]`;
+    const bbox = `(${formatNumber(bounds[0])},${formatNumber(bounds[1])},${formatNumber(bounds[2])},${formatNumber(bounds[3])})`;
+
+    const legendElement = legendMarkup({
+        plan: legend,
+        bounds,
+        frame: {
+            marginLeft,
+            marginRight,
+            marginBottom,
+            marginTop,
+            innerWidth,
+            innerHeight,
+            unitsPerPixelX: unitsPerPixel,
+            unitsPerPixelY: unitsPerPixel,
+        },
+        // Nothing stands between the pie and the margin beside it: the numbers
+        // that take that room on a chart with axes are not drawn here.
+        rightOfPlot: 0,
+    });
+
+    const { titleElement, captionElement } = titleMarkup({
+        titleText,
+        bounds,
+        // Nothing else shares the top margin, so the title sits against the box.
+        lift: 0,
+        unitsPerPixelY: unitsPerPixel,
+    });
+
+    const annotationsElement = figureAnnotations(
+        shortDescription,
+        annotationElements,
+    );
+
+    return `<diagram dimensions="${escapeXml(dimensions)}" margins="${escapeXml(margins)}"><coordinates bbox="${escapeXml(bbox)}">${elements.join("")}${overlayElements.join("")}${titleElement}${legendElement}</coordinates>${captionElement}${annotationsElement}</diagram>`;
+}
+
+/**
+ * Builds the PreFigure XML for a pie chart.
+ *
+ * One `<arc sector="yes">` per slice, which is a run of arcs whose ranges
+ * partition the turn in proportion to the values: `sector` closes each one back
+ * to the center, so the wedge is a filled shape rather than a curve.
+ *
+ * The angles are converted here rather than in the geometry. PreFigure measures
+ * them counterclockwise from three o'clock, as trigonometry does; a pie is read
+ * clockwise from twelve, as every statistical package draws it. So the geometry
+ * says what the chart means and this says how to draw it.
+ *
+ * Each slice is filled from its own style, which is the one place a chart colors
+ * *within* a series rather than across series: a pie of one series still needs a
+ * color per slice, since the slices are what a reader tells apart.
+ */
+export function createPieChartPrefigureXML({
+    geometry,
+    sliceStyles,
+    widthPx,
+    heightPx,
+    title,
+    showLegend,
+    legendPosition,
+    displayValues,
+    shortDescription,
+}: {
+    geometry: PieChartGeometry;
+    /** The style each slice is drawn in, in the order the slices are given. */
+    sliceStyles: (Record<string, unknown> | undefined)[];
+    widthPx: number;
+    heightPx: number;
+    title?: string;
+    showLegend: boolean;
+    legendPosition: keyof typeof LEGEND_PLACEMENTS;
+    displayValues: boolean;
+    shortDescription?: string;
+}): { xml: string; diagnostics: DiagnosticRecord[] } {
+    const diagnostics: DiagnosticRecord[] = [];
+
+    const elements: string[] = [];
+    const overlayElements: string[] = [];
+    const annotationElements: string[] = [];
+    const legendEntries: LegendEntry[] = [];
+
+    // A slice's name goes in the legend when there is one and beyond the rim
+    // when there is not, rather than in both places: the legend is what a pie's
+    // categories are usually read from, and repeating them around the arcs
+    // would say the same thing twice on a picture with no room to spare.
+    const namesBeyondRim = !showLegend;
+    const sliceLabelBands: SliceLabelBands = {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+    };
+
+    geometry.slices.forEach((slice, sliceIndex) => {
+        // A slice of no sweep gets no arc. PreFigure draws a sector by walking
+        // a hundred points along its rim and closing back to the center, so a
+        // sweep of zero comes out as a stroked line from the center to the rim
+        // — a radius nobody asked for, drawn for a value whose share of the
+        // total really is nothing. The value is still reported by `values`, and
+        // an arc that is not there is what keeps it out of the legend too.
+        if (!(slice.sweep > 0)) {
+            return;
+        }
+
+        const handle = `slice-${sliceIndex + 1}`;
+        const sliceAttrs = styleAttributes({
+            selectedStyle: sliceStyles[sliceIndex],
+            diagnostics,
+            warningPrefix: "<chart>",
+        }).join(" ");
+
+        const startDegrees = snapNumber(90 - slice.startAngle);
+        const endDegrees = snapNumber(startDegrees - slice.sweep);
+        const range = `(${formatNumber(startDegrees)},${formatNumber(endDegrees)})`;
+
+        elements.push(
+            `<arc at="${escapeXml(handle)}" center="(0,0)" radius="${PIE_RADIUS}" range="${escapeXml(range)}" sector="yes"${sliceAttrs ? ` ${sliceAttrs}` : ""} />`,
+        );
+
+        // Along the middle of the slice, which is the one direction inside it
+        // that no neighbor is nearer to.
+        const midDegrees = snapNumber(startDegrees - slice.sweep / 2);
+        const midRadians = (midDegrees * Math.PI) / 180;
+        const along = (radius: number) =>
+            `(${formatNumber(snapNumber(radius * Math.cos(midRadians)))},${formatNumber(snapNumber(radius * Math.sin(midRadians)))})`;
+
+        if (namesBeyondRim) {
+            const nameText = labelMarkup({
+                label: slice.label,
+                labelHasLatex: false,
+            });
+            if (nameText) {
+                const alignment = compassAlignment(midDegrees);
+                const reach = SLICE_LABEL_REACH[alignment];
+                if (reach?.side) {
+                    // Rounded up, so that the margins stay whole pixels the
+                    // way every other margin this file emits is.
+                    sliceLabelBands[reach.side] = Math.max(
+                        sliceLabelBands[reach.side],
+                        Math.ceil(estimateTextWidth(slice.label)),
+                    );
+                }
+                if (reach?.cap) {
+                    sliceLabelBands[reach.cap] = AXIS_LABEL_LINE_HEIGHT;
+                }
+                overlayElements.push(
+                    `<label anchor="${escapeXml(along(PIE_RADIUS))}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${nameText}</label>`,
+                );
+            }
+        } else {
+            legendEntries.push({
+                label: slice.label,
+                // A category is a `textList` entry, which is text and nothing
+                // else — there is no LaTeX in it to typeset.
+                labelHasLatex: false,
+                handle,
+            });
+        }
+
+        if (displayValues) {
+            overlayElements.push(
+                `<label anchor="${escapeXml(along(PIE_VALUE_LABEL_RADIUS))}" alignment="center" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(slice.value) ?? "")}</label>`,
+            );
+        }
+
+        annotationElements.push(
+            `<annotation ref="${escapeXml(handle)}" text="${escapeXml(`${slice.label}: ${formatNumber(slice.value)}`)}" />`,
+        );
+    });
+
+    const xml = assemblePieDiagram({
+        widthPx,
+        heightPx,
+        title,
+        showLegend,
+        legendPosition,
+        legendEntries,
+        sliceLabelBands,
+        elements,
+        overlayElements,
+        annotationElements,
+        shortDescription,
     });
 
     return { xml, diagnostics };

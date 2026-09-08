@@ -46,7 +46,7 @@ describe("chart prefigure tests @group4", async () => {
         it("treats a type it does not know as no type at all", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <chart name="c" type="pie"><number>4</number></chart>
+    <chart name="c" type="donut"><number>4</number></chart>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -54,8 +54,9 @@ describe("chart prefigure tests @group4", async () => {
             expect(
                 sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML,
             ).eq(null);
-            // `bar` would be the only type to fall back to, and falling back to
-            // it would draw a chart nobody asked for.
+            // Falling back to any of the types there are would draw a chart
+            // nobody asked for, and there is no reading of `donut` that says
+            // which one the author meant.
             expect(sv[await resolvePathToNodeIdx("c")].stateValues.type).eq(
                 null,
             );
@@ -65,7 +66,7 @@ describe("chart prefigure tests @group4", async () => {
             // The rejected value is named too, in a message of its own, which
             // is why the warning above does not assume the attribute is
             // missing.
-            expect(d.infos.some((i) => i.message.includes("pie"))).eq(true);
+            expect(d.infos.some((i) => i.message.includes("donut"))).eq(true);
         });
 
         it("reports no axis for a chart that was not drawn", async () => {
@@ -138,7 +139,7 @@ describe("chart prefigure tests @group4", async () => {
             // once when the document loads.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <textInput name="ti" prefill="pie" />
+    <textInput name="ti" prefill="donut" />
     <chart name="c" type="$ti"><number>4</number></chart>
     `,
             });
@@ -159,7 +160,11 @@ describe("chart prefigure tests @group4", async () => {
 
             // And back: the chart goes away again rather than keeping the last
             // drawing it managed.
-            await updateTextInputValue({ text: "pie", componentIdx: ti, core });
+            await updateTextInputValue({
+                text: "donut",
+                componentIdx: ti,
+                core,
+            });
             expect((await chart()).prefigureXML).eq(null);
             expect((await chart()).yMax).eq(null);
         });
@@ -169,7 +174,7 @@ describe("chart prefigure tests @group4", async () => {
                 doenetML: `
     <chart name="c" type="bar"><number>4</number></chart>
     <chart extend="$c" name="copy" />
-    <chart extend="$c" name="untyped" type="pie" />
+    <chart extend="$c" name="untyped" type="donut" />
     <chart name="none"><number>4</number></chart>
     <chart extend="$none" name="typed" type="bar" />
     `,
@@ -2547,6 +2552,479 @@ describe("chart prefigure tests @group4", async () => {
     <chart type="scatter" name="c"><yLabel>weight</yLabel><series x="-1 -2 -3">-4 -9 -2</series></chart>
     `);
             expect(alone).toContain('<ylabel alignment="sw" color');
+        });
+    });
+
+    describe("pie", async () => {
+        const FOUR_SLICES = `
+    <chart type="pie" name="c" categories="North South East West">
+      <shortDescription>Population by region</shortDescription>
+      41 63 18 78
+    </chart>
+    `;
+
+        it("partitions the turn in proportion, clockwise from twelve", async () => {
+            const xml = await chartXML(FOUR_SLICES);
+
+            // 41 + 63 + 18 + 78 is 200, so the shares are 73.8, 113.4, 32.4
+            // and 140.4 degrees. PreFigure measures counterclockwise from three
+            // o'clock, so twelve o'clock is 90 and clockwise is downward: each
+            // arc's range ends where the next one begins, and the last ends at
+            // -270, a full turn from the first's start.
+            expect(xml).toContain('<arc at="slice-1" center="(0,0)"');
+            expect(xml).toContain('range="(90,16.2)"');
+            expect(xml).toContain('range="(16.2,-97.2)"');
+            expect(xml).toContain('range="(-97.2,-129.6)"');
+            expect(xml).toContain('range="(-129.6,-270)"');
+
+            expect((xml.match(/<arc /g) ?? []).length).eq(4);
+            // A wedge rather than a curve: `sector` closes the arc back to the
+            // center, which is what makes it a shape with a fill.
+            expect((xml.match(/sector="yes"/g) ?? []).length).eq(4);
+        });
+
+        it("draws no axes at all", async () => {
+            const xml = await chartXML(FOUR_SLICES);
+
+            // The one type with nothing to measure along: no `<axes>`, so no
+            // `vlabels`, no `hlabels` and no tick marks either.
+            expect(xml).not.toContain("<axes");
+            expect(xml).not.toContain("vlabels");
+            expect(xml).not.toContain("hlabels");
+            expect(xml).not.toContain("<tick-mark ");
+        });
+
+        it("reports no axis, since it has none", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="pie" name="c" categories="A B">4 9</chart>
+    <p name="bounds">$c.xMin, $c.xMax, $c.yMin, $c.yMax</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            // Not zero, and not the extent of the box the arcs happen to be
+            // drawn in: a pie has no axes, so there is no value on one to
+            // report. `NaN` is how a null number reads in prose.
+            expect(
+                sv[await resolvePathToNodeIdx("bounds")].stateValues.text,
+            ).eq("NaN, NaN, NaN, NaN");
+
+            // The values are still the values.
+            expect(sv[await resolvePathToNodeIdx("c")].stateValues.values).eqls(
+                [4, 9],
+            );
+        });
+
+        it("comes out round whatever the chart's shape", async () => {
+            // PreFigure scales an arc's radius by each axis separately, so a
+            // box whose units are not the same width and height either way
+            // would draw an ellipse. The box is chosen from the drawing area
+            // instead: two units across the shorter side, proportionally more
+            // along the longer, and the radius is one.
+            const wide = await chartXML(`
+    <chart type="pie" name="c" aspectRatio="4" legend="false">1 1</chart>
+    `);
+            const tall = await chartXML(`
+    <chart type="pie" name="c" aspectRatio="0.5" legend="false">1 1</chart>
+    `);
+
+            const boxOf = (xml: string) =>
+                xml
+                    .match(/bbox="\(([^)]*)\)"/)?.[1]
+                    .split(",")
+                    .map(Number) ?? [];
+            const sizeOf = (xml: string) =>
+                xml
+                    .match(/dimensions="\(([^)]*)\)"/)?.[1]
+                    .split(",")
+                    .map(Number) ?? [];
+
+            for (const xml of [wide, tall]) {
+                const [xMin, yMin, xMax, yMax] = boxOf(xml);
+                const [width, height] = sizeOf(xml);
+                // One unit is the same number of pixels on both axes, which is
+                // the whole of what makes the pie a circle.
+                expect((xMax - xMin) / width).closeTo(
+                    (yMax - yMin) / height,
+                    1e-9,
+                );
+                // Centered on the origin, so the radius of one reaches the
+                // shorter side exactly.
+                expect(xMin).eq(-xMax);
+                expect(yMin).eq(-yMax);
+                expect(Math.min(xMax, yMax)).eq(1);
+            }
+
+            // Every pie is drawn at the same radius; the box is what changes.
+            expect(wide).toContain('radius="1"');
+            expect(tall).toContain('radius="1"');
+        });
+
+        it("names the slices in the legend, and around the rim without one", async () => {
+            const withLegend = await chartXML(FOUR_SLICES);
+
+            // A pie is the one chart whose legend names its slices rather than
+            // its series, because the slices are what its colors distinguish.
+            expect(withLegend).toContain('<item ref="slice-1"');
+            expect(withLegend).toContain(">North</item>");
+            expect(withLegend).toContain(">West</item>");
+            expect((withLegend.match(/<item /g) ?? []).length).eq(4);
+            // Not in both places: the legend has them, so the rim does not.
+            expect(withLegend).not.toContain("<label ");
+
+            const withoutLegend = await chartXML(`
+    <chart type="pie" name="c" categories="North South East West" legend="false">
+      41 63 18 78
+    </chart>
+    `);
+
+            expect(withoutLegend).not.toContain("<legend ");
+            expect((withoutLegend.match(/<label /g) ?? []).length).eq(4);
+            // Beyond the rim at the middle of the slice, aligned away from the
+            // center so the name is drawn outside the arc rather than over it.
+            expect(withoutLegend).toContain(">North</label>");
+            expect(withoutLegend).toMatch(
+                /alignment="(east|northeast)"[^>]*>North</,
+            );
+        });
+
+        it("reports the legend it drew", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="pie" name="named" categories="A B">1 1</chart>
+    <chart type="pie" name="suppressed" categories="A B" legend="false">1 1</chart>
+    <chart type="pie" name="empty">0 0</chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const showLegend = async (name: string) =>
+                sv[await resolvePathToNodeIdx(name)].stateValues.showLegend;
+
+            expect(await showLegend("named")).eq(true);
+            expect(await showLegend("suppressed")).eq(false);
+            // Nothing was drawn, so there is no slice for a key to be read off
+            // and no legend — whatever the categories say.
+            expect(await showLegend("empty")).eq(false);
+        });
+
+        it("colors within the series, one style per slice", async () => {
+            const xml = await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">1 1 1</chart>
+    `);
+
+            const fills = [...xml.matchAll(/<arc [^>]*fill="([^"]*)"/g)].map(
+                (match) => match[1],
+            );
+            expect(fills.length).eq(3);
+            // The one place a chart takes a color per mark rather than per
+            // group: a pie of one series still needs its slices told apart.
+            expect(new Set(fills).size).eq(3);
+
+            // And the run starts at the chart's own style number, so the first
+            // slice of a pie is the color a single-series bar chart's bars are.
+            const bar = await chartXML(`
+    <chart type="bar" name="c" categories="A">1</chart>
+    `);
+            expect(bar).toContain(`fill="${fills[0]}"`);
+        });
+
+        it("starts the run of colors at the chart's own style number", async () => {
+            const shifted = await chartXML(`
+    <chart type="pie" name="c" styleNumber="2" categories="A B" legend="false">1 1</chart>
+    `);
+            const plain = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false">1 1</chart>
+    `);
+
+            const fillsOf = (xml: string) =>
+                [...xml.matchAll(/<arc [^>]*fill="([^"]*)"/g)].map(
+                    (match) => match[1],
+                );
+
+            // `styleNumber="2"` moves the whole run along by one, so the pie's
+            // first slice is the color its second would have been.
+            expect(fillsOf(shifted)[0]).eq(fillsOf(plain)[1]);
+        });
+
+        it("prints each value inside its slice", async () => {
+            const xml = await chartXML(`
+    <chart type="pie" name="c" categories="A B C D" displayValues>4 4 4 4</chart>
+    `);
+
+            // Four equal slices, so their middles point at the four diagonals
+            // and the labels sit six tenths of the way out along each.
+            expect((xml.match(/<label /g) ?? []).length).eq(4);
+            expect((xml.match(/alignment="center"/g) ?? []).length).eq(4);
+            expect(xml).toContain(">4</label>");
+        });
+
+        it("annotates every slice by name and value", async () => {
+            const xml = await chartXML(FOUR_SLICES);
+
+            expect(xml).toContain(
+                '<annotation ref="figure" text="Population by region">',
+            );
+            expect(xml).toContain(
+                '<annotation ref="slice-1" text="North: 41" />',
+            );
+            expect(xml).toContain(
+                '<annotation ref="slice-4" text="West: 78" />',
+            );
+            // One series, so no `<group>` level between the figure and the
+            // slices — the same as any other chart of one series.
+            expect(xml).not.toContain("<group ");
+        });
+
+        it("draws no slice for a value of zero, and keeps the colors after it", async () => {
+            const xml = await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">4 0 6</chart>
+    `);
+
+            // A sector of no sweep is a hundred identical points closed back to
+            // the center, which PreFigure draws as a stroked radius nobody
+            // asked for. So a zero draws nothing — and takes its style number
+            // with it, so that the slice after it keeps the color it had.
+            expect((xml.match(/<arc /g) ?? []).length).eq(2);
+            expect(xml).toContain('<arc at="slice-1"');
+            expect(xml).toContain('<arc at="slice-3"');
+            expect(xml).not.toContain('<arc at="slice-2"');
+
+            // The third slice keeps the third color, which is what "takes its
+            // style number with it" means: the same three values with the zero
+            // replaced draw the third slice in exactly the same fill.
+            const withoutTheZero = await chartXML(`
+    <chart type="pie" name="c" categories="A B C" legend="false">4 5 6</chart>
+    `);
+            const fillOf = (source: string, handle: string) =>
+                source.match(
+                    new RegExp(`<arc at="${handle}"[^>]*fill="([^"]*)"`),
+                )?.[1];
+
+            expect(fillOf(xml, "slice-3")).eq(
+                fillOf(withoutTheZero, "slice-3"),
+            );
+            // And it is not the color the second slice would have taken, which
+            // is what reclaiming the number would have given it.
+            expect(fillOf(xml, "slice-3")).not.eq(
+                fillOf(withoutTheZero, "slice-2"),
+            );
+
+            // Still a value of the chart, whether or not it has a slice.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<chart type="pie" name="c">4 0 6</chart>`,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("c")].stateValues.values).eqls(
+                [4, 0, 6],
+            );
+        });
+
+        it("leaves out a value that is not a finite number, and says so", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="pie" name="c" categories="A B C" legend="false">
+      <number>4</number><math>1/0</math><number>6</number>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // Two slices of a total of ten, not three of a total that cannot be
+            // computed: the value is out of the total as well as off the chart.
+            expect((xml.match(/<arc /g) ?? []).length).eq(2);
+            expect(xml).toContain('range="(90,-54)"');
+
+            expect(
+                getDiagnosticsByType(core).warnings.map((w) => w.code),
+            ).toContain("doenet-w0149");
+        });
+
+        it("leaves out a negative value, with a message of its own", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="pie" name="c" categories="A B C" legend="false">4 -2 6</chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // A slice is a share of a total and a pie has no baseline for a
+            // negative value to hang from, so it is left out of both the
+            // drawing and the total: 4 and 6 of 10, not of 8.
+            expect((xml.match(/<arc /g) ?? []).length).eq(2);
+            expect(xml).toContain('range="(90,-54)"');
+
+            const codes = getDiagnosticsByType(core).warnings.map(
+                (w) => w.code,
+            );
+            // Its own message rather than the undrawable-value one: the reason
+            // differs in kind, and so does what an author would do about it.
+            expect(codes).toContain("doenet-w0150");
+            expect(codes).not.toContain("doenet-w0149");
+        });
+
+        it("draws nothing when the values total zero, and says why", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="pie" name="c" categories="A B">0 0</chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // A diagram rather than nothing at all: the type was named and the
+            // values were read, so the chart is empty rather than absent — and
+            // dividing by the total would have put `NaN` in every angle.
+            expect(xml).not.eq(null);
+            expect(xml).not.toContain("<arc ");
+
+            expect(
+                getDiagnosticsByType(core).warnings.map((w) => w.code),
+            ).toContain("doenet-w0151");
+        });
+
+        it("says nothing about a total for a pie with no values, or one whose values were all rejected", async () => {
+            // Nothing was totaled in either case, so there is no total to
+            // report on: the first is a chart being written, and the second has
+            // already been told what went wrong.
+            const empty = await getWarnings(`
+    <chart type="pie" name="c"><shortDescription>x</shortDescription></chart>
+    `);
+            expect(empty.warnings.map((w) => w.code)).not.toContain(
+                "doenet-w0151",
+            );
+
+            const allNegative = await getWarnings(`
+    <chart type="pie" name="c"><shortDescription>x</shortDescription>-1 -2</chart>
+    `);
+            expect(allNegative.warnings.map((w) => w.code)).toContain(
+                "doenet-w0150",
+            );
+            expect(allNegative.warnings.map((w) => w.code)).not.toContain(
+                "doenet-w0151",
+            );
+        });
+
+        it("draws the first of several series and says the rest were not", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="pie" name="c" categories="A B" legend="false">
+      <series><label>2024</label>1 1</series>
+      <series><label>2025</label>3 5</series>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+
+            // Concentric rings are not a standard chart, so there is nowhere on
+            // a pie for a second series to go.
+            expect((chart.prefigureXML.match(/<arc /g) ?? []).length).eq(2);
+            expect(chart.prefigureXML).toContain('range="(90,-90)"');
+            // Still two series of data, whatever was drawn from them.
+            expect(chart.numSeries).eq(2);
+            expect(chart.values).eqls([1, 1, 3, 5]);
+
+            expect(
+                getDiagnosticsByType(core).warnings.map((w) => w.code),
+            ).toContain("doenet-w0152");
+        });
+
+        it("says nothing about series on a pie given one", async () => {
+            const one = await getWarnings(`
+    <chart type="pie" name="c"><shortDescription>x</shortDescription><series>1 2</series></chart>
+    `);
+            expect(one.warnings.map((w) => w.code)).not.toContain(
+                "doenet-w0152",
+            );
+        });
+
+        it("draws one value as the whole circle", async () => {
+            const xml = await chartXML(`
+    <chart type="pie" name="c" categories="Everything" legend="false">5</chart>
+    `);
+
+            // A full turn, which is one arc from twelve o'clock all the way
+            // around rather than a special case.
+            expect((xml.match(/<arc /g) ?? []).length).eq(1);
+            expect(xml).toContain('range="(90,-270)"');
+        });
+
+        it("keeps the slices inside one turn when the total saturates", async () => {
+            const xml = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false">1e308 1e308</chart>
+    `);
+
+            // Two values of 1e308 sum past the top of the double range, and the
+            // saturated total makes each of them look like fifty-six percent of
+            // it. Held inside the one turn there is, so the slices stay in
+            // order and inside the circle rather than wrapping over each other.
+            const ranges = [...xml.matchAll(/range="\(([^)]*)\)"/g)].map(
+                (match) => match[1].split(",").map(Number),
+            );
+            expect(ranges.length).eq(2);
+            expect(ranges[0][0]).eq(90);
+            expect(ranges[1][1]).closeTo(-270, 1e-9);
+            for (const [start, end] of ranges) {
+                expect(start).greaterThan(end);
+            }
+        });
+
+        it("titles a pie above the drawing, in both formats", async () => {
+            const xml = await chartXML(`
+    <chart type="pie" name="c" categories="A B"><title>Two halves</title>1 1</chart>
+    `);
+
+            expect(xml).toContain('alignment="north" scale="1.4"');
+            expect(xml).toContain(">Two halves</label>");
+            // The caption as well as the label, so a title is a title in
+            // tactile output too.
+            expect(xml).toContain("<caption>Two halves</caption>");
+        });
+
+        it("says an axis name was not drawn, rather than dropping it in silence", async () => {
+            // An ignored attribute costs an author nothing they can see; an
+            // ignored `<yLabel>` is prose they wrote for a reader and that is
+            // not on the page.
+            const named = await getWarnings(`
+    <chart type="pie" name="c" categories="A B"><shortDescription>x</shortDescription><yLabel>people</yLabel>1 1</chart>
+    `);
+            expect(named.warnings.map((w) => w.code)).toContain("doenet-w0153");
+
+            const unnamed = await getWarnings(`
+    <chart type="pie" name="c" categories="A B"><shortDescription>x</shortDescription>1 1</chart>
+    `);
+            expect(unnamed.warnings.map((w) => w.code)).not.toContain(
+                "doenet-w0153",
+            );
+
+            // And it says nothing on a chart that does have axes to name.
+            const bar = await getWarnings(`
+    <chart type="bar" name="c" categories="A B"><shortDescription>x</shortDescription><yLabel>people</yLabel>1 1</chart>
+    `);
+            expect(bar.warnings.map((w) => w.code)).not.toContain(
+                "doenet-w0153",
+            );
+        });
+
+        it("reads its own attributes and ignores the ones that describe axes", async () => {
+            // A pie has no axes and no slots, so the bounds and the bar
+            // arrangement have nothing to describe. Ignored rather than
+            // reported, the way `barWidth` already is on a scatter.
+            const plain = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false">1 1</chart>
+    `);
+            const withAxisAttributes = await chartXML(`
+    <chart type="pie" name="c" categories="A B" legend="false"
+           xMin="-5" xMax="5" yMin="0" yMax="100" barWidth="0.4" layout="stacked" markers="false">1 1</chart>
+    `);
+
+            expect(withAxisAttributes).eq(plain);
         });
     });
 });

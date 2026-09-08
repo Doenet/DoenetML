@@ -1,6 +1,7 @@
 import BlockComponent from "./abstract/BlockComponent";
 import {
     returnSelectedStyleStateVariableDefinition,
+    selectStyleForStyleNumber,
     widthsBySize,
 } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
@@ -15,8 +16,10 @@ import {
 import {
     chartLegendHasItems,
     computeBarChartGeometry,
+    computePieChartGeometry,
     computePointChartGeometry,
     createBarChartPrefigureXML,
+    createPieChartPrefigureXML,
     createPointChartPrefigureXML,
 } from "../utils/prefigure/chart";
 import { resolveSelectedStyleForTheme } from "../utils/prefigure/style";
@@ -37,6 +40,18 @@ const DEFAULT_ASPECT_RATIO = 1.5;
 const DEFAULT_BAR_WIDTH = 0.8;
 
 /**
+ * The types this component knows how to draw, each with a branch in
+ * `chartGeometry`.
+ *
+ * A second list beside `type`'s own `validValues`, and deliberately so: the
+ * attribute decides what an author may write and this decides what can be
+ * drawn from it. They agree today, and the day they do not — a type named in
+ * the schema before its geometry lands — the chart draws nothing and says so
+ * rather than falling through a branch that is not there yet.
+ */
+const DRAWABLE_TYPES = new Set(["bar", "line", "scatter", "pie"]);
+
+/**
  * A chart of its data. `type` picks which chart is drawn: one bar per value, a
  * path through them, or a point at each.
  *
@@ -47,12 +62,11 @@ const DEFAULT_BAR_WIDTH = 0.8;
  * children are bare values has one series, built here, so the simple case reads
  * as it always did.
  *
- * One tag with a `type` rather than a tag per chart: a pie chart, a box plot
- * and a scatter plot are all coming, and they differ in how the same list of
- * values is drawn rather than in what an author is doing. `<chart type="pie">`
- * puts that choice where it can be read — and, being an attribute, where it
- * can be computed, so a document can chart the same data both ways without
- * duplicating the tag around it.
+ * One tag with a `type` rather than a tag per chart: a bar chart, a pie chart
+ * and a scatter plot differ in how the same list of values is drawn rather
+ * than in what an author is doing. `type` puts that choice where it can be
+ * read — and, being an attribute, where it can be computed, so a document can
+ * chart the same data both ways without duplicating the tag around it.
  *
  * Rendered with PreFigure rather than JSXGraph, which buys three things a
  * hand-drawn chart would not have: the bars become one compiled SVG however
@@ -133,6 +147,11 @@ export default class Chart extends BlockComponent {
                     description:
                         "A scatter plot: one point per value, against an `x` of its own, or under category names where no series carries one.",
                 },
+                {
+                    value: "pie",
+                    description:
+                        "A pie chart: one slice per value, each a share of the total, named by the category names. Draws one series and has no axes.",
+                },
             ],
         };
 
@@ -168,14 +187,14 @@ export default class Chart extends BlockComponent {
             groupName: "axes",
             createComponentOfType: "textList",
             description:
-                "The label under each position on the horizontal axis. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
+                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
             highlighted: true,
         };
 
         attributes.barWidth = {
             groupName: "marks",
             description:
-                "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them.",
+                'How much of each category\'s slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them. Read only by `type="bar"`.',
             createComponentOfType: "number",
             createStateVariable: "barWidthAttr",
             defaultValue: DEFAULT_BAR_WIDTH,
@@ -224,7 +243,7 @@ export default class Chart extends BlockComponent {
         attributes.legend = {
             groupName: "legend",
             description:
-                'Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
+                'Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend="false"` suppresses it, and a pie then writes its slice names around the rim instead.',
             createComponentOfType: "boolean",
             createStateVariable: "legend",
             defaultValue: true,
@@ -288,7 +307,7 @@ export default class Chart extends BlockComponent {
         attributes.xMin = {
             groupName: "axes",
             description:
-                "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+                "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
             createComponentOfType: "number",
             createStateVariable: "xMinAttr",
             defaultValue: null,
@@ -297,7 +316,7 @@ export default class Chart extends BlockComponent {
         attributes.xMax = {
             groupName: "axes",
             description:
-                "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+                "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
             createComponentOfType: "number",
             createStateVariable: "xMaxAttr",
             defaultValue: null,
@@ -306,7 +325,7 @@ export default class Chart extends BlockComponent {
         attributes.yMin = {
             groupName: "axes",
             description:
-                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
+                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
             createComponentOfType: "number",
             createStateVariable: "yMinAttr",
             defaultValue: null,
@@ -315,7 +334,7 @@ export default class Chart extends BlockComponent {
         attributes.yMax = {
             groupName: "axes",
             description:
-                "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
+                "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
             createComponentOfType: "number",
             createStateVariable: "yMaxAttr",
             defaultValue: null,
@@ -324,7 +343,7 @@ export default class Chart extends BlockComponent {
         attributes.displayValues = {
             groupName: "marks",
             description:
-                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
+                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and inside a pie's slice.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,
@@ -340,7 +359,7 @@ export default class Chart extends BlockComponent {
         attributes.markers = {
             groupName: "marks",
             description:
-                "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                'Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Read only by `type="line"`.',
             createComponentOfType: "boolean",
             createStateVariable: "markers",
             defaultValue: true,
@@ -578,7 +597,7 @@ export default class Chart extends BlockComponent {
         // them.
         stateVariableDefinitions.hasAuthorAnnotations = {
             description:
-                "Whether the chart carries annotations to navigate. Always true: they are generated from the bars.",
+                "Whether the chart carries annotations to navigate. Always true: they are generated from the marks the chart drew.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -836,7 +855,8 @@ export default class Chart extends BlockComponent {
 
         stateVariableDefinitions.categories = {
             groupName: "axes",
-            description: "The label under each bar, in order.",
+            description:
+                "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie.",
             public: true,
             isArray: true,
             entryPrefixes: ["category"],
@@ -986,7 +1006,7 @@ export default class Chart extends BlockComponent {
         // mean naming the type is what reveals the next problem.
         stateVariableDefinitions.chartGeometry = {
             description:
-                "The bars and bounding box of the chart, in data coordinates, or null when there is no chart to draw.",
+                "The marks of the chart, in data coordinates, with whatever bounds they are drawn in, or null when there is no chart to draw.",
             returnDependencies: () => ({
                 type: {
                     dependencyType: "stateVariable",
@@ -1033,7 +1053,7 @@ export default class Chart extends BlockComponent {
                 // already been named in a message of its own.
                 const { type } = dependencyValues;
 
-                if (type !== "bar" && type !== "line" && type !== "scatter") {
+                if (!DRAWABLE_TYPES.has(type)) {
                     return {
                         setValue: { chartGeometry: null },
                         sendDiagnostics: [
@@ -1078,6 +1098,63 @@ export default class Chart extends BlockComponent {
                     };
                 }
 
+                if (type === "pie") {
+                    const geometry = computePieChartGeometry({
+                        series: dependencyValues.seriesData.map(
+                            ({ label, values }) => ({ label, values }),
+                        ),
+                        labels: dependencyValues.categories,
+                    });
+
+                    // Four separate things can go wrong with a pie and they
+                    // are reported separately, because the fix for each is
+                    // different: a value that is not a number, a value that is
+                    // negative, a total with no share to take of it, and more
+                    // series than a pie draws. A chart can hit more than one.
+                    const sendDiagnostics = [];
+                    if (geometry.undrawnValues > 0) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0149",
+                            }),
+                        );
+                    }
+                    if (geometry.negativeValues > 0) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0150",
+                            }),
+                        );
+                    }
+                    // Only where there were values to total. A pie whose every
+                    // value was rejected has already been told why, and a pie
+                    // with no values at all is one being written rather than
+                    // one that is wrong.
+                    if (geometry.valuesInTotal > 0 && !(geometry.total > 0)) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0151",
+                            }),
+                        );
+                    }
+                    if (geometry.undrawnSeries > 0) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0152",
+                            }),
+                        );
+                    }
+
+                    return {
+                        setValue: { chartGeometry: geometry },
+                        sendDiagnostics,
+                    };
+                }
+
                 // `line` and `scatter` are the same points, drawn with or
                 // without a path through them, so they share their geometry
                 // and differ only in what is made of it below.
@@ -1109,6 +1186,63 @@ export default class Chart extends BlockComponent {
                               ]
                             : [],
                 };
+            },
+        };
+
+        // The style each slice of a pie is drawn in: the chart's own, then one
+        // more for every slice after the first — the same categorical color
+        // scale `seriesStyleNumbers` hands the series of every other type,
+        // applied a level down. A pie is the one chart that colors *within* a
+        // series, because its slices rather than its groups are what a reader
+        // tells apart.
+        //
+        // Resolved here rather than in the drawing because a style number
+        // means whatever the document's `<styleDefinition>` children and the
+        // reader's palette say it does, and only the core can ask.
+        //
+        // Read off the geometry rather than the data, so that a slice's number
+        // follows the order the slices are drawn in. A value that got no share
+        // of the total is not a slice and takes no number; a value of zero is
+        // a slice and takes one, keeping the colors of the slices after it
+        // where they were.
+        stateVariableDefinitions.sliceStyles = {
+            description:
+                "The style each slice of a pie is drawn in, in the order the slices are drawn.",
+            returnDependencies: () => ({
+                chartGeometry: {
+                    dependencyType: "stateVariable",
+                    variableName: "chartGeometry",
+                },
+                styleNumber: {
+                    dependencyType: "stateVariable",
+                    variableName: "styleNumber",
+                },
+                ancestorWithStyle: {
+                    dependencyType: "ancestor",
+                    variableNames: [
+                        "styleDefinitions",
+                        "activeStylePaletteName",
+                        "readerStyleOverrides",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const geometry = dependencyValues.chartGeometry;
+                const numSlices =
+                    geometry?.kind === "pie" ? geometry.slices.length : 0;
+
+                const sliceStyles = [];
+                for (let ind = 0; ind < numSlices; ind++) {
+                    sliceStyles.push(
+                        selectStyleForStyleNumber({
+                            styleNumber: dependencyValues.styleNumber + ind,
+                            ancestorWithStyle:
+                                dependencyValues.ancestorWithStyle,
+                        }),
+                    );
+                }
+
+                return { setValue: { sliceStyles } };
             },
         };
 
@@ -1154,9 +1288,13 @@ export default class Chart extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 const geometry = dependencyValues.chartGeometry;
-                // `slots` is the categorical axis' positions, and a chart that
-                // has them is one whose horizontal axis carries names.
-                if (!geometry || geometry.slots) {
+                // A measured horizontal axis belongs to a point chart whose
+                // series carried an `x`, and to nothing else: `slots` is the
+                // categorical axis' positions, so a point chart that has them
+                // is one whose axis carries names instead, a bar chart's
+                // positions are always categories, and a pie has no axes at
+                // all.
+                if (geometry?.kind !== "point" || geometry.slots) {
                     return { setValue: { xMin: null, xMax: null } };
                 }
                 const [xMin, , xMax] = geometry.bounds;
@@ -1167,7 +1305,7 @@ export default class Chart extends BlockComponent {
         stateVariableDefinitions.yMin = {
             groupName: "axes",
             description:
-                "The lowest value shown on the vertical axis, or null when there is no chart to draw.",
+                "The lowest value shown on the vertical axis, or null when the chart has no axes or was not drawn.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1177,7 +1315,7 @@ export default class Chart extends BlockComponent {
                     variableName: "yMax",
                     groupName: "axes",
                     description:
-                        "The highest value shown on the vertical axis, or null when there is no chart to draw.",
+                        "The highest value shown on the vertical axis, or null when the chart has no axes or was not drawn.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "number",
@@ -1191,11 +1329,13 @@ export default class Chart extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                const bounds = dependencyValues.chartGeometry?.bounds;
-                if (!bounds) {
+                const geometry = dependencyValues.chartGeometry;
+                // A pie is drawn in no axes, so it has no vertical extent to
+                // report — the same absence a chart that was never drawn has.
+                if (!geometry || geometry.kind === "pie") {
                     return { setValue: { yMin: null, yMax: null } };
                 }
-                const [, yMin, , yMax] = bounds;
+                const [, yMin, , yMax] = geometry.bounds;
                 return { setValue: { yMin, yMax } };
             },
         };
@@ -1269,6 +1409,10 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "seriesData",
                 },
+                sliceStyles: {
+                    dependencyType: "stateVariable",
+                    variableName: "sliceStyles",
+                },
                 document: {
                     dependencyType: "ancestor",
                     componentType: "document",
@@ -1287,6 +1431,51 @@ export default class Chart extends BlockComponent {
                     dependencyValues.document?.stateValues.theme === "dark";
 
                 const widthPx = dependencyValues.width?.size ?? 425;
+                const heightPx = widthPx / dependencyValues.aspectRatio;
+
+                // A pie takes none of what follows: it has no axes to name, and
+                // its colors are chosen per slice rather than per series, so
+                // the style it draws with is a list rather than one series'.
+                if (dependencyValues.type === "pie") {
+                    // An axis name on a pie is authored text with nowhere to
+                    // go, which is worse than an ignored attribute: the author
+                    // wrote something for the reader and it is not on the page.
+                    // Reported rather than dropped in silence, the way an
+                    // `<annotations>` child of a chart is reported as a child
+                    // this is not.
+                    const axisNames = [
+                        dependencyValues.xLabel,
+                        dependencyValues.yLabel,
+                    ].some((name) => name?.trim());
+
+                    const { xml, diagnostics } = createPieChartPrefigureXML({
+                        geometry: dependencyValues.chartGeometry,
+                        sliceStyles: dependencyValues.sliceStyles.map((style) =>
+                            resolveSelectedStyleForTheme(style, darkMode),
+                        ),
+                        widthPx,
+                        heightPx,
+                        title: dependencyValues.title,
+                        showLegend: dependencyValues.showLegend,
+                        legendPosition: dependencyValues.legendPosition,
+                        displayValues: dependencyValues.displayValues,
+                        shortDescription: dependencyValues.shortDescription,
+                    });
+
+                    if (axisNames) {
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0153",
+                            }),
+                        );
+                    }
+
+                    return {
+                        setValue: { prefigureXML: xml },
+                        sendDiagnostics: diagnostics,
+                    };
+                }
 
                 const shared = {
                     geometry: dependencyValues.chartGeometry,
@@ -1311,7 +1500,7 @@ export default class Chart extends BlockComponent {
                         }),
                     ),
                     widthPx,
-                    heightPx: widthPx / dependencyValues.aspectRatio,
+                    heightPx,
                     xLabel: dependencyValues.xLabel,
                     xLabelHasLatex: dependencyValues.xLabelHasLatex,
                     yLabel: dependencyValues.yLabel,

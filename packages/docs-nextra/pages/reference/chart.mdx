@@ -90,6 +90,38 @@ and its `x` the horizontal ones.
 
 
 
+### `type="pie"`
+
+One slice per value, each one that value's share of the total. The slices run clockwise from
+twelve o'clock in the order the values are given, and `categories` names them. A pie draws
+one series.
+
+
+```doenet-editor-horiz
+<chart type="pie" categories="North South East West" size="small">
+  <shortDescription>Population by region</shortDescription>
+  41 63 18 78
+</chart>
+
+<chart type="pie" categories="Renewables Coal Nuclear" size="small" legend="false" displayValues>
+  <shortDescription>Generation by source</shortDescription>
+  40 35 25
+</chart>
+```
+
+
+
+The slice names go in the legend, and around the rim instead when there is no legend to hold
+them. A pie has no axes, so it is the one type that reads neither `xMin`/`xMax` nor
+`yMin`/`yMax`, and neither an `<xLabel>{:dn}` nor a `<yLabel>{:dn}` — put that text in a
+`<title>{:dn}` instead. Each slice takes a color of its own, where every other type colors
+by series.
+
+A slice is a share of a total, so a negative value has none, and neither does a value that
+is not a number; both are left out of the total as well, and the chart says so.
+
+
+
 ## Examples
 
 ### Example: a bar chart of counts
@@ -327,6 +359,25 @@ neither, and are worth reaching for when the chart has a corner to spare. They c
 mark, as the third chart above does: room has to be made for one, either by a bound that
 pushes the data clear of that corner or by choosing a corner the data does not reach.
 
+On a pie the legend names the *slices* rather than the series, since a pie's colors tell its
+slices apart. `legend="false"` there moves the names out to the rim rather than dropping
+them, so they are always somewhere:
+
+
+```doenet-editor-horiz
+<chart type="pie" categories="Renewables Coal Nuclear" size="small">
+  <shortDescription>Generation by source, named in the legend</shortDescription>
+  40 35 25
+</chart>
+
+<chart type="pie" categories="Renewables Coal Nuclear" size="small" legend="false">
+  <shortDescription>The same three slices, named around the rim</shortDescription>
+  40 35 25
+</chart>
+```
+
+
+
 `$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
 legend, for series that are unnamed, and for named series with no value that could be
 drawn.
@@ -487,4 +538,5 @@ exactly what it was given; naming a `<series>{:dn}` is how one group is read on 
 `yMin`, `yMax`, `xMin`, `xMax`, `barWidth` and `aspectRatio` report what the chart was
 drawn with rather than what was asked for, so `$counts.yMax` is the top of the axis you can
 see even though nothing above set one. `xMin` and `xMax` report nothing for a chart whose
-horizontal axis carries category names rather than numbers.
+horizontal axis carries category names rather than numbers, and a pie reports nothing for
+any of the four: it has no axes to read a value off.

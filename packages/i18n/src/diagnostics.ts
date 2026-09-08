@@ -236,6 +236,11 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0146": "chart-type-not-specified",
     "doenet-w0147": "chart-values-outside-series",
     "doenet-w0148": "chart-points-not-drawable",
+    "doenet-w0149": "chart-pie-values-not-drawable",
+    "doenet-w0150": "chart-pie-negative-values",
+    "doenet-w0151": "chart-pie-total-not-positive",
+    "doenet-w0152": "chart-pie-one-series",
+    "doenet-w0153": "chart-pie-axis-name-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

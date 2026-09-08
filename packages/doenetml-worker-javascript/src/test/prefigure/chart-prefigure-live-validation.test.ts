@@ -76,6 +76,31 @@ describe("Chart prefigure renderer live validation @group4", () => {
     </chart>`,
                     expectText: "line (numeric axis, no markers)",
                 },
+                {
+                    doenetML: `
+    <chart type="pie" name="c" categories="North South East West">
+      <title>Population by region</title>
+      <shortDescription>Population by region</shortDescription>
+      41 63 18 78
+    </chart>`,
+                    expectText: "pie (titled, slices named in the legend)",
+                },
+                {
+                    doenetML: `
+    <chart type="pie" name="c" categories="North South East West" legend="false" displayValues>
+      <shortDescription>Population by region</shortDescription>
+      41 63 18 78
+    </chart>`,
+                    expectText: "pie (slices named around the rim)",
+                },
+                {
+                    doenetML: `
+    <chart type="pie" name="c" categories="Everything">
+      <shortDescription>All of it</shortDescription>
+      5
+    </chart>`,
+                    expectText: "pie (one value, a full turn)",
+                },
             ];
 
             for (const c of cases) {
@@ -191,6 +216,41 @@ describe("Chart prefigure renderer live validation @group4", () => {
                         ).toBeLessThan(30);
                     }
                 }
+            }
+
+            // A pie's legend names its slices rather than its series, so the
+            // long text is a category and the markup is a different shape —
+            // but the box is reserved and placed by the same code, and its
+            // margin is measured against a drawing area no axis numbers take a
+            // share of. Single words only: `categories` is a `textList`, which
+            // splits on whitespace.
+            for (const [label, size] of [
+                ["WWWWWW", "large"],
+                ["%%%%%%", "large"],
+                ["Renewables", "small"],
+                ["Photovoltaicgeneration", "small"],
+            ] as [string, string][]) {
+                const prefigureXML = await getPrefigureXML(
+                    `<chart type="pie" name="c" size="${size}" categories="${label} ${label}x">1 1</chart>`,
+                    "c",
+                );
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${label}/pie: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const pictureWidth = Number(
+                    svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
+                );
+                const box = svg.match(
+                    /transform="translate\(([-\d.]+),([-\d.]+)\)[^"]*"[^>]*>\s*<rect x="0" y="0" width="([\d.]+)"[^>]*stroke="currentColor" fill="white"/,
+                );
+                expect(box, `${label}/pie: no legend box drawn`).toBeTruthy();
+
+                expect(
+                    pictureWidth - (Number(box![1]) + Number(box![3])),
+                    `${label}/pie: legend is clipped`,
+                ).toBeGreaterThan(0);
             }
         },
     );
@@ -495,6 +555,274 @@ describe("Chart prefigure renderer live validation @group4", () => {
                         Math.abs(names[0].top - names[1].top),
                         `${what}: the two axis names are drawn on the same line`,
                     ).toBeGreaterThanOrEqual(LINE);
+                }
+            }
+        },
+    );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: a pie is drawn round and inside the picture",
+        async () => {
+            // The one thing the XML cannot say about a pie. PreFigure scales an
+            // arc's radius by each axis separately (`circle.py`), so a bounding
+            // box whose units are not the same size in both directions draws an
+            // ellipse — and the box is chosen from the drawing area, which is
+            // what is left after margins that are themselves computed from
+            // estimates. Only the rendered path says what came out.
+            for (const [what, doenetML] of [
+                [
+                    "default shape",
+                    `<chart type="pie" name="c">41 63 18 78</chart>`,
+                ],
+                [
+                    "wide",
+                    `<chart type="pie" name="c" aspectRatio="4">41 63 18 78</chart>`,
+                ],
+                [
+                    "tall",
+                    `<chart type="pie" name="c" aspectRatio="0.5">41 63 18 78</chart>`,
+                ],
+                [
+                    "titled, with a legend",
+                    `<chart type="pie" name="c" categories="North South East West"><title>Population by region</title>41 63 18 78</chart>`,
+                ],
+                [
+                    "legend below",
+                    `<chart type="pie" name="c" categories="North South East West" legendPosition="outsideBottom">41 63 18 78</chart>`,
+                ],
+                [
+                    "names around the rim",
+                    `<chart type="pie" name="c" categories="North South East West" legend="false">41 63 18 78</chart>`,
+                ],
+                [
+                    "one value",
+                    `<chart type="pie" name="c" legend="false">5</chart>`,
+                ],
+            ] as [string, string][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const picture = svg.match(
+                    /<svg[^>]*width="([\d.]+)"[^>]*height="([\d.]+)"/,
+                );
+                expect(picture, `${what}: no picture`).toBeTruthy();
+                const pictureWidth = Number(picture![1]);
+                const pictureHeight = Number(picture![2]);
+
+                // Each sector is a path walked along its rim and closed back to
+                // the center, so the union of every slice's points is the pie.
+                const points = [
+                    ...svg.matchAll(/<path id="[^"]*?-slice-\d+" d="([^"]*)"/g),
+                ].flatMap((slice) =>
+                    [
+                        ...slice[1].matchAll(
+                            /(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g,
+                        ),
+                    ].map((point) => [Number(point[1]), Number(point[2])]),
+                );
+                expect(
+                    points.length,
+                    `${what}: no slices drawn`,
+                ).toBeGreaterThan(0);
+
+                const xs = points.map((point) => point[0]);
+                const ys = points.map((point) => point[1]);
+                const [left, right] = [Math.min(...xs), Math.max(...xs)];
+                const [top, bottom] = [Math.min(...ys), Math.max(...ys)];
+
+                // Round: the same across as it is tall. The tolerance is the
+                // one decimal place PreFigure writes its coordinates to.
+                expect(
+                    right - left,
+                    `${what}: pie is ${right - left} across and ${bottom - top} tall`,
+                ).closeTo(bottom - top, 0.25);
+
+                // And inside the picture. Half the stroke is painted outside
+                // the radius, which is what the padding either side is for.
+                expect(left, `${what}: pie runs off the left`).toBeGreaterThan(
+                    -0.5,
+                );
+                expect(top, `${what}: pie runs off the top`).toBeGreaterThan(
+                    -0.5,
+                );
+                expect(right, `${what}: pie runs off the right`).toBeLessThan(
+                    pictureWidth + 0.5,
+                );
+                expect(bottom, `${what}: pie runs off the bottom`).toBeLessThan(
+                    pictureHeight + 0.5,
+                );
+            }
+        },
+    );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: a pie's slice names are drawn inside the picture",
+        async () => {
+            // `legend="false"` writes the slice names beyond the rim, and the
+            // margin that holds them is reserved from `estimateTextWidth` — the
+            // same estimate the legend's own margin uses, and the same failure
+            // if it comes out under: text drawn past the edge of the SVG, which
+            // the browser simply does not paint.
+            //
+            // A plain `<label>` reaches the SVG as `<text>`, whose drawn width
+            // the SVG does not record. What it does record is the group around
+            // it, translated to the anchor and then back by the alignment's
+            // displacement — and for an alignment that draws leftward or
+            // centers, that second translate *is* the width PreFigure measured.
+            // So the width of a string is read off a copy drawn leftward and
+            // applied to the copies drawn rightward, which carry no width of
+            // their own.
+            //
+            // Eight equal slices are what make that possible in one render:
+            // they put the same name at all eight compass alignments at once,
+            // so every direction a name can be drawn in is checked against a
+            // width the same render measured. `aspectRatio="1"` is not
+            // incidental — a pie is inscribed in its drawing area, so on a
+            // chart wider than it is tall there is slack either side of the
+            // circle that hides an under-reserved margin. A square drawing area
+            // has none, which is what makes this an assertion rather than an
+            // observation.
+            for (const [what, doenetML] of [
+                [
+                    "eight directions",
+                    `<chart type="pie" name="c" aspectRatio="1" legend="false" categories="WWWWWW WWWWWW WWWWWW WWWWWW WWWWWW WWWWWW WWWWWW WWWWWW">1 1 1 1 1 1 1 1</chart>`,
+                ],
+                [
+                    "eight directions, lowercase",
+                    `<chart type="pie" name="c" aspectRatio="1" legend="false" categories="Renewables Renewables Renewables Renewables Renewables Renewables Renewables Renewables">1 1 1 1 1 1 1 1</chart>`,
+                ],
+                [
+                    "eight directions on a small chart",
+                    `<chart type="pie" name="c" aspectRatio="1" size="small" legend="false" categories="Nuclear Nuclear Nuclear Nuclear Nuclear Nuclear Nuclear Nuclear">1 1 1 1 1 1 1 1</chart>`,
+                ],
+                [
+                    "long names",
+                    `<chart type="pie" name="c" legend="false" categories="Photovoltaic Hydroelectric Geothermal Coal">4 3 2 1</chart>`,
+                ],
+                [
+                    "long names on a small chart",
+                    `<chart type="pie" name="c" size="small" legend="false" categories="Renewables Coal Nuclear">4 3 2</chart>`,
+                ],
+                [
+                    "names and values together",
+                    `<chart type="pie" name="c" legend="false" displayValues categories="North South East West">41 63 18 78</chart>`,
+                ],
+            ] as [string, string][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const picture = svg.match(
+                    /<svg[^>]*width="([\d.]+)"[^>]*height="([\d.]+)"/,
+                );
+                expect(picture, `${what}: no picture`).toBeTruthy();
+                const pictureWidth = Number(picture![1]);
+                const pictureHeight = Number(picture![2]);
+
+                // How far back the group is translated, as a multiple of the
+                // measured width, for each alignment this chart emits
+                // (`alignment_displacement`, `label.py`). Zero is an alignment
+                // that draws rightward from its anchor and so records nothing.
+                const shiftPerWidth: Record<string, number> = {
+                    east: 0,
+                    northeast: 0,
+                    southeast: 0,
+                    north: -0.5,
+                    south: -0.5,
+                    center: -0.5,
+                    west: -1,
+                    northwest: -1,
+                    southwest: -1,
+                };
+
+                // PreFigure numbers the labels in document order, which is the
+                // order this file wrote them, so the alignment each one was
+                // asked for is known exactly rather than guessed at from the
+                // shift it came back with.
+                const asked = [
+                    ...prefigureXML.matchAll(
+                        /<label [^>]*alignment="([a-z]+)"[^>]*>([^<]*)<\/label>/g,
+                    ),
+                ].map((label) => ({
+                    alignment: label[1],
+                    text: label[2],
+                }));
+
+                const drawn = [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__label-(\d+)" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<text[^>]*y="(-?[\d.]+)"[^>]*>([^<]*)</g,
+                    ),
+                ].map((label) => ({
+                    index: Number(label[1]),
+                    left: Number(label[2]) + Number(label[4]),
+                    baseline:
+                        Number(label[3]) + Number(label[5]) + Number(label[6]),
+                    shiftX: Number(label[4]),
+                    text: label[7],
+                }));
+
+                expect(drawn.length, `${what}: no names drawn`).eq(
+                    asked.length,
+                );
+
+                // The width PreFigure measured for each string, wherever one of
+                // its copies was drawn in a direction that records it.
+                const measured = new Map<string, number>();
+                for (const label of drawn) {
+                    const alignment = asked[label.index]?.alignment;
+                    expect(
+                        asked[label.index]?.text,
+                        `${what}: label ${label.index} is not the one that was asked for`,
+                    ).eq(label.text);
+                    const shift = shiftPerWidth[alignment ?? ""];
+                    if (!shift) {
+                        continue;
+                    }
+                    measured.set(label.text, label.shiftX / shift);
+                }
+
+                for (const label of drawn) {
+                    // Unknown for a string every copy of which was drawn
+                    // rightward — the four-slice cases below reach that, and
+                    // there the check is on the anchor alone. The
+                    // eight-direction cases above always measure, which is
+                    // asserted after the loop.
+                    const width = measured.get(label.text) ?? 0;
+                    expect(
+                        label.left,
+                        `${what}: "${label.text}" starts outside the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        label.left + width,
+                        `${what}: "${label.text}" ends outside the picture`,
+                    ).toBeLessThan(pictureWidth + 0.5);
+                    // 14px text: the ink reaches about eleven pixels above the
+                    // baseline and three below it.
+                    expect(
+                        label.baseline - 11,
+                        `${what}: "${label.text}" sits above the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        label.baseline + 3,
+                        `${what}: "${label.text}" sits below the picture`,
+                    ).toBeLessThan(pictureHeight + 0.5);
+                }
+
+                if (what.startsWith("eight directions")) {
+                    // Every name in these is the same string at all eight
+                    // alignments, so the width above is a real number and the
+                    // check on the rightward copies is a real check.
+                    for (const label of drawn) {
+                        expect(
+                            measured.get(label.text),
+                            `${what}: "${label.text}" was never measured`,
+                        ).toBeGreaterThan(0);
+                    }
                 }
             }
         },
