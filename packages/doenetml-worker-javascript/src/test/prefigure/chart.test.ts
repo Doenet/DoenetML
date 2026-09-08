@@ -2188,5 +2188,77 @@ describe("chart prefigure tests @group4", async () => {
             // honoring the author's request over.
             expect(backwards).toContain('bbox="(0,0,4,10)"');
         });
+
+        it("gives a run of identical values a box the values can be seen in", async () => {
+            // The axis is one step either side of them, and the step has to be
+            // one the value can be moved by: `1e20 - 1` is `1e20` again, so a
+            // step of 1 left the box with no height at all — which PreFigure
+            // resolves to `nan` in every coordinate it draws, for a picture with
+            // nothing in it. A bar chart never reaches this, since its axis runs
+            // from the baseline to the data and so always has a span.
+            const boundsOf = async (doenetML: string) =>
+                (await chartXML(doenetML))
+                    .match(/bbox="\(([^)]*)\)"/)?.[1]
+                    .split(",")
+                    .map(Number) ?? [];
+
+            const [, yMin, , yMax] = await boundsOf(`
+    <chart type="scatter" name="c"><series x="1 2">1e20 1e20</series></chart>
+    `);
+            expect(yMin).toBeLessThan(1e20);
+            expect(yMax).toBeGreaterThan(1e20);
+
+            const [xMin, , xMax] = await boundsOf(`
+    <chart type="scatter" name="c"><series x="1e20 1e20">4 9</series></chart>
+    `);
+            expect(xMin).toBeLessThan(1e20);
+            expect(xMax).toBeGreaterThan(1e20);
+
+            // At the top of the double range only the near bound can move —
+            // adding a step overflows, and `formatNumber` writes `Infinity` as
+            // a literal `null`. The data then sits on the frame, which is far
+            // less than a box that cannot be drawn at all.
+            const [, atMin, , atMax] = await boundsOf(`
+    <chart type="scatter" name="c"><series x="1 2">1.7976931348623157e308 1.7976931348623157e308</series></chart>
+    `);
+            expect(atMin).toBeLessThan(atMax);
+            expect(Number.isFinite(atMin) && Number.isFinite(atMax)).eq(true);
+
+            // A step the value can be moved by is left exactly as it was.
+            expect(
+                await chartXML(`
+    <chart type="scatter" name="c"><series x="1 2">7 7</series></chart>
+    `),
+            ).toContain('bbox="(0,6,3,8)"');
+        });
+
+        it("draws nothing for a series with no x on a numeric axis, and warns", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="line" name="c">
+      <series x="1 2 3"><label>measured</label>4 9 2</series>
+      <series><label>positioned</label>5 6 7</series>
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // One series carrying an `x` settles the axis for all of them, so
+            // the second series' values have no coordinate to be placed at.
+            // Drawing them at 1, 2, 3 would place them by position on an axis
+            // measured in something else, which is a claim the author did not
+            // make.
+            expect(xml).toContain('<group at="series-2"></group>');
+            expect((xml.match(/<point /g) ?? []).length).eq(3);
+            // And so it earns no legend entry: there is no mark for the swatch
+            // to be read off.
+            expect(xml).toContain('<item ref="line-1"');
+            expect(xml).not.toContain("positioned</item>");
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.code)).toContain("doenet-w0148");
+        });
     });
 });

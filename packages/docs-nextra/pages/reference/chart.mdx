@@ -66,6 +66,10 @@ The only type that reads either kind of horizontal axis. Without an `x` the poin
 under `categories`, evenly spaced; with one they sit at the positions it gives and the axis
 carries numbers. Values are never re-ordered — a path that doubles back is drawn as one.
 
+One series with an `x` puts the whole chart on a numeric axis, so give every series one or
+none. A series without one in a chart whose other series have them has no coordinates for
+its values, and they are reported rather than drawn.
+
 A marker is drawn at each point by default. `markers="false"` leaves the line alone, which
 suits a long series, at the cost that a screen reader can then reach the line but not walk
 it point by point.

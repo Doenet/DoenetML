@@ -4,50 +4,51 @@ import { pointStyleAttributes, styleAttributes } from "./style";
 import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
- * PreFigure assembly for `<chart type="bar">`.
+ * PreFigure assembly for `<chart>` — bars, points and the lines through them.
  *
- * Kept apart from `graph.ts` because a chart is not a graph with bars in it: it
- * owns its own bounding box, its horizontal axis is categorical rather than
- * numeric, and it has no graphical descendants to convert. What it shares with
- * `graph.ts` is the vocabulary — `common.ts` for escaping and formatting,
- * `style.ts` for Doenet styles, `label.ts` for axis labels — not the algorithm.
+ * Kept apart from `graph.ts` because a chart is not a graph with data in it: it
+ * owns its own bounding box, it sizes its own axes from the data, and it has no
+ * graphical descendants to convert. What it shares with `graph.ts` is the
+ * vocabulary — `common.ts` for escaping and formatting, `style.ts` for Doenet
+ * styles, `label.ts` for axis labels — not the algorithm.
  *
  * `<tick-mark>` is emitted here and nowhere else in this folder. It places
  * arbitrary text at an arbitrary axis position, which is the only way to get
  * categorical labels: PreFigure's own `hlabels` is a numeric
  * `(start, step, end)` triple (`axes.py`), so category names cannot go through
- * it. Automatic labels are switched off with `decorations="no"` and the
- * vertical axis gets an explicit `vlabels` back, leaving the horizontal axis
- * to the tick marks below.
+ * it. Automatic labels are switched off with `decorations="no"`; the vertical
+ * axis gets an explicit `vlabels` back, and the horizontal one gets `hlabels`
+ * when its positions are measurements and tick marks when they are names.
  *
  * `<label>` is not new — `components/vector.ts` and `components/angle.ts`
  * already emit it — but it is put to two new uses here: the optional value
- * printed at the end of each bar, and the chart's title, drawn above the frame
+ * printed at the end of each mark, and the chart's title, drawn above the frame
  * at a `scale` the axis numbers do not use.
  *
  * `<legend>` is emitted here and nowhere else in this folder; `<group>` is
  * shared with `components/curve.ts`, which wraps a multi-piece curve in one.
  * A chart of more than one series wraps each of them in a `<group>`, which is
- * what gives a screen reader a level to stop at between the chart and its bars
+ * what gives a screen reader a level to stop at between the chart and its marks
  * — grouping components to be annotated together is what `group.py` exists for.
  *
  * A legend is drawn as soon as a series is named, whether the chart has one
- * series or several, and each of its items points at that series' first bar
- * rather than at the group. PreFigure assembles a legend out of the elements
- * its items refer to, reading each one's `fill` for the swatch, so a series'
- * color reaches the legend by the same attribute that draws it and the two
- * cannot drift apart.
+ * series or several, and each of its items points at one of that series' own
+ * marks rather than at the group. PreFigure assembles a legend out of the
+ * elements its items refer to, reading each one's `fill` for the swatch — or
+ * drawing a segment of the stroke where there is no fill, which is what puts a
+ * line in a line chart's legend. So a series' color reaches the legend by the
+ * same attribute that draws it and the two cannot drift apart.
  *
  * A legend's background box is filled white by `legend.py` with no attribute to
  * say otherwise, which reads as a hole punched in a chart drawn in dark mode.
  * Its `opacity` and `stroke` *are* attributes, so the box is made transparent
  * and given an outline that follows the page's text color instead.
  *
- * Both axes sit on the edge of the bounding box — the vertical one at x = 0,
- * the horizontal one at the baseline — so their labels would be drawn outside
- * the drawing area and clipped. `<diagram margins>` is the fix: PreFigure adds
- * the margins *outside* `dimensions`, so the inner size is shrunk by them to
- * keep the rendered chart the size the author actually asked for.
+ * The axes sit on or near the edge of the bounding box, so their labels would
+ * be drawn outside the drawing area and clipped. `<diagram margins>` is the
+ * fix: PreFigure adds the margins *outside* `dimensions`, so the inner size is
+ * shrunk by them to keep the rendered chart the size the author actually asked
+ * for.
  */
 
 /**
@@ -214,8 +215,8 @@ export type BarChartGeometry = {
  * Whether the legend this chart would draw has anything to put in it.
  *
  * An item is a name beside a swatch, and PreFigure builds the swatch out of an
- * element the item points at, so a series needs both a label and a bar: one
- * whose every value is non-finite is named but has nothing to point at, and
+ * element the item points at, so a series needs both a label and a mark: one
+ * whose every value is undrawable is named but has nothing to point at, and
  * one drawn from an unnamed series would be a swatch beside a blank line.
  *
  * Exported so that `<chart>`'s `showLegend` asks the same question the XML
@@ -434,7 +435,33 @@ function autoAxisBounds({
             // all — which is the same reason an empty bar chart still gets a
             // box one tick tall.
             if (!(high > low)) {
-                return [snapNumber(low - step), snapNumber(high + step)];
+                // The step has to be one the value can be moved by. A step
+                // below the value's own precision leaves the bound exactly
+                // where it started — `1e20 - 1` is `1e20` — and the box comes
+                // out with no extent at all, which PreFigure resolves to `nan`
+                // in every coordinate it draws: a chart of `1e20 1e20` rendered
+                // as an empty picture. Where that happens the step grows to the
+                // magnitude of the data, which is the smallest separation a
+                // double still represents there. A bar chart never reaches
+                // this, since its axis runs from the baseline to the data and
+                // so always has a span.
+                const spread =
+                    low - step < low && high + step > high
+                        ? step
+                        : Math.max(
+                              step,
+                              niceTickStep(Math.abs(low) || 1, minStep),
+                          );
+                const lowBound = snapNumber(low - spread);
+                const highBound = snapNumber(high + spread);
+                // Widening past the top of the double range overflows to
+                // `Infinity`, which `formatNumber` writes as `null`. Staying at
+                // the value leaves the data on the frame, and the other bound
+                // has already moved, so there is still a box.
+                return [
+                    Number.isFinite(lowBound) ? lowBound : low,
+                    Number.isFinite(highBound) ? highBound : high,
+                ];
             }
             return [
                 nextTickBeyond(low, step, -1),
@@ -802,8 +829,11 @@ export function computePointChartGeometry({
 }): PointChartGeometry {
     // One series carrying an `x` settles the axis for all of them: two series
     // cannot be read against each other if one is placed by measurement and the
-    // other by position. A series with no `x` of its own then falls back to 1,
-    // 2, … n, which is where it would have been drawn anyway.
+    // other by position. A series with no `x` of its own is then a series whose
+    // every value is missing a coordinate, so none of it is drawn and the
+    // warning below says so — putting it at 1, 2, … n instead would place it by
+    // position on an axis measured in something else, which is a claim the
+    // author did not make.
     const numericAxis = series.some((oneSeries) => oneSeries.x !== null);
 
     const numSlots = series.reduce(
@@ -1146,13 +1176,6 @@ const TITLE_SCALE = 1.4;
  */
 const TITLE_MARGIN = 14 * TITLE_SCALE + 10;
 
-/**
- * Builds the PreFigure XML for a bar chart.
- *
- * The vertical axis keeps numeric labels via an explicit `vlabels`; the
- * horizontal axis has its automatic labels suppressed and gets one
- * `<tick-mark>` per category instead.
- */
 /** A run of labeled values on one axis. */
 type AxisTicks = { first: number; last: number; step: number };
 
@@ -1261,10 +1284,8 @@ function assembleChartDiagram({
     // margin, the margin decides the drawing area.
     //
     // A series earns a legend entry by having both a label and a mark for the
-    // swatch to be read off, so the test is over the geometry rather than over
-    // the handles, which are not assigned until the bars are built below.
-    // A series earns an entry by having a mark for the swatch to be read off,
-    // which is exactly the series that were given a key handle.
+    // swatch to be read off, which is exactly the series its caller gave a key
+    // handle.
     const legendLabels = seriesLabels.filter(
         (label, seriesIndex) =>
             label !== "" && seriesKeyHandles[seriesIndex] !== null,
@@ -1406,11 +1427,6 @@ function assembleChartDiagram({
         );
     }
 
-    // One series is drawn as it always was, straight into the diagram, and its
-    // bars are annotated straight under the figure. Several are each wrapped in
-    // a `<group>`, which is what gives a screen reader a level to stop at
-    // between the chart and its bars — the reason `<group>` exists in PreFigure
-    // at all — and gives the legend an element per series to key off.
     // One series is drawn straight into the diagram, and its marks are
     // annotated straight under the figure. Several are each wrapped in a
     // `<group>`, which is what gives a screen reader a level to stop at
@@ -1601,6 +1617,13 @@ function assembleChartDiagram({
     return xml;
 }
 
+/**
+ * Builds the PreFigure XML for a bar chart.
+ *
+ * The vertical axis keeps numeric labels via an explicit `vlabels`; the
+ * horizontal axis has its automatic labels suppressed and gets one
+ * `<tick-mark>` per category instead.
+ */
 export function createBarChartPrefigureXML({
     geometry,
     seriesRendering,
