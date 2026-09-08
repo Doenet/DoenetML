@@ -583,19 +583,8 @@ export default class Chart extends BlockComponent {
                         "labelHasLatex",
                         "values",
                         "selectedStyle",
-                        "hide",
-                        "hidden",
+                        "hiddenIgnoreParent",
                     ],
-                },
-                // The chart's own hidden state, to tell a series hidden on its
-                // own account apart from one hidden only because the whole
-                // chart is. `hidden` is inherited — a `<chart hide>` marks
-                // every child hidden — so filtering on it alone would let
-                // hiding a chart delete the data an author is still writing
-                // about beside it.
-                chartHidden: {
-                    dependencyType: "stateVariable",
-                    variableName: "hidden",
                 },
                 ...returnContentLocaleDependencies(),
                 valueChildren: {
@@ -649,17 +638,19 @@ export default class Chart extends BlockComponent {
                 // assigned from the child list, so hiding the second of three
                 // leaves the third the color it already had rather than
                 // recoloring the chart around it.
-                // Hidden on its own account: either the series says so
-                // itself, or something between it and the chart does — a
-                // `<group hide>` around it, say, whose replacements inherit the
-                // hiding. What does not count is the chart being hidden, which
-                // hides the drawing without emptying it.
-                const hiddenFromChart = (child) =>
-                    child.stateValues.hide ||
-                    (child.stateValues.hidden && !dependencyValues.chartHidden);
-
+                // `hiddenIgnoreParent` rather than `hidden`, which is the
+                // whole distinction: a series hidden on its own account is not
+                // part of the chart, while one hidden only because the chart is
+                // still holds data an author may be writing about beside the
+                // picture. `hidden` is inherited, so filtering on it would let
+                // `<chart hide>` empty the chart it was meant only to conceal.
+                //
+                // It is the right test rather than merely a narrower one: it
+                // recurses through composites, so a `<group hide>` around a
+                // series takes that series out whether or not the chart itself
+                // is hidden — which reading the series' own `hide` gets wrong.
                 const seriesData = seriesChildren
-                    .filter((child) => !hiddenFromChart(child))
+                    .filter((child) => !child.stateValues.hiddenIgnoreParent)
                     .map((child, ind) => ({
                         label: child.stateValues.label,
                         labelHasLatex: child.stateValues.labelHasLatex,
@@ -831,7 +822,7 @@ export default class Chart extends BlockComponent {
                 titleChildren: {
                     dependencyType: "child",
                     childGroups: ["titles"],
-                    variableNames: ["text", "hide"],
+                    variableNames: ["text", "hiddenIgnoreParent"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -846,7 +837,7 @@ export default class Chart extends BlockComponent {
                 // (`utils/label.ts`).
                 return {
                     setValue: {
-                        title: titleChild?.stateValues.hide
+                        title: titleChild?.stateValues.hiddenIgnoreParent
                             ? ""
                             : (titleChild?.stateValues.text ?? ""),
                     },

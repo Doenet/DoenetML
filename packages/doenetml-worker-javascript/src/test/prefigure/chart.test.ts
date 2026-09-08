@@ -1420,6 +1420,8 @@ describe("chart prefigure tests @group4", async () => {
     <p name="bothValues">$both.values</p>
     <chart type="bar" name="wrapped"><series>4 9</series><group hide><series>6 1</series></group></chart>
     <p name="wrappedValues">$wrapped.values</p>
+    <chart type="bar" name="bothWrapped" hide><series>4 9</series><group hide><series>6 1</series></group></chart>
+    <p name="bothWrappedValues">$bothWrapped.values</p>
     `,
             });
             const sv = await core.returnAllStateVariables(false, true);
@@ -1431,6 +1433,10 @@ describe("chart prefigure tests @group4", async () => {
             // And something between the series and the chart hiding it counts
             // too — a `<group hide>` passes its hiding to what it produces.
             expect(await read("wrappedValues")).eq("4, 9");
+            // Including when the chart is hidden as well, which is what reading
+            // the series' own `hide` alone would miss: the group's hiding
+            // reaches the series through the composite, not through the chart.
+            expect(await read("bothWrappedValues")).eq("4, 9");
         });
 
         it("does not recolor the chart when a series is hidden", async () => {

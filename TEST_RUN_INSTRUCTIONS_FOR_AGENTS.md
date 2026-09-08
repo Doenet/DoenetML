@@ -33,9 +33,13 @@ yourself rather than using the `test:prefigure-live-accessibility` script:
 
 ```bash
 npm run test-cypress-fast-fail -w @doenet/test-cypress -- \
-  --config specPattern="cypress/e2e/prefigure/prefigureLiveAccessibility.cy.js" \
+  --config specPattern="cypress/e2e/prefigure/*Live*.cy.js" \
   --env RUN_LIVE_PREFIGURE_ACCESSIBILITY=1
 ```
+
+The glob matters: `RUN_LIVE_PREFIGURE_ACCESSIBILITY` gates more than one suite
+(`prefigureLiveAccessibility.cy.js` and `chartLive.cy.js` today), and naming a
+single file silently runs a fraction of what the variable enables.
 
 If you do start one by accident, it will not exit on its own and it will block whatever is
 waiting on it. Kill it with `pkill -9 -f "Cypress/.*/Cypress"`, and do not simply re-run
