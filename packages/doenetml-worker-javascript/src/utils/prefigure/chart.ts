@@ -88,9 +88,10 @@ function fitMargins(
     available: number,
     near: number,
     far: number,
+    budgetFraction = 1 / 2,
 ): [number, number] {
     const total = near + far;
-    const budget = Math.max(Math.floor(available / 2), 0);
+    const budget = Math.max(Math.floor(available * budgetFraction), 0);
 
     if (!Number.isFinite(available) || total <= budget || total <= 0) {
         return [near, far];
@@ -696,6 +697,30 @@ const LEGEND_BOX_PADDING = 3;
 const LEGEND_OUTSIDE_GAP = 8;
 
 /**
+ * The offset `legend.py` puts between a legend's anchor and its box, in pixels.
+ *
+ * PreFigure computes it as `8 * (displacement ± 0.5)`, which comes to 4 for
+ * every alignment this file uses. It has to be counted here because the margin
+ * has to hold the box *and* the offset PreFigure will add to it — leaving it out
+ * is what let an `outsideBottom` legend hang 1.6px past the bottom of the
+ * picture.
+ */
+const LEGEND_ANCHOR_OFFSET = 4;
+
+/**
+ * The most of one dimension the margins may take when a legend is drawn outside
+ * the plot.
+ *
+ * `fitMargins` normally leaves the drawing at least half the frame, which is
+ * the right rule when the margins hold nothing but axis labels. A legend is
+ * different: it is a fixed number of pixels tall whatever the chart's size, so
+ * on a small chart the honest choice is a smaller plot rather than a legend
+ * scaled into the frame's edge or clipped by it. The author asked for the
+ * legend outside; this is what that costs.
+ */
+const LEGEND_MARGIN_BUDGET = 2 / 3;
+
+/**
  * How much larger than the axis numbers a title is drawn.
  *
  * PreFigure's labels are 14px unless `scale` says otherwise (`label.py`), which
@@ -797,10 +822,22 @@ export function createBarChartPrefigureXML({
 
     let wantedRight = baseRight;
     let wantedBottom = baseBottom;
-    if (legendOutside && placement.side === "right") {
-        wantedRight = baseRight + LEGEND_OUTSIDE_GAP + legendSize.width;
-    } else if (legendOutside && placement.side === "bottom") {
-        wantedBottom = baseBottom + LEGEND_OUTSIDE_GAP + legendSize.height;
+    const legendOnRight = legendOutside && placement.side === "right";
+    const legendOnBottom = legendOutside && placement.side === "bottom";
+    if (legendOnRight) {
+        wantedRight =
+            baseRight +
+            LEGEND_ANCHOR_OFFSET +
+            legendSize.width +
+            LEGEND_OUTSIDE_GAP;
+    } else if (legendOnBottom) {
+        // The band the horizontal axis' own labels occupy, then PreFigure's
+        // offset, then the box, then a gap to the edge of the picture.
+        wantedBottom =
+            baseBottom +
+            LEGEND_ANCHOR_OFFSET +
+            legendSize.height +
+            LEGEND_OUTSIDE_GAP;
     }
 
     // No `titleHasLatex` beside the axis labels' flags: a `<title>`'s text
@@ -835,11 +872,13 @@ export function createBarChartPrefigureXML({
         widthPx,
         wantedLeft,
         wantedRight,
+        legendOnRight ? LEGEND_MARGIN_BUDGET : undefined,
     );
     const [marginBottom, marginTop] = fitMargins(
         heightPx,
         wantedBottom,
         wantedTop,
+        legendOnBottom ? LEGEND_MARGIN_BUDGET : undefined,
     );
 
     // Positive without being floored at a pixel, since fitting the margins
@@ -1050,13 +1089,27 @@ export function createBarChartPrefigureXML({
             anchorX = xMax;
             anchorY = yMax;
         } else {
-            // Below the plot and centered — but under the category names rather
-            // than over them, so the anchor drops by the band the horizontal
-            // axis' own labels occupy, converted into data units at the scale
-            // this chart ended up being drawn at.
+            // Below the plot and centered. Placed from the *bottom* of the
+            // picture rather than a fixed distance under the axis, so the gap
+            // to the edge is the one that was reserved however the margin came
+            // out — measuring down from the axis instead left the box flush
+            // against the edge, and 1.6px past it, whenever `fitMargins` had to
+            // shrink what was asked for.
+            //
+            // Never above the band the horizontal axis' own labels occupy,
+            // which is what the floor is for: a margin too small to hold the
+            // legend should let it run off the bottom rather than draw it over
+            // the category names.
             const unitsPerPixel = (yMax - yMin) / (innerHeight || 1);
+            const belowAxis = Math.max(
+                marginBottom -
+                    LEGEND_OUTSIDE_GAP -
+                    legendSize.height -
+                    LEGEND_ANCHOR_OFFSET,
+                baseBottom,
+            );
             anchorX = (xMin + xMax) / 2;
-            anchorY = yMin - baseBottom * unitsPerPixel;
+            anchorY = yMin - belowAxis * unitsPerPixel;
         }
         const anchor = `(${formatNumber(anchorX)},${formatNumber(anchorY)})`;
         legendElement = `<legend anchor="${escapeXml(anchor)}" alignment="${placement.alignment}" opacity="0" stroke="currentColor">${legendItems.join("")}</legend>`;

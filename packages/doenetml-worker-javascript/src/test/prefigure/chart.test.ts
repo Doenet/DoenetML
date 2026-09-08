@@ -1697,6 +1697,56 @@ describe("chart prefigure tests @group4", async () => {
             ).toBeGreaterThan(30);
         });
 
+        it("leaves the outsideBottom legend room below it", async () => {
+            for (const size of ["small", "medium", "large"]) {
+                const xml = await chartXML(`
+    <chart type="bar" name="c" categories="A B" size="${size}" legendPosition="outsideBottom">
+      <series><label>first</label>4 9</series>
+      <series><label>second</label>6 1</series>
+    </chart>
+    `);
+
+                const [, yMin, , yMax] = (
+                    xml.match(/bbox="\(([^)]*)\)"/)?.[1] ?? ""
+                )
+                    .split(",")
+                    .map(Number);
+                const [, innerHeight] = (
+                    xml.match(/dimensions="\(([^)]*)\)"/)?.[1] ?? ""
+                )
+                    .split(",")
+                    .map(Number);
+                const marginBottom = Number(
+                    xml.match(/margins="\[[^,]*,([^,]*),/)?.[1],
+                );
+                const anchorY = Number(
+                    xml.match(/<legend anchor="\([^,]*,([^)]*)\)"/)?.[1],
+                );
+
+                // How far below the axis the box is anchored, back in pixels.
+                const belowAxis =
+                    ((yMin - anchorY) * innerHeight) / (yMax - yMin);
+
+                // Everything the margin has to hold: the drop to the anchor,
+                // PreFigure's own 4px offset, and the box itself — which is at
+                // most the estimate the margin was reserved from. Anything left
+                // over is the gap to the edge of the picture, and it must be
+                // positive or the legend is drawn past the bottom of the SVG.
+                const estimatedLegendHeight = 3 + 2 * 21;
+                const used = belowAxis + 4 + estimatedLegendHeight;
+                expect(
+                    marginBottom - used,
+                    `${size}: legend should have room below it`,
+                ).toBeGreaterThan(0);
+
+                // And it must still clear the category names under the axis.
+                expect(
+                    belowAxis,
+                    `${size}: clears the tick labels`,
+                ).toBeGreaterThanOrEqual(30);
+            }
+        });
+
         it("honors legend and legendPosition", async () => {
             const suppressed = await chartXML(`
     <chart type="bar" name="c" legend="false">
