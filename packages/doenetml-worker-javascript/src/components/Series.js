@@ -91,7 +91,8 @@ export default class Series extends BaseComponent {
     static additionalSchemaChildren = ["string"];
 
     /**
-     * Bare numbers are the values: `<series label="2024">41 63 18</series>`.
+     * Bare numbers are the values:
+     * `<series><label>2024</label>41 63 18</series>`.
      * The same sugar `<chart>` and `<summaryStatistics>` use, so `1/2` is half
      * rather than `NaN`. Component children — a `<label>`, or the `<number>`s a
      * referenced list expands into — are left alone.

@@ -1185,6 +1185,40 @@ describe("chart prefigure tests @group4", async () => {
             expect(base + height).toBeLessThanOrEqual(Number.MAX_VALUE);
         });
 
+        it("measures a stack of fractions without leaving dust in the XML", async () => {
+            const xml = await chartXML(`
+    <chart type="bar" name="c" layout="stacked" displayValues categories="A">
+      <series>0.1</series><series>0.2</series><series>0.3</series>
+    </chart>
+    `);
+
+            // A segment's height is the difference of two running totals, so it
+            // carries the same binary dust a divided slot does: measured raw,
+            // the second and third segments come out 0.20000000000000004 and
+            // 0.30000000000000004 tall, and the top label is anchored at
+            // 0.6000000000000001. Snapped like every other coordinate here,
+            // they are the numbers the author wrote.
+            expect(xml).toContain(
+                'lower-left="(0.6,0.1)" dimensions="(0.8,0.2)"',
+            );
+            expect(xml).toContain(
+                'lower-left="(0.6,0.3)" dimensions="(0.8,0.3)"',
+            );
+            expect(xml).toContain('anchor="(1,0.6)"');
+            expect(xml).not.toMatch(/0\.\d{13}/);
+
+            // A grouped bar's label is anchored over the middle of a slot
+            // divided among the series, which leaves dust of its own —
+            // `0.7333333333334999` for the first of three.
+            const grouped = await chartXML(`
+    <chart type="bar" name="c" displayValues categories="A">
+      <series>0.1</series><series>0.2</series><series>0.3</series>
+    </chart>
+    `);
+            expect(grouped).toContain('anchor="(0.733333333333,0.1)"');
+            expect(grouped).not.toMatch(/0\.\d{13}/);
+        });
+
         it("draws every value label over every bar, not just its own", async () => {
             const xml = await chartXML(`
     <chart type="bar" name="c" layout="stacked" displayValues categories="A">

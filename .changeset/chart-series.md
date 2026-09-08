@@ -36,7 +36,7 @@ A screen reader now walks the chart series by series and then bar by bar within 
 
 Values written beside a `<series>` belong to no group and are not drawn, which is now reported rather than left to be inferred from a missing bar.
 
-A stacked chart whose segments total more than a double can hold is now drawn against the top of its frame rather than emitting a diagram nothing can compile, and `displayValues` labels are drawn over every bar rather than under the segment stacked above them.
+A stacked chart whose segments total more than a double can hold is now drawn against the top of its frame, rather than coming back from PreFigure with the overflowing part of it missing, and `displayValues` labels are drawn over every bar rather than under the segment stacked above them.
 
 The reference page is reorganized around this, and the sampling-simulation walkthroughs that were on it move to a new **Charting a Simulation** guide. `<chart>` also gains its first browser tests, covering the renderer hand-off, the build request, the framing, and screen-reader navigation of the series.
 

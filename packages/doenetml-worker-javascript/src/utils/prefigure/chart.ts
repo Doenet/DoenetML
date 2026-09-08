@@ -482,15 +482,22 @@ export function computeBarChartGeometry({
                 ? slot
                 : slot - halfSlot + (seriesIndex + 0.5) * oneBarWidth;
 
-            // `height` is the distance between the two ends of the segment as
-            // they are actually drawn, not the magnitude of the value. The two
-            // differ only where the running total saturates, and there the
-            // difference is the whole point: a segment given its own value as a
-            // height at a base already at the ceiling has a far corner beyond
-            // the double range, which PreFigure resolves to `nan`/`-inf` in the
-            // path it draws. Measuring between the ends instead leaves the last
-            // segment flat against the ceiling. `value` is untouched, so the
-            // annotation still reads the datum the author gave.
+            // A stacked segment's `height` is the distance between the two ends
+            // it is actually drawn at, not the magnitude of its value: a
+            // segment given its own value as a height at a base already at the
+            // ceiling has a far corner beyond the double range, which PreFigure
+            // resolves to `nan`/`-inf` in the path it draws. Measuring between
+            // the ends instead leaves the last segment flat against the
+            // ceiling. `value` is untouched, so the annotation still reads the
+            // datum the author gave.
+            //
+            // Snapped like every other computed coordinate here, because
+            // subtracting one running total from another leaves the same dust
+            // that dividing a slot does: three stacked series of 0.1, 0.2 and
+            // 0.3 measure out as 0.1, 0.20000000000000004 and
+            // 0.30000000000000004. A bar under `grouped` is measured from zero
+            // and so is the author's own number, which is left exactly as
+            // written.
             let base;
             let height;
             if (!stacked) {
@@ -498,13 +505,13 @@ export function computeBarChartGeometry({
                 height = Math.abs(value);
             } else if (value < 0) {
                 const bottom = saturatingAdd(stackBelow[ind], value);
-                height = stackBelow[ind] - bottom;
+                height = snapNumber(stackBelow[ind] - bottom);
                 base = bottom;
                 stackBelow[ind] = bottom;
             } else {
                 base = stackAbove[ind];
                 const top = saturatingAdd(base, value);
-                height = top - base;
+                height = snapNumber(top - base);
                 stackAbove[ind] = top;
             }
 
@@ -859,7 +866,12 @@ export function createBarChartPrefigureXML({
                     ? bar.lowerLeft[1]
                     : bar.lowerLeft[1] + bar.dimensions[1];
             const anchorX = bar.lowerLeft[0] + bar.dimensions[0] / 2;
-            const anchor = `(${formatNumber(anchorX)},${formatNumber(barTop)})`;
+            // Snapped for the reason the bars' own corners are: both are
+            // reached by adding the geometry back up, and the dust that leaves
+            // would be written into the XML — a grouped bar of three series
+            // would be labeled at `0.7333333333334999`, and the top of a stack
+            // of 0.1, 0.2 and 0.3 at `0.6000000000000001`.
+            const anchor = `(${formatNumber(snapNumber(anchorX))},${formatNumber(snapNumber(barTop))})`;
             valueLabelElements.push(
                 `<label anchor="${escapeXml(anchor)}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(bar.value) ?? "")}</label>`,
             );
