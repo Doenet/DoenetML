@@ -18,7 +18,7 @@ const rawLxml = rawLxmlImport as Uint8Array;
 
 // Keep this wheel path in sync with PREFIG_VERSION in packages/prefigure/src/worker/compiler-metadata.ts
 // @ts-ignore
-import rawPrefigImport from "../../prefigure/pyodide_packages/prefig-0.6.7-py3-none-any.whl?uint8array&base64";
+import rawPrefigImport from "../../prefigure/pyodide_packages/prefig-0.7.6-py3-none-any.whl?uint8array&base64";
 const rawPrefig = rawPrefigImport as Uint8Array;
 
 type PyodideAPI = Awaited<ReturnType<typeof loadPyodide>>;
