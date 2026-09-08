@@ -78,6 +78,14 @@ const AXIS_LABEL_MARGIN_BASE = 14;
 const AXIS_LABEL_MARGIN_PER_CHARACTER = 9;
 
 /**
+ * One line of an axis' *name* — `<xLabel>` or `<yLabel>` — drawn at PreFigure's
+ * default size. Measured: the laid-out box of a single line of that text comes
+ * back 14px tall, and the four pixels on top of it are the gap that keeps the
+ * second line clear of the first.
+ */
+const AXIS_LABEL_LINE_HEIGHT = 18;
+
+/**
  * Two margins on one axis, scaled to leave the drawing at least half the frame.
  *
  * Returned as written whenever they already fit. When they do not, both shrink
@@ -1442,6 +1450,16 @@ function assembleChartDiagram({
 
     const strokeAttr = darkModeAxisStrokeAttr(darkMode);
 
+    // Each axis' name is anchored at the far end of that axis — `<xlabel>` at
+    // the right end of the horizontal one, `<ylabel>` at the top of the
+    // vertical one (`apply_axis_labels`, `axes.py`) — and the alignment is what
+    // decides which way it is drawn from there. `nw` and `se` draw it into the
+    // plot while the axis is against the near frame. Against the far one they
+    // draw it out of the plot instead, into a margin holding the axis' numbers:
+    // a `<yLabel>` on a chart left of zero ran 78px past the right edge of the
+    // picture, and an `<xLabel>` on one below zero was drawn over the numbers on
+    // its own axis. Mirrored, so the name keeps the place it has always had —
+    // just inside the plot, at the end of the axis it names.
     const axisLabelElements = [];
     const xLabelText = labelMarkup({
         label: xLabel,
@@ -1449,7 +1467,7 @@ function assembleChartDiagram({
     });
     if (xLabelText) {
         axisLabelElements.push(
-            `<xlabel alignment="nw" ${THEME_AWARE_LABEL_COLOR_ATTR}>${xLabelText}</xlabel>`,
+            `<xlabel alignment="${xLabelsOnTop ? "sw" : "nw"}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${xLabelText}</xlabel>`,
         );
     }
     const yLabelText = labelMarkup({
@@ -1457,8 +1475,19 @@ function assembleChartDiagram({
         labelHasLatex: yLabelHasLatex,
     });
     if (yLabelText) {
+        // The two anchors are the same point when both axes have moved — the
+        // right end of the horizontal one and the top of the vertical one are
+        // both the top right corner — so on a chart drawn below *and* left of
+        // zero the two names would be drawn on top of each other. Dropped a
+        // line, which is the only direction there is room in: the horizontal
+        // axis' name stays under the axis it names, and the vertical axis' name
+        // sits under it, still beside the axis *it* names.
+        const secondLine =
+            xLabelsOnTop && yLabelsOnRight && xLabelText
+                ? ` offset="(0,-${AXIS_LABEL_LINE_HEIGHT})"`
+                : "";
         axisLabelElements.push(
-            `<ylabel alignment="se" ${THEME_AWARE_LABEL_COLOR_ATTR}>${yLabelText}</ylabel>`,
+            `<ylabel alignment="${yLabelsOnRight ? "sw" : "se"}"${secondLine} ${THEME_AWARE_LABEL_COLOR_ATTR}>${yLabelText}</ylabel>`,
         );
     }
 

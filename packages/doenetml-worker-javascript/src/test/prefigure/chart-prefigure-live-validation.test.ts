@@ -360,4 +360,143 @@ describe("Chart prefigure renderer live validation @group4", () => {
             }
         },
     );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: an axis' name stays inside the plot when its axis moves to the far frame",
+        async () => {
+            // `<xlabel>` is anchored at the right end of the horizontal axis and
+            // `<ylabel>` at the top of the vertical one (`apply_axis_labels`,
+            // `axes.py`), and the alignment decides which way each is drawn from
+            // there. Against the far frames the old alignments drew them out of
+            // the plot: a `<yLabel>` ran 78px past the right edge of a 425px
+            // picture, where the browser does not paint it, and an `<xLabel>`
+            // landed on the numbers of its own axis. Neither is visible in the
+            // XML, so both are measured here.
+            //
+            // An axis' name is plain `<text>`, whose drawn width the SVG does
+            // not record. PreFigure lays a label out as `translate(anchor)
+            // translate(width*dx, -height*dy)`, so the second translate gives
+            // the width away only for the alignments with `dx != 0` — which is
+            // the answer here but not the question. The width is taken instead
+            // off a control render, where the same string is drawn `nw` at the
+            // same size and its width *is* the second translate.
+            const NAME = "weight in kilograms";
+            /** Height of one line of an axis name, measured on the control. */
+            const LINE = 14;
+
+            const nameBoxes = (svg: string) =>
+                [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__label-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<text[^>]*>([^<]*)</g,
+                    ),
+                ]
+                    .filter((name) => name[5] === NAME)
+                    .map((name) => ({
+                        shift: Number(name[3]),
+                        left: Number(name[1]) + Number(name[3]),
+                        top: Number(name[2]) + Number(name[4]),
+                    }));
+
+            const control = await validatePrefigureXMLAgainstBuildService(
+                await getPrefigureXML(
+                    `<chart type="scatter" name="c"><xLabel>${NAME}</xLabel><series x="1 2 3">4 9 2</series></chart>`,
+                    "c",
+                ),
+            );
+            expect(control.ok, "control build failed").toBe(true);
+            const [drawnNw] = nameBoxes(control.body?.svg ?? "");
+            expect(drawnNw, "control: axis name not found").toBeTruthy();
+            // `nw` is `dx = -1`, so the shift is the width itself.
+            const width = -drawnNw.shift;
+            expect(width, "control: axis name has no width").toBeGreaterThan(
+                50,
+            );
+
+            for (const [what, doenetML, expected] of [
+                [
+                    "left of zero",
+                    `<chart type="scatter" name="c"><yLabel>${NAME}</yLabel><series x="-1 -2 -3">400 900 200</series></chart>`,
+                    1,
+                ],
+                [
+                    "below zero",
+                    `<chart type="scatter" name="c"><xLabel>${NAME}</xLabel><series x="1 2 3">-400 -900 -200</series></chart>`,
+                    1,
+                ],
+                [
+                    "below and left of zero",
+                    `<chart type="scatter" name="c"><xLabel>${NAME}</xLabel><yLabel>${NAME}</yLabel><series x="-1 -2 -3">-400 -900 -200</series></chart>`,
+                    2,
+                ],
+            ] as [string, string, number][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const pictureWidth = Number(
+                    svg.match(/<svg[^>]*width="([\d.]+)"/)![1],
+                );
+
+                const names = nameBoxes(svg);
+                expect(names.length, `${what}: axis names not found`).toBe(
+                    expected,
+                );
+
+                for (const name of names) {
+                    expect(
+                        name.left,
+                        `${what}: the axis name starts outside the picture`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(
+                        name.left + width,
+                        `${what}: the axis name ends outside the picture`,
+                    ).toBeLessThan(pictureWidth + 0.5);
+                }
+
+                // And clear of the numbers on the axes, which is the other way
+                // a name drawn out of the plot went wrong: the horizontal axis'
+                // numbers share the top margin with an `<xLabel>` drawn `nw`
+                // from an axis that has moved up there.
+                const numbers = [
+                    ...svg.matchAll(
+                        /<g id="[^"]*?__label-\d+" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"[^>]*>\s*<g[^>]*>\s*<svg[^>]*width="([\d.]+)px" height="([\d.]+)px"/g,
+                    ),
+                ].map((number) => ({
+                    left: Number(number[1]) + Number(number[3]),
+                    top: Number(number[2]) + Number(number[4]),
+                    width: Number(number[5]),
+                    height: Number(number[6]),
+                }));
+                expect(
+                    numbers.length,
+                    `${what}: no axis numbers`,
+                ).toBeGreaterThan(0);
+
+                for (const name of names) {
+                    for (const number of numbers) {
+                        const overlaps =
+                            name.left < number.left + number.width &&
+                            number.left < name.left + width &&
+                            name.top < number.top + number.height &&
+                            number.top < name.top + LINE;
+                        expect(
+                            overlaps,
+                            `${what}: the axis name is drawn over an axis number`,
+                        ).toBe(false);
+                    }
+                }
+
+                // The two names share an anchor once both axes have moved, so
+                // the second is dropped a line rather than drawn over the first.
+                if (names.length === 2) {
+                    expect(
+                        Math.abs(names[0].top - names[1].top),
+                        `${what}: the two axis names are drawn on the same line`,
+                    ).toBeGreaterThanOrEqual(LINE);
+                }
+            }
+        },
+    );
 });

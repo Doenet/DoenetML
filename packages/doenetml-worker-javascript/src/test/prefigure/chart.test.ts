@@ -2393,5 +2393,52 @@ describe("chart prefigure tests @group4", async () => {
                 '<label anchor="(2,10)" alignment="north"',
             );
         });
+
+        it("draws an axis' name inside the plot whichever side its axis is on", async () => {
+            // PreFigure anchors `<xlabel>` at the right end of the horizontal
+            // axis and `<ylabel>` at the top of the vertical one, and the
+            // alignment says which way each is drawn from there. `nw` and `se`
+            // draw them into the plot only while the axes are against the near
+            // frames; against the far ones they draw into the margin the axis'
+            // numbers occupy. Measured against the build service, a `<yLabel>`
+            // of "weight in kilograms" on a chart left of zero was drawn 78px
+            // past the right edge of a 425px picture, and an `<xLabel>` on one
+            // below zero landed on top of the numbers on its own axis.
+            const upward = await chartXML(`
+    <chart type="scatter" name="c"><xLabel>height</xLabel><yLabel>weight</yLabel><series x="1 2 3">4 9 2</series></chart>
+    `);
+            expect(upward).toContain('<xlabel alignment="nw"');
+            expect(upward).toContain('<ylabel alignment="se"');
+
+            const below = await chartXML(`
+    <chart type="scatter" name="c"><xLabel>height</xLabel><yLabel>weight</yLabel><series x="1 2 3">-4 -9 -2</series></chart>
+    `);
+            expect(below).toContain('<xlabel alignment="sw"');
+            expect(below).toContain('<ylabel alignment="se"');
+
+            const left = await chartXML(`
+    <chart type="scatter" name="c"><xLabel>height</xLabel><yLabel>weight</yLabel><series x="-1 -2 -3">4 9 2</series></chart>
+    `);
+            expect(left).toContain('<xlabel alignment="nw"');
+            expect(left).toContain('<ylabel alignment="sw"');
+        });
+
+        it("drops the vertical axis' name a line where both names share a corner", async () => {
+            // The right end of the horizontal axis and the top of the vertical
+            // one are the same point once both have moved to the far frames, so
+            // two names drawn the same way from it would be drawn over each
+            // other.
+            const both = await chartXML(`
+    <chart type="scatter" name="c"><xLabel>height</xLabel><yLabel>weight</yLabel><series x="-1 -2 -3">-4 -9 -2</series></chart>
+    `);
+            expect(both).toContain('<xlabel alignment="sw"');
+            expect(both).toContain('<ylabel alignment="sw" offset="(0,-18)"');
+
+            // Nothing to make room for when the chart has no `<xLabel>`.
+            const alone = await chartXML(`
+    <chart type="scatter" name="c"><yLabel>weight</yLabel><series x="-1 -2 -3">-4 -9 -2</series></chart>
+    `);
+            expect(alone).toContain('<ylabel alignment="sw" color');
+        });
     });
 });
