@@ -36558,7 +36558,7 @@
                 },
                 {
                     "name": "legend",
-                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "description": "Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
                     "groupName": "legend",
                     "defaultValue": true,
                     "values": [
@@ -36769,7 +36769,7 @@
                     "name": "legend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "description": "Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
                     "fromAttribute": true,
                     "groupName": "legend"
                 },

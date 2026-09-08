@@ -224,7 +224,7 @@ export default class Chart extends BlockComponent {
         attributes.legend = {
             groupName: "legend",
             description:
-                'Whether to draw a legend naming the series. One is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
+                'Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend="false"` suppresses it.',
             createComponentOfType: "boolean",
             createStateVariable: "legend",
             defaultValue: true,
