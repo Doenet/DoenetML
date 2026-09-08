@@ -81,11 +81,10 @@ there if the chart is printed or exported.
 <setup>
   <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
   <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <binCounts name="h" bins="$edges">$z</binCounts>
 </setup>
-
-<sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
-  numSamples="200" hide />
-<binCounts name="h" bins="$edges" hide>$z</binCounts>
 
 <chart type="bar" categories="$bins">
   <shortDescription>200 draws from a standard normal distribution</shortDescription>

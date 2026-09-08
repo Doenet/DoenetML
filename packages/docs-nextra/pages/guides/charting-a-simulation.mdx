@@ -29,12 +29,11 @@ category, count, chart.
   <textList name="labels">North South East West</textList>
   <cumulativeSum name="cum">$pop</cumulativeSum>
   <number name="total"><sum>$pop</sum></number>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="60" />
+  <searchSorted name="which" target="$draws">$cum</searchSorted>
+  <tally name="counts" categories="1 2 3 4">$which</tally>
 </setup>
-
-<sampleRandomNumbers name="draws" type="discreteUniform"
-  from="1" to="$total" numSamples="60" hide />
-<searchSorted name="which" target="$draws" hide>$cum</searchSorted>
-<tally name="counts" categories="1 2 3 4" hide>$which</tally>
 
 <chart type="bar" categories="$labels">
   <shortDescription>Where 60 sampled individuals came from</shortDescription>
@@ -71,11 +70,10 @@ how many values fall between each pair of cut points.
 <setup>
   <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
   <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <binCounts name="h" bins="$edges">$z</binCounts>
 </setup>
-
-<sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
-  numSamples="200" hide />
-<binCounts name="h" bins="$edges" hide>$z</binCounts>
 
 <chart type="bar" categories="$bins">
   <shortDescription>200 draws from a standard normal distribution</shortDescription>
@@ -103,14 +101,13 @@ color, and its `<label>{:dn}` names it in the legend.
 <setup>
   <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
   <textList name="bins">-2.5 -1.5 -0.5 0.5 1.5 2.5</textList>
+  <sampleRandomNumbers name="a" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <sampleRandomNumbers name="b" type="gaussian" mean="1" variance="1"
+    numSamples="200" />
+  <binCounts name="ha" bins="$edges">$a</binCounts>
+  <binCounts name="hb" bins="$edges">$b</binCounts>
 </setup>
-
-<sampleRandomNumbers name="a" type="gaussian" mean="0" variance="1"
-  numSamples="200" hide />
-<sampleRandomNumbers name="b" type="gaussian" mean="1" variance="1"
-  numSamples="200" hide />
-<binCounts name="ha" bins="$edges" hide>$a</binCounts>
-<binCounts name="hb" bins="$edges" hide>$b</binCounts>
 
 <chart type="bar" categories="$bins">
   <title>Two samples, means 0 and 1</title>
@@ -143,13 +140,13 @@ Because the counts are components, the same numbers that drew the chart can be a
 ```doenet-editor-horiz
 <setup>
   <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
+    numSamples="200" />
+  <binCounts name="h" bins="$edges">$z</binCounts>
 </setup>
 
-<sampleRandomNumbers name="z" type="gaussian" mean="0" variance="1"
-  numSamples="200" hide />
-<binCounts name="h" bins="$edges" hide>$z</binCounts>
-
-<chart name="c" type="bar" categories="-2.5 -1.5 -0.5 0.5 1.5 2.5" size="small">
+<chart name="c" type="bar" categories="-2.5 -1.5 -0.5 0.5 1.5 2.5" size="small"
+  displayValues>
   <shortDescription>200 draws from a standard normal distribution</shortDescription>
   <yLabel>count</yLabel>
   $h
