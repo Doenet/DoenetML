@@ -177,7 +177,24 @@ def lambda_handler(event, context):
     os.makedirs(work_dir)
 
     # 4. Write Input
-    input_filename = "foo.xml"
+    #
+    # The stem of this filename becomes the id prefix PreFigure gives every
+    # element of the SVG it builds: outside pyodide it derives the prefix from
+    # `Path(filename).stem` (`prefig/core/diagram.py`). A constant name here
+    # therefore gave *every* diagram this service has ever returned the same
+    # prefix, so two of them embedded in one HTML page had colliding ids —
+    # `url(#foo-__clipPath-1)` in the second resolves to the first one's
+    # clipPath, and the second diagram is silently drawn clipped to the first
+    # one's plotting area. Reported upstream as davidaustinm/prefigure#91.
+    #
+    # Named from the content hash rather than a uuid so the prefix is
+    # deterministic: the same diagram compiles to the same ids every time, which
+    # keeps a response served from the cache identical to a freshly built one.
+    # Prefixed with a letter because a hex digest can begin with a digit, and an
+    # id starting with a digit is invalid XML — `epub_clean` upstream
+    # substitutes disallowed characters but does not fix a leading digit.
+    input_stem = f"pf{xml_hash[:16]}"
+    input_filename = f"{input_stem}.xml"
     input_path = os.path.join(work_dir, input_filename)
     
     with open(input_path, 'w') as f:
@@ -220,8 +237,8 @@ def lambda_handler(event, context):
     # 6. Read Outputs
     # Prefigure creates an 'output' folder inside the work_dir
     output_dir = os.path.join(work_dir, "output")
-    out_xml_path = os.path.join(output_dir, "foo.xml")
-    out_svg_path = os.path.join(output_dir, "foo.svg")
+    out_xml_path = os.path.join(output_dir, f"{input_stem}.xml")
+    out_svg_path = os.path.join(output_dir, f"{input_stem}.svg")
     
     if os.path.exists(out_svg_path):
         xml_result = None
