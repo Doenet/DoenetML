@@ -347,12 +347,27 @@ function assemblePieDiagram({
     // Every side holds the pie's stroke and a little air, and whichever sides
     // the slice labels are drawn toward hold those as well.
     const wantedLeft = PIE_PADDING + sliceLabelBands.left;
-    let wantedRight = PIE_PADDING + sliceLabelBands.right;
+
+    /**
+     * How far past the drawing area the slice names reach on the right, and so
+     * how far a legend placed in that same margin has to start beyond them.
+     *
+     * The counterpart of the axis numbers' band on a chart with axes. Without
+     * it the margin held only the larger of the two and the legend was anchored
+     * at the plot's edge, so both were drawn in the same place: a six-slice pie
+     * of values in the millions had `1200000` under the legend box.
+     */
+    const rightOfPlot = sliceLabelBands.right;
+
+    let wantedRight = PIE_PADDING + rightOfPlot;
     let wantedBottom = PIE_PADDING + sliceLabelBands.bottom;
     if (legend.onRight) {
         wantedRight = Math.max(
             wantedRight,
-            LEGEND_ANCHOR_OFFSET + legend.size.width + LEGEND_OUTSIDE_GAP,
+            rightOfPlot +
+                LEGEND_ANCHOR_OFFSET +
+                legend.size.width +
+                LEGEND_OUTSIDE_GAP,
         );
     } else if (legend.onBottom) {
         wantedBottom +=
@@ -425,9 +440,7 @@ function assemblePieDiagram({
             unitsPerPixelX: unitsPerPixel,
             unitsPerPixelY: unitsPerPixel,
         },
-        // Nothing stands between the pie and the margin beside it: the numbers
-        // that take that room on a chart with axes are not drawn here.
-        rightOfPlot: 0,
+        rightOfPlot,
     });
 
     const { titleElement, captionElement } = titleMarkup({

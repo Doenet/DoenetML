@@ -798,7 +798,7 @@ export default class Chart extends BlockComponent {
             groupName: "data",
             highlighted: true,
             description:
-                "How many series the chart was given, drawn or not. A pie draws one series whatever it is given, so this is what it holds rather than what it drew.",
+                "How many series the chart holds: its `<series>` children that are not hidden, or one for a chart of bare values. Not necessarily how many are drawn — a pie draws the first of them and no more.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",

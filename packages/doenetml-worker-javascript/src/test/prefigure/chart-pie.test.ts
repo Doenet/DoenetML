@@ -430,6 +430,31 @@ describe("chart pie prefigure tests @group4", async () => {
             expect(withValues[3]).toBeGreaterThan(bare[3]);
         });
 
+        it("starts an outside legend past the values drawn at the rim", async () => {
+            // Both live in the right margin once `displayValues` puts numbers
+            // at the rim, so the margin has to hold them one after the other
+            // and the legend has to be anchored past them — the same thing
+            // `assembleChartDiagram` does with the band its axis numbers take.
+            // Reserving only the larger of the two put `1200000` under the
+            // legend box on a six-slice pie, measured against a real render.
+            const boxRight = (xml: string) =>
+                Number(xml.match(/bbox="\([^,]*,[^,]*,([^,]*),/)?.[1]);
+            const legendAnchor = (xml: string) =>
+                Number(xml.match(/<legend anchor="\(([^,]*),/)?.[1]);
+
+            const withValues = await chartXML(`
+    <chart type="pie" name="c" displayValues categories="Alpha Bravo Charlie Delta Echo Foxtrot">1200000 900000 700000 500000 300000 100000</chart>
+    `);
+            expect(legendAnchor(withValues)).greaterThan(boxRight(withValues));
+
+            // With nothing at the rim there is no band to clear, so the legend
+            // sits against the box as it did before.
+            const withoutValues = await chartXML(`
+    <chart type="pie" name="c" categories="Alpha Bravo Charlie Delta Echo Foxtrot">1200000 900000 700000 500000 300000 100000</chart>
+    `);
+            expect(legendAnchor(withoutValues)).eq(boxRight(withoutValues));
+        });
+
         it("annotates every slice by name and value", async () => {
             const xml = await chartXML(FOUR_SLICES);
 
