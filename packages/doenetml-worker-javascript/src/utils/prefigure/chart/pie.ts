@@ -318,8 +318,10 @@ function assemblePieDiagram({
     /** One per slice the legend can name, in the order they are drawn. */
     legendEntries: LegendEntry[];
     /**
-     * How far the names drawn beyond the rim reach into each margin, in pixels.
-     * All zero when the names are in the legend instead.
+     * How far the text drawn beyond the rim reaches into each margin, in
+     * pixels. All zero when nothing is drawn there — the names are in the
+     * legend and no value was asked for — and a value alone is enough to make
+     * them otherwise.
      */
     sliceLabelBands: SliceLabelBands;
     /** The arcs, in the order they are drawn. */
@@ -343,7 +345,7 @@ function assemblePieDiagram({
     const titleText = labelMarkup({ label: title, labelHasLatex: false });
 
     // Every side holds the pie's stroke and a little air, and whichever sides
-    // the slice names are drawn toward hold those as well.
+    // the slice labels are drawn toward hold those as well.
     const wantedLeft = PIE_PADDING + sliceLabelBands.left;
     let wantedRight = PIE_PADDING + sliceLabelBands.right;
     let wantedBottom = PIE_PADDING + sliceLabelBands.bottom;
@@ -359,10 +361,12 @@ function assemblePieDiagram({
     const wantedTop =
         PIE_PADDING + sliceLabelBands.top + (titleText ? TITLE_MARGIN : 0);
 
-    // The names get the same larger share of the frame a legend outside the
-    // plot does, and for the same reason: a name is a fixed width whatever the
-    // chart's size, so squeezing the margin only clips it.
-    const namesBeyondRim =
+    // Text beyond the rim gets the same larger share of the frame a legend
+    // outside the plot does, and for the same reason: a string is a fixed width
+    // whatever the chart's size, so squeezing the margin only clips it. Even
+    // that share runs out eventually, which is the case a legend larger than
+    // its chart already is.
+    const textBeyondRim =
         sliceLabelBands.left > 0 ||
         sliceLabelBands.right > 0 ||
         sliceLabelBands.top > 0 ||
@@ -372,13 +376,13 @@ function assemblePieDiagram({
         widthPx,
         wantedLeft,
         wantedRight,
-        legend.onRight || namesBeyondRim ? OUTSIDE_MARGIN_BUDGET : undefined,
+        legend.onRight || textBeyondRim ? OUTSIDE_MARGIN_BUDGET : undefined,
     );
     const [marginBottom, marginTop] = fitMargins(
         heightPx,
         wantedBottom,
         wantedTop,
-        legend.onBottom || namesBeyondRim ? OUTSIDE_MARGIN_BUDGET : undefined,
+        legend.onBottom || textBeyondRim ? OUTSIDE_MARGIN_BUDGET : undefined,
     );
 
     const innerWidth = widthPx - marginLeft - marginRight;
@@ -429,11 +433,11 @@ function assemblePieDiagram({
     const { titleElement, captionElement } = titleMarkup({
         titleText,
         bounds,
-        // Above the slice names where those share the top margin, which is
-        // where a name whose slice points straight up is drawn. Both are
-        // anchored at the top of the box and drawn upwards from it, so without
-        // the lift a pie of eight equal slices drew its first name through its
-        // own title. The margin already holds both bands.
+        // Above the text beyond the rim where that shares the top margin,
+        // which is where the label of a slice pointing straight up is drawn.
+        // Both are anchored at the top of the box and drawn upwards from it, so
+        // without the lift a pie of eight equal slices drew its first name
+        // through its own title. The margin already holds both bands.
         lift: sliceLabelBands.top,
         unitsPerPixelY: unitsPerPixel,
     });

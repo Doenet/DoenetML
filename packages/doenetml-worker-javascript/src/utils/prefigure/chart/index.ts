@@ -1,63 +1,24 @@
 /**
- * PreFigure assembly for `<chart>` — bars, points and the lines through them.
+ * PreFigure assembly for `<chart>` — bars, points and the lines through them,
+ * and pies.
  *
  * Kept apart from `graph.ts` because a chart is not a graph with data in it: it
  * owns its own bounding box, it sizes its own axes from the data, and it has no
  * graphical descendants to convert. What it shares with `graph.ts` is the
  * vocabulary — `common.ts` for escaping and formatting, `style.ts` for Doenet
- * styles, `label.ts` for axis labels — not the algorithm.
+ * styles, `label.ts` for labels — not the algorithm.
  *
- * `<tick-mark>` is emitted here and nowhere else in this folder. It places
- * arbitrary text at an arbitrary axis position, which is the only way to get
- * categorical labels: PreFigure's own `hlabels` is a numeric
- * `(start, step, end)` triple (`axes.py`), so category names cannot go through
- * it. Automatic labels are switched off with `decorations="no"`; the vertical
- * axis gets an explicit `vlabels` back, and the horizontal one gets `hlabels`
- * when its positions are measurements and tick marks when they are names.
+ * One module per subject, each with its own overview:
  *
- * `<label>` is not new — `components/vector.ts` and `components/angle.ts`
- * already emit it — but it is put to two new uses here: the optional value
- * printed at the end of each mark, and the chart's title, drawn above the frame
- * at a `scale` the axis numbers do not use.
+ * - `scale.ts` — the arithmetic behind an axis: rounding, tick steps, bounds.
+ * - `frame.ts` — what a chart is drawn *in*: the margins, the axes and their
+ *   labels, the legend, the title and the annotation tree.
+ * - `bar.ts`, `point.ts`, `pie.ts` — one chart type each: the geometry its
+ *   values come to, and the marks drawn from it.
  *
- * `<legend>` is emitted here and nowhere else in this folder; `<group>` is
- * shared with `components/curve.ts`, which wraps a multi-piece curve in one.
- * A chart of more than one series wraps each of them in a `<group>`, which is
- * what gives a screen reader a level to stop at between the chart and its marks
- * — grouping components to be annotated together is what `group.py` exists for.
- *
- * A legend is drawn as soon as a series is named, whether the chart has one
- * series or several, and each of its items points at one of that series' own
- * marks rather than at the group. PreFigure assembles a legend out of the
- * elements its items refer to, reading each one's `fill` for the swatch — or
- * drawing a segment of the stroke where there is no fill, which is what puts a
- * line in a line chart's legend. So a series' color reaches the legend by the
- * same attribute that draws it and the two cannot drift apart.
- *
- * A legend's background box is filled white by `legend.py` with no attribute to
- * say otherwise, which reads as a hole punched in a chart drawn in dark mode.
- * Its `opacity` and `stroke` *are* attributes, so the box is made transparent
- * and given an outline that follows the page's text color instead.
- *
- * The axes sit on or near the edge of the bounding box, so their labels would
- * be drawn outside the drawing area and clipped. `<diagram margins>` is the
- * fix: PreFigure adds the margins *outside* `dimensions`, so the inner size is
- * shrunk by them to keep the rendered chart the size the author actually asked
- * for.
- */
-
-/**
- * Room reserved outside the plotting area, in pixels, as
- * `[left, bottom, right, top]`: the left for the vertical axis' numbers, the
- * bottom for the category names, the top and right for the half of the
- * outermost label that falls past the corner it is drawn at.
- *
- * Only the left margin depends on the data, and it has to: it was fixed at 46px
- * on the assumption that axis numbers run to a handful of digits, and a chart
- * of counts in the thousands clipped the leading digit off `1,500` — an
- * entirely ordinary sample size, not an exotic one. PreFigure lays the text out
- * in the worker and nothing here can ask how wide it came out, so the width is
- * estimated from the longest label the axis will carry.
+ * This file is what the rest of the worker imports. It holds the union of the
+ * three geometries and the one question `<chart>` asks about a legend before
+ * any XML is built, and re-exports each type's own two functions.
  */
 
 import { labelMarkup } from "../label";

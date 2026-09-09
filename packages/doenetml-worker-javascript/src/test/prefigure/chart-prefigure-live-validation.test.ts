@@ -4,6 +4,7 @@ import {
     getPrefigureXML,
     validatePrefigureXMLAgainstBuildService,
 } from "./graph-prefigure.helpers";
+import { escapeXml } from "../../utils/prefigure/common";
 
 /**
  * What a Vitest assertion on the generated XML cannot tell us: whether PreFigure
@@ -710,6 +711,21 @@ describe("Chart prefigure renderer live validation @group4", () => {
                     "names and values together",
                     `<chart type="pie" name="c" legend="false" displayValues categories="North South East West">41 63 18 78</chart>`,
                 ],
+                [
+                    // The reference page's own second pie. A name and a value
+                    // share one label, so the string the margin has to hold is
+                    // longer than either part: `Renewables (40)` on a chart
+                    // this size was drawn 15px past the right edge.
+                    "names and values on a small chart, as the reference page draws one",
+                    `<chart type="pie" name="c" size="small" legend="false" displayValues categories="Wind Coal Solar">40 35 25</chart>`,
+                ],
+                [
+                    // A value is beyond the rim even where the legend holds the
+                    // names, so the margin has to hold it with no help from the
+                    // legend's own.
+                    "a value beyond the rim with the names in the legend",
+                    `<chart type="pie" name="c" aspectRatio="1" displayValues categories="A B C D">100000000 100000000 100000000 100000000</chart>`,
+                ],
             ] as [string, string][]) {
                 const prefigureXML = await getPrefigureXML(doenetML, "c");
                 const result =
@@ -786,19 +802,57 @@ describe("Chart prefigure renderer live validation @group4", () => {
                     measured.set(label.text, label.shiftX / shift);
                 }
 
+                // A string every copy of which was drawn rightward records no
+                // width of its own: `east`, `northeast` and `southeast`
+                // translate the group back by nothing. Left at zero, the check
+                // on the right edge below is no check at all — which is how the
+                // reference page's own pie came to be drawn 15px past the edge
+                // with this test green. So those widths are measured in a
+                // second render: the same strings at the same font, each drawn
+                // leftward, where the second translate is the width and nothing
+                // else.
+                const unmeasured = [
+                    ...new Set(
+                        drawn
+                            .filter((label) => !measured.has(label.text))
+                            .map((label) => label.text),
+                    ),
+                ];
+                if (unmeasured.length > 0) {
+                    const ruler = `<diagram dimensions="(600,${24 * unmeasured.length + 24})"><coordinates bbox="(0,0,1,1)">${unmeasured
+                        .map(
+                            (text, ind) =>
+                                `<label anchor="(1,${(ind + 1) / (unmeasured.length + 1)})" alignment="west">${escapeXml(text)}</label>`,
+                        )
+                        .join("")}</coordinates></diagram>`;
+                    const ruled =
+                        await validatePrefigureXMLAgainstBuildService(ruler);
+                    expect(
+                        ruled.ok,
+                        `${what}: the measuring render failed`,
+                    ).toBe(true);
+                    for (const label of (ruled.body?.svg ?? "").matchAll(
+                        /<g id="[^"]*?__label-(\d+)" transform="translate\((-?[\d.]+),(-?[\d.]+)\) translate\((-?[\d.]+),(-?[\d.]+)\)"/g,
+                    )) {
+                        measured.set(
+                            unmeasured[Number(label[1])],
+                            -Number(label[4]),
+                        );
+                    }
+                }
+
                 for (const label of drawn) {
-                    // Unknown for a string every copy of which was drawn
-                    // rightward — the four-slice cases below reach that, and
-                    // there the check is on the anchor alone. The
-                    // eight-direction cases above always measure, which is
-                    // asserted after the loop.
-                    const width = measured.get(label.text) ?? 0;
+                    const width = measured.get(label.text);
+                    expect(
+                        width,
+                        `${what}: "${label.text}" was never measured`,
+                    ).toBeGreaterThan(0);
                     expect(
                         label.left,
                         `${what}: "${label.text}" starts outside the picture`,
                     ).toBeGreaterThan(-0.5);
                     expect(
-                        label.left + width,
+                        label.left + (width ?? 0),
                         `${what}: "${label.text}" ends outside the picture`,
                     ).toBeLessThan(pictureWidth + 0.5);
                     // 14px text: the ink reaches about eleven pixels above the
@@ -811,18 +865,6 @@ describe("Chart prefigure renderer live validation @group4", () => {
                         label.baseline + 3,
                         `${what}: "${label.text}" sits below the picture`,
                     ).toBeLessThan(pictureHeight + 0.5);
-                }
-
-                if (what.startsWith("eight directions")) {
-                    // Every name in these is the same string at all eight
-                    // alignments, so the width above is a real number and the
-                    // check on the rightward copies is a real check.
-                    for (const label of drawn) {
-                        expect(
-                            measured.get(label.text),
-                            `${what}: "${label.text}" was never measured`,
-                        ).toBeGreaterThan(0);
-                    }
                 }
             }
         },

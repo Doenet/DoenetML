@@ -32,6 +32,20 @@ import { escapeXml, formatNumber, darkModeAxisStrokeAttr } from "../common";
 import { labelMarkup, THEME_AWARE_LABEL_COLOR_ATTR } from "../label";
 import { midpoint, snapNumber, tickAtOrBeyond } from "./scale";
 
+/**
+ * Room reserved outside the plotting area, in pixels, as
+ * `[bottom, right, top]`: the bottom for the category names, and the top and
+ * right for the half of the outermost label that falls past the corner it is
+ * drawn at.
+ *
+ * The left margin is not here because it is the one that depends on the data,
+ * and it has to: it was fixed at 46px on the assumption that axis numbers run
+ * to a handful of digits, and a chart of counts in the thousands clipped the
+ * leading digit off `1,500` — an entirely ordinary sample size, not an exotic
+ * one. PreFigure lays the text out in the worker and nothing here can ask how
+ * wide it came out, so the width is estimated from the longest label the axis
+ * will carry.
+ */
 const CHART_MARGINS_BOTTOM_RIGHT_TOP = [30, 12, 16] as const;
 
 /** Left margin for an axis whose longest label is one character. */

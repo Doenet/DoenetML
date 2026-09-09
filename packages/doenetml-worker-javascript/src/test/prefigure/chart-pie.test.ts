@@ -391,6 +391,45 @@ describe("chart pie prefigure tests @group4", async () => {
             expect(named).toContain(">A (4)</label>");
         });
 
+        it("reserves the margin a value beyond the rim is drawn into, legend or no legend", async () => {
+            // The value is beyond the rim whether or not the legend is holding
+            // the names, so the margin has to hold it either way — a legend of
+            // its own does nothing for a number drawn on the other side of the
+            // pie.
+            const marginsOf = (xml: string) =>
+                xml
+                    .match(/margins="\[([^\]]*)\]"/)?.[1]
+                    .split(",")
+                    .map(Number) ?? [];
+
+            // Four equal slices point at the four diagonals, so the same value
+            // is drawn into the left margin and the right one.
+            const bare = marginsOf(
+                await chartXML(`
+    <chart type="pie" name="c" categories="A B C D">1000 1000 1000 1000</chart>
+    `),
+            );
+            const withValues = marginsOf(
+                await chartXML(`
+    <chart type="pie" name="c" categories="A B C D" displayValues>1000 1000 1000 1000</chart>
+    `),
+            );
+            const withWiderValues = marginsOf(
+                await chartXML(`
+    <chart type="pie" name="c" categories="A B C D" displayValues>100000000 100000000 100000000 100000000</chart>
+    `),
+            );
+
+            // The bare pie has nothing beyond the rim at all, so its left
+            // margin is the room every pie keeps outside its stroke; the one
+            // printing values has to hold a number there as well.
+            expect(withValues[0]).toBeGreaterThan(bare[0]);
+            // And what it holds is the number's own width, not a constant.
+            expect(withWiderValues[0]).toBeGreaterThan(withValues[0]);
+            // The diagonals reach into the caps as well as the sides.
+            expect(withValues[3]).toBeGreaterThan(bare[3]);
+        });
+
         it("annotates every slice by name and value", async () => {
             const xml = await chartXML(FOUR_SLICES);
 
