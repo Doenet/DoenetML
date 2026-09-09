@@ -772,6 +772,82 @@ describe("chart pie prefigure tests @group4", async () => {
             expect(titleAnchor(withLegend)).eq(topOfBox(withLegend));
         });
 
+        it("lifts the title only as far as the top margin was granted", async () => {
+            // The lift is asked for against the band the rim text *wanted*,
+            // and a crowded frame grants less than that — so raising the title
+            // by the whole band puts it above the room there is. Measured
+            // against a real render, a `size="small"` pie with its legend
+            // below, its values at the rim and a title drew that title three
+            // pixels off the top of the picture.
+            //
+            // `TITLE_MARGIN` is 14px scaled by 1.4 plus a 10px gap.
+            const titleMargin = 14 * 1.4 + 10;
+
+            /** How far above the box the title is drawn, in pixels. */
+            const liftInPixels = (xml: string) => {
+                const box = xml
+                    .match(/bbox="\(([^)]*)\)"/)![1]
+                    .split(",")
+                    .map(Number);
+                const height = Number(
+                    xml.match(/dimensions="\([^,]*,([^)]*)\)"/)![1],
+                );
+                const anchorY = Number(
+                    xml.match(
+                        /<label anchor="\([^,]*,([^)]*)\)" alignment="north" scale=/,
+                    )![1],
+                );
+                return ((anchorY - box[3]) * height) / (box[3] - box[1]);
+            };
+            const topMargin = (xml: string) =>
+                Number(
+                    xml.match(/margins="\[[^,]*,[^,]*,[^,]*,([^\]]*)\]"/)![1],
+                );
+
+            const crowded = await chartXML(`
+    <chart type="pie" name="c" size="small" legendPosition="outsideBottom" displayValues categories="North South East West"><title>Population by region</title>41 63 18 78</chart>
+    `);
+            // Cut back from the 18px band the values asked for to whatever is
+            // left of the top margin once the title's own height is taken.
+            expect(liftInPixels(crowded)).lessThan(18);
+            expect(liftInPixels(crowded)).closeTo(
+                topMargin(crowded) - titleMargin,
+                0.5,
+            );
+
+            // The same chart with room to spare still clears its rim text by
+            // the whole band.
+            const roomy = await chartXML(`
+    <chart type="pie" name="c" legendPosition="outsideBottom" displayValues categories="North South East West"><title>Population by region</title>41 63 18 78</chart>
+    `);
+            expect(liftInPixels(roomy)).closeTo(18, 0.5);
+        });
+
+        it("stands an outside legend beside the rim values when the frame is too narrow for both", async () => {
+            // The margin that holds the legend and the margin that holds the
+            // values shrink together, so buying the legend a place past them
+            // on a frame too small for both takes width from the *left* margin
+            // and pushes the value on that side off the picture — which is
+            // what a `size="small"` pie of seven-digit values did. Beside them
+            // is the lesser fault, and the only one of the two that keeps every
+            // number inside the picture.
+            const legendAnchor = (xml: string) =>
+                Number(xml.match(/<legend anchor="\(([^,]*),/)?.[1]);
+            const boxRight = (xml: string) =>
+                Number(xml.match(/bbox="\([^,]*,[^,]*,([^,]*),/)?.[1]);
+
+            const narrow = await chartXML(`
+    <chart type="pie" name="c" size="small" displayValues categories="Alpha Bravo Charlie Delta">1200000 900000 700000 500000</chart>
+    `);
+            expect(legendAnchor(narrow)).eq(boxRight(narrow));
+
+            // Wide enough for both, and the legend takes its place past them.
+            const wide = await chartXML(`
+    <chart type="pie" name="c" displayValues categories="Alpha Bravo Charlie Delta">1200000 900000 700000 500000</chart>
+    `);
+            expect(legendAnchor(wide)).greaterThan(boxRight(wide));
+        });
+
         it("titles a pie above the drawing, in both formats", async () => {
             const xml = await chartXML(`
     <chart type="pie" name="c" categories="A B"><title>Two halves</title>1 1</chart>

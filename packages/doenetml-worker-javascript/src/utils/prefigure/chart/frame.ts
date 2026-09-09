@@ -653,28 +653,40 @@ export function legendMarkup({
  *
  * `lift` raises it clear of anything else sharing the top margin, in pixels.
  * That is the horizontal axis' own labels on a chart drawn entirely below
- * zero, where PreFigure puts them up there: both are anchored to the top of the
- * box and drawn upwards from it, so without the lift they would be drawn over
- * each other.
+ * zero, where PreFigure puts them up there, or a pie's slice names; both are
+ * anchored to the top of the box and drawn upwards from it, so without the lift
+ * they would be drawn over each other.
+ *
+ * `roomAbove` is the top margin as it was actually granted. The lift is asked
+ * for against the band the other text wanted, and `fitMargins` may have given
+ * less than that — so raising the title by the full band lifts it past the room
+ * there is and off the top of the picture. A `size="small"` pie with a legend
+ * below it, its values at the rim and a title drew that title three pixels
+ * outside. Clamped, the title touches the text it was clearing instead, which
+ * is the same trade every other crowded margin here makes.
  */
 export function titleMarkup({
     titleText,
     bounds,
     lift,
+    roomAbove,
     unitsPerPixelY,
 }: {
     titleText: string | null;
     bounds: [number, number, number, number];
     lift: number;
+    roomAbove: number;
     unitsPerPixelY: number;
 }): { titleElement: string; captionElement: string } {
     if (!titleText) {
         return { titleElement: "", captionElement: "" };
     }
 
+    const raised = Math.min(lift, Math.max(roomAbove - TITLE_MARGIN, 0));
+
     const [xMin, , xMax, yMax] = bounds;
     const anchor = `(${formatNumber(midpoint(xMin, xMax))},${formatNumber(
-        yMax + lift * unitsPerPixelY,
+        yMax + raised * unitsPerPixelY,
     )})`;
     return {
         titleElement: `<label anchor="${escapeXml(anchor)}" alignment="north" scale="${TITLE_SCALE}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${titleText}</label>`,
@@ -1066,6 +1078,7 @@ export function assembleChartDiagram({
         titleText,
         bounds,
         lift: xLabelsOnTop ? xLabelBand : 0,
+        roomAbove: marginTop,
         unitsPerPixelY,
     });
 

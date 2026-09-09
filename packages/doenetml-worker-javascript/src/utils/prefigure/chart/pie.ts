@@ -470,6 +470,7 @@ function assemblePieDiagram({
         // without the lift a pie of eight equal slices drew its first name
         // through its own title. The margin already holds both bands.
         lift: sliceLabelBands.top,
+        roomAbove: marginTop,
         unitsPerPixelY: unitsPerPixel,
     });
 
