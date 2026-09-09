@@ -217,9 +217,39 @@ export function computeBoxChartGeometry({
     };
 }
 
-/** A pair of coordinates as PreFigure writes one, `(x,y)`. */
+/**
+ * A pair of coordinates as PreFigure writes one, `(x,y)`.
+ *
+ * The horizontal coordinate is computed from a slot and a width, so it is
+ * snapped; the vertical one is either an observation as the author wrote it or
+ * a statistic snapped already, so it is written as it stands. `point.ts` writes
+ * a datum the same way.
+ */
 function coordinates(x: number, y: number) {
     return `(${formatNumber(snapNumber(x))},${formatNumber(y)})`;
+}
+
+/**
+ * How tall the box between the two quartiles is drawn.
+ *
+ * A rectangle is written as a corner and a size, so PreFigure adds the two back
+ * together to find the far corner: both the height and that sum have to stay
+ * inside the double range. The distance between quartiles a quarter of the
+ * range apart on either side of zero does not — `-3.8e307` to `1.5e308` is
+ * already too far — and `formatNumber` answers `null` for anything non-finite,
+ * which is not a size PreFigure can read.
+ *
+ * So the box is drawn as tall as a double allows and stops short of its third
+ * quartile, on a chart whose axis spans most of the range a double holds. That
+ * is a smaller wrong than a box with no height to draw it by, which is the
+ * trade `scale.ts` makes at the same edge for the same reason.
+ */
+function boxHeight(quartile1: number, quartile3: number): number {
+    const snapped = snapNumber(quartile3 - quartile1);
+    if (Number.isFinite(quartile1 + snapped)) {
+        return snapped;
+    }
+    return quartile1 > 0 ? Number.MAX_VALUE - quartile1 : Number.MAX_VALUE;
 }
 
 /**
@@ -356,7 +386,7 @@ export function createBoxChartPrefigureXML({
                 coordinates(slot - halfWidth, summary.quartile1),
             )}" dimensions="${escapeXml(
                 `(${formatNumber(snapNumber(halfWidth * 2))},${formatNumber(
-                    snapNumber(summary.quartile3 - summary.quartile1),
+                    boxHeight(summary.quartile1, summary.quartile3),
                 )})`,
             )}" cliptobbox="yes"${withSpace(style.box)} />`,
         );

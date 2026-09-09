@@ -319,6 +319,55 @@ describe("chart box prefigure tests @group4", async () => {
             expect(xml.match(/<line /g)?.length).eq(3);
         });
 
+        it("keeps a box drawable at the top of the double range", async () => {
+            const xml = await chartXML(`
+    <chart type="box" name="c">
+      <shortDescription>A column a double can barely hold</shortDescription>
+      <series><label>A</label>1E308 1.5E308</series>
+    </chart>
+    `);
+
+            // Averaging the two middle observations to find the median
+            // overflows before it halves, and `formatNumber` writes anything
+            // non-finite as `null` — which is not a coordinate PreFigure can
+            // read. Interpolated as halves instead, so the median line is
+            // drawn where the summary says it is.
+            expect(xml).toContain('<line p1="(0.75,1.25e+308)"');
+            expect(xml).toContain("median 1.25e+308");
+            expect(xml).not.toContain("null");
+        });
+
+        it("keeps a box drawable across the whole double range", async () => {
+            const xml = await chartXML(`
+    <chart type="box" name="c">
+      <shortDescription>A column spanning the double range</shortDescription>
+      <series><label>A</label>-1.7976931348623157E308 -1.7976931348623157E308 -1.7976931348623157E308 1.7976931348623157E308 1.7976931348623157E308 1.7976931348623157E308</series>
+    </chart>
+    `);
+
+            // A rectangle is written as a corner and a size, and the distance
+            // between these two quartiles is not a number: the box is drawn as
+            // tall as a double goes rather than with a `null` for its height.
+            expect(xml).toContain('dimensions="(0.5,1.7976931348623157e+308)"');
+            expect(xml).not.toContain("null");
+        });
+
+        it("draws a box for a column whose values agree to twelve digits", async () => {
+            const xml = await chartXML(`
+    <chart type="box" name="c">
+      <shortDescription>Three readings that barely differ</shortDescription>
+      <series><label>A</label>1 1.0000000000001 1.00000000000005</series>
+    </chart>
+    `);
+
+            // The quartiles of a column this narrow can come back out of
+            // order, and fences taken in that order would lie the wrong way
+            // round and put every observation outside them — a chart of three
+            // loose points saying that none of the three is typical.
+            expect(xml).toContain('<rectangle at="box-1"');
+            expect(xml.match(/<point /g)?.length).eq(1);
+        });
+
         it("draws nothing but the frame for a chart with no observations", async () => {
             const xml = await chartXML(`
     <chart type="box" name="c">

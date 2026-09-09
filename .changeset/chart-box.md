@@ -29,4 +29,6 @@ Each box carries its five-number summary as an annotation and each outlier its o
 
 An observation that is not a finite number is left out of the summary rather than read as zero, and the chart says so: a dropped observation moves every quartile of the box drawn from it and leaves nothing on the page to notice.
 
+`<summaryStatistics>` now takes the median as the 50th percentile rather than as the average of the two middle values, which overflowed before it halved: the median of a column of `1e308` and `1.5e308` was reported as infinite and is now reported as `1.25e308`. Every column whose two middle values sum to a number a double can hold reports the median it always did.
+
 Closes #1880.

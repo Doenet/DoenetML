@@ -270,6 +270,18 @@ describe("summaryStatistics tag tests @group4", async () => {
             expect(sv.quartile3).eq(4);
         });
 
+        it("takes the median of a column at the top of the double range", async () => {
+            const sv = await statisticsOf(`
+    <summaryStatistics name="s">
+      <number>1E308</number><number>1.5E308</number>
+    </summaryStatistics>
+    `);
+
+            // Halfway between the two middle values, which is a number a
+            // double holds even though their sum is not.
+            expect(sv.median).eq(1.25e308);
+        });
+
         it("does not depend on the order the values are given in", async () => {
             const sv = await statisticsOf(`
     <summaryStatistics name="s">

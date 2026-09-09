@@ -17,7 +17,7 @@
 
 import me from "math-expressions";
 
-const { median: medianOf, quantileSeq } = me.math;
+const { quantileSeq } = me.math;
 
 /**
  * How far past the quartiles an observation may lie and still be drawn as part
@@ -53,9 +53,18 @@ export function quartile1(column: number[]): number {
     return quantileSeq(column, 0.25);
 }
 
-/** The median. */
+/**
+ * The median: the 50th percentile, by the same interpolation as the quartiles.
+ *
+ * `me.math.median` averages the two middle values of an even column as
+ * `(a + b) / 2`, which overflows before it halves: the median of
+ * `1e308 1.5e308` came back `Infinity`, and a box plot of that column drew its
+ * median line at a coordinate PreFigure cannot read. `quantileSeq` interpolates
+ * as `a * 0.5 + b * 0.5`, where neither half can overflow, and halving a normal
+ * double is exact — so the two agree wherever their sum is representable.
+ */
 export function median(column: number[]): number {
-    return medianOf(column);
+    return quantileSeq(column, 0.5);
 }
 
 /** The 75th percentile, interpolated. */
@@ -108,19 +117,28 @@ export function boxPlotSummary(column: number[]): BoxPlotSummary | null {
 
     const lowerQuartile = quartile1(column);
     const upperQuartile = quartile3(column);
-    const interquartileRange = upperQuartile - lowerQuartile;
 
     // Computed from the quartiles as they came out, before anything rounds them
     // for a picture: an observation sitting exactly on a fence is on a knife
     // edge already, and moving the fence by a twelfth-digit rounding would
     // decide the question by accident rather than by the rule.
     //
+    // Taken in order, so that the lower fence is never the higher of the two.
+    // `quantileSeq` compares with a tolerance, and a column whose values all
+    // fall within it — three readings agreeing to twelve significant digits,
+    // say — can come back with a first quartile above its third. Ordering them
+    // costs nothing on a column that is already in order and keeps that one
+    // from having every observation of it declared an outlier.
+    //
     // A column spanning the whole double range has an infinite interquartile
     // range, which puts both fences at infinity and leaves every observation
     // inside them. That is the right answer as well as the drawable one: a
     // spread that large has no outliers to speak of.
-    const lowerFence = lowerQuartile - OUTLIER_FENCE_IQRS * interquartileRange;
-    const upperFence = upperQuartile + OUTLIER_FENCE_IQRS * interquartileRange;
+    const boxBottom = Math.min(lowerQuartile, upperQuartile);
+    const boxTop = Math.max(lowerQuartile, upperQuartile);
+    const interquartileRange = boxTop - boxBottom;
+    const lowerFence = boxBottom - OUTLIER_FENCE_IQRS * interquartileRange;
+    const upperFence = boxTop + OUTLIER_FENCE_IQRS * interquartileRange;
 
     const outliers: number[] = [];
     let lowerWhisker = Infinity;
@@ -134,10 +152,11 @@ export function boxPlotSummary(column: number[]): BoxPlotSummary | null {
         upperWhisker = Math.max(upperWhisker, observation);
     }
 
-    // Both quartiles lie between the fences by construction, so at least one
-    // observation is always inside them and the two whiskers are always
-    // observations. The fallback is there for the reader rather than for the
-    // arithmetic.
+    // Both quartiles lie between the fences by construction, so a column whose
+    // observations bracket its own quartiles has one inside them and the two
+    // whiskers are observations. The fallback is for the column that does not:
+    // a spread narrow enough that `quantileSeq`'s tolerance answers with
+    // quartiles the column has no observation near.
     return {
         minimum: smallest(column),
         quartile1: lowerQuartile,
