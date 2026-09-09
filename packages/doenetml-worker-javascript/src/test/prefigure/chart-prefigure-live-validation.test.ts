@@ -707,6 +707,24 @@ describe("Chart prefigure renderer live validation @group4", () => {
                     "long names on a small chart",
                     `<chart type="pie" name="c" size="small" legend="false" categories="Renewables Coal Nuclear">4 3 2</chart>`,
                 ],
+                // A legend and the values share the right margin, and on a
+                // frame too small for both the legend has to give up its place
+                // past them rather than take width from the *left* margin —
+                // `fitMargins` shrinks the two together, so paying for the
+                // legend out of the shared budget pushed a value on the far
+                // side off the picture.
+                [
+                    "values beside a legend on a small chart",
+                    `<chart type="pie" name="c" size="small" displayValues categories="Alpha Bravo Charlie Delta">1200000 900000 700000 500000</chart>`,
+                ],
+                [
+                    "nine-digit values beside a legend on a small chart",
+                    `<chart type="pie" name="c" size="small" displayValues categories="Alpha Bravo Charlie Delta">123456789 90000000 70000000 50000000</chart>`,
+                ],
+                [
+                    "values beside a legend, with room for both",
+                    `<chart type="pie" name="c" displayValues categories="Alpha Bravo Charlie Delta Echo Foxtrot">1200000 900000 700000 500000 300000 100000</chart>`,
+                ],
                 [
                     "names and values together",
                     `<chart type="pie" name="c" legend="false" displayValues categories="North South East West">41 63 18 78</chart>`,

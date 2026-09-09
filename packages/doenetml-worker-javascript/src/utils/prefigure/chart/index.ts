@@ -62,7 +62,7 @@ export type ChartGeometry =
  * at.
  *
  * Exported so that `<chart>`'s `showLegend` asks the same question the XML
- * below is built from, rather than restating it somewhere it could drift.
+ * builders ask, rather than restating it somewhere it could drift.
  * Whether a label carries LaTeX changes how it is written, not whether there
  * is anything to write, so it is not asked here.
  */

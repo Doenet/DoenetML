@@ -36527,7 +36527,7 @@
                 },
                 {
                     "name": "categories",
-                    "description": "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
+                    "description": "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A chart whose series carry an `x` is drawn on a numeric axis and has no positions to name, so it reads these only as a pie.",
                     "groupName": "axes",
                     "highlighted": true,
                     "type": "textList"

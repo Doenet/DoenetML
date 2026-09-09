@@ -1184,13 +1184,16 @@ chart-pie-negative-values =
 chart-pie-total-not-positive =
     The values of this pie chart total zero, so there are no shares to draw. A pie needs at least one value above zero.
 
-# Raised by `<chart type="pie">` given more than one `<series>`. Concentric
+# Raised by `<chart type="pie">` holding more than one `<series>` that is not
+# hidden — a hidden one is dropped before the count, like any drawn child of a
+# container that is hidden on its own account. Concentric
 # rings are not a standard chart and a donut is a styling variant rather than a
 # second group, so there is nowhere on a pie for a second series to go.
 chart-pie-one-series =
     A pie chart draws one series, so only the first was drawn. Chart the others separately, or use a type that draws several series at once.
 
-# Raised by `<chart type="pie">` given an `<xLabel>` or `<yLabel>` child. A pie
+# Raised by `<chart type="pie">` whose `<xLabel>` or `<yLabel>` child has text
+# in it; a blank one asks for nothing and is not reported. A pie
 # has no axes for either to name, so the text is authored prose with nowhere on
 # the page to go — which is worth a message where an ignored *attribute* is not,
 # because what was dropped is something the author wrote for a reader to see.

@@ -112,7 +112,9 @@ one series.
 
 
 The slice names go in the legend, and around the rim instead when there is no legend to hold
-them. Each slice takes a color of its own, where every other type colors by series.
+them. `displayValues` writes each value out at the rim as well, beside its slice's name when
+that is there too — as `Wind (40)` in the second chart. Each slice takes a color of its own,
+where every other type colors by series.
 
 
 
@@ -374,8 +376,8 @@ always somewhere:
 
 `$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
 legend and for one with nothing to name — series that carry no label, or named series with
-no value that could be drawn. A pie's legend names its slices rather than its series, so it
-has something to name as soon as a slice is drawn.
+no value that could be drawn. On a pie there is something to name as soon as a slice is
+drawn.
 
 
 

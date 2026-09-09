@@ -287,7 +287,7 @@ const SLICE_LABEL_REACH: Record<
  * axes: there is no `<axes>` element, no tick marks, no axis names, and none of
  * the margin is holding a run of numbers. What the two share is the furniture
  * that does not depend on axes — the legend, the title, the annotations — and
- * they share it through the helpers above rather than through a branch.
+ * they share it through `frame.ts`'s helpers rather than through a branch.
  *
  * The bounding box is settled *after* the margins here, the reverse of the
  * other assembly. It has to be: a pie has to come out round, and PreFigure
@@ -348,33 +348,12 @@ function assemblePieDiagram({
     // the slice labels are drawn toward hold those as well.
     const wantedLeft = PIE_PADDING + sliceLabelBands.left;
 
-    /**
-     * How far past the drawing area the slice names reach on the right, and so
-     * how far a legend placed in that same margin has to start beyond them.
-     *
-     * The counterpart of the axis numbers' band on a chart with axes. Without
-     * it the margin held only the larger of the two and the legend was anchored
-     * at the plot's edge, so both were drawn in the same place: a six-slice pie
-     * of values in the millions had `1200000` under the legend box.
-     */
-    const rightOfPlot = sliceLabelBands.right;
-
-    let wantedRight = PIE_PADDING + rightOfPlot;
-    let wantedBottom = PIE_PADDING + sliceLabelBands.bottom;
-    if (legend.onRight) {
-        wantedRight = Math.max(
-            wantedRight,
-            rightOfPlot +
-                LEGEND_ANCHOR_OFFSET +
-                legend.size.width +
-                LEGEND_OUTSIDE_GAP,
-        );
-    } else if (legend.onBottom) {
-        wantedBottom +=
-            LEGEND_ANCHOR_OFFSET + legend.size.height + LEGEND_OUTSIDE_GAP;
-    }
-    const wantedTop =
-        PIE_PADDING + sliceLabelBands.top + (titleText ? TITLE_MARGIN : 0);
+    /** The width an outside-right legend needs, offset and gap included. */
+    const legendWidthRoom =
+        LEGEND_ANCHOR_OFFSET + legend.size.width + LEGEND_OUTSIDE_GAP;
+    /** The same for one below the pie, which is measured by its height. */
+    const legendHeightRoom =
+        LEGEND_ANCHOR_OFFSET + legend.size.height + LEGEND_OUTSIDE_GAP;
 
     // Text beyond the rim gets the same larger share of the frame a legend
     // outside the plot does, and for the same reason: a string is a fixed width
@@ -386,6 +365,45 @@ function assemblePieDiagram({
         sliceLabelBands.right > 0 ||
         sliceLabelBands.top > 0 ||
         sliceLabelBands.bottom > 0;
+
+    /** The most of the width the two side margins may take between them. */
+    const sideBudget = Math.floor(
+        widthPx *
+            (legend.onRight || textBeyondRim ? OUTSIDE_MARGIN_BUDGET : 1 / 2),
+    );
+
+    /**
+     * How far past the drawing area the text at the rim reaches on the right,
+     * and so how far a legend placed in that same margin starts beyond it.
+     *
+     * The counterpart of the axis numbers' band on a chart with axes. At zero
+     * the two share the margin and are drawn in the same place, which is what
+     * put `1200000` under the legend box of a six-slice pie.
+     */
+    let rightOfPlot = 0;
+    let wantedRight = PIE_PADDING + sliceLabelBands.right;
+    let wantedBottom = PIE_PADDING + sliceLabelBands.bottom;
+    if (legend.onRight) {
+        const pastTheText = sliceLabelBands.right + legendWidthRoom;
+        // Past the text when the frame can hold both margins as asked, and
+        // beside it when it cannot. `fitMargins` shrinks the two side margins
+        // in proportion, so asking for the sum on a frame too small for it
+        // takes from the *left* margin as well: a `size="small"` pie of
+        // seven-digit values had one of them drawn four pixels off the left
+        // edge, while the legend still covered the value opposite. A legend
+        // over a number is the lesser fault — the same trade `legendMarkup`
+        // makes when it pulls a box back inside rather than let it be clipped.
+        if (wantedLeft + Math.max(wantedRight, pastTheText) <= sideBudget) {
+            rightOfPlot = sliceLabelBands.right;
+            wantedRight = Math.max(wantedRight, pastTheText);
+        } else {
+            wantedRight = Math.max(wantedRight, legendWidthRoom);
+        }
+    } else if (legend.onBottom) {
+        wantedBottom += legendHeightRoom;
+    }
+    const wantedTop =
+        PIE_PADDING + sliceLabelBands.top + (titleText ? TITLE_MARGIN : 0);
 
     const [marginLeft, marginRight] = fitMargins(
         widthPx,
@@ -565,8 +583,8 @@ export function createPieChartPrefigureXML({
         // What is drawn beyond the rim: the slice's name where the legend is
         // not holding it, and its value where the author asked for one.
         //
-        // Beyond the rim rather than inside the slice, which is where every
-        // other type draws a value as well — at a bar's far end, above a
+        // Beyond the rim rather than inside the slice. Every other type draws
+        // its value clear of its marks too — at a bar's far end, above a
         // point. Nothing is painted over a mark, so the text keeps the page's
         // own color and reads against the page whatever the slice is filled
         // with. Inside, it would not: the fifth built-in style fills black at

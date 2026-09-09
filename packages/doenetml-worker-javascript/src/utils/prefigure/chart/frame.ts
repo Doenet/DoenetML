@@ -15,6 +15,17 @@
  * axis gets an explicit `vlabels` back, and the horizontal one gets `hlabels`
  * when its positions are measurements and tick marks when they are names.
  *
+ * `<label>` is not new — `components/vector.ts` and `components/angle.ts`
+ * already emit it — but it is put to two new uses in this folder: the optional
+ * value printed beside each mark, and the chart's title, drawn above the frame
+ * at a `scale` the axis numbers do not use.
+ *
+ * `<group>` is shared with `components/curve.ts`, which wraps a multi-piece
+ * curve in one. A chart of more than one series wraps each of them in a
+ * `<group>`, which is what gives a screen reader a level to stop at between the
+ * chart and its marks — grouping components to be annotated together is what
+ * `group.py` exists for.
+ *
  * `<legend>` is emitted here and nowhere else in this folder. A legend's
  * background box is filled white by `legend.py` with no attribute to say
  * otherwise, which reads as a hole punched in a chart drawn in dark mode. Its

@@ -187,7 +187,7 @@ export default class Chart extends BlockComponent {
             groupName: "axes",
             createComponentOfType: "textList",
             description:
-                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
+                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A chart whose series carry an `x` is drawn on a numeric axis and has no positions to name, so it reads these only as a pie.",
             highlighted: true,
         };
 
@@ -1020,7 +1020,7 @@ export default class Chart extends BlockComponent {
         // mean naming the type is what reveals the next problem.
         stateVariableDefinitions.chartGeometry = {
             description:
-                "The marks of the chart, in data coordinates, with whatever bounds they are drawn in, or null when there is no chart to draw.",
+                "The marks of the chart, in data coordinates, with the bounds they are drawn in where the type has any, or null when there is no chart to draw.",
             returnDependencies: () => ({
                 type: {
                     dependencyType: "stateVariable",
@@ -1228,7 +1228,7 @@ export default class Chart extends BlockComponent {
         // slices after it where they were.
         stateVariableDefinitions.sliceStyles = {
             description:
-                "The style each slice of a pie is drawn in, in the order the slices are drawn.",
+                "The style each of a pie's slices takes, in the order they are given — including one whose share of the total is nothing and so is never drawn.",
             returnDependencies: () => ({
                 chartGeometry: {
                     dependencyType: "stateVariable",
