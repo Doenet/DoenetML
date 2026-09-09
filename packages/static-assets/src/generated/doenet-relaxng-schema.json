@@ -44811,7 +44811,8 @@
                     "type": [
                         "bar",
                         "line",
-                        "scatter"
+                        "scatter",
+                        "pie"
                     ]
                 },
                 "aspectRatio": {
@@ -45292,7 +45293,7 @@
                     "name": "legend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead.",
                     "fromAttribute": true
                 },
                 {
@@ -45306,14 +45307,14 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
                     "fromAttribute": true
                 },
                 {
                     "name": "markers",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Only a line chart draws with it.",
                     "fromAttribute": true
                 },
                 {
@@ -45414,7 +45415,7 @@
                     "name": "hasAuthorAnnotations",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the chart carries annotations to navigate. Always true: they are generated from the bars."
+                    "description": "Whether the chart carries annotations to navigate. Always true: they are generated from the marks the chart drew."
                 },
                 {
                     "name": "shortDescription",
@@ -45426,7 +45427,7 @@
                     "name": "numSeries",
                     "type": "integer",
                     "isArray": false,
-                    "description": "How many series the chart draws."
+                    "description": "How many series the chart holds: its `<series>` children that are not hidden, or one for a chart of bare values. Not necessarily how many are drawn — a pie draws the first of them and no more."
                 },
                 {
                     "name": "values",
@@ -45446,7 +45447,7 @@
                     "name": "categories",
                     "type": "text",
                     "isArray": true,
-                    "description": "The label under each bar, in order.",
+                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -45484,13 +45485,13 @@
                     "name": "yMin",
                     "type": "number",
                     "isArray": false,
-                    "description": "The lowest value shown on the vertical axis, or null when there is no chart to draw."
+                    "description": "The lowest value shown on the vertical axis, or null when the chart has no axes or was not drawn."
                 },
                 {
                     "name": "yMax",
                     "type": "number",
                     "isArray": false,
-                    "description": "The highest value shown on the vertical axis, or null when there is no chart to draw."
+                    "description": "The highest value shown on the vertical axis, or null when the chart has no axes or was not drawn."
                 },
                 {
                     "name": "prefigureXML",

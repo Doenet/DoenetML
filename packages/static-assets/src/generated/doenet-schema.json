@@ -36496,7 +36496,8 @@
                     "values": [
                         "bar",
                         "line",
-                        "scatter"
+                        "scatter",
+                        "pie"
                     ],
                     "autocompleteValues": [
                         {
@@ -36510,6 +36511,10 @@
                         {
                             "value": "scatter",
                             "description": "A scatter plot: one point per value, against an `x` of its own, or under category names where no series carries one."
+                        },
+                        {
+                            "value": "pie",
+                            "description": "A pie chart: one slice per value, each a share of the total, named by the category names. Draws one series and has no axes."
                         }
                     ],
                     "type": "keyword"
@@ -36522,14 +36527,14 @@
                 },
                 {
                     "name": "categories",
-                    "description": "The label under each position on the horizontal axis. Defaults to the position itself, 1, 2, 3 and so on. Not used where a series carries an `x`, which puts the chart on a numeric axis instead.",
+                    "description": "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry.",
                     "groupName": "axes",
                     "highlighted": true,
                     "type": "textList"
                 },
                 {
                     "name": "barWidth",
-                    "description": "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them.",
+                    "description": "How much of each category's slot the bars fill: greater than 0 and at most 1, so the bars may fill their slot but must have some width. The rest is the gap to the next category. With several series side by side, they divide this between them. Only a bar chart draws with it.",
                     "groupName": "marks",
                     "defaultValue": 0.8,
                     "type": "number"
@@ -36558,7 +36563,7 @@
                 },
                 {
                     "name": "legend",
-                    "description": "Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead.",
                     "groupName": "legend",
                     "defaultValue": true,
                     "values": [
@@ -36610,35 +36615,35 @@
                 },
                 {
                     "name": "xMin",
-                    "description": "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+                    "description": "Leftmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick below the smallest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
                     "groupName": "axes",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "xMax",
-                    "description": "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead.",
+                    "description": "Rightmost value shown on the horizontal axis, for a chart with a numeric one. Defaults to the first tick above the largest `x`. If `xMin` and `xMax` do not describe a box — both finite, with `xMin` below `xMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
                     "groupName": "axes",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "yMin",
-                    "description": "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
+                    "description": "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
                     "groupName": "axes",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "yMax",
-                    "description": "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead.",
+                    "description": "Highest value shown on the vertical axis. Defaults to the next tick above the largest value. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
                     "groupName": "axes",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "displayValues",
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
                     "groupName": "marks",
                     "defaultValue": false,
                     "values": [
@@ -36649,7 +36654,7 @@
                 },
                 {
                     "name": "markers",
-                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Only a line chart draws with it.",
                     "groupName": "marks",
                     "highlighted": true,
                     "defaultValue": true,
@@ -36769,7 +36774,7 @@
                     "name": "legend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series. A legend is drawn when a series carries a `<label>`; `legend=\"false\"` suppresses it.",
+                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead.",
                     "fromAttribute": true,
                     "groupName": "legend"
                 },
@@ -36785,7 +36790,7 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — and above a line or scatter chart's point.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
                     "fromAttribute": true,
                     "groupName": "marks"
                 },
@@ -36793,7 +36798,7 @@
                     "name": "markers",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them.",
+                    "description": "Whether a line chart draws a marker at each of its points. A scatter plot is its markers, so it always draws them. Only a line chart draws with it.",
                     "fromAttribute": true,
                     "groupName": "marks",
                     "highlighted": true
@@ -36897,7 +36902,7 @@
                     "name": "hasAuthorAnnotations",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the chart carries annotations to navigate. Always true: they are generated from the bars."
+                    "description": "Whether the chart carries annotations to navigate. Always true: they are generated from the marks the chart drew."
                 },
                 {
                     "name": "shortDescription",
@@ -36909,7 +36914,7 @@
                     "name": "numSeries",
                     "type": "integer",
                     "isArray": false,
-                    "description": "How many series the chart draws.",
+                    "description": "How many series the chart holds: its `<series>` children that are not hidden, or one for a chart of bare values. Not necessarily how many are drawn — a pie draws the first of them and no more.",
                     "groupName": "data",
                     "highlighted": true
                 },
@@ -36933,7 +36938,7 @@
                     "name": "categories",
                     "type": "text",
                     "isArray": true,
-                    "description": "The label under each bar, in order.",
+                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie.",
                     "groupName": "axes",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
@@ -36976,14 +36981,14 @@
                     "name": "yMin",
                     "type": "number",
                     "isArray": false,
-                    "description": "The lowest value shown on the vertical axis, or null when there is no chart to draw.",
+                    "description": "The lowest value shown on the vertical axis, or null when the chart has no axes or was not drawn.",
                     "groupName": "axes"
                 },
                 {
                     "name": "yMax",
                     "type": "number",
                     "isArray": false,
-                    "description": "The highest value shown on the vertical axis, or null when there is no chart to draw.",
+                    "description": "The highest value shown on the vertical axis, or null when the chart has no axes or was not drawn.",
                     "groupName": "axes"
                 },
                 {

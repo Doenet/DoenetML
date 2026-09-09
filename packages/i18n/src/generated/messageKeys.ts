@@ -545,6 +545,11 @@ export type MessageKey =
     | "chart-type-not-specified"
     | "chart-values-outside-series"
     | "chart-points-not-drawable"
+    | "chart-pie-values-not-drawable"
+    | "chart-pie-negative-values"
+    | "chart-pie-total-not-positive"
+    | "chart-pie-one-series"
+    | "chart-pie-axis-name-ignored"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1156,6 +1161,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "chart-type-not-specified",
     "chart-values-outside-series",
     "chart-points-not-drawable",
+    "chart-pie-values-not-drawable",
+    "chart-pie-negative-values",
+    "chart-pie-total-not-positive",
+    "chart-pie-one-series",
+    "chart-pie-axis-name-ignored",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

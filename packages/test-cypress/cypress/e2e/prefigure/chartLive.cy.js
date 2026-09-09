@@ -228,6 +228,138 @@ liveDescribe("Live chart rendering @group4", { tags: ["@group4"] }, () => {
         });
     });
 
+    it("draws a pie round, with its slices named and navigable", () => {
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<text name="ready">ready</text>
+<chart name="p" type="pie" categories="North South East West">
+  <title>Population by region</title>
+  <shortDescription>Population by region</shortDescription>
+  41 63 18 78
+</chart>
+<chart name="r" type="pie" categories="Renewables Coal Nuclear" legend="false" displayValues>
+  <shortDescription>Generation by source</shortDescription>
+  40 35 25
+</chart>
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#p .svg svg", { timeout: 30000 }).should("exist");
+        cy.get("#r .svg svg", { timeout: 30000 }).should("exist");
+
+        // The slice names go in the legend when there is one, and around the
+        // rim when there is not — so both charts carry all of their names, in
+        // different places.
+        cy.get("#p .svg svg").should(($svg) => {
+            const text = $svg.text();
+            for (const expected of [
+                "North",
+                "South",
+                "East",
+                "West",
+                "Population by region",
+            ]) {
+                expect(
+                    text,
+                    `drawn text should include ${expected}`,
+                ).to.include(expected);
+            }
+        });
+        cy.get("#r .svg svg").should(($svg) => {
+            const text = $svg.text();
+            for (const expected of ["Renewables", "Coal", "Nuclear", "40"]) {
+                expect(
+                    text,
+                    `drawn text should include ${expected}`,
+                ).to.include(expected);
+            }
+        });
+
+        // Round, as measured by the browser rather than by the path data: a
+        // pie is drawn with `<arc>`, whose radius PreFigure scales by each axis
+        // separately, so a bounding box that is not square in units per pixel
+        // draws an ellipse. Nothing in the XML says which came out.
+        for (const id of ["#p", "#r"]) {
+            cy.get(`${id} .svg svg`).then(($svg) => {
+                const slices = [
+                    ...$svg[0].querySelectorAll('path[id*="-slice-"]'),
+                ];
+                expect(slices.length, `${id} slices`).to.be.greaterThan(1);
+
+                const boxes = slices.map((slice) =>
+                    slice.getBoundingClientRect(),
+                );
+                const left = Math.min(...boxes.map((box) => box.left));
+                const right = Math.max(...boxes.map((box) => box.right));
+                const top = Math.min(...boxes.map((box) => box.top));
+                const bottom = Math.max(...boxes.map((box) => box.bottom));
+                expect(
+                    right - left,
+                    `${id} pie should be as wide as it is tall`,
+                ).to.be.closeTo(bottom - top, 1.5);
+
+                expectNothingClipped($svg[0], id);
+            });
+        }
+
+        // One annotation per slice, hanging straight off the figure, which is
+        // what makes the pie walkable. One series, so there is no `<group>`
+        // level between them — asserted over the links rather than only the
+        // ids, since a slice annotation that named no parent would still be
+        // present and still be unreachable.
+        cy.get("#p .cml", { timeout: 30000 }).should(($cml) => {
+            const annotations = [...$cml[0].querySelectorAll("annotation")];
+            const ids = annotations.map((el) => el.getAttribute("id"));
+            expect(ids.filter((id) => id?.includes("slice-"))).to.have.length(
+                4,
+            );
+            expect(ids.filter((id) => id?.includes("series-"))).to.have.length(
+                0,
+            );
+
+            const figure = annotations.find((el) =>
+                (el.getAttribute("id") ?? "").endsWith("figure"),
+            );
+            expect(figure, "figure annotation").to.exist;
+            const figureChildren = [
+                ...figure.querySelectorAll("children > *"),
+            ].map((el) => el.textContent.trim());
+            expect(figureChildren).to.have.length(4);
+            for (const sliceId of figureChildren) {
+                expect(sliceId).to.match(/slice-\d+$/);
+                const slice = annotations.find(
+                    (el) => el.getAttribute("id") === sliceId,
+                );
+                expect(slice, `annotation for ${sliceId}`).to.exist;
+                const parents = [...slice.querySelectorAll("parents > *")].map(
+                    (el) => el.textContent.trim(),
+                );
+                expect(parents.some((id) => id.endsWith("figure"))).to.be.true;
+            }
+        });
+
+        // diagcess claims the chart by marking it up and taking it over, which
+        // it only does once both the drawing and the annotations are in the
+        // DOM. Waited for before the click, because the click is what activates
+        // the explorer and nothing clicks again afterwards.
+        cy.get("#p .ChemAccess-element", { timeout: 30000 })
+            .should("have.attr", "has-svg", "true")
+            .and("have.attr", "has-cml", "true")
+            .and("have.attr", "tabindex", "0")
+            .and("have.attr", "role", "application");
+
+        cy.get("#p .ChemAccess-element").click({ force: true });
+        cy.get("#p .cacc-message", { timeout: 30000 })
+            .should("exist")
+            .and("contain.text", "Population by region");
+    });
+
     it("navigates the bars through their series", () => {
         cy.window().then((win) => {
             win.postMessage(
