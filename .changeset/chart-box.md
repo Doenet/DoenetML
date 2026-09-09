@@ -29,6 +29,9 @@ Each box carries its five-number summary as an annotation and each outlier its o
 
 An observation that is not a finite number is left out of the summary rather than read as zero, and the chart says so: a dropped observation moves every quartile of the box drawn from it and leaves nothing on the page to notice.
 
-`<summaryStatistics>` now takes the median as the 50th percentile rather than as the average of the two middle values, which overflowed before it halved: the median of a column of `1e308` and `1.5e308` was reported as infinite and is now reported as `1.25e308`. Every column whose two middle values sum to a number a double can hold reports the median it always did.
+`<summaryStatistics>` reports the same median it always did on any column of ordinary numbers, and a different one at two edges of the range a number can hold. Its median is now computed by ordering the values and taking the middle one, or the midpoint of the two middle ones — the same value the 50th percentile interpolates to, and unchanged for every column whose values are ordinary. Two things change:
+
+- A column near the top of the range no longer overflows before it halves. The median of a column of `1e308` and `1.5e308` was reported as infinite and is now reported as `1.25e308`.
+- Values are ordered by size rather than by a comparison that reads values agreeing to twelve significant digits as equal, so a column of readings that close reports its middle value rather than whichever of them happened to be written first: the median of `1 1.0000000000001 1.00000000000005` was reported as `1` and is now reported as `1.00000000000005`. `quartile1` and `quartile3` still order such a column by that comparison and are as unreliable on it as they were before.
 
 Closes #1880.
