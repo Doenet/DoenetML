@@ -455,6 +455,31 @@ describe("chart pie prefigure tests @group4", async () => {
             expect(legendAnchor(withoutValues)).eq(boxRight(withoutValues));
         });
 
+        it("stands an outside legend beside the rim values when the frame is too narrow for both", async () => {
+            // The margin that holds the legend and the margin that holds the
+            // values shrink together, so buying the legend a place past them
+            // on a frame too small for both takes width from the *left* margin
+            // and pushes the value on that side off the picture — which is
+            // what a `size="small"` pie of seven-digit values did. Beside them
+            // is the lesser fault, and the only one of the two that keeps every
+            // number inside the picture.
+            const legendAnchor = (xml: string) =>
+                Number(xml.match(/<legend anchor="\(([^,]*),/)?.[1]);
+            const boxRight = (xml: string) =>
+                Number(xml.match(/bbox="\([^,]*,[^,]*,([^,]*),/)?.[1]);
+
+            const narrow = await chartXML(`
+    <chart type="pie" name="c" size="small" displayValues categories="Alpha Bravo Charlie Delta">1200000 900000 700000 500000</chart>
+    `);
+            expect(legendAnchor(narrow)).eq(boxRight(narrow));
+
+            // Wide enough for both, and the legend takes its place past them.
+            const wide = await chartXML(`
+    <chart type="pie" name="c" displayValues categories="Alpha Bravo Charlie Delta">1200000 900000 700000 500000</chart>
+    `);
+            expect(legendAnchor(wide)).greaterThan(boxRight(wide));
+        });
+
         it("annotates every slice by name and value", async () => {
             const xml = await chartXML(FOUR_SLICES);
 
@@ -777,8 +802,8 @@ describe("chart pie prefigure tests @group4", async () => {
             // and a crowded frame grants less than that — so raising the title
             // by the whole band puts it above the room there is. Measured
             // against a real render, a `size="small"` pie with its legend
-            // below, its values at the rim and a title drew that title three
-            // pixels off the top of the picture.
+            // below, its values at the rim and a title drew that title's box
+            // seven and a half pixels off the top of the picture.
             //
             // `TITLE_MARGIN` is 14px scaled by 1.4 plus a 10px gap.
             const titleMargin = 14 * 1.4 + 10;
@@ -821,31 +846,6 @@ describe("chart pie prefigure tests @group4", async () => {
     <chart type="pie" name="c" legendPosition="outsideBottom" displayValues categories="North South East West"><title>Population by region</title>41 63 18 78</chart>
     `);
             expect(liftInPixels(roomy)).closeTo(18, 0.5);
-        });
-
-        it("stands an outside legend beside the rim values when the frame is too narrow for both", async () => {
-            // The margin that holds the legend and the margin that holds the
-            // values shrink together, so buying the legend a place past them
-            // on a frame too small for both takes width from the *left* margin
-            // and pushes the value on that side off the picture — which is
-            // what a `size="small"` pie of seven-digit values did. Beside them
-            // is the lesser fault, and the only one of the two that keeps every
-            // number inside the picture.
-            const legendAnchor = (xml: string) =>
-                Number(xml.match(/<legend anchor="\(([^,]*),/)?.[1]);
-            const boxRight = (xml: string) =>
-                Number(xml.match(/bbox="\([^,]*,[^,]*,([^,]*),/)?.[1]);
-
-            const narrow = await chartXML(`
-    <chart type="pie" name="c" size="small" displayValues categories="Alpha Bravo Charlie Delta">1200000 900000 700000 500000</chart>
-    `);
-            expect(legendAnchor(narrow)).eq(boxRight(narrow));
-
-            // Wide enough for both, and the legend takes its place past them.
-            const wide = await chartXML(`
-    <chart type="pie" name="c" displayValues categories="Alpha Bravo Charlie Delta">1200000 900000 700000 500000</chart>
-    `);
-            expect(legendAnchor(wide)).greaterThan(boxRight(wide));
         });
 
         it("titles a pie above the drawing, in both formats", async () => {

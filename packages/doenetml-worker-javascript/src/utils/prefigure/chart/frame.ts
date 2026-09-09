@@ -661,9 +661,16 @@ export function legendMarkup({
  * for against the band the other text wanted, and `fitMargins` may have given
  * less than that — so raising the title by the full band lifts it past the room
  * there is and off the top of the picture. A `size="small"` pie with a legend
- * below it, its values at the rim and a title drew that title three pixels
- * outside. Clamped, the title touches the text it was clearing instead, which
- * is the same trade every other crowded margin here makes.
+ * below it, its values at the rim and a title drew that title's box seven and a
+ * half pixels outside. Clamped, the title touches the text it was clearing
+ * instead, which is the same trade every other crowded margin here makes.
+ *
+ * `TITLE_MARGIN` is six pixels more than the room a title needs — its box is
+ * 19.6px tall and PreFigure moves a `north` label a further 4px past its
+ * anchor, so 23.6 is enough — which is why a clamped title sits six pixels
+ * below the edge rather than flush against it. Subtracting the measured 23.6
+ * would buy at most two pixels of lift back, and only where a name pointing
+ * due north fills the whole cap band.
  */
 export function titleMarkup({
     titleText,
