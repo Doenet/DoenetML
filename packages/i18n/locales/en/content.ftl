@@ -602,3 +602,27 @@ math-embedded-input-blank = blank
 # The same, when one expression has more than one gap, so that a reader can tell
 # which one they have reached.
 math-embedded-input-blank-ordinal = blank { $ordinal } of { $total }
+
+# The five-number summary a `<chart type="box">` gives a screen reader on each
+# box it draws.
+#
+# Words rather than five bare numbers, which is the one annotation in a chart
+# that cannot do without them: a bar is announced as its category and its
+# value, and a point as its coordinates, because in both the position says
+# which number it is. A box reports five numbers at one position, and nothing
+# but the naming tells them apart.
+#
+# Each number arrives as text, already written the way the chart writes the
+# numbers on its own axis. Passed as a number instead, a translation would
+# format it a second time — grouping it, and rounding it to three fraction
+# digits — so a reader would hear a different figure from the one drawn.
+chart-box-summary =
+    minimum { $minimum }, first quartile { $quartile1 }, median { $median }, third quartile { $quartile3 }, maximum { $maximum }
+
+# The name a `<chart type="box">` gives one observation drawn beyond a whisker.
+#
+# Named rather than announced as a bare number, for the reason the summary
+# above is worded: after the five numbers of the box, a further number on its
+# own says nothing about why it is drawn apart from them.
+chart-box-outlier =
+    outlier { $value }

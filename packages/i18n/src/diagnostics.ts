@@ -241,6 +241,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0151": "chart-pie-total-not-positive",
     "doenet-w0152": "chart-pie-one-series",
     "doenet-w0153": "chart-pie-axis-name-ignored",
+    "doenet-w0154": "chart-box-values-not-drawable",
+    "doenet-w0155": "chart-box-categories-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

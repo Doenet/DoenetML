@@ -8,6 +8,7 @@ import {
     numericValuesFromValueChildren,
     returnBreakStringsIntoMathsBySpacesSugarInstruction,
 } from "../utils/mathOperatorChildren";
+import { boxPlotSummary } from "../utils/summaryStatistics";
 
 /**
  * One group of data within a `<chart>`: the values, a label to name them by,
@@ -259,6 +260,121 @@ export default class Series extends BaseComponent {
                     values[arrayKey] = numericValues[arrayKey];
                 }
                 return { setValue: { values } };
+            },
+        };
+
+        // Everything a box plot draws from this series, computed once. The
+        // definition is shared with `<summaryStatistics>`, so a table of
+        // quartiles and a box plot of the same numbers cannot disagree on the
+        // page.
+        //
+        // Defined on the series rather than on the chart, and whatever the
+        // chart's `type`: these are statistics of a column of numbers, and a
+        // column does not stop having a median because it was drawn as bars.
+        // What the chart decides is which of them get a mark, not which of them
+        // exist. A named series is then readable into a sentence or an
+        // `<answer>` beside the picture — the argument #1833 made for binning
+        // in the worker rather than in scipy.
+        //
+        // Anything that is not a finite number is missing data and is left out,
+        // which is what `<summaryStatistics>` does with the same column: a
+        // symbolic `<math>` has no place in an order statistic, and reading it
+        // as zero would move every one of these.
+        stateVariableDefinitions.summaryOfValues = {
+            description:
+                "The five-number summary of this series' values, with the whisker ends and outliers a box plot draws, or null when it has no finite values.",
+            returnDependencies: () => ({
+                values: {
+                    dependencyType: "stateVariable",
+                    variableName: "values",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        summaryOfValues: boxPlotSummary(
+                            dependencyValues.values.filter((value) =>
+                                Number.isFinite(value),
+                            ),
+                        ),
+                    },
+                };
+            },
+        };
+
+        // Each of the five, plus the outliers, read off that one summary.
+        //
+        // Null for a series with no finite values, which is what
+        // `<summaryStatistics>` reports for an empty column: there is no
+        // smallest value in no values, and reporting 0 would be a number the
+        // data does not contain. `outliers` is the exception — an empty list is
+        // the honest answer there, since "which values lie beyond the fences"
+        // has one whether or not there are any values to ask it of.
+        for (const [name, description] of [
+            ["minimum", "The smallest value in this series."],
+            ["quartile1", "The first quartile (25th percentile)."],
+            ["median", "The median value."],
+            ["quartile3", "The third quartile (75th percentile)."],
+            ["maximum", "The largest value in this series."],
+        ]) {
+            stateVariableDefinitions[name] = {
+                description,
+                public: true,
+                shadowingInstructions: {
+                    createComponentOfType: "number",
+                },
+                returnDependencies: () => ({
+                    summaryOfValues: {
+                        dependencyType: "stateVariable",
+                        variableName: "summaryOfValues",
+                    },
+                }),
+                definition({ dependencyValues }) {
+                    return {
+                        setValue: {
+                            [name]:
+                                dependencyValues.summaryOfValues?.[name] ??
+                                null,
+                        },
+                    };
+                },
+            };
+        }
+
+        stateVariableDefinitions.outliers = {
+            description:
+                "The values more than one and a half interquartile ranges beyond the nearer quartile, in the order they were given — the ones a box plot draws as points beyond its whiskers.",
+            public: true,
+            isArray: true,
+            entryPrefixes: ["outlier"],
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnArraySizeDependencies: () => ({
+                summaryOfValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "summaryOfValues",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.summaryOfValues?.outliers.length ?? 0];
+            },
+            returnArrayDependenciesByKey: () => ({
+                globalDependencies: {
+                    summaryOfValues: {
+                        dependencyType: "stateVariable",
+                        variableName: "summaryOfValues",
+                    },
+                },
+            }),
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                const found =
+                    globalDependencyValues.summaryOfValues?.outliers ?? [];
+                const outliers = {};
+                for (const arrayKey of arrayKeys) {
+                    outliers[arrayKey] = found[arrayKey];
+                }
+                return { setValue: { outliers } };
             },
         };
 

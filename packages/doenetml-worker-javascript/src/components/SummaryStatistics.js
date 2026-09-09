@@ -1,7 +1,17 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
-const { mean, std, variance, median, quantileSeq } = me.math;
+const { mean, std, variance } = me.math;
 import { numberToMathExpression, roundForDisplay } from "../utils/math";
+// The five that a box plot also draws come from one shared definition, so that
+// a table of quartiles and a `<chart type="box">` of the same column cannot
+// disagree on the page.
+import {
+    largest,
+    median,
+    quartile1,
+    quartile3,
+    smallest,
+} from "../utils/summaryStatistics";
 import { returnBreakStringsIntoMathsBySpacesSugarInstruction } from "../utils/mathOperatorChildren";
 import {
     buildNumberDisplayParameters,
@@ -44,27 +54,23 @@ const STATISTICS = [
     {
         value: "minimum",
         description: "The smallest value.",
-        // Reduced rather than spread, as `<chart>` reduces for the same
-        // reason: `Math.min(...column)` throws once the column is longer than
-        // the engine's argument limit, and a column that long is exactly what
-        // summarizing a simulation produces.
-        compute: (column) => column.reduce((a, c) => (c < a ? c : a)),
+        compute: smallest,
     },
     {
         value: "quartile1",
         description: "The first quartile (25th percentile).",
-        compute: (column) => quantileSeq(column, 0.25),
+        compute: quartile1,
     },
     { value: "median", description: "The median value.", compute: median },
     {
         value: "quartile3",
         description: "The third quartile (75th percentile).",
-        compute: (column) => quantileSeq(column, 0.75),
+        compute: quartile3,
     },
     {
         value: "maximum",
         description: "The largest value.",
-        compute: (column) => column.reduce((a, c) => (c > a ? c : a)),
+        compute: largest,
     },
     { value: "range", description: "The maximum minus the minimum." },
     {

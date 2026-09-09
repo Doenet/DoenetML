@@ -1,6 +1,6 @@
 /**
  * PreFigure assembly for `<chart>` — bars, points and the lines through them,
- * and pies.
+ * pies, and box plots.
  *
  * Kept apart from `graph.ts` because a chart is not a graph with data in it: it
  * owns its own bounding box, it sizes its own axes from the data, and it has no
@@ -13,18 +13,19 @@
  * - `scale.ts` — the arithmetic behind an axis: rounding, tick steps, bounds.
  * - `frame.ts` — what a chart is drawn *in*: the margins, the axes and their
  *   labels, the legend, the title and the annotation tree.
- * - `bar.ts`, `point.ts`, `pie.ts` — one chart type each: the geometry its
- *   values come to, and the marks drawn from it.
+ * - `bar.ts`, `point.ts`, `pie.ts`, `box.ts` — one chart type each: the
+ *   geometry its values come to, and the marks drawn from it.
  *
  * This file is what the rest of the worker imports. It holds the union of the
- * three geometries and the one question `<chart>` asks about a legend before
- * any XML is built, and re-exports each type's own two functions.
+ * geometries and the one question `<chart>` asks about a legend before any XML
+ * is built, and re-exports each type's own two functions.
  */
 
 import { labelMarkup } from "../label";
 import type { BarChartGeometry } from "./bar";
 import type { PointChartGeometry } from "./point";
 import type { PieChartGeometry } from "./pie";
+import type { BoxChartGeometry } from "./box";
 
 export type { BarChartGeometry, BarGeometry, BarLayout } from "./bar";
 export { computeBarChartGeometry, createBarChartPrefigureXML } from "./bar";
@@ -43,12 +44,15 @@ export {
 export type { PieChartGeometry, PieSliceGeometry } from "./pie";
 export { computePieChartGeometry, createPieChartPrefigureXML } from "./pie";
 
+export type { BoxChartGeometry, BoxGeometry } from "./box";
+export { computeBoxChartGeometry, createBoxChartPrefigureXML } from "./box";
+
 export type { ChartSeriesValues } from "./scale";
 export type { ChartSeriesRendering } from "./frame";
 
 /** Any of the geometries a `<chart>` produces, whichever type was named. */
 export type ChartGeometry =
-    BarChartGeometry | PointChartGeometry | PieChartGeometry;
+    BarChartGeometry | PointChartGeometry | PieChartGeometry | BoxChartGeometry;
 
 /**
  * Whether the legend this chart would draw has anything to put in it.
@@ -57,9 +61,9 @@ export type ChartGeometry =
  * element the item points at, so whatever the legend names needs both a name
  * and something drawn: a series whose every value is undrawable is named but
  * has nothing to point at, and one drawn from an unnamed series would be a
- * swatch beside a blank line. What is named is the series on every type but
- * one — a pie names its slices, since that is the level its colors are chosen
- * at.
+ * swatch beside a blank line. What is named is usually the series: a pie names
+ * its slices, since that is the level its colors are chosen at, and a box chart
+ * names nothing, having already named each series on its axis.
  *
  * Exported so that `<chart>`'s `showLegend` asks the same question the XML
  * builders ask, rather than restating it somewhere it could drift.
@@ -68,6 +72,13 @@ export type ChartGeometry =
  */
 export function chartLegendHasItems(geometry: ChartGeometry | null): boolean {
     if (geometry === null) {
+        return false;
+    }
+
+    // A box chart names each series on the axis, under the box drawn from it,
+    // so it has nothing left for a legend to say. Every other type draws
+    // several series into the same space and needs a key to tell them apart.
+    if (geometry.kind === "box") {
         return false;
     }
 

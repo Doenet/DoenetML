@@ -1199,3 +1199,20 @@ chart-pie-one-series =
 # because what was dropped is something the author wrote for a reader to see.
 chart-pie-axis-name-ignored =
     A pie chart has no axes, so an `<xLabel>` or `<yLabel>` was not drawn. Put the text in a `<title>` instead, or in prose beside the chart.
+
+# Raised by `<chart type="box">` for an observation that is not a finite
+# number. Left out of the summary rather than read as zero, which would move
+# every quartile of the box drawn from it. No count, for the reason the others
+# give: the queue deduplicates by message, and the number changes as an input is
+# typed into.
+chart-box-values-not-drawable =
+    A box plot summarizes finite numbers, so an observation that is not one was left out of its summary.
+
+# Raised by `<chart type="box">` carrying a `categories` attribute. A box chart
+# has no categories: each of its series is one position on the axis and is named
+# by its own `<label>`, so the names in `categories` are authored text with
+# nowhere on the page to go — which is worth a message where an ignored
+# *attribute* is not, because what was dropped is something the author wrote for
+# a reader to see.
+chart-box-categories-ignored =
+    A box plot names each of its boxes after the series it was drawn from, so `categories` was not used. Give each `<series>` a `<label>` instead.

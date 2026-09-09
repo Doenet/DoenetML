@@ -44812,7 +44812,8 @@
                         "bar",
                         "line",
                         "scatter",
-                        "pie"
+                        "pie",
+                        "box"
                     ]
                 },
                 "aspectRatio": {
@@ -45293,7 +45294,7 @@
                     "name": "legend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead.",
+                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead. A box plot names each series under the box drawn from it and never draws a legend.",
                     "fromAttribute": true
                 },
                 {
@@ -45307,7 +45308,7 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
                     "fromAttribute": true
                 },
                 {
@@ -45447,7 +45448,7 @@
                     "name": "categories",
                     "type": "text",
                     "isArray": true,
-                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie.",
+                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -45974,6 +45975,50 @@
                     "type": "number",
                     "isArray": true,
                     "description": "The values in this series, in order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "minimum",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The smallest value in this series."
+                },
+                {
+                    "name": "quartile1",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The first quartile (25th percentile)."
+                },
+                {
+                    "name": "median",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The median value."
+                },
+                {
+                    "name": "quartile3",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The third quartile (75th percentile)."
+                },
+                {
+                    "name": "maximum",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The largest value in this series."
+                },
+                {
+                    "name": "outliers",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "The values more than one and a half interquartile ranges beyond the nearer quartile, in the order they were given — the ones a box plot draws as points beyond its whiskers.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {

@@ -36497,7 +36497,8 @@
                         "bar",
                         "line",
                         "scatter",
-                        "pie"
+                        "pie",
+                        "box"
                     ],
                     "autocompleteValues": [
                         {
@@ -36515,6 +36516,10 @@
                         {
                             "value": "pie",
                             "description": "A pie chart: one slice per value, each a share of the total, named by the category names. Draws one series and has no axes."
+                        },
+                        {
+                            "value": "box",
+                            "description": "A box plot per series, side by side under an axis of the series' names. A series holds raw observations rather than one value per category."
                         }
                     ],
                     "type": "keyword"
@@ -36527,7 +36532,7 @@
                 },
                 {
                     "name": "categories",
-                    "description": "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry.",
+                    "description": "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry. A box plot's positions are its series, each named by its own `<label>`.",
                     "groupName": "axes",
                     "highlighted": true,
                     "type": "textList"
@@ -36563,7 +36568,7 @@
                 },
                 {
                     "name": "legend",
-                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead.",
+                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead. A box plot names each series under the box drawn from it and never draws a legend.",
                     "groupName": "legend",
                     "defaultValue": true,
                     "values": [
@@ -36629,7 +36634,7 @@
                 },
                 {
                     "name": "yMin",
-                    "description": "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
+                    "description": "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line, scatter or box chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
                     "groupName": "axes",
                     "defaultValue": null,
                     "type": "number"
@@ -36643,7 +36648,7 @@
                 },
                 {
                     "name": "displayValues",
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
                     "groupName": "marks",
                     "defaultValue": false,
                     "values": [
@@ -36774,7 +36779,7 @@
                     "name": "legend",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead.",
+                    "description": "Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend=\"false\"` suppresses it, and a pie then writes its slice names around the rim instead. A box plot names each series under the box drawn from it and never draws a legend.",
                     "fromAttribute": true,
                     "groupName": "legend"
                 },
@@ -36790,7 +36795,7 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
                     "fromAttribute": true,
                     "groupName": "marks"
                 },
@@ -36938,7 +36943,7 @@
                     "name": "categories",
                     "type": "text",
                     "isArray": true,
-                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie.",
+                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series.",
                     "groupName": "axes",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
@@ -37286,6 +37291,50 @@
                     "type": "number",
                     "isArray": true,
                     "description": "The values in this series, in order.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "minimum",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The smallest value in this series."
+                },
+                {
+                    "name": "quartile1",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The first quartile (25th percentile)."
+                },
+                {
+                    "name": "median",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The median value."
+                },
+                {
+                    "name": "quartile3",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The third quartile (75th percentile)."
+                },
+                {
+                    "name": "maximum",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The largest value in this series."
+                },
+                {
+                    "name": "outliers",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "The values more than one and a half interquartile ranges beyond the nearer quartile, in the order they were given — the ones a box plot draws as points beyond its whiskers.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {

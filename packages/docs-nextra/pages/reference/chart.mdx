@@ -118,6 +118,41 @@ where every other type colors by series.
 
 
 
+### `type="box"`
+
+A box plot per series, side by side. A series holds raw observations — a column of
+measurements — rather than one value per category, and the box drawn from it runs from the
+first quartile to the third with the median across it.
+
+
+```doenet-editor-horiz
+<chart type="box" size="small">
+  <shortDescription>Scores in one section</shortDescription>
+  <yLabel>score</yLabel>
+  52 61 63 68 70 71 75 78 84 91
+</chart>
+
+<chart type="box" size="small">
+  <shortDescription>Scores in two sections</shortDescription>
+  <yLabel>score</yLabel>
+  <series><label>9am</label>52 61 63 68 70 71 75 78 84 91</series>
+  <series><label>1pm</label>44 55 58 60 62 65 66 70 72 96</series>
+</chart>
+```
+
+
+
+Each series is one position on the axis, named under its box by its own `<label>{:dn}`. The
+whiskers reach the furthest observation within one and a half interquartile ranges of the
+box, and an observation past that is drawn as a point of its own — the 96 in the second
+section. The vertical axis is the data's, so it need not include zero.
+
+Each `<series>{:dn}` also reports its own summary — `minimum`, `quartile1`, `median`,
+`quartile3`, `maximum` and `outliers` — computed the same way `<summaryStatistics>{:dn}`
+computes them, so a table beside the picture agrees with it.
+
+
+
 ## Examples
 
 ### Example: a bar chart of counts
@@ -213,6 +248,34 @@ there if the chart is printed or exported.
 draws them; [`<tally>{:dn}`](tally) does the same for named categories. Building a whole
 sampling simulation this way is walked through in
 [Charting a Simulation](../guides/charting-a-simulation).
+
+---
+
+### Example: a box plot beside the numbers behind it
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="scores">52 61 63 68 70 71 75 78 84 91</numberList>
+</setup>
+
+<chart type="box" size="small">
+  <shortDescription>Scores in one section</shortDescription>
+  <yLabel>score</yLabel>
+  <series name="section">$scores</series>
+</chart>
+
+<summaryStatistics statisticsToDisplay="fiveNumberSummary">$scores</summaryStatistics>
+
+<p>The middle half of the section scored between $section.quartile1 and
+$section.quartile3.</p>
+```
+
+
+
+A box plot and a [`<summaryStatistics>{:dn}`](summaryStatistics) of the same numbers report
+the same five, so the table and the picture can stand side by side. Naming the
+`<series>{:dn}` is what makes each of them readable into a sentence.
 
 ---
 
@@ -537,3 +600,27 @@ drawn with rather than what was asked for, so `$counts.yMax` is the top of the a
 see even though nothing above set one. `xMin` and `xMax` report nothing for a chart whose
 horizontal axis carries category names rather than numbers, and a pie reports nothing for
 any of the four: it has no axes to read a value off.
+
+### Property Example: a series' own summary
+
+
+```doenet-editor-horiz
+<chart type="box" size="small">
+  <shortDescription>Two sections' scores</shortDescription>
+  <yLabel>score</yLabel>
+  <series name="morning"><label>9am</label>52 61 63 68 70 71 75 78 84 91</series>
+  <series name="afternoon"><label>1pm</label>44 55 58 60 62 65 66 70 72 96</series>
+</chart>
+
+<p>Morning median: $morning.median, afternoon median: $afternoon.median.</p>
+<p>The afternoon section's middle half ran from $afternoon.quartile1 to
+$afternoon.quartile3.</p>
+<p>Drawn apart from the rest: $afternoon.outliers</p>
+```
+
+
+
+Every `<series>{:dn}` reports `minimum`, `quartile1`, `median`, `quartile3`, `maximum` and
+`outliers` about the values it holds, whichever chart was drawn from them, so a sentence
+beside the picture can say what the picture shows. `outliers` is the observations a box plot
+draws as points beyond its whiskers.
