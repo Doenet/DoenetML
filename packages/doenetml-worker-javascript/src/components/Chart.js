@@ -187,7 +187,7 @@ export default class Chart extends BlockComponent {
             groupName: "axes",
             createComponentOfType: "textList",
             description:
-                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A chart whose series carry an `x` is drawn on a numeric axis and has no positions to name, so it reads these only as a pie.",
+                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry.",
             highlighted: true,
         };
 
