@@ -3,7 +3,7 @@ import { waitPastDebounceWindow } from "../../support/prefigure";
 /**
  * The half of `<chart>` that Vitest cannot reach.
  *
- * `src/test/prefigure/chart.test.ts` stops at the XML the worker generates.
+ * `src/test/prefigure/chart*.test.ts` stop at the XML the worker generates.
  * Everything after that — the component resolving to `chart.tsx`, the build
  * request actually being made with that XML, `GraphFrame` sizing the result and
  * `aspectRatio` reaching CSS, and diagcess initializing over the annotations —

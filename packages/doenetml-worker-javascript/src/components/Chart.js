@@ -72,7 +72,7 @@ const DRAWABLE_TYPES = new Set(["bar", "line", "scatter", "pie"]);
  * hand-drawn chart would not have: the bars become one compiled SVG however
  * many there are, the horizontal axis can carry category *names* (`<graph>`
  * exposes no custom-tick support at all), and the result is navigable by
- * screen reader through diagcess. See `utils/prefigure/chart.ts`.
+ * screen reader through diagcess. See `utils/prefigure/chart/`.
  *
  * The geometry lives in its own state variable and `prefigureXML` is a thin
  * serialization of it, so the chart's meaning does not depend on how it is
