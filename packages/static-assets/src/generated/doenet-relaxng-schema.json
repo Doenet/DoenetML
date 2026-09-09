@@ -45307,7 +45307,7 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and inside a pie's slice.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
                     "fromAttribute": true
                 },
                 {
@@ -45427,7 +45427,7 @@
                     "name": "numSeries",
                     "type": "integer",
                     "isArray": false,
-                    "description": "How many series the chart draws."
+                    "description": "How many series the chart was given, drawn or not. A pie draws one series whatever it is given, so this is what it holds rather than what it drew."
                 },
                 {
                     "name": "values",

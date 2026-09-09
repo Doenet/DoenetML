@@ -374,8 +374,8 @@ always somewhere:
 
 `$chart.showLegend{:dn}` reports whether a legend is drawn, so it is false for a suppressed
 legend and for one with nothing to name — series that carry no label, or named series with
-no value that could be drawn. A pie's legend names its slices and `categories` always names
-those, so a pie draws one unless `legend="false"`.
+no value that could be drawn. A pie's legend names its slices rather than its series, so it
+has something to name as soon as a slice is drawn.
 
 
 

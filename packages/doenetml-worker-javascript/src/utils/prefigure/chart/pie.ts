@@ -220,16 +220,6 @@ const PIE_RADIUS = 1;
 const PIE_PADDING = 8;
 
 /**
- * How far along the radius a `displayValues` label sits, as a fraction of it.
- *
- * Inside the slice rather than beyond the rim, which is where the slice's name
- * goes when there is no legend to hold it: at six tenths the number is clear of
- * both the center, where every slice meets and the labels would collide, and
- * the rim, where it would run into the name.
- */
-const PIE_VALUE_LABEL_RADIUS = 0.6;
-
-/**
  * The eight compass alignments, by octant counterclockwise from due east.
  *
  * `label.py` accepts these as `alignment` and draws the text away from its
@@ -539,37 +529,13 @@ export function createPieChartPrefigureXML({
             `<arc at="${escapeXml(handle)}" center="(0,0)" radius="${PIE_RADIUS}" range="${escapeXml(range)}" sector="yes"${sliceAttrs ? ` ${sliceAttrs}` : ""} />`,
         );
 
-        // Along the middle of the slice, which is the one direction inside it
+        // Along the middle of the slice, which is the one direction out of it
         // that no neighbor is nearer to.
         const midDegrees = snapNumber(startDegrees - slice.sweep / 2);
         const midRadians = (midDegrees * Math.PI) / 180;
-        const along = (radius: number) =>
-            `(${formatNumber(snapNumber(radius * Math.cos(midRadians)))},${formatNumber(snapNumber(radius * Math.sin(midRadians)))})`;
+        const atTheRim = `(${formatNumber(snapNumber(PIE_RADIUS * Math.cos(midRadians)))},${formatNumber(snapNumber(PIE_RADIUS * Math.sin(midRadians)))})`;
 
-        if (namesBeyondRim) {
-            const nameText = labelMarkup({
-                label: slice.label,
-                labelHasLatex: false,
-            });
-            if (nameText) {
-                const alignment = compassAlignment(midDegrees);
-                const reach = SLICE_LABEL_REACH[alignment];
-                if (reach?.side) {
-                    // Rounded up rather than down, so the band is never
-                    // narrower than the width it was estimated from.
-                    sliceLabelBands[reach.side] = Math.max(
-                        sliceLabelBands[reach.side],
-                        Math.ceil(estimateTextWidth(slice.label)),
-                    );
-                }
-                if (reach?.cap) {
-                    sliceLabelBands[reach.cap] = AXIS_LABEL_LINE_HEIGHT;
-                }
-                overlayElements.push(
-                    `<label anchor="${escapeXml(along(PIE_RADIUS))}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${nameText}</label>`,
-                );
-            }
-        } else {
+        if (!namesBeyondRim) {
             legendEntries.push({
                 label: slice.label,
                 // A category is a `textList` entry, which is text and nothing
@@ -579,9 +545,40 @@ export function createPieChartPrefigureXML({
             });
         }
 
-        if (displayValues) {
+        // What is drawn beyond the rim: the slice's name where the legend is
+        // not holding it, and its value where the author asked for one.
+        //
+        // Beyond the rim rather than inside the slice, which is where every
+        // other type draws a value as well — at a bar's far end, above a
+        // point. Nothing is painted over a mark, so the text keeps the page's
+        // own color and reads against the page whatever the slice is filled
+        // with. Inside, it would not: the fifth built-in style fills black at
+        // seven tenths opacity, which composites to `#4d4d4d` and leaves black
+        // text at 2.5:1 against it, and a patterned fill has no single color
+        // to contrast with at all.
+        //
+        // One label rather than two, so there is one thing to place and one
+        // width to reserve, and the number reads as the named slice's own.
+        const name = namesBeyondRim ? slice.label.trim() : "";
+        const shown = displayValues ? (formatNumber(slice.value) ?? "") : "";
+        const rimText = name && shown ? `${name} (${shown})` : name || shown;
+
+        if (rimText) {
+            const alignment = compassAlignment(midDegrees);
+            const reach = SLICE_LABEL_REACH[alignment];
+            if (reach?.side) {
+                // Rounded up rather than down, so the band is never
+                // narrower than the width it was estimated from.
+                sliceLabelBands[reach.side] = Math.max(
+                    sliceLabelBands[reach.side],
+                    Math.ceil(estimateTextWidth(rimText)),
+                );
+            }
+            if (reach?.cap) {
+                sliceLabelBands[reach.cap] = AXIS_LABEL_LINE_HEIGHT;
+            }
             overlayElements.push(
-                `<label anchor="${escapeXml(along(PIE_VALUE_LABEL_RADIUS))}" alignment="center" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(formatNumber(slice.value) ?? "")}</label>`,
+                `<label anchor="${escapeXml(atTheRim)}" alignment="${alignment}" ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(rimText)}</label>`,
             );
         }
 

@@ -355,16 +355,40 @@ describe("chart pie prefigure tests @group4", async () => {
             expect(fillsOf(unnamed)).eqls(fillsOf(bare));
         });
 
-        it("prints each value inside its slice", async () => {
+        it("prints each value beyond the rim, never over the slice", async () => {
             const xml = await chartXML(`
     <chart type="pie" name="c" categories="A B C D" displayValues>4 4 4 4</chart>
     `);
 
-            // Four equal slices, so their middles point at the four diagonals
-            // and the labels sit six tenths of the way out along each.
+            // One label per slice, on the rim, aligned away from the center —
+            // never painted over the fill. A number inside the slice would be
+            // unreadable against a dark one: the fifth built-in style fills
+            // black at seven tenths opacity, which composites to `#4d4d4d` and
+            // leaves black text at 2.5:1 against it, and a patterned fill has
+            // no single color to contrast with at all. Every other type keeps
+            // its value off its marks for the same reason.
             expect((xml.match(/<label /g) ?? []).length).eq(4);
-            expect((xml.match(/alignment="center"/g) ?? []).length).eq(4);
+            expect(xml).not.toContain('alignment="center"');
             expect(xml).toContain(">4</label>");
+
+            // Four equal slices, so their middles point at the four diagonals.
+            for (const alignment of [
+                "northeast",
+                "southeast",
+                "southwest",
+                "northwest",
+            ]) {
+                expect(xml).toContain(`alignment="${alignment}"`);
+            }
+
+            // The legend is holding the names, so the rim carries the bare
+            // numbers. With no legend it carries both, in one label each, so
+            // the number reads as the named slice's own.
+            const named = await chartXML(`
+    <chart type="pie" name="c" categories="A B C D" legend="false" displayValues>4 4 4 4</chart>
+    `);
+            expect((named.match(/<label /g) ?? []).length).eq(4);
+            expect(named).toContain(">A (4)</label>");
         });
 
         it("annotates every slice by name and value", async () => {

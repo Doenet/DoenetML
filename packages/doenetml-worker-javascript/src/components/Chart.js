@@ -343,7 +343,7 @@ export default class Chart extends BlockComponent {
         attributes.displayValues = {
             groupName: "marks",
             description:
-                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and inside a pie's slice.",
+                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,
@@ -797,7 +797,8 @@ export default class Chart extends BlockComponent {
         stateVariableDefinitions.numSeries = {
             groupName: "data",
             highlighted: true,
-            description: "How many series the chart draws.",
+            description:
+                "How many series the chart was given, drawn or not. A pie draws one series whatever it is given, so this is what it holds rather than what it drew.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
