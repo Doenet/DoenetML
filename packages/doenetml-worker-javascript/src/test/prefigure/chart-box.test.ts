@@ -368,6 +368,49 @@ describe("chart box prefigure tests @group4", async () => {
             expect(xml.match(/<point /g)?.length).eq(1);
         });
 
+        it("writes the box from its lower corner even where the quartiles came out inverted", async () => {
+            const xml = await chartXML(`
+    <chart type="box" name="c">
+      <shortDescription>A column narrower than the comparison tolerance</shortDescription>
+      <series><label>A</label>1E-16 2E-16 3E-16 4E-16</series>
+    </chart>
+    `);
+
+            // `quantileSeq` answers with a first quartile of 3.5e-16 above its
+            // third of 2.5e-16 on this column, and a rectangle written from
+            // that pair as it stands has its corner at the top and a negative
+            // height. Taken in order, so `lower-left` is the corner it says it
+            // is, over the same interval either way.
+            expect(xml).toContain(
+                '<rectangle at="box-1" lower-left="(0.75,2.5e-16)" dimensions="(0.5,1e-16)"',
+            );
+
+            // The annotation still reports the pair as it came out: it is
+            // saying what the statistic answered, not describing the shape.
+            expect(xml).toContain(
+                "first quartile 3.5e-16, median 2.5e-16, third quartile 2.5e-16",
+            );
+        });
+
+        it("draws no whisker where no observation lies inside the fences", async () => {
+            const xml = await chartXML(`
+    <chart type="box" name="c">
+      <shortDescription>A column whose quartiles it has no observation near</shortDescription>
+      <series><label>A</label>3E-16 2E-16 2E-16</series>
+    </chart>
+    `);
+
+            // Both quartiles come back as 2.5e-16, which this column does not
+            // contain, so the interquartile range is zero and every one of the
+            // three observations is outside the fences. Each whisker then falls
+            // back to its quartile and has no length to draw: the box's own
+            // edge is the mark, and all three observations are drawn as points.
+            expect(xml).toContain('dimensions="(0.5,0)"');
+            expect(xml.match(/<point /g)?.length).eq(3);
+            // The median alone — no whisker, and so no cap either.
+            expect(xml.match(/<line /g)?.length).eq(1);
+        });
+
         it("draws nothing but the frame for a chart with no observations", async () => {
             const xml = await chartXML(`
     <chart type="box" name="c">

@@ -12,11 +12,11 @@
  * per series, named by the series' own `<label>`, and `categories` has nothing
  * to name.
  *
- * `<line>` is the one PreFigure element this folder had no use for until now —
- * the median across each box, the two whiskers and the cap at each of their
- * ends. Written with `p1`/`p2` rather than the `endpoints` pair
- * `components/line.ts` uses; `line.py` reads either, and a segment with no
- * `infinite` to declare is shorter said as two points.
+ * `<line>` is drawn here and nowhere else in this folder — the median across
+ * each box, the two whiskers and the cap at each of their ends. Written with
+ * `p1`/`p2` rather than the `endpoints` pair `components/line.ts` uses;
+ * `line.py` reads `endpoints` when it is there and `p1`/`p2` otherwise, and a
+ * segment with no `infinite` to declare is shorter said as two points.
  */
 
 import { escapeXml, formatNumber } from "../common";
@@ -42,8 +42,8 @@ import {
  * Narrower than a bar's default, and not for looks: a bar is read by its
  * length, so filling the slot makes it easier to compare, while a box is read
  * by where its edges sit against the axis, and a wide box only makes the
- * vertical distances harder to see. Half a slot is where R's `boxplot` and
- * ggplot2 both land.
+ * vertical distances harder to see. Half a slot leaves as much gap between two
+ * boxes as each of them takes.
  *
  * Not an attribute: `barWidth` is one because bars of several series share a
  * slot and dividing it is a real choice, where each box has a slot to itself.
@@ -53,8 +53,8 @@ const BOX_WIDTH = 0.5;
 /**
  * How wide the cap at the end of a whisker is drawn, as a fraction of the box.
  *
- * Half, which is what every drawing of a box plot does: a cap as wide as the
- * box reads as a second box edge, and one much narrower disappears.
+ * Half: a cap as wide as the box reads as a second box edge, and one much
+ * narrower disappears.
  */
 const CAP_WIDTH_FRACTION = 0.5;
 
@@ -232,6 +232,9 @@ function coordinates(x: number, y: number) {
 /**
  * How tall the box between the two quartiles is drawn.
  *
+ * `bottom` and `top` are taken in order, so the height is never negative and
+ * the fallback below never has to guess which way the box goes.
+ *
  * A rectangle is written as a corner and a size, so PreFigure adds the two back
  * together to find the far corner: both the height and that sum have to stay
  * inside the double range. The distance between quartiles a quarter of the
@@ -244,12 +247,12 @@ function coordinates(x: number, y: number) {
  * is a smaller wrong than a box with no height to draw it by, which is the
  * trade `scale.ts` makes at the same edge for the same reason.
  */
-function boxHeight(quartile1: number, quartile3: number): number {
-    const snapped = snapNumber(quartile3 - quartile1);
-    if (Number.isFinite(quartile1 + snapped)) {
+function boxHeight(bottom: number, top: number): number {
+    const snapped = snapNumber(top - bottom);
+    if (Number.isFinite(bottom + snapped)) {
         return snapped;
     }
-    return quartile1 > 0 ? Number.MAX_VALUE - quartile1 : Number.MAX_VALUE;
+    return bottom > 0 ? Number.MAX_VALUE - bottom : Number.MAX_VALUE;
 }
 
 /**
@@ -381,12 +384,25 @@ export function createBoxChartPrefigureXML({
         // Drawn rather than skipped: it paints as a line at the value, which is
         // exactly what the summary says — every one of the five numbers is
         // there.
+        //
+        // The two quartiles are taken in order, so `lower-left` is the corner
+        // it says it is. `quantileSeq` compares with a tolerance and can answer
+        // with a first quartile above its third on a column whose whole spread
+        // falls inside it, and a rectangle written from that pair as it stands
+        // has a negative height and its corner at the top. PreFigure reads such
+        // a shape from the other corner and draws the same interval, so this is
+        // the XML saying what it means rather than a fix to the picture — and
+        // it is what lets `boxHeight` fall back to an unsigned height. The
+        // annotation below goes on reporting the pair as it came out, which is
+        // the honest thing for it to say.
+        const boxBottom = Math.min(summary.quartile1, summary.quartile3);
+        const boxTop = Math.max(summary.quartile1, summary.quartile3);
         elements.push(
             `<rectangle at="${escapeXml(handle)}" lower-left="${escapeXml(
-                coordinates(slot - halfWidth, summary.quartile1),
+                coordinates(slot - halfWidth, boxBottom),
             )}" dimensions="${escapeXml(
                 `(${formatNumber(snapNumber(halfWidth * 2))},${formatNumber(
-                    boxHeight(summary.quartile1, summary.quartile3),
+                    boxHeight(boxBottom, boxTop),
                 )})`,
             )}" cliptobbox="yes"${withSpace(style.box)} />`,
         );

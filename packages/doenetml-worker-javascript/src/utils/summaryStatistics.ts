@@ -9,11 +9,11 @@
  * tell which was wrong.
  *
  * The quartiles are math-expressions' `quantileSeq` — interpolated percentiles,
- * not Tukey's hinges, which differ on some sample sizes. The median is the same
- * value the 50th percentile interpolates to, arrived at here rather than asked
- * for, for the reason its own note gives. `SummaryStatistics.js` carries the
- * note on why the term "five-number summary" is used unattributed; nothing here
- * needs to repeat it, but nothing here may change the calculation either.
+ * not Tukey's hinges, which differ on some sample sizes. The median is the 50th
+ * percentile, arrived at here rather than asked for, for the reason its own
+ * note gives. `SummaryStatistics.js` carries the note on why the term
+ * "five-number summary" is used unattributed; nothing here needs to repeat it,
+ * but nothing here may change the calculation either.
  */
 
 import me from "math-expressions";
@@ -57,9 +57,9 @@ export function quartile1(column: number[]): number {
 /**
  * The median: the middle observation, or the midpoint of the two middle ones.
  *
- * The same value the 50th percentile interpolates to, computed here rather than
- * asked of math-expressions, because both of the ways math-expressions can
- * answer it are wrong at one end of the double range.
+ * The 50th percentile, computed here rather than asked of math-expressions,
+ * because both of the ways math-expressions can answer it are wrong at one end
+ * of the double range.
  * `me.math.median` averages the two middle values as `(a + b) / 2`, which
  * overflows before it halves: the median of `1e308 1.5e308` came back
  * `Infinity`, and a box plot of that column drew its median line at a
@@ -110,9 +110,13 @@ export type BoxPlotSummary = {
     maximum: number;
     /**
      * The furthest observation within the fence at each end — where the whisker
-     * stops. An observation, never the fence itself: a whisker is drawn to a
-     * datum that is there, so that its end is a value in the data rather than
-     * an arithmetic consequence of the quartiles.
+     * stops. An observation rather than the fence itself, so that a whisker
+     * ends on a value the data holds rather than on an arithmetic consequence
+     * of the quartiles.
+     *
+     * A column with no such observation reports its quartile here instead —
+     * see the note on the fallback in `boxPlotSummary`. A box plot then draws
+     * no whisker on that side, the quartile being the box's own edge.
      */
     lowerWhisker: number;
     upperWhisker: number;
@@ -126,9 +130,10 @@ export type BoxPlotSummary = {
  *
  * Null rather than a summary of nothing, which is what `<summaryStatistics>`
  * reports for an empty column and what a box plot needs to know in order to
- * leave its position on the axis empty. Every statistic here throws on an empty
+ * leave its position on the axis empty. Four of the five throw on an empty
  * array — a `reduce` without an initial value, and math-expressions' own
- * statistics alike — so the check is not merely for tidiness.
+ * quantile alike — and the median answers `NaN`, so the check is not merely for
+ * tidiness.
  *
  * The column must hold finite numbers only. Anything else is missing data, and
  * whether missing data is worth a message is a question for the component that
