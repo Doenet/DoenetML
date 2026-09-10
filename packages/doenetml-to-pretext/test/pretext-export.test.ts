@@ -301,6 +301,17 @@ describe("Pretext export", async () => {
         expect(exported).not.toContain(`<fillin`);
     });
 
+    it("a section that could have held the space is left a section when another input cannot use it", async () => {
+        // The choice is made for the document as a whole, so a section that would have
+        // become the handout on its own is left alone once a second input is found
+        // outside it. One handout around the document serves both.
+        source = `<section><title>A</title><p>Q1 <textInput expanded /></p></section><p>Q2 <textInput expanded /></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/<handout/g)).toHaveLength(1);
+        expect(exported).toContain(`<section xml:id="doenet-id-1">`);
+        expect(exported.match(/workspace="1.25in"/g)).toHaveLength(2);
+    });
+
     it("a problem written beside a section gets room to write", async () => {
         // A `<problem>` is not a division and so cannot become a handout itself. The
         // handout goes around the whole document, which serves it.

@@ -1,8 +1,10 @@
 /**
  * An expanded `<textInput>` is a text area where a reader writes a long answer. On paper
  * that is blank space, which PreTeXt spells as a `workspace` attribute on the block the
- * space follows. PreTeXt only honors `workspace` inside a printout division, so the
- * division holding the block becomes a `<handout>`.
+ * space follows. PreTeXt only honors `workspace` inside a printout division, so a printout
+ * is put above every such block: the division holding it becomes a `<handout>`, or, where
+ * the inputs are not all in divisions that can become one, a `<handout>` is wrapped around
+ * the whole document.
  *
  * A document with no expanded input is left exactly as it was: wrapping it in a printout
  * would add a heading, a print-preview bar, and (in LaTeX) its own page geometry.
@@ -132,11 +134,13 @@ const BLOCK_ELEMENTS = new Set([
 ]);
 
 /**
- * Give every expanded `<textInput>` in `flatDast` room to write in, and turn the divisions
- * holding them into printouts. `flatDast` is mutated in place.
+ * Give every expanded `<textInput>` in `flatDast` room to write in, inside a printout that
+ * can hold it. `flatDast` is mutated in place.
  *
- * An input whose space cannot be placed — because its division cannot become a printout —
- * is left alone, so it still exports as the short `<fillin>` blank.
+ * Which printout that is, is decided for the document as a whole: either every input sits
+ * in a division that can become one, and each of those divisions is retagged a `<handout>`,
+ * or a single `<handout>` is wrapped around the whole document. Either way every input is
+ * served, so none is left to export as the short `<fillin>` blank.
  */
 export function addWritingSpace(flatDast: FlatDastRoot) {
     const expandedInputs = flatDast.elements.filter(isExpandedTextInput);
