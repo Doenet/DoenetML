@@ -139,8 +139,8 @@ const BLOCK_ELEMENTS = new Set([
  *
  * Which printout that is, is decided for the document as a whole: either every input sits
  * in a division that can become one, and each of those divisions is retagged a `<handout>`,
- * or a single `<handout>` is wrapped around the whole document. Either way every input is
- * served, so none is left to export as the short `<fillin>` blank.
+ * or a single `<handout>` is wrapped around the whole document. Either way a printout
+ * stands above every input, so none is left a `<fillin>` blank for want of one.
  */
 export function addWritingSpace(flatDast: FlatDastRoot) {
     const expandedInputs = flatDast.elements.filter(isExpandedTextInput);
