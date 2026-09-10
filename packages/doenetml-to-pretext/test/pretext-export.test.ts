@@ -303,6 +303,26 @@ describe("Pretext export", async () => {
         expect(exported).toContain(`<section xml:id="doenet-id-6">`);
     });
 
+    it("a section with no title of its own is not given one when it becomes a handout", async () => {
+        // PreTeXt heads an untitled `<handout>` with its default title for the division,
+        // the bare word "Handout", where the same section left alone would have carried
+        // no heading text at all. The empty title suppresses it, so becoming a printout
+        // does not invent a heading the author never wrote.
+        source = `<section><p>Why? <textInput expanded /></p></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<handout xml:id="doenet-id-1">`);
+        expect(exported).toContain(`<title></title>`);
+        expect(exported.match(/<title>/g)).toHaveLength(1);
+    });
+
+    it("a section's own title is kept when it becomes a handout", async () => {
+        // Only a division with no title of its own is given the empty one.
+        source = `<section><title>A</title><p>Why? <textInput expanded /></p></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<title>A</title>`);
+        expect(exported.match(/<title>/g)).toHaveLength(1);
+    });
+
     it("a section holding sections of its own is served by the document handout", async () => {
         // The section cannot become the handout itself, since it would then hold a
         // division. The handout goes around the whole document instead, which serves the

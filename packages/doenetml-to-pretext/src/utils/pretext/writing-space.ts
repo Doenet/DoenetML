@@ -140,7 +140,9 @@ const BLOCK_ELEMENTS = new Set([
  * Which printout that is, is decided for the document as a whole: either every input sits
  * in a division that can become one, and each of those divisions is retagged a `<handout>`,
  * or a single `<handout>` is wrapped around the whole document. Either way a printout
- * stands above every input, so none is left a `<fillin>` blank for want of one.
+ * stands above every input, so none is left a `<fillin>` blank for want of one, and a
+ * printout that has no title of its own is given an empty one rather than PreTeXt's
+ * default heading for a handout.
  */
 export function addWritingSpace(flatDast: FlatDastRoot) {
     const expandedInputs = flatDast.elements.filter(isExpandedTextInput);
@@ -192,8 +194,13 @@ export function addWritingSpace(flatDast: FlatDastRoot) {
 
     if (perDivision) {
         for (const division of new Set(divisions)) {
+            const props = mutableProps(division);
             // `divisionType` is the name of the tag a division exports as.
-            mutableProps(division).divisionType = "handout";
+            props.divisionType = "handout";
+            // `title` is the id of the division's title, or null where it has none.
+            if (props.title == null) {
+                props.title = emptyTitle(flatDast).data.id;
+            }
         }
     } else {
         makeDocumentPrintout(documentElement(flatDast) ?? flatDast, flatDast);
@@ -331,16 +338,30 @@ function setWorkspace(paragraph: FlatDastElement, inches: number) {
 }
 
 /**
+ * A `<title>` with nothing in it, which heads a printout with nothing at all.
+ *
+ * PreTeXt heads an untitled division with the default title for its kind, and `handout` is
+ * one of the kinds that has one (`has-default-title` in `pretext-common.xsl`), so a printout
+ * left untitled is headed by the bare word "Handout". A `<section>` has no default title, so
+ * a division that is retagged a printout would gain a heading it did not have, and a
+ * document handout would gain one the document never had. An empty title suppresses it:
+ * `title-xref` tests for a title element rather than for its text, so an empty one is used
+ * as written and the default is never reached.
+ */
+function emptyTitle(flatDast: FlatDastRoot) {
+    return addElement(flatDast, "title", []);
+}
+
+/**
  * Put a `<handout>` around the whole document. PreTeXt honors `@workspace` only under a
  * `<worksheet>` or a `<handout>` (`sanitize-workspace` in `pretext-common.xsl`), and a
  * handout may hold divisions, so one around everything serves every input at once and
  * leaves the sections inside it as they were written.
  *
  * The document's own title stays where it is, since the `<article>` PreTeXt builds around
- * it needs one. The handout is given an *empty* title rather than a copy of it: an
- * untitled printout is headed by PreTeXt's default title for the division — the bare word
- * "Handout" — and a copy would print the activity's title a second time. Neither is a
- * title the author wrote, and an empty one leaves the heading blank.
+ * it needs one. The handout is given an empty title rather than a copy of it, since a copy
+ * would print the activity's title a second time — a heading the author did not write, as
+ * much as the default "Handout" an untitled printout is given.
  */
 function makeDocumentPrintout(
     container: FlatDastElement | FlatDastRoot,
@@ -353,7 +374,7 @@ function makeDocumentPrintout(
     const handoutChildren = container.children.filter(
         (child) => child !== titleRef,
     );
-    handoutChildren.unshift(refTo(addElement(flatDast, "title", [])));
+    handoutChildren.unshift(refTo(emptyTitle(flatDast)));
 
     const handout = addElement(flatDast, "handout", handoutChildren);
     container.children = titleRef
