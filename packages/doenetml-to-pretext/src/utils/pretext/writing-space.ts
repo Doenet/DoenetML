@@ -144,19 +144,35 @@ export function addWritingSpace(flatDast: FlatDastRoot) {
         return;
     }
 
+    // Decided once for the document as a whole, so that the printouts never nest: either
+    // every input sits in a division that can become one, or a single handout goes around
+    // the whole document.
+    const parents = buildParentMap(flatDast);
+    const divisions: FlatDastElement[] = [];
+    let perDivision = true;
+    for (const input of expandedInputs) {
+        const division = findAncestor(
+            input,
+            parents,
+            (element) => element.name === "division",
+        );
+        if (division && !containsDivision(division, flatDast)) {
+            divisions.push(division);
+        } else {
+            perDivision = false;
+            break;
+        }
+    }
+
     /** How much space each paragraph has been asked for, in inches. */
     const requested = new Map<FlatDastElement, number>();
-    /** The containers whose contents need to end up inside a printout. */
-    const containers = new Set<FlatDastElement | FlatDastRoot>();
-
     for (const input of expandedInputs) {
         // Rebuilt each time around, since placing one input's space moves content.
-        const parents = buildParentMap(flatDast);
-        const container = findPrintoutContainer(input, parents, flatDast);
-        if (!container) {
-            continue;
-        }
-        const paragraph = paragraphForSpace(input, parents, flatDast);
+        const paragraph = paragraphForSpace(
+            input,
+            buildParentMap(flatDast),
+            flatDast,
+        );
         if (!paragraph) {
             continue;
         }
@@ -165,14 +181,18 @@ export function addWritingSpace(flatDast: FlatDastRoot) {
             paragraph,
             (requested.get(paragraph) ?? 0) + heightInInches(input),
         );
-        containers.add(container);
     }
-
     for (const [paragraph, inches] of requested) {
         setWorkspace(paragraph, inches);
     }
-    for (const container of containers) {
-        makePrintout(container, flatDast);
+
+    if (perDivision) {
+        for (const division of new Set(divisions)) {
+            // `divisionType` is the name of the tag a division exports as.
+            mutableProps(division).divisionType = "handout";
+        }
+    } else {
+        makeDocumentPrintout(documentElement(flatDast) ?? flatDast, flatDast);
     }
 }
 
@@ -307,42 +327,21 @@ function setWorkspace(paragraph: FlatDastElement, inches: number) {
 }
 
 /**
- * The element whose contents must become a printout for the workspace to be rendered:
- * the innermost division containing `node`, or the document as a whole if there is none.
+ * Put a `<handout>` around the whole document. PreTeXt honors `@workspace` only under a
+ * `<worksheet>` or a `<handout>` (`sanitize-workspace` in `pretext-common.xsl`), and a
+ * handout may hold divisions, so one around everything serves every input at once and
+ * leaves the sections inside it as they were written.
  *
- * Returns `undefined` when no printout can hold the workspace, which happens when that
- * container also holds divisions — no PreTeXt printout can contain a division.
+ * The document's own title stays where it is, since the `<article>` PreTeXt builds around
+ * it needs one. The handout is given an *empty* title rather than a copy of it: an
+ * untitled printout is headed by PreTeXt's default title for the division — the bare word
+ * "Handout" — and a copy would print the activity's title a second time. Neither is a
+ * title the author wrote, and an empty one leaves the heading blank.
  */
-function findPrintoutContainer(
-    node: FlatDastElement,
-    parents: Map<number, FlatDastElement>,
-    flatDast: FlatDastRoot,
-): FlatDastElement | FlatDastRoot | undefined {
-    const container =
-        findAncestor(node, parents, (element) => element.name === "division") ??
-        documentElement(flatDast) ??
-        flatDast;
-    return containsDivision(container, flatDast) ? undefined : container;
-}
-
-/**
- * Turn `container` into a printout: a division is retagged as a `<handout>`, and the
- * document as a whole gets a `<handout>` wrapped around its contents.
- */
-function makePrintout(
+function makeDocumentPrintout(
     container: FlatDastElement | FlatDastRoot,
     flatDast: FlatDastRoot,
 ) {
-    if (container.type === "element" && container.name === "division") {
-        // `divisionType` is the name of the tag a division exports as.
-        mutableProps(container).divisionType = "handout";
-        return;
-    }
-
-    // The document itself. Its title stays where it is, since the `<article>` built around
-    // the document needs one, and is rendered a second time on the handout so that the
-    // printed page is headed by the activity's title. That second rendering is annotated a
-    // duplicate, so it claims none of the `xml:id`s the first one already owns.
     const titleRef = container.children.find(
         (child): child is AnnotatedElementRef =>
             elementOf(child, flatDast)?.name === "title",
@@ -350,9 +349,7 @@ function makePrintout(
     const handoutChildren = container.children.filter(
         (child) => child !== titleRef,
     );
-    if (titleRef) {
-        handoutChildren.unshift({ id: titleRef.id, annotation: "duplicate" });
-    }
+    handoutChildren.unshift(refTo(addElement(flatDast, "title", [])));
 
     const handout = addElement(flatDast, "handout", handoutChildren);
     container.children = titleRef
