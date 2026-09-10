@@ -125,7 +125,7 @@ describe("Pretext export", async () => {
         expect(await coreRunner.processToFlatDastAsFragment(source))
             .toMatchInlineSnapshot(`
               "<handout>
-              <p workspace="1.25in">Explain your reasoning: </p>
+              <title></title><p workspace="1.25in">Explain your reasoning: </p>
               </handout>"
             `);
     });
@@ -151,7 +151,20 @@ describe("Pretext export", async () => {
         expect(await coreRunner.processToFlatDastAsFragment(source))
             .toMatchInlineSnapshot(`
               "<handout>
-              <p workspace="1.25in"></p>
+              <title></title><p workspace="1.25in"></p>
+              </handout>"
+            `);
+    });
+
+    it("an answer written with the response it expects gets room to write too", async () => {
+        // Content asks the answer for an input as much as `handGraded` does, so an
+        // answer written with the response it expects sugars in the same expanded input
+        // and gets the same room. The expected response itself is not printed.
+        source = `<answer type="text" expanded>The correct answer</answer>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+              "<handout>
+              <title></title><p workspace="1.25in"></p>
               </handout>"
             `);
     });
@@ -162,10 +175,10 @@ describe("Pretext export", async () => {
         source = `<answer type="text" handGraded expanded><label>Explain</label></answer>`;
         expect(await coreRunner.processToFlatDastAsFragment(source))
             .toMatchInlineSnapshot(`
-          "<handout>
-          <p workspace="1.25in">Explain</p>
-          </handout>"
-        `);
+              "<handout>
+              <title></title><p workspace="1.25in">Explain</p>
+              </handout>"
+            `);
     });
 
     it("a hand-graded answer in a list item keeps the item's text in the paragraph", async () => {
@@ -290,30 +303,98 @@ describe("Pretext export", async () => {
         expect(exported).toContain(`<section xml:id="doenet-id-6">`);
     });
 
-    it("an expanded input stays a blank where no printout can hold the space", async () => {
-        // No PreTeXt printout may contain a division, so a section that also holds
-        // sections of its own cannot become a handout, and the input keeps its blank.
-        source = `<section><title>A</title><p>Why? <textInput expanded /></p><section><title>B</title><p>Inner</p></section></section>`;
+    it("a section with no title of its own is not given one when it becomes a handout", async () => {
+        // PreTeXt heads an untitled `<handout>` with its default title for the division,
+        // the bare word "Handout", where the same section left alone would have carried
+        // no heading text at all. The empty title suppresses it, so becoming a printout
+        // does not invent a heading the author never wrote.
+        source = `<section><p>Why? <textInput expanded /></p></section>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
-        expect(exported).not.toContain(`handout`);
-        expect(exported).toContain(`<fillin characters="8"></fillin>`);
+        expect(exported).toContain(`<handout xml:id="doenet-id-1">`);
+        expect(exported).toContain(`<title></title>`);
+        expect(exported.match(/<title>/g)).toHaveLength(1);
     });
 
-    it("the handout wrapped around a whole document repeats its title", async () => {
-        // The `<article>` PreTeXt builds around the document has to keep the title,
-        // so the handout renders it a second time to head the printed page.
+    it("a section's own title is kept when it becomes a handout", async () => {
+        // Only a division with no title of its own is given the empty one.
+        source = `<section><title>A</title><p>Why? <textInput expanded /></p></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<title>A</title>`);
+        expect(exported.match(/<title>/g)).toHaveLength(1);
+    });
+
+    it("a section holding sections of its own is served by the document handout", async () => {
+        // The section cannot become the handout itself, since it would then hold a
+        // division. The handout goes around the whole document instead, which serves the
+        // input and leaves both sections standing where they were written.
+        source = `<section><title>A</title><p>Why? <textInput expanded /></p><section><title>B</title><p>Inner</p></section></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<p workspace="1.25in">Why? </p>`);
+        // The handout around the document carries no `xml:id`, where a section retagged
+        // as one would; both sections are still written as sections.
+        expect(exported).toContain(`<handout>`);
+        expect(exported).toContain(`<section xml:id="doenet-id-1">`);
+        expect(exported).toContain(`<section xml:id="doenet-id-5">`);
+        expect(exported).not.toContain(`<fillin`);
+    });
+
+    it("a section that could have held the space is left a section when another input cannot use it", async () => {
+        // The choice is made for the document as a whole, so a section that would have
+        // become the handout on its own is left alone once a second input is found
+        // outside it. One handout around the document serves both.
+        source = `<section><title>A</title><p>Q1 <textInput expanded /></p></section><p>Q2 <textInput expanded /></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/<handout/g)).toHaveLength(1);
+        expect(exported).toContain(`<section xml:id="doenet-id-1">`);
+        expect(exported.match(/workspace="1.25in"/g)).toHaveLength(2);
+    });
+
+    it("a problem written beside a section gets room to write", async () => {
+        // A `<problem>` is not a division and so cannot become a handout itself. The
+        // handout goes around the whole document, which serves it.
+        source = `<section><title>S</title><p>x</p></section><problem><p>Q <textInput expanded /></p></problem>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<handout>`);
+        expect(exported).toContain(`<p workspace="1.25in">Q </p>`);
+        expect(exported).not.toContain(`<fillin`);
+    });
+
+    it("a run of problems beside a section shares a single handout", async () => {
+        // One handout for the document, rather than one apiece, so the printed page is
+        // not broken up by a heading before every problem.
+        source = `<section><title>S</title><p>x</p></section><problem><p>Q1 <textInput expanded /></p></problem><problem><p>Q2 <textInput expanded /></p></problem>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/<handout/g)).toHaveLength(1);
+        expect(exported.match(/workspace="1.25in"/g)).toHaveLength(2);
+    });
+
+    it("a division nested inside a block is still served by the document handout", async () => {
+        // A handout may hold divisions, so however the sections are arranged around the
+        // input, the one around the document reaches it.
+        source = `<problem><p>Q <textInput expanded /></p><section><title>B</title><p>x</p></section></problem><section><title>C</title><p>y</p></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<handout>`);
+        expect(exported).toContain(`<p workspace="1.25in">Q </p>`);
+        expect(exported).not.toContain(`<fillin`);
+    });
+
+    it("the handout wrapped around a whole document is left untitled", async () => {
+        // The document's title stays on the `<article>`, which needs one. The handout is
+        // given an empty title rather than a copy: untitled, PreTeXt would head it with
+        // its default title for the division — the bare word "Handout" — and a copy
+        // would print the activity's title twice. Neither is a title the author wrote.
         source = `<title>My activity</title><p>Why? <textInput expanded /></p>`;
         expect(await coreRunner.processToFlatDast(source))
             .toMatchInlineSnapshot(`
-          "<?xml version="1.0" encoding="UTF-8"?>
-          <pretext>
-          <article>
-          <title>My activity</title><handout>
-          <title>My activity</title><p workspace="1.25in">Why? </p>
-          </handout>
-          </article>
-          </pretext>"
-        `);
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <title>My activity</title><handout>
+              <title></title><p workspace="1.25in">Why? </p>
+              </handout>
+              </article>
+              </pretext>"
+            `);
     });
 
     it("an unfilled input inside an <m> becomes a fillin", async () => {
