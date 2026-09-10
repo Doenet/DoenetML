@@ -156,6 +156,19 @@ describe("Pretext export", async () => {
             `);
     });
 
+    it("an answer written with the response it expects gets room to write too", async () => {
+        // Content asks the answer for an input as much as `handGraded` does, so an
+        // answer written with the response it expects sugars in the same expanded input
+        // and gets the same room. The expected response itself is not printed.
+        source = `<answer type="text" expanded>The correct answer</answer>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+              "<handout>
+              <title></title><p workspace="1.25in"></p>
+              </handout>"
+            `);
+    });
+
     it("a hand-graded answer keeps its label alongside the room to write", async () => {
         // Only the input is replaced by the space; the answer wrapping it still
         // renders the label that asks the question.
@@ -297,7 +310,11 @@ describe("Pretext export", async () => {
         source = `<section><title>A</title><p>Why? <textInput expanded /></p><section><title>B</title><p>Inner</p></section></section>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported).toContain(`<p workspace="1.25in">Why? </p>`);
-        expect(exported).toContain(`<section`);
+        // The handout around the document carries no `xml:id`, where a section retagged
+        // as one would; both sections are still written as sections.
+        expect(exported).toContain(`<handout>`);
+        expect(exported).toContain(`<section xml:id="doenet-id-1">`);
+        expect(exported).toContain(`<section xml:id="doenet-id-5">`);
         expect(exported).not.toContain(`<fillin`);
     });
 
@@ -317,6 +334,7 @@ describe("Pretext export", async () => {
         // handout goes around the whole document, which serves it.
         source = `<section><title>S</title><p>x</p></section><problem><p>Q <textInput expanded /></p></problem>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<handout>`);
         expect(exported).toContain(`<p workspace="1.25in">Q </p>`);
         expect(exported).not.toContain(`<fillin`);
     });
@@ -335,6 +353,7 @@ describe("Pretext export", async () => {
         // input, the one around the document reaches it.
         source = `<problem><p>Q <textInput expanded /></p><section><title>B</title><p>x</p></section></problem><section><title>C</title><p>y</p></section>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<handout>`);
         expect(exported).toContain(`<p workspace="1.25in">Q </p>`);
         expect(exported).not.toContain(`<fillin`);
     });
