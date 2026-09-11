@@ -363,6 +363,35 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a label written on the answer is not repeated by its math input", async () => {
+        // An input inherits `label` from the answer around it, the same way it inherits
+        // `expanded`. The answer is the one that renders it — an expanded input is
+        // replaced by writing space before export, and the label has to survive that — so
+        // the input drops the copy it inherited.
+        source = `<answer><label>How many?</label>42</answer>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(
+            `How many? <m><fillin characters="8"></fillin></m>`,
+        );
+        expect(exported.match(/How many\?/g)).toHaveLength(1);
+    });
+
+    it("a label written on the answer is not repeated by its choice input", async () => {
+        source = `<answer inline><label>Pick one</label><choice credit="1">yes</choice><choice>no</choice></answer>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/Pick one/g)).toHaveLength(1);
+    });
+
+    it("a footnote exports as PreTeXt's <fn>", async () => {
+        // PreTeXt spells a footnote `<fn>`. Left unmapped, `<footnote>` reaches the
+        // fallback renderer, which emits a literal `<footnote>` that PreTeXt has no
+        // template for — so the note's text runs on inside the citing sentence.
+        source = `<p>Claim<footnote>The source.</footnote></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Claim<fn>The source.</fn></p>`,
+        );
+    });
+
     it("mathInput renders its label", async () => {
         source = `<answer><mathInput><label>My Label</label></mathInput></answer>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
