@@ -1,5 +1,6 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
+import { AnswerLabelContext } from "./answer-label-context";
 
 type ChoiceInputData = {
     props: {
@@ -21,9 +22,13 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
         choicesOrder,
         choicesHidden,
         selectedIndices,
-        label,
+        label: ownLabel,
         inline,
     } = node.data.props;
+    // Drop the label the answer around it already rendered; keep one written here.
+    const answerLabel = React.useContext(AnswerLabelContext);
+    const label =
+        ownLabel?.trim() && ownLabel.trim() === answerLabel ? "" : ownLabel;
     const childrenArray: React.ReactNode[] = Array.isArray(children)
         ? children
         : [children];
