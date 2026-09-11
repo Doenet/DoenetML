@@ -246,7 +246,7 @@ describe("Pretext export", async () => {
 
         source = `<ol><li>Pick: <choiceInput inline><choice>yes</choice><choice>no</choice></choiceInput> <answer type="text" handGraded expanded /></li></ol>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
-            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="5"></fillin> </p></li>`,
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="21"></fillin> </p></li>`,
         );
     });
 
@@ -294,7 +294,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<p>Short answer: <fillin characters="14"></fillin></p>"`,
+            `"<p>Short answer: <fillin characters="21"></fillin></p>"`,
         );
     });
 
@@ -619,7 +619,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<p>Value of <m>x</m>: <fillin characters="14"></fillin></p>"`,
+            `"<p>Value of <m>x</m>: <fillin characters="21"></fillin></p>"`,
         );
     });
 

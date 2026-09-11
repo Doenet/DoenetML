@@ -2,6 +2,7 @@ import React from "react";
 import type { TextInputPropsInText } from "@doenet/doenetml-worker";
 import { BasicComponent } from "../types";
 import { inputLabelContent } from "./utils/input-label";
+import { TEXT_FILLIN_CHARACTERS } from "./fillin-width";
 
 type ComponentSize = { size: number; isAbsolute: boolean };
 
@@ -15,16 +16,29 @@ type TextInputData = {
  */
 const PIXELS_PER_CHARACTER = (16 * 5) / 11;
 
-/** The blank for an input whose width is a share of the page, which says nothing about it. */
-const DEFAULT_CHARACTERS = 8;
+/**
+ * The width the core gives a text input that was given none (`TextInput.js`). The
+ * converter sees only the resolved width, so an input at exactly this width is taken to
+ * have been left at the default.
+ */
+const DEFAULT_WIDTH_PIXELS = 100;
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const { immediateValue: value, width, label } = node.data.props;
-    // As wide as the input is on screen, and wide enough for what is in it.
+    // An input given a width of its own prints that wide. One left at the default, or
+    // given a share of the page, which says nothing about paper, gets the blank that is
+    // as long as a math blank, so the two read as the same kind of answer space.
+    const authoredPixels =
+        width?.isAbsolute &&
+        width.size > 0 &&
+        width.size !== DEFAULT_WIDTH_PIXELS
+            ? width.size
+            : undefined;
     const fromWidth =
-        width?.isAbsolute && width.size > 0
-            ? Math.round(width.size / PIXELS_PER_CHARACTER)
-            : DEFAULT_CHARACTERS;
+        authoredPixels !== undefined
+            ? Math.round(authoredPixels / PIXELS_PER_CHARACTER)
+            : TEXT_FILLIN_CHARACTERS;
+    // Wide enough, too, for what is already in it.
     const characters = Math.max(value?.length || 0, fromWidth);
 
     return (

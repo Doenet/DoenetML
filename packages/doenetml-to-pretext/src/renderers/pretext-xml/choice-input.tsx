@@ -1,6 +1,7 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
 import { AnswerLabelContext } from "./answer-label-context";
+import { TEXT_FILLIN_CHARACTERS } from "./fillin-width";
 
 type ChoiceInputData = {
     props: {
@@ -54,7 +55,7 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
                         ))
                     )
                 ) : (
-                    <fillin characters={5} />
+                    <fillin characters={TEXT_FILLIN_CHARACTERS} />
                 )}
             </React.Fragment>
         );
