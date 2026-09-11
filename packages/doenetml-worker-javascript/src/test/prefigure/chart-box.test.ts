@@ -208,6 +208,34 @@ describe("chart box prefigure tests @group4", async () => {
             expect(xml).toContain(">evening</tick-mark>");
         });
 
+        it("typesets a name that carries math", async () => {
+            const xml = await chartXML(`
+    <chart type="box" name="c">
+      <shortDescription>Two groups</shortDescription>
+      <series><label>Group <m>x</m></label>1 2 3</series>
+      <series><label>plain</label>4 5 6</series>
+    </chart>
+    `);
+
+            // A tick mark's content goes through PreFigure's own label
+            // machinery, so an `<m>` in it is typeset the way one in a legend
+            // entry is. A box chart is the only type that can reach this: every
+            // other names its positions from `categories`, which is a
+            // `textList` and so is text and nothing else — and those names are
+            // still written as they always were.
+            expect(xml).toContain(">Group <m>x</m></tick-mark>");
+            expect(xml).toContain(">plain</tick-mark>");
+            // The drawn names, and only those. The annotation still carries
+            // the label as it arrived, `\\(x\\)` and all — a bar chart's group
+            // annotation does the same on `main`, because what a screen reader
+            // should hear for a name written as math is a question for every
+            // type at once rather than one this can answer alone.
+            for (const tick of xml.match(/<tick-mark[^>]*>.*?<\/tick-mark>/g) ??
+                []) {
+                expect(tick).not.toContain("\\(");
+            }
+        });
+
         it("falls back to the position where a series has no label", async () => {
             const xml = await chartXML(`
     <chart type="box" name="c">
@@ -409,6 +437,26 @@ describe("chart box prefigure tests @group4", async () => {
             expect(xml.match(/<point /g)?.length).eq(3);
             // The median alone — no whisker, and so no cap either.
             expect(xml.match(/<line /g)?.length).eq(1);
+        });
+
+        it("draws both whiskers outward from a box whose quartiles inverted", async () => {
+            const xml = await chartXML(`
+    <chart type="box" name="c">
+      <shortDescription>A spread inside the comparison tolerance</shortDescription>
+      <series>1E-16 2E-16 3E-16 4E-16</series>
+    </chart>
+    `);
+
+            // `quantileSeq` compares with a tolerance, so this column's
+            // quartiles come back the wrong way round. The rectangle takes them
+            // in order, and so must the whiskers: paired with the quartiles as
+            // they came out, the lower one would start at the top of the box
+            // and run down past the bottom, and the upper one back up through
+            // it — two lines drawn through the box rather than out of it.
+            expect(xml).toContain('lower-left="(0.75,2.5e-16)"');
+            expect(xml).toContain('dimensions="(0.5,1e-16)"');
+            expect(xml).toContain('<line p1="(1,2.5e-16)" p2="(1,2e-16)"');
+            expect(xml).toContain('<line p1="(1,3.5e-16)" p2="(1,4e-16)"');
         });
 
         it("draws nothing but the frame for a chart with no observations", async () => {

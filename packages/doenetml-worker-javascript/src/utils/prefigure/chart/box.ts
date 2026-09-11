@@ -417,22 +417,35 @@ export function createBoxChartPrefigureXML({
             )}" cliptobbox="yes"${withSpace(style.stroke)} />`,
         );
 
-        // A whisker from each quartile to the furthest observation still inside
-        // the fence, with a cap across its end.
+        // A whisker from each edge of the box to the furthest observation
+        // still inside the fence, with a cap across its end.
         //
-        // Neither is drawn where the observation is the quartile itself — the
-        // minimum of a column whose lower quarter is one repeated value, say.
-        // The whisker would have no length, and the cap would be a short line
-        // lying along the edge of the box: two marks saying what the box's own
-        // edge already says, in a drawing whose whole subject is which mark is
-        // where.
-        const whiskers: [number, number][] = [
-            [summary.quartile1, summary.lowerWhisker],
-            [summary.quartile3, summary.upperWhisker],
+        // From the *ordered* edges rather than from `quartile1` and
+        // `quartile3` as they came out: on a column whose quartiles
+        // `quantileSeq` inverted, pairing the first quartile with the lower
+        // whisker starts that whisker at the top of the box and runs it down
+        // past the bottom, and the other one back up through it — two lines
+        // drawn through the box rather than out of it.
+        //
+        // Each is drawn only where it would point away from the box.
+        // `Math.sign` is zero when the observation is the edge itself — the
+        // minimum of a column whose lower quarter is one repeated value, say —
+        // so that case is skipped as it always was: the whisker would have no
+        // length and the cap would lie along the edge of the box, two marks
+        // saying what the box's own edge already says. It is also skipped in
+        // the case that rule now covers, where the furthest observation inside
+        // the fence is on the wrong side of the edge to be reached outward.
+        const whiskers = [
+            { from: boxBottom, to: summary.lowerWhisker, outward: -1 },
+            { from: boxTop, to: summary.upperWhisker, outward: 1 },
         ];
         const capHalfWidth = halfWidth * CAP_WIDTH_FRACTION;
-        for (const [fromQuartile, toObservation] of whiskers) {
-            if (toObservation === fromQuartile) {
+        for (const {
+            from: fromQuartile,
+            to: toObservation,
+            outward,
+        } of whiskers) {
+            if (Math.sign(toObservation - fromQuartile) !== outward) {
                 continue;
             }
             elements.push(
@@ -497,7 +510,16 @@ export function createBoxChartPrefigureXML({
         bounds: geometry.bounds,
         yTicks: axisTicks(yMin, yMax, geometry.tickStep),
         xTicks: null,
-        slots: geometry.slots,
+        // A box chart's positions are named by the series' own `<label>`, which
+        // may hold an `<m>` — the one type whose axis names can carry math,
+        // since every other type names its positions from `categories`, a
+        // `textList`. Read off the rendering rather than the geometry, which is
+        // renderer-neutral and has no business knowing how a name is typeset.
+        // One slot per series, in the same order, so the indices line up.
+        slots: geometry.slots.map((slot, seriesIndex) => ({
+            ...slot,
+            labelHasLatex: Boolean(seriesRendering[seriesIndex]?.labelHasLatex),
+        })),
         widthPx,
         heightPx,
         xLabel,

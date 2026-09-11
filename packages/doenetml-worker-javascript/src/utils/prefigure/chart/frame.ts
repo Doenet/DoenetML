@@ -758,7 +758,14 @@ export function assembleChartDiagram({
     /** Null when the horizontal axis carries category names instead of numbers. */
     xTicks: AxisTicks | null;
     /** Null when the horizontal axis is numeric. */
-    slots: { center: number; label: string }[] | null;
+    /**
+     * Null when the horizontal axis is numeric. `labelHasLatex` says the name
+     * carries math to typeset rather than characters to print — true only of a
+     * box chart, whose positions are named by a `<label>` that may hold an
+     * `<m>`, where every other type names them from `categories`, which is a
+     * `textList` and so is text and nothing else.
+     */
+    slots: { center: number; label: string; labelHasLatex?: boolean }[] | null;
     widthPx: number;
     heightPx: number;
     xLabel?: string;
@@ -1016,8 +1023,20 @@ export function assembleChartDiagram({
     // otherwise the gap would read as a missing category rather than as a
     // missing value.
     for (const slot of slots ?? []) {
+        // A tick mark's content goes through PreFigure's own label machinery
+        // (`tick_mark`, `axes.py`), so an `<m>` in it is typeset the way one in
+        // a legend entry is — and a name that arrives as `\(x\)` without being
+        // marked up is drawn as those six characters. Only asked of a name that
+        // carries math: without the flag this is the plain `escapeXml` it has
+        // always been, which is what every other type still gets.
+        const name = slot.labelHasLatex
+            ? (labelMarkup({
+                  label: slot.label,
+                  labelHasLatex: true,
+              }) ?? escapeXml(slot.label))
+            : escapeXml(slot.label);
         elements.push(
-            `<tick-mark axis="horizontal" location="${formatNumber(slot.center)}"${strokeAttr} ${THEME_AWARE_LABEL_COLOR_ATTR}>${escapeXml(slot.label)}</tick-mark>`,
+            `<tick-mark axis="horizontal" location="${formatNumber(slot.center)}"${strokeAttr} ${THEME_AWARE_LABEL_COLOR_ATTR}>${name}</tick-mark>`,
         );
     }
 
