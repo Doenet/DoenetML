@@ -222,7 +222,7 @@ describe("Pretext export", async () => {
 
         source = `<ol><li>Pick: <choiceInput inline><choice>yes</choice><choice>no</choice></choiceInput> <answer type="text" handGraded expanded /></li></ol>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
-            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="5"></fillin> </p></li>`,
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="21"></fillin> </p></li>`,
         );
     });
 
@@ -270,7 +270,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<p>Short answer: <fillin characters="8"></fillin></p>"`,
+            `"<p>Short answer: <fillin characters="21"></fillin></p>"`,
         );
     });
 
@@ -296,7 +296,7 @@ describe("Pretext export", async () => {
         source = `<section><title>A</title><p>Why? <textInput expanded /></p><section><title>B</title><p>Inner</p></section></section>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported).not.toContain(`handout`);
-        expect(exported).toContain(`<fillin characters="8"></fillin>`);
+        expect(exported).toContain(`<fillin characters="21"></fillin>`);
     });
 
     it("the handout wrapped around a whole document repeats its title", async () => {
