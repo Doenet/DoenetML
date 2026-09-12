@@ -274,6 +274,35 @@ describe("chart histogram prefigure tests @group4", async () => {
             expect(getDiagnosticsByType(core).infos.length).eq(0);
         });
 
+        it("keeps the outermost observations inside the bins it chose itself", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="histogram" name="c">
+      <shortDescription>x</shortDescription>
+      111365559.74588975 111365559.70256011 111365559.78202449
+      111365559.80143051 111365559.6999208
+    </chart>
+    <p name="counts">$c.binCounts</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // A spread tiny beside the magnitude: rounding the lowest cut point
+            // to twelve significant digits lands it just *above* the smallest
+            // observation, which would then fall in no bin. Widened back onto
+            // the data, so the outermost bin comes out a hair wider than its
+            // neighbors rather than the sample coming out one observation
+            // short — and so the rule the info message below rests on, that a
+            // chart's own bins cover its data, holds rather than nearly holds.
+            expect(xml).toContain('lower-left="(111365559.6999208,0)"');
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("3, 1, 1");
+            expect(getDiagnosticsByType(core).infos.length).eq(0);
+        });
+
         it("gives a sample too narrow to divide one bin holding all of it", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
