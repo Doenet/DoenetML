@@ -167,8 +167,17 @@ export const upgradeDeprecatedAttributes: Plugin<
                 ...GLOBAL_RULES,
                 ...(ELEMENT_RULES[elm.name.toLowerCase()] || {}),
             };
-            // Snapshot the keys: the rules mutate `elm.attributes`.
-            for (const key of Object.keys(elm.attributes)) {
+            // Snapshot the keys: the rules mutate `elm.attributes`. `mergeInto` finds its
+            // target attribute by name, so it has to run after the renames that produce
+            // that name — `<updateValue prop="value" tName="x">` must become
+            // `target="$x.value"` however the two attributes were ordered in the source.
+            const keys = Object.keys(elm.attributes);
+            const isMerge = (key: string) =>
+                rules[key.toLowerCase()]?.kind === "mergeInto";
+            for (const key of [
+                ...keys.filter((k) => !isMerge(k)),
+                ...keys.filter(isMerge),
+            ]) {
                 const rule = rules[key.toLowerCase()];
                 if (!rule) {
                     continue;

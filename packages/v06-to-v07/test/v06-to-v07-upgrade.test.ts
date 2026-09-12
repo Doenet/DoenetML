@@ -591,6 +591,47 @@ describe("v06 to v07 update", () => {
         ]);
     });
 
+    it("two composites taking the single-name shortcut cannot share a name", async () => {
+        // Both of these would otherwise become `name="a"`, which v0.7 rejects. The first
+        // keeps the name (so `$a` still resolves to it) and the second is renamed.
+        source = `<selectFromSequence assignNames="a" from="1" to="5" /><selectFromSequence assignNames="a" from="1" to="5" /> $a`;
+        correctSource = `<selectFromSequence name="a" from="1" to="5" /><selectFromSequence name="selectFromSequence" from="1" to="5" /> $a`;
+
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/duplicate-name",
+        ]);
+    });
+
+    it("does not let a later composite steal a name the shortcut already used", async () => {
+        source = `<selectFromSequence assignNames="a" from="1" to="5" /><selectFromSequence assignNames="a b" numToSelect="2" /> $a $b`;
+        correctSource = `<selectFromSequence name="a" from="1" to="5" /><selectFromSequence name="selectFromSequence" numToSelect="2" /> $a $selectFromSequence[2]`;
+
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(correctSource);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "assign-names/duplicate-name",
+        ]);
+    });
+
+    it("drops an assignNames value that names nothing", async () => {
+        for (const value of ["", "()", "( )"]) {
+            const res = await updateSyntaxFromV06toV07(
+                `<selectFromSequence assignNames="${value}" from="1" to="5" />`,
+                { doNotUpgradeCopyTags: true },
+            );
+            expect(toXml(res.dast)).toEqual(
+                `<selectFromSequence from="1" to="5" />`,
+            );
+            expect(res.vfile.messages).toEqual([]);
+        }
+    });
+
     it("flags a composite whose own attribute refers to the name it is given", async () => {
         // `$aa` resolved to nothing in v0.6; with the name on the element it is circular.
         source = `<selectFromSequence assignNames="aa" from="-4" to="4" exclude="$aa" /> $aa`;

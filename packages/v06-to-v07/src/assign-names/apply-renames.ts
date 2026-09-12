@@ -82,7 +82,9 @@ function renameRawReferenceAttribute(
         return;
     }
     // A cheap pre-check so we don't reparse every `source` attribute in the document.
-    if (!value.split(/[.[\]]/).some((piece) => registry.has(piece))) {
+    if (
+        !value.split(/[.[\]]/).some((piece) => registry.hasReplacement(piece))
+    ) {
         return;
     }
 
@@ -117,12 +119,12 @@ function renamePath(
     path: DastMacroPathPart[],
     registry: RenameRegistry,
 ): DastMacroPathPart[] {
-    if (!path.some((part) => registry.has(part.name))) {
+    if (!path.some((part) => registry.hasReplacement(part.name))) {
         return path;
     }
     return path.flatMap((part): DastMacroPathPart[] => {
         const target = registry.get(part.name);
-        if (!target) {
+        if (!target?.replacement) {
             return [part];
         }
         const replacement = structuredClone(

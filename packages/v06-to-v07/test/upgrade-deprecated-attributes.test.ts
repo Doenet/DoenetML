@@ -57,6 +57,19 @@ describe("deprecated attribute upgrades", () => {
         ).toEqual(`<updateValue target="$x.value" newValue="1" />`);
     });
 
+    it("merges a prop into a target that is itself produced by a rename", async () => {
+        // `tName` only becomes `target` during this same pass, so the merge has to happen
+        // after it however the two attributes were ordered in the source.
+        for (const source of [
+            `<updateValue tName="x" prop="value" newValue="1" />`,
+            `<updateValue prop="value" tName="x" newValue="1" />`,
+        ]) {
+            expect((await convert(source)).xml).toEqual(
+                `<updateValue target="$x.value" newValue="1" />`,
+            );
+        }
+    });
+
     it("turns graph label attributes into child elements, in attribute order", async () => {
         expect(
             (

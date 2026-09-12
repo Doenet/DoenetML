@@ -81,6 +81,13 @@ export const upgradeAssignNames: Plugin<
             const parsed =
                 breakStringInPiecesBySpacesOrParens(assignNamesValue);
 
+            if (parsed.success && parsed.pieces.length === 0) {
+                // A value such as `assignNames="()"` names nothing at all, so there is
+                // nothing to convert and no reason to invent a name for the composite.
+                deleteAssignNames(node);
+                return;
+            }
+
             // Fast path: a single name on a composite with a single replacement can just
             // become that composite's `name`, because a bare `$name` auto-flattens to the
             // one replacement. This covers most `assignNames` in practice and rewrites
@@ -95,8 +102,19 @@ export const upgradeAssignNames: Plugin<
                 onlyPiece !== undefined &&
                 !findAttribute(node, "name") &&
                 !context.existingNames.has(onlyPiece) &&
+                !context.claimedNames.has(onlyPiece) &&
                 producesSingleReplacement(node, spec)
             ) {
+                context.claimedNames.add(onlyPiece);
+                // Claim the name in the registry too, without a replacement: references
+                // to it already resolve, but a later composite assigning the same name
+                // must be told it cannot have it rather than silently redirecting them.
+                context.registry.register(
+                    onlyPiece,
+                    undefined,
+                    { elementName: node.name, position: node.position },
+                    file,
+                );
                 warnIfSelfReferential(node, onlyPiece, file);
                 setCompositeName(node, onlyPiece);
                 return;

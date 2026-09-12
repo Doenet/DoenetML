@@ -22,8 +22,12 @@ export type RenameTarget = {
     /**
      * The path parts that replace a matched path part. Always length 1 in practice, but
      * kept as an array so the splice site reads the same as the existing plugins.
+     *
+     * `undefined` means the name was claimed as a composite's v0.7 `name`, so references
+     * to it already resolve and must be left exactly as the author wrote them. Such an
+     * entry exists only so that a second composite assigning the same name is detected.
      */
-    replacement: DastMacroPathPart[];
+    replacement?: DastMacroPathPart[];
     origin: RenameOrigin;
 };
 
@@ -64,10 +68,15 @@ export class RenameRegistry {
     /**
      * Register that `oldName` should be replaced by `replacement` wherever it appears in
      * a macro path. The first registration of a name wins; a later one warns.
+     *
+     * Pass `undefined` for `replacement` to claim the name without rewriting anything,
+     * which is what a composite that simply took the assigned name as its own `name`
+     * needs: references already resolve, but a later composite assigning the same name
+     * must not silently redirect them.
      */
     register(
         oldName: string,
-        replacement: DastMacroPathPart[],
+        replacement: DastMacroPathPart[] | undefined,
         origin: RenameOrigin,
         file: VFile,
     ) {
@@ -109,6 +118,11 @@ export class RenameRegistry {
 
     has(name: string): boolean {
         return this.renames.has(name);
+    }
+
+    /** Whether `name` is registered *and* references to it need rewriting. */
+    hasReplacement(name: string): boolean {
+        return this.renames.get(name)?.replacement !== undefined;
     }
 
     get size(): number {
