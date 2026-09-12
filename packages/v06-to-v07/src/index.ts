@@ -20,6 +20,12 @@ import { upgradeModuleElement } from "./upgrade-module-element";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { removeConstraintsElement } from "./remove-constraints-element";
 import { removeDefinitionsElement } from "./remove-definitions-element";
+import { upgradeDeprecatedAttributes } from "./upgrade-deprecated-attributes";
+import { upgradeExternalCopy } from "./upgrade-external-copy";
+import { upgradeListProps } from "./upgrade-list-props";
+import { upgradeAssignNames } from "./upgrade-assign-names";
+import { applyAssignNameRenames } from "./apply-assign-name-renames";
+import { createAssignNamesContext } from "./assign-names/context";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -38,17 +44,28 @@ export async function updateSyntaxFromV06toV07_root(
     dast: DastRootV6,
     options: Options,
 ) {
+    // Every plugin that consumes `assignNames` registers its renames in one shared
+    // context, and `applyAssignNameRenames` rewrites all the references in a single pass
+    // afterwards. That way a reference is rewritten exactly once, no matter which plugin
+    // claimed the name it used.
+    const assignNamesContext = createAssignNamesContext(dast);
+
     let processor = unified()
         .use(correctElementCapitalization)
         .use(correctAttributeCapitalization)
         .use(correctComponentTypesAttributeCapitalization)
+        .use(upgradeDeprecatedAttributes)
         .use(ensureDollarBeforeNamesOnSpecificAttributes)
         .use(upgradePathSlashesToDots)
         .use(removeNewNamespaceAttribute)
         .use(upgradeRefElement)
         .use(copySourceToExtendOrCopy)
-        .use(upgradeCollectElement)
-        .use(upgradeMapElement)
+        .use(upgradeCollectElement, assignNamesContext)
+        .use(upgradeMapElement, assignNamesContext)
+        .use(upgradeAssignNames, assignNamesContext)
+        .use(applyAssignNameRenames, assignNamesContext)
+        .use(upgradeExternalCopy)
+        .use(upgradeListProps)
         .use(upgradeModuleElement)
         .use(removeConstraintsElement)
         .use(removeDefinitionsElement);

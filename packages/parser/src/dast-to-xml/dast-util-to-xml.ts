@@ -52,11 +52,23 @@ export function nodesToXml(
         | DastMacroPathPart
         | DastMacroFullPath,
     options: PrintOptions,
+    /**
+     * Set when the caller knows the text that will follow this node would otherwise be
+     * absorbed into it. Only meaningful for macros.
+     */
+    forceParens = false,
 ): string {
     if (Array.isArray(node)) {
         if (!node.some((n) => n.type === "pathPart")) {
-            return mergeAdjacentTextInArray(node as DastNodes[])
-                .map((child) => nodesToXml(child, options))
+            const children = mergeAdjacentTextInArray(node as DastNodes[]);
+            return children
+                .map((child, i) =>
+                    nodesToXml(
+                        child,
+                        options,
+                        followingTextWouldBeAbsorbed(children[i + 1]),
+                    ),
+                )
                 .join("");
         } else {
             // If the node is an array of macro path parts, we need to convert it to a string
@@ -167,7 +179,7 @@ export function nodesToXml(
 
             let start = "$";
             let end = "";
-            if (macroNeedsParens(node)) {
+            if (macroNeedsParens(node) || forceParens) {
                 start += "(";
                 end += ")";
             }
@@ -181,7 +193,7 @@ export function nodesToXml(
 
             let start = "$$";
             let end = "";
-            if (macroNeedsParens(node)) {
+            if (macroNeedsParens(node) || forceParens) {
                 start += "(";
                 end += ")";
             }
@@ -281,4 +293,29 @@ function attrToString(attr: DastAttribute, options: PrintOptions): string {
 function macroNeedsParens(macro: DastMacro | DastFunctionMacro): boolean {
     // We also might need wrapping if the path contains a `-` character
     return macro.path.some((part) => part.name.includes("-"));
+}
+
+/**
+ * Whether serializing `next` immediately after a macro would change how that macro parses.
+ *
+ * `$x` followed by the text `_0` serializes as `$x_0`, which re-parses as a macro named
+ * `x_0`. When that would happen, the macro must be printed as `$(x)` instead.
+ */
+function followingTextWouldBeAbsorbed(next: DastNodes | undefined): boolean {
+    if (!next) {
+        return false;
+    }
+    let text: string | undefined;
+    if (next.type === "text") {
+        text = next.value;
+    } else if (next.type === "cdata") {
+        text = next.value;
+    }
+    if (!text) {
+        return false;
+    }
+    // A macro name continues through name characters. (A following `.` or `[` would also
+    // be absorbed, but v0.6 documents rely on that to express a prop access written
+    // outside the parentheses, so it is deliberately left alone.)
+    return /^[a-zA-Z0-9_]/.test(text);
 }

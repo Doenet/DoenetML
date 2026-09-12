@@ -9,50 +9,40 @@ import {
     visit,
 } from "@doenet/parser";
 import { reparseAttribute } from "./reparse-attribute";
-import { getUniqueName } from "./utils";
+import { AssignNamesContext, readAssignNames } from "./assign-names/context";
+import { registerCompositeAssignNames } from "./assign-names/register-composite";
 
 /**
  * Upgrade the `<map>` element to the new syntax.
  */
-export const upgradeMapElement: Plugin<[], DastRoot, DastRoot> = () => {
+export const upgradeMapElement: Plugin<
+    [AssignNamesContext],
+    DastRoot,
+    DastRoot
+> = (context) => {
     return (tree, file) => {
-        // If `assignNames` is present, we need to rename a bunch of references
-        const refsToRename: Record<string, DastMacro["path"]> = {};
-
         replaceNode(tree, (node) => {
             if (!isDastElement(node)) {
                 return;
             }
-            if (node.name !== "map") {
+            if (node.name.toLowerCase() !== "map") {
                 // No affected attributes, nothing to do
                 return;
             }
-            const name = toXml(node.attributes["name"]?.children).trim();
-            const assignNames = toXml(node.attributes["assignNames"]?.children)
-                .trim()
-                .split(/\s+/);
+            let name = toXml(node.attributes["name"]?.children).trim();
+            const assignNamesValue = readAssignNames(node);
 
-            // If we have both a `name` and `assignNames`, there are macros that need to be renamed
-            if (name && assignNames.length > 0) {
-                assignNames.forEach((assignName, index) => {
-                    refsToRename[assignName] = [
-                        {
-                            type: "pathPart",
-                            name: name,
-                            index: [
-                                {
-                                    type: "index",
-                                    value: [
-                                        {
-                                            type: "text",
-                                            value: `${index + 1}`,
-                                        },
-                                    ],
-                                },
-                            ],
-                        },
-                    ];
-                });
+            // The names that `assignNames` handed out become indices into the `<repeat>`
+            // (or `<repeatForSequence>`) that replaces this `<map>`.
+            if (assignNamesValue) {
+                name =
+                    registerCompositeAssignNames({
+                        node,
+                        assignNamesValue,
+                        fallbackBase: "repeat",
+                        context,
+                        file,
+                    }) ?? name;
             }
 
             const templateNode = node.children.find(
@@ -135,7 +125,7 @@ export const upgradeMapElement: Plugin<[], DastRoot, DastRoot> = () => {
                     attributes: {},
                     children: [groupTag],
                 };
-                const groupName = getUniqueName(tree, "group");
+                const groupName = context.uniqueName("group");
                 groupTag.attributes["name"] = {
                     type: "attribute",
                     name: "name",
@@ -173,23 +163,6 @@ export const upgradeMapElement: Plugin<[], DastRoot, DastRoot> = () => {
 
                 return [setupTag, templateNode];
             }
-        });
-
-        // Now that we have collected all of the renames, we walk the tree again and
-        // apply them.
-        visit(tree, (node) => {
-            if (node.type !== "macro") {
-                return;
-            }
-            // See if there is part of the macro path that matches anything in `refsToRename`
-            if (!node.path.some((part) => refsToRename[part.name])) {
-                return;
-            }
-
-            // Splice in the new path parts at the location of the matching part
-            node.path = node.path.flatMap((part) => {
-                return refsToRename[part.name] || [part];
-            });
         });
     };
 };

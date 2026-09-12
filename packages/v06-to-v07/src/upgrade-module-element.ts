@@ -34,17 +34,41 @@ export const upgradeModuleElement: Plugin<[], DastRoot, DastRoot> = () => {
                 // No need to upgrade the syntax
                 return;
             }
-            const nonSetupChildren = node.children.filter(
-                (child) => !isDastElement(child) || child.name !== "setup",
+            const isCustomAttribute = (child: DastElementContent) =>
+                isDastElement(child) && child.name === "customAttribute";
+            const customAttributeNodes = setupNode.children.filter(
+                (child): child is DastElement => isCustomAttribute(child),
+            );
+            // Anything in the `<setup>` that is not a `<customAttribute>` is ordinary
+            // setup content and must survive the conversion.
+            const otherSetupChildren = setupNode.children.filter(
+                (child) => !isCustomAttribute(child),
             );
 
-            const customAttributeNodes = setupNode.children.filter(
-                (child): child is DastElement =>
-                    isDastElement(child) && child.name === "customAttribute",
-            );
             // We will turn `<setup>` into `<moduleAttributes>`; its children will be completely replaced
             setupNode.children = [];
             setupNode.name = "moduleAttributes";
+
+            if (
+                otherSetupChildren.some(
+                    (child) =>
+                        child.type !== "text" || child.value.trim() !== "",
+                )
+            ) {
+                // Put the non-`<customAttribute>` content back into a `<setup>` of its
+                // own, directly after the `<moduleAttributes>`.
+                const newSetup: DastElement = {
+                    type: "element",
+                    name: "setup",
+                    attributes: {},
+                    children: otherSetupChildren,
+                };
+                node.children.splice(
+                    node.children.indexOf(setupNode) + 1,
+                    0,
+                    newSetup,
+                );
+            }
             for (const customAttributeNode of customAttributeNodes) {
                 const name = toXml(
                     customAttributeNode.attributes["assignNames"]?.children,

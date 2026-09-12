@@ -49,8 +49,16 @@ export type ResolvePathToNodeIdx = Awaited<
 >["resolvePathToNodeIdx"];
 
 export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
-    // Load the WASM bundle in a way that works both in the browser and in node
+    // Load the WASM bundle in a way that works both in the browser and in node.
+    // `init` memoizes the compiled module, so the cost here is one-time; it is the
+    // per-document `PublicDoenetMLCoreRust.new()` below that must be freed (see
+    // `dispose`), since anything it allocates lives in the shared wasm memory.
     // TODO: is there a way to avoid this from fully bundling a copy of core?
+    // Note: `dispose` is not enough to convert an unbounded number of documents in one
+    // process. Measured over the 0.6 corpus, roughly 20 MB per document is still
+    // retained on the *JavaScript* heap after a forced GC, somewhere inside the core
+    // built below, so a long batch run needs a raised `--max-old-space-size` or a
+    // recycled worker process.
     const wasmBuffer = (
         await import("@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64")
     ).default;
@@ -132,5 +140,26 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
         return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
     }
 
-    return { core, rustCore, resolvePathToNodeIdx };
+    /**
+     * Release the core built for this lookup.
+     *
+     * Without this, every converted document leaves a `PublicDoenetMLCore` allocated in
+     * the shared wasm linear memory, which only ever grows. (See the note above: this
+     * does not release the separate, larger retention on the JavaScript heap.)
+     */
+    async function dispose() {
+        try {
+            await core.terminate();
+        } catch (e) {
+            // Terminating is best-effort; a document that failed to initialize fully
+            // should not prevent the wasm core from being freed below.
+        }
+        try {
+            rustCore.free();
+        } catch (e) {
+            // Already freed.
+        }
+    }
+
+    return { core, rustCore, resolvePathToNodeIdx, dispose };
 }

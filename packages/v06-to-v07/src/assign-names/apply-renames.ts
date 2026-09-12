@@ -1,0 +1,135 @@
+import {
+    DastElement,
+    DastMacroPathPart,
+    DastRoot,
+    isDastElement,
+    toXml,
+} from "@doenet/parser";
+import { VFile } from "vfile";
+import { visitAll, visitAllMacros } from "./visit-all";
+import { RenameRegistry } from "./rename-registry";
+import { reparseAttribute } from "../reparse-attribute";
+
+/**
+ * Attributes whose value is a bare (dollar-less) reference at the point where renames are
+ * applied. `slash-to-dot.ts` deliberately writes `<copy source="...">` back as plain text
+ * so that `upgradeCopySyntax` can parse it later, so these are not macros and would be
+ * missed by a macro-only pass.
+ */
+const RAW_REFERENCE_ATTRS: Record<string, string[]> = {
+    copy: ["source"],
+    extract: ["source"],
+    collect: ["source", "target"],
+};
+
+/**
+ * Rewrite every reference to a v0.6 `assignNames` token into the v0.7 indexed path
+ * registered for it.
+ *
+ * Unlike the per-plugin passes this replaces, it descends into attribute values, macro
+ * path indices and function-macro arguments, and it preserves indices the author already
+ * wrote (`$a[2]` becomes `$s[1][2]`, not `$s[1]`).
+ */
+export function applyRefRenames(
+    tree: DastRoot,
+    registry: RenameRegistry,
+    file: VFile,
+) {
+    if (registry.size === 0) {
+        return;
+    }
+
+    visitAllMacros(tree, (node) => {
+        node.path = renamePath(node.path, registry);
+    });
+
+    visitAll(tree, (node) => {
+        if (!isDastElement(node)) {
+            return;
+        }
+        const attrNames = RAW_REFERENCE_ATTRS[node.name.toLowerCase()];
+        if (!attrNames) {
+            return;
+        }
+        for (const attrName of attrNames) {
+            renameRawReferenceAttribute(node, attrName, registry, file);
+        }
+    });
+}
+
+/**
+ * Rename inside an attribute whose value is a plain-text reference path, writing the
+ * result back as plain text (again without a `$`) so downstream plugins still parse it.
+ */
+function renameRawReferenceAttribute(
+    node: DastElement,
+    attrName: string,
+    registry: RenameRegistry,
+    file: VFile,
+) {
+    const attr = Object.entries(node.attributes).find(
+        ([name]) => name.toLowerCase() === attrName.toLowerCase(),
+    )?.[1];
+    if (!attr || attr.children.length !== 1) {
+        return;
+    }
+    const child = attr.children[0];
+    if (child.type !== "text") {
+        return;
+    }
+    const value = child.value.trim();
+    if (!value) {
+        return;
+    }
+    // A cheap pre-check so we don't reparse every `source` attribute in the document.
+    if (!value.split(/[.[\]]/).some((piece) => registry.has(piece))) {
+        return;
+    }
+
+    let path: DastMacroPathPart[];
+    try {
+        const reparsed = reparseAttribute(`$${value}`);
+        if (reparsed.length !== 1 || reparsed[0].type !== "macro") {
+            throw new Error("not a single macro");
+        }
+        path = reparsed[0].path;
+    } catch (e) {
+        file.message(
+            `Could not convert a reference to an assignNames name in ${attrName}="${value}".`,
+            {
+                place: node.position,
+                ruleId: "assign-names/unparsable-reference-attribute",
+                source: "v06-to-v07",
+            },
+        );
+        return;
+    }
+
+    child.value = toXml(renamePath(path, registry));
+}
+
+/**
+ * Replace any path part that names a v0.6 assigned name with the indexed path registered
+ * for it, keeping indices the author already wrote: with `a -> s[1]`, the path `a[2]`
+ * becomes `s[1][2]` rather than `s[1]`.
+ */
+function renamePath(
+    path: DastMacroPathPart[],
+    registry: RenameRegistry,
+): DastMacroPathPart[] {
+    if (!path.some((part) => registry.has(part.name))) {
+        return path;
+    }
+    return path.flatMap((part): DastMacroPathPart[] => {
+        const target = registry.get(part.name);
+        if (!target) {
+            return [part];
+        }
+        const replacement = structuredClone(
+            target.replacement,
+        ) as DastMacroPathPart[];
+        const last = replacement[replacement.length - 1];
+        last.index = [...last.index, ...part.index];
+        return replacement;
+    });
+}

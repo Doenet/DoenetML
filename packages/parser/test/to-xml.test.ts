@@ -44,4 +44,24 @@ describe("parser", () => {
         xml = toXml(dast);
         expect(xml).toEqual("$$foo(x)");
     });
+
+    it("keeps parens on a macro whose following text would be absorbed into it", () => {
+        // `$x` printed directly before `_0` would re-parse as a macro named `x_0`,
+        // so the macro has to be printed in its `$(...)` form instead.
+        for (const src of [`$(x)_0`, `$(x)y`, `$(x1)1`, `$(foo.bar)_1`]) {
+            dast = lezerToDast(src);
+            xml = toXml(dast);
+            expect(xml).toEqual(src);
+        }
+
+        // A function macro needs the same treatment.
+        dast = lezerToDast(`$$(f)(1)_0`);
+        expect(toXml(dast)).toEqual("$$(f)(1)_0");
+
+        // ...but a macro that is not followed by a name character stays unwrapped.
+        for (const src of [`$x 0`, `$x-0`, `<p>$x</p>`, `$x!`]) {
+            dast = lezerToDast(src);
+            expect(toXml(dast)).toEqual(src);
+        }
+    });
 });

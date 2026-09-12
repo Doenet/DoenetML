@@ -12,6 +12,7 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
+import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
 import { createCoreForLookup } from "./core-info/core";
@@ -46,8 +47,40 @@ export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
             return;
         }
 
-        const core = await createCoreForLookup({ dast: tree });
+        let core: Awaited<ReturnType<typeof createCoreForLookup>>;
+        try {
+            core = await createCoreForLookup({ dast: tree });
+        } catch (e) {
+            // Resolving `<copy>` means loading the document for real, which fails on a
+            // document that is already broken (a circular reference, say). Everything
+            // else about the conversion is still worth keeping, so report it and leave
+            // the `<copy>` tags for the author rather than losing the whole document.
+            file.message(
+                `Could not load the document to work out what the <copy> tags refer to, so they were left as they are: ${e}`,
+                {
+                    ruleId: "copy/could-not-load-document",
+                    source: "v06-to-v07",
+                },
+            );
+            return;
+        }
+        try {
+            await resolveCopyTags(core, tree, file);
+        } finally {
+            await core.dispose();
+        }
+    };
+};
 
+/**
+ * Rename every `<copy source="...">` to the component type of its referent.
+ */
+async function resolveCopyTags(
+    core: Awaited<ReturnType<typeof createCoreForLookup>>,
+    tree: DastRoot,
+    file: VFile,
+) {
+    {
         let referenced: {
             node: DastElement;
             referentType: Promise<string>;
@@ -131,8 +164,8 @@ export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
                 continue;
             }
         }
-    };
-};
+    }
+}
 
 /**
  * Find the type of the referent for a given path.
@@ -157,18 +190,35 @@ async function findReferentType(
     let unresolvedIndex: DastMacroPathPart["index"] = [];
     let unresolvedProps: DastMacroPathPart[] = [];
     let referentType: string | undefined = undefined;
-    for (let i = path.length; i > 0; i--) {
+    search: for (let i = path.length; i > 0; i--) {
         const pathParts = path.slice(0, i);
-        const pathStr = printPathWithoutIndices(pathParts);
-        const referentIdx = await core.resolvePathToNodeIdx(pathStr);
-        if (referentIdx !== -1) {
-            referentType =
-                core.core.core?.components?.[referentIdx]?.componentType;
-            if (referentType) {
-                unresolvedIndex = pathParts[pathParts.length - 1].index;
-                unresolvedProps = path.slice(i);
-                break;
+        // Try the path with its indices first. `$s[1]` names one replacement of the
+        // composite `s`, and that replacement's type is the one we want; without the
+        // index we would only learn that `s` is a `<select>`. (Indices whose value is
+        // itself a macro cannot be resolved statically, so those fall through to the
+        // index-less attempt, which then reports them as unresolved.)
+        for (const keepIndices of [true, false]) {
+            if (keepIndices && !hasOnlyLiteralIndices(pathParts)) {
+                continue;
             }
+            const pathStr = keepIndices
+                ? printPath(pathParts)
+                : printPathWithoutIndices(pathParts);
+            const referentIdx = await core.resolvePathToNodeIdx(pathStr);
+            if (referentIdx === -1) {
+                continue;
+            }
+            const foundType =
+                core.core.core?.components?.[referentIdx]?.componentType;
+            if (!foundType) {
+                continue;
+            }
+            referentType = foundType;
+            unresolvedIndex = keepIndices
+                ? []
+                : pathParts[pathParts.length - 1].index;
+            unresolvedProps = path.slice(i);
+            break search;
         }
     }
 
@@ -195,6 +245,37 @@ async function findReferentType(
     }
 
     throw new Error(`Could not find referent type for "${referentName}"`);
+}
+
+/**
+ * Whether every index in `pathParts` is a plain number, so the path can be resolved
+ * without evaluating anything.
+ */
+function hasOnlyLiteralIndices(pathParts: DastMacroPathPart[]): boolean {
+    return pathParts.every((part) =>
+        part.index.every(
+            (index) =>
+                index.value.length === 1 &&
+                index.value[0].type === "text" &&
+                /^\d+$/.test(index.value[0].value.trim()),
+        ),
+    );
+}
+
+/**
+ * Print a sequence of path parts including their (literal) indices.
+ * E.g. `foo.bar[3]`.
+ */
+function printPath(pathParts: DastMacroPathPart[]): string {
+    return pathParts
+        .map(
+            (part) =>
+                part.name +
+                part.index
+                    .map((index) => `[${toXml(index.value).trim()}]`)
+                    .join(""),
+        )
+        .join(".");
 }
 
 /**
