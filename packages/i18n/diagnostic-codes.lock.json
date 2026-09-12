@@ -249,5 +249,7 @@
     "doenet-w0150": "chart-pie-negative-values",
     "doenet-w0151": "chart-pie-total-not-positive",
     "doenet-w0152": "chart-pie-one-series",
-    "doenet-w0153": "chart-pie-axis-name-ignored"
+    "doenet-w0153": "chart-pie-axis-name-ignored",
+    "doenet-w0154": "chart-box-values-not-drawable",
+    "doenet-w0155": "chart-box-categories-ignored"
 }

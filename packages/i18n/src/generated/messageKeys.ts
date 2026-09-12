@@ -299,6 +299,8 @@ export type MessageKey =
     | "chemistry-invalid-ionic-compound"
     | "math-embedded-input-blank"
     | "math-embedded-input-blank-ordinal"
+    | "chart-box-summary"
+    | "chart-box-outlier"
     | "line-segment-attributes-ignored-with-endpoints"
     | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
     | "line-segment-midpoint-offset-without-midpoint"
@@ -550,6 +552,8 @@ export type MessageKey =
     | "chart-pie-total-not-positive"
     | "chart-pie-one-series"
     | "chart-pie-axis-name-ignored"
+    | "chart-box-values-not-drawable"
+    | "chart-box-categories-ignored"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -915,6 +919,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "chemistry-invalid-ionic-compound",
     "math-embedded-input-blank",
     "math-embedded-input-blank-ordinal",
+    "chart-box-summary",
+    "chart-box-outlier",
     "line-segment-attributes-ignored-with-endpoints",
     "line-segment-attributes-ignored-with-endpoint-and-midpoint",
     "line-segment-midpoint-offset-without-midpoint",
@@ -1166,6 +1172,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "chart-pie-total-not-positive",
     "chart-pie-one-series",
     "chart-pie-axis-name-ignored",
+    "chart-box-values-not-drawable",
+    "chart-box-categories-ignored",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

@@ -270,6 +270,45 @@ describe("summaryStatistics tag tests @group4", async () => {
             expect(sv.quartile3).eq(4);
         });
 
+        it("takes the median of a column at the top of the double range", async () => {
+            const sv = await statisticsOf(`
+    <summaryStatistics name="s">
+      <number>1E308</number><number>1.5E308</number>
+    </summaryStatistics>
+    `);
+
+            // Halfway between the two middle values, which is a number a
+            // double holds even though their sum is not.
+            expect(sv.median).eq(1.25e308);
+        });
+
+        it("takes the median of a column at the bottom of the double range", async () => {
+            const sv = await statisticsOf(`
+    <summaryStatistics name="s">
+      <number>5E-324</number><number>5E-324</number>
+    </summaryStatistics>
+    `);
+
+            // Halving each of the two middle values before adding them would
+            // round both to zero, reporting a median the column does not
+            // contain. Two copies of one value have that value as their
+            // median, wherever in the range it sits.
+            expect(sv.median).eq(5e-324);
+        });
+
+        it("takes the median of readings that agree to twelve digits", async () => {
+            const sv = await statisticsOf(`
+    <summaryStatistics name="s">
+      <number>1</number><number>1.0000000000001</number><number>1.00000000000005</number>
+    </summaryStatistics>
+    `);
+
+            // The middle of the three by value. Ordering them by a relative
+            // tolerance instead reads all three as equal and answers with
+            // whichever was written first.
+            expect(sv.median).eq(1.00000000000005);
+        });
+
         it("does not depend on the order the values are given in", async () => {
             const sv = await statisticsOf(`
     <summaryStatistics name="s">

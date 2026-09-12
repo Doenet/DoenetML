@@ -360,6 +360,158 @@ liveDescribe("Live chart rendering @group4", { tags: ["@group4"] }, () => {
             .and("contain.text", "Population by region");
     });
 
+    it("draws a box plot with its parts in place and its groups navigable", () => {
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<text name="ready">ready</text>
+<chart name="b" type="box">
+  <title>Scores by section</title>
+  <shortDescription>Scores in two sections</shortDescription>
+  <yLabel>score</yLabel>
+  <series><label>9am</label>52 61 63 68 70 71 75 78 84 91</series>
+  <series><label>1pm</label>44 55 58 60 62 65 66 70 72 96</series>
+</chart>
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#b .svg svg", { timeout: 30000 }).should("exist");
+
+        // The names of a box chart's positions are its series' own labels,
+        // drawn as tick marks under the boxes — so the legend's job is done by
+        // the axis, and no legend is drawn at all.
+        cy.get("#b .svg svg").should(($svg) => {
+            const text = $svg.text();
+            for (const expected of [
+                "9am",
+                "1pm",
+                "Scores by section",
+                "score",
+            ]) {
+                expect(
+                    text,
+                    `drawn text should include ${expected}`,
+                ).to.include(expected);
+            }
+            expect(
+                $svg[0].querySelectorAll('rect[fill="white"]').length,
+                "a box chart should draw no legend box",
+            ).to.equal(0);
+        });
+
+        // Measured by the browser rather than read off the path data: a box
+        // plot is six marks that mean something only in relation to one
+        // another, and what turns the data coordinates into pixels is the
+        // bounding box and the margins.
+        cy.get("#b .svg svg").then(($svg) => {
+            const svg = $svg[0];
+            for (const index of [1, 2]) {
+                const box = svg.querySelector(`[id$="box-${index}"]`);
+                expect(box, `box ${index}`).to.exist;
+                const boxRect = box.getBoundingClientRect();
+
+                // The whisker caps reach above and below the box, and stay
+                // inside its width — a cap as wide as the box would read as a
+                // second box edge.
+                const lines = [...svg.querySelectorAll("line")].filter(
+                    (line) => {
+                        const rect = line.getBoundingClientRect();
+                        return (
+                            rect.left >= boxRect.left - 1 &&
+                            rect.right <= boxRect.right + 1 &&
+                            rect.width > 0
+                        );
+                    },
+                );
+                const caps = lines.filter(
+                    (line) =>
+                        line.getBoundingClientRect().width < boxRect.width - 1,
+                );
+                expect(
+                    caps.length,
+                    `box ${index} should have a cap at each whisker`,
+                ).to.equal(2);
+                const capTops = caps.map(
+                    (cap) => cap.getBoundingClientRect().top,
+                );
+                expect(Math.min(...capTops)).to.be.at.most(boxRect.top);
+                expect(Math.max(...capTops)).to.be.at.least(boxRect.bottom);
+
+                // And the median lies inside the box, across its full width.
+                const median = lines.find(
+                    (line) =>
+                        Math.abs(
+                            line.getBoundingClientRect().width - boxRect.width,
+                        ) <= 1,
+                );
+                expect(median, `box ${index}'s median`).to.exist;
+                const medianRect = median.getBoundingClientRect();
+                expect(medianRect.top).to.be.at.least(boxRect.top - 1);
+                expect(medianRect.bottom).to.be.at.most(boxRect.bottom + 1);
+            }
+
+            expectNothingClipped(svg, "#b");
+        });
+
+        // The tree diagcess walks: figure, a level per series, then the box
+        // drawn from it and anything lying beyond its whiskers. The second
+        // section has an observation past the fence, so its level holds two
+        // marks where the first holds one.
+        cy.get("#b .cml", { timeout: 30000 }).should(($cml) => {
+            const annotations = [...$cml[0].querySelectorAll("annotation")];
+            const byIdSuffix = (suffix) =>
+                annotations.find((el) =>
+                    (el.getAttribute("id") ?? "").endsWith(suffix),
+                );
+
+            const figure = byIdSuffix("figure");
+            expect(figure, "figure annotation").to.exist;
+
+            for (const [seriesSuffix, marks] of [
+                ["series-1", ["box-1"]],
+                ["series-2", ["box-2", "outlier-2-1"]],
+            ]) {
+                const series = byIdSuffix(seriesSuffix);
+                expect(series, `${seriesSuffix} annotation`).to.exist;
+
+                const parents = [...series.querySelectorAll("parents > *")].map(
+                    (el) => el.textContent.trim(),
+                );
+                expect(parents.some((id) => id.endsWith("figure"))).to.be.true;
+
+                const children = [
+                    ...series.querySelectorAll("children > *"),
+                ].map((el) => el.textContent.trim());
+                expect(children).to.have.length(marks.length);
+                for (const [ind, markId] of children.entries()) {
+                    expect(markId.endsWith(marks[ind])).to.be.true;
+                    expect(
+                        annotations.find(
+                            (el) => el.getAttribute("id") === markId,
+                        ),
+                        `annotation for ${markId}`,
+                    ).to.exist;
+                }
+            }
+        });
+
+        cy.get("#b .ChemAccess-element", { timeout: 30000 })
+            .should("have.attr", "has-svg", "true")
+            .and("have.attr", "has-cml", "true")
+            .and("have.attr", "tabindex", "0")
+            .and("have.attr", "role", "application");
+
+        cy.get("#b .ChemAccess-element").click({ force: true });
+        cy.get("#b .cacc-message", { timeout: 30000 })
+            .should("exist")
+            .and("contain.text", "Scores in two sections");
+    });
+
     it("navigates the bars through their series", () => {
         cy.window().then((win) => {
             win.postMessage(

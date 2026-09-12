@@ -102,6 +102,46 @@ describe("Chart prefigure renderer live validation @group4", () => {
     </chart>`,
                     expectText: "pie (one value, a full turn)",
                 },
+                {
+                    doenetML: `
+    <chart type="box" name="c">
+      <shortDescription>Scores in one section</shortDescription>
+      <yLabel>score</yLabel>
+      52 61 63 68 70 71 75 78 84 91
+    </chart>`,
+                    expectText: "box (one implicit series)",
+                },
+                {
+                    doenetML: `
+    <chart type="box" name="c">
+      <title>Scores by section</title>
+      <shortDescription>Scores by section</shortDescription>
+      <yLabel>score</yLabel>
+      <series><label>morning</label>52 61 63 68 70 71 75 78 84 91</series>
+      <series><label>afternoon</label>44 55 58 60 62 65 66 70 72 96</series>
+      <series><label>evening</label>60 62 64 65 66 68 70</series>
+    </chart>`,
+                    expectText: "box (three series, titled, one outlier)",
+                },
+                {
+                    doenetML: `
+    <chart type="box" name="c">
+      <shortDescription>One observation, and a group with none</shortDescription>
+      <series><label>A</label>5</series>
+      <series><label>B</label></series>
+    </chart>`,
+                    expectText:
+                        "box (a box of no height, and an empty position)",
+                },
+                {
+                    doenetML: `
+    <chart type="box" name="c" yMin="60" yMax="70">
+      <shortDescription>Bounded below the data</shortDescription>
+      <series><label>A</label>44 55 58 60 62 65 66 70 72 96</series>
+    </chart>`,
+                    expectText:
+                        "box (bounds that cut the box and its whiskers)",
+                },
             ];
 
             for (const c of cases) {
@@ -327,6 +367,10 @@ describe("Chart prefigure renderer live validation @group4", () => {
                 [
                     "below zero",
                     `<chart type="scatter" name="c"><series x="1 2 3">-400 -900 -200</series></chart>`,
+                ],
+                [
+                    "box below zero",
+                    `<chart type="box" name="c"><series><label>A</label>-400 -900 -200 -350 -500</series></chart>`,
                 ],
                 [
                     "below zero, titled",
@@ -883,6 +927,187 @@ describe("Chart prefigure renderer live validation @group4", () => {
                         label.baseline + 3,
                         `${what}: "${label.text}" sits below the picture`,
                     ).toBeLessThan(pictureHeight + 0.5);
+                }
+            }
+        },
+    );
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: a box plot's parts are drawn where the geometry puts them",
+        async () => {
+            // A box plot is six marks that only mean something in relation to
+            // one another — the median inside the box, the whiskers on the
+            // box's own center line, the caps across their ends — and the XML
+            // says where each was *asked* for, in data coordinates, not where
+            // any of them came out. What turns those into pixels is the
+            // bounding box and the margins, and a chart whose vertical scale
+            // came out inverted, or whose box was placed off its slot, would
+            // pass every assertion in `chart-box.test.ts` and draw nonsense.
+            //
+            // The rectangle reaches the SVG as a `<path>` carrying the handle,
+            // so its four corners are readable; the lines that follow it in
+            // document order are its median, whiskers and caps.
+            for (const [what, doenetML] of [
+                [
+                    "default shape",
+                    `<chart type="box" name="c"><series><label>A</label>52 61 63 68 70 71 75 78 84 91</series></chart>`,
+                ],
+                [
+                    "wide",
+                    `<chart type="box" name="c" aspectRatio="4"><series><label>A</label>52 61 63 68 70 71 75 78 84 91</series></chart>`,
+                ],
+                [
+                    "tall",
+                    `<chart type="box" name="c" aspectRatio="0.5"><series><label>A</label>52 61 63 68 70 71 75 78 84 91</series></chart>`,
+                ],
+                [
+                    "three series on a small chart",
+                    `<chart type="box" name="c" size="small"><series><label>A</label>52 61 63 68 70 71 75 78 84 91</series><series><label>B</label>44 55 58 60 62 65 66 70 72 96</series><series><label>C</label>60 62 64 65 66 68 70</series></chart>`,
+                ],
+                [
+                    "a title above it",
+                    `<chart type="box" name="c"><title>Scores</title><yLabel>score</yLabel><series><label>A</label>52 61 63 68 70 71 75 78 84 91</series></chart>`,
+                ],
+            ] as [string, string][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const pictureWidth = Number(
+                    svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
+                );
+                const pictureHeight = Number(
+                    svg.match(/<svg[^>]*height="([\d.]+)"/)?.[1],
+                );
+
+                const boxes = [
+                    ...svg.matchAll(
+                        /<path id="[^"]*?box-(\d+)" d="M ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+) Z"[^>]*stroke-width="([\d.]+)"/g,
+                    ),
+                ];
+                expect(
+                    boxes.length,
+                    `${what}: no box was drawn`,
+                ).toBeGreaterThan(0);
+
+                // Every line drawn after each box and before the next one: its
+                // median, its whiskers and their caps.
+                const lines = [
+                    ...svg.matchAll(
+                        /<(?:path id="[^"]*?box-(\d+)"|line id="[^"]*?__line-\d+" x1="([\d.-]+)" y1="([\d.-]+)" x2="([\d.-]+)" y2="([\d.-]+)")/g,
+                    ),
+                ];
+
+                let currentBox: RegExpMatchArray | null = null;
+                let linesInBox = 0;
+                for (const mark of lines) {
+                    if (mark[1] !== undefined) {
+                        currentBox =
+                            boxes.find((box) => box[1] === mark[1]) ?? null;
+                        linesInBox = 0;
+                        continue;
+                    }
+                    if (currentBox === null) {
+                        // The axes and their tick marks, drawn before any box.
+                        continue;
+                    }
+
+                    const left = Math.min(
+                        Number(currentBox[2]),
+                        Number(currentBox[4]),
+                    );
+                    const right = Math.max(
+                        Number(currentBox[2]),
+                        Number(currentBox[4]),
+                    );
+                    // `M x0 y0 L x1 y0 L x1 y1 L x0 y1 Z`, so the two
+                    // distinct coordinates are the first and third pairs.
+                    const top = Math.min(
+                        Number(currentBox[3]),
+                        Number(currentBox[7]),
+                    );
+                    const bottom = Math.max(
+                        Number(currentBox[3]),
+                        Number(currentBox[7]),
+                    );
+                    const center = (left + right) / 2;
+                    const stroke = Number(currentBox[10]);
+
+                    const [x1, y1, x2, y2] = [
+                        Number(mark[2]),
+                        Number(mark[3]),
+                        Number(mark[4]),
+                        Number(mark[5]),
+                    ];
+                    linesInBox++;
+
+                    if (linesInBox === 1) {
+                        // The median, across the whole width of the box and
+                        // between its two edges — the assertion a chart drawn
+                        // upside down would fail.
+                        expect(
+                            [x1, x2, y1, y2],
+                            `${what}: box ${currentBox[1]}'s median is not drawn across it`,
+                        ).eqls([left, right, y1, y1]);
+                        expect(
+                            y1,
+                            `${what}: box ${currentBox[1]}'s median is outside it`,
+                        ).toBeGreaterThanOrEqual(top - 0.05);
+                        expect(y1).toBeLessThanOrEqual(bottom + 0.05);
+                    } else if (linesInBox % 2 === 0) {
+                        // A whisker: up the box's own center line, from one of
+                        // its edges outward.
+                        expect(
+                            x1,
+                            `${what}: box ${currentBox[1]}'s whisker is off center`,
+                        ).closeTo(center, 0.05);
+                        expect(x2).closeTo(center, 0.05);
+                        expect(
+                            Math.min(Math.abs(y1 - top), Math.abs(y1 - bottom)),
+                            `${what}: box ${currentBox[1]}'s whisker does not start at an edge`,
+                        ).toBeLessThan(0.05);
+                        // Outward: a whisker from the top edge goes up the
+                        // picture, one from the bottom edge goes down it.
+                        expect(
+                            Math.abs(y1 - top) < Math.abs(y1 - bottom)
+                                ? y2 - y1
+                                : y1 - y2,
+                            `${what}: box ${currentBox[1]}'s whisker points back into it`,
+                        ).toBeLessThanOrEqual(0);
+                    } else {
+                        // The cap across that whisker's end: centered on the
+                        // box, and narrower than it, so it does not read as a
+                        // second box edge.
+                        expect(
+                            (x1 + x2) / 2,
+                            `${what}: box ${currentBox[1]}'s cap is off center`,
+                        ).closeTo(center, 0.05);
+                        expect(
+                            Math.abs(x2 - x1),
+                            `${what}: box ${currentBox[1]}'s cap is not narrower than the box`,
+                        ).toBeLessThan(right - left);
+                        expect(Math.abs(x2 - x1)).toBeGreaterThan(0);
+                    }
+
+                    // And all of it inside the picture, stroke included.
+                    for (const [x, y] of [
+                        [x1, y1],
+                        [x2, y2],
+                    ]) {
+                        expect(
+                            x - stroke / 2,
+                            `${what}: box ${currentBox[1]} reaches past the left edge`,
+                        ).toBeGreaterThan(-0.5);
+                        expect(x + stroke / 2).toBeLessThan(pictureWidth + 0.5);
+                        expect(
+                            y - stroke / 2,
+                            `${what}: box ${currentBox[1]} reaches past the top edge`,
+                        ).toBeGreaterThan(-0.5);
+                        expect(y + stroke / 2).toBeLessThan(
+                            pictureHeight + 0.5,
+                        );
+                    }
                 }
             }
         },

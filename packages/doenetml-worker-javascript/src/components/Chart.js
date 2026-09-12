@@ -16,9 +16,11 @@ import {
 import {
     chartLegendHasItems,
     computeBarChartGeometry,
+    computeBoxChartGeometry,
     computePieChartGeometry,
     computePointChartGeometry,
     createBarChartPrefigureXML,
+    createBoxChartPrefigureXML,
     createPieChartPrefigureXML,
     createPointChartPrefigureXML,
 } from "../utils/prefigure/chart";
@@ -49,7 +51,7 @@ const DEFAULT_BAR_WIDTH = 0.8;
  * the schema before its geometry lands — the chart draws nothing and says so
  * rather than falling through a branch that is not there yet.
  */
-const DRAWABLE_TYPES = new Set(["bar", "line", "scatter", "pie"]);
+const DRAWABLE_TYPES = new Set(["bar", "line", "scatter", "pie", "box"]);
 
 /**
  * A chart of its data. `type` picks which chart is drawn: one bar per value, a
@@ -152,6 +154,11 @@ export default class Chart extends BlockComponent {
                     description:
                         "A pie chart: one slice per value, each a share of the total, named by the category names. Draws one series and has no axes.",
                 },
+                {
+                    value: "box",
+                    description:
+                        "A box plot per series, side by side under an axis of the series' names. A series holds raw observations rather than one value per category.",
+                },
             ],
         };
 
@@ -187,7 +194,7 @@ export default class Chart extends BlockComponent {
             groupName: "axes",
             createComponentOfType: "textList",
             description:
-                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry.",
+                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry. A box plot's positions are its series, each named by its own `<label>`.",
             highlighted: true,
         };
 
@@ -243,7 +250,7 @@ export default class Chart extends BlockComponent {
         attributes.legend = {
             groupName: "legend",
             description:
-                'Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend="false"` suppresses it, and a pie then writes its slice names around the rim instead.',
+                'Whether to draw a legend naming the series — or, on a pie, naming the slices. A legend is drawn when a series carries a `<label>`, and on a pie whenever there is a slice to name; `legend="false"` suppresses it, and a pie then writes its slice names around the rim instead. A box plot names each series under the box drawn from it and never draws a legend.',
             createComponentOfType: "boolean",
             createStateVariable: "legend",
             defaultValue: true,
@@ -325,7 +332,7 @@ export default class Chart extends BlockComponent {
         attributes.yMin = {
             groupName: "axes",
             description:
-                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line or scatter chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
+                "Lowest value shown on the vertical axis. Defaults to 0 for a bar chart, whose bars are measured from it, or to the first tick past the smallest value — which is what a bar chart with negative values gets, and what a line, scatter or box chart always gets. If `yMin` and `yMax` do not describe a box — both finite, with `yMin` below `yMax` — the axis is chosen from the data instead. A pie has no axes and reads neither.",
             createComponentOfType: "number",
             createStateVariable: "yMinAttr",
             defaultValue: null,
@@ -343,7 +350,7 @@ export default class Chart extends BlockComponent {
         attributes.displayValues = {
             groupName: "marks",
             description:
-                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice.",
+                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,
@@ -870,7 +877,7 @@ export default class Chart extends BlockComponent {
         stateVariableDefinitions.categories = {
             groupName: "axes",
             description:
-                "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie.",
+                "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series.",
             public: true,
             isArray: true,
             entryPrefixes: ["category"],
@@ -880,13 +887,27 @@ export default class Chart extends BlockComponent {
             // As many as the longest series: every series is drawn against the
             // same categories, so a series that runs short leaves the later
             // slots empty rather than shortening the axis under the others.
+            //
+            // None at all on a box plot, which has no categories: each of its
+            // series is one position on the axis, so the positions are named by
+            // the series' own labels and the values within a series are
+            // observations rather than positions. Reporting one category per
+            // observation would name a hundred positions on a chart that has
+            // three.
             returnArraySizeDependencies: () => ({
+                type: {
+                    dependencyType: "stateVariable",
+                    variableName: "type",
+                },
                 seriesData: {
                     dependencyType: "stateVariable",
                     variableName: "seriesData",
                 },
             }),
             returnArraySize({ dependencyValues }) {
+                if (dependencyValues.type === "box") {
+                    return [0];
+                }
                 return [
                     dependencyValues.seriesData.reduce(
                         (longest, oneSeries) =>
@@ -1034,6 +1055,15 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "categories",
                 },
+                // The attribute rather than the state variable, which fills in
+                // the positions where the author named nothing: what the box
+                // branch below has to know is whether they wrote any, not what
+                // the axis would have been labeled.
+                categoriesAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "categories",
+                    variableNames: ["texts"],
+                },
                 barWidth: {
                     dependencyType: "stateVariable",
                     variableName: "barWidth",
@@ -1159,6 +1189,51 @@ export default class Chart extends BlockComponent {
                             codedDiagnostic({
                                 type: "warning",
                                 code: "doenet-w0152",
+                            }),
+                        );
+                    }
+
+                    return {
+                        setValue: { chartGeometry: geometry },
+                        sendDiagnostics,
+                    };
+                }
+
+                if (type === "box") {
+                    const geometry = computeBoxChartGeometry({
+                        series: dependencyValues.seriesData.map(
+                            ({ label, values }) => ({ label, values }),
+                        ),
+                        yMinAttr: dependencyValues.yMinAttr,
+                        yMaxAttr: dependencyValues.yMaxAttr,
+                    });
+
+                    const sendDiagnostics = [];
+                    // An observation that is not a finite number is left out of
+                    // the summary. Saying so matters more here than on a bar
+                    // chart, where the reader can see the empty slot: a
+                    // dropped observation moves every quartile of the box drawn
+                    // from it and leaves nothing on the page to notice.
+                    if (geometry.undrawnValues > 0) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0154",
+                            }),
+                        );
+                    }
+                    // The names in `categories` are text an author wrote
+                    // for a reader, and a box plot has no positions for them
+                    // to name — the same reason an `<xLabel>` on a pie is
+                    // reported rather than dropped in silence.
+                    if (
+                        dependencyValues.categoriesAttr?.stateValues.texts
+                            ?.length > 0
+                    ) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0155",
                             }),
                         );
                     }
@@ -1324,8 +1399,8 @@ export default class Chart extends BlockComponent {
                 // series carried an `x`, and to nothing else: `slots` is the
                 // categorical axis' positions, so a point chart that has them
                 // is one whose axis carries names instead, a bar chart's
-                // positions are always categories, and a pie has no axes at
-                // all.
+                // positions are always categories, a box plot's are always its
+                // series, and a pie has no axes at all.
                 if (geometry?.kind !== "point" || geometry.slots) {
                     return { setValue: { xMin: null, xMax: null } };
                 }
@@ -1445,6 +1520,13 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "sliceStyles",
                 },
+                // For the words a box plot's annotations need. A bar is
+                // announced as its category and its value and a point as its
+                // coordinates, because there the position says which number is
+                // which; five numbers at one position have nothing but their
+                // naming to tell them apart, and a name built here would be
+                // English in a document that may be in any language.
+                ...returnContentLocaleDependencies(),
                 document: {
                     dependencyType: "ancestor",
                     componentType: "document",
@@ -1509,28 +1591,63 @@ export default class Chart extends BlockComponent {
                     };
                 }
 
+                // Resolved once, for the box branch below and the shared
+                // path after it.
+                const seriesRendering = dependencyValues.seriesData.map(
+                    ({
+                        label,
+                        labelHasLatex,
+                        selectedStyle,
+                        unlabeledName,
+                    }) => ({
+                        label,
+                        labelHasLatex,
+                        unlabeledName,
+                        // Resolved here rather than in the geometry, which is
+                        // renderer-neutral and has no view of the page's
+                        // theme: what a series is drawn in depends on which
+                        // theme the reader is in, where what it is drawn as
+                        // does not.
+                        selectedStyle: resolveSelectedStyleForTheme(
+                            selectedStyle,
+                            darkMode,
+                        ),
+                    }),
+                );
+
+                if (dependencyValues.type === "box") {
+                    const t = contentTranslator(dependencyValues);
+
+                    const { xml, diagnostics } = createBoxChartPrefigureXML({
+                        geometry: dependencyValues.chartGeometry,
+                        seriesRendering,
+                        // Named the way a bar's annotation is — the label on
+                        // the axis, then what is drawn there — so that a box
+                        // read on its own says which group it summarizes.
+                        boxAnnotationText: ({ label, ...summary }) =>
+                            `${label}: ${t("chart-box-summary", summary)}`,
+                        outlierAnnotationText: ({ label, value }) =>
+                            `${label}: ${t("chart-box-outlier", { value })}`,
+                        widthPx,
+                        heightPx,
+                        xLabel: dependencyValues.xLabel,
+                        xLabelHasLatex: dependencyValues.xLabelHasLatex,
+                        yLabel: dependencyValues.yLabel,
+                        yLabelHasLatex: dependencyValues.yLabelHasLatex,
+                        title: dependencyValues.title,
+                        shortDescription: dependencyValues.shortDescription,
+                        darkMode,
+                    });
+
+                    return {
+                        setValue: { prefigureXML: xml },
+                        sendDiagnostics: diagnostics,
+                    };
+                }
+
                 const shared = {
                     geometry: dependencyValues.chartGeometry,
-                    // Resolved here rather than in the geometry, which is
-                    // renderer-neutral and has no view of the page's theme:
-                    // what a series is drawn in depends on which theme the
-                    // reader is in, where what it is drawn as does not.
-                    seriesRendering: dependencyValues.seriesData.map(
-                        ({
-                            label,
-                            labelHasLatex,
-                            selectedStyle,
-                            unlabeledName,
-                        }) => ({
-                            label,
-                            labelHasLatex,
-                            unlabeledName,
-                            selectedStyle: resolveSelectedStyleForTheme(
-                                selectedStyle,
-                                darkMode,
-                            ),
-                        }),
-                    ),
+                    seriesRendering,
                     widthPx,
                     heightPx,
                     xLabel: dependencyValues.xLabel,
