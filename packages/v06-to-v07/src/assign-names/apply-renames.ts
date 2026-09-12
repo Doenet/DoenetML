@@ -9,6 +9,7 @@ import { VFile } from "vfile";
 import { visitAll, visitAllMacros } from "./visit-all";
 import { RenameRegistry } from "./rename-registry";
 import { reparseAttribute } from "../reparse-attribute";
+import { isPropAccess } from "./prop-access-parts";
 
 /**
  * Attributes whose value is a bare (dollar-less) reference at the point where renames are
@@ -40,7 +41,7 @@ export function applyRefRenames(
     }
 
     visitAllMacros(tree, (node) => {
-        node.path = renamePath(node.path, registry);
+        node.path = renamePath(node.path, registry, file, node.position);
     });
 
     visitAll(tree, (node) => {
@@ -60,6 +61,11 @@ export function applyRefRenames(
 /**
  * Rename inside an attribute whose value is a plain-text reference path, writing the
  * result back as plain text (again without a `$`) so downstream plugins still parse it.
+ *
+ * `slash-to-dot.ts` has already flattened any namespace slashes in this value into dots
+ * and written it back as text, so the parts reparsed here carry no record of which
+ * separator the author used. That is why `renamePath`'s prop-access warning never fires
+ * for these attributes.
  */
 function renameRawReferenceAttribute(
     node: DastElement,
@@ -107,25 +113,45 @@ function renameRawReferenceAttribute(
         return;
     }
 
-    child.value = toXml(renamePath(path, registry));
+    child.value = toXml(renamePath(path, registry, file, node.position));
 }
 
 /**
  * Replace any path part that names a v0.6 assigned name with the indexed path registered
  * for it, keeping indices the author already wrote: with `a -> s[1]`, the path `a[2]`
  * becomes `s[1][2]` rather than `s[1]`.
+ *
+ * Every matching part is rewritten, not just the leading one, because a v0.6 namespace
+ * segment names a component and so can be an assigned name: `$(g/a)` arrives here as the
+ * path `g.a`, and the `a` is the one that has to become `a[1]`. A part the author wrote
+ * after a `.` is a *prop* access and can never name an assigned component, so rewriting
+ * one is a guess — it is still made, but it warns, since silently turning `$p.y` into
+ * `$p.x[2]` (when `x` and `y` are assigned elsewhere) would be indistinguishable from
+ * authored markup.
  */
 function renamePath(
     path: DastMacroPathPart[],
     registry: RenameRegistry,
+    file: VFile,
+    place?: DastElement["position"],
 ): DastMacroPathPart[] {
     if (!path.some((part) => registry.hasReplacement(part.name))) {
         return path;
     }
-    return path.flatMap((part): DastMacroPathPart[] => {
+    return path.flatMap((part, partIndex): DastMacroPathPart[] => {
         const target = registry.get(part.name);
         if (!target?.replacement) {
             return [part];
+        }
+        if (partIndex > 0 && isPropAccess(part)) {
+            file.message(
+                `"${part.name}" in the reference $${toXml(path)} was written as a prop of "${path[partIndex - 1].name}", but it is also a name assigned by <${target.origin.elementName}>, so it was converted to that composite's replacement. If it really was meant as a prop, change it back.`,
+                {
+                    place,
+                    ruleId: "assign-names/prop-like-reference",
+                    source: "v06-to-v07",
+                },
+            );
         }
         const replacement = structuredClone(
             target.replacement,

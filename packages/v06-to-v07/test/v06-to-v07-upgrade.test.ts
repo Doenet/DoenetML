@@ -272,6 +272,36 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
+    it("warns when an assigned name is rewritten inside a prop access", async () => {
+        // `x` and `y` are assigned names *and* the props of a point, so `$p.y` is
+        // rewritten to a different prop of `p` entirely. The rewrite is still made,
+        // because a v0.6 namespace path arrives here looking exactly the same, but this
+        // is the shape that cannot be right, so it has to be reported.
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="10" /><point name="p">(3,4)</point><p>$p.x $p.y</p>`;
+        let result = await updateSyntaxFromV06toV07(source);
+        expect(result.xml).toEqual(
+            `<selectFromSequence name="x" numToSelect="2" from="1" to="10" /><point name="p">(3,4)</point><p>$p.x[1] $p.x[2]</p>`,
+        );
+        expect(
+            result.vfile.messages
+                .filter((m) => m.ruleId === "assign-names/prop-like-reference")
+                .map((m) => m.reason),
+        ).toHaveLength(2);
+
+        // A v0.6 namespace segment names a component rather than a prop, so converting
+        // the part after the slash is exactly right and must not warn.
+        source = `<graph name="g" newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></graph><p>$(g/a) $(g/b.value)</p>`;
+        result = await updateSyntaxFromV06toV07(source);
+        expect(result.xml).toEqual(
+            `<graph name="g"><selectFromSequence name="a" numToSelect="2" from="1" to="5" /></graph><p>$g.a[1] $g.a[2].value</p>`,
+        );
+        expect(
+            result.vfile.messages.filter(
+                (m) => m.ruleId === "assign-names/prop-like-reference",
+            ),
+        ).toHaveLength(0);
+    });
+
     it("correct capitalization of componentTypes attribute", async () => {
         source = `
         <collect source="a" componentTypes="mathinput"/>

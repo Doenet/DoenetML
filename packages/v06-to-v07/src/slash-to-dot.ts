@@ -14,6 +14,7 @@ import {
     visit,
 } from "@doenet/parser";
 import { parseMacrosV06, v06macroToString } from "@doenet/parser/v06";
+import { markAsPropAccess } from "./assign-names/prop-access-parts";
 
 /**
  * Upgrade namespace path syntax.
@@ -266,7 +267,12 @@ function flattenedAccessedProps(macro: DastMacroV6): DastMacro["path"] {
         };
     });
     if (macro.accessedProp) {
-        return [...path, ...flattenedAccessedProps(macro.accessedProp)];
+        // Everything the `accessedProp` chain contributes was written after a `.`, so it
+        // names a prop rather than a component. Nothing downstream can tell once the two
+        // are in one flat path, so record it now; see `assign-names/prop-access-parts.ts`.
+        const propParts = flattenedAccessedProps(macro.accessedProp);
+        propParts.forEach(markAsPropAccess);
+        return [...path, ...propParts];
     }
 
     return path;

@@ -21,4 +21,6 @@ kept only its `<customAttribute>` children, `<image source="a/b.png">` had its s
 turned into dots, and `<copy source="../f">` became `source="...f"`. A document whose
 `<copy>` tags cannot be resolved, or that has a `<collect assignNames="...">` with no
 `name` of its own, now converts instead of failing outright, and most problems that need
-an author's attention are reported with a rule name so they can be grouped.
+an author's attention are reported with a rule name so they can be grouped — including a
+reference such as `$p.y` that reads an assigned name as if it were a prop, which is
+rewritten but can no longer be rewritten silently.
