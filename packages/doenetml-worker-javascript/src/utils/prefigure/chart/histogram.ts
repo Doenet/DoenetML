@@ -374,6 +374,13 @@ function edgeTicks(
     // `bins="0 5 10 20"` is out by a whole bin width, which is a billion times
     // this. What it admits cannot be seen either, since the labels are stepped
     // from the first cut point.
+    //
+    // Being measured against the cut points rather than against the width, the
+    // slack grows with how far the cut points sit from zero: bins a billion
+    // times narrower than their own distance from the origin can be called even
+    // when they are not, and are then labeled evenly. That is the trade for
+    // labeling a narrow spread at a high magnitude at all, which is the case
+    // this exists for; the stride caps how many labels a mistake can misplace.
     const scale = edges.reduce(
         (largest, edge) => Math.max(largest, Math.abs(edge)),
         0,
@@ -422,9 +429,30 @@ function edgeTicks(
         return niceTicks();
     }
 
+    // The two ends are written as the cut points they are, rather than
+    // recomputed from the step. PreFigure draws no label outside the bounding
+    // box, and a recomputed end lands a hair outside it about two thirds of the
+    // time on data carrying more than twelve digits: the box runs from the
+    // first cut point to the last, which are observations as the data gave
+    // them, while `edges[0] + index * step` carries the rounding of a snapped
+    // width. The bar's own far end then has no number under it — the one label
+    // a reader most needs, since it is where the bars stop. PreFigure rounds
+    // what it draws to about six digits, so an exact observation here is no
+    // uglier on the axis than a snapped one.
+    //
+    // Clamped as well as chosen, for the ends that are not cut points: an
+    // authored bound is the edge of the box, and the same rounding can put the
+    // last label a hair beyond it.
+    const labelFor = (index: number) => {
+        const edgeIndex = index * stride;
+        return edgeIndex >= 0 && edgeIndex < edges.length
+            ? edges[edgeIndex]
+            : snapNumber(edges[0] + index * step);
+    };
+
     return {
-        first: snapNumber(edges[0] + firstIndex * step),
-        last: snapNumber(edges[0] + lastIndex * step),
+        first: Math.max(labelFor(firstIndex), xMin),
+        last: Math.min(labelFor(lastIndex), xMax),
         step,
     };
 }

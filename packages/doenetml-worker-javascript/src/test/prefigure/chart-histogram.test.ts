@@ -451,9 +451,19 @@ describe("chart histogram prefigure tests @group4", async () => {
             // and numbered itself 2, 4, 6, 8 instead.
             const hlabels = (xml_hlabels(chart.prefigureXML) ?? []).map(Number);
             expect(hlabels.length).eq(3);
-            expect(hlabels[0]).eq(Number(edges[0].toPrecision(12)));
             expect(hlabels[1]).closeTo(edges[1] - edges[0], 1e-9);
-            expect(hlabels[2]).closeTo(edges[5], 1e-9);
+
+            // The run starts and ends on the outermost cut points themselves,
+            // which is also where the box starts and ends. Recomputed from the
+            // step instead, either end lands a hair outside the box — and
+            // PreFigure draws no label outside it, so the first and last bars,
+            // the ones that say where the data begins and ends, would have no
+            // number under them.
+            const [xMin, , xMax] = chart.chartGeometry.bounds;
+            expect(hlabels[0]).eq(edges[0]);
+            expect(hlabels[2]).eq(edges[edges.length - 1]);
+            expect(hlabels[0]).toBeGreaterThanOrEqual(xMin);
+            expect(hlabels[2]).toBeLessThanOrEqual(xMax);
         });
 
         it("labels every few cut points where there are many bins", async () => {
