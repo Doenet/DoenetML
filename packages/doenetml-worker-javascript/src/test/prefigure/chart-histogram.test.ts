@@ -89,6 +89,28 @@ describe("chart histogram prefigure tests @group4", async () => {
             expect(xml).toContain('<annotation ref="bin-2" text="5 to 10');
         });
 
+        it("draws a bin too wide for a double as wide as one allows", async () => {
+            const xml = await chartXML(`
+    <chart type="histogram" name="c" bins="-1e308 1e308">
+      <shortDescription>x</shortDescription>
+      0 1 2
+    </chart>
+    `);
+
+            // A rectangle is a corner and a size, so PreFigure adds the two
+            // back together to find the far corner and both have to stay inside
+            // the double range. Cut points a quarter of the range apart on
+            // either side of zero are already too far: the subtraction
+            // overflows, and `formatNumber` writes what is not finite as
+            // `null`, which is not a size PreFigure can read. A bar stopping
+            // short of its own upper cut point is a far smaller wrong than a
+            // bar with no width at all.
+            expect(xml).toContain(
+                '<rectangle at="bin-1" lower-left="(-1e+308,0)" dimensions="(1.7976931348623157e+308,3)"',
+            );
+            expect(xml).not.toContain("null");
+        });
+
         it("prints the counts with displayValues", async () => {
             const xml = await chartXML(`
     <chart type="histogram" name="c" bins="0 5 10" displayValues>
@@ -243,6 +265,32 @@ describe("chart histogram prefigure tests @group4", async () => {
                 '<rectangle at="bin-1" lower-left="(6,0)" dimensions="(2,3)"',
             );
             expect(xml.match(/<rectangle /g)?.length).eq(1);
+        });
+
+        it("divides a column with no spread into the count that was asked for", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="histogram" name="c" bins="4">
+      <shortDescription>x</shortDescription>
+      7 7 7
+    </chart>
+    <p name="edges">$c.binEdges</p>
+    <p name="counts">$c.binCounts</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            // A column a simulation has not moved yet has no span to divide, so
+            // the nice width one bin would have is split into the four that
+            // were asked for instead. A count is exact whether or not the data
+            // has spread, and the value is in a bin either way.
+            expect(sv[await resolvePathToNodeIdx("edges")].stateValues.text).eq(
+                "6, 6.5, 7, 7.5, 8",
+            );
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("0, 0, 3, 0");
+            expect(getDiagnosticsByType(core).infos.length).eq(0);
         });
 
         it("keeps the outermost observations inside a requested count's bins", async () => {

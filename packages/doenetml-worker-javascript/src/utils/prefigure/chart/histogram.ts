@@ -3,9 +3,10 @@
  * of zero against a numeric axis of cut points.
  *
  * The second type whose series holds raw observations rather than one value per
- * category, and the only one whose vertical values are computed rather than
- * given: what is drawn is how many observations fall between each pair of cut
- * points.
+ * category. A box plot, the first, summarizes those observations into five
+ * numbers on their own scale; a histogram counts them, so it is the one type
+ * whose bars are measured in something the data does not contain — how many
+ * observations fall between each pair of cut points.
  *
  * The bars are adjacent, with no gap between them. That is the whole visual
  * difference between a histogram and a bar chart of categories — a gap says the
