@@ -58,12 +58,14 @@ export default function JSXGraphRenderer({
         JXG.Options.layer.numlayers = 100;
         JXG.Options.navbar.highlightFillColor = "var(--canvasText)";
         JXG.Options.navbar.strokeColor = "var(--canvasText)";
+        JXG.Options.grid.strokeColor = "var(--graphGrid)";
 
-        let haveFixedGrid = false;
         if (Array.isArray(SVs.grid)) {
-            haveFixedGrid = true;
             JXG.Options.grid.gridX = SVs.grid[0];
             JXG.Options.grid.gridY = SVs.grid[1];
+        } else if (SVs.grid === "medium" || SVs.grid === "dense") {
+            JXG.Options.grid.gridX = undefined;
+            JXG.Options.grid.gridY = undefined;
         }
 
         const newBoard: JXGBoard = (window as any).JXG.JSXGraph.initBoard(id, {
@@ -73,7 +75,7 @@ export default function JSXGraphRenderer({
             showNavigation: false,
             zoom: { wheel: !SVs.fixAxes, needShift: true },
             pan: { enabled: !SVs.fixAxes, needShift: false },
-            grid: haveFixedGrid,
+            grid: false,
         });
 
         (newBoard as any).itemsRenderedLowQuality = {};
