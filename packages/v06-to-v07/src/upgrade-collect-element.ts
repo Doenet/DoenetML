@@ -3,8 +3,6 @@ import {
     DastAttribute,
     DastElement,
     DastElementContent,
-    DastMacro,
-    DastMacroPathPart,
     DastRoot,
     DastRootContent,
     isDastElement,
@@ -14,8 +12,14 @@ import {
 } from "@doenet/parser";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
-import { getUniqueName } from "./utils";
 import { determinePropType } from "./core-info/determine-prop-type";
+import {
+    AssignNamesContext,
+    deleteAssignNames,
+    readAssignNames,
+    setCompositeName,
+} from "./assign-names/context";
+import { registerCompositeAssignNames } from "./assign-names/register-composite";
 
 /**
  * Upgrade the `<collect>` element to the new syntax.
@@ -29,11 +33,12 @@ import { determinePropType } from "./core-info/determine-prop-type";
  *   $points[3]
  * ```
  */
-export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
+export const upgradeCollectElement: Plugin<
+    [AssignNamesContext],
+    DastRoot,
+    DastRoot
+> = (context) => {
     return (tree, file) => {
-        // If `assignNames` is present, we need to rename a bunch of references
-        const refsToRename: Record<string, DastMacro["path"]> = {};
-
         visit(tree, (node) => {
             if (!isDastElement(node)) {
                 return;
@@ -67,25 +72,27 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
                     );
                 }
             }
-            const assignNames = node.attributes["assignNames"];
-            if (!assignNames) {
+            const assignNamesValue = readAssignNames(node);
+            if (!assignNamesValue) {
+                deleteAssignNames(node);
                 return;
             }
-            delete node.attributes["assignNames"];
-            const assignedNames = toXml(assignNames.children)
-                .split(/\s+/)
-                .filter((n) => n);
-            assignedNames.forEach((name, index) => {
-                const strRepr = `$${toXml(node.attributes["name"].children)}[${index + 1}]`;
-                const attr = reparseAttribute(strRepr)?.[0];
-                // attr should contain a single macro
-                if (!attr || attr.type !== "macro") {
-                    throw new Error(
-                        `Expected attribute to be a single macro, got: ${JSON.stringify(attr)}`,
-                    );
-                }
-                refsToRename[name] = attr.path;
+            // Note: the name registered here must be the one an author references. When
+            // this `<collect>` has a `prop`, the hoisting step below moves this name onto
+            // the generated list element and renames the collect itself, so giving the
+            // collect a name *now* is what makes both paths agree.
+            const compositeName = registerCompositeAssignNames({
+                node,
+                assignNamesValue,
+                fallbackBase: "collect",
+                context,
+                file,
             });
+            if (compositeName === undefined) {
+                deleteAssignNames(node);
+                return;
+            }
+            setCompositeName(node, compositeName);
         });
 
         // If the `<collect>` has a `prop` attribute, it needs to be hoisted into a `<setup>` tag
@@ -127,8 +134,8 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
 
             const listName = node.attributes["name"]
                 ? toXml(node.attributes["name"].children)
-                : getUniqueName(tree, "list");
-            const collectName = getUniqueName(tree, `collect_${listName}`);
+                : context.uniqueName("list");
+            const collectName = context.uniqueName(`collect_${listName}`);
             node.attributes["name"] = {
                 type: "attribute",
                 name: "name",
@@ -164,23 +171,6 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
                 children: [],
             };
             return [setup, list];
-        });
-
-        // Now that we have collected all of the renames, we walk the tree again and
-        // apply them.
-        visit(tree, (node) => {
-            if (node.type !== "macro") {
-                return;
-            }
-            // See if there is part of the macro path that matches anything in `refsToRename`
-            if (!node.path.some((part) => refsToRename[part.name])) {
-                return;
-            }
-
-            // Splice in the new path parts at the location of the matching part
-            node.path = node.path.flatMap((part) => {
-                return refsToRename[part.name] || [part];
-            });
         });
     };
 };

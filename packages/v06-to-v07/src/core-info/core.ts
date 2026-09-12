@@ -49,8 +49,16 @@ export type ResolvePathToNodeIdx = Awaited<
 >["resolvePathToNodeIdx"];
 
 export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
-    // Load the WASM bundle in a way that works both in the browser and in node
+    // Load the WASM bundle in a way that works both in the browser and in node.
+    // `init` memoizes the compiled module, so the cost here is one-time; it is the
+    // per-document `PublicDoenetMLCoreRust.new()` below that must be freed (see
+    // `dispose`), since anything it allocates lives in the shared wasm memory.
     // TODO: is there a way to avoid this from fully bundling a copy of core?
+    // Note: `dispose` is not enough to convert an unbounded number of documents in one
+    // process. Measured over the 0.6 corpus, roughly 20 MB per document is still
+    // retained on the *JavaScript* heap after a forced GC, somewhere inside the core
+    // built below, so a long batch run needs a raised `--max-old-space-size` or a
+    // recycled worker process.
     const wasmBuffer = (
         await import("@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?arraybuffer&base64")
     ).default;
@@ -58,10 +66,33 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
 
     const rustCore = PublicDoenetMLCoreRust.new();
 
-    dast = normalizeDocumentDast(structuredClone(dast), true);
-    rustCore.set_source(dast as DastRootInCore, toXml(dast));
+    // Everything from here on can throw on a malformed document, and the caller carries
+    // on with the next one, so nothing may escape without giving back what it allocated.
+    let core: PublicDoenetMLCore | undefined;
 
-    const normalizedRoot = rustCore.return_normalized_dast_root();
+    async function releaseCores() {
+        try {
+            await core?.terminate();
+        } catch (e) {
+            // Terminating is best-effort; a document that failed to initialize fully
+            // should not prevent the wasm core from being freed below.
+        }
+        try {
+            rustCore.free();
+        } catch (e) {
+            // Already freed.
+        }
+    }
+
+    let normalizedRoot;
+    try {
+        dast = normalizeDocumentDast(structuredClone(dast), true);
+        rustCore.set_source(dast as DastRootInCore, toXml(dast));
+        normalizedRoot = rustCore.return_normalized_dast_root();
+    } catch (e) {
+        await releaseCores();
+        throw e;
+    }
 
     function resolvePath(
         path: PathToCheck,
@@ -82,40 +113,51 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
 
     const flags: DoenetMLFlags = { ...defaultFlags };
 
-    const core = new PublicDoenetMLCore();
+    try {
+        core = new PublicDoenetMLCore();
+        core.setSource(toXml(dast));
+        core.setFlags(flags);
 
-    core.setSource(toXml(dast));
-    core.setFlags(flags);
+        await core.initializeWorker({
+            activityId: "",
+            docId: "1",
+            requestedVariantIndex: 1,
+            attemptNumber: 1,
+            normalizedRoot,
+            addNodesToResolver,
+            deleteNodesFromResolver,
+            resolvePath,
+        });
 
-    await core.initializeWorker({
-        activityId: "",
-        docId: "1",
-        requestedVariantIndex: 1,
-        attemptNumber: 1,
-        normalizedRoot,
-        addNodesToResolver,
-        deleteNodesFromResolver,
-        resolvePath,
-    });
+        const dastResult = await core.createCoreGenerateDast(
+            {
+                coreId: "",
+                cid: "",
+                initializeCounters: {},
+                theme: "light",
+            },
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            async () => ({ allowView: true }),
+        );
 
-    const dastResult = await core.createCoreGenerateDast(
-        {
-            coreId: "",
-            cid: "",
-            initializeCounters: {},
-            theme: "light",
-        },
-        () => null,
-        () => null,
-        () => null,
-        () => null,
-        () => null,
-        () => null,
-        async () => ({ allowView: true }),
-    );
+        if (!dastResult.success) {
+            throw Error(dastResult.errMsg);
+        }
+    } catch (e) {
+        await releaseCores();
+        throw e;
+    }
 
-    if (!dastResult.success) {
-        throw Error(dastResult.errMsg);
+    // `core` is only optional so that `releaseCores` can run before it is built; past the
+    // initialization above it always exists.
+    const readyCore = core;
+    if (!readyCore) {
+        throw Error("The DoenetML core was not initialized.");
     }
 
     /**
@@ -129,8 +171,24 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
             name = name.slice(1);
         }
 
-        return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
+        return resolvePathImmediatelyToNodeIdx(
+            name,
+            rustCore,
+            readyCore,
+            origin,
+        );
     }
 
-    return { core, rustCore, resolvePathToNodeIdx };
+    /**
+     * Release the core built for this lookup.
+     *
+     * Without this, every converted document leaves a `PublicDoenetMLCore` allocated in
+     * the shared wasm linear memory, which only ever grows. (See the note above: this
+     * does not release the separate, larger retention on the JavaScript heap.)
+     */
+    async function dispose() {
+        await releaseCores();
+    }
+
+    return { core: readyCore, rustCore, resolvePathToNodeIdx, dispose };
 }

@@ -16,7 +16,14 @@ type Node = Macro | FunctionMacro | Text | PropAccess;
  * **Note**: This function is probably not what you want. You probably want `toXml`, since this function
  * cannot print function macros that have XML nodes as children.
  */
-export function macroToString(node: Node | Node[]): string {
+export function macroToString(
+    node: Node | Node[],
+    /**
+     * Set when the text that will follow would otherwise be absorbed into the macro. See
+     * `followingTextWouldBeAbsorbed` in `dast-util-to-xml.ts`.
+     */
+    forceParens = false,
+): string {
     if (Array.isArray(node)) {
         return node.map((n) => macroToString(n)).join("");
     }
@@ -26,7 +33,7 @@ export function macroToString(node: Node | Node[]): string {
 
             let start = "$";
             let end = "";
-            if (macroNeedsParens(node)) {
+            if (macroNeedsParens(node) || forceParens) {
                 start += "(";
                 end += ")";
             }
@@ -37,12 +44,12 @@ export function macroToString(node: Node | Node[]): string {
 
             let start = "$$";
             let end = "";
-            if (macroNeedsParens(node)) {
+            if (macroNeedsParens(node) || forceParens) {
                 start += "(";
                 end += ")";
             }
             const args = node.input
-                ? `(${node.input.map(macroToString).join(", ")})`
+                ? `(${node.input.map((arg) => macroToString(arg)).join(", ")})`
                 : "";
             return start + macro + end + args;
         }
@@ -88,7 +95,7 @@ function attrToString(attr: Attr): string {
     if (attr.children.length === 0) {
         return name;
     }
-    const value = attr.children.map(macroToString).join("");
+    const value = attr.children.map((c) => macroToString(c)).join("");
     return `${name}=${quote(value)}`;
 }
 

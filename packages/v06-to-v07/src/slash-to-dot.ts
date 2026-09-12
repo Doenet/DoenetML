@@ -2,6 +2,7 @@ import { Plugin } from "unified";
 import {
     DastElementContent,
     DastFunctionMacro,
+    DastAttributeV6,
     DastFunctionMacroV6,
     DastMacro,
     DastMacroPathPart,
@@ -14,6 +15,7 @@ import {
     visit,
 } from "@doenet/parser";
 import { parseMacrosV06, v06macroToString } from "@doenet/parser/v06";
+import { markAsPropAccess } from "./assign-names/prop-access-parts";
 
 /**
  * Upgrade namespace path syntax.
@@ -43,11 +45,7 @@ export const upgradePathSlashesToDots: Plugin<
                 }
                 if (isDastElement(node)) {
                     for (const attr of Object.values(node.attributes)) {
-                        for (const child of attr.children) {
-                            if (isV06MacroOrFunctionMacro(child)) {
-                                macros.push(child);
-                            }
-                        }
+                        collectV06Macros(attr.children, macros);
                     }
                 }
                 for (const node of macros) {
@@ -61,35 +59,17 @@ export const upgradePathSlashesToDots: Plugin<
                         // @ts-ignore
                         delete node[key];
                     });
-                    if (macro.path.some((p) => p.name === "..")) {
-                        // If `".."` exists, delete the previous path part and add a warning because there is no
-                        // equivalent in the new syntax. It comes from things like `$(../x)` in the old syntax.
-                        const newPath: DastMacroPathPart[] = [];
-                        let errorMessageWritten = false;
-                        for (const part of macro.path) {
-                            if (part.name === "..") {
-                                // If there is a previous path part, remove it.
-                                if (newPath.length > 0) {
-                                    newPath.pop();
-                                    if (!errorMessageWritten) {
-                                        errorMessageWritten = true;
-                                        file.message(
-                                            `There is no equivalent to the $(../x) syntax; a best-guess was made when converting ${v06macroToString(
-                                                macro as any,
-                                            )}`,
-                                            {
-                                                start: node.position?.start,
-                                                end: node.position?.end,
-                                            },
-                                        );
-                                    }
-                                }
-                                continue; // skip
-                            }
-                            newPath.push(part);
-                        }
-                        macro.path = newPath;
-                    }
+                    macro.path = collapseParentPathParts(macro.path, () =>
+                        file.message(
+                            `There is no equivalent to the $(../x) syntax; a best-guess was made when converting ${v06macroToString(
+                                macro as any,
+                            )}`,
+                            {
+                                start: node.position?.start,
+                                end: node.position?.end,
+                            },
+                        ),
+                    );
 
                     Object.assign(node, macro);
                 }
@@ -100,6 +80,11 @@ export const upgradePathSlashesToDots: Plugin<
         // a copy tag. E.g. `<copy source="foo/bar" />`.
         visit(tree, (node) => {
             if (!isDastElement(node)) {
+                return;
+            }
+            if (!ELEMENTS_WITH_REFERENCE_SOURCE.has(node.name.toLowerCase())) {
+                // On everything else (`<image>`, `<video>`, ...) `source` is a URL, and
+                // the slashes in it are not namespace separators.
                 return;
             }
             const sourceAttr = node.attributes["source"];
@@ -123,6 +108,14 @@ export const upgradePathSlashesToDots: Plugin<
                 return;
             }
             const upgradedSource = v06MacroToV07Macro(reparsedSource[0]);
+            upgradedSource.path = collapseParentPathParts(
+                upgradedSource.path,
+                () =>
+                    file.message(
+                        `There is no equivalent to the ../x syntax; a best-guess was made when converting source="${sourceName}"`,
+                        { place: node.position },
+                    ),
+            );
             // Source attributes are not parsed as macros, so we turn back into a string and remove the dollar sign.
             const newSourceName = toXml(upgradedSource.path);
             sourceAttr.children = [
@@ -135,6 +128,98 @@ export const upgradePathSlashesToDots: Plugin<
         });
     };
 };
+
+/**
+ * Gather the v0.6 macros in `nodes`, descending into the arguments of a function macro.
+ *
+ * The usual traversal never enters an attribute, so this is how macros inside one are
+ * found. It has to recurse: `$$f($$(g/h)(2))` is a function macro whose argument is
+ * another function macro, and converting the outer one leaves the inner one alone (see
+ * the note in `v06FunctionMacroToV07FunctionMacro`). Collecting outermost-first matches
+ * what the ordinary traversal does for macros outside an attribute.
+ */
+function collectV06Macros(
+    nodes: readonly unknown[],
+    macros: (DastMacroV6 | DastFunctionMacroV6)[],
+) {
+    for (const node of nodes) {
+        if (!isV06MacroOrFunctionMacro(node)) {
+            continue;
+        }
+        macros.push(node);
+        collectNestedV06Macros(node, macros);
+    }
+}
+
+/**
+ * The places a v0.6 macro can hold another one: a function macro's arguments, the macro
+ * its path indices are written with, its `{...}` attributes, and — for a function macro —
+ * the macro it wraps.
+ */
+function collectNestedV06Macros(
+    node: DastMacroV6 | DastFunctionMacroV6,
+    macros: (DastMacroV6 | DastFunctionMacroV6)[],
+) {
+    if (node.type === "function") {
+        for (const argument of node.input || []) {
+            collectV06Macros(argument, macros);
+        }
+        if (node.macro) {
+            collectNestedV06Macros(node.macro, macros);
+        }
+        return;
+    }
+    for (const part of node.path || []) {
+        for (const index of part.index || []) {
+            collectV06Macros(index.value, macros);
+        }
+    }
+    const attributes: DastAttributeV6[] = Array.isArray(node.attributes)
+        ? node.attributes
+        : Object.values(node.attributes ?? {});
+    for (const attribute of attributes) {
+        collectV06Macros(attribute.children, macros);
+    }
+    if (node.accessedProp) {
+        collectNestedV06Macros(node.accessedProp, macros);
+    }
+}
+
+/**
+ * The elements whose `source` attribute names another component rather than a URL.
+ */
+const ELEMENTS_WITH_REFERENCE_SOURCE = new Set(["copy", "collect", "extract"]);
+
+/**
+ * Resolve the v0.6 `..` parent-path syntax, which v0.7 has no equivalent for, by dropping
+ * the part before it. `warn` is called once if any `..` was actually applied.
+ */
+function collapseParentPathParts(
+    path: DastMacroPathPart[],
+    warn: () => void,
+): DastMacroPathPart[] {
+    if (!path.some((part) => part.name === "..")) {
+        return path;
+    }
+    const newPath: DastMacroPathPart[] = [];
+    let warned = false;
+    for (const part of path) {
+        if (part.name === "..") {
+            // A leading `..` has nothing to drop, but the reference still ends up
+            // pointing somewhere the author did not write, so it is reported either way.
+            if (newPath.length > 0) {
+                newPath.pop();
+            }
+            if (!warned) {
+                warned = true;
+                warn();
+            }
+            continue;
+        }
+        newPath.push(part);
+    }
+    return newPath;
+}
 
 /**
  * Convert a v0.6 macro to a v0.7 macro.
@@ -237,7 +322,12 @@ function flattenedAccessedProps(macro: DastMacroV6): DastMacro["path"] {
         };
     });
     if (macro.accessedProp) {
-        return [...path, ...flattenedAccessedProps(macro.accessedProp)];
+        // Everything the `accessedProp` chain contributes was written after a `.`, so it
+        // names a prop rather than a component. Nothing downstream can tell once the two
+        // are in one flat path, so record it now; see `assign-names/prop-access-parts.ts`.
+        const propParts = flattenedAccessedProps(macro.accessedProp);
+        propParts.forEach(markAsPropAccess);
+        return [...path, ...propParts];
     }
 
     return path;
