@@ -245,6 +245,61 @@ describe("chart histogram prefigure tests @group4", async () => {
             expect(xml.match(/<rectangle /g)?.length).eq(1);
         });
 
+        it("keeps the outermost observations inside a requested count's bins", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="histogram" name="c" bins="5">
+      <shortDescription>x</shortDescription>
+      -2.8461937482716 -1.5 -0.9 0 0.4 1.2 1.9 2.7
+    </chart>
+    <p name="counts">$c.binCounts</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // The bins run between the data's own smallest and largest, which
+            // is what makes every observation fall in one of them. Rounding
+            // those two to a shorter number would move them by whatever the
+            // digits below the round were worth, and rounding goes both ways:
+            // half the time it moves a cut point past the observation it came
+            // from, which then falls in no bin and is a bar one shorter.
+            expect(xml).toContain('lower-left="(-2.8461937482716,0)"');
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("1, 2, 2, 1, 2");
+            // Every one of the eight is in a bar, so there is nothing to say
+            // about observations the cut points left out.
+            expect(getDiagnosticsByType(core).infos.length).eq(0);
+        });
+
+        it("gives a sample too narrow to divide one bin holding all of it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="histogram" name="c">
+      <shortDescription>x</shortDescription>
+      <number>1</number><number>1.0000000000000002</number>
+    </chart>
+    <p name="counts">$c.binCounts</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+
+            // Two observations a couple of ulps apart: the cut points a width
+            // apart are one number once they are rounded, which is one cut
+            // point and so no bin at all. One bin across the data is the
+            // picture that sample supports, and a picture with nothing in it
+            // is not.
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("2");
+            expect(xml.match(/<rectangle /g)?.length).eq(1);
+            expect(getDiagnosticsByType(core).infos.length).eq(0);
+        });
+
         it("draws no bars at all with no observations", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -345,6 +400,26 @@ describe("chart histogram prefigure tests @group4", async () => {
             // The labels carry on across the axis the bounds added, at the
             // spacing the cut points set.
             expect(xml).toContain('hlabels="(-4,2,14)"');
+        });
+
+        it("opens the axis out around cut points that all coincide", async () => {
+            const xml = await chartXML(`
+    <chart type="histogram" name="c" bins="5 5">
+      <shortDescription>x</shortDescription>
+      1 5 9
+    </chart>
+    `);
+
+            // `<binCounts>` counts into a bin of no width quite happily, so the
+            // cut points are drawn rather than refused — but a box of no width
+            // is one PreFigure resolves to `nan` in every coordinate, which is
+            // a broken picture rather than an empty one. The axis opens out
+            // around them and the bar stands in it as the line of no width it
+            // is.
+            expect(xml).toContain('bbox="(4,0,6,2)"');
+            expect(xml).toContain(
+                '<rectangle at="bin-1" lower-left="(5,0)" dimensions="(0,1)"',
+            );
         });
 
         it("reports the axes it was drawn with", async () => {

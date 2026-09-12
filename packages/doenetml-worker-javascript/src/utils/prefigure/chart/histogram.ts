@@ -215,6 +215,30 @@ function automaticEdges(observations: number[], minStep: number): number[] {
     while (edges.length > 2 && edges[edges.length - 2] >= high) {
         edges.pop();
     }
+
+    // A spread the twelfth digit cannot resolve — two observations a few ulps
+    // apart — leaves one cut point behind, which is no bin at all and so a
+    // picture with nothing in it. One bin across the data is what that sample
+    // supports.
+    if (edges.length < 2) {
+        return [low, high];
+    }
+
+    // Widened to the data where the rounding left it outside. Both roundings
+    // above are to twelve significant digits, which is short of what a double
+    // holds, so a cut point meant to sit at or below the smallest observation
+    // can come out just above it — and then the smallest observation falls in
+    // no bin, which is a bar one shorter and an observation gone from a picture
+    // that had room for it. It takes a sample whose spread is tiny beside its
+    // own magnitude to get there, and the outermost bin coming out a hair wider
+    // than its neighbors is a far smaller wrong than a sample the chart quietly
+    // drops.
+    if (edges[0] > low) {
+        edges[0] = low;
+    }
+    if (edges[edges.length - 1] < high) {
+        edges[edges.length - 1] = high;
+    }
     return edges;
 }
 
@@ -240,14 +264,37 @@ function requestedEdges(
 
     if (!(high > low)) {
         const width = widthWithoutSpread(low, minStep);
-        return edgesFrom(
+        const edges = edgesFrom(
             tickAtOrBeyond(low, width, -1),
             width / binCount,
             binCount,
         );
+        // Only if that nice width fits around the value. Near the ends of the
+        // double range it does not: the multiple of the width below a value of
+        // `1e308` is off the range, and a width split into a thousand is a step
+        // the twelfth digit cannot see — either way the bins come out not
+        // holding the observation they were built around, which is a chart of
+        // one value that counts none. A bin at the value is the picture that
+        // sample supports, and it costs the requested count, which the branch
+        // below also gives up where the range is too narrow to divide.
+        if (
+            edges.length > 1 &&
+            edges[0] <= low &&
+            edges[edges.length - 1] >= high
+        ) {
+            return edges;
+        }
+        return [low, high];
     }
 
-    const edges = [snapNumber(low)];
+    // The outermost cut points are the observations themselves, unsnapped: the
+    // range is the data's own, and there is no arithmetic here for a snap to
+    // tidy up. Rounding them to twelve significant digits would move them by
+    // however much the thirteenth digit was worth, and it rounds to nearest —
+    // so half the time it moves the cut point *inward*, past the observation it
+    // came from, which then falls in no bin. The interior cut points are
+    // interpolated and do carry dust, so those are snapped.
+    const edges = [low];
     for (let ind = 1; ind < binCount; ind++) {
         // Interpolated from both ends rather than stepped by a width, so that
         // the edges stay inside the range however the division rounds, and so
@@ -256,7 +303,7 @@ function requestedEdges(
         const fraction = ind / binCount;
         edges.push(snapNumber(low * (1 - fraction) + high * fraction));
     }
-    edges.push(snapNumber(high));
+    edges.push(high);
 
     // A range narrow enough that dividing it moves nothing — the double next to
     // its neighbor, divided in ten — leaves cut points that repeat, and a bin
@@ -487,8 +534,26 @@ export function computeHistogramChartGeometry({
     // stretch of the scale, and space past the last cut point would suggest
     // the stretch goes on. A chart with no bins at all still gets a box, the
     // way an empty bar chart does, rather than an axis of no width.
+    //
+    // Cut points that all coincide — `bins="2 2 2"`, which describes two bins
+    // of no width and which `<binCounts>` counts into quite happily — would
+    // make the two bounds one number, and a box of no width is one PreFigure
+    // resolves to `nan` in every coordinate it draws: not an empty picture but
+    // a broken one. The axis opens out around them instead, the way one around
+    // a run of identical values does, and the bars stand in it as the lines of
+    // no width they are.
+    const lastEdge = edges[edges.length - 1];
     const [autoXMin, autoXMax] =
-        edges.length > 1 ? [edges[0], edges[edges.length - 1]] : [0, 1];
+        edges.length < 2
+            ? [0, 1]
+            : lastEdge > edges[0]
+              ? [edges[0], lastEdge]
+              : autoAxisBounds({
+                    low: edges[0],
+                    high: lastEdge,
+                    minStep,
+                    baseline: null,
+                });
     const [xMin, xMax] = reconcileBounds(
         xMinAttr,
         xMaxAttr,
@@ -523,8 +588,10 @@ export function computeHistogramChartGeometry({
  * non-finite, which is not a size PreFigure can read — so such a bin is drawn
  * as wide as a double allows and stops short of its own upper cut point. That
  * is a smaller wrong than a bar with no width, which is the trade `scale.ts`
- * makes at the same edge for the same reason. Only cut points an author wrote
- * can reach it: chosen ones are built one width at a time.
+ * makes at the same edge for the same reason. Reached by cut points an author
+ * wrote, and by the outermost of the chart's own where widening them onto the
+ * data put an observation at one end of the double range and a cut point at the
+ * other.
  */
 function binWidth(lower: number, upper: number): number {
     const snapped = snapNumber(upper - lower);
