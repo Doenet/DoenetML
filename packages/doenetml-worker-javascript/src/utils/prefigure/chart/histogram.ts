@@ -416,9 +416,21 @@ function edgeTicks(
     const stepsToEdge = (value: number, round: (v: number) => number) => {
         const ratio = (value - edges[0]) / step;
         const nearest = Math.round(ratio);
-        return Math.abs(ratio - nearest) <= Math.abs(ratio) * 1e-9 + 1e-9
-            ? nearest
-            : round(ratio);
+        // The second term is the slack the uniformity test above allows,
+        // written in steps instead of in cut points. Without it the two
+        // disagree about how precisely the cut points are known, and this one
+        // asks for more than they carry: a width snapped to twelve significant
+        // digits is out by about `scale * 5e-12`, which is that much of a
+        // *step* once the bins are narrow beside their own distance from zero —
+        // eleven barometric pressures around 1013 in six bins are out by 90
+        // times what a ratio-relative tolerance alone allows. The floor then
+        // takes a whole label off the end, and the last bar loses the number
+        // under it.
+        const slack =
+            Math.abs(ratio) * 1e-9 +
+            Math.abs(ratio) * (scale / width) * 1e-11 +
+            1e-9;
+        return Math.abs(ratio - nearest) <= slack ? nearest : round(ratio);
     };
     const firstIndex = stepsToEdge(xMin, Math.ceil);
     const lastIndex = stepsToEdge(xMax, Math.floor);

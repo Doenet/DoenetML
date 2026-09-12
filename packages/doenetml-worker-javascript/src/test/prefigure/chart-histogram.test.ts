@@ -466,6 +466,30 @@ describe("chart histogram prefigure tests @group4", async () => {
             expect(hlabels[2]).toBeLessThanOrEqual(xMax);
         });
 
+        it("labels the last cut point of bins narrow beside their own magnitude", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="histogram" name="c" bins="6">
+      <shortDescription>Barometric pressure</shortDescription>
+      1013.21 1013.26 1013.29 1013.15 1013.33 1013.16 1013.29 1013.16 1013.17 1013.34 1013.32
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+            const edges: number[] = chart.binEdges;
+
+            // Eleven readings a fifth of a unit apart, a thousand units from
+            // zero: the cut points are known to about the twelfth digit, which
+            // is a millionth of a bin here rather than a billionth of one, and
+            // the run's far end was landing a whole label short of the last cut
+            // point. The rendered axis then stopped at 1013.31 and the sixth
+            // bar, which ends at 1013.34, had no number under it.
+            const hlabels = (xml_hlabels(chart.prefigureXML) ?? []).map(Number);
+            expect(hlabels[0]).eq(edges[0]);
+            expect(hlabels[2]).eq(edges[edges.length - 1]);
+        });
+
         it("labels every few cut points where there are many bins", async () => {
             const edges = Array.from({ length: 21 }, (_unused, ind) => ind);
             const xml = await chartXML(`
