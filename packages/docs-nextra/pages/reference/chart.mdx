@@ -183,7 +183,8 @@ Write no `bins` and the cut points are chosen from the data, at a width that kee
 round numbers; write a number and the range is divided into that many equal bins; write two
 or more numbers and they are the cut points themselves, as in the second chart above. The
 horizontal axis is labeled at the cut points, and a value falling exactly on one is counted
-in the bin above it unless `closed="right"` says otherwise.
+in the bin above it unless `closed="right"` says otherwise; a value on the outermost cut
+point is counted either way.
 
 The chart reports the bins it drew: `binEdges` is the cut points in order and `binCounts` is
 how many fell in each, so a sentence, a table or an `<answer>{:dn}` can be written beside the

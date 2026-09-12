@@ -347,23 +347,36 @@ describe("chart histogram prefigure tests @group4", async () => {
         });
 
         it("labels every few cut points where there are many bins", async () => {
-            const values = Array.from(
-                { length: 60 },
-                (_unused, ind) => (ind * 1.7) % 100,
-            )
-                .map((value) => value.toFixed(1))
-                .join(" ");
+            const edges = Array.from({ length: 21 }, (_unused, ind) => ind);
             const xml = await chartXML(`
-    <chart type="histogram" name="c">
+    <chart type="histogram" name="c" bins="${edges.join(" ")}">
       <shortDescription>x</shortDescription>
-      <series>${values}</series>
+      ${edges.slice(1).join(" ")}
     </chart>
     `);
 
-            // Five bins of 20 here, labeled at every one of them; the stride is
-            // what keeps a histogram of thirty bins from writing thirty numbers
-            // under itself.
-            expect(xml).toContain('hlabels="(0,20,100)"');
+            // Twenty bins, labeled every fourth cut point: 0, 4, 8, 12, 16, 20.
+            // The stride is what keeps a histogram of twenty bins from writing
+            // twenty numbers under itself, and every label still lands on a cut
+            // point.
+            expect(xml).toContain('hlabels="(0,4,20)"');
+            expect(xml.match(/<rectangle /g)?.length).eq(20);
+        });
+
+        it("numbers the axis the ordinary way for a bound far outside the bins", async () => {
+            const xml = await chartXML(`
+    <chart type="histogram" name="c" xMin="-100" xMax="100">
+      <shortDescription>x</shortDescription>
+      2 3 3 4 4 4 5 5 6 9
+    </chart>
+    `);
+
+            // Four bins of 2 carried across a box two hundred wide would want a
+            // hundred labels, which is a row of numbers with no space between
+            // them rather than an axis. A nice step of its own is what that box
+            // can carry.
+            expect(xml).toContain('bbox="(-100,0,100,6)"');
+            expect(xml).toContain('hlabels="(-100,50,100)"');
         });
 
         it("numbers the axis the ordinary way for cut points of differing widths", async () => {
@@ -606,6 +619,35 @@ describe("chart histogram prefigure tests @group4", async () => {
             expect(sv[await resolvePathToNodeIdx("edges")].stateValues.text).eq(
                 "2, 4, 6, 8, 10",
             );
+            expect(
+                getDiagnosticsByType(core).warnings.map((w) => w.code),
+            ).toContain("doenet-w0159");
+        });
+
+        it("chooses its own bins when a cut point is not finite, and says so", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="histogram" name="c" bins="0 5 Infinity">
+      <shortDescription>x</shortDescription>
+      1 2 3 6 7
+    </chart>
+    <p name="edges">$c.binEdges</p>
+    <binCounts name="b" bins="0 5 Infinity">1 2 3 6 7</binCounts>
+    <p name="counted">$b</p>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+
+            // The one thing a chart refuses that `<binCounts>` accepts: a bin
+            // with no far end is a bar a picture cannot hold, where a count of
+            // everything above 5 is a perfectly good number. So the same cut
+            // points give counts in a table and drive a chart to its own bins.
+            expect(sv[await resolvePathToNodeIdx("edges")].stateValues.text).eq(
+                "0, 2, 4, 6, 8",
+            );
+            expect(
+                sv[await resolvePathToNodeIdx("counted")].stateValues.text,
+            ).eq("3, 2");
             expect(
                 getDiagnosticsByType(core).warnings.map((w) => w.code),
             ).toContain("doenet-w0159");

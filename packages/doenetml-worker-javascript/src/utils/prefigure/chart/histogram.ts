@@ -148,7 +148,10 @@ function sturgesBinCount(count: number): number {
  * repeatedly, so that the dust of one addition is not carried into every edge
  * after it. Stops early at an edge past the top of the double range, which
  * `formatNumber` writes as `null` — a bin with no upper cut point is not one a
- * picture can hold.
+ * picture can hold — and at an edge the snap did not move past the one before
+ * it, since a bin between two equal cut points holds nothing. Either stop can
+ * leave fewer cut points than were asked for, or a single one; the callers
+ * check what came back.
  */
 function edgesFrom(lowest: number, width: number, count: number): number[] {
     const edges = [snapNumber(lowest)];

@@ -20,7 +20,7 @@ One bar per bin, adjacent with no gap, over a numeric axis of cut points. Like `
 
 The binning happens in the worker rather than in the drawing, which is the whole reason PreFigure's own `<histogram>` is not used: `$chart.binCounts` is one number per bar and `$chart.binEdges` the cut points in order, so a document can state the intervals, put the counts in a table, or ask about them in an `<answer>` beside the picture. The counting is shared with `<binCounts>`, extracted so that a table of counts and a histogram of the same column cannot disagree on the page, and `closed` is read the same way there and here: `left` by default, so a bin runs `[a, b)`, with the outermost cut point included either way so neither the smallest nor the largest observation is left out.
 
-`bins` takes either shape. One number is a number of equal-width bins and is used exactly — five bins are five bins, and `binCounts` reports five numbers. Two or more are the cut points themselves, the same list `<binCounts>` takes. Written neither way, the cut points are chosen from the data: as many bins as Sturges' rule asks for, at a width rounded up onto the 1, 2, 5 ladder and starting at a multiple of that width, so that the cut points are numbers a reader recognizes and a document can state. The horizontal axis is then labeled at those cut points, every k-th one where there are many bins, rather than at a step of its own.
+`bins` takes either shape. One number is a number of equal-width bins and is used exactly — five bins are five bins, and `binCounts` reports five numbers. Two or more are the cut points themselves, the same list `<binCounts>` takes. Written neither way, the cut points are chosen from the data: Sturges' rule sets a target number of bins, and the width is the span divided by that target, rounded *up* onto the 1, 2, 5 ladder, starting at a multiple of itself. Rounding up keeps the count at or below the target — ten values spanning 7 get four bins of 2 where Sturges asked for five — and both roundings are what make the cut points numbers a reader recognizes and a document can state. The horizontal axis is then labeled at those cut points, every k-th one where there are many bins, rather than at a step of its own.
 
 A histogram draws one series, and says so where there are more: two samples counted into the same bars would have to be stacked or drawn through each other, and neither is a reading a histogram can be given without being told which was meant. Compare two samples as box plots, or by counting them with `<binCounts>` and drawing grouped bars — both are now recipes in the "Charting a Simulation" guide.
 
@@ -30,7 +30,7 @@ Seven things are reported rather than passed over in silence:
 
 - an observation that is not a finite number, which falls in no bin;
 - a series past the first, which is not drawn;
-- a `bins` of one number that is not a whole number of bins from 1 to 1000, naming what was written;
+- a `bins` of one number that is not a whole number of bins from 1 to 1000, naming the value it was given;
 - cut points that do not climb, or that are not all finite — a bar with no far end is not one a picture can hold, which is where this parts company with `<binCounts>`;
 - an observation outside an author's own cut points, which is information rather than a warning: bins an author wrote may deliberately leave data out, and bins the chart chose always cover the data;
 - `categories`, which a histogram has no positions for — its bars are named by the cut points they run between;
