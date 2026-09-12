@@ -222,7 +222,7 @@ describe("Pretext export", async () => {
 
         source = `<ol><li>Pick: <choiceInput inline><choice>yes</choice><choice>no</choice></choiceInput> <answer type="text" handGraded expanded /></li></ol>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
-            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="5"></fillin> </p></li>`,
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="21"></fillin> </p></li>`,
         );
     });
 
@@ -270,7 +270,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<p>Short answer: <fillin characters="8"></fillin></p>"`,
+            `"<p>Short answer: <fillin characters="21"></fillin></p>"`,
         );
     });
 
@@ -296,7 +296,7 @@ describe("Pretext export", async () => {
         source = `<section><title>A</title><p>Why? <textInput expanded /></p><section><title>B</title><p>Inner</p></section></section>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported).not.toContain(`handout`);
-        expect(exported).toContain(`<fillin characters="8"></fillin>`);
+        expect(exported).toContain(`<fillin characters="21"></fillin>`);
     });
 
     it("the handout wrapped around a whole document repeats its title", async () => {
@@ -360,6 +360,35 @@ describe("Pretext export", async () => {
         source = `<answer><mathInput /><mathInput /></answer>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
             `<m><fillin characters="8"></fillin></m>`,
+        );
+    });
+
+    it("a label written on the answer is not repeated by its math input", async () => {
+        // An input inherits `label` from the answer around it, the same way it inherits
+        // `expanded`. The answer is the one that renders it — an expanded input is
+        // replaced by writing space before export, and the label has to survive that — so
+        // the input drops the copy it inherited.
+        source = `<answer><label>How many?</label>42</answer>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(
+            `How many? <m><fillin characters="8"></fillin></m>`,
+        );
+        expect(exported.match(/How many\?/g)).toHaveLength(1);
+    });
+
+    it("a label written on the answer is not repeated by its choice input", async () => {
+        source = `<answer inline><label>Pick one</label><choice credit="1">yes</choice><choice>no</choice></answer>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/Pick one/g)).toHaveLength(1);
+    });
+
+    it("a footnote exports as PreTeXt's <fn>", async () => {
+        // PreTeXt spells a footnote `<fn>`. Left unmapped, `<footnote>` reaches the
+        // fallback renderer, which emits a literal `<footnote>` that PreTeXt has no
+        // template for — so the note's text runs on inside the citing sentence.
+        source = `<p>Claim<footnote>The source.</footnote></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Claim<fn>The source.</fn></p>`,
         );
     });
 

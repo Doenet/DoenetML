@@ -56,6 +56,7 @@
             "command": "cd test/utils && vite build -c vite.dast-to-flat-dast.config.ts",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.tsx",
                 "test/utils/dast-to-flat-dast.ts",
                 "test/utils/vite.dast-to-flat-dast.config.ts"
             ],
