@@ -53,23 +53,36 @@ export function nodesToXml(
         | DastMacroFullPath,
     options: PrintOptions,
     /**
-     * Set when the caller knows the text that will follow this node would otherwise be
-     * absorbed into it. Only meaningful for macros.
+     * Set when the caller knows the character that will follow this node would otherwise
+     * be absorbed into it. Only meaningful for macros.
      */
     forceParens = false,
 ): string {
     if (Array.isArray(node)) {
         if (!node.some((n) => n.type === "pathPart")) {
             const children = mergeAdjacentTextInArray(node as DastNodes[]);
-            return children
-                .map((child, i) =>
-                    nodesToXml(
-                        child,
-                        options,
-                        followingTextWouldBeAbsorbed(children[i + 1]),
-                    ),
-                )
-                .join("");
+            const parts = children.map((child) => nodesToXml(child, options));
+            // A macro name runs on through name characters, so `$x` printed directly
+            // before the text `_0` would re-parse as a macro named `x_0`. Walk the
+            // rendered siblings from the right, and reprint any macro that would run
+            // into the one after it in its `$(...)` form. Comparing the rendered strings
+            // (rather than the nodes) means escaping, siblings that print nothing, and
+            // macros that already end in `]`, `}` or `)` all take care of themselves.
+            let nextChar = "";
+            for (let i = parts.length - 1; i >= 0; i--) {
+                const child = children[i];
+                if (
+                    (child.type === "macro" || child.type === "function") &&
+                    isNameChar(nextChar) &&
+                    isNameChar(parts[i].slice(-1))
+                ) {
+                    parts[i] = nodesToXml(child, options, true);
+                }
+                if (parts[i]) {
+                    nextChar = parts[i][0];
+                }
+            }
+            return parts.join("");
         } else {
             // If the node is an array of macro path parts, we need to convert it to a string
             return (node as DastMacroPathPart[])
@@ -296,26 +309,12 @@ function macroNeedsParens(macro: DastMacro | DastFunctionMacro): boolean {
 }
 
 /**
- * Whether serializing `next` immediately after a macro would change how that macro parses.
+ * Whether `char` can appear in the middle of a macro name, so that a macro printed
+ * immediately before it would swallow it.
  *
- * `$x` followed by the text `_0` serializes as `$x_0`, which re-parses as a macro named
- * `x_0`. When that would happen, the macro must be printed as `$(x)` instead.
+ * A `.` or `[` would also be absorbed, but v0.6 documents rely on that to express a prop
+ * access written outside the parentheses, so those are deliberately left alone.
  */
-function followingTextWouldBeAbsorbed(next: DastNodes | undefined): boolean {
-    if (!next) {
-        return false;
-    }
-    let text: string | undefined;
-    if (next.type === "text") {
-        text = next.value;
-    } else if (next.type === "cdata") {
-        text = next.value;
-    }
-    if (!text) {
-        return false;
-    }
-    // A macro name continues through name characters. (A following `.` or `[` would also
-    // be absorbed, but v0.6 documents rely on that to express a prop access written
-    // outside the parentheses, so it is deliberately left alone.)
-    return /^[a-zA-Z0-9_]/.test(text);
+function isNameChar(char: string): boolean {
+    return /^[a-zA-Z0-9_]$/.test(char);
 }

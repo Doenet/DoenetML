@@ -116,10 +116,6 @@ export class RenameRegistry {
         return target;
     }
 
-    has(name: string): boolean {
-        return this.renames.has(name);
-    }
-
     /** Whether `name` is registered *and* references to it need rewriting. */
     hasReplacement(name: string): boolean {
         return this.renames.get(name)?.replacement !== undefined;

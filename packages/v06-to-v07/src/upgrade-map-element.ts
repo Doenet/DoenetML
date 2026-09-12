@@ -1,12 +1,10 @@
 import { Plugin, unified } from "unified";
 import {
     DastElement,
-    DastMacro,
     DastRoot,
     isDastElement,
     replaceNode,
     toXml,
-    visit,
 } from "@doenet/parser";
 import { reparseAttribute } from "./reparse-attribute";
 import { AssignNamesContext, readAssignNames } from "./assign-names/context";
@@ -32,19 +30,6 @@ export const upgradeMapElement: Plugin<
             let name = toXml(node.attributes["name"]?.children).trim();
             const assignNamesValue = readAssignNames(node);
 
-            // The names that `assignNames` handed out become indices into the `<repeat>`
-            // (or `<repeatForSequence>`) that replaces this `<map>`.
-            if (assignNamesValue) {
-                name =
-                    registerCompositeAssignNames({
-                        node,
-                        assignNamesValue,
-                        fallbackBase: "repeat",
-                        context,
-                        file,
-                    }) ?? name;
-            }
-
             const templateNode = node.children.find(
                 (child) => isDastElement(child) && child.name === "template",
             );
@@ -64,6 +49,22 @@ export const upgradeMapElement: Plugin<
                 );
                 // We always must have a template and a sources.
                 return;
+            }
+
+            // The names that `assignNames` handed out become indices into the `<repeat>`
+            // (or `<repeatForSequence>`) that replaces this `<map>`. Registered only once
+            // the conversion is known to succeed: a `<map>` left behind above still
+            // carries its `assignNames`, so rewriting references to it would point them
+            // at a name that nothing ends up having.
+            if (assignNamesValue) {
+                name =
+                    registerCompositeAssignNames({
+                        node,
+                        assignNamesValue,
+                        fallbackBase: "repeat",
+                        context,
+                        file,
+                    }) ?? name;
             }
 
             const valueName = toXml(

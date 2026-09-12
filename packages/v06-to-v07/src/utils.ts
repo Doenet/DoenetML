@@ -53,12 +53,8 @@ export function collectAllNames(tree: DastRoot | DastRootV6): Set<string> {
     return names;
 }
 
-export type UniqueNameFactory = {
-    /** Reserve and return a name based on `baseName`. */
-    (baseName: string): string;
-    /** Whether `name` is still unclaimed. */
-    isFree(name: string): boolean;
-};
+/** Reserve and return a name based on `baseName`. */
+export type UniqueNameFactory = (baseName: string) => string;
 
 /**
  * Hands out names that do not collide with anything already in the document, or with
@@ -73,7 +69,7 @@ export function createUniqueNameFactory(
 ): UniqueNameFactory {
     const used = collectAllNames(tree);
 
-    const factory = ((baseName: string) => {
+    return (baseName: string) => {
         let name = baseName;
         let i = 1;
         while (used.has(name)) {
@@ -82,11 +78,7 @@ export function createUniqueNameFactory(
         }
         used.add(name);
         return name;
-    }) as UniqueNameFactory;
-
-    factory.isFree = (name: string) => !used.has(name);
-
-    return factory;
+    };
 }
 
 /**

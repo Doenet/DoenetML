@@ -3,8 +3,6 @@ import {
     DastAttribute,
     DastElement,
     DastElementContent,
-    DastMacro,
-    DastMacroPathPart,
     DastRoot,
     DastRootContent,
     isDastElement,

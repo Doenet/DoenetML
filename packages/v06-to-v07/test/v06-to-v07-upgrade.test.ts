@@ -416,6 +416,20 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
+    it("leaves references alone when a map cannot be converted", async () => {
+        // Without a `<sources>` the `<map>` is left for a human, `assignNames` and all,
+        // so its assigned names must not be rewritten into indices of a name that
+        // nothing ends up carrying.
+        source = `<map assignNames="a b"><template><p>x</p></template></map> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(source);
+        expect(res.vfile.messages.map((m) => m.reason)).toEqual([
+            "Map element must have both a template and sources children to be converted",
+        ]);
+    });
+
     it("module gets converted to its new format", async () => {
         source = `
         <module name="m">

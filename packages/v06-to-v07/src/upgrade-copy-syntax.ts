@@ -80,89 +80,86 @@ async function resolveCopyTags(
     tree: DastRoot,
     file: VFile,
 ) {
-    {
-        let referenced: {
-            node: DastElement;
-            referentType: Promise<string>;
-            referentName: string;
-        }[] = [];
+    const referenced: {
+        node: DastElement;
+        referentType: Promise<string>;
+        referentName: string;
+    }[] = [];
 
-        visit(tree, (node) => {
-            if (!isDastElement(node) || node.name !== "copy") {
-                return;
+    visit(tree, (node) => {
+        if (!isDastElement(node) || node.name !== "copy") {
+            return;
+        }
+        let referentName = toXml(node.attributes["source"]?.children);
+        if (!referentName) {
+            // No source, nothing to do
+            return;
+        }
+        // There may be a `prop` attribute which specifies which prop from `source` to copy.
+        // In the new syntax, this is always accessed with a `.<prop name>` suffix.
+        if (node.attributes["prop"]) {
+            const propName = toXml(node.attributes["prop"].children).trim();
+            if (propName) {
+                referentName += `.${propName}`;
             }
-            let referentName = toXml(node.attributes["source"]?.children);
-            if (!referentName) {
-                // No source, nothing to do
-                return;
-            }
-            // There may be a `prop` attribute which specifies which prop from `source` to copy.
-            // In the new syntax, this is always accessed with a `.<prop name>` suffix.
-            if (node.attributes["prop"]) {
-                const propName = toXml(node.attributes["prop"].children).trim();
-                if (propName) {
-                    referentName += `.${propName}`;
-                }
-                // Remove the `prop` attribute, as it is no longer needed
-                delete node.attributes["prop"];
-            }
+            // Remove the `prop` attribute, as it is no longer needed
+            delete node.attributes["prop"];
+        }
 
-            // If there is an `assignNames` attribute and no `name` attribute,
-            // then `assignNames` becomes `name`.
-            if (node.attributes["assignNames"]) {
-                if (node.attributes["name"]) {
-                    file.message(
-                        `The <copy> tag with source="${referentName}" has both "name" and "assignNames" attributes. "name" will be ignored.`,
-                        node.position?.start,
-                    );
-                    delete node.attributes["name"];
-                }
-                renameAttrInPlace(node, "assignNames", "name");
-            }
-
-            referenced.push({
-                node,
-                referentType: findReferentType(core, referentName),
-                referentName,
-            });
-        });
-
-        // Go through everything we've found and match the references up to their referent type
-        for (let {
-            node,
-            referentType: referentPromise,
-            referentName,
-        } of referenced) {
-            try {
-                const referentType = await referentPromise;
-
-                const targetTag =
-                    toXml(
-                        node.attributes["link"]?.children || [],
-                    ).toLowerCase() === "false"
-                        ? "copy"
-                        : "extend";
-                // If there is a `link` attribute, delete it as it is no longer needed
-                if (node.attributes["link"]) {
-                    delete node.attributes["link"];
-                }
-
-                // Rename the `copy` tag to the same type as the referent
-                renameAttrInPlace(node, "source", targetTag);
-                // Make sure that the `extend` attribute is prefixed with `$`
-                if (!referentName.startsWith("$")) {
-                    referentName = `$${referentName}`;
-                }
-                node.attributes[targetTag].children =
-                    reparseAttribute(referentName);
-                node.name = referentType;
-            } catch (e) {
+        // If there is an `assignNames` attribute and no `name` attribute,
+        // then `assignNames` becomes `name`.
+        if (node.attributes["assignNames"]) {
+            if (node.attributes["name"]) {
                 file.message(
-                    `Could not resolve referent type for <copy> tag with source="${referentName}": ${e}`,
+                    `The <copy> tag with source="${referentName}" has both "name" and "assignNames" attributes. "name" will be ignored.`,
                     node.position?.start,
                 );
-                continue;
+                delete node.attributes["name"];
             }
+            renameAttrInPlace(node, "assignNames", "name");
+        }
+
+        referenced.push({
+            node,
+            referentType: findReferentType(core, referentName),
+            referentName,
+        });
+    });
+
+    // Go through everything we've found and match the references up to their referent type
+    for (let {
+        node,
+        referentType: referentPromise,
+        referentName,
+    } of referenced) {
+        try {
+            const referentType = await referentPromise;
+
+            const targetTag =
+                toXml(node.attributes["link"]?.children || []).toLowerCase() ===
+                "false"
+                    ? "copy"
+                    : "extend";
+            // If there is a `link` attribute, delete it as it is no longer needed
+            if (node.attributes["link"]) {
+                delete node.attributes["link"];
+            }
+
+            // Rename the `copy` tag to the same type as the referent
+            renameAttrInPlace(node, "source", targetTag);
+            // Make sure that the `extend` attribute is prefixed with `$`
+            if (!referentName.startsWith("$")) {
+                referentName = `$${referentName}`;
+            }
+            node.attributes[targetTag].children =
+                reparseAttribute(referentName);
+            node.name = referentType;
+        } catch (e) {
+            file.message(
+                `Could not resolve referent type for <copy> tag with source="${referentName}": ${e}`,
+                node.position?.start,
+            );
+            continue;
         }
     }
 }
