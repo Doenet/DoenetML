@@ -17,11 +17,14 @@ import {
     chartLegendHasItems,
     computeBarChartGeometry,
     computeBoxChartGeometry,
+    computeHistogramChartGeometry,
     computePieChartGeometry,
     computePointChartGeometry,
     createBarChartPrefigureXML,
     createBoxChartPrefigureXML,
+    createHistogramChartPrefigureXML,
     createPieChartPrefigureXML,
+    MAX_REQUESTED_BINS,
     createPointChartPrefigureXML,
 } from "../utils/prefigure/chart";
 import { resolveSelectedStyleForTheme } from "../utils/prefigure/style";
@@ -51,7 +54,14 @@ const DEFAULT_BAR_WIDTH = 0.8;
  * the schema before its geometry lands — the chart draws nothing and says so
  * rather than falling through a branch that is not there yet.
  */
-const DRAWABLE_TYPES = new Set(["bar", "line", "scatter", "pie", "box"]);
+const DRAWABLE_TYPES = new Set([
+    "bar",
+    "line",
+    "scatter",
+    "pie",
+    "box",
+    "histogram",
+]);
 
 /**
  * A chart of its data. `type` picks which chart is drawn: one bar per value, a
@@ -159,6 +169,47 @@ export default class Chart extends BlockComponent {
                     description:
                         "A box plot per series, side by side under an axis of the series' names. A series holds raw observations rather than one value per category.",
                 },
+                {
+                    value: "histogram",
+                    description:
+                        "A histogram: one bar per bin, adjacent with no gap, over a numeric axis of cut points. A series holds raw observations, and the bars' heights are how many fall in each bin. Draws one series.",
+                },
+            ],
+        };
+
+        // The same attribute `<binCounts>` takes, read the same way, so that a
+        // table of counts and a histogram of one column can be given the same
+        // bins. One number is a number of bins rather than a cut point, which
+        // costs nothing to read: a single cut point describes no interval, so
+        // there is no list of one for it to be confused with.
+        attributes.bins = {
+            groupName: "marks",
+            createComponentOfType: "numberList",
+            description:
+                "How to divide a histogram's scale: a number of equal-width bins, or two or more cut points, each at least as large as the one before it. Omit it and the bins are chosen from the data. Only a histogram draws with it.",
+            highlighted: true,
+        };
+
+        attributes.closed = {
+            groupName: "marks",
+            description:
+                "Which end of each of a histogram's bins includes its cut point. Each outermost cut point belongs to its own bin whichever end is closed, so an observation sitting exactly on the first or the last of them is counted.",
+            createComponentOfType: "text",
+            createStateVariable: "closed",
+            defaultValue: "left",
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "left",
+                    description:
+                        "Bins are `[a, b)`, matching NumPy and the usual textbook class interval.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Bins are `(a, b]`, matching R, pandas and Excel.",
+                },
             ],
         };
 
@@ -194,7 +245,7 @@ export default class Chart extends BlockComponent {
             groupName: "axes",
             createComponentOfType: "textList",
             description:
-                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry. A box plot's positions are its series, each named by its own `<label>`.",
+                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry. A box plot's positions are its series, each named by its own `<label>`, and a histogram's are its bins, each named by the cut points it runs between.",
             highlighted: true,
         };
 
@@ -350,7 +401,7 @@ export default class Chart extends BlockComponent {
         attributes.displayValues = {
             groupName: "marks",
             description:
-                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
+                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A histogram prints how many observations fell in each bin above its bar. A box plot reports five numbers at each position rather than one, and does not draw with it.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,
@@ -877,7 +928,7 @@ export default class Chart extends BlockComponent {
         stateVariableDefinitions.categories = {
             groupName: "axes",
             description:
-                "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series.",
+                "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series, and on a histogram, whose positions are its bins.",
             public: true,
             isArray: true,
             entryPrefixes: ["category"],
@@ -888,12 +939,12 @@ export default class Chart extends BlockComponent {
             // same categories, so a series that runs short leaves the later
             // slots empty rather than shortening the axis under the others.
             //
-            // None at all on a box plot, which has no categories: each of its
-            // series is one position on the axis, so the positions are named by
-            // the series' own labels and the values within a series are
-            // observations rather than positions. Reporting one category per
-            // observation would name a hundred positions on a chart that has
-            // three.
+            // None at all on the two types whose series holds observations
+            // rather than one value per category. A box plot's positions are
+            // its series, named by their own labels; a histogram's are the bins
+            // it divided the scale into, named by the numbers they run between.
+            // Reporting one category per observation would name a hundred
+            // positions on a chart that has three.
             returnArraySizeDependencies: () => ({
                 type: {
                     dependencyType: "stateVariable",
@@ -905,7 +956,10 @@ export default class Chart extends BlockComponent {
                 },
             }),
             returnArraySize({ dependencyValues }) {
-                if (dependencyValues.type === "box") {
+                if (
+                    dependencyValues.type === "box" ||
+                    dependencyValues.type === "histogram"
+                ) {
                     return [0];
                 }
                 return [
@@ -1068,6 +1122,23 @@ export default class Chart extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "barWidth",
                 },
+                // The private name the attribute is read into, so that
+                // `usedDefault` can say whether a width was asked for at all —
+                // which is what the histogram branch below has to know, the
+                // public `barWidth` being 0.8 either way.
+                barWidthAttr: {
+                    dependencyType: "stateVariable",
+                    variableName: "barWidthAttr",
+                },
+                binsAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "bins",
+                    variableNames: ["numbers"],
+                },
+                closed: {
+                    dependencyType: "stateVariable",
+                    variableName: "closed",
+                },
                 layout: {
                     dependencyType: "stateVariable",
                     variableName: "layout",
@@ -1089,7 +1160,7 @@ export default class Chart extends BlockComponent {
                     variableName: "yMaxAttr",
                 },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, usedDefault }) {
                 // A type the attribute rejected arrives here as `null`,
                 // exactly as a missing one does, so both get the one message —
                 // which is why it says no chart was named rather than that the
@@ -1234,6 +1305,113 @@ export default class Chart extends BlockComponent {
                             codedDiagnostic({
                                 type: "warning",
                                 code: "doenet-w0155",
+                            }),
+                        );
+                    }
+
+                    return {
+                        setValue: { chartGeometry: geometry },
+                        sendDiagnostics,
+                    };
+                }
+
+                if (type === "histogram") {
+                    const geometry = computeHistogramChartGeometry({
+                        series: dependencyValues.seriesData.map(
+                            ({ label, values }) => ({ label, values }),
+                        ),
+                        bins:
+                            dependencyValues.binsAttr?.stateValues.numbers ??
+                            null,
+                        closed: dependencyValues.closed,
+                        xMinAttr: dependencyValues.xMinAttr,
+                        xMaxAttr: dependencyValues.xMaxAttr,
+                        yMinAttr: dependencyValues.yMinAttr,
+                        yMaxAttr: dependencyValues.yMaxAttr,
+                    });
+
+                    const sendDiagnostics = [];
+                    // An observation that is not a finite number falls in no
+                    // bin. Saying so matters more here than on a bar chart,
+                    // where the reader can see the empty slot: a dropped
+                    // observation lowers a bar by one and leaves nothing on
+                    // the page to notice.
+                    if (geometry.undrawnValues > 0) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0156",
+                            }),
+                        );
+                    }
+                    if (geometry.undrawnSeries > 0) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0157",
+                            }),
+                        );
+                    }
+                    if (geometry.binsProblem === "count") {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0158",
+                                args: {
+                                    bins: String(
+                                        dependencyValues.binsAttr?.stateValues
+                                            .numbers[0],
+                                    ),
+                                    maximum: String(MAX_REQUESTED_BINS),
+                                },
+                            }),
+                        );
+                    }
+                    if (geometry.binsProblem === "cutPoints") {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0159",
+                            }),
+                        );
+                    }
+                    // Information rather than a warning, and only where the
+                    // author wrote the cut points: bins the chart chose cover
+                    // the data, and bins an author chose may deliberately leave
+                    // some of it out. A reader cannot see what is missing
+                    // either way.
+                    if (geometry.uncountedValues > 0) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-i0052",
+                            }),
+                        );
+                    }
+                    // The names in `categories` are text an author wrote for a
+                    // reader, and a histogram has no positions for them to
+                    // name — the same reason a box plot reports them rather
+                    // than dropping them in silence.
+                    if (
+                        dependencyValues.categoriesAttr?.stateValues.texts
+                            ?.length > 0
+                    ) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0160",
+                            }),
+                        );
+                    }
+                    // A gap between the bars is what says the positions are
+                    // separate things, and a histogram's are neighboring
+                    // stretches of one scale, so there is no slot for a width
+                    // to be a fraction of.
+                    if (!usedDefault.barWidthAttr) {
+                        sendDiagnostics.push(
+                            codedDiagnostic({
+                                type: "warning",
+                                code: "doenet-w0161",
                             }),
                         );
                     }
@@ -1395,13 +1573,18 @@ export default class Chart extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 const geometry = dependencyValues.chartGeometry;
-                // A measured horizontal axis belongs to a point chart whose
-                // series carried an `x`, and to nothing else: `slots` is the
-                // categorical axis' positions, so a point chart that has them
-                // is one whose axis carries names instead, a bar chart's
-                // positions are always categories, a box plot's are always its
-                // series, and a pie has no axes at all.
-                if (geometry?.kind !== "point" || geometry.slots) {
+                // A measured horizontal axis belongs to a histogram, whose
+                // bars divide a numeric scale, and to a point chart whose
+                // series carried an `x`. Everywhere else there is no measured
+                // extent to report: `slots` is the categorical axis'
+                // positions, so a point chart that has them is one whose axis
+                // carries names instead, a bar chart's positions are always
+                // categories, a box plot's are always its series, and a pie
+                // has no axes at all.
+                if (
+                    geometry?.kind !== "histogram" &&
+                    (geometry?.kind !== "point" || geometry.slots)
+                ) {
                     return { setValue: { xMin: null, xMax: null } };
                 }
                 const [xMin, , xMax] = geometry.bounds;
@@ -1444,6 +1627,105 @@ export default class Chart extends BlockComponent {
                 }
                 const [, yMin, , yMax] = geometry.bounds;
                 return { setValue: { yMin, yMax } };
+            },
+        };
+
+        // The cut points a histogram divided its scale at, and how many
+        // observations fell between each pair of them.
+        //
+        // Readable back because that is the whole reason a histogram is binned
+        // here rather than by the drawing: a document can say how many fell in
+        // the tallest bin, ask about it in an `<answer>`, or put the counts in
+        // a table beside the picture. A chart of any other type reports none of
+        // either, having divided nothing.
+        //
+        // Both are read off the geometry rather than recomputed from `bins`, so
+        // that what is reported is what was drawn: cut points the chart chose
+        // for itself are reported the same way the author's are, and a `bins`
+        // that described no set of intervals reports the bins that replaced it.
+        stateVariableDefinitions.binEdges = {
+            groupName: "data",
+            highlighted: true,
+            description:
+                "The cut points a histogram's bins run between, in order: one more than the number of bins. Empty for every other type.",
+            public: true,
+            isArray: true,
+            entryPrefixes: ["binEdge"],
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnArraySizeDependencies: () => ({
+                chartGeometry: {
+                    dependencyType: "stateVariable",
+                    variableName: "chartGeometry",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                const geometry = dependencyValues.chartGeometry;
+                return [
+                    geometry?.kind === "histogram" ? geometry.edges.length : 0,
+                ];
+            },
+            returnArrayDependenciesByKey: () => ({
+                globalDependencies: {
+                    chartGeometry: {
+                        dependencyType: "stateVariable",
+                        variableName: "chartGeometry",
+                    },
+                },
+            }),
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                const geometry = globalDependencyValues.chartGeometry;
+                const edges =
+                    geometry?.kind === "histogram" ? geometry.edges : [];
+                const binEdges = {};
+                for (const arrayKey of arrayKeys) {
+                    binEdges[arrayKey] = edges[arrayKey];
+                }
+                return { setValue: { binEdges } };
+            },
+        };
+
+        stateVariableDefinitions.binCounts = {
+            groupName: "data",
+            highlighted: true,
+            description:
+                "How many observations fell in each of a histogram's bins, in order — the height of each bar. Empty for every other type.",
+            public: true,
+            isArray: true,
+            entryPrefixes: ["binCount"],
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnArraySizeDependencies: () => ({
+                chartGeometry: {
+                    dependencyType: "stateVariable",
+                    variableName: "chartGeometry",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                const geometry = dependencyValues.chartGeometry;
+                return [
+                    geometry?.kind === "histogram" ? geometry.bins.length : 0,
+                ];
+            },
+            returnArrayDependenciesByKey: () => ({
+                globalDependencies: {
+                    chartGeometry: {
+                        dependencyType: "stateVariable",
+                        variableName: "chartGeometry",
+                    },
+                },
+            }),
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                const geometry = globalDependencyValues.chartGeometry;
+                const bins =
+                    geometry?.kind === "histogram" ? geometry.bins : [];
+                const binCounts = {};
+                for (const arrayKey of arrayKeys) {
+                    binCounts[arrayKey] = bins[arrayKey]?.count;
+                }
+                return { setValue: { binCounts } };
             },
         };
 
@@ -1638,6 +1920,39 @@ export default class Chart extends BlockComponent {
                         shortDescription: dependencyValues.shortDescription,
                         darkMode,
                     });
+
+                    return {
+                        setValue: { prefigureXML: xml },
+                        sendDiagnostics: diagnostics,
+                    };
+                }
+
+                if (dependencyValues.type === "histogram") {
+                    const t = contentTranslator(dependencyValues);
+
+                    const { xml, diagnostics } =
+                        createHistogramChartPrefigureXML({
+                            geometry: dependencyValues.chartGeometry,
+                            seriesRendering,
+                            // The two cut points and the count, with the count
+                            // named: a bar's height is a number of things, and
+                            // three bare numbers in a row say nothing about
+                            // which of them is which.
+                            binAnnotationText: (parts) =>
+                                t("chart-histogram-bin", parts),
+                            widthPx,
+                            heightPx,
+                            xLabel: dependencyValues.xLabel,
+                            xLabelHasLatex: dependencyValues.xLabelHasLatex,
+                            yLabel: dependencyValues.yLabel,
+                            yLabelHasLatex: dependencyValues.yLabelHasLatex,
+                            title: dependencyValues.title,
+                            showLegend: dependencyValues.showLegend,
+                            legendPosition: dependencyValues.legendPosition,
+                            displayValues: dependencyValues.displayValues,
+                            shortDescription: dependencyValues.shortDescription,
+                            darkMode,
+                        });
 
                     return {
                         setValue: { prefigureXML: xml },

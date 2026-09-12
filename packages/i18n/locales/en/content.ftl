@@ -626,3 +626,18 @@ chart-box-summary =
 # own says nothing about why it is drawn apart from them.
 chart-box-outlier =
     outlier { $value }
+
+# What a `<chart type="histogram">` gives a screen reader on each bar it draws:
+# the stretch of the scale the bar covers, and how many observations fell in it.
+#
+# The count is named where the two cut points are not, because the position says
+# what they are — a reader hears them in the order they are drawn in, as the ends
+# of the bar — and says nothing about the third number, which is measured up the
+# other axis.
+#
+# Each number arrives as text, already written the way the chart writes the
+# numbers on its own axis, for the reason the box plot's summary gives: passed
+# as a number, a translation would format it a second time and a reader would
+# hear a different figure from the one drawn.
+chart-histogram-bin =
+    { $from } to { $to }, count { $count }

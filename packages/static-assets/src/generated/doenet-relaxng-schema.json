@@ -44813,7 +44813,21 @@
                         "line",
                         "scatter",
                         "pie",
-                        "box"
+                        "box",
+                        "histogram"
+                    ]
+                },
+                "bins": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "closed": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
                     ]
                 },
                 "aspectRatio": {
@@ -45284,6 +45298,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "closed",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which end of each of a histogram's bins includes its cut point. Each outermost cut point belongs to its own bin whichever end is closed, so an observation sitting exactly on the first or the last of them is counted.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "layout",
                     "type": "text",
                     "isArray": false,
@@ -45308,7 +45329,7 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A histogram prints how many observations fell in each bin above its bar. A box plot reports five numbers at each position rather than one, and does not draw with it.",
                     "fromAttribute": true
                 },
                 {
@@ -45448,7 +45469,7 @@
                     "name": "categories",
                     "type": "text",
                     "isArray": true,
-                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series.",
+                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series, and on a histogram, whose positions are its bins.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -45493,6 +45514,34 @@
                     "type": "number",
                     "isArray": false,
                     "description": "The highest value shown on the vertical axis, or null when the chart has no axes or was not drawn."
+                },
+                {
+                    "name": "binEdges",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "The cut points a histogram's bins run between, in order: one more than the number of bins. Empty for every other type.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "binCounts",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "How many observations fell in each of a histogram's bins, in order — the height of each bar. Empty for every other type.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "prefigureXML",

@@ -99,6 +99,7 @@
     "doenet-i0049": "index-operator-no-values",
     "doenet-i0050": "tally-values-outside-categories",
     "doenet-i0051": "attribute-value-invalid-ignoring",
+    "doenet-i0052": "chart-histogram-values-outside-bins",
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
     "doenet-w0003": "line-points-depend-on-variables",
@@ -251,5 +252,11 @@
     "doenet-w0152": "chart-pie-one-series",
     "doenet-w0153": "chart-pie-axis-name-ignored",
     "doenet-w0154": "chart-box-values-not-drawable",
-    "doenet-w0155": "chart-box-categories-ignored"
+    "doenet-w0155": "chart-box-categories-ignored",
+    "doenet-w0156": "chart-histogram-values-not-drawable",
+    "doenet-w0157": "chart-histogram-one-series",
+    "doenet-w0158": "chart-histogram-bin-count-invalid",
+    "doenet-w0159": "chart-histogram-cut-points-invalid",
+    "doenet-w0160": "chart-histogram-categories-ignored",
+    "doenet-w0161": "chart-histogram-bar-width-ignored"
 }
