@@ -5,18 +5,7 @@ import {
     isDastElement,
 } from "@doenet/parser";
 
-/**
- * How a node was reached by {@link visitAll}.
- */
-export type VisitAllInfo = {
-    via: "root" | "children" | "attribute" | "index" | "input";
-    /**
-     * The attribute name, when `via` is `"attribute"`.
-     */
-    attrName?: string;
-};
-
-type Visitor = (node: DastNodes, info: VisitAllInfo) => void;
+type Visitor = (node: DastNodes) => void;
 
 /**
  * Like `visit` from `@doenet/parser`, but it *also* descends into places that `visit`
@@ -34,21 +23,18 @@ type Visitor = (node: DastNodes, info: VisitAllInfo) => void;
  * is meant for whole-tree rewrites.
  */
 export function visitAll(tree: DastNodes, visitor: Visitor) {
-    walk(tree, { via: "root" });
+    walk(tree);
 
-    function walk(node: DastNodes, info: VisitAllInfo) {
+    function walk(node: DastNodes) {
         // Macros are visited post-order; everything else pre-order.
         const isMacro = node.type === "macro" || node.type === "function";
         if (!isMacro) {
-            visitor(node, info);
+            visitor(node);
         }
 
         if (isDastElement(node)) {
-            for (const [attrName, attr] of Object.entries(node.attributes)) {
-                walkArray(attr.children as DastNodes[], {
-                    via: "attribute",
-                    attrName,
-                });
+            for (const attr of Object.values(node.attributes)) {
+                walkArray(attr.children as DastNodes[]);
             }
         }
 
@@ -58,7 +44,7 @@ export function visitAll(tree: DastNodes, visitor: Visitor) {
             // v0.6 macros chain their props rather than flattening them into `path`.
             const accessedProp = (node as any).accessedProp;
             if (accessedProp) {
-                walk(accessedProp as DastNodes, info);
+                walk(accessedProp as DastNodes);
             }
         }
 
@@ -66,20 +52,20 @@ export function visitAll(tree: DastNodes, visitor: Visitor) {
             // A v0.6 function macro wraps a macro instead of carrying a `path`.
             const inner = (node as any).macro;
             if (inner) {
-                walk(inner as DastNodes, info);
+                walk(inner as DastNodes);
             }
             walkMacroPath(node);
             for (const inputPart of node.input || []) {
-                walkArray(inputPart as DastNodes[], { via: "input" });
+                walkArray(inputPart as DastNodes[]);
             }
         }
 
         if ("children" in node && Array.isArray(node.children)) {
-            walkArray(node.children as DastNodes[], { via: "children" });
+            walkArray(node.children as DastNodes[]);
         }
 
         if (isMacro) {
-            visitor(node, info);
+            visitor(node);
         }
     }
 
@@ -89,23 +75,23 @@ export function visitAll(tree: DastNodes, visitor: Visitor) {
             ? (node.attributes as any)
             : Object.values(node.attributes);
         for (const attr of attrs) {
-            walkArray(attr.children as DastNodes[], { via: "attribute" });
+            walkArray(attr.children as DastNodes[]);
         }
     }
 
     function walkMacroPath(node: DastMacro | DastFunctionMacro) {
         for (const part of node.path || []) {
             for (const index of part.index) {
-                walkArray(index.value as DastNodes[], { via: "index" });
+                walkArray(index.value as DastNodes[]);
             }
         }
     }
 
-    function walkArray(nodes: DastNodes[], info: VisitAllInfo) {
+    function walkArray(nodes: DastNodes[]) {
         // The array may be mutated in place while we traverse, so index rather than
         // caching the length.
         for (let i = 0; i < nodes.length; i++) {
-            walk(nodes[i], info);
+            walk(nodes[i]);
         }
     }
 }
@@ -117,11 +103,11 @@ export function visitAll(tree: DastNodes, visitor: Visitor) {
  */
 export function visitAllMacros(
     tree: DastNodes,
-    visitor: (node: DastMacro | DastFunctionMacro, info: VisitAllInfo) => void,
+    visitor: (node: DastMacro | DastFunctionMacro) => void,
 ) {
-    visitAll(tree, (node, info) => {
+    visitAll(tree, (node) => {
         if (node.type === "macro" || node.type === "function") {
-            visitor(node, info);
+            visitor(node);
         }
     });
 }

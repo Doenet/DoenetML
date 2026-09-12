@@ -253,6 +253,25 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
+    it("a blank or padded name is replaced by the name the references use", async () => {
+        // The name a reference is converted to comes from the `name` attribute's
+        // *trimmed* value, and from the assigned names when the attribute is blank, so
+        // the attribute itself has to be written back or it names something else.
+        source = `<select name=" p " assignNames="a b" numToSelect="2">x y</select> $a $b`;
+        correctSource = `<select name="p" numToSelect="2">x y</select> $p[1] $p[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<select name="" assignNames="a b" numToSelect="2">x y</select> $a $b`;
+        correctSource = `<select name="a" numToSelect="2">x y</select> $a[1] $a[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // The `<collect prop>` path builds the hoisted collect's name out of this one,
+        // so an untrimmed name there produced `$collect_ c .x`, which is not a reference.
+        source = `<collect componentTypes="point" source="panel" prop="x" name=" c " assignNames="a b" /> $a $b`;
+        correctSource = `<setup><collect componentType="point" from="$panel" name="collect_c" /></setup><mathList name="c" extend="$collect_c.x" /> $c[1] $c[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
     it("correct capitalization of componentTypes attribute", async () => {
         source = `
         <collect source="a" componentTypes="mathinput"/>

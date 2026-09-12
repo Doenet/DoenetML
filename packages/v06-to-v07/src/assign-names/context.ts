@@ -86,6 +86,12 @@ export function setCompositeName(node: DastElement, name: string) {
     const oldKey = assignNamesKey(node);
 
     if (nameAttr) {
+        // Write the name back rather than assuming the attribute already holds it:
+        // `chooseCompositeName` reads this attribute *trimmed*, and ignores it entirely
+        // when it is empty, so `name=" p "` or `name=""` would otherwise leave the
+        // element carrying something other than the name the references now point at.
+        // For a well-formed `name` this rewrites the attribute with the same value.
+        nameAttr.children = [{ type: "text", value: name }];
         deleteAssignNames(node);
         return;
     }
