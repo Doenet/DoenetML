@@ -44,11 +44,7 @@ export const upgradePathSlashesToDots: Plugin<
                 }
                 if (isDastElement(node)) {
                     for (const attr of Object.values(node.attributes)) {
-                        for (const child of attr.children) {
-                            if (isV06MacroOrFunctionMacro(child)) {
-                                macros.push(child);
-                            }
-                        }
+                        collectV06Macros(attr.children, macros);
                     }
                 }
                 for (const node of macros) {
@@ -131,6 +127,32 @@ export const upgradePathSlashesToDots: Plugin<
         });
     };
 };
+
+/**
+ * Gather the v0.6 macros in `nodes`, descending into the arguments of a function macro.
+ *
+ * The usual traversal never enters an attribute, so this is how macros inside one are
+ * found. It has to recurse: `$$f($$(g/h)(2))` is a function macro whose argument is
+ * another function macro, and converting the outer one leaves the inner one alone (see
+ * the note in `v06FunctionMacroToV07FunctionMacro`). Collecting outermost-first matches
+ * what the ordinary traversal does for macros outside an attribute.
+ */
+function collectV06Macros(
+    nodes: readonly unknown[],
+    macros: (DastMacroV6 | DastFunctionMacroV6)[],
+) {
+    for (const node of nodes) {
+        if (!isV06MacroOrFunctionMacro(node)) {
+            continue;
+        }
+        macros.push(node);
+        if (node.type === "function" && node.input) {
+            for (const argument of node.input) {
+                collectV06Macros(argument, macros);
+            }
+        }
+    }
+}
 
 /**
  * The elements whose `source` attribute names another component rather than a URL.

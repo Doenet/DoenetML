@@ -834,3 +834,43 @@ describe("v0.6-only element capitalization", () => {
         expect(xml).toEqual(`<point>(3,4)<constrainToGrid /></point>`);
     });
 });
+
+describe("regressions found by review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("converts a function macro nested in another's arguments inside an attribute", async () => {
+        // The ordinary traversal never enters an attribute, so these were left in v0.6
+        // shape — and later passes then tripped over them.
+        source = `<p a="$$f($$(g/h)(2))" />`;
+        correctSource = `<p a="$$f($$g.h(2))" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+
+        // ...and a reference inside those arguments is still renamed.
+        source = `<selectFromSequence assignNames="q r" numToSelect="2" /><p a="$$f($$(g/h)($q))" />`;
+        correctSource = `<selectFromSequence name="q" numToSelect="2" /><p a="$$f($$g.h($q[1]))" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("keeps references to a hyphenated assigned name", async () => {
+        source = `<selectFromSequence assignNames="foo-bar baz" numToSelect="2" /> $(foo-bar) $baz`;
+        correctSource = `<selectFromSequence name="foo-bar" numToSelect="2" /> $(foo-bar[1]) $(foo-bar[2])`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("turns an image's description into the accessibility text v0.7 requires", async () => {
+        // v0.6 rendered `description` as the image's `alt`; dropping it would lose the
+        // alternative text for every converted image.
+        source = `<image description="a plot of x squared" source="x.png" />`;
+        correctSource = `<image source="x.png"><shortDescription>a plot of x squared</shortDescription></image>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+});

@@ -99,10 +99,6 @@ describe("deprecated attribute upgrades", () => {
         expect(result.xml).toEqual(`<ref to="$sec">go</ref>`);
         expect(result.ruleIds).toEqual(["deprecated/ref-page"]);
 
-        result = await convert(`<image description="a plot" source="x.png" />`);
-        expect(result.xml).toEqual(`<image source="x.png" />`);
-        expect(result.ruleIds).toEqual(["deprecated/description"]);
-
         result = await convert(
             `<conditionalContent maximumNumberToShow="1"><case condition="$c">x</case></conditionalContent>`,
         );
@@ -165,6 +161,33 @@ describe("external content references", () => {
         );
         expect(result.ruleIds).toEqual([
             "external-copy/unknown-component-type",
+        ]);
+    });
+
+    it("points an external copy's assigned name at the name it kept", async () => {
+        // Deleting `assignNames` here used to leave `$a` referring to nothing.
+        const result = await convert(
+            `<copy uri="doenet:cid=abc" name="c" vmin="1" assignNames="a" /> $a`,
+        );
+        expect(result.xml).toEqual(
+            `<module copy="doenet:cid=abc" name="c" vmin="1" /> $c`,
+        );
+        expect(result.ruleIds).toEqual(["external-copy/needs-new-content-id"]);
+    });
+
+    it("reports assigned names on an external copy that cannot be mapped", async () => {
+        // More than one name addressed the replacements of a document this converter
+        // cannot read, so there is nothing to say which index each one became. Writing
+        // them into a single `name` produced an invalid one.
+        const result = await convert(
+            `<copy uri="doenet:cid=abc" vmin="1" assignNames="a b" /> $a $b`,
+        );
+        expect(result.xml).toEqual(
+            `<module copy="doenet:cid=abc" vmin="1" /> $a $b`,
+        );
+        expect(result.ruleIds).toEqual([
+            "external-copy/unmapped-assign-names",
+            "external-copy/needs-new-content-id",
         ]);
     });
 

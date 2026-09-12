@@ -103,9 +103,12 @@ const ELEMENT_RULES: Record<string, ElementRules> = {
         },
     },
     image: {
+        // v0.6 rendered `description` as the image's `alt` text. v0.7 carries that in a
+        // `<shortDescription>` child, which the reference pages describe as required for
+        // accessibility, so this must be converted rather than dropped.
         description: {
-            kind: "remove",
-            because: "v0.7 <image> has no `description`",
+            kind: "toChildElement",
+            elementName: "shortDescription",
         },
     },
     conditionalcontent: {
@@ -238,6 +241,12 @@ function applyRule(
             return;
         }
         case "toChildElement": {
+            if (!value) {
+                // An empty value carries no information, and an empty
+                // `<shortDescription>` is how v0.7 marks an image decorative.
+                delete elm.attributes[key];
+                return;
+            }
             const child: DastElementV6 = {
                 type: "element",
                 name: rule.elementName,

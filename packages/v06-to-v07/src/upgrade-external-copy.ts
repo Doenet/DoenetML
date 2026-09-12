@@ -6,7 +6,16 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
+import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
+import { breakStringInPiecesBySpacesOrParens } from "./assign-names/break-into-pieces";
+import {
+    AssignNamesContext,
+    deleteAssignNames,
+    readAssignNames,
+    setCompositeName,
+} from "./assign-names/context";
+import { makeIndexedPathPart } from "./assign-names/rename-registry";
 
 /**
  * v0.6 pulled in content from another document with `<copy uri="doenet:...">`; v0.7 does
@@ -30,7 +39,11 @@ import { renameAttrInPlace } from "./rename-attr-in-place";
  * the URI (`cid=`/`activityId=`/`doenetId=`) is not a v0.7 content id, and a `<copy uri>`
  * that passes no attributes gives no clue what component type its target is.
  */
-export const upgradeExternalCopy: Plugin<[], DastRoot, DastRoot> = () => {
+export const upgradeExternalCopy: Plugin<
+    [AssignNamesContext],
+    DastRoot,
+    DastRoot
+> = (context) => {
     return (tree, file) => {
         visit(tree, (node) => {
             if (!isDastElement(node)) {
@@ -57,13 +70,7 @@ export const upgradeExternalCopy: Plugin<[], DastRoot, DastRoot> = () => {
                     !["uri", "assignnames", "name"].includes(key.toLowerCase()),
             );
 
-            // Whatever component type this ends up being, `assignNames` becomes `name`.
-            const assignNamesKey = findKey(node, "assignNames");
-            if (assignNamesKey && !findKey(node, "name")) {
-                renameAttrInPlace(node, assignNamesKey, "name");
-            } else if (assignNamesKey) {
-                delete node.attributes[assignNamesKey];
-            }
+            convertAssignNames(node, uri, context, file);
 
             if (passedAttributes.length === 0) {
                 file.message(
@@ -92,6 +99,70 @@ export const upgradeExternalCopy: Plugin<[], DastRoot, DastRoot> = () => {
         });
     };
 };
+
+/**
+ * Give an external copy the name its references will be converted to.
+ *
+ * Whatever component type the copy turns out to be, a single assigned name is that
+ * component's `name`. When the element already carries a `name`, the assigned name is an
+ * alias for it, so references are pointed at the `name` rather than left dangling.
+ *
+ * More than one assigned name cannot be mapped: the names addressed the replacements of a
+ * document this converter cannot read, so there is nothing to say what index each one
+ * became. Those references are reported and left alone rather than guessed at.
+ */
+function convertAssignNames(
+    node: DastElement,
+    uri: string,
+    context: AssignNamesContext,
+    file: VFile,
+) {
+    const assignNamesValue = readAssignNames(node);
+    if (!assignNamesValue) {
+        deleteAssignNames(node);
+        return;
+    }
+    const origin = { elementName: node.name, position: node.position };
+    const parsed = breakStringInPiecesBySpacesOrParens(assignNamesValue);
+    const names =
+        parsed.success && parsed.pieces.every((p) => typeof p === "string")
+            ? (parsed.pieces as string[])
+            : undefined;
+
+    if (!names || names.length !== 1) {
+        file.message(
+            `assignNames="${assignNamesValue}" on <copy uri="${uri}"> could not be converted: the names refer to the replacements of an external document, and this converter cannot read it to work out which index each one became. References to those names need fixing by hand.`,
+            {
+                place: node.position,
+                ruleId: "external-copy/unmapped-assign-names",
+                source: "v06-to-v07",
+            },
+        );
+        deleteAssignNames(node);
+        return;
+    }
+
+    const [assignedName] = names;
+    const existingName = toXml(
+        node.attributes[findKey(node, "name") ?? ""]?.children ?? [],
+    ).trim();
+
+    if (existingName && existingName !== assignedName) {
+        // The element keeps the `name` it already had, so the assigned name is just
+        // another way of spelling it.
+        context.registry.register(
+            assignedName,
+            [makeIndexedPathPart(existingName, [])],
+            origin,
+            file,
+        );
+        deleteAssignNames(node);
+        return;
+    }
+
+    context.claimedNames.add(assignedName);
+    setCompositeName(node, assignedName);
+}
 
 /**
  * `<ref uri="doenet:...">` has already become `<ref to="doenet:...">` by this point, but

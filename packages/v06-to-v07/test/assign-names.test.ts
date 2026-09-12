@@ -119,12 +119,20 @@ describe("registerAssignNames", () => {
     });
 
     it("skips names that are not valid v0.7 identifiers", () => {
-        const { registry, file } = register("a-b ok");
-        expect(renameFor(registry, "a-b")).toBeUndefined();
+        const { registry, file } = register("1abc ok");
+        expect(renameFor(registry, "1abc")).toBeUndefined();
         expect(renameFor(registry, "ok")).toEqual("s[2]");
         expect(file.messages.map((m) => m.ruleId)).toEqual([
             "assign-names/invalid-name",
         ]);
+    });
+
+    it("keeps hyphenated names, which v0.7 references in parentheses", () => {
+        // `$a-b` would be a subtraction, but `$(a-b)` is not, and that is the only form
+        // v0.6 could have referenced such a name with either.
+        const { registry, file } = register("a-b ok");
+        expect(renameFor(registry, "a-b")).toEqual("s[1]");
+        expect(file.messages).toHaveLength(0);
     });
 
     it("keeps the first registration when a name is assigned twice", () => {

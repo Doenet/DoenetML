@@ -2,11 +2,14 @@ import { DastElement, DastMacroPathPart } from "@doenet/parser";
 import { VFile } from "vfile";
 
 /**
- * A name is a legal v0.7 component name *and* can be referenced with a `$` macro.
- * (v0.7 also permits `-` in a `name`, but `$a-b` parses as a subtraction, so a name we
- * intend to generate references to must not contain one.)
+ * A name is a legal v0.7 component name *and* can be referenced.
+ *
+ * A hyphen is allowed. `$a-b` would parse as a subtraction, but the parenthesized form
+ * `$(a-b)` does not, and that is the only form v0.6 could reference such a name with
+ * either. `toXml` re-adds the parentheses around any path part containing a hyphen, so
+ * `$(a-b[1])` round-trips.
  */
-export const VALID_REFERENCEABLE_NAME = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+export const VALID_REFERENCEABLE_NAME = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
 
 export function isValidReferenceableName(name: string): boolean {
     return VALID_REFERENCEABLE_NAME.test(name);
@@ -56,13 +59,13 @@ export function makeIndexedPathPart(
  * so that a reference is rewritten exactly once, no matter which plugin claimed the name.
  */
 export class RenameRegistry {
-    private renames = new Map<string, RenameTarget>();
-    private matched = new Set<string>();
+    _renames = new Map<string, RenameTarget>();
+    _matched = new Set<string>();
     /** Names carried by a `name=` attribute somewhere in the document. */
-    private existingNames: ReadonlySet<string>;
+    _existingNames: ReadonlySet<string>;
 
     constructor(existingNames: ReadonlySet<string> = new Set()) {
-        this.existingNames = existingNames;
+        this._existingNames = existingNames;
     }
 
     /**
@@ -83,7 +86,7 @@ export class RenameRegistry {
         if (!oldName) {
             return;
         }
-        const existing = this.renames.get(oldName);
+        const existing = this._renames.get(oldName);
         if (existing) {
             file.message(
                 `The name "${oldName}" is assigned by both <${existing.origin.elementName}> and <${origin.elementName}>; references to it were converted as if they referred to the first.`,
@@ -95,7 +98,7 @@ export class RenameRegistry {
             );
             return;
         }
-        if (this.existingNames.has(oldName)) {
+        if (this._existingNames.has(oldName)) {
             file.message(
                 `The name "${oldName}" assigned by <${origin.elementName}> is also used as the "name" of another component; all references to "${oldName}" were converted to point at the <${origin.elementName}> replacement.`,
                 {
@@ -105,28 +108,28 @@ export class RenameRegistry {
                 },
             );
         }
-        this.renames.set(oldName, { replacement, origin });
+        this._renames.set(oldName, { replacement, origin });
     }
 
     get(name: string): RenameTarget | undefined {
-        const target = this.renames.get(name);
+        const target = this._renames.get(name);
         if (target) {
-            this.matched.add(name);
+            this._matched.add(name);
         }
         return target;
     }
 
     /** Whether `name` is registered *and* references to it need rewriting. */
     hasReplacement(name: string): boolean {
-        return this.renames.get(name)?.replacement !== undefined;
+        return this._renames.get(name)?.replacement !== undefined;
     }
 
     get size(): number {
-        return this.renames.size;
+        return this._renames.size;
     }
 
     /** Registered names that were never referenced anywhere in the document. */
     unused(): string[] {
-        return [...this.renames.keys()].filter((n) => !this.matched.has(n));
+        return [...this._renames.keys()].filter((n) => !this._matched.has(n));
     }
 }

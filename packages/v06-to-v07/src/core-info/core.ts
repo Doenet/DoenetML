@@ -92,38 +92,60 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
 
     const core = new PublicDoenetMLCore();
 
+    async function releaseCores() {
+        try {
+            await core.terminate();
+        } catch (e) {
+            // Terminating is best-effort; a document that failed to initialize fully
+            // should not prevent the wasm core from being freed below.
+        }
+        try {
+            rustCore.free();
+        } catch (e) {
+            // Already freed.
+        }
+    }
+
     core.setSource(toXml(dast));
     core.setFlags(flags);
 
-    await core.initializeWorker({
-        activityId: "",
-        docId: "1",
-        requestedVariantIndex: 1,
-        attemptNumber: 1,
-        normalizedRoot,
-        addNodesToResolver,
-        deleteNodesFromResolver,
-        resolvePath,
-    });
+    // A document that cannot be loaded must still give back what it allocated: the caller
+    // catches this and carries on with the next document, so without the cleanup a failed
+    // document leaks a core for the rest of the batch.
+    try {
+        await core.initializeWorker({
+            activityId: "",
+            docId: "1",
+            requestedVariantIndex: 1,
+            attemptNumber: 1,
+            normalizedRoot,
+            addNodesToResolver,
+            deleteNodesFromResolver,
+            resolvePath,
+        });
 
-    const dastResult = await core.createCoreGenerateDast(
-        {
-            coreId: "",
-            cid: "",
-            initializeCounters: {},
-            theme: "light",
-        },
-        () => null,
-        () => null,
-        () => null,
-        () => null,
-        () => null,
-        () => null,
-        async () => ({ allowView: true }),
-    );
+        const dastResult = await core.createCoreGenerateDast(
+            {
+                coreId: "",
+                cid: "",
+                initializeCounters: {},
+                theme: "light",
+            },
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            async () => ({ allowView: true }),
+        );
 
-    if (!dastResult.success) {
-        throw Error(dastResult.errMsg);
+        if (!dastResult.success) {
+            throw Error(dastResult.errMsg);
+        }
+    } catch (e) {
+        await releaseCores();
+        throw e;
     }
 
     /**
@@ -148,17 +170,7 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
      * does not release the separate, larger retention on the JavaScript heap.)
      */
     async function dispose() {
-        try {
-            await core.terminate();
-        } catch (e) {
-            // Terminating is best-effort; a document that failed to initialize fully
-            // should not prevent the wasm core from being freed below.
-        }
-        try {
-            rustCore.free();
-        } catch (e) {
-            // Already freed.
-        }
+        await releaseCores();
     }
 
     return { core, rustCore, resolvePathToNodeIdx, dispose };

@@ -106,8 +106,16 @@ export function visitAllMacros(
     visitor: (node: DastMacro | DastFunctionMacro) => void,
 ) {
     visitAll(tree, (node) => {
-        if (node.type === "macro" || node.type === "function") {
-            visitor(node);
+        if (node.type !== "macro" && node.type !== "function") {
+            return;
         }
+        // A v0.6 function macro wraps its macro instead of carrying a `path`. It should
+        // already have been converted by `upgradePathSlashesToDots`, but if one survives,
+        // its inner macro is visited on its own, so skipping the wrapper loses nothing and
+        // saves the callback from a node it has no way to handle.
+        if (!Array.isArray((node as { path?: unknown }).path)) {
+            return;
+        }
+        visitor(node);
     });
 }
