@@ -23,8 +23,9 @@ kept only its `<customAttribute>` children, an `<image description="...">` lost 
 alternative text screen readers need (it now becomes the `<shortDescription>` v0.7 wants),
 an external copy's assigned name was dropped so references to it went nowhere,
 `<image source="a/b.png">` had its slashes turned into dots, and `<copy source="../f">`
-became `source="...f"`, and a function macro nested in another's arguments inside an
-attribute was left in v0.6 syntax. A document whose `<copy>` tags cannot be resolved, or
+became `source="...f"`, a function macro nested in another's arguments or indices inside
+an attribute was left in v0.6 syntax, and a `<copy>` of something the document could not
+build was renamed to `<_error>`, which is not an element anyone can write. A document whose `<copy>` tags cannot be resolved, or
 that has a `<collect assignNames="...">` with no `name` of its own, now converts instead
 of failing outright, and most problems that need an author's attention are reported with
 a rule name so they can be grouped — including a reference such as `$p.y` that reads an

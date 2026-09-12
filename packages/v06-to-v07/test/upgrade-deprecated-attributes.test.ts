@@ -186,7 +186,7 @@ describe("external content references", () => {
             `<module copy="doenet:cid=abc" vmin="1" /> $a $b`,
         );
         expect(result.ruleIds).toEqual([
-            "external-copy/unmapped-assign-names",
+            "copy/unmapped-assign-names",
             "external-copy/needs-new-content-id",
         ]);
     });
@@ -205,5 +205,44 @@ describe("external content references", () => {
         const result = await convert(`<ref to="https://doenet.org">link</ref>`);
         expect(result.xml).toEqual(`<ref to="https://doenet.org">link</ref>`);
         expect(result.ruleIds).toEqual([]);
+    });
+});
+
+describe("copy naming", () => {
+    it("reports a local copy whose assigned names cannot be mapped", async () => {
+        // How many replacements a `<copy>` has depends on what it copied, so several
+        // names cannot be turned into indices. Writing them all into one `name` produced
+        // an invalid one.
+        const result = await convert(
+            `<math name="m">5</math><copy source="m" assignNames="a b" /> $a $b`,
+        );
+        expect(result.xml).toEqual(
+            `<math name="m">5</math><copy source="m" /> $a $b`,
+        );
+        expect(result.ruleIds).toEqual(["copy/unmapped-assign-names"]);
+    });
+
+    it("does not let two copies take the same assigned name", async () => {
+        const result = await convert(
+            `<copy uri="doenet:cid=x" vmin="1" assignNames="a" /><copy uri="doenet:cid=y" vmin="2" assignNames="a" /> $a`,
+        );
+        // The first keeps the name and the references; the second is given its own.
+        expect(result.xml).toEqual(
+            `<module copy="doenet:cid=x" vmin="1" name="a" /><module copy="doenet:cid=y" vmin="2" name="copy" /> $a`,
+        );
+        expect(result.ruleIds).toContain("copy/name-already-taken");
+    });
+
+    it("does not let a copy take a name another component already has", async () => {
+        // v0.6 namespaces allowed the same assigned name to appear more than once, so a
+        // collision here says nothing about which one `$a` meant. The reference is left
+        // where it was rather than redirected at the copy.
+        const result = await convert(
+            `<point name="a">(1,2)</point><copy uri="doenet:cid=x" vmin="1" assignNames="a" /> $a`,
+        );
+        expect(result.xml).toEqual(
+            `<point name="a">(1,2)</point><module copy="doenet:cid=x" vmin="1" name="copy" /> $a`,
+        );
+        expect(result.ruleIds).toContain("copy/name-already-taken");
     });
 });

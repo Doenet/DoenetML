@@ -66,10 +66,33 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
 
     const rustCore = PublicDoenetMLCoreRust.new();
 
-    dast = normalizeDocumentDast(structuredClone(dast), true);
-    rustCore.set_source(dast as DastRootInCore, toXml(dast));
+    // Everything from here on can throw on a malformed document, and the caller carries
+    // on with the next one, so nothing may escape without giving back what it allocated.
+    let core: PublicDoenetMLCore | undefined;
 
-    const normalizedRoot = rustCore.return_normalized_dast_root();
+    async function releaseCores() {
+        try {
+            await core?.terminate();
+        } catch (e) {
+            // Terminating is best-effort; a document that failed to initialize fully
+            // should not prevent the wasm core from being freed below.
+        }
+        try {
+            rustCore.free();
+        } catch (e) {
+            // Already freed.
+        }
+    }
+
+    let normalizedRoot;
+    try {
+        dast = normalizeDocumentDast(structuredClone(dast), true);
+        rustCore.set_source(dast as DastRootInCore, toXml(dast));
+        normalizedRoot = rustCore.return_normalized_dast_root();
+    } catch (e) {
+        await releaseCores();
+        throw e;
+    }
 
     function resolvePath(
         path: PathToCheck,
@@ -90,29 +113,11 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
 
     const flags: DoenetMLFlags = { ...defaultFlags };
 
-    const core = new PublicDoenetMLCore();
-
-    async function releaseCores() {
-        try {
-            await core.terminate();
-        } catch (e) {
-            // Terminating is best-effort; a document that failed to initialize fully
-            // should not prevent the wasm core from being freed below.
-        }
-        try {
-            rustCore.free();
-        } catch (e) {
-            // Already freed.
-        }
-    }
-
-    core.setSource(toXml(dast));
-    core.setFlags(flags);
-
-    // A document that cannot be loaded must still give back what it allocated: the caller
-    // catches this and carries on with the next document, so without the cleanup a failed
-    // document leaks a core for the rest of the batch.
     try {
+        core = new PublicDoenetMLCore();
+        core.setSource(toXml(dast));
+        core.setFlags(flags);
+
         await core.initializeWorker({
             activityId: "",
             docId: "1",
@@ -148,6 +153,13 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
         throw e;
     }
 
+    // `core` is only optional so that `releaseCores` can run before it is built; past the
+    // initialization above it always exists.
+    const readyCore = core;
+    if (!readyCore) {
+        throw Error("The DoenetML core was not initialized.");
+    }
+
     /**
      * Attempts to resolve the component name `name` to a componentIdx,
      * starting the search algorithm at node `origin`.
@@ -159,7 +171,12 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
             name = name.slice(1);
         }
 
-        return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
+        return resolvePathImmediatelyToNodeIdx(
+            name,
+            rustCore,
+            readyCore,
+            origin,
+        );
     }
 
     /**
@@ -173,5 +190,5 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
         await releaseCores();
     }
 
-    return { core, rustCore, resolvePathToNodeIdx, dispose };
+    return { core: readyCore, rustCore, resolvePathToNodeIdx, dispose };
 }

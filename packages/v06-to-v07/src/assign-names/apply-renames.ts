@@ -96,11 +96,7 @@ function renameRawReferenceAttribute(
 
     let path: DastMacroPathPart[];
     try {
-        const reparsed = reparseAttribute(`$${value}`);
-        if (reparsed.length !== 1 || reparsed[0].type !== "macro") {
-            throw new Error("not a single macro");
-        }
-        path = reparsed[0].path;
+        path = parseReferencePath(value);
     } catch (e) {
         file.message(
             `Could not convert a reference to an assignNames name in ${attrName}="${value}".`,
@@ -160,4 +156,25 @@ function renamePath(
         last.index = [...last.index, ...part.index];
         return replacement;
     });
+}
+
+/**
+ * Parse the value of a dollar-less reference attribute into a path.
+ *
+ * A hyphenated name can only be written inside `$(...)`: `$foo-bar` is a subtraction. The
+ * bare form is tried first so that everything else parses exactly as it always has.
+ */
+export function parseReferencePath(value: string): DastMacroPathPart[] {
+    for (const candidate of [`$${value}`, `$(${value})`]) {
+        let reparsed;
+        try {
+            reparsed = reparseAttribute(candidate);
+        } catch (e) {
+            continue;
+        }
+        if (reparsed.length === 1 && reparsed[0].type === "macro") {
+            return reparsed[0].path;
+        }
+    }
+    throw new Error(`Could not parse "${value}" as a reference`);
 }

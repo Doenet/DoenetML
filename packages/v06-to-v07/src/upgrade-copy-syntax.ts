@@ -15,6 +15,7 @@ import {
 import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
+import { parseReferencePath } from "./assign-names/apply-renames";
 import { createCoreForLookup } from "./core-info/core";
 import { determinePropType } from "./core-info/determine-prop-type";
 
@@ -106,18 +107,8 @@ async function resolveCopyTags(
             delete node.attributes["prop"];
         }
 
-        // If there is an `assignNames` attribute and no `name` attribute,
-        // then `assignNames` becomes `name`.
-        if (node.attributes["assignNames"]) {
-            if (node.attributes["name"]) {
-                file.message(
-                    `The <copy> tag with source="${referentName}" has both "name" and "assignNames" attributes. "name" will be ignored.`,
-                    node.position?.start,
-                );
-                delete node.attributes["name"];
-            }
-            renameAttrInPlace(node, "assignNames", "name");
-        }
+        // `assignNames` has already become a `name` in `upgradeCopyElements`, which runs
+        // early enough to register the renames this pass would be too late for.
 
         referenced.push({
             node,
@@ -147,12 +138,18 @@ async function resolveCopyTags(
 
             // Rename the `copy` tag to the same type as the referent
             renameAttrInPlace(node, "source", targetTag);
-            // Make sure that the `extend` attribute is prefixed with `$`
-            if (!referentName.startsWith("$")) {
-                referentName = `$${referentName}`;
-            }
-            node.attributes[targetTag].children =
-                reparseAttribute(referentName);
+            // Build the reference from its parsed path rather than from the string, so
+            // that a name needing `$(...)` — a hyphenated one — is printed that way.
+            const bareName = referentName.startsWith("$")
+                ? referentName.slice(1)
+                : referentName;
+            node.attributes[targetTag].children = [
+                {
+                    type: "macro",
+                    path: parseReferencePath(bareName),
+                    attributes: {},
+                },
+            ];
             node.name = referentType;
         } catch (e) {
             file.message(
@@ -172,13 +169,15 @@ async function findReferentType(
     core: Awaited<ReturnType<typeof createCoreForLookup>>,
     referentName: string,
 ): Promise<string> {
-    // We need to parse `referentName` as a macro so we can pick apart its path.
-    if (!referentName.startsWith("$")) {
-        referentName = `$${referentName}`;
-    }
-    const reparsed = reparseAttribute(referentName);
-    const path = reparsed[0]?.type === "macro" ? reparsed[0].path : null;
-    if (!path) {
+    // We need to parse `referentName` as a macro so we can pick apart its path. A
+    // hyphenated name only parses inside `$(...)`, which `parseReferencePath` handles.
+    const bare = referentName.startsWith("$")
+        ? referentName.slice(1)
+        : referentName;
+    let path: DastMacroPathPart[];
+    try {
+        path = parseReferencePath(bare);
+    } catch (e) {
         throw new Error(`Could not parse referent name "${referentName}"`);
     }
 
@@ -207,7 +206,11 @@ async function findReferentType(
             }
             const foundType =
                 core.core.core?.components?.[referentIdx]?.componentType;
-            if (!foundType) {
+            // A leading underscore marks a component the author cannot write — `_error`
+            // above all, which is what a referent inside a broken part of the document
+            // resolves to. Emitting it as an element name would be worse than leaving
+            // the `<copy>` for a human.
+            if (!foundType || foundType.startsWith("_")) {
                 continue;
             }
             referentType = foundType;

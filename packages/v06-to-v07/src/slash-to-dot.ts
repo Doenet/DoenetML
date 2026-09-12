@@ -2,6 +2,7 @@ import { Plugin } from "unified";
 import {
     DastElementContent,
     DastFunctionMacro,
+    DastAttributeV6,
     DastFunctionMacroV6,
     DastMacro,
     DastMacroPathPart,
@@ -146,11 +147,41 @@ function collectV06Macros(
             continue;
         }
         macros.push(node);
-        if (node.type === "function" && node.input) {
-            for (const argument of node.input) {
-                collectV06Macros(argument, macros);
-            }
+        collectNestedV06Macros(node, macros);
+    }
+}
+
+/**
+ * The places a v0.6 macro can hold another one: a function macro's arguments, the macro
+ * its path indices are written with, its `{...}` attributes, and — for a function macro —
+ * the macro it wraps.
+ */
+function collectNestedV06Macros(
+    node: DastMacroV6 | DastFunctionMacroV6,
+    macros: (DastMacroV6 | DastFunctionMacroV6)[],
+) {
+    if (node.type === "function") {
+        for (const argument of node.input || []) {
+            collectV06Macros(argument, macros);
         }
+        if (node.macro) {
+            collectNestedV06Macros(node.macro, macros);
+        }
+        return;
+    }
+    for (const part of node.path || []) {
+        for (const index of part.index || []) {
+            collectV06Macros(index.value, macros);
+        }
+    }
+    const attributes: DastAttributeV6[] = Array.isArray(node.attributes)
+        ? node.attributes
+        : Object.values(node.attributes ?? {});
+    for (const attribute of attributes) {
+        collectV06Macros(attribute.children, macros);
+    }
+    if (node.accessedProp) {
+        collectNestedV06Macros(node.accessedProp, macros);
     }
 }
 

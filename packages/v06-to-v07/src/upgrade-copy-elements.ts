@@ -15,7 +15,10 @@ import {
     readAssignNames,
     setCompositeName,
 } from "./assign-names/context";
-import { makeIndexedPathPart } from "./assign-names/rename-registry";
+import {
+    isValidReferenceableName,
+    makeIndexedPathPart,
+} from "./assign-names/rename-registry";
 
 /**
  * v0.6 pulled in content from another document with `<copy uri="doenet:...">`; v0.7 does
@@ -39,7 +42,7 @@ import { makeIndexedPathPart } from "./assign-names/rename-registry";
  * the URI (`cid=`/`activityId=`/`doenetId=`) is not a v0.7 content id, and a `<copy uri>`
  * that passes no attributes gives no clue what component type its target is.
  */
-export const upgradeExternalCopy: Plugin<
+export const upgradeCopyElements: Plugin<
     [AssignNamesContext],
     DastRoot,
     DastRoot
@@ -56,6 +59,11 @@ export const upgradeExternalCopy: Plugin<
             if (node.name.toLowerCase() !== "copy") {
                 return;
             }
+            // Every `<copy>` needs its assigned name turned into a `name`, and it has to
+            // happen here rather than in `upgradeCopySyntax` — that runs after the
+            // references have been rewritten, too late to register anything.
+            convertAssignNames(node, context, file);
+
             const uriKey = findKey(node, "uri");
             if (!uriKey) {
                 return;
@@ -69,8 +77,6 @@ export const upgradeExternalCopy: Plugin<
                 (key) =>
                     !["uri", "assignnames", "name"].includes(key.toLowerCase()),
             );
-
-            convertAssignNames(node, uri, context, file);
 
             if (passedAttributes.length === 0) {
                 file.message(
@@ -101,19 +107,20 @@ export const upgradeExternalCopy: Plugin<
 };
 
 /**
- * Give an external copy the name its references will be converted to.
+ * Give a `<copy>` the name its references will be converted to.
  *
- * Whatever component type the copy turns out to be, a single assigned name is that
- * component's `name`. When the element already carries a `name`, the assigned name is an
- * alias for it, so references are pointed at the `name` rather than left dangling.
+ * A single assigned name is the component's `name`. When the element already carries a
+ * `name`, or when something else has taken the assigned one, the assigned name is an alias
+ * and references to it are pointed at whatever the component ends up called, rather than
+ * left dangling.
  *
- * More than one assigned name cannot be mapped: the names addressed the replacements of a
- * document this converter cannot read, so there is nothing to say what index each one
- * became. Those references are reported and left alone rather than guessed at.
+ * More than one assigned name cannot be mapped. The names addressed the replacements of
+ * the copied component, and how many of those there are depends on what was copied — for
+ * an external document, on one this converter cannot even read. Those are reported and
+ * left alone rather than guessed at.
  */
 function convertAssignNames(
     node: DastElement,
-    uri: string,
     context: AssignNamesContext,
     file: VFile,
 ) {
@@ -131,10 +138,10 @@ function convertAssignNames(
 
     if (!names || names.length !== 1) {
         file.message(
-            `assignNames="${assignNamesValue}" on <copy uri="${uri}"> could not be converted: the names refer to the replacements of an external document, and this converter cannot read it to work out which index each one became. References to those names need fixing by hand.`,
+            `assignNames="${assignNamesValue}" on <${node.name}> could not be converted: the names refer to the replacements of the copied component, and this converter cannot tell how many of those there are. References to those names need fixing by hand.`,
             {
                 place: node.position,
-                ruleId: "external-copy/unmapped-assign-names",
+                ruleId: "copy/unmapped-assign-names",
                 source: "v06-to-v07",
             },
         );
@@ -148,8 +155,8 @@ function convertAssignNames(
     ).trim();
 
     if (existingName && existingName !== assignedName) {
-        // The element keeps the `name` it already had, so the assigned name is just
-        // another way of spelling it.
+        // The element keeps the name it already had, so the assigned name is simply
+        // another way of spelling it and references can be pointed at it.
         context.registry.register(
             assignedName,
             [makeIndexedPathPart(existingName, [])],
@@ -160,7 +167,33 @@ function convertAssignNames(
         return;
     }
 
+    if (
+        !isValidReferenceableName(assignedName) ||
+        context.existingNames.has(assignedName) ||
+        context.claimedNames.has(assignedName)
+    ) {
+        // Something else is already called this. v0.6 namespaces let the same assigned
+        // name appear more than once, and flattening them brings the two together.
+        // References are deliberately left alone: `$x` most likely meant the component
+        // that already had the name, and redirecting them all here would be a guess.
+        file.message(
+            `<${node.name}> assigns the name "${assignedName}", but something else in the document is already called that. It was given a generated name instead, and references to "${assignedName}" were left pointing where they already pointed.`,
+            {
+                place: node.position,
+                ruleId: "copy/name-already-taken",
+                source: "v06-to-v07",
+            },
+        );
+        deleteAssignNames(node);
+        setCompositeName(node, context.uniqueName("copy"));
+        return;
+    }
+
     context.claimedNames.add(assignedName);
+    // Claim it in the registry too, without a replacement: references to it already
+    // resolve, but anything else assigning the same name must be told it is taken rather
+    // than silently redirecting them.
+    context.registry.register(assignedName, undefined, origin, file);
     setCompositeName(node, assignedName);
 }
 

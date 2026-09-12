@@ -8,6 +8,10 @@ import {
 } from "@doenet/parser";
 import { visitAll, visitAllMacros } from "./assign-names/visit-all";
 import { reparseAttribute } from "./reparse-attribute";
+import {
+    isPropAccess,
+    markAsPropAccess,
+} from "./assign-names/prop-access-parts";
 
 /**
  * v0.6 reached the contents of a list component through a prop: `$myMathList.maths` for
@@ -56,6 +60,13 @@ function rewritePath(path: DastMacroPathPart[]): DastMacroPathPart[] {
     const result: DastMacroPathPart[] = [path[0]];
     for (const part of path.slice(1)) {
         const previous = result[result.length - 1];
+        if (!isPropAccess(part)) {
+            // A v0.6 namespace segment can be called `maths` too — `$(g/maths)` names a
+            // component, not a list's contents — and rewriting one would change what the
+            // reference points at.
+            result.push(part);
+            continue;
+        }
         if (ALL_ITEMS_PROPS.has(part.name)) {
             previous.index = [...previous.index, ...part.index];
             continue;

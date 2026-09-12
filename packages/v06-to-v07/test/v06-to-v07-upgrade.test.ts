@@ -874,3 +874,40 @@ describe("regressions found by review", () => {
         ).toEqual(correctSource);
     });
 });
+
+describe("regressions found by the second review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("converts a function macro inside a macro's index", async () => {
+        source = `<p a="$list[$$(g/h)(2)]" />`;
+        correctSource = `<p a="$list[$$g.h(2)]" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("leaves a namespace segment that happens to be named like a list prop", async () => {
+        // `$(g/maths)` names a component; only a prop access is a list's contents.
+        source = `<p>$(g/maths)</p>`;
+        correctSource = `<p>$g.maths</p>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("never names an element after an internal component type", async () => {
+        // `1p` is not a legal name, so the point becomes an `_error` — and a `<copy>` of
+        // it used to be renamed to `<_error>`, which is not an element anyone can write.
+        source = `<point name="1p">(1,2)</point><copy source="1p" name="k" />`;
+        const { xml } = await updateSyntaxFromV06toV07(source);
+        expect(xml).not.toContain("<_error");
+        expect(xml).toContain(`<copy source="1p" name="k" />`);
+    });
+
+    it("renames and resolves a hyphenated name in a dollar-less source", async () => {
+        source = `<selectFromSequence assignNames="foo-bar baz" numToSelect="2" from="1" to="9" /><copy source="foo-bar" name="k" />`;
+        correctSource = `<selectFromSequence name="foo-bar" numToSelect="2" from="1" to="9" /><number extend="$(foo-bar[1])" name="k" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+});

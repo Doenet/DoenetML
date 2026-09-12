@@ -21,11 +21,12 @@ import { renameAttrInPlace } from "./rename-attr-in-place";
 import { removeConstraintsElement } from "./remove-constraints-element";
 import { removeDefinitionsElement } from "./remove-definitions-element";
 import { upgradeDeprecatedAttributes } from "./upgrade-deprecated-attributes";
-import { upgradeExternalCopy } from "./upgrade-external-copy";
+import { upgradeCopyElements } from "./upgrade-copy-elements";
 import { upgradeListProps } from "./upgrade-list-props";
 import { upgradeAssignNames } from "./upgrade-assign-names";
 import { applyAssignNameRenames } from "./apply-assign-name-renames";
 import { createAssignNamesContext } from "./assign-names/context";
+import { markAsPropAccess } from "./assign-names/prop-access-parts";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -63,7 +64,7 @@ export async function updateSyntaxFromV06toV07_root(
         .use(upgradeCollectElement, assignNamesContext)
         .use(upgradeMapElement, assignNamesContext)
         .use(upgradeAssignNames, assignNamesContext)
-        .use(upgradeExternalCopy, assignNamesContext)
+        .use(upgradeCopyElements, assignNamesContext)
         .use(applyAssignNameRenames, assignNamesContext)
         .use(upgradeListProps)
         .use(upgradeModuleElement)
@@ -170,11 +171,24 @@ const copySourceToExtendOrCopy: Plugin<[], DastRoot, DastRoot> = () => {
                 : `$${baseValue}`;
             copySourceAttr.name = targetTag;
             // If there is a `copyProp` attribute, then add it after a `.` to the `extend` attribute
+            let appendedPropName: string | undefined;
             if (copyPropAttr) {
-                extendValue += `.${toXml(copyPropAttr.children).trim()}`;
+                appendedPropName = toXml(copyPropAttr.children).trim();
+                extendValue += `.${appendedPropName}`;
                 delete node.attributes["copyProp"];
             }
             copySourceAttr.children = reparseAttribute(extendValue);
+            if (appendedPropName) {
+                // `copyProp` names a prop, so record that for the passes that need to
+                // tell a prop apart from a namespace segment.
+                const macro = copySourceAttr.children[0];
+                if (macro?.type === "macro") {
+                    const last = macro.path[macro.path.length - 1];
+                    if (last) {
+                        markAsPropAccess(last);
+                    }
+                }
+            }
 
             // If `assignNames` has only one name (i.e. no spaces are present),
             // it becomes the name of the component
