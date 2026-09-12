@@ -43,10 +43,12 @@ export function cutPointsAscend(edges: number[]): boolean {
  * over it per bin. However large the sample, the result is one count per bin —
  * which is the thing a `<repeat>` over the values could not give.
  *
- * The outermost cut point is always included, whichever way `closed` points, so
- * neither the smallest nor the largest value is silently dropped — this is
- * NumPy's rule for its last bin and R's `include.lowest` for its first, applied
- * symmetrically.
+ * Each outermost cut point belongs to its own bin, whichever way `closed`
+ * points, so a value sitting exactly on the first or the last of them is
+ * counted rather than falling outside every bin — this is NumPy's rule for its
+ * last bin and R's `include.lowest` for its first, applied symmetrically. A
+ * value beyond the outermost cut points is another matter: it belongs to no
+ * bin, and what to say about that is the caller's to decide.
  *
  * `NaN` is dropped before the sort, not merely left uncounted after it: a `NaN`
  * among the sorted values would break the ordering the binary searches assume

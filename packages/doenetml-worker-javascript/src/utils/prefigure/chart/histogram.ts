@@ -343,6 +343,7 @@ function edgeTicks(
     edges: number[],
     [xMin, xMax]: [number, number],
     wholeEdges: boolean,
+    edgesChosenByChart: boolean,
 ): AxisTicks {
     function niceTicks() {
         return axisTicks(xMin, xMax, tickStepForBounds(xMin, xMax, wholeEdges));
@@ -370,6 +371,14 @@ function edgeTicks(
     // pairs either side of zero are finer-grained than that and were asked to
     // match it exactly.
     //
+    // Only for cut points this file chose. Ones an author wrote carry no
+    // rounding of ours — they are the numbers they typed — so they are held to
+    // a few of the last bits a double has, which is what tells
+    // `bins="0.1 0.2 0.30000000000000004"` (even) from
+    // `bins="1000000000000 1000000000001 1000000000003"` (not). Given our own
+    // slack, the second of those is called even, and then labeled every unit
+    // at cut points half of which are not cut points at all.
+    //
     // It is nowhere near anything an author can mean by an uneven bin:
     // `bins="0 5 10 20"` is out by a whole bin width, which is a billion times
     // this. What it admits cannot be seen either, since the labels are stepped
@@ -385,10 +394,11 @@ function edgeTicks(
         (largest, edge) => Math.max(largest, Math.abs(edge)),
         0,
     );
+    const slackPerWidth = scale * (edgesChosenByChart ? 1e-11 : 1e-14);
     const uniform = edges.every(
         (edge, ind) =>
             ind === 0 ||
-            Math.abs(edge - edges[ind - 1] - width) <= scale * 1e-11,
+            Math.abs(edge - edges[ind - 1] - width) <= slackPerWidth,
     );
     // A width of nothing is two cut points that repeat, which `<binCounts>`
     // accepts and this draws as a bar of no width: there is nothing to step by.
@@ -428,7 +438,7 @@ function edgeTicks(
         // under it.
         const slack =
             Math.abs(ratio) * 1e-9 +
-            Math.abs(ratio) * (scale / width) * 1e-11 +
+            (Math.abs(ratio) * slackPerWidth) / Math.abs(width) +
             1e-9;
         return Math.abs(ratio - nearest) <= slack ? nearest : round(ratio);
     };
@@ -652,7 +662,15 @@ export function computeHistogramChartGeometry({
         edges,
         bounds: [xMin, yMin, xMax, yMax],
         tickStep: tickStepForBounds(yMin, yMax, true),
-        xTicks: edgeTicks(edges, [xMin, xMax], wholeEdges),
+        // Whether the cut points are ours or the author's decides how exactly
+        // the axis holds them to being of one width: ours carry a twelve-digit
+        // rounding, and theirs carry none.
+        xTicks: edgeTicks(
+            edges,
+            [xMin, xMax],
+            wholeEdges,
+            binsProblem !== null || requestedEdgePoints === null,
+        ),
         undrawnValues,
         uncountedValues,
         undrawnSeries: Math.max(series.length - 1, 0),

@@ -193,7 +193,7 @@ export default class Chart extends BlockComponent {
         attributes.closed = {
             groupName: "marks",
             description:
-                "Which end of each of a histogram's bins includes its cut point. The outermost cut point is always included, whichever end is closed, so neither the smallest nor the largest observation is left out.",
+                "Which end of each of a histogram's bins includes its cut point. Each outermost cut point belongs to its own bin whichever end is closed, so an observation sitting exactly on the first or the last of them is counted.",
             createComponentOfType: "text",
             createStateVariable: "closed",
             defaultValue: "left",

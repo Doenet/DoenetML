@@ -523,6 +523,30 @@ describe("chart histogram prefigure tests @group4", async () => {
             expect(xml).toContain('hlabels="(-100,50,100)"');
         });
 
+        it("tells an author's uneven cut points from their even ones, however far from zero", async () => {
+            const uneven = await chartXML(`
+    <chart type="histogram" name="c" bins="1000000000 1000000001 1000000002.001">
+      <shortDescription>x</shortDescription>
+      1000000000.5 1000000001.5
+    </chart>
+    `);
+            const even = await chartXML(`
+    <chart type="histogram" name="c" bins="1000000000 1000000001 1000000002">
+      <shortDescription>x</shortDescription>
+      1000000000.5 1000000001.5
+    </chart>
+    `);
+
+            // Cut points an author wrote carry no rounding of ours, so they are
+            // held to a few of the last bits a double has rather than to the
+            // twelve digits our own cut points are snapped to. Held to the
+            // looser one, the first pair here — bins a thousandth apart in
+            // width, a billion from zero — was called even and labeled every
+            // unit, which puts a number at 1000000002 where no cut point is.
+            expect(uneven).toContain('hlabels="(1000000000,0.5,1000000002)"');
+            expect(even).toContain('hlabels="(1000000000,1,1000000002)"');
+        });
+
         it("numbers the axis the ordinary way for cut points of differing widths", async () => {
             const xml = await chartXML(`
     <chart type="histogram" name="c" bins="0 5 10 20">

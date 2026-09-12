@@ -456,8 +456,8 @@ points round numbers.
 
 `closed` says which end of a bin includes its cut point — `left` by default, so a bin runs
 `[a, b)` and a value on a cut point is counted in the bin above it, and `closed="right"`
-makes it `(a, b]`. The outermost cut point is included either way, so neither the smallest
-nor the largest observation is left out. This is how
+makes it `(a, b]`. Each outermost cut point belongs to its own bin either way, so an
+observation sitting exactly on the first or the last of them is counted. This is how
 [`<binCounts>{:dn}`](binCounts) reads the same attribute, and both count the same data the
 same way.
 
