@@ -245,7 +245,7 @@ export default class Chart extends BlockComponent {
             groupName: "axes",
             createComponentOfType: "textList",
             description:
-                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry. A box plot's positions are its series, each named by its own `<label>`.",
+                "The name of each position in the data: the label under each position on the horizontal axis, or the name of each slice of a pie. Defaults to the position itself, 1, 2, 3 and so on. A line or scatter chart whose series carry an `x` is placed by measurement instead and has no positions to name; a bar chart and a pie name theirs whatever else the series carry. A box plot's positions are its series, each named by its own `<label>`, and a histogram's are its bins, each named by the cut points it runs between.",
             highlighted: true,
         };
 
@@ -401,7 +401,7 @@ export default class Chart extends BlockComponent {
         attributes.displayValues = {
             groupName: "marks",
             description:
-                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
+                "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A histogram prints how many observations fell in each bin above its bar. A box plot reports five numbers at each position rather than one, and does not draw with it.",
             createComponentOfType: "boolean",
             createStateVariable: "displayValues",
             defaultValue: false,

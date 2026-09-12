@@ -45329,7 +45329,7 @@
                     "name": "displayValues",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A box plot reports five numbers at each position rather than one, and does not draw with it.",
+                    "description": "Whether to print each value beside its mark: at a bar's far end — above one that rises, below one that falls — above a line or scatter chart's point, and beyond the rim of a pie's slice. A histogram prints how many observations fell in each bin above its bar. A box plot reports five numbers at each position rather than one, and does not draw with it.",
                     "fromAttribute": true
                 },
                 {

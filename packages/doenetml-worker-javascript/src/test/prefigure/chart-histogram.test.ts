@@ -10,6 +10,11 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("chart histogram prefigure tests @group4", async () => {
+    /** The `(first, step, last)` triple PreFigure numbers an axis from. */
+    function xml_hlabels(xml: string) {
+        return xml.match(/hlabels="\(([^)]*)\)"/)?.[1].split(",");
+    }
+
     /**
      * Ten observations from 2 to 9. Sturges' rule asks for five bins, and the
      * width rounded onto the 1, 2, 5 ladder gives four: 2 to 4, 4 to 6, 6 to 8
@@ -422,6 +427,33 @@ describe("chart histogram prefigure tests @group4", async () => {
             // the last, and every label lands on one of them.
             expect(xml).toContain('bbox="(2,0,10,6)"');
             expect(xml).toContain('hlabels="(2,2,10)"');
+        });
+
+        it("labels the cut points of a requested count over data that has many digits", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <chart type="histogram" name="c" bins="5">
+      <shortDescription>x</shortDescription>
+      1.234567890123456 3 5 7 9.876543210987654
+    </chart>
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            const chart = sv[await resolvePathToNodeIdx("c")].stateValues;
+            const edges: number[] = chart.binEdges;
+
+            // Five bins of one width, so the axis is labeled at their cut
+            // points — and the labels have to survive the way those cut points
+            // are built. The outermost two are the observations themselves and
+            // the interior ones are snapped to twelve significant digits one at
+            // a time, so the widths between them agree only to about that digit;
+            // an axis that asked them to agree exactly called these bins uneven
+            // and numbered itself 2, 4, 6, 8 instead.
+            const hlabels = (xml_hlabels(chart.prefigureXML) ?? []).map(Number);
+            expect(hlabels.length).eq(3);
+            expect(hlabels[0]).eq(Number(edges[0].toPrecision(12)));
+            expect(hlabels[1]).closeTo(edges[1] - edges[0], 1e-9);
+            expect(hlabels[2]).closeTo(edges[5], 1e-9);
         });
 
         it("labels every few cut points where there are many bins", async () => {

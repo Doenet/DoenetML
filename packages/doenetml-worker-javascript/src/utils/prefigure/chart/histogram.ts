@@ -353,8 +353,35 @@ function edgeTicks(
     }
 
     const width = snapNumber(edges[1] - edges[0]);
+    // Of one width, to within the precision the cut points are kept at rather
+    // than to the last bit. A requested count divides the data's own range, and
+    // the cut points that come of it are snapped to twelve significant digits
+    // one at a time while the outermost two are the observations themselves —
+    // so a width between two of them carries the rounding of both, which is
+    // about a part in 1e12 *of the cut points*, not of the width. Asked for
+    // exact equality, nearly every `bins="5"` over data with more digits than a
+    // textbook's answered "these bins are uneven" and took the fallback below,
+    // which is the branch for cut points that really are of differing widths.
+    //
+    // The slack is therefore measured against the largest cut point, at ten of
+    // those roundings. Against the *pair* being compared instead, a set of bins
+    // straddling zero still failed: the width every other width is held to is
+    // read off the first two cut points, so it carries their rounding, and the
+    // pairs either side of zero are finer-grained than that and were asked to
+    // match it exactly.
+    //
+    // It is nowhere near anything an author can mean by an uneven bin:
+    // `bins="0 5 10 20"` is out by a whole bin width, which is a billion times
+    // this. What it admits cannot be seen either, since the labels are stepped
+    // from the first cut point.
+    const scale = edges.reduce(
+        (largest, edge) => Math.max(largest, Math.abs(edge)),
+        0,
+    );
     const uniform = edges.every(
-        (edge, ind) => ind === 0 || snapNumber(edge - edges[ind - 1]) === width,
+        (edge, ind) =>
+            ind === 0 ||
+            Math.abs(edge - edges[ind - 1] - width) <= scale * 1e-11,
     );
     // A width of nothing is two cut points that repeat, which `<binCounts>`
     // accepts and this draws as a bar of no width: there is nothing to step by.
@@ -371,12 +398,23 @@ function edgeTicks(
         return niceTicks();
     }
 
-    // Snapped before it is rounded, the way `tickAtOrBeyond` snaps its own
-    // division: three bins of 0.2 reach 0.6, and `0.6 / 0.2` is
-    // 2.9999999999999996, so the unsnapped floor would stop the labels one cut
-    // point short of the last bar.
-    const firstIndex = Math.ceil(snapNumber((xMin - edges[0]) / step));
-    const lastIndex = Math.floor(snapNumber((xMax - edges[0]) / step));
+    // How many steps from the first cut point each end of the box is, taken to
+    // the nearest whole one where it is within a part in a billion of it. Three
+    // bins of 0.2 reach 0.6, and `0.6 / 0.2` is 2.9999999999999996, so a bare
+    // floor stops the labels one cut point short of the last bar; and the step
+    // is itself a twelve-digit rounding of a width, so the ratio at the far end
+    // can sit a little under the whole number it means by more than twelve
+    // digits can hide — which left a five-bin chart labeled to its fourth cut
+    // point and not its fifth.
+    const stepsToEdge = (value: number, round: (v: number) => number) => {
+        const ratio = (value - edges[0]) / step;
+        const nearest = Math.round(ratio);
+        return Math.abs(ratio - nearest) <= Math.abs(ratio) * 1e-9 + 1e-9
+            ? nearest
+            : round(ratio);
+    };
+    const firstIndex = stepsToEdge(xMin, Math.ceil);
+    const lastIndex = stepsToEdge(xMax, Math.floor);
     if (
         !(lastIndex > firstIndex) ||
         lastIndex - firstIndex + 1 > MAX_EDGE_LABELS

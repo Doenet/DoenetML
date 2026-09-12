@@ -414,9 +414,11 @@ With several series, the categories run along the axis and the series are what t
 names, so a chart of four categories and two series has four category names and two series
 labels.
 
-A bar, line or pie chart names its positions this way, and the two types whose series holds
-raw observations do not: a box plot's positions are its series, named by their own labels,
-and a histogram's are its bins, named by the cut points they run between.
+A bar chart and a pie name their positions this way, and so do a line or scatter chart whose
+series carry no `x` — with an `x` those are placed by measurement instead, and have no
+positions to name. Neither do the two types whose series holds raw observations: a box plot's
+positions are its series, named by their own labels, and a histogram's are its bins, named by
+the cut points they run between.
 
 
 
@@ -439,7 +441,7 @@ and a histogram's are its bins, named by the cut points they run between.
 <p>With <c>bins="5"</c>: $five.binEdges</p>
 
 <chart name="cut" type="histogram" size="small" bins="0 3 6 9">
-  <shortDescription>The same data at cut points of the author's</shortDescription>
+  <shortDescription>The same data at cut points written out</shortDescription>
   1 2 2 3 3 3 4 4 5 8
 </chart>
 <p>With <c>bins="0 3 6 9"</c>: $cut.binEdges, holding $cut.binCounts</p>
@@ -602,10 +604,11 @@ measured from zero whatever the axis shows, so the third chart cuts them off at 
 bottom of the frame, and the two bars that end below 5 disappear entirely, leaving only
 the one of height 9.
 
-A bar chart's vertical axis always includes zero, because its bars are measured from it, and
-so does a histogram's, whose bars are counts. A line, scatter or box chart's does not: its
-marks are measured from nothing, so the axis scales to the data alone. A pie has no axes and
-reads neither bound.
+Left to choose for itself, a bar chart's vertical axis includes zero, because its bars are
+measured from it, and so does a histogram's, whose bars are counts — a `yMin` above zero
+crops them, as the third chart above shows. A line, scatter or box chart's is not anchored to
+zero at all: its marks are measured from nothing, so the axis scales to the data alone. A pie
+has no axes and reads neither bound.
 
 
 
