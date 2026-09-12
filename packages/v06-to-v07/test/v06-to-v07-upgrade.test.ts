@@ -240,6 +240,19 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
+    it("collect with assignNames but no name", async () => {
+        // The assigned names used to be turned into indices of the `<collect>`'s own
+        // `name`, so a `<collect>` that had none stopped the conversion outright. The
+        // first assigned name now becomes the name, as on any other composite.
+        source = `<collect componentTypes="point" source="panel" assignNames="q1 q2" /> $q1 $q2`;
+        correctSource = `<collect componentType="point" from="$panel" name="q1" /> $q1[1] $q1[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<collect componentTypes="point" source="panel" prop="x" assignNames="x1 x2" /> $x1 $x2`;
+        correctSource = `<setup><collect componentType="point" from="$panel" name="collect_x1" /></setup><mathList name="x1" extend="$collect_x1.x" /> $x1[1] $x1[2]`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
     it("correct capitalization of componentTypes attribute", async () => {
         source = `
         <collect source="a" componentTypes="mathinput"/>

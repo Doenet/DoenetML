@@ -19,5 +19,6 @@ recognized however they were capitalized.
 Fixes three ways conversion could quietly lose or corrupt content: a module's `<setup>`
 kept only its `<customAttribute>` children, `<image source="a/b.png">` had its slashes
 turned into dots, and `<copy source="../f">` became `source="...f"`. A document whose
-`<copy>` tags cannot be resolved now keeps the rest of its conversion instead of failing
-outright, and problems that need an author's attention are reported with a rule name.
+`<copy>` tags cannot be resolved, or that has a `<collect assignNames="...">` with no
+`name` of its own, now converts instead of failing outright, and most problems that need
+an author's attention are reported with a rule name so they can be grouped.
