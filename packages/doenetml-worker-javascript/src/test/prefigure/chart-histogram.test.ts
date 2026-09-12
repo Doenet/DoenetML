@@ -3,6 +3,7 @@ import { getWarnings } from "./graph-prefigure.helpers";
 import { chartXML } from "./chart.helpers";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { callAction, updateMathInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -825,6 +826,160 @@ describe("chart histogram prefigure tests @group4", async () => {
     `);
 
             expect(xml).not.toContain("<legend");
+        });
+    });
+
+    describe("as the document changes", async () => {
+        it("chooses new cut points when the data moves", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="last" prefill="9" />
+    <chart type="histogram" name="c">
+      <shortDescription>x</shortDescription>
+      2 3 3 4 4 4 5 5 6 $last
+    </chart>
+    <p name="edges">$c.binEdges</p>
+    <p name="counts">$c.binCounts</p>
+    `,
+            });
+
+            let sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("edges")].stateValues.text).eq(
+                "2, 4, 6, 8, 10",
+            );
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("3, 5, 1, 1");
+
+            await updateMathInputValue({
+                latex: "29",
+                componentIdx: await resolvePathToNodeIdx("last"),
+                core,
+            });
+
+            // The bins are chosen from the data, so moving one observation
+            // moves the width, the first cut point and the number of bars at
+            // once — and a bin nothing lands in appears between the two that
+            // hold something.
+            sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("edges")].stateValues.text).eq(
+                "0, 10, 20, 30",
+            );
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("9, 0, 1");
+        });
+
+        it("draws and reports the bins a changed bin count asks for", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n" prefill="4" />
+    <chart type="histogram" name="c" bins="$n">
+      <shortDescription>x</shortDescription>
+      1 2 3 4 5 6 7 8 9 10
+    </chart>
+    <p name="edges">$c.binEdges</p>
+    <p name="counts">$c.binCounts</p>
+    `,
+            });
+
+            let sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("edges")].stateValues.text).eq(
+                "1, 3.25, 5.5, 7.75, 10",
+            );
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("3, 2, 2, 3");
+            let xml =
+                sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+            expect(xml.match(/<rectangle /g)?.length).eq(4);
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            // A reader who asks for one more bin gets one more bar and one
+            // more count: both are read off the geometry the chart redrew,
+            // so the lists grow with the picture rather than keeping the
+            // length they were first built at.
+            sv = await core.returnAllStateVariables(false, true);
+            expect(sv[await resolvePathToNodeIdx("edges")].stateValues.text).eq(
+                "1, 2.8, 4.6, 6.4, 8.2, 10",
+            );
+            expect(
+                sv[await resolvePathToNodeIdx("counts")].stateValues.text,
+            ).eq("2, 2, 2, 2, 2");
+            xml = sv[await resolvePathToNodeIdx("c")].stateValues.prefigureXML;
+            expect(xml.match(/<rectangle /g)?.length).eq(5);
+        });
+
+        it("counts the sample it has after it is drawn again", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <setup>
+      <sampleRandomNumbers name="z" type="uniform" from="0" to="1"
+        numSamples="40" />
+    </setup>
+    <chart type="histogram" name="c" bins="0 0.25 0.5 0.75 1">
+      <shortDescription>x</shortDescription>
+      $z
+    </chart>
+    <p name="counts">$c.binCounts</p>
+    <callAction name="again" actionName="resample" target="$z">
+      <label>Draw again</label>
+    </callAction>
+    `,
+            });
+
+            /**
+             * What the bars are drawn at, what the chart reports, and what the
+             * sample it currently holds actually contains. The values are
+             * copied out because the state variable hands back the live array.
+             */
+            async function readChart() {
+                const sv = await core.returnAllStateVariables(false, true);
+                const chart = sv[await resolvePathToNodeIdx("c")];
+                const heights = [
+                    ...chart.stateValues.prefigureXML.matchAll(
+                        /<rectangle [^>]*dimensions="\([\d.]+,(\d+)\)"/g,
+                    ),
+                ].map((match) => Number(match[1]));
+                const counts = sv[
+                    await resolvePathToNodeIdx("counts")
+                ].stateValues.text
+                    .split(", ")
+                    .map(Number);
+                const values = [...chart.stateValues.values];
+                const expected = [0, 0.25, 0.5, 0.75].map(
+                    (lower, ind) =>
+                        values.filter(
+                            (value: number) =>
+                                value >= lower &&
+                                (ind === 3 ? value <= 1 : value < lower + 0.25),
+                        ).length,
+                );
+                return { heights, counts, values, expected };
+            }
+
+            const before = await readChart();
+            expect(before.counts).eqls(before.expected);
+            expect(before.heights).eqls(before.expected);
+
+            await callAction({
+                componentIdx: await resolvePathToNodeIdx("again"),
+                core,
+            });
+
+            // Counted against the new sample rather than against the old
+            // counts: a chart that had not redrawn would still have bars
+            // matching what it reports, and the two of them would agree on
+            // the sample that is gone.
+            const after = await readChart();
+            expect(after.values).not.eqls(before.values);
+            expect(after.counts).eqls(after.expected);
+            expect(after.heights).eqls(after.expected);
         });
     });
 });

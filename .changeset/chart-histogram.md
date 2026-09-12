@@ -16,7 +16,7 @@ Add `<chart type="histogram">`, the last of the six chart types.
 </chart>
 ```
 
-One bar per bin, adjacent with no gap, over a numeric axis of cut points. Like `type="box"`, the `<series>` holds **raw observations**; unlike every other type, the heights are computed rather than given — each bar is as tall as the number of observations that fall in its bin. The bars are adjacent because a histogram's positions are neighboring stretches of one continuous scale, where a bar chart's are separate things.
+One bar per bin, adjacent with no gap, over a numeric axis of cut points. Like `type="box"`, the `<series>` holds **raw observations**; where a box plot summarizes them into five numbers on their own scale, a histogram **counts** them, so it is the one type whose bars are measured in something the data does not contain — each bar is as tall as the number of observations that fall in its bin. The bars are adjacent because a histogram's positions are neighboring stretches of one continuous scale, where a bar chart's are separate things.
 
 The binning happens in the worker rather than in the drawing, which is the whole reason PreFigure's own `<histogram>` is not used: `$chart.binCounts` is one number per bar and `$chart.binEdges` the cut points in order, so a document can state the intervals, put the counts in a table, or ask about them in an `<answer>` beside the picture. The counting is shared with `<binCounts>`, extracted so that a table of counts and a histogram of the same column cannot disagree on the page, and `closed` is read the same way there and here: `left` by default, so a bin runs `[a, b)`, with the outermost cut point included either way so neither the smallest nor the largest observation is left out.
 
