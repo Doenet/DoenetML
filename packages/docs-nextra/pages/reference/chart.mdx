@@ -154,6 +154,44 @@ computes them, so a table beside the picture agrees with it.
 
 
 
+### `type="histogram"`
+
+One bar per bin, adjacent with no gap, over a numeric axis of cut points. A series holds raw
+observations, and each bar is as tall as the number of them that fall in its bin. A
+histogram draws one series.
+
+
+```doenet-editor-horiz
+<chart type="histogram" size="small">
+  <shortDescription>Heights of twenty seedlings</shortDescription>
+  <xLabel>height (cm)</xLabel>
+  <yLabel>how many</yLabel>
+  4 5 5 6 6 6 7 7 7 7 8 8 8 9 9 10 11 12 12 13
+</chart>
+
+<chart type="histogram" size="small" bins="0 5 10 15">
+  <shortDescription>The same heights in bands of five</shortDescription>
+  <xLabel>height (cm)</xLabel>
+  <yLabel>how many</yLabel>
+  4 5 5 6 6 6 7 7 7 7 8 8 8 9 9 10 11 12 12 13
+</chart>
+```
+
+
+
+Write no `bins` and the cut points are chosen from the data, at a width that keeps them
+round numbers; write a number and the range is divided into that many equal bins; write two
+or more numbers and they are the cut points themselves, as in the second chart above. The
+horizontal axis is labeled at the cut points, and a value falling exactly on one is counted
+in the bin above it unless `closed="right"` says otherwise.
+
+The chart reports the bins it drew: `binEdges` is the cut points in order and `binCounts` is
+how many fell in each, so a sentence, a table or an `<answer>{:dn}` can be written beside the
+picture. [`<binCounts>{:dn}`](binCounts) counts the same data the same way, for the counts
+without a picture.
+
+
+
 ## Examples
 
 ### Example: a bar chart of counts
@@ -278,6 +316,38 @@ A box plot and a [`<summaryStatistics>{:dn}`](summaryStatistics) of the same num
 the same five, so the table and the picture can stand side by side. Naming the
 `<series>{:dn}` is what makes each of them readable into a sentence.
 
+### Example: a histogram and the counts behind it
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="times">
+    3.1 3.4 3.8 4.0 4.2 4.2 4.4 4.5 4.5 4.6
+    4.7 4.9 5.1 5.2 5.4 5.8 6.1 6.4 7.2 7.9
+  </numberList>
+</setup>
+
+<chart name="race" type="histogram" size="small" bins="3 4 5 6 7 8" displayValues>
+  <shortDescription>Finishing times of twenty runners</shortDescription>
+  <xLabel>minutes</xLabel>
+  <yLabel>runners</yLabel>
+  $times
+</chart>
+
+<p>The bins run from $race.binEdges[1] to $race.binEdges[6] minutes, and hold
+$race.binCounts runners.</p>
+
+<answer>
+  <label>How many runners finished in under five minutes?</label>
+  <number><sum>$race.binCounts[1] $race.binCounts[2]</sum></number>
+</answer>
+```
+
+
+
+The counts are numbers the document can read, which is what lets the same bins be drawn,
+described in a sentence and asked about without being written out three times.
+
 ---
 
 ## Attribute Examples
@@ -343,6 +413,53 @@ With several series, the categories run along the axis and the series are what t
 names, so a chart of four categories and two series has four category names and two series
 labels.
 
+A bar, line or pie chart names its positions this way, and the two types whose series holds
+raw observations do not: a box plot's positions are its series, named by their own labels,
+and a histogram's are its bins, named by the cut points they run between.
+
+
+
+---
+
+### Attribute Example: bins, closed
+
+
+```doenet-editor-horiz
+<chart name="auto" type="histogram" size="small">
+  <shortDescription>Bins chosen from the data</shortDescription>
+  1 2 2 3 3 3 4 4 5 8
+</chart>
+<p>Chosen: $auto.binEdges</p>
+
+<chart name="five" type="histogram" size="small" bins="5">
+  <shortDescription>The same data in five equal bins</shortDescription>
+  1 2 2 3 3 3 4 4 5 8
+</chart>
+<p>With <c>bins="5"</c>: $five.binEdges</p>
+
+<chart name="cut" type="histogram" size="small" bins="0 3 6 9">
+  <shortDescription>The same data at cut points of the author's</shortDescription>
+  1 2 2 3 3 3 4 4 5 8
+</chart>
+<p>With <c>bins="0 3 6 9"</c>: $cut.binEdges, holding $cut.binCounts</p>
+```
+
+
+
+One number is a number of equal-width bins and is used exactly; two or more are the cut
+points themselves, so `n + 1` of them make `n` bins. Written neither way, the bins are
+chosen from the data: as many as the sample size suggests, at a width that keeps the cut
+points round numbers.
+
+`closed` says which end of a bin includes its cut point — `left` by default, so a bin runs
+`[a, b)` and a value on a cut point is counted in the bin above it, and `closed="right"`
+makes it `(a, b]`. The outermost cut point is included either way, so neither the smallest
+nor the largest observation is left out. This is how
+[`<binCounts>{:dn}`](binCounts) reads the same attribute, and both count the same data the
+same way.
+
+Only a histogram divides its data, so these are the histogram's alone.
+
 
 
 ---
@@ -375,6 +492,9 @@ positive ones. A chart of one series looks the same either way.
 parts: the second chart's middle bar is 9 and 5 rather than 14. Give a stacked chart
 segments too thin to label and the numbers will run together, since each is drawn at the
 top of its own segment.
+
+`layout` is a bar chart's alone: it says how several series share one category's slot, and
+no other type puts two series in the same place.
 
 
 
@@ -443,6 +563,10 @@ legend and for one with nothing to name — series that carry no label, or named
 no value that could be drawn. On a pie there is something to name as soon as a slice is
 drawn.
 
+A bar, line, scatter or histogram chart's legend names its series, and a pie's names its
+slices. A box plot draws none: its series are already named on the axis, under the box drawn
+from each.
+
 
 
 ---
@@ -477,9 +601,10 @@ measured from zero whatever the axis shows, so the third chart cuts them off at 
 bottom of the frame, and the two bars that end below 5 disappear entirely, leaving only
 the one of height 9.
 
-A bar chart's vertical axis always includes zero, because its bars are measured from it. A
-line or scatter chart's does not: its points are measured from nothing, so the axis scales
-to the data alone.
+A bar chart's vertical axis always includes zero, because its bars are measured from it, and
+so does a histogram's, whose bars are counts. A line, scatter or box chart's does not: its
+marks are measured from nothing, so the axis scales to the data alone. A pie has no axes and
+reads neither bound.
 
 
 
@@ -505,9 +630,10 @@ to the data alone.
 
 
 The horizontal counterpart of `yMin` and `yMax`, and only for a chart whose horizontal axis
-carries numbers. On a categorical axis the positions are 1, 2, 3 whatever the categories
-say, so there is nothing to bound: a bar chart, and a line or scatter chart no series of
-which carries an `x`, ignore these and report nothing for them.
+carries numbers — a histogram, and a line or scatter chart whose series carry an `x`. On a
+categorical axis the positions are 1, 2, 3 whatever the categories say, so there is nothing
+to bound: a bar chart, a box plot, and a line or scatter chart no series of which carries an
+`x`, report nothing for them.
 
 
 
@@ -565,7 +691,8 @@ with them off the line carries a single annotation for the whole series instead.
 
 `size` sets the width and `aspectRatio` the width over the height, whichever chart is
 drawn. `barWidth` is bar-only: it says how much of its slot each category fills, and the
-series of a category divide that between them. A `width` may be given instead of a `size`,
+series of a category divide that between them. A histogram's bars are adjacent, with no gap
+to widen into, and a box's width is fixed. A `width` may be given instead of a `size`,
 and picks the nearest preset rather than being used exactly, so `width="400px"` draws the
 same chart as `size="medium"`.
 
@@ -625,3 +752,32 @@ Every `<series>{:dn}` reports `minimum`, `quartile1`, `median`, `quartile3`, `ma
 `outliers` about the values it holds, whichever chart was drawn from them, so a sentence
 beside the picture can say what the picture shows. `outliers` is the observations a box plot
 draws as points beyond its whiskers.
+
+### Property Example: binEdges, binCounts
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="scores">
+    52 61 63 68 70 71 75 78 84 91 55 58 60 62 65 66 70 72 88 94
+  </numberList>
+</setup>
+
+<chart name="h" type="histogram" size="small">
+  <shortDescription>Twenty scores</shortDescription>
+  <xLabel>score</xLabel>
+  <yLabel>how many</yLabel>
+  $scores
+</chart>
+
+<p>Cut points: $h.binEdges</p>
+<p>Counts: $h.binCounts</p>
+<p>The tallest bin holds <number><max>$h.binCounts</max></number> of the
+<number><count>$scores</count></number> scores.</p>
+```
+
+
+
+A histogram reports the bins it drew, whether the cut points were written out or chosen from
+the data, so a document can state them without repeating them. `binEdges` has one more entry
+than `binCounts`: `n + 1` cut points make `n` bins.

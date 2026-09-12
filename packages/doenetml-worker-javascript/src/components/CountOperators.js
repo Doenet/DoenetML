@@ -8,6 +8,7 @@ import {
 import { returnListTypeAttribute } from "../utils/listIndexOperators";
 import { returnBreakStringsIntoMathsBySpacesSugarInstruction } from "../utils/mathOperatorChildren";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { countValuesInBins, cutPointsAscend } from "../utils/binning";
 
 /**
  * Operators that answer *how many*: `<tally>` counts exact matches per
@@ -605,18 +606,15 @@ export class BinCounts extends CountingBaseListOperator {
 }
 
 /**
- * Count how many of `values` fall in each bin defined by `edges`.
+ * Count how many of `values` fall in each bin defined by `edges`, with a
+ * message wherever `bins` does not describe a set of intervals to count
+ * between.
  *
- * Implemented by sorting once and then binary-searching for each cut point,
- * rather than testing every value against every bin: the sample is the large
- * input here, so the work is one sort of it plus a cost per bin, not a pass
- * over it per bin. However large the sample, the result is one count per bin —
- * which is the thing a `<repeat>` over the values could not give.
- *
- * The outermost cut point is always included, whichever way `closed` points, so
- * neither the smallest nor the largest value is silently dropped — this is
- * NumPy's rule for its last bin and R's `include.lowest` for its first, applied
- * symmetrically.
+ * The counting is `utils/binning.ts`; what is here is everything `<binCounts>`
+ * says about a list of cut points that cannot be counted between. A chart
+ * binning the same data reaches the same counting through the same function and
+ * says something different about the same bad list, having a picture to draw
+ * instead.
  */
 function countInBins({ values, numeric, edges, closed }) {
     /** `bins` does not describe a set of intervals, so there are no counts. */
@@ -647,18 +645,10 @@ function countInBins({ values, numeric, edges, closed }) {
     // A cut point below the one before it describes a bin running backwards,
     // which counting cannot make sense of: the count of a bin `[a, b)` with
     // `b < a` comes out negative. Reported rather than repaired by sorting,
-    // because which order the author meant is exactly what is unclear. Equal
-    // adjacent cut points are allowed — they name an empty bin, which is a
-    // coherent thing to ask for — matching NumPy, which likewise rejects only
-    // a decrease.
-    //
-    // Phrased as "every cut point is at least the one before it" rather than
-    // "none is below it" so that a `NaN` cut point fails the test too — every
-    // comparison against a `NaN` is false, so the negated phrasing would let
-    // one through. `bins="1 x 5"` produces one: the `x` becomes a `<number>`
-    // whose content does not parse. Nothing sorts below a `NaN`, so the
-    // searches below would report the bin *ending* at it as a negative count.
-    if (!edges.every((edge, ind) => ind === 0 || edge >= edges[ind - 1])) {
+    // because which order the author meant is exactly what is unclear. A `NaN`
+    // cut point fails the same test and is reported the same way; `bins="1 x 5"`
+    // produces one, the `x` becoming a `<number>` whose content does not parse.
+    if (!cutPointsAscend(edges)) {
         return noBins(
             codedDiagnostic({ type: "warning", code: "doenet-w0141" }),
         );
@@ -681,64 +671,16 @@ function countInBins({ values, numeric, edges, closed }) {
         };
     }
 
-    // `NaN` is dropped before the sort, not merely left uncounted after it. A
-    // `NaN` among the sorted values would break the ordering the binary
-    // searches below assume and so miscount its *neighbors* too. It can get
-    // this far because `allAreNumeric` asks each child whether it is a number
-    // by type, and a `<number>` whose content does not parse still says yes.
-    const sorted = values
-        .map((value) => value.numericalValue)
-        .filter((value) => !Number.isNaN(value))
-        .sort((a, b) => a - b);
-
-    /** How many sorted values are strictly less than `x`. */
-    function countBelow(x) {
-        let low = 0,
-            high = sorted.length;
-        while (low < high) {
-            const mid = (low + high) >> 1;
-            if (sorted[mid] < x) {
-                low = mid + 1;
-            } else {
-                high = mid;
-            }
-        }
-        return low;
-    }
-
-    /** How many sorted values are less than or equal to `x`. */
-    function countAtMost(x) {
-        let low = 0,
-            high = sorted.length;
-        while (low < high) {
-            const mid = (low + high) >> 1;
-            if (sorted[mid] <= x) {
-                low = mid + 1;
-            } else {
-                high = mid;
-            }
-        }
-        return low;
-    }
-
-    const numBins = edges.length - 1;
-    const counts = [];
-
-    for (let bin = 0; bin < numBins; bin++) {
-        const lower = edges[bin];
-        const upper = edges[bin + 1];
-
-        if (closed === "right") {
-            // `(a, b]`, except the first bin, which also takes its lower edge.
-            const below = bin === 0 ? countBelow(lower) : countAtMost(lower);
-            counts.push(countAtMost(upper) - below);
-        } else {
-            // `[a, b)`, except the last bin, which also takes its upper edge.
-            const atOrBelow =
-                bin === numBins - 1 ? countAtMost(upper) : countBelow(upper);
-            counts.push(atOrBelow - countBelow(lower));
-        }
-    }
+    // The counting itself is `utils/binning.ts`, shared with
+    // `<chart type="histogram">` so that a table of counts and a histogram of
+    // the same column cannot disagree on the page. A value that is a number by
+    // type but does not parse to one reaches here as a `NaN`, which that
+    // function drops.
+    const counts = countValuesInBins({
+        values: values.map((value) => value.numericalValue),
+        edges,
+        closed,
+    });
 
     return { counts, labels: null };
 }

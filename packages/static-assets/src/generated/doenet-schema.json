@@ -36498,7 +36498,8 @@
                         "line",
                         "scatter",
                         "pie",
-                        "box"
+                        "box",
+                        "histogram"
                     ],
                     "autocompleteValues": [
                         {
@@ -36520,6 +36521,38 @@
                         {
                             "value": "box",
                             "description": "A box plot per series, side by side under an axis of the series' names. A series holds raw observations rather than one value per category."
+                        },
+                        {
+                            "value": "histogram",
+                            "description": "A histogram: one bar per bin, adjacent with no gap, over a numeric axis of cut points. A series holds raw observations, and the bars' heights are how many fall in each bin. Draws one series."
+                        }
+                    ],
+                    "type": "keyword"
+                },
+                {
+                    "name": "bins",
+                    "description": "How to divide a histogram's scale: a number of equal-width bins, or two or more cut points, each at least as large as the one before it. Omit it and the bins are chosen from the data. Only a histogram draws with it.",
+                    "groupName": "marks",
+                    "highlighted": true,
+                    "type": "numberList"
+                },
+                {
+                    "name": "closed",
+                    "description": "Which end of each of a histogram's bins includes its cut point. The outermost cut point is always included, whichever end is closed, so neither the smallest nor the largest observation is left out.",
+                    "groupName": "marks",
+                    "defaultValue": "left",
+                    "values": [
+                        "left",
+                        "right"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "left",
+                            "description": "Bins are `[a, b)`, matching NumPy and the usual textbook class interval."
+                        },
+                        {
+                            "value": "right",
+                            "description": "Bins are `(a, b]`, matching R, pandas and Excel."
                         }
                     ],
                     "type": "keyword"
@@ -36767,6 +36800,14 @@
                     "highlighted": true
                 },
                 {
+                    "name": "closed",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which end of each of a histogram's bins includes its cut point. The outermost cut point is always included, whichever end is closed, so neither the smallest nor the largest observation is left out.",
+                    "fromAttribute": true,
+                    "groupName": "marks"
+                },
+                {
                     "name": "layout",
                     "type": "text",
                     "isArray": false,
@@ -36943,7 +36984,7 @@
                     "name": "categories",
                     "type": "text",
                     "isArray": true,
-                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series.",
+                    "description": "The name of each position in the data, in order: the label under each bar, or the name of each slice of a pie. Empty on a box plot, whose positions are its series, and on a histogram, whose positions are its bins.",
                     "groupName": "axes",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
@@ -36995,6 +37036,38 @@
                     "isArray": false,
                     "description": "The highest value shown on the vertical axis, or null when the chart has no axes or was not drawn.",
                     "groupName": "axes"
+                },
+                {
+                    "name": "binEdges",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "The cut points a histogram's bins run between, in order: one more than the number of bins. Empty for every other type.",
+                    "groupName": "data",
+                    "highlighted": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "binCounts",
+                    "type": "number",
+                    "isArray": true,
+                    "description": "How many observations fell in each of a histogram's bins, in order — the height of each bar. Empty for every other type.",
+                    "groupName": "data",
+                    "highlighted": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
                 },
                 {
                     "name": "prefigureXML",

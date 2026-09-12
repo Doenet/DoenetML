@@ -375,7 +375,7 @@ const TITLE_SCALE = 1.4;
 export const TITLE_MARGIN = 14 * TITLE_SCALE + 10;
 
 /** A run of labeled values on one axis. */
-type AxisTicks = { first: number; last: number; step: number };
+export type AxisTicks = { first: number; last: number; step: number };
 
 /**
  * The run of labeled values inside `min`…`max`, a whole number of steps from
